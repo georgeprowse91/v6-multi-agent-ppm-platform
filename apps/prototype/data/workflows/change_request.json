@@ -1,0 +1,103 @@
+{
+  "id": "wf_change_request",
+  "name": "Change Request Control",
+  "version": "1.0",
+  "entity_type": "change_request",
+  "steps": [
+    {
+      "id": "log",
+      "name": "Log & Categorise Change",
+      "agent_id": 17,
+      "required_roles": [
+        "ProjectManager",
+        "PMO",
+        "Admin"
+      ],
+      "next": [
+        "impact"
+      ]
+    },
+    {
+      "id": "impact",
+      "name": "Impact Analysis (Scope/Schedule/Cost/Resources)",
+      "agent_id": 17,
+      "required_roles": [
+        "ProjectManager",
+        "Finance",
+        "ResourceManager",
+        "Admin"
+      ],
+      "outputs": [
+        "impact.report"
+      ],
+      "next": [
+        "approve_change"
+      ]
+    },
+    {
+      "id": "approve_change",
+      "name": "Approval Gate: Change Control Board",
+      "agent_id": 3,
+      "required_roles": [
+        "PMO",
+        "Executive",
+        "Admin"
+      ],
+      "gate": true,
+      "next_on_approve": [
+        "update_baselines"
+      ],
+      "next_on_reject": [
+        "end_rejected"
+      ]
+    },
+    {
+      "id": "update_baselines",
+      "name": "Update Baselines & Configuration Items",
+      "agent_id": 17,
+      "required_roles": [
+        "ProjectManager",
+        "Admin"
+      ],
+      "outputs": [
+        "baseline.updated"
+      ],
+      "next": [
+        "notify"
+      ]
+    },
+    {
+      "id": "notify",
+      "name": "Notify Stakeholders",
+      "agent_id": 21,
+      "required_roles": [
+        "ProjectManager",
+        "Admin"
+      ],
+      "outputs": [
+        "comms.sent"
+      ],
+      "next": [
+        "end_done"
+      ]
+    },
+    {
+      "id": "end_done",
+      "name": "Change Applied",
+      "agent_id": 2,
+      "required_roles": [
+        "Any"
+      ],
+      "terminal": true
+    },
+    {
+      "id": "end_rejected",
+      "name": "Change Rejected",
+      "agent_id": 2,
+      "required_roles": [
+        "Any"
+      ],
+      "terminal": true
+    }
+  ]
+}

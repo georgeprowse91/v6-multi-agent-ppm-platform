@@ -1,0 +1,260 @@
+{
+  "id": "wf_intake_to_delivery",
+  "name": "Intake → Business Case → Portfolio Decision → Delivery Setup",
+  "version": "1.0",
+  "entity_type": "intake",
+  "steps": [
+    {
+      "id": "classify",
+      "name": "Classify & Triage Intake",
+      "agent_id": 4,
+      "required_roles": [
+        "PMO",
+        "PortfolioManager",
+        "Admin"
+      ],
+      "outputs": [
+        "intake.enriched"
+      ],
+      "next": [
+        "approve_intake"
+      ]
+    },
+    {
+      "id": "approve_intake",
+      "name": "Approval Gate: Intake",
+      "agent_id": 3,
+      "required_roles": [
+        "PMO",
+        "Executive",
+        "Admin"
+      ],
+      "gate": true,
+      "next_on_approve": [
+        "business_case"
+      ],
+      "next_on_reject": [
+        "end_rejected"
+      ]
+    },
+    {
+      "id": "business_case",
+      "name": "Generate Business Case & Investment Analysis",
+      "agent_id": 5,
+      "required_roles": [
+        "PortfolioManager",
+        "Finance",
+        "Admin"
+      ],
+      "outputs": [
+        "artifact.business_case"
+      ],
+      "next": [
+        "portfolio_score"
+      ]
+    },
+    {
+      "id": "portfolio_score",
+      "name": "Score & Optimise Portfolio",
+      "agent_id": 6,
+      "required_roles": [
+        "PortfolioManager",
+        "Executive",
+        "Admin"
+      ],
+      "outputs": [
+        "decision.recommendation"
+      ],
+      "next": [
+        "approve_funding"
+      ]
+    },
+    {
+      "id": "approve_funding",
+      "name": "Approval Gate: Funding / Prioritisation",
+      "agent_id": 3,
+      "required_roles": [
+        "Executive",
+        "Finance",
+        "Admin"
+      ],
+      "gate": true,
+      "next_on_approve": [
+        "program_setup"
+      ],
+      "next_on_reject": [
+        "end_deferred"
+      ]
+    },
+    {
+      "id": "program_setup",
+      "name": "Create Program & Benefits KPIs",
+      "agent_id": 7,
+      "required_roles": [
+        "ProgramManager",
+        "PMO",
+        "Admin"
+      ],
+      "outputs": [
+        "program.created"
+      ],
+      "next": [
+        "project_charter"
+      ]
+    },
+    {
+      "id": "project_charter",
+      "name": "Generate Project Charter & Scope Baseline",
+      "agent_id": 8,
+      "required_roles": [
+        "ProjectManager",
+        "PMO",
+        "Admin"
+      ],
+      "outputs": [
+        "artifact.charter",
+        "wbs.created"
+      ],
+      "next": [
+        "governance_setup"
+      ]
+    },
+    {
+      "id": "governance_setup",
+      "name": "Configure Lifecycle & Governance",
+      "agent_id": 9,
+      "required_roles": [
+        "PMO",
+        "ProjectManager",
+        "Admin"
+      ],
+      "outputs": [
+        "gates.configured"
+      ],
+      "next": [
+        "schedule_plan"
+      ]
+    },
+    {
+      "id": "schedule_plan",
+      "name": "Create Schedule Plan & Baseline",
+      "agent_id": 10,
+      "required_roles": [
+        "ProjectManager",
+        "Admin"
+      ],
+      "outputs": [
+        "schedule.baselined"
+      ],
+      "next": [
+        "resource_plan"
+      ]
+    },
+    {
+      "id": "resource_plan",
+      "name": "Plan Resources & Capacity",
+      "agent_id": 11,
+      "required_roles": [
+        "ResourceManager",
+        "ProjectManager",
+        "Admin"
+      ],
+      "outputs": [
+        "allocations.recommended"
+      ],
+      "next": [
+        "financial_baseline"
+      ]
+    },
+    {
+      "id": "financial_baseline",
+      "name": "Set Budget Baseline & Tracking",
+      "agent_id": 12,
+      "required_roles": [
+        "Finance",
+        "ProjectManager",
+        "Admin"
+      ],
+      "outputs": [
+        "budget.baselined"
+      ],
+      "next": [
+        "risk_register"
+      ]
+    },
+    {
+      "id": "risk_register",
+      "name": "Create Initial Risk Register",
+      "agent_id": 15,
+      "required_roles": [
+        "ProjectManager",
+        "PMO",
+        "Admin"
+      ],
+      "outputs": [
+        "risks.created"
+      ],
+      "next": [
+        "compliance_map"
+      ]
+    },
+    {
+      "id": "compliance_map",
+      "name": "Map Compliance Controls & Data Classification",
+      "agent_id": 16,
+      "required_roles": [
+        "Compliance",
+        "Admin"
+      ],
+      "outputs": [
+        "compliance.mapped"
+      ],
+      "next": [
+        "comms_plan"
+      ]
+    },
+    {
+      "id": "comms_plan",
+      "name": "Set Stakeholders & Communications Plan",
+      "agent_id": 21,
+      "required_roles": [
+        "ProjectManager",
+        "PMO",
+        "Admin"
+      ],
+      "outputs": [
+        "comms.created"
+      ],
+      "next": [
+        "end_ready"
+      ]
+    },
+    {
+      "id": "end_ready",
+      "name": "Delivery Setup Complete",
+      "agent_id": 2,
+      "required_roles": [
+        "Any"
+      ],
+      "terminal": true
+    },
+    {
+      "id": "end_deferred",
+      "name": "Deferred / Backlog",
+      "agent_id": 2,
+      "required_roles": [
+        "Any"
+      ],
+      "terminal": true
+    },
+    {
+      "id": "end_rejected",
+      "name": "Rejected",
+      "agent_id": 2,
+      "required_roles": [
+        "Any"
+      ],
+      "terminal": true
+    }
+  ]
+}

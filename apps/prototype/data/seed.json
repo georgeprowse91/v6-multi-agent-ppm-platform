@@ -1,0 +1,248 @@
+{
+  "users": [
+    {
+      "id": "u_admin",
+      "name": "Admin",
+      "email": "admin@example.com",
+      "role": "Admin",
+      "clearance": "Restricted"
+    },
+    {
+      "id": "u_exec",
+      "name": "Executive",
+      "email": "exec@example.com",
+      "role": "Executive",
+      "clearance": "Confidential"
+    },
+    {
+      "id": "u_pmo",
+      "name": "PMO Lead",
+      "email": "pmo@example.com",
+      "role": "PMO",
+      "clearance": "Confidential"
+    },
+    {
+      "id": "u_portfolio",
+      "name": "Portfolio Manager",
+      "email": "portfolio@example.com",
+      "role": "PortfolioManager",
+      "clearance": "Confidential"
+    },
+    {
+      "id": "u_program",
+      "name": "Program Manager",
+      "email": "program@example.com",
+      "role": "ProgramManager",
+      "clearance": "Internal"
+    },
+    {
+      "id": "u_project",
+      "name": "Project Manager",
+      "email": "pm@example.com",
+      "role": "ProjectManager",
+      "clearance": "Internal"
+    },
+    {
+      "id": "u_resource",
+      "name": "Resource Manager",
+      "email": "rm@example.com",
+      "role": "ResourceManager",
+      "clearance": "Internal"
+    },
+    {
+      "id": "u_finance",
+      "name": "Finance Analyst",
+      "email": "fin@example.com",
+      "role": "Finance",
+      "clearance": "Confidential"
+    },
+    {
+      "id": "u_compliance",
+      "name": "Compliance Officer",
+      "email": "compliance@example.com",
+      "role": "Compliance",
+      "clearance": "Restricted"
+    },
+    {
+      "id": "u_vendor",
+      "name": "Vendor Manager",
+      "email": "vendor@example.com",
+      "role": "VendorManager",
+      "clearance": "Internal"
+    }
+  ],
+  "portfolios": [
+    {
+      "title": "Digital Transformation Portfolio",
+      "status": "Active",
+      "classification": "Internal",
+      "data": {
+        "strategy": "Modernise core systems, improve customer experience, and reduce operational cost.",
+        "kpis": {
+          "NPV_target": 5000000,
+          "Delivery_on_time_target_pct": 85,
+          "Risk_threshold": "Medium"
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "title": "Ava Patel",
+      "status": "Active",
+      "classification": "Internal",
+      "data": {
+        "role": "Engineer",
+        "skills": [
+          "API",
+          "Data"
+        ],
+        "cost_rate": 950,
+        "availability_pct": 80
+      }
+    },
+    {
+      "title": "Noah Chen",
+      "status": "Active",
+      "classification": "Internal",
+      "data": {
+        "role": "Product Owner",
+        "skills": [
+          "Backlog",
+          "Stakeholders"
+        ],
+        "cost_rate": 1100,
+        "availability_pct": 60
+      }
+    },
+    {
+      "title": "Mia Johnson",
+      "status": "Active",
+      "classification": "Internal",
+      "data": {
+        "role": "Project Manager",
+        "skills": [
+          "Schedule",
+          "Governance"
+        ],
+        "cost_rate": 1200,
+        "availability_pct": 70
+      }
+    },
+    {
+      "title": "Liam Smith",
+      "status": "Active",
+      "classification": "Internal",
+      "data": {
+        "role": "Data Analyst",
+        "skills": [
+          "BI",
+          "Process Mining"
+        ],
+        "cost_rate": 900,
+        "availability_pct": 50
+      }
+    }
+  ],
+  "policies": [
+    {
+      "title": "GDPR",
+      "status": "Active",
+      "classification": "Public",
+      "data": {
+        "framework": "GDPR",
+        "controls": [
+          "Data minimisation",
+          "Right to erasure",
+          "Access logging"
+        ]
+      }
+    },
+    {
+      "title": "SOC 2",
+      "status": "Active",
+      "classification": "Public",
+      "data": {
+        "framework": "SOC 2",
+        "controls": [
+          "Audit logging",
+          "Change management",
+          "Incident response"
+        ]
+      }
+    },
+    {
+      "title": "ISO 27001",
+      "status": "Active",
+      "classification": "Public",
+      "data": {
+        "framework": "ISO 27001",
+        "controls": [
+          "Asset management",
+          "Access control",
+          "Supplier relationships"
+        ]
+      }
+    }
+  ],
+  "connectors": [
+    {
+      "title": "Jira",
+      "status": "Configured",
+      "classification": "Internal",
+      "data": {
+        "category": "Project & Work Management",
+        "auth": "OAuth2",
+        "sync_scope": [
+          "Projects",
+          "Epics",
+          "Issues"
+        ],
+        "last_sync": null
+      }
+    },
+    {
+      "title": "Microsoft Teams",
+      "status": "Configured",
+      "classification": "Internal",
+      "data": {
+        "category": "Collaboration",
+        "auth": "OAuth2",
+        "sync_scope": [
+          "Channels",
+          "Messages"
+        ],
+        "last_sync": null
+      }
+    },
+    {
+      "title": "Workday",
+      "status": "Planned",
+      "classification": "Internal",
+      "data": {
+        "category": "HR & Finance",
+        "auth": "OAuth2",
+        "sync_scope": [
+          "Workers",
+          "Cost actuals"
+        ],
+        "last_sync": null
+      }
+    },
+    {
+      "title": "SAP S/4HANA",
+      "status": "Planned",
+      "classification": "Internal",
+      "data": {
+        "category": "ERP",
+        "auth": "OAuth2/OData",
+        "sync_scope": [
+          "Budgets",
+          "Actuals",
+          "Vendors"
+        ],
+        "last_sync": null
+      }
+    }
+  ]
+}

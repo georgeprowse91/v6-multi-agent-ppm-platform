@@ -1,0 +1,54 @@
+sha256,size_bytes,source_path_in_zip,repo_path
+8a8cf6529b405028f8f14c7a7b4bdd29c27cda79c45d3b5a2a71374e08d4b733,16953,Solution/Change Management & Training Plan.docx,docs/adoption/change-management/Change Management & Training Plan.docx
+a2aeb1be30d64d08584c7ff4b32e559c5cbd72e0ceab5a002c11653b91e11259,15825,Solution/Data Architecture.docx,docs/architecture/data/Data Architecture.docx
+5d3f4a42a0da00a6497344d71a7f768b7d5192bd358547cfa92ad15a63a3a1b2,468534,Detailed/Multi-Agent PPM Platform Architecture 20260111.docx,docs/architecture/detailed/Multi-Agent PPM Platform Architecture 20260111.docx
+9c4d984a65bff1cb96cb555d01764cd15c0480baf3b936dc4873042d0aa06fcb,20311,Solution/Deployment & Infrastructure Architecture.docx,docs/architecture/infrastructure/Deployment & Infrastructure Architecture.docx
+5f5b1799198a1312be04450a6d32757209e27f13668c99fed239c618dab3cfe7,15450,Solution/Integration Architecture.docx,docs/architecture/integrations/Integration Architecture.docx
+bd31b8b68db8cd75a0d07bd5d260423b61f9ef9e892d4080c60660231af19e5b,15559,Solution/Architecture Overview.docx,docs/architecture/overview/Architecture Overview.docx
+eb70e370045eeffc325d90c672625f8f0956c82688c8301de7c416bc53973706,14342,Solution/Competitive Battlecards.docx,docs/business/competitive/Competitive Battlecards.docx
+1e830a18d4c856e6b257710479e6d505967d3131a98e77c23e4b52dabc6ea5c1,5801,Solution/roi_calculator.xlsx,docs/business/financials/roi_calculator.xlsx
+5f034bf76550912a15080f983744b0a1742edea8238130a60e7c098bd6d68d7a,116248,Detailed/Multi-Agent PPM Platform GTM Strategy 20260111.docx,docs/business/go-to-market/Multi-Agent PPM Platform GTM Strategy 20260111.docx
+f9045983955b5cec2956d930f7a91255b6a26bcb3f44372d16aeecb1d0bcbd85,17867,Solution/Market Analysis.docx,docs/business/market/Market Analysis.docx
+9de9d9064c8e101bd9630c850808ddec012d4a307f0fee574814d0b5c01442e1,21092,Solution/Marketing & Sales Collateral.docx,docs/business/marketing/Marketing & Sales Collateral.docx
+e95aba900355b662b364d9400b52f18f2caae9b14d99ce227ba476cf008621e7,17170,Solution/Pricing & Packaging Model.docx,docs/business/pricing/Pricing & Packaging Model.docx
+afcf081ead5e9df16ba78cbe8b1fd2f9ab713f33ecc5587b86c15f88abffabda,15601,Solution/Sales Enablement Guide.docx,docs/business/sales/Sales Enablement Guide.docx
+8fff7d8c9dcc11e5659c59e10b3bf7c90f395fae53cc085e5fb74746bc4479ea,100130,Solution/sales_slide_deck.pptx,docs/business/sales/decks/sales_slide_deck.pptx
+65953326cfa9fc94052e38e9a0dae3dc33480cb6e75bd8814a2259fd3540cf68,16399,Solution/Governance & Compliance Plan.docx,docs/governance/compliance/Governance & Compliance Plan.docx
+4248d49d28f4dd1d483e28b3fca321594d8a37a8c4a1d7c4272cc97daa2a7305,15868,Solution/Test Plan & Quality Assurance Strategy.docx,docs/governance/quality/Test Plan & Quality Assurance Strategy.docx
+25960f60e12ae25e07c7d108fac2083ec28073408078393054a01ae5ed572d8b,17590,Solution/Risk Management & Mitigation Plan.docx,docs/governance/risk/Risk Management & Mitigation Plan.docx
+d90f461792920f1d3ee054c21761250784d3c49621f577bd149a2ae87725422f,14904,Solution/Continuous Improvement & Process Mining Framework.docx,docs/operations/continuous-improvement/Continuous Improvement & Process Mining Framework.docx
+36bac27bbb5d85d7fd53ddabedf1354c72f9c74b36d785c94f2126b5c35b17c0,15028,Solution/Observability & Monitoring.docx,docs/operations/observability/Observability & Monitoring.docx
+5eeca99fcd4535fcaa094a39940dc862b1e966bf1334676687c19ed1fc69939d,19961,Solution/Operational Runbook for the Multi Agent PPM Platform.docx,docs/operations/runbooks/Operational Runbook for the Multi Agent PPM Platform.docx
+ebda97c2c60bde4351f0f967ffda5c01228eef4fbec8d202118e50aca2fe376e,16549,Solution/Solution Overview.docx,docs/overview/Solution Overview.docx
+6677a2ec4fc1e73961cc62438e9ae950b1a9453b1b2aa97e78c24745e17a1c1d,22098,Solution/Methodology Embedded Process Flows.docx,docs/product/methodology/Methodology Embedded Process Flows.docx
+9b875ead4550ee2943cec8cfe38f5c0513562eefb68c0a01a2f313b4f5fa71af,26401,Solution/Product Requirements Multi Agent PPM Platform.docx,docs/product/requirements/Product Requirements Multi Agent PPM Platform.docx
+138727b5c60831a33edd00773a0c72567122ece3f0c55340b7957b4dc5eaad21,17310,Solution/Implementation Roadmap & Resource Plan.docx,docs/product/roadmap/Implementation Roadmap & Resource Plan.docx
+ae967bd5938f7b1add23f7529abeba08a141b97d1ee0bc7c2671fa7c069be420,15448,Solution/UI & UX Design Guidelines.docx,docs/product/ui-ux/UI & UX Design Guidelines.docx
+a77f2d4b48a30356440b381a27f07698dbb0e64d4d9cb24e5a3e238cde93f39f,18513,Solution/The Future of AI in Project Management Harnessing Multi Agent Systems for Strategic Advantage.docx,docs/research/whitepapers/The Future of AI in Project Management Harnessing Multi Agent Systems for Strategic Advantage.docx
+6ce8e2ae9e4553f1e90d18646677466916d42cc0621a53bddf950e09b5b518dc,15518,Solution/Security Architecture.docx,docs/security/Security Architecture.docx
+355f15f6e016c3506afaefbaa45486cd1c2bc78920699a91e69fe67de70e812d,25146,Solution/Connector & Integration Specifications.docx,integrations/specs/Connector & Integration Specifications.docx
+8781101db0badd28c3432ddbfd53c1b83d98502288a027f55154bd2493d81ea7,15021,Agents/Agent 1 Intent Router Agent.docx,specs/agents/core/orchestration/Agent 1 Intent Router Agent.docx
+ae87a89713f928bc1802814d030f327002c8dee81e3bd5d20152aac9789a328c,15103,Agents/Agent 2 Response Orchestration Agent.docx,specs/agents/core/orchestration/Agent 2 Response Orchestration Agent.docx
+36e6e0dcd2e1bb3fb793732860896c0c429bfb162fc072c3a6a1fb97ecdcc206,15872,Agents/Agent 9 Project Lifecycle & Governance Agent.docx,specs/agents/delivery/lifecycle-governance/Agent 9 Project Lifecycle & Governance Agent.docx
+eb6946abc796261b08fc615a298d75c93edc11cc5da09f81f4273b274253eab6,16249,Agents/Agent 10 Schedule & Planning Agent.docx,specs/agents/delivery/planning-scheduling/Agent 10 Schedule & Planning Agent.docx
+672d6db0e813d1aea7e18b16b906eeceaa87f373c8e5f3f4381524f79fde6fc8,15817,Agents/Agent 7 Program Management Agent.docx,specs/agents/delivery/program-management/Agent 7 Program Management Agent.docx
+c8fa13769aaccbe20f841a2150bfc3ce3217594b227c0ec656aaef6429520b0b,15685,Agents/Agent 8 Project Definition & Scope Agent.docx,specs/agents/delivery/project-definition/Agent 8 Project Definition & Scope Agent.docx
+47bb94d719ff28b876de5f9a72e241893aa0220a33772ba1adee5ead7a102922,17483,Agents/Agent 11 Resource & Capacity Management Agent.docx,specs/agents/delivery/resource-capacity/Agent 11 Resource & Capacity Management Agent.docx
+41fe8d2a2a86cfac8c01ea8e921fdc3d91ba294d2ce10154c8e9c8cba90af9b8,16707,Agents/Agent 16 Compliance & Regulatory Agent.docx,specs/agents/governance/compliance-regulatory/Agent 16 Compliance & Regulatory Agent.docx
+41f78a23b4667f4e64f320c14a7a1c6c969609a7ec5f96007e886bcbe1cf909f,15345,Agents/Agent 3 Approval Workflow Agent.docx,specs/agents/governance/workflows/Agent 3 Approval Workflow Agent.docx
+a641cddda9e06aad12159c5a90fb4a46a6d3ec5aeef99be68ffbe223d6b4b456,17185,Agents/Agent 17 Change & Configuration Management Agent.docx,specs/agents/operations/change-configuration/Agent 17 Change & Configuration Management Agent.docx
+f359ec86375cb1d036d8fbff04d788137e4f3202bede85809a2bc99291bac495,16921,Agents/Agent 14 Quality Management Agent.docx,specs/agents/operations/quality-management/Agent 14 Quality Management Agent.docx
+105d24af0d16e1f651b44c91200f1fb9376111ccd1e9f5d97a9d11df8cf9a5df,17053,Agents/Agent 15 Risk Management Agent.docx,specs/agents/operations/risk-management/Agent 15 Risk Management Agent.docx
+f77c8894455a95a7ed2b6a460492c686f1175eeb061e63ac01b762fdf8db4af5,17120,Agents/Agent 21 Stakeholder & Communications Management Agent.docx,specs/agents/operations/stakeholder-communications/Agent 21 Stakeholder & Communications Management Agent.docx
+e90ec00906983d13e62ebf5cca75dee99782097f0ff5947d1fbe557380c48684,17554,Agents/Agent 13 Vendor & Procurement Management Agent.docx,specs/agents/operations/vendor-procurement/Agent 13 Vendor & Procurement Management Agent.docx
+f6519dee2fc0f6dcd379f63befbe722853a52197210981e932e558f6d60696c5,17405,Agents/Agent 22 Analytics & Insights Agent.docx,specs/agents/platform/analytics-insights/Agent 22 Analytics & Insights Agent.docx
+035827666a6ec975933d22b3d5c62ec7d7d92d97344e9f3e301a0f0031a6beb3,17056,Agents/Agent 20 Continuous Improvement & Process Mining Agent.docx,specs/agents/platform/continuous-improvement-process-mining/Agent 20 Continuous Improvement & Process Mining Agent.docx
+0b263024b6e67bb491dfa07c9be22a35f78d8f7564c1cb0025c7b26294d64adf,16701,Agents/Agent 23 Data Synchronization & Consistency Agent.docx,specs/agents/platform/data-sync-consistency/Agent 23 Data Synchronization & Consistency Agent.docx
+df041b5952bf650d3b6ae2f9c79b50442f6f47dec078376f1c413962a875795b,16982,Agents/Agent 25 System Health & Monitoring Agent.docx,specs/agents/platform/health-monitoring/Agent 25 System Health & Monitoring Agent.docx
+682d44854c3e9262dad4e46255e23e25e8ff0bbf89f25d811865db21a4ee9f5d,17203,Agents/Agent 19 Knowledge & Document Management Agent.docx,specs/agents/platform/knowledge-documentation/Agent 19 Knowledge & Document Management Agent.docx
+3a6eb0f3cfc274a66f803e116db4a120615aeede1720dbb727c9a930035ff7bd,17403,Agents/Agent 18 Release & Deployment Agent.docx,specs/agents/platform/release-deployment/Agent 18 Release & Deployment Agent.docx
+dc1b9ed5e3d100450472e64d240d1258a014315815088dcc0f734bf4351a5949,16972,Agents/Agent 24 Workflow & Process Engine Agent.docx,specs/agents/platform/workflow-process-engine/Agent 24 Workflow & Process Engine Agent.docx
+58f99c6c20c94f5490ef996eee1f2814125243807cd6fe870e5f1dba68ea2a3f,17428,Agents/Agent 12 Financial Management Agent.docx,specs/agents/portfolio/financial-management/Agent 12 Financial Management Agent.docx
+4f9ee393f4b835512f15673ab6475f3c019e59742451a1ccd3539eb7c1a0faba,15355,Agents/Agent 4 Demand & Intake Agent.docx,specs/agents/portfolio/intake/Agent 4 Demand & Intake Agent.docx
+c89cc0e27ad165ee5899fada8e3e13c1d6d33c72e3f6677ceb8b3ae0b7695e0c,15618,Agents/Agent 5 Business Case & Investment Analysis Agent.docx,specs/agents/portfolio/investment-analysis/Agent 5 Business Case & Investment Analysis Agent.docx
+d6a92f1c1610bce8005795fc21fe1e93ad3df684a4eceedb1102850c7fd3f33e,16003,Agents/Agent 6 Portfolio Strategy & Optimization Agent.docx,specs/agents/portfolio/strategy-optimization/Agent 6 Portfolio Strategy & Optimization Agent.docx

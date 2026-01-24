@@ -1,0 +1,65 @@
+# Index
+
+Clickable index of all imported files (originals kept intact).
+
+## docs/
+
+- [Change Management & Training Plan.docx](docs/adoption/change-management/Change Management & Training Plan.docx)
+- [Data Architecture.docx](docs/architecture/data/Data Architecture.docx)
+- [Multi-Agent PPM Platform Architecture 20260111.docx](docs/architecture/detailed/Multi-Agent PPM Platform Architecture 20260111.docx)
+- [Deployment & Infrastructure Architecture.docx](docs/architecture/infrastructure/Deployment & Infrastructure Architecture.docx)
+- [Integration Architecture.docx](docs/architecture/integrations/Integration Architecture.docx)
+- [Architecture Overview.docx](docs/architecture/overview/Architecture Overview.docx)
+- [Competitive Battlecards.docx](docs/business/competitive/Competitive Battlecards.docx)
+- [roi_calculator.xlsx](docs/business/financials/roi_calculator.xlsx)
+- [Multi-Agent PPM Platform GTM Strategy 20260111.docx](docs/business/go-to-market/Multi-Agent PPM Platform GTM Strategy 20260111.docx)
+- [Market Analysis.docx](docs/business/market/Market Analysis.docx)
+- [Marketing & Sales Collateral.docx](docs/business/marketing/Marketing & Sales Collateral.docx)
+- [Pricing & Packaging Model.docx](docs/business/pricing/Pricing & Packaging Model.docx)
+- [Sales Enablement Guide.docx](docs/business/sales/Sales Enablement Guide.docx)
+- [sales_slide_deck.pptx](docs/business/sales/decks/sales_slide_deck.pptx)
+- [Governance & Compliance Plan.docx](docs/governance/compliance/Governance & Compliance Plan.docx)
+- [Test Plan & Quality Assurance Strategy.docx](docs/governance/quality/Test Plan & Quality Assurance Strategy.docx)
+- [Risk Management & Mitigation Plan.docx](docs/governance/risk/Risk Management & Mitigation Plan.docx)
+- [Continuous Improvement & Process Mining Framework.docx](docs/operations/continuous-improvement/Continuous Improvement & Process Mining Framework.docx)
+- [Observability & Monitoring.docx](docs/operations/observability/Observability & Monitoring.docx)
+- [Operational Runbook for the Multi Agent PPM Platform.docx](docs/operations/runbooks/Operational Runbook for the Multi Agent PPM Platform.docx)
+- [Solution Overview.docx](docs/overview/Solution Overview.docx)
+- [Methodology Embedded Process Flows.docx](docs/product/methodology/Methodology Embedded Process Flows.docx)
+- [Product Requirements Multi Agent PPM Platform.docx](docs/product/requirements/Product Requirements Multi Agent PPM Platform.docx)
+- [Implementation Roadmap & Resource Plan.docx](docs/product/roadmap/Implementation Roadmap & Resource Plan.docx)
+- [UI & UX Design Guidelines.docx](docs/product/ui-ux/UI & UX Design Guidelines.docx)
+- [The Future of AI in Project Management Harnessing Multi Agent Systems for Strategic Advantage.docx](docs/research/whitepapers/The Future of AI in Project Management Harnessing Multi Agent Systems for Strategic Advantage.docx)
+- [Security Architecture.docx](docs/security/Security Architecture.docx)
+
+## integrations/
+
+- [Connector & Integration Specifications.docx](integrations/specs/Connector & Integration Specifications.docx)
+
+## specs/
+
+- [Agent 1 Intent Router Agent.docx](specs/agents/core/orchestration/Agent 1 Intent Router Agent.docx)
+- [Agent 2 Response Orchestration Agent.docx](specs/agents/core/orchestration/Agent 2 Response Orchestration Agent.docx)
+- [Agent 9 Project Lifecycle & Governance Agent.docx](specs/agents/delivery/lifecycle-governance/Agent 9 Project Lifecycle & Governance Agent.docx)
+- [Agent 10 Schedule & Planning Agent.docx](specs/agents/delivery/planning-scheduling/Agent 10 Schedule & Planning Agent.docx)
+- [Agent 7 Program Management Agent.docx](specs/agents/delivery/program-management/Agent 7 Program Management Agent.docx)
+- [Agent 8 Project Definition & Scope Agent.docx](specs/agents/delivery/project-definition/Agent 8 Project Definition & Scope Agent.docx)
+- [Agent 11 Resource & Capacity Management Agent.docx](specs/agents/delivery/resource-capacity/Agent 11 Resource & Capacity Management Agent.docx)
+- [Agent 16 Compliance & Regulatory Agent.docx](specs/agents/governance/compliance-regulatory/Agent 16 Compliance & Regulatory Agent.docx)
+- [Agent 3 Approval Workflow Agent.docx](specs/agents/governance/workflows/Agent 3 Approval Workflow Agent.docx)
+- [Agent 17 Change & Configuration Management Agent.docx](specs/agents/operations/change-configuration/Agent 17 Change & Configuration Management Agent.docx)
+- [Agent 14 Quality Management Agent.docx](specs/agents/operations/quality-management/Agent 14 Quality Management Agent.docx)
+- [Agent 15 Risk Management Agent.docx](specs/agents/operations/risk-management/Agent 15 Risk Management Agent.docx)
+- [Agent 21 Stakeholder & Communications Management Agent.docx](specs/agents/operations/stakeholder-communications/Agent 21 Stakeholder & Communications Management Agent.docx)
+- [Agent 13 Vendor & Procurement Management Agent.docx](specs/agents/operations/vendor-procurement/Agent 13 Vendor & Procurement Management Agent.docx)
+- [Agent 22 Analytics & Insights Agent.docx](specs/agents/platform/analytics-insights/Agent 22 Analytics & Insights Agent.docx)
+- [Agent 20 Continuous Improvement & Process Mining Agent.docx](specs/agents/platform/continuous-improvement-process-mining/Agent 20 Continuous Improvement & Process Mining Agent.docx)
+- [Agent 23 Data Synchronization & Consistency Agent.docx](specs/agents/platform/data-sync-consistency/Agent 23 Data Synchronization & Consistency Agent.docx)
+- [Agent 25 System Health & Monitoring Agent.docx](specs/agents/platform/health-monitoring/Agent 25 System Health & Monitoring Agent.docx)
+- [Agent 19 Knowledge & Document Management Agent.docx](specs/agents/platform/knowledge-documentation/Agent 19 Knowledge & Document Management Agent.docx)
+- [Agent 18 Release & Deployment Agent.docx](specs/agents/platform/release-deployment/Agent 18 Release & Deployment Agent.docx)
+- [Agent 24 Workflow & Process Engine Agent.docx](specs/agents/platform/workflow-process-engine/Agent 24 Workflow & Process Engine Agent.docx)
+- [Agent 12 Financial Management Agent.docx](specs/agents/portfolio/financial-management/Agent 12 Financial Management Agent.docx)
+- [Agent 4 Demand & Intake Agent.docx](specs/agents/portfolio/intake/Agent 4 Demand & Intake Agent.docx)
+- [Agent 5 Business Case & Investment Analysis Agent.docx](specs/agents/portfolio/investment-analysis/Agent 5 Business Case & Investment Analysis Agent.docx)
+- [Agent 6 Portfolio Strategy & Optimization Agent.docx](specs/agents/portfolio/strategy-optimization/Agent 6 Portfolio Strategy & Optimization Agent.docx)
