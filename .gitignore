@@ -27,3 +27,5 @@ apps/prototype/.venv/
 # Prototype local DB
 apps/prototype/data/*.db
 
+.coverage
+*.egg-info/

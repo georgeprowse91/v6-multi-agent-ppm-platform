@@ -8,7 +8,7 @@ Handles routing, escalation, delegation, and audit trail for governance complian
 from datetime import datetime, timedelta
 from typing import Any
 
-from src.core.base_agent import AgentCapability, BaseAgent
+from src.core.base_agent import BaseAgent
 
 
 class ApprovalWorkflowAgent(BaseAgent):
@@ -17,22 +17,12 @@ class ApprovalWorkflowAgent(BaseAgent):
     delegation management, and escalation handling.
     """
 
-    def __init__(self):
-        super().__init__(
-            agent_id="agent_003_approval_workflow",
-            name="Approval Workflow Agent",
-            description="Orchestrates approval processes with routing, escalation, and audit trails",
-            version="1.0.0",
-            capabilities=[
-                AgentCapability.ORCHESTRATION,
-                AgentCapability.WORKFLOW,
-                AgentCapability.GOVERNANCE,
-            ],
-            required_env_vars=[
-                "AZURE_SERVICEBUS_CONNECTION_STRING",
-                "AZURE_GRAPH_API_ENDPOINT",
-            ],
-        )
+    def __init__(
+        self,
+        agent_id: str = "agent_003_approval_workflow",
+        config: dict[str, Any] | None = None,
+    ):
+        super().__init__(agent_id, config)
         self.approval_chains = {}
         self.delegation_records = {}
 
