@@ -18,3 +18,8 @@ Thumbs.db
 # Python
 __pycache__/
 *.pyc
+
+# Python virtual environments
+.venv/
+apps/prototype/.venv/
+
