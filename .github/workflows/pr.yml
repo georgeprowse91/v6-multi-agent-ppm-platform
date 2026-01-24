@@ -44,14 +44,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install ruff
           pip install -r requirements.txt || echo "Dependencies installation failed, continuing..."
 
-      - name: Run reviewdog
-        uses: reviewdog/action-ruff@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
-          filter_mode: diff_context
+      - name: Run Ruff linting
+        run: |
+          ruff check src/ tests/ --output-format=github
         continue-on-error: true
 
   # Size check
