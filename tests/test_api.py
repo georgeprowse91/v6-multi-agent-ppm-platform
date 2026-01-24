@@ -4,11 +4,17 @@ Tests for FastAPI endpoints
 
 import pytest
 from httpx import AsyncClient
-from src.api.main import app
+
+
+@pytest.fixture
+def app():
+    """Create FastAPI app for testing."""
+    from src.api.main import app
+    return app
 
 
 @pytest.mark.asyncio
-async def test_root_endpoint():
+async def test_root_endpoint(app):
     """Test root endpoint returns API info."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.get("/")
@@ -20,7 +26,7 @@ async def test_root_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_health_endpoint():
+async def test_health_endpoint(app):
     """Test health check endpoint."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.get("/api/v1/health")
@@ -31,7 +37,7 @@ async def test_health_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_readiness_endpoint():
+async def test_readiness_endpoint(app):
     """Test readiness check endpoint."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.get("/api/v1/health/ready")
@@ -43,7 +49,7 @@ async def test_readiness_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_liveness_endpoint():
+async def test_liveness_endpoint(app):
     """Test liveness check endpoint."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.get("/api/v1/health/live")
@@ -54,7 +60,7 @@ async def test_liveness_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_list_agents_endpoint():
+async def test_list_agents_endpoint(app):
     """Test listing all agents."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.get("/api/v1/agents")
@@ -66,7 +72,7 @@ async def test_list_agents_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_query_endpoint():
+async def test_query_endpoint(app):
     """Test query processing endpoint."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.post(
@@ -83,7 +89,7 @@ async def test_query_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_query_endpoint_validation():
+async def test_query_endpoint_validation(app):
     """Test query endpoint validates input."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         # Missing query field
@@ -96,7 +102,7 @@ async def test_query_endpoint_validation():
 
 
 @pytest.mark.asyncio
-async def test_status_endpoint():
+async def test_status_endpoint(app):
     """Test platform status endpoint."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.get("/api/v1/status")
