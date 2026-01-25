@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
-from .store import Store
 from .security import User
+from .store import Store
 from .utils import json_dumps_compact, new_id
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -66,7 +66,9 @@ def bootstrap() -> Store:
                     last_sync=None,
                 )
 
-            store.log_event(actor="system", event_type="seed_completed", details={"seed": "seed.json"})
+            store.log_event(
+                actor="system", event_type="seed_completed", details={"seed": "seed.json"}
+            )
 
     # Load workflow templates into workflow_defs
     wf_dir = data_dir / "workflows"

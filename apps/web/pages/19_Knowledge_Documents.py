@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
-import streamlit as st
 
-from ppm.state import get_store
-from ppm.session import sidebar_login
-from ppm.requirements import load_requirements
-from ppm.ui import entity_create_form, entity_picker, show_entity, entity_edit_form
+import streamlit as st
 from ppm.agents.registry import run_agent
+from ppm.requirements import load_requirements
+from ppm.session import sidebar_login
+from ppm.state import get_store
+from ppm.ui import entity_create_form, entity_edit_form, entity_picker, show_entity
 
 st.set_page_config(page_title="Knowledge & Document Management", layout="wide")
 
@@ -54,12 +54,16 @@ with right:
 
         st.divider()
         st.subheader("Run domain agent (prototype stub)")
-        st.caption("This uses the corresponding agent stub to generate artifacts/updates that reflect the PRD domain capabilities.")
+        st.caption(
+            "This uses the corresponding agent stub to generate artifacts/updates that reflect the PRD domain capabilities."
+        )
         inputs_text = st.text_area("Agent inputs (JSON)", value="{}", height=120, key="inputs_19")
         if st.button("Run agent 19", type="primary"):
             try:
                 inputs = json.loads(inputs_text) if inputs_text.strip() else {}
-                out = run_agent(store, agent_id=19, actor=user.name, entity_id=selected_id, inputs=inputs)
+                out = run_agent(
+                    store, agent_id=19, actor=user.name, entity_id=selected_id, inputs=inputs
+                )
                 st.success("Agent run complete.")
                 st.json(out)
             except Exception as e:

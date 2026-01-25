@@ -1,15 +1,38 @@
 # Packages
 
-Shared libraries and reusable components that support the platform.
+Shared libraries intended to be consumed by apps and services once implementations are in place.
 
-## Package catalog
-- **canvas-engine**: Rendering/interaction primitives for the methodology canvas.
-- **contracts**: Shared API contracts, schemas, and event definitions.
-- **crypto**: Cryptographic helpers (hashing, signing, encryption utilities).
-- **data-quality**: Validation rules and data quality checks.
-- **llm**: LLM helpers, prompts, and provider abstractions.
-- **methodology-engine**: Core logic for Agile/Waterfall/Hybrid methodology flows.
-- **observability**: Logging, tracing, and metrics helpers.
-- **policy**: Shared policy evaluation helpers.
-- **testing**: Test utilities and fixtures used across services.
-- **ui-kit**: Shared UI components and design tokens.
+## Quickstart
+
+List the available packages:
+
+```bash
+ls packages
+```
+
+## How to verify
+
+```bash
+ls packages/contracts
+```
+
+Expected output includes a `src/` directory for the contracts package.
+
+## Key files
+
+- `packages/contracts/src/`: shared API/contract definitions.
+- `packages/policy/`: policy helper scaffolding.
+- `packages/observability/`: observability helpers scaffolding.
+
+## Example
+
+Search for contract schemas:
+
+```bash
+rg -n "schema" packages/contracts/src
+```
+
+## Next steps
+
+- Add implementation code under each `packages/<name>/src/` directory.
+- Wire package usage into `apps/` and `services/` as those components stabilize.

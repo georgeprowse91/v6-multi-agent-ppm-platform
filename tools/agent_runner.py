@@ -82,9 +82,7 @@ def _default_agent_entrypoint(agent: Component) -> Path:
     for candidate in candidates:
         if candidate.name != "__init__.py":
             return candidate
-    raise SystemExit(
-        f"No Python entrypoint found under {agent.path}. Add a module under src/."
-    )
+    raise SystemExit(f"No Python entrypoint found under {agent.path}. Add a module under src/.")
 
 
 def _execute(command: list[str], cwd: Path, dry_run: bool) -> None:

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import streamlit as st
 
-from ppm.state import get_store
-from ppm.session import sidebar_login
+import streamlit as st
 from ppm.agents.registry import run_agent
+from ppm.session import sidebar_login
+from ppm.state import get_store
 from ppm.utils import json_dumps, json_dumps_compact
 
 st.set_page_config(page_title="Workflow & Process Engine", layout="wide")
@@ -29,7 +29,9 @@ if not defs:
     st.warning("No workflow definitions found. Ensure `apps/web/data/workflows/*.json` exists.")
 else:
     for d in defs:
-        with st.expander(f"{d['name']} · id={d['id']} · active={bool(d['active'])}", expanded=False):
+        with st.expander(
+            f"{d['name']} · id={d['id']} · active={bool(d['active'])}", expanded=False
+        ):
             st.caption(f"entity_type={d['entity_type']} · version={d['version']}")
             active = st.checkbox("Active", value=bool(d["active"]), key=f"active_{d['id']}")
             if st.button("Save active flag", key=f"save_active_{d['id']}"):
@@ -42,7 +44,12 @@ else:
                     json_def=json_dumps_compact(d.get("def", {})),
                     active=active,
                 )
-                store.log_event(actor=user.name, event_type="workflow_def_updated", entity_id=None, details={"wf_id": d["id"], "active": active})
+                store.log_event(
+                    actor=user.name,
+                    event_type="workflow_def_updated",
+                    entity_id=None,
+                    details={"wf_id": d["id"], "active": active},
+                )
                 st.success("Updated.")
 
             st.code(json_dumps(d.get("def", {})), language="json")
@@ -77,7 +84,12 @@ if st.button("Upsert workflow template", type="primary"):
             json_def=json_dumps_compact(wf),
             active=True,
         )
-        store.log_event(actor=user.name, event_type="workflow_def_upserted", entity_id=None, details={"wf_id": wf["id"]})
+        store.log_event(
+            actor=user.name,
+            event_type="workflow_def_upserted",
+            entity_id=None,
+            details={"wf_id": wf["id"]},
+        )
         st.success("Workflow template saved.")
     except Exception as e:
         st.error(str(e))

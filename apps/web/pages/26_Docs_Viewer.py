@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import streamlit as st
-
-from ppm.state import get_store
+from ppm.docs import extract_docx_text, list_docx, search_docx
 from ppm.session import sidebar_login
-from ppm.docs import list_docx, extract_docx_text, search_docx
+from ppm.state import get_store
 
 st.set_page_config(page_title="Docs & Specs Viewer", layout="wide")
 

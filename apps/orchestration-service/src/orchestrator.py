@@ -8,45 +8,6 @@ from typing import Any, cast
 
 from tools.runtime_paths import bootstrap_runtime_paths
 
-bootstrap_runtime_paths()
-
-# Core Orchestration
-from intent_router_agent import IntentRouterAgent
-from response_orchestration_agent import ResponseOrchestrationAgent
-from project_lifecycle_agent import ProjectLifecycleAgent
-from schedule_planning_agent import SchedulePlanningAgent
-
-# Delivery
-from program_management_agent import ProgramManagementAgent
-from project_definition_agent import ProjectDefinitionAgent
-from resource_capacity_agent import ResourceCapacityAgent
-from compliance_regulatory_agent import ComplianceRegulatoryAgent
-
-# Governance
-from approval_workflow_agent import ApprovalWorkflowAgent
-from change_configuration_agent import ChangeConfigurationAgent
-from quality_management_agent import QualityManagementAgent
-from risk_management_agent import RiskManagementAgent
-from stakeholder_communications_agent import StakeholderCommunicationsAgent
-
-# Operations
-from vendor_procurement_agent import VendorProcurementAgent
-from analytics_insights_agent import AnalyticsInsightsAgent
-from data_sync_agent import DataSyncAgent
-from knowledge_management_agent import KnowledgeManagementAgent
-from process_mining_agent import ProcessMiningAgent
-
-# Platform
-from release_deployment_agent import ReleaseDeploymentAgent
-from system_health_agent import SystemHealthAgent
-from workflow_engine_agent import WorkflowEngineAgent
-from financial_management_agent import FinancialManagementAgent
-
-# Portfolio Management
-from demand_intake_agent import DemandIntakeAgent
-from business_case_investment_agent import BusinessCaseInvestmentAgent
-from portfolio_strategy_agent import PortfolioStrategyAgent
-
 logger = logging.getLogger(__name__)
 DEFAULT_POLICY_BUNDLE_PATH = (
     Path(__file__).resolve().parents[1] / "policies" / "bundles" / "default-policy-bundle.yaml"
@@ -73,6 +34,10 @@ class AgentOrchestrator:
         logger.info("Using policy bundle: %s", self.policy_bundle_path)
 
         # Initialize core orchestration agents (Agents 1-2)
+        bootstrap_runtime_paths()
+        from intent_router_agent import IntentRouterAgent
+        from response_orchestration_agent import ResponseOrchestrationAgent
+
         self.intent_router = IntentRouterAgent()
         await self.intent_router.initialize()
         self.agents["agent_001_intent_router"] = self.intent_router
@@ -96,6 +61,8 @@ class AgentOrchestrator:
         logger.info("Loading governance agents...")
 
         # Agent 3: Approval Workflow
+        from approval_workflow_agent import ApprovalWorkflowAgent
+        from compliance_regulatory_agent import ComplianceRegulatoryAgent
 
         approval_agent = ApprovalWorkflowAgent()
 
@@ -116,6 +83,11 @@ class AgentOrchestrator:
         logger.info("Loading portfolio agents...")
 
         # Agent 4: Demand & Intake
+        from business_case_investment_agent import BusinessCaseInvestmentAgent
+        from demand_intake_agent import DemandIntakeAgent
+        from financial_management_agent import FinancialManagementAgent
+        from portfolio_strategy_agent import PortfolioStrategyAgent
+
         demand_agent = DemandIntakeAgent()
         await demand_agent.initialize()
         self.agents[demand_agent.agent_id] = demand_agent
@@ -142,6 +114,12 @@ class AgentOrchestrator:
         logger.info("Loading delivery agents...")
 
         # Agent 7: Program Management
+        from program_management_agent import ProgramManagementAgent
+        from project_definition_agent import ProjectDefinitionAgent
+        from project_lifecycle_agent import ProjectLifecycleAgent
+        from resource_capacity_agent import ResourceCapacityAgent
+        from schedule_planning_agent import SchedulePlanningAgent
+
         program_agent = ProgramManagementAgent()
         await program_agent.initialize()
         self.agents[program_agent.agent_id] = program_agent
@@ -173,6 +151,12 @@ class AgentOrchestrator:
         logger.info("Loading operations agents...")
 
         # Agent 13: Vendor & Procurement Management
+        from change_configuration_agent import ChangeConfigurationAgent
+        from quality_management_agent import QualityManagementAgent
+        from risk_management_agent import RiskManagementAgent
+        from stakeholder_communications_agent import StakeholderCommunicationsAgent
+        from vendor_procurement_agent import VendorProcurementAgent
+
         vendor_agent = VendorProcurementAgent()
         await vendor_agent.initialize()
         self.agents[vendor_agent.agent_id] = vendor_agent
@@ -204,6 +188,14 @@ class AgentOrchestrator:
         logger.info("Loading platform agents...")
 
         # Agent 18: Release & Deployment
+        from analytics_insights_agent import AnalyticsInsightsAgent
+        from data_sync_agent import DataSyncAgent
+        from knowledge_management_agent import KnowledgeManagementAgent
+        from process_mining_agent import ProcessMiningAgent
+        from release_deployment_agent import ReleaseDeploymentAgent
+        from system_health_agent import SystemHealthAgent
+        from workflow_engine_agent import WorkflowEngineAgent
+
         release_agent = ReleaseDeploymentAgent()
         await release_agent.initialize()
         self.agents[release_agent.agent_id] = release_agent

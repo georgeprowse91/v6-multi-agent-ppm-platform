@@ -1,32 +1,36 @@
 # Documentation
 
-## Product
-- [Solution Overview](product/solution-overview.md)
-- [Product Requirements](product/product-requirements.md)
-- [Personas & UX](product/personas.md)
-- [User Journeys](product/user-journeys.md)
-- [Acceptance Criteria](product/acceptance-criteria.md)
-- [Success Metrics](product/success-metrics.md)
+Product, architecture, runbook, and compliance docs for the platform.
 
-## Architecture
-- [Logical Architecture](architecture/logical-architecture.md)
-- [Physical Architecture](architecture/physical-architecture.md)
-- [Deployment Architecture](architecture/deployment-architecture.md)
-- [Data Architecture](architecture/data-architecture.md)
-- [Connector Architecture](architecture/connector-architecture.md)
-- [Security Architecture](architecture/security-architecture.md)
-- [Observability Architecture](architecture/observability-architecture.md)
+## Quickstart
 
-## Runbooks
-- [On-call](runbooks/oncall.md)
-- [LLM Degradation](runbooks/llm-degradation.md)
+Open docs locally:
 
-## Methodology
-- [Methodology Library](methodology/README.md)
+```bash
+make docs-serve
+```
 
-## Compliance
-- [Controls Mapping](compliance/controls-mapping.md)
-- [Threat Model](compliance/threat-model.md)
+## How to verify
 
-## API
-- [OpenAPI Specification](api/openapi.yaml)
+Validate internal markdown links:
+
+```bash
+python scripts/check-links.py
+```
+
+Expected output: no lines printed and exit code 0.
+
+## Key files
+
+- `docs/product/`: product requirements and personas.
+- `docs/architecture/`: system architecture descriptions.
+- `docs/runbooks/`: operational runbooks.
+- `docs/api/openapi.yaml`: API specification.
+
+## Example
+
+Show the OpenAPI title:
+
+```bash
+rg -n "title:" docs/api/openapi.yaml
+```

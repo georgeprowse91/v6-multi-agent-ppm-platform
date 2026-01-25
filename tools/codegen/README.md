@@ -1,19 +1,39 @@
 # Code Generation
 
-This folder contains the OpenAPI validation and contract summary generation used by
-the API gateway and downstream packages.
+OpenAPI validation and deterministic summary generation used by the API gateway.
 
-## What it does
-
-* Validates `docs/api/openapi.yaml` is parseable and contains `openapi`, `info`, and `paths`.
-* Writes deterministic summaries to `apps/api-gateway/openapi/`:
-  * `openapi_summary.json`: version, title, and path metadata.
-  * `openapi_paths.txt`: newline-delimited list of HTTP paths.
-
-## Usage
+## Quickstart
 
 ```bash
 python -m tools.codegen.run
 ```
 
-To override defaults, edit `tools/codegen/codegen_config.yaml`.
+## How to verify
+
+After running the command, verify the files exist:
+
+```bash
+ls apps/api-gateway/openapi/openapi_summary.json apps/api-gateway/openapi/openapi_paths.txt
+```
+
+Expected output:
+
+```text
+apps/api-gateway/openapi/openapi_summary.json
+apps/api-gateway/openapi/openapi_paths.txt
+```
+
+## Key files
+
+- `tools/codegen/run.py`: validation + summary generator.
+- `tools/codegen/codegen_config.yaml`: spec path and output settings.
+- `docs/api/openapi.yaml`: source specification.
+
+## Example
+
+Print the first five API paths after generation:
+
+```bash
+python -m tools.codegen.run
+head -n 5 apps/api-gateway/openapi/openapi_paths.txt
+```

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Set
-
 
 CLASSIFICATION_ORDER = {
     "Public": 0,
@@ -25,13 +23,44 @@ class User:
 
 # Prototype RBAC matrix: (action -> allowed roles).
 # This is intentionally permissive to keep the prototype usable; it still models the idea of role gates.
-RBAC: Dict[str, Set[str]] = {
+RBAC: dict[str, set[str]] = {
     "view": {"Any"},
-    "create": {"Admin", "PMO", "PortfolioManager", "ProgramManager", "ProjectManager", "ResourceManager", "Finance", "Compliance", "VendorManager"},
-    "edit": {"Admin", "PMO", "PortfolioManager", "ProgramManager", "ProjectManager", "ResourceManager", "Finance", "Compliance", "VendorManager"},
+    "create": {
+        "Admin",
+        "PMO",
+        "PortfolioManager",
+        "ProgramManager",
+        "ProjectManager",
+        "ResourceManager",
+        "Finance",
+        "Compliance",
+        "VendorManager",
+    },
+    "edit": {
+        "Admin",
+        "PMO",
+        "PortfolioManager",
+        "ProgramManager",
+        "ProjectManager",
+        "ResourceManager",
+        "Finance",
+        "Compliance",
+        "VendorManager",
+    },
     "approve": {"Admin", "PMO", "Executive", "Finance"},
     "configure": {"Admin", "PMO"},
-    "run_agent": {"Admin", "PMO", "PortfolioManager", "ProgramManager", "ProjectManager", "ResourceManager", "Finance", "Compliance", "VendorManager", "Executive"},
+    "run_agent": {
+        "Admin",
+        "PMO",
+        "PortfolioManager",
+        "ProgramManager",
+        "ProjectManager",
+        "ResourceManager",
+        "Finance",
+        "Compliance",
+        "VendorManager",
+        "Executive",
+    },
 }
 
 
@@ -46,7 +75,7 @@ def can_role(user_role: str, action: str) -> bool:
     return "Any" in allowed or user_role in allowed
 
 
-def allowed_classifications_for_user(user_clearance: str) -> List[str]:
+def allowed_classifications_for_user(user_clearance: str) -> list[str]:
     max_level = CLASSIFICATION_ORDER.get(user_clearance, 0)
     # user can create at or below their clearance
     return [c for c, lvl in CLASSIFICATION_ORDER.items() if lvl <= max_level]

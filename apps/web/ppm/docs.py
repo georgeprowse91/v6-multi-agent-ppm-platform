@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from docx import Document
 
@@ -19,13 +18,13 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[4]
 
 
-def list_docx() -> List[DocRef]:
+def list_docx() -> list[DocRef]:
     root = repo_root()
-    candidates: List[Tuple[str, str]] = [
+    candidates: list[tuple[str, str]] = [
         ("docs", "docs"),
         ("connectors", "connectors"),
     ]
-    out: List[DocRef] = []
+    out: list[DocRef] = []
     for folder, group in candidates:
         base = root / folder
         if not base.exists():
@@ -37,7 +36,7 @@ def list_docx() -> List[DocRef]:
 
 def extract_docx_text(path: str, *, max_paragraphs: int | None = None) -> str:
     doc = Document(path)
-    lines=[]
+    lines = []
     for i, para in enumerate(doc.paragraphs):
         t = (para.text or "").strip()
         if t:
@@ -47,11 +46,11 @@ def extract_docx_text(path: str, *, max_paragraphs: int | None = None) -> str:
     return "\n".join(lines)
 
 
-def search_docx(query: str, *, max_results: int = 25) -> List[Dict[str, str]]:
+def search_docx(query: str, *, max_results: int = 25) -> list[dict[str, str]]:
     q = (query or "").strip().lower()
     if not q:
         return []
-    results=[]
+    results = []
     for d in list_docx():
         try:
             text = extract_docx_text(d.path, max_paragraphs=800).lower()

@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import math
 import random
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from ..store import Store, Entity
-from ..utils import now_iso, json_dumps, new_id
-from ..security import DEFAULT_CLASSIFICATION
+from ..store import Entity, Store
+from ..utils import now_iso
 
 
 # -----------------------------
@@ -103,9 +100,9 @@ DOMAIN_LABELS = {
 }
 
 
-def route_intent(query: str) -> Dict[str, Any]:
+def route_intent(query: str) -> dict[str, Any]:
     q = (query or "").lower()
-    hits: List[Tuple[str, float]] = []
+    hits: list[tuple[str, float]] = []
     for intent, keys in INTENT_KEYWORDS:
         score = 0.0
         for k in keys:
@@ -124,7 +121,14 @@ def route_intent(query: str) -> Dict[str, Any]:
         }
     top_intent, top_score = hits[0]
     return {
-        "intents": [{"intent": i, "confidence": float(_clamp(s, 0.0, 1.0)), "label": DOMAIN_LABELS.get(i, i)} for i, s in hits[:5]],
+        "intents": [
+            {
+                "intent": i,
+                "confidence": float(_clamp(s, 0.0, 1.0)),
+                "label": DOMAIN_LABELS.get(i, i),
+            }
+            for i, s in hits[:5]
+        ],
         "route": top_intent,
         "confidence": float(_clamp(top_score, 0.0, 1.0)),
     }
@@ -133,10 +137,12 @@ def route_intent(query: str) -> Dict[str, Any]:
 # -----------------------------
 # Agent 2: Response Orchestration (stub)
 # -----------------------------
-def orchestrate(store: Store, *, actor: str, query: str, focus_entity_id: str | None = None) -> Dict[str, Any]:
+def orchestrate(
+    store: Store, *, actor: str, query: str, focus_entity_id: str | None = None
+) -> dict[str, Any]:
     routing = route_intent(query)
     intent = routing.get("route")
-    outputs: Dict[str, Any] = {"routing": routing, "actions": []}
+    outputs: dict[str, Any] = {"routing": routing, "actions": []}
 
     # In the real system, this would call multiple agents; here we call one “best” agent based on intent.
     intent_to_agent = {
@@ -164,17 +170,23 @@ def orchestrate(store: Store, *, actor: str, query: str, focus_entity_id: str | 
     }
     agent_id = intent_to_agent.get(intent)
     if not agent_id:
-        outputs["actions"].append({"type": "message", "text": "No matching domain agent found for query."})
+        outputs["actions"].append(
+            {"type": "message", "text": "No matching domain agent found for query."}
+        )
         return outputs
 
-    outputs["actions"].append({"type": "run_agent", "agent_id": agent_id, "entity_id": focus_entity_id})
+    outputs["actions"].append(
+        {"type": "run_agent", "agent_id": agent_id, "entity_id": focus_entity_id}
+    )
     return outputs
 
 
 # -----------------------------
 # Domain agents
 # -----------------------------
-def agent_4_demand_intake(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def agent_4_demand_intake(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
     intake = _ensure(store, entity_id)
     data = dict(intake.data)
 
@@ -192,19 +204,30 @@ def agent_4_demand_intake(store: Store, *, actor: str, entity_id: str, inputs: D
         method = "Waterfall"
 
     # Classification + routing
-    req_type = data.get("request_type") or "Strategic initiative" if "strateg" in (data.get("description","").lower()) else "Operational improvement"
+    req_type = (
+        data.get("request_type") or "Strategic initiative"
+        if "strateg" in (data.get("description", "").lower())
+        else "Operational improvement"
+    )
     triage_band = _score_to_band(1.0 - abs(0.5 - (size + complexity + risk) / 3.0))
 
-    data.update({
-        "classified_at": now_iso(),
-        "request_type": req_type,
-        "methodology_recommendation": method,
-        "triage_band": triage_band,
-        "duplicate_candidates": [],  # real system would use embeddings; prototype uses manual linking
-    })
+    data.update(
+        {
+            "classified_at": now_iso(),
+            "request_type": req_type,
+            "methodology_recommendation": method,
+            "triage_band": triage_band,
+            "duplicate_candidates": [],  # real system would use embeddings; prototype uses manual linking
+        }
+    )
 
     store.update_entity(entity_id, data=data, status=data.get("status", "Under Review"))
-    store.log_event(actor=actor, event_type="intake_classified", entity_id=entity_id, details={"methodology": method, "triage": triage_band})
+    store.log_event(
+        actor=actor,
+        event_type="intake_classified",
+        entity_id=entity_id,
+        details={"methodology": method, "triage": triage_band},
+    )
 
     artifact = _artifact(
         store,
@@ -237,7 +260,9 @@ def agent_4_demand_intake(store: Store, *, actor: str, entity_id: str, inputs: D
     }
 
 
-def agent_5_business_case(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def agent_5_business_case(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
     ent = _ensure(store, entity_id)
     data = dict(ent.data)
 
@@ -254,19 +279,26 @@ def agent_5_business_case(store: Store, *, actor: str, entity_id: str, inputs: D
     roi = (benefit * years - cost) / max(cost, 1.0)
     payback_years = cost / max(benefit, 1.0)
 
-    data.update({
-        "estimated_cost": cost,
-        "annual_benefit": benefit,
-        "benefit_years": years,
-        "discount_rate": discount,
-        "roi": roi,
-        "npv": npv,
-        "payback_years": payback_years,
-        "generated_at": now_iso(),
-    })
+    data.update(
+        {
+            "estimated_cost": cost,
+            "annual_benefit": benefit,
+            "benefit_years": years,
+            "discount_rate": discount,
+            "roi": roi,
+            "npv": npv,
+            "payback_years": payback_years,
+            "generated_at": now_iso(),
+        }
+    )
 
     store.update_entity(entity_id, data=data, status="Draft")
-    store.log_event(actor=actor, event_type="business_case_generated", entity_id=entity_id, details={"roi": roi, "npv": npv})
+    store.log_event(
+        actor=actor,
+        event_type="business_case_generated",
+        entity_id=entity_id,
+        details={"roi": roi, "npv": npv},
+    )
 
     artifact = _artifact(
         store,
@@ -300,7 +332,9 @@ def agent_5_business_case(store: Store, *, actor: str, entity_id: str, inputs: D
     return {"updated_entity": entity_id, "roi": roi, "npv": npv, "artifact_id": artifact.id}
 
 
-def agent_6_portfolio(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def agent_6_portfolio(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
     # Portfolio scoring/optimisation can be run on a portfolio entity, but also works globally if entity_id refers to a business case.
     ent = _ensure(store, entity_id)
 
@@ -311,27 +345,37 @@ def agent_6_portfolio(store: Store, *, actor: str, entity_id: str, inputs: Dict[
 
     budget = float(inputs.get("budget_cap", 1000000))
 
-    scored=[]
+    scored = []
     for c in candidates:
-        d=c.data or {}
-        cost=float(d.get("estimated_cost", inputs.get("default_cost", 250000)) or 250000)
-        roi=float(d.get("roi", 0.2) or 0.2)
-        risk=float(d.get("risk_score", 0.5) or 0.5)
-        align=float(d.get("strategic_alignment", 0.6) or 0.6)
-        score=_clamp(0.45*_clamp(roi, -1, 3) + 0.35*align + 0.20*(1-risk), -1, 3)
-        scored.append({"id":c.id,"title":c.title,"cost":cost,"score":score,"roi":roi,"risk":risk,"alignment":align})
+        d = c.data or {}
+        cost = float(d.get("estimated_cost", inputs.get("default_cost", 250000)) or 250000)
+        roi = float(d.get("roi", 0.2) or 0.2)
+        risk = float(d.get("risk_score", 0.5) or 0.5)
+        align = float(d.get("strategic_alignment", 0.6) or 0.6)
+        score = _clamp(0.45 * _clamp(roi, -1, 3) + 0.35 * align + 0.20 * (1 - risk), -1, 3)
+        scored.append(
+            {
+                "id": c.id,
+                "title": c.title,
+                "cost": cost,
+                "score": score,
+                "roi": roi,
+                "risk": risk,
+                "alignment": align,
+            }
+        )
 
-    scored.sort(key=lambda x:x["score"], reverse=True)
+    scored.sort(key=lambda x: x["score"], reverse=True)
 
     # Simple greedy selection under budget
-    selected=[]
-    spend=0.0
+    selected = []
+    spend = 0.0
     for it in scored:
         if spend + it["cost"] <= budget:
             selected.append(it)
             spend += it["cost"]
 
-    recommendation={
+    recommendation = {
         "budget_cap": budget,
         "selected": selected,
         "spend": spend,
@@ -340,7 +384,7 @@ def agent_6_portfolio(store: Store, *, actor: str, entity_id: str, inputs: Dict[
     }
 
     # Attach as artifact
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=ent,
         name="Portfolio Recommendation.md",
@@ -350,8 +394,14 @@ def agent_6_portfolio(store: Store, *, actor: str, entity_id: str, inputs: Dict[
 
 ## Recommended set (greedy under budget)
 
-""" + "\n".join([f"- **{s['title']}** — score {s['score']:.2f}, cost ${s['cost']:,.0f}, roi {s['roi']:.2%}" for s in selected]) +
-        f"""
+"""
+        + "\n".join(
+            [
+                f"- **{s['title']}** — score {s['score']:.2f}, cost ${s['cost']:,.0f}, roi {s['roi']:.2%}"
+                for s in selected
+            ]
+        )
+        + f"""
 
 **Total spend:** ${spend:,.0f}
 
@@ -361,13 +411,20 @@ def agent_6_portfolio(store: Store, *, actor: str, entity_id: str, inputs: Dict[
         actor=actor,
     )
 
-    store.log_event(actor=actor, event_type="portfolio_optimised", entity_id=entity_id, details={"budget": budget, "selected_count": len(selected)})
+    store.log_event(
+        actor=actor,
+        event_type="portfolio_optimised",
+        entity_id=entity_id,
+        details={"budget": budget, "selected_count": len(selected)},
+    )
 
     return {"recommendation": recommendation, "artifact_id": artifact.id}
 
 
-def agent_7_program(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    ent=_ensure(store, entity_id)
+def agent_7_program(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    ent = _ensure(store, entity_id)
 
     program_title = inputs.get("program_title") or f"Program for {ent.title}"
     program = store.create_entity(
@@ -376,16 +433,18 @@ def agent_7_program(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
         status="Draft",
         classification=ent.classification,
         data={
-            "vision": inputs.get("vision", "(add vision)") ,
-            "objectives": inputs.get("objectives", ["Deliver benefits", "Coordinate dependencies"]) ,
+            "vision": inputs.get("vision", "(add vision)"),
+            "objectives": inputs.get("objectives", ["Deliver benefits", "Coordinate dependencies"]),
             "kpis": inputs.get("kpis", {"benefit_realisation": "Pending", "on_time_pct": 85}),
             "created_from": ent.id,
-        }
+        },
     )
     store.link(program.id, ent.id, "created_from")
-    store.log_event(actor=actor, event_type="program_created", entity_id=program.id, details={"source": ent.id})
+    store.log_event(
+        actor=actor, event_type="program_created", entity_id=program.id, details={"source": ent.id}
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=program,
         name="Program Definition.md",
@@ -397,16 +456,21 @@ def agent_7_program(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
 {program.data.get('vision')}
 
 ## Objectives
-""" + "\n".join([f"- {o}" for o in program.data.get('objectives',[])]) +
-        "\n\n## KPIs\n" + "\n".join([f"- {k}: {v}" for k,v in (program.data.get('kpis') or {}).items()]) + "\n",
+"""
+        + "\n".join([f"- {o}" for o in program.data.get("objectives", [])])
+        + "\n\n## KPIs\n"
+        + "\n".join([f"- {k}: {v}" for k, v in (program.data.get("kpis") or {}).items()])
+        + "\n",
         actor=actor,
     )
 
     return {"program_id": program.id, "artifact_id": artifact.id}
 
 
-def agent_8_project_definition(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    ent=_ensure(store, entity_id)
+def agent_8_project_definition(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    ent = _ensure(store, entity_id)
 
     # If entity is intake/business_case, create a project. If entity is already project, enrich it.
     if ent.type != "project":
@@ -416,8 +480,10 @@ def agent_8_project_definition(store: Store, *, actor: str, entity_id: str, inpu
             status="Initiating",
             classification=ent.classification,
             data={
-                "methodology": inputs.get("methodology") or ent.data.get("methodology_recommendation") or "Hybrid",
-                "objectives": inputs.get("objectives") or ["(add objective)"] ,
+                "methodology": inputs.get("methodology")
+                or ent.data.get("methodology_recommendation")
+                or "Hybrid",
+                "objectives": inputs.get("objectives") or ["(add objective)"],
                 "scope": inputs.get("scope") or ent.data.get("scope") or "(add scope)",
                 "assumptions": ent.data.get("assumptions") or [],
                 "constraints": ent.data.get("constraints") or [],
@@ -433,43 +499,64 @@ def agent_8_project_definition(store: Store, *, actor: str, entity_id: str, inpu
 
     # Generate WBS (very simple: objectives -> work packages)
     objectives = proj.data.get("objectives") or ["(add objective)"]
-    wbs_ids=[]
-    for i,obj in enumerate(objectives, start=1):
+    wbs_ids = []
+    for i, obj in enumerate(objectives, start=1):
         wbs = store.create_entity(
             type="wbs_item",
             title=f"{i}. {obj}",
             status="Planned",
             classification=proj.classification,
-            data={"project_id": proj.id, "description": obj, "estimate_hours": int(inputs.get("default_wbs_hours", 80))},
+            data={
+                "project_id": proj.id,
+                "description": obj,
+                "estimate_hours": int(inputs.get("default_wbs_hours", 80)),
+            },
         )
         store.link(proj.id, wbs.id, "has_wbs")
         wbs_ids.append(wbs.id)
 
-    charter_md=f"""# Project Charter (Draft)
+    charter_md = (
+        f"""# Project Charter (Draft)
 
 **Project:** {proj.title}
 
 ## Objectives
-""" + "\n".join([f"- {o}" for o in objectives]) + f"""
+"""
+        + "\n".join([f"- {o}" for o in objectives])
+        + f"""
 
 ## Scope
 {proj.data.get('scope')}
 
 ## Assumptions
-""" + "\n".join([f"- {a}" for a in (proj.data.get('assumptions') or [])]) + f"""
+"""
+        + "\n".join([f"- {a}" for a in (proj.data.get("assumptions") or [])])
+        + """
 
 ## Constraints
-""" + "\n".join([f"- {c}" for c in (proj.data.get('constraints') or [])]) + "\n"
+"""
+        + "\n".join([f"- {c}" for c in (proj.data.get("constraints") or [])])
+        + "\n"
+    )
 
-    artifact=_artifact(store, parent=ent_for_art, name="Project Charter.md", content_md=charter_md, actor=actor)
+    artifact = _artifact(
+        store, parent=ent_for_art, name="Project Charter.md", content_md=charter_md, actor=actor
+    )
 
-    store.log_event(actor=actor, event_type="project_charter_generated", entity_id=proj.id, details={"wbs_items": len(wbs_ids)})
+    store.log_event(
+        actor=actor,
+        event_type="project_charter_generated",
+        entity_id=proj.id,
+        details={"wbs_items": len(wbs_ids)},
+    )
 
     return {"project_id": proj.id, "wbs_item_ids": wbs_ids, "artifact_id": artifact.id}
 
 
-def agent_9_governance(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_9_governance(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
     if proj.type != "project":
         raise ValueError("Agent 9 expects a project entity")
 
@@ -479,16 +566,21 @@ def agent_9_governance(store: Store, *, actor: str, entity_id: str, inputs: Dict
         {"name": "Execution", "status": "Pending"},
         {"name": "Closure", "status": "Pending"},
     ]
-    data=dict(proj.data)
-    data["governance"]={
+    data = dict(proj.data)
+    data["governance"] = {
         "stage_gates": gates,
         "reporting_cadence": inputs.get("reporting_cadence", "Weekly"),
         "configured_at": now_iso(),
     }
     store.update_entity(proj.id, data=data)
-    store.log_event(actor=actor, event_type="governance_configured", entity_id=proj.id, details={"gates": len(gates)})
+    store.log_event(
+        actor=actor,
+        event_type="governance_configured",
+        entity_id=proj.id,
+        details={"gates": len(gates)},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=proj,
         name="Governance Plan.md",
@@ -497,7 +589,9 @@ def agent_9_governance(store: Store, *, actor: str, entity_id: str, inputs: Dict
 **Project:** {proj.title}
 
 ## Stage gates
-""" + "\n".join([f"- {g['name']}: {g['status']}" for g in gates]) + f"""
+"""
+        + "\n".join([f"- {g['name']}: {g['status']}" for g in gates])
+        + f"""
 
 ## Reporting cadence
 - {data['governance']['reporting_cadence']}
@@ -511,20 +605,26 @@ def agent_9_governance(store: Store, *, actor: str, entity_id: str, inputs: Dict
     return {"project_id": proj.id, "artifact_id": artifact.id}
 
 
-def agent_10_schedule(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_10_schedule(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
     if proj.type != "project":
         raise ValueError("Agent 10 expects a project entity")
 
     # Build tasks from WBS items
-    wbs_links=[l for l in store.list_links(proj.id) if l["relation_type"]=="has_wbs" and l["from_id"]==proj.id]
-    tasks=[]
-    base_days=int(inputs.get("default_task_days", 10))
-    for idx,l in enumerate(wbs_links, start=1):
-        wbs=store.get_entity(l["to_id"], include_data=True)
+    wbs_links = [
+        link
+        for link in store.list_links(proj.id)
+        if link["relation_type"] == "has_wbs" and link["from_id"] == proj.id
+    ]
+    tasks = []
+    base_days = int(inputs.get("default_task_days", 10))
+    for idx, link in enumerate(wbs_links, start=1):
+        wbs = store.get_entity(link["to_id"], include_data=True)
         if not wbs:
             continue
-        task=store.create_entity(
+        task = store.create_entity(
             type="schedule_task",
             title=f"Task {idx}: {wbs.title}",
             status="Planned",
@@ -540,24 +640,29 @@ def agent_10_schedule(store: Store, *, actor: str, entity_id: str, inputs: Dict[
         tasks.append(task)
 
     # Simple baseline dates (sequential)
-    start_day=0
+    start_day = 0
     for t in tasks:
-        d=dict(t.data)
-        d["baseline_start_day"]=start_day
-        d["baseline_end_day"]=start_day + int(d.get("duration_days", base_days))
+        d = dict(t.data)
+        d["baseline_start_day"] = start_day
+        d["baseline_end_day"] = start_day + int(d.get("duration_days", base_days))
         start_day = d["baseline_end_day"]
         store.update_entity(t.id, data=d)
 
-    data=dict(proj.data)
-    data["schedule"]={
+    data = dict(proj.data)
+    data["schedule"] = {
         "baseline_total_days": start_day,
         "baselined_at": now_iso(),
         "task_count": len(tasks),
     }
     store.update_entity(proj.id, data=data)
-    store.log_event(actor=actor, event_type="schedule_baselined", entity_id=proj.id, details={"tasks": len(tasks), "days": start_day})
+    store.log_event(
+        actor=actor,
+        event_type="schedule_baselined",
+        entity_id=proj.id,
+        details={"tasks": len(tasks), "days": start_day},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=proj,
         name="Schedule Baseline.md",
@@ -569,41 +674,56 @@ def agent_10_schedule(store: Store, *, actor: str, entity_id: str, inputs: Dict[
 - Baseline duration: **{start_day} days**
 
 ## Tasks
-""" + "\n".join([f"- {t.title} (days: {t.data.get('duration_days', base_days)})" for t in tasks]) + "\n",
+"""
+        + "\n".join(
+            [f"- {t.title} (days: {t.data.get('duration_days', base_days)})" for t in tasks]
+        )
+        + "\n",
         actor=actor,
     )
 
     return {"project_id": proj.id, "task_ids": [t.id for t in tasks], "artifact_id": artifact.id}
 
 
-def agent_11_resources(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_11_resources(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
     if proj.type != "project":
         raise ValueError("Agent 11 expects a project entity")
 
     resources = store.list_entities(type="resource", limit=200)
-    tasks_links=[l for l in store.list_links(proj.id) if l["relation_type"]=="has_task" and l["from_id"]==proj.id]
-    tasks=[store.get_entity(l["to_id"], include_data=True) for l in tasks_links]
-    tasks=[t for t in tasks if t]
+    task_links = [
+        link
+        for link in store.list_links(proj.id)
+        if link["relation_type"] == "has_task" and link["from_id"] == proj.id
+    ]
+    tasks = [store.get_entity(link["to_id"], include_data=True) for link in task_links]
+    tasks = [t for t in tasks if t]
 
-    allocations=[]
+    allocations = []
     if resources and tasks:
         for t in tasks:
             r = random.choice(resources)
-            d=dict(t.data)
-            d["assigned_resource_id"]=r.id
+            d = dict(t.data)
+            d["assigned_resource_id"] = r.id
             store.update_entity(t.id, data=d)
             allocations.append({"task": t.id, "resource": r.id})
 
     # Simple over-allocation check (counts tasks per resource)
-    per_res={}
+    per_res = {}
     for a in allocations:
-        per_res[a["resource"]]=per_res.get(a["resource"],0)+1
-    conflicts=[{"resource": rid, "task_count": n} for rid,n in per_res.items() if n>3]
+        per_res[a["resource"]] = per_res.get(a["resource"], 0) + 1
+    conflicts = [{"resource": rid, "task_count": n} for rid, n in per_res.items() if n > 3]
 
-    store.log_event(actor=actor, event_type="resources_planned", entity_id=proj.id, details={"allocations": len(allocations), "conflicts": len(conflicts)})
+    store.log_event(
+        actor=actor,
+        event_type="resources_planned",
+        entity_id=proj.id,
+        details={"allocations": len(allocations), "conflicts": len(conflicts)},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=proj,
         name="Resource & Capacity Plan.md",
@@ -612,29 +732,56 @@ def agent_11_resources(store: Store, *, actor: str, entity_id: str, inputs: Dict
 **Project:** {proj.title}
 
 ## Allocations
-""" + "\n".join([f"- Task {a['task']} → Resource {a['resource']}" for a in allocations]) +
-        ("\n\n## Potential conflicts\n" + "\n".join([f"- Resource {c['resource']} has {c['task_count']} tasks" for c in conflicts]) if conflicts else "\n\nNo conflicts detected by prototype rules."),
+"""
+        + "\n".join([f"- Task {a['task']} → Resource {a['resource']}" for a in allocations])
+        + (
+            "\n\n## Potential conflicts\n"
+            + "\n".join(
+                [f"- Resource {c['resource']} has {c['task_count']} tasks" for c in conflicts]
+            )
+            if conflicts
+            else "\n\nNo conflicts detected by prototype rules."
+        ),
         actor=actor,
     )
 
-    return {"project_id": proj.id, "allocations": allocations, "conflicts": conflicts, "artifact_id": artifact.id}
+    return {
+        "project_id": proj.id,
+        "allocations": allocations,
+        "conflicts": conflicts,
+        "artifact_id": artifact.id,
+    }
 
 
-def agent_12_financial(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_12_financial(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
     if proj.type != "project":
         raise ValueError("Agent 12 expects a project entity")
 
-    data=dict(proj.data)
-    budget=float(inputs.get("budget", data.get("budget", 500000)) or 0)
-    actual=float(inputs.get("actual_to_date", data.get("actual_to_date", budget*0.2)) or 0)
-    variance=actual - budget
+    data = dict(proj.data)
+    budget = float(inputs.get("budget", data.get("budget", 500000)) or 0)
+    actual = float(inputs.get("actual_to_date", data.get("actual_to_date", budget * 0.2)) or 0)
+    variance = actual - budget
 
-    data.update({"budget": budget, "actual_to_date": actual, "variance": variance, "currency": inputs.get("currency","USD")})
+    data.update(
+        {
+            "budget": budget,
+            "actual_to_date": actual,
+            "variance": variance,
+            "currency": inputs.get("currency", "USD"),
+        }
+    )
     store.update_entity(proj.id, data=data)
-    store.log_event(actor=actor, event_type="financials_updated", entity_id=proj.id, details={"budget": budget, "actual": actual})
+    store.log_event(
+        actor=actor,
+        event_type="financials_updated",
+        entity_id=proj.id,
+        details={"budget": budget, "actual": actual},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=proj,
         name="Financial Baseline & Variance.md",
@@ -652,18 +799,30 @@ def agent_12_financial(store: Store, *, actor: str, entity_id: str, inputs: Dict
         actor=actor,
     )
 
-    return {"project_id": proj.id, "budget": budget, "actual_to_date": actual, "variance": variance, "artifact_id": artifact.id}
+    return {
+        "project_id": proj.id,
+        "budget": budget,
+        "actual_to_date": actual,
+        "variance": variance,
+        "artifact_id": artifact.id,
+    }
 
 
-def agent_13_vendor(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_13_vendor(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
 
     vendor = store.create_entity(
         type="vendor",
         title=inputs.get("vendor_name", "Example Vendor"),
         status="Active",
         classification=proj.classification,
-        data={"category": inputs.get("category","Software"), "risk_rating": inputs.get("risk_rating","Medium"), "contact": inputs.get("contact","vendor@example.com")},
+        data={
+            "category": inputs.get("category", "Software"),
+            "risk_rating": inputs.get("risk_rating", "Medium"),
+            "contact": inputs.get("contact", "vendor@example.com"),
+        },
     )
     store.link(proj.id, vendor.id, "uses_vendor")
 
@@ -672,14 +831,23 @@ def agent_13_vendor(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
         title=f"Contract with {vendor.title}",
         status="Draft",
         classification=proj.classification,
-        data={"vendor_id": vendor.id, "project_id": proj.id, "value": float(inputs.get("contract_value", 100000))},
+        data={
+            "vendor_id": vendor.id,
+            "project_id": proj.id,
+            "value": float(inputs.get("contract_value", 100000)),
+        },
     )
     store.link(vendor.id, contract.id, "has_contract")
     store.link(proj.id, contract.id, "has_contract")
 
-    store.log_event(actor=actor, event_type="vendor_contract_created", entity_id=proj.id, details={"vendor": vendor.id, "contract": contract.id})
+    store.log_event(
+        actor=actor,
+        event_type="vendor_contract_created",
+        entity_id=proj.id,
+        details={"vendor": vendor.id, "contract": contract.id},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=contract,
         name="Procurement Summary.md",
@@ -704,12 +872,14 @@ def agent_13_vendor(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
     return {"vendor_id": vendor.id, "contract_id": contract.id, "artifact_id": artifact.id}
 
 
-def agent_14_quality(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_14_quality(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
     if proj.type != "project":
         raise ValueError("Agent 14 expects a project entity")
 
-    gates=inputs.get("quality_gates") or [
+    gates = inputs.get("quality_gates") or [
         {"name": "Requirements Complete", "status": "Pending"},
         {"name": "Test Plan Approved", "status": "Pending"},
         {"name": "UAT Passed", "status": "Pending"},
@@ -720,13 +890,22 @@ def agent_14_quality(store: Store, *, actor: str, entity_id: str, inputs: Dict[s
         title=f"Quality Plan: {proj.title}",
         status="Draft",
         classification=proj.classification,
-        data={"project_id": proj.id, "gates": gates, "metrics": {"defect_escape_rate": "Pending", "test_coverage": "Pending"}},
+        data={
+            "project_id": proj.id,
+            "gates": gates,
+            "metrics": {"defect_escape_rate": "Pending", "test_coverage": "Pending"},
+        },
     )
     store.link(proj.id, q.id, "has_quality_plan")
 
-    store.log_event(actor=actor, event_type="quality_plan_created", entity_id=proj.id, details={"quality_plan": q.id})
+    store.log_event(
+        actor=actor,
+        event_type="quality_plan_created",
+        entity_id=proj.id,
+        details={"quality_plan": q.id},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=q,
         name="Quality Plan.md",
@@ -735,35 +914,63 @@ def agent_14_quality(store: Store, *, actor: str, entity_id: str, inputs: Dict[s
 **Project:** {proj.title}
 
 ## Quality gates
-""" + "\n".join([f"- {g['name']}: {g['status']}" for g in gates]) + "\n",
+"""
+        + "\n".join([f"- {g['name']}: {g['status']}" for g in gates])
+        + "\n",
         actor=actor,
     )
 
     return {"quality_plan_id": q.id, "artifact_id": artifact.id}
 
 
-def agent_15_risk(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_15_risk(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
 
-    risks=[]
-    for r in inputs.get("risks", [
-        {"title": "Schedule slippage", "probability": 0.4, "impact": 0.6, "mitigation": "Improve estimation; add buffer"},
-        {"title": "Resource constraints", "probability": 0.5, "impact": 0.7, "mitigation": "Cross-train; adjust priorities"},
-    ]):
-        exposure=float(r.get("probability",0.5))*float(r.get("impact",0.5))
-        risk_ent=store.create_entity(
+    risks = []
+    for r in inputs.get(
+        "risks",
+        [
+            {
+                "title": "Schedule slippage",
+                "probability": 0.4,
+                "impact": 0.6,
+                "mitigation": "Improve estimation; add buffer",
+            },
+            {
+                "title": "Resource constraints",
+                "probability": 0.5,
+                "impact": 0.7,
+                "mitigation": "Cross-train; adjust priorities",
+            },
+        ],
+    ):
+        exposure = float(r.get("probability", 0.5)) * float(r.get("impact", 0.5))
+        risk_ent = store.create_entity(
             type="risk",
             title=r["title"],
             status="Open",
             classification=proj.classification,
-            data={"project_id": proj.id, "probability": r.get("probability"), "impact": r.get("impact"), "exposure": exposure, "mitigation": r.get("mitigation")},
+            data={
+                "project_id": proj.id,
+                "probability": r.get("probability"),
+                "impact": r.get("impact"),
+                "exposure": exposure,
+                "mitigation": r.get("mitigation"),
+            },
         )
         store.link(proj.id, risk_ent.id, "has_risk")
         risks.append(risk_ent)
 
-    store.log_event(actor=actor, event_type="risk_register_created", entity_id=proj.id, details={"count": len(risks)})
+    store.log_event(
+        actor=actor,
+        event_type="risk_register_created",
+        entity_id=proj.id,
+        details={"count": len(risks)},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=proj,
         name="Risk Register.md",
@@ -771,38 +978,57 @@ def agent_15_risk(store: Store, *, actor: str, entity_id: str, inputs: Dict[str,
 
 **Project:** {proj.title}
 
-""" + "\n".join([f"- **{r.title}** (exposure {r.data.get('exposure'):.2f}) — {r.data.get('mitigation')}" for r in risks]) + "\n",
+"""
+        + "\n".join(
+            [
+                f"- **{r.title}** (exposure {r.data.get('exposure'):.2f}) — {r.data.get('mitigation')}"
+                for r in risks
+            ]
+        )
+        + "\n",
         actor=actor,
     )
 
     return {"risk_ids": [r.id for r in risks], "artifact_id": artifact.id}
 
 
-def agent_16_compliance(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_16_compliance(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
 
     policies = store.list_entities(type="policy", limit=200)
-    mapped=[]
+    mapped = []
     for p in policies:
-        m=store.create_entity(
+        m = store.create_entity(
             type="compliance_check",
             title=f"Compliance: {p.title} for {proj.title}",
             status="Planned",
             classification=proj.classification,
-            data={"project_id": proj.id, "policy_id": p.id, "status": "Planned", "evidence": "Pending"},
+            data={
+                "project_id": proj.id,
+                "policy_id": p.id,
+                "status": "Planned",
+                "evidence": "Pending",
+            },
         )
         store.link(proj.id, m.id, "has_compliance_check")
         store.link(p.id, m.id, "policy_check")
         mapped.append(m)
 
-    data=dict(proj.data)
+    data = dict(proj.data)
     # Apply data classification suggestion
     data.setdefault("data_classification", proj.classification)
     store.update_entity(proj.id, data=data)
 
-    store.log_event(actor=actor, event_type="compliance_mapped", entity_id=proj.id, details={"checks": len(mapped)})
+    store.log_event(
+        actor=actor,
+        event_type="compliance_mapped",
+        entity_id=proj.id,
+        details={"checks": len(mapped)},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=proj,
         name="Compliance Mapping.md",
@@ -813,31 +1039,41 @@ def agent_16_compliance(store: Store, *, actor: str, entity_id: str, inputs: Dic
 - Data classification: **{data.get('data_classification')}**
 
 ## Policy checks (planned)
-""" + "\n".join([f"- {m.title}" for m in mapped]) + "\n",
+"""
+        + "\n".join([f"- {m.title}" for m in mapped])
+        + "\n",
         actor=actor,
     )
 
     return {"compliance_check_ids": [m.id for m in mapped], "artifact_id": artifact.id}
 
 
-def agent_17_change(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    cr=_ensure(store, entity_id)
-    data=dict(cr.data)
+def agent_17_change(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    cr = _ensure(store, entity_id)
+    data = dict(cr.data)
 
     # Impact analysis baseline
     impact = {
         "scope": data.get("impact_scope") or inputs.get("impact_scope") or "Medium",
-        "schedule_days": float(data.get("impact_schedule_days") or inputs.get("impact_schedule_days") or 10),
+        "schedule_days": float(
+            data.get("impact_schedule_days") or inputs.get("impact_schedule_days") or 10
+        ),
         "cost": float(data.get("impact_cost") or inputs.get("impact_cost") or 25000),
-        "resources": data.get("impact_resources") or inputs.get("impact_resources") or "Needs review",
+        "resources": data.get("impact_resources")
+        or inputs.get("impact_resources")
+        or "Needs review",
     }
 
     data["impact"] = impact
     data["analysed_at"] = now_iso()
     store.update_entity(cr.id, data=data)
-    store.log_event(actor=actor, event_type="change_impact_analysed", entity_id=cr.id, details=impact)
+    store.log_event(
+        actor=actor, event_type="change_impact_analysed", entity_id=cr.id, details=impact
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=cr,
         name="Change Impact Analysis.md",
@@ -859,9 +1095,11 @@ def agent_17_change(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
     return {"change_request_id": cr.id, "impact": impact, "artifact_id": artifact.id}
 
 
-def agent_18_release(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    rel=_ensure(store, entity_id)
-    data=dict(rel.data)
+def agent_18_release(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    rel = _ensure(store, entity_id)
+    data = dict(rel.data)
 
     checks = {
         "quality_gates_passed": bool(inputs.get("quality_gates_passed", False)),
@@ -873,9 +1111,14 @@ def agent_18_release(store: Store, *, actor: str, entity_id: str, inputs: Dict[s
     data["readiness_checks"] = checks
     data["readiness"] = "Ready" if readiness else "Not Ready"
     store.update_entity(rel.id, data=data)
-    store.log_event(actor=actor, event_type="release_readiness_checked", entity_id=rel.id, details={"readiness": data["readiness"], **checks})
+    store.log_event(
+        actor=actor,
+        event_type="release_readiness_checked",
+        entity_id=rel.id,
+        details={"readiness": data["readiness"], **checks},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=rel,
         name="Release Readiness.md",
@@ -884,7 +1127,9 @@ def agent_18_release(store: Store, *, actor: str, entity_id: str, inputs: Dict[s
 **Release:** {rel.title}
 
 ## Checks
-""" + "\n".join([f"- {k.replace('_',' ')}: {'✅' if v else '❌'}" for k,v in checks.items()]) + f"""
+"""
+        + "\n".join([f"- {k.replace('_',' ')}: {'✅' if v else '❌'}" for k, v in checks.items()])
+        + f"""
 
 ## Overall
 **{data['readiness']}**
@@ -895,19 +1140,28 @@ def agent_18_release(store: Store, *, actor: str, entity_id: str, inputs: Dict[s
     return {"release_id": rel.id, "readiness": data["readiness"], "artifact_id": artifact.id}
 
 
-def agent_19_knowledge(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    kb=_ensure(store, entity_id)
-    data=dict(kb.data)
+def agent_19_knowledge(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    kb = _ensure(store, entity_id)
+    data = dict(kb.data)
     data.setdefault("tags", inputs.get("tags", ["lessons", "ppm"]))
     data.setdefault("created_at", now_iso())
     store.update_entity(kb.id, data=data)
-    store.log_event(actor=actor, event_type="knowledge_updated", entity_id=kb.id, details={"tags": data.get("tags")})
+    store.log_event(
+        actor=actor,
+        event_type="knowledge_updated",
+        entity_id=kb.id,
+        details={"tags": data.get("tags")},
+    )
 
     return {"knowledge_id": kb.id, "tags": data.get("tags")}
 
 
-def agent_20_improvement(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    ent=_ensure(store, entity_id)
+def agent_20_improvement(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    ent = _ensure(store, entity_id)
 
     # Process mining stub: infer bottlenecks from event log counts
     events = store.list_events(limit=500)
@@ -922,27 +1176,50 @@ def agent_20_improvement(store: Store, *, actor: str, entity_id: str, inputs: Di
         "Increase duplicate detection accuracy with embeddings.",
     ]
 
-    store.log_event(actor=actor, event_type="process_mining_run", entity_id=ent.id, details={"events": len(events)})
+    store.log_event(
+        actor=actor,
+        event_type="process_mining_run",
+        entity_id=ent.id,
+        details={"events": len(events)},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=ent,
         name="Continuous Improvement Insights.md",
-        content_md="# Continuous Improvement Insights\n\n## Top event types\n" + "\n".join([f"- {k}: {v}" for k,v in top]) + "\n\n## Suggested improvements\n" + "\n".join([f"- {s}" for s in suggestions]) + "\n",
+        content_md="# Continuous Improvement Insights\n\n## Top event types\n"
+        + "\n".join([f"- {k}: {v}" for k, v in top])
+        + "\n\n## Suggested improvements\n"
+        + "\n".join([f"- {s}" for s in suggestions])
+        + "\n",
         actor=actor,
     )
 
     return {"entity_id": ent.id, "top_events": top, "artifact_id": artifact.id}
 
 
-def agent_21_stakeholder(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    proj=_ensure(store, entity_id)
+def agent_21_stakeholder(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    proj = _ensure(store, entity_id)
 
     stakeholders = inputs.get("stakeholders") or [
-        {"name": "Executive Sponsor", "role": "Sponsor", "influence": "High", "interest": "High", "pref": "Email"},
-        {"name": "PMO", "role": "Governance", "influence": "Medium", "interest": "High", "pref": "Teams"},
+        {
+            "name": "Executive Sponsor",
+            "role": "Sponsor",
+            "influence": "High",
+            "interest": "High",
+            "pref": "Email",
+        },
+        {
+            "name": "PMO",
+            "role": "Governance",
+            "influence": "Medium",
+            "interest": "High",
+            "pref": "Teams",
+        },
     ]
-    created=[]
+    created = []
     for s in stakeholders:
         st = store.create_entity(
             type="stakeholder",
@@ -959,13 +1236,23 @@ def agent_21_stakeholder(store: Store, *, actor: str, entity_id: str, inputs: Di
         title=f"Comms Plan: {proj.title}",
         status="Draft",
         classification=proj.classification,
-        data={"project_id": proj.id, "cadence": inputs.get("cadence","Weekly"), "channels": ["Email", "Teams"], "audiences": [c.title for c in created]},
+        data={
+            "project_id": proj.id,
+            "cadence": inputs.get("cadence", "Weekly"),
+            "channels": ["Email", "Teams"],
+            "audiences": [c.title for c in created],
+        },
     )
     store.link(proj.id, comm_plan.id, "has_comms")
 
-    store.log_event(actor=actor, event_type="stakeholders_configured", entity_id=proj.id, details={"stakeholders": len(created)})
+    store.log_event(
+        actor=actor,
+        event_type="stakeholders_configured",
+        entity_id=proj.id,
+        details={"stakeholders": len(created)},
+    )
 
-    artifact=_artifact(
+    artifact = _artifact(
         store,
         parent=comm_plan,
         name="Stakeholder & Comms Plan.md",
@@ -974,37 +1261,61 @@ def agent_21_stakeholder(store: Store, *, actor: str, entity_id: str, inputs: Di
 **Project:** {proj.title}
 
 ## Stakeholders
-""" + "\n".join([f"- {s.title} ({s.data.get('role')}) – pref: {s.data.get('pref')}" for s in created]) + f"""
+"""
+        + "\n".join(
+            [f"- {s.title} ({s.data.get('role')}) – pref: {s.data.get('pref')}" for s in created]
+        )
+        + f"""
 
 ## Cadence
 - {comm_plan.data.get('cadence')}
 
 ## Channels
-""" + "\n".join([f"- {c}" for c in comm_plan.data.get('channels',[])]) + "\n",
+"""
+        + "\n".join([f"- {c}" for c in comm_plan.data.get("channels", [])])
+        + "\n",
         actor=actor,
     )
 
-    return {"stakeholder_ids": [s.id for s in created], "comms_plan_id": comm_plan.id, "artifact_id": artifact.id}
+    return {
+        "stakeholder_ids": [s.id for s in created],
+        "comms_plan_id": comm_plan.id,
+        "artifact_id": artifact.id,
+    }
 
 
-def agent_22_analytics(store: Store, *, actor: str, entity_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
-    ent=_ensure(store, entity_id)
+def agent_22_analytics(
+    store: Store, *, actor: str, entity_id: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    ent = _ensure(store, entity_id)
 
     # Basic KPIs across projects
     projects = store.list_entities(type="project", limit=200)
-    kpis={
+    kpis = {
         "projects": len(projects),
-        "active_projects": sum(1 for p in projects if p.status.lower() not in {"closed","cancelled"}),
-        "avg_budget": (sum(float(p.data.get("budget",0) or 0) for p in projects)/len(projects)) if projects else 0,
+        "active_projects": sum(
+            1 for p in projects if p.status.lower() not in {"closed", "cancelled"}
+        ),
+        "avg_budget": (
+            (sum(float(p.data.get("budget", 0) or 0) for p in projects) / len(projects))
+            if projects
+            else 0
+        ),
         "risk_count": len(store.list_entities(type="risk", limit=500)),
-        "open_change_requests": sum(1 for c in store.list_entities(type="change_request", limit=500) if c.status.lower() not in {"rejected","done","closed"}),
+        "open_change_requests": sum(
+            1
+            for c in store.list_entities(type="change_request", limit=500)
+            if c.status.lower() not in {"rejected", "done", "closed"}
+        ),
     }
 
-    report=_artifact(
+    report = _artifact(
         store,
         parent=ent,
         name="Analytics Snapshot.md",
-        content_md="# Analytics Snapshot\n\n" + "\n".join([f"- {k}: {v}" for k,v in kpis.items()]) + "\n",
+        content_md="# Analytics Snapshot\n\n"
+        + "\n".join([f"- {k}: {v}" for k, v in kpis.items()])
+        + "\n",
         actor=actor,
     )
 
@@ -1012,34 +1323,68 @@ def agent_22_analytics(store: Store, *, actor: str, entity_id: str, inputs: Dict
     return {"kpis": kpis, "artifact_id": report.id}
 
 
-def agent_23_data_sync(store: Store, *, actor: str, entity_id: str | None, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def agent_23_data_sync(
+    store: Store, *, actor: str, entity_id: str | None, inputs: dict[str, Any]
+) -> dict[str, Any]:
     # Simulate a connector sync by writing last_sync + metrics
     connectors = store.list_connectors()
-    synced=[]
+    synced = []
     for c in connectors:
         if inputs.get("only") and c["system_name"] not in inputs["only"]:
             continue
-        c_id=c["id"]
-        cfg=c.get("config") or {}
-        status=c.get("status","Planned")
-        last=now_iso()
-        store.upsert_connector(connector_id=c_id, system_name=c["system_name"], category=c.get("category"), status=status, config=cfg, last_sync=last)
+        c_id = c["id"]
+        cfg = c.get("config") or {}
+        status = c.get("status", "Planned")
+        last = now_iso()
+        store.upsert_connector(
+            connector_id=c_id,
+            system_name=c["system_name"],
+            category=c.get("category"),
+            status=status,
+            config=cfg,
+            last_sync=last,
+        )
         synced.append({"system": c["system_name"], "last_sync": last})
 
     store.add_metric("connector_sync_count", float(len(synced)))
-    store.log_event(actor=actor, event_type="connectors_synced", entity_id=entity_id, details={"count": len(synced)})
+    store.log_event(
+        actor=actor,
+        event_type="connectors_synced",
+        entity_id=entity_id,
+        details={"count": len(synced)},
+    )
 
     return {"synced": synced}
 
 
-def agent_24_workflow_engine(store: Store, *, actor: str, entity_id: str | None, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def agent_24_workflow_engine(
+    store: Store, *, actor: str, entity_id: str | None, inputs: dict[str, Any]
+) -> dict[str, Any]:
     # Prototype action: list workflow defs and optionally activate/deactivate (stored in DB).
     defs = store.list_workflow_defs()
-    store.log_event(actor=actor, event_type="workflow_engine_inspected", entity_id=entity_id, details={"defs": len(defs)})
-    return {"workflow_defs": [{"id": d["id"], "name": d["name"], "version": d["version"], "entity_type": d["entity_type"], "active": bool(d["active"])} for d in defs]}
+    store.log_event(
+        actor=actor,
+        event_type="workflow_engine_inspected",
+        entity_id=entity_id,
+        details={"defs": len(defs)},
+    )
+    return {
+        "workflow_defs": [
+            {
+                "id": d["id"],
+                "name": d["name"],
+                "version": d["version"],
+                "entity_type": d["entity_type"],
+                "active": bool(d["active"]),
+            }
+            for d in defs
+        ]
+    }
 
 
-def agent_25_system_health(store: Store, *, actor: str, entity_id: str | None, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def agent_25_system_health(
+    store: Store, *, actor: str, entity_id: str | None, inputs: dict[str, Any]
+) -> dict[str, Any]:
     # System health is derived from basic metrics + recent events
     events = store.list_events(limit=100)
     metrics = store.latest_metrics(limit=50)
@@ -1051,17 +1396,36 @@ def agent_25_system_health(store: Store, *, actor: str, entity_id: str | None, i
         "connectors_configured": len(store.list_connectors()) > 0,
         "recent_events": len(events),
     }
-    status = "Healthy" if checks["db_reachable"] and checks["workflow_templates_loaded"] else "Degraded"
+    status = (
+        "Healthy" if checks["db_reachable"] and checks["workflow_templates_loaded"] else "Degraded"
+    )
 
     store.add_metric("system_health", 1.0 if status == "Healthy" else 0.0)
-    store.log_event(actor=actor, event_type="system_health_checked", entity_id=entity_id, details={"status": status})
+    store.log_event(
+        actor=actor,
+        event_type="system_health_checked",
+        entity_id=entity_id,
+        details={"status": status},
+    )
 
-    return {"status": status, "checks": checks, "metrics": metrics[:15], "recent_events": events[:15]}
+    return {
+        "status": status,
+        "checks": checks,
+        "metrics": metrics[:15],
+        "recent_events": events[:15],
+    }
 
 
 # Baseline agents (1-3 and others not explicitly modelled as domain actions)
-def agent_passthrough(store: Store, *, actor: str, entity_id: str | None, inputs: Dict[str, Any], label: str) -> Dict[str, Any]:
-    store.log_event(actor=actor, event_type=f"agent_{label}_invoked", entity_id=entity_id, details={"inputs": inputs})
+def agent_passthrough(
+    store: Store, *, actor: str, entity_id: str | None, inputs: dict[str, Any], label: str
+) -> dict[str, Any]:
+    store.log_event(
+        actor=actor,
+        event_type=f"agent_{label}_invoked",
+        entity_id=entity_id,
+        details={"inputs": inputs},
+    )
     return {"message": f"{label} executed (prototype stub)", "entity_id": entity_id}
 
 
@@ -1094,18 +1458,21 @@ AGENT_FUNCTIONS = {
 }
 
 
-def run_domain_agent(store: Store, *, agent_id: int, actor: str, entity_id: str | None, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def run_domain_agent(
+    store: Store, *, agent_id: int, actor: str, entity_id: str | None, inputs: dict[str, Any]
+) -> dict[str, Any]:
     """Run a domain agent and record an agent_run entry."""
-    from ..utils import json_dumps_compact
 
     started = now_iso()
-    log_lines: List[str] = []
+    log_lines: list[str] = []
     try:
         if agent_id in (1, 2):
             raise ValueError("Use route_intent() or orchestrate() for agent 1/2")
         fn = AGENT_FUNCTIONS.get(agent_id)
         if not fn:
-            out = agent_passthrough(store, actor=actor, entity_id=entity_id, inputs=inputs, label=f"Agent {agent_id}")
+            out = agent_passthrough(
+                store, actor=actor, entity_id=entity_id, inputs=inputs, label=f"Agent {agent_id}"
+            )
         else:
             # Some agents require entity_id, others can be global
             if agent_id in (23, 24, 25):

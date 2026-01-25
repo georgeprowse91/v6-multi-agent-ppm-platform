@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import streamlit as st
-
-from ppm.state import get_store
+from ppm.agents.registry import list_agents, orchestrate, route_intent, run_agent
 from ppm.session import sidebar_login
-from ppm.agents.registry import list_agents, run_agent, route_intent, orchestrate
-from ppm.utils import json_dumps
+from ppm.state import get_store
 
 st.set_page_config(page_title="Agents", layout="wide")
 
@@ -24,8 +22,15 @@ with col2:
     if st.button("Run agent", type="primary"):
         try:
             import json
+
             inputs = json.loads(inputs_text) if inputs_text.strip() else {}
-            out = run_agent(store, agent_id=int(agent_id), actor=user.name, entity_id=entity_id.strip() or None, inputs=inputs)
+            out = run_agent(
+                store,
+                agent_id=int(agent_id),
+                actor=user.name,
+                entity_id=entity_id.strip() or None,
+                inputs=inputs,
+            )
             st.success("Agent run complete.")
             st.json(out)
         except Exception as e:
@@ -33,11 +38,15 @@ with col2:
 
     st.divider()
     st.subheader("Intent router")
-    q = st.text_area("Try a query", value="Show me Apollo’s schedule and flag any budget risks", height=80)
+    q = st.text_area(
+        "Try a query", value="Show me Apollo’s schedule and flag any budget risks", height=80
+    )
     if st.button("Route query"):
         st.json(route_intent(q))
     if st.button("Orchestrate query"):
-        st.json(orchestrate(store, actor=user.name, query=q, focus_entity_id=entity_id.strip() or None))
+        st.json(
+            orchestrate(store, actor=user.name, query=q, focus_entity_id=entity_id.strip() or None)
+        )
 
 with col1:
     st.subheader("Agent specifications (from docs → JSON)")

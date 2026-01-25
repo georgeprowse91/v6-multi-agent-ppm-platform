@@ -90,8 +90,8 @@ packages = ["agents", "tools"]
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
-asyncio_mode = "auto"
-addopts = "-v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=html --cov-report=term-missing"
+addopts = "-v"
+markers = ["asyncio: mark async tests handled by pytest-asyncio or fallback runner"]
 
 [tool.black]
 line-length = 100

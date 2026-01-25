@@ -1,67 +1,60 @@
 # Developer Tooling
 
-This folder houses repo-aware tooling for formatting, linting, code generation, and local
-development workflows. The scripts here reflect the current layout of `apps/`, `services/`,
-`agents/`, `connectors/`, and `packages/`.
+Repo-aware tooling for formatting, linting, code generation, and local dev helpers used by
+the Makefile and CI pipelines.
 
-## Subfolders
+## Quickstart
 
-| Folder | Purpose |
-| --- | --- |
-| `codegen/` | OpenAPI validation and deterministic outputs for API contracts. |
-| `format/` | Formatting entrypoints for Python sources in the repo. |
-| `lint/` | Lint checks that mirror CI expectations. |
-| `local-dev/` | Local Docker Compose helpers and environment notes. |
-
-## Commands to run
-
-### Format all
 ```bash
-python -m tools.format.run
+make lint
+make format
+make codegen
 ```
 
-### Lint all
-```bash
-python -m tools.lint.run
-```
+For the local dev stack:
 
-### Run local dev stack
 ```bash
 bash tools/local-dev/dev_up.sh
 ```
 
-### Run a single agent locally
+## How to verify
+
 ```bash
-python -m tools.agent_runner run-agent --name agent-10-schedule-planning
+python -m tools.lint.run
 ```
 
-### Run a connector locally (validation-only)
-```bash
-python -m tools.connector_runner run-connector --name jira --dry-run
+Expected output (when lint is clean):
+
+```text
+All checks passed!
 ```
 
-### Run codegen (OpenAPI)
 ```bash
 python -m tools.codegen.run
 ```
 
-The codegen step validates `docs/api/openapi.yaml` and writes a deterministic summary to
-`apps/api-gateway/openapi/`.
+Expected output:
 
-## CI / pre-commit integration
+```text
+Generated OpenAPI summary at apps/api-gateway/openapi.
+```
 
-* CI relies on `make lint`, `make format`, and `make codegen`. The Makefile now delegates to
-  the scripts in this folder for consistent behavior.
-* If you install `pre-commit` manually, you can add hooks that call these commands, but this
-  repo currently runs them via Make targets.
+## Key files
 
-## Troubleshooting
+- `tools/lint/run.py`: Ruff + Black + Mypy entrypoint.
+- `tools/format/run.py`: Ruff + Black formatter wrapper.
+- `tools/codegen/run.py`: OpenAPI validation + summary outputs.
+- `tools/local-dev/dev_up.sh`: Docker Compose wrapper for local stack.
 
-* **`python -m tools.lint.run` fails with “command not found”**: install dev dependencies
-  via `pip install -e .[dev]`.
-* **`run-agent` fails with “No Python entrypoint found”**: add a module under
-  `agents/<domain>/<agent-name>/src/` or provide `--docker` if the agent is containerized.
-* **`run-connector` fails validation**: open the connector’s `manifest.yaml` and ensure it
-  defines `id` and `version`, plus a `mappings/` directory.
-* **Docker compose fails to start**: confirm `.env` is populated (see `.env.example`) and
-  that Docker Desktop is running.
+## Example
+
+Lint only the API gateway sources:
+
+```bash
+python -m tools.lint.run --paths apps/api-gateway/src
+```
+
+## Notes
+
+CI invokes the same commands via `make lint`, `make format`, and `make codegen` so local
+results match pipeline behavior.

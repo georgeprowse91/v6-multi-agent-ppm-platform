@@ -3,7 +3,6 @@ Tests for Intent Router Agent
 """
 
 import pytest
-
 from intent_router_agent import IntentRouterAgent
 
 

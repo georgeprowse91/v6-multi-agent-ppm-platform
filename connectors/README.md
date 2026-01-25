@@ -1,13 +1,40 @@
 # Connectors
 
-Connectors integrate external systems (PPM tools, HR, finance, collaboration) with the platform.
-Each connector has its own package with source code, mapping templates, and tests.
+Integration connectors for external systems (PPM tools, finance, collaboration).
+Each connector has source code, mapping templates, and tests.
 
-## Connector layout
-- `<connector>/src`: Implementation code
-- `<connector>/mappings`: Field mapping templates into the canonical model
-- `<connector>/tests`: Connector-specific test coverage
+## Quickstart
 
-## SDK
-The `sdk` package provides shared helpers for authentication, retries, pagination, and event
-publishing used by connector implementations.
+Run a connector in dry-run mode to validate its manifest and mappings:
+
+```bash
+python -m tools.connector_runner run-connector --name jira --dry-run
+```
+
+## How to verify
+
+```bash
+ls connectors/jira
+```
+
+Expected output includes `manifest.yaml`, `mappings/`, and `src/`.
+
+## Key files
+
+- `connectors/<name>/manifest.yaml`: connector identity and versioning.
+- `connectors/<name>/mappings/`: field mapping templates.
+- `connectors/<name>/src/`: connector implementation.
+- `connectors/sdk/`: shared SDK utilities.
+
+## Example
+
+Inspect the Jira connector manifest ID:
+
+```bash
+rg -n "id:" connectors/jira/manifest.yaml
+```
+
+## Next steps
+
+- Implement connector-specific sync logic under each `connectors/<name>/src/`.
+- Wire connector runs into `services/data-sync-service/` workflows.

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import streamlit as st
-
-from ppm.state import get_store
+from ppm.agents.registry import orchestrate, route_intent, run_agent
 from ppm.session import sidebar_login
-from ppm.agents.registry import route_intent, orchestrate, run_agent
-from ppm.workflows.engine import start_workflow
+from ppm.state import get_store
 from ppm.ui import entity_create_form
+from ppm.workflows.engine import start_workflow
 
 st.set_page_config(page_title="Agentic PPM Platform Prototype", layout="wide")
 
@@ -25,11 +24,11 @@ query = st.sidebar.text_area(
 )
 focus_entity = st.sidebar.text_input("Focus entity id (optional)", value="")
 
-colA, colB = st.sidebar.columns(2)
-with colA:
+col_a, col_b = st.sidebar.columns(2)
+with col_a:
     if st.button("Route", use_container_width=True):
         st.sidebar.json(route_intent(query))
-with colB:
+with col_b:
     if st.button("Orchestrate", use_container_width=True):
         r = orchestrate(store, actor=user.name, query=query, focus_entity_id=focus_entity or None)
         st.sidebar.json(r)
@@ -79,7 +78,9 @@ left, right = st.columns([1, 1])
 
 with left:
     st.markdown("#### Create an intake")
-    created = entity_create_form(store, user=user, entity_type="intake", default_title="New initiative")
+    created = entity_create_form(
+        store, user=user, entity_type="intake", default_title="New initiative"
+    )
     if created:
         st.success(f"Intake created: {created}")
 
@@ -88,7 +89,9 @@ with right:
     defs = store.list_workflow_defs()
     wf_opts = {f"{d['name']} ({d['id']})": d["id"] for d in defs if d.get("active") == 1}
     chosen = st.selectbox("Workflow", list(wf_opts.keys())) if wf_opts else None
-    target_entity = st.text_input("Entity id (attach workflow to)", baseline="Paste an intake id here")
+    target_entity = st.text_input(
+        "Entity id (attach workflow to)", baseline="Paste an intake id here"
+    )
     if st.button("Start workflow", type="primary"):
         if not chosen:
             st.error("No workflow definitions found.")
@@ -96,7 +99,9 @@ with right:
             st.error("Provide an entity id.")
         else:
             try:
-                instance_id = start_workflow(store, def_id=wf_opts[chosen], entity_id=target_entity.strip(), actor=user.name)
+                instance_id = start_workflow(
+                    store, def_id=wf_opts[chosen], entity_id=target_entity.strip(), actor=user.name
+                )
                 st.success(f"Workflow started: {instance_id}")
             except Exception as e:
                 st.error(str(e))

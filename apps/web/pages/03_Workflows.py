@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import json
-import streamlit as st
 
-from ppm.state import get_store
+import streamlit as st
 from ppm.session import sidebar_login
-from ppm.workflows.engine import start_workflow, advance_workflow
+from ppm.state import get_store
 from ppm.utils import json_dumps
+from ppm.workflows.engine import advance_workflow, start_workflow
 
 st.set_page_config(page_title="Workflows", layout="wide")
 
@@ -22,7 +22,9 @@ else:
     with st.expander("Workflow definitions", expanded=False):
         for d in defs:
             st.markdown(f"### {d['name']}  ")
-            st.caption(f"id={d['id']} · version={d['version']} · entity_type={d['entity_type']} · active={bool(d['active'])}")
+            st.caption(
+                f"id={d['id']} · version={d['version']} · entity_type={d['entity_type']} · active={bool(d['active'])}"
+            )
             st.code(json_dumps(d.get("def", {})), language="json")
 
 st.divider()
@@ -46,7 +48,10 @@ if not instances:
     st.info("No workflow instances yet.")
 else:
     for inst in instances:
-        with st.expander(f"{inst['id']} · {inst['status']} · entity={inst['entity_id']} · step={inst.get('current_step_id')}", expanded=False):
+        with st.expander(
+            f"{inst['id']} · {inst['status']} · entity={inst['entity_id']} · step={inst.get('current_step_id')}",
+            expanded=False,
+        ):
             wf = store.get_workflow_def(inst["def_id"])
             wf_def = (wf or {}).get("def", {})
             st.caption(f"Workflow: {(wf or {}).get('name')} ({inst['def_id']})")
@@ -64,10 +69,17 @@ else:
                     st.markdown(f"**Current step:** {step.get('name')} (`{current_step_id}`)")
                     st.code(json_dumps(step), language="json")
 
-                    inputs_text = st.text_area("Agent inputs (JSON)", value="{}", height=90, key=f"inputs_{inst['id']}")
+                    inputs_text = st.text_area(
+                        "Agent inputs (JSON)", value="{}", height=90, key=f"inputs_{inst['id']}"
+                    )
                     approve = None
                     if step.get("gate"):
-                        approve = st.radio("Approval decision", options=["(not set)", "Approve", "Reject"], horizontal=True, key=f"approve_{inst['id']}")
+                        approve = st.radio(
+                            "Approval decision",
+                            options=["(not set)", "Approve", "Reject"],
+                            horizontal=True,
+                            key=f"approve_{inst['id']}",
+                        )
                     if st.button("Advance", key=f"advance_{inst['id']}", type="primary"):
                         try:
                             inp = json.loads(inputs_text) if inputs_text.strip() else {}
@@ -76,7 +88,13 @@ else:
                                 decision = True
                             elif approve == "Reject":
                                 decision = False
-                            out = advance_workflow(store, instance_id=inst["id"], actor=user.name, approve=decision, agent_inputs=inp)
+                            out = advance_workflow(
+                                store,
+                                instance_id=inst["id"],
+                                actor=user.name,
+                                approve=decision,
+                                agent_inputs=inp,
+                            )
                             st.success("Advanced.")
                             st.json(out)
                         except Exception as e:

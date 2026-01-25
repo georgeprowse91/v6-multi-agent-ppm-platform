@@ -1,18 +1,27 @@
 # Formatting
 
-Formatting is driven by Black and Ruff, using settings in `pyproject.toml`.
-The wrapper script in this folder ensures consistent repo-wide formatting.
+Formatter wrapper that runs Ruff autofixes and Black with the repo defaults.
 
-## Usage
+## Quickstart
 
 ```bash
 python -m tools.format.run
 ```
 
-To format only specific paths:
+## How to verify
+
+Re-run the formatter after a clean run; it should exit 0 without additional changes.
+
+## Key files
+
+- `tools/format/run.py`: formatter wrapper entrypoint.
+- `tools/format/format_config.yaml`: default format target paths.
+- `pyproject.toml`: shared Ruff/Black settings.
+
+## Example
+
+Format only the API gateway and tests:
 
 ```bash
-python -m tools.format.run --paths agents apps packages
+python -m tools.format.run --paths apps/api-gateway tests
 ```
-
-The default paths are stored in `tools/format/format_config.yaml`.

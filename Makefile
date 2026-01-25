@@ -27,8 +27,11 @@ install-dev: ## Install development dependencies
 	$(PIP) install -e .[dev]
 	pre-commit install
 
-test: ## Run tests with coverage
-	$(PYTEST) tests/ -v --cov=agents --cov=apps --cov=packages --cov-report=html --cov-report=term-missing
+test: ## Run tests
+	$(PYTEST) tests/ -v
+
+test-cov: ## Run tests with coverage reports
+	$(PYTEST) tests/ -v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=html --cov-report=term-missing
 
 test-quick: ## Run tests without coverage (faster)
 	$(PYTEST) tests/ -v

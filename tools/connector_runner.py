@@ -105,7 +105,9 @@ def _select_connector(name: str) -> Component:
 
 def _render_connectors(connectors: list[Component], as_json: bool) -> None:
     if as_json:
-        payload = [{"name": connector.name, "path": str(connector.path)} for connector in connectors]
+        payload = [
+            {"name": connector.name, "path": str(connector.path)} for connector in connectors
+        ]
         print(json.dumps(payload, indent=2))
         return
 

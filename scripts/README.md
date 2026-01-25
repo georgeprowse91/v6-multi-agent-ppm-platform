@@ -3,6 +3,12 @@
 Automation scripts for local development, CI, and operational workflows. Prefer running them
 via Makefile targets so CI and local behavior stay aligned.
 
+## Key files
+
+- `scripts/check-links.py`: internal markdown link and anchor validation.
+- `scripts/check-placeholders.py`: forbidden phrase scanner used in CI.
+- `scripts/validate-github-workflows.py`: YAML workflow structure validation.
+
 ## Markdown link checks
 
 Validate internal markdown links and anchors:

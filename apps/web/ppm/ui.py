@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import streamlit as st
 
-from .store import Store, Entity
 from .security import User, allowed_classifications_for_user, can_access_classification, can_role
-from .utils import json_dumps, json_loads
+from .store import Store
+from .utils import json_dumps
 
-
-ENTITY_TEMPLATES: Dict[str, Dict[str, Any]] = {
+ENTITY_TEMPLATES: dict[str, dict[str, Any]] = {
     "intake": {
         "description": "",
         "requester": "",
@@ -34,8 +33,20 @@ ENTITY_TEMPLATES: Dict[str, Dict[str, Any]] = {
     },
     "portfolio": {"strategy": "", "kpis": {}, "constraints": {"budget_cap": 1000000}},
     "program": {"vision": "", "objectives": [], "kpis": {}},
-    "project": {"methodology": "Hybrid", "objectives": [], "scope": "", "assumptions": [], "constraints": [], "stakeholders": []},
-    "change_request": {"impact_scope": "Medium", "impact_schedule_days": 10, "impact_cost": 25000, "impact_resources": "Needs review"},
+    "project": {
+        "methodology": "Hybrid",
+        "objectives": [],
+        "scope": "",
+        "assumptions": [],
+        "constraints": [],
+        "stakeholders": [],
+    },
+    "change_request": {
+        "impact_scope": "Medium",
+        "impact_schedule_days": 10,
+        "impact_cost": 25000,
+        "impact_resources": "Needs review",
+    },
     "release": {"planned_date": "", "readiness": "Not Checked"},
     "knowledge": {"body": "", "tags": []},
     "policy": {"framework": "", "controls": []},
@@ -43,8 +54,12 @@ ENTITY_TEMPLATES: Dict[str, Dict[str, Any]] = {
 }
 
 
-def entity_picker(store: Store, *, user: User, entity_type: str, label: str) -> Optional[str]:
-    entities = [e for e in store.list_entities(type=entity_type, limit=200) if can_access_classification(user.clearance, e.classification)]
+def entity_picker(store: Store, *, user: User, entity_type: str, label: str) -> str | None:
+    entities = [
+        e
+        for e in store.list_entities(type=entity_type, limit=200)
+        if can_access_classification(user.clearance, e.classification)
+    ]
     if not entities:
         st.info(f"No {entity_type} records yet.")
         return None
@@ -63,14 +78,20 @@ def show_entity(store: Store, *, user: User, entity_id: str) -> None:
         return
 
     st.markdown(f"### {ent.title}")
-    st.caption(f"Type: `{ent.type}` · Status: `{ent.status}` · Classification: `{ent.classification}` · Updated: {ent.updated_at}")
+    st.caption(
+        f"Type: `{ent.type}` · Status: `{ent.status}` · Classification: `{ent.classification}` · Updated: {ent.updated_at}"
+    )
 
     with st.expander("Data (JSON)", expanded=True):
         st.code(json_dumps(ent.data), language="json")
 
     # Linked artifacts
     links = store.list_links(ent.id)
-    artifact_ids = [l["to_id"] for l in links if l["relation_type"] == "has_artifact" and l["from_id"] == ent.id]
+    artifact_ids = [
+        link["to_id"]
+        for link in links
+        if link["relation_type"] == "has_artifact" and link["from_id"] == ent.id
+    ]
     if artifact_ids:
         st.markdown("#### Artifacts")
         for aid in artifact_ids:
@@ -87,7 +108,9 @@ def show_entity(store: Store, *, user: User, entity_id: str) -> None:
         st.json(links)
 
 
-def entity_create_form(store: Store, *, user: User, entity_type: str, default_title: str = "") -> Optional[str]:
+def entity_create_form(
+    store: Store, *, user: User, entity_type: str, default_title: str = ""
+) -> str | None:
     if not can_role(user.role, "create"):
         st.warning("Your role is not permitted to create records in this prototype.")
         return None
@@ -96,7 +119,13 @@ def entity_create_form(store: Store, *, user: User, entity_type: str, default_ti
     title = st.text_input("Title", value=default_title or f"New {entity_type}")
     status = st.text_input("Status", value="Draft")
     allowed_cls = allowed_classifications_for_user(user.clearance)
-    classification = st.selectbox("Classification", allowed_cls, index=min(allowed_cls.index("Internal") if "Internal" in allowed_cls else 0, len(allowed_cls)-1))
+    classification = st.selectbox(
+        "Classification",
+        allowed_cls,
+        index=min(
+            allowed_cls.index("Internal") if "Internal" in allowed_cls else 0, len(allowed_cls) - 1
+        ),
+    )
 
     template = ENTITY_TEMPLATES.get(entity_type, {})
     data_text = st.text_area("Data JSON", value=json_dumps(template), height=240)
@@ -107,8 +136,15 @@ def entity_create_form(store: Store, *, user: User, entity_type: str, default_ti
         except Exception as e:
             st.error(f"Invalid JSON: {e}")
             return None
-        ent = store.create_entity(type=entity_type, title=title, status=status, classification=classification, data=data)
-        store.log_event(actor=user.name, event_type="entity_created", entity_id=ent.id, details={"type": entity_type})
+        ent = store.create_entity(
+            type=entity_type, title=title, status=status, classification=classification, data=data
+        )
+        store.log_event(
+            actor=user.name,
+            event_type="entity_created",
+            entity_id=ent.id,
+            details={"type": entity_type},
+        )
         st.success(f"Created {entity_type}: {ent.id}")
         return ent.id
     return None
@@ -131,9 +167,13 @@ def entity_edit_form(store: Store, *, user: User, entity_id: str) -> None:
     status = st.text_input("Status", value=ent.status, key=f"edit_status_{entity_id}")
     allowed_cls = allowed_classifications_for_user(user.clearance)
     cls_index = allowed_cls.index(ent.classification) if ent.classification in allowed_cls else 0
-    classification = st.selectbox("Classification", allowed_cls, index=cls_index, key=f"edit_classification_{entity_id}")
+    classification = st.selectbox(
+        "Classification", allowed_cls, index=cls_index, key=f"edit_classification_{entity_id}"
+    )
 
-    data_text = st.text_area("Data JSON", value=json_dumps(ent.data), height=280, key=f"edit_data_{entity_id}")
+    data_text = st.text_area(
+        "Data JSON", value=json_dumps(ent.data), height=280, key=f"edit_data_{entity_id}"
+    )
 
     cols = st.columns(2)
     with cols[0]:
@@ -143,11 +183,23 @@ def entity_edit_form(store: Store, *, user: User, entity_id: str) -> None:
             except Exception as e:
                 st.error(f"Invalid JSON: {e}")
                 return
-            store.update_entity(ent.id, title=title, status=status, classification=classification, data=data)
-            store.log_event(actor=user.name, event_type="entity_updated", entity_id=ent.id, details={"type": ent.type})
+            store.update_entity(
+                ent.id, title=title, status=status, classification=classification, data=data
+            )
+            store.log_event(
+                actor=user.name,
+                event_type="entity_updated",
+                entity_id=ent.id,
+                details={"type": ent.type},
+            )
             st.success("Saved.")
     with cols[1]:
         if st.button("Delete", type="secondary"):
             store.delete_entity(ent.id)
-            store.log_event(actor=user.name, event_type="entity_deleted", entity_id=ent.id, details={"type": ent.type})
+            store.log_event(
+                actor=user.name,
+                event_type="entity_deleted",
+                entity_id=ent.id,
+                details={"type": ent.type},
+            )
             st.success("Deleted.")

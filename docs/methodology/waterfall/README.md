@@ -1,10 +1,34 @@
 # Waterfall Methodology
 
-Waterfall templates support sequential planning, approvals, and project closure.
+Sequential planning templates for chartering, baselines, and closure.
 
-## Templates
-- [Project Charter](templates/project-charter.md)
-- [Schedule Baseline](templates/schedule-baseline.xlsx)
-- [Risk Register](templates/risk-register.xlsx)
-- [QA Checklist](templates/qa-checklist.xlsx)
-- [Closure Report](templates/closure-report.md)
+## Quickstart
+
+Copy the project charter template:
+
+```bash
+cp docs/methodology/waterfall/templates/project-charter.md /tmp/project-charter.md
+```
+
+## How to verify
+
+```bash
+ls docs/methodology/waterfall/templates
+```
+
+Expected output includes `project-charter.md`, `risk-register.xlsx`, and `qa-checklist.xlsx`.
+
+## Key files
+
+- `docs/methodology/waterfall/templates/project-charter.md`
+- `docs/methodology/waterfall/templates/schedule-baseline.xlsx`
+- `docs/methodology/waterfall/templates/closure-report.md`
+
+## Example snippet
+
+```text
+## 1. Project Overview
+- **Project name:**
+- **Business sponsor:**
+- **Project manager:**
+```

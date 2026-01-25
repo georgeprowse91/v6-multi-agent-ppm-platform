@@ -1,18 +1,56 @@
 # Applications
 
-This directory contains the user-facing applications and service-facing APIs that make up the
-Multi-Agent PPM Platform runtime.
+User-facing apps and API services that make up the platform runtime.
 
 ## Apps in this repository
-- **admin-console**: Administrative UI for tenant setup, permissions, and governance.
-- **analytics-service**: Batch/stream analytics jobs that power KPI dashboards.
-- **api-gateway**: FastAPI entrypoint for agent queries and platform APIs.
-- **connector-hub**: Registry and management surface for external connectors.
-- **document-service**: Document ingestion, storage, and retrieval workflows.
-- **orchestration-service**: Central coordination for multi-agent workflows.
-- **web**: Web prototype and demo UI (Streamlit-based today).
-- **workflow-engine**: Workflow definitions and orchestration runtime.
 
-## How to run locally
-Use the root Makefile targets (e.g., `make run-api`, `make run-prototype`) or Docker Compose
-(`make docker-up`). See the root [README](../README.md) for details.
+- **admin-console**: admin UI for tenants, permissions, and governance.
+- **analytics-service**: analytics job definitions and data models.
+- **api-gateway**: FastAPI entrypoint for agent queries and platform APIs.
+- **connector-hub**: registry and sandbox for external connectors.
+- **document-service**: document ingestion, storage, and retrieval workflows.
+- **orchestration-service**: multi-agent coordinator invoked by the API gateway.
+- **web**: Streamlit prototype UI.
+- **workflow-engine**: workflow definitions and orchestration runtime.
+
+## Quickstart
+
+Run the core developer-facing apps:
+
+```bash
+make run-api
+make run-prototype
+```
+
+Or start everything in Docker:
+
+```bash
+make docker-up
+```
+
+## How to verify
+
+```bash
+curl http://localhost:8000/healthz
+```
+
+Expected response:
+
+```json
+{"status":"ok","timestamp":"2024-01-01T12:00:00","version":"0.1.0"}
+```
+
+## Key files
+
+- `apps/api-gateway/src/api/main.py`: API entrypoint.
+- `apps/web/streamlit_app.py`: Streamlit prototype.
+- `apps/orchestration-service/src/orchestrator.py`: agent orchestrator.
+- `apps/workflow-engine/workflows/`: workflow definitions.
+
+## Example
+
+List the API routes module directory:
+
+```bash
+ls apps/api-gateway/src/api/routes
+```

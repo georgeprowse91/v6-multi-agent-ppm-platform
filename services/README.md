@@ -1,54 +1,54 @@
 # Services
 
-## Purpose
-This directory contains supporting services that run alongside the core applications. Each service
-is deployable independently and ships its own Helm chart, tests, and implementation code.
+Supporting services that provide cross-cutting platform capabilities (audit logging, telemetry,
+policy evaluation, and notifications). Each service ships its own Helm chart and skeleton code.
 
-## Responsibilities
-- Provide cross-cutting platform capabilities (audit logging, telemetry, policy evaluation).
-- Expose API and event interfaces consumed by the apps in `apps/`.
-- Maintain deployment artifacts for Kubernetes releases.
+## Quickstart
 
-## Included services
-- **audit-log**: Long-term audit trail and retention storage for platform events.
-- **data-sync-service**: Background synchronisation for connector data and reconciliation rules.
-- **identity-access**: IAM, RBAC enforcement, and tenant identity integration.
-- **notification-service**: Email/chat notifications and templated communications.
-- **policy-engine**: Policy evaluation and enforcement for compliance rules.
-- **telemetry-service**: Central ingestion and processing of logs, metrics, and traces.
+Validate all Helm charts:
 
-## Folder structure
-```
-services/
-├── audit-log/helm/Chart.yaml
-├── data-sync-service/helm/values.yaml
-├── identity-access/helm/templates/deployment.yaml
-├── notification-service/helm/templates/service.yaml
-├── policy-engine/policies/bundles/default-policy-bundle.yaml
-└── telemetry-service/helm/templates/configmap.yaml
-```
-
-## Conventions
-- Service directories are kebab-case and match the service name.
-- Each service includes a Helm chart under `<service>/helm/`.
-- Policy bundles for the policy engine live under `policy-engine/policies/`.
-
-## How to add a new service
-1. Create a new folder under `services/<service-name>`.
-2. Add a Helm chart in `services/<service-name>/helm/` (see existing charts).
-3. Add service code under `services/<service-name>/src/` and tests under `services/<service-name>/tests/`.
-4. Update this README to list the new service.
-
-## How to validate/test
 ```bash
-python scripts/validate-helm-charts.py services/<service-name>/helm
+python scripts/validate-helm-charts.py services
+```
+
+Validate the default policy bundle:
+
+```bash
 python scripts/validate-policies.py services/policy-engine/policies/bundles/default-policy-bundle.yaml
 ```
 
-## Example
-```yaml
-apiVersion: v2
-name: audit-log
-version: 0.1.0
-appVersion: "0.1.0"
+## How to verify
+
+```bash
+ls services
 ```
+
+Expected output includes:
+
+```text
+audit-log
+data-sync-service
+identity-access
+notification-service
+policy-engine
+telemetry-service
+```
+
+## Key files
+
+- `services/*/helm/`: Helm charts per service.
+- `services/*/src/`: service code scaffolding.
+- `services/policy-engine/policies/`: policy bundles and rules.
+
+## Example
+
+```bash
+ls services/audit-log/helm
+```
+
+Expected output includes `Chart.yaml` and `values.yaml`.
+
+## Next steps
+
+- Implement service handlers under each `services/*/src/` folder.
+- Wire shared contracts via `packages/` once service APIs are defined.

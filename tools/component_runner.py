@@ -141,9 +141,7 @@ def _detect_node(root: Path) -> list[str] | None:
     for script in ("dev", "start", "serve"):
         if script in scripts:
             return ["npm", "run", script]
-    raise SystemExit(
-        f"No runnable scripts found in {package_json}. Add a dev/start/serve script."
-    )
+    raise SystemExit(f"No runnable scripts found in {package_json}. Add a dev/start/serve script.")
 
 
 def _detect_docker_ports(dockerfile: Path) -> list[str]:
@@ -234,7 +232,9 @@ def _parse_args() -> argparse.Namespace:
     list_parser.add_argument("--json", action="store_true", help="Output JSON.")
 
     run_parser = subparsers.add_parser("run", help="Run a component.")
-    run_parser.add_argument("--type", required=True, choices=["app", "service", "agent", "connector"])
+    run_parser.add_argument(
+        "--type", required=True, choices=["app", "service", "agent", "connector"]
+    )
     run_parser.add_argument("--name", required=True)
     run_parser.add_argument("--docker", action="store_true", help="Run using Dockerfile.")
     run_parser.add_argument("--dry-run", action="store_true", help="Print the run command.")

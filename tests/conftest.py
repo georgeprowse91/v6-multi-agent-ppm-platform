@@ -8,13 +8,50 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
-from tools.runtime_paths import bootstrap_runtime_paths
+def _bootstrap_paths() -> None:
+    root = Path(__file__).resolve().parents[1]
+    candidate_paths = [root]
 
-bootstrap_runtime_paths()
+    for base in ("apps", "services", "agents", "packages"):
+        base_path = root / base
+        if base_path.exists():
+            candidate_paths.extend(path for path in base_path.glob("*/src") if path.is_dir())
+
+    agents_path = root / "agents"
+    if agents_path.exists():
+        candidate_paths.extend(path for path in agents_path.glob("**/src") if path.is_dir())
+
+    runtime_src = agents_path / "runtime" / "src"
+    if runtime_src.exists():
+        candidate_paths.append(runtime_src)
+
+    for path in candidate_paths:
+        path_str = str(path.resolve())
+        if path_str not in sys.path:
+            sys.path.insert(0, path_str)
+
+
+_bootstrap_paths()
+
+try:
+    import pytest_asyncio  # noqa: F401
+
+    _HAS_PYTEST_ASYNCIO = True
+except ModuleNotFoundError:
+    _HAS_PYTEST_ASYNCIO = False
+
+
+def pytest_pyfunc_call(pyfuncitem):
+    if _HAS_PYTEST_ASYNCIO:
+        return None
+    if asyncio.iscoroutinefunction(pyfuncitem.obj):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(pyfuncitem.obj(**pyfuncitem.funcargs))
+        loop.close()
+        return True
+    return None
 
 
 # Configure event loop for async tests
@@ -50,6 +87,7 @@ def mock_redis():
 @pytest.fixture
 async def orchestrator():
     """Create and initialize an orchestrator instance for testing."""
+    _bootstrap_paths()
     from orchestrator import AgentOrchestrator
 
     orch = AgentOrchestrator()

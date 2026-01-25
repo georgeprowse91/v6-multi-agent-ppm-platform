@@ -169,10 +169,13 @@ Expected response:
 ### Testing
 
 ```bash
-# Run all tests with coverage
+# Run all tests
 make test
 
-# Quick tests (no coverage)
+# Run tests with coverage reports
+make test-cov
+
+# Quick tests (same as make test)
 make test-quick
 
 # Run specific test file

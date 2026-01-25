@@ -11,10 +11,10 @@ This is useful if you update the docs and want the prototype UI to reflect the l
 from __future__ import annotations
 
 import json
-import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
+
 
 def repo_root() -> Path:
     # apps/web/scripts/generate_metadata.py -> repo root
@@ -25,7 +25,7 @@ def data_dir() -> Path:
     return Path(__file__).resolve().parents[1] / "data"
 
 
-def parse_prd(prd_path: Path) -> Dict[str, Any]:
+def parse_prd(prd_path: Path) -> dict[str, Any]:
     content = prd_path.read_text(encoding="utf-8")
     functional_sections = []
     current = None
@@ -51,12 +51,12 @@ def parse_prd(prd_path: Path) -> Dict[str, Any]:
     }
 
 
-def parse_agent_doc(path: Path) -> Dict[str, Any]:
+def parse_agent_doc(path: Path) -> dict[str, Any]:
     content = path.read_text(encoding="utf-8")
     title = None
     sections = []
     current = None
-    buf: List[str] = []
+    buf: list[str] = []
     for raw_line in content.splitlines():
         txt = raw_line.strip()
         if not txt:
@@ -94,7 +94,9 @@ def main() -> int:
         raise FileNotFoundError("Could not find the Product Requirements markdown under docs/.")
     prd_path = prd_candidates[0]
     requirements = parse_prd(prd_path)
-    (out_dir / "requirements.json").write_text(json.dumps(requirements, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out_dir / "requirements.json").write_text(
+        json.dumps(requirements, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     # Agents
     agent_docs = sorted(root.glob("agents/**/README.md"))
@@ -103,7 +105,9 @@ def main() -> int:
         "source_dir": "agents/**/README.md",
         "agents": sorted(agents, key=lambda a: a.get("id", 0)),
     }
-    (out_dir / "agents.json").write_text(json.dumps(agents_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out_dir / "agents.json").write_text(
+        json.dumps(agents_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     print(f"Wrote {out_dir / 'requirements.json'}")
     print(f"Wrote {out_dir / 'agents.json'}")

@@ -6,6 +6,7 @@ This is the main entry point for the PPM platform REST API.
 
 import logging
 import os
+from datetime import datetime
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +15,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from api.routes import agents, health
+from api.runtime_bootstrap import bootstrap_runtime_paths
 REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -42,12 +45,14 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+
 def _version_payload() -> dict[str, str]:
     return {
         "service": "multi-agent-ppm-api",
         "version": os.getenv("APP_VERSION", app.version),
         "build_sha": os.getenv("BUILD_SHA", "unknown"),
     }
+
 
 # Configure CORS
 allowed_origins_env = os.getenv(
@@ -77,6 +82,9 @@ async def startup_event():
     logger.info("Starting Multi-Agent PPM Platform...")
 
     # Initialize orchestrator
+    bootstrap_runtime_paths()
+    from orchestrator import AgentOrchestrator
+
     orchestrator = AgentOrchestrator()
     await orchestrator.initialize()
 

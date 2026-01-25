@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import streamlit as st
-
-from ppm.state import get_store
 from ppm.session import sidebar_login
+from ppm.state import get_store
 from ppm.ui import show_entity
 
 st.set_page_config(page_title="Entity Explorer", layout="wide")

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import streamlit as st
-
-from ppm.state import get_store
-from ppm.session import sidebar_login
 from ppm.agents.registry import run_agent
+from ppm.session import sidebar_login
+from ppm.state import get_store
 
 st.set_page_config(page_title="System Health & Monitoring", layout="wide")
 

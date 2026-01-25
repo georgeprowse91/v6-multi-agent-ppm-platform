@@ -21,9 +21,7 @@ def _load_config(config_path: Path) -> dict[str, Any]:
 def _validate_spec(spec: dict[str, Any], spec_path: Path) -> None:
     missing = [key for key in ("openapi", "info", "paths") if key not in spec]
     if missing:
-        raise SystemExit(
-            f"OpenAPI spec {spec_path} missing required keys: {', '.join(missing)}."
-        )
+        raise SystemExit(f"OpenAPI spec {spec_path} missing required keys: {', '.join(missing)}.")
 
 
 def _summarize_spec(spec: dict[str, Any]) -> dict[str, Any]:
@@ -31,7 +29,13 @@ def _summarize_spec(spec: dict[str, Any]) -> dict[str, Any]:
     operations = 0
     for methods in paths.values():
         if isinstance(methods, dict):
-            operations += len([m for m in methods.keys() if m.lower() in {"get", "post", "put", "patch", "delete"}])
+            operations += len(
+                [
+                    m
+                    for m in methods.keys()
+                    if m.lower() in {"get", "post", "put", "patch", "delete"}
+                ]
+            )
 
     info = spec.get("info", {}) or {}
     return {

@@ -3,11 +3,11 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 from .db import get_conn, init_db
-from .utils import json_dumps_compact, json_loads, json_dumps, now_iso, new_id
 from .security import User
+from .utils import json_dumps_compact, json_loads, new_id, now_iso
 
 
 @dataclass
@@ -17,7 +17,7 @@ class Entity:
     title: str
     status: str
     classification: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     created_at: str
     updated_at: str
 
@@ -57,18 +57,31 @@ class Store:
         )
         self.conn.commit()
 
-    def list_users(self) -> List[User]:
-        rows = self.conn.execute("SELECT id, name, email, role, clearance FROM users ORDER BY name;").fetchall()
-        return [User(id=r["id"], name=r["name"], email=r["email"], role=r["role"], clearance=r["clearance"]) for r in rows]
+    def list_users(self) -> list[User]:
+        rows = self.conn.execute(
+            "SELECT id, name, email, role, clearance FROM users ORDER BY name;"
+        ).fetchall()
+        return [
+            User(
+                id=r["id"],
+                name=r["name"],
+                email=r["email"],
+                role=r["role"],
+                clearance=r["clearance"],
+            )
+            for r in rows
+        ]
 
-    def get_user(self, user_id: str) -> Optional[User]:
+    def get_user(self, user_id: str) -> User | None:
         r = self.conn.execute(
             "SELECT id, name, email, role, clearance FROM users WHERE id=?;",
             (user_id,),
         ).fetchone()
         if not r:
             return None
-        return User(id=r["id"], name=r["name"], email=r["email"], role=r["role"], clearance=r["clearance"])
+        return User(
+            id=r["id"], name=r["name"], email=r["email"], role=r["role"], clearance=r["clearance"]
+        )
 
     # -----------------------------
     # Entities
@@ -80,7 +93,7 @@ class Store:
         title: str,
         status: str,
         classification: str,
-        data: Dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
         entity_id: str | None = None,
     ) -> Entity:
         eid = entity_id or new_id(type)
@@ -103,7 +116,7 @@ class Store:
         title: str | None = None,
         status: str | None = None,
         classification: str | None = None,
-        data: Dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
     ) -> Entity:
         existing = self.get_entity(entity_id, include_data=True)
         if not existing:
@@ -126,7 +139,7 @@ class Store:
         assert updated is not None
         return updated
 
-    def get_entity(self, entity_id: str, *, include_data: bool = True) -> Optional[Entity]:
+    def get_entity(self, entity_id: str, *, include_data: bool = True) -> Entity | None:
         r = self.conn.execute(
             "SELECT id, type, title, status, classification, data_json, created_at, updated_at FROM entities WHERE id=?;",
             (entity_id,),
@@ -145,7 +158,7 @@ class Store:
             updated_at=r["updated_at"],
         )
 
-    def list_entities(self, *, type: str | None = None, limit: int = 200) -> List[Entity]:
+    def list_entities(self, *, type: str | None = None, limit: int = 200) -> list[Entity]:
         if type:
             rows = self.conn.execute(
                 "SELECT id, type, title, status, classification, data_json, created_at, updated_at FROM entities WHERE type=? ORDER BY updated_at DESC LIMIT ?;",
@@ -156,7 +169,7 @@ class Store:
                 "SELECT id, type, title, status, classification, data_json, created_at, updated_at FROM entities ORDER BY updated_at DESC LIMIT ?;",
                 (limit,),
             ).fetchall()
-        out: List[Entity] = []
+        out: list[Entity] = []
         for r in rows:
             out.append(
                 Entity(
@@ -174,7 +187,9 @@ class Store:
 
     def delete_entity(self, entity_id: str) -> None:
         self.conn.execute("DELETE FROM entities WHERE id=?;", (entity_id,))
-        self.conn.execute("DELETE FROM relations WHERE from_id=? OR to_id=?;", (entity_id, entity_id))
+        self.conn.execute(
+            "DELETE FROM relations WHERE from_id=? OR to_id=?;", (entity_id, entity_id)
+        )
         self.conn.commit()
 
     # -----------------------------
@@ -192,7 +207,7 @@ class Store:
         )
         self.conn.commit()
 
-    def list_links(self, entity_id: str) -> List[Dict[str, Any]]:
+    def list_links(self, entity_id: str) -> list[dict[str, Any]]:
         rows = self.conn.execute(
             """
             SELECT id, from_id, to_id, relation_type, created_at
@@ -207,7 +222,14 @@ class Store:
     # -----------------------------
     # Events / audit
     # -----------------------------
-    def log_event(self, *, actor: str, event_type: str, entity_id: str | None = None, details: Dict[str, Any] | None = None) -> None:
+    def log_event(
+        self,
+        *,
+        actor: str,
+        event_type: str,
+        entity_id: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
         eid = new_id("evt")
         ts = now_iso()
         self.conn.execute(
@@ -219,7 +241,9 @@ class Store:
         )
         self.conn.commit()
 
-    def list_events(self, *, limit: int = 200, entity_id: str | None = None) -> List[Dict[str, Any]]:
+    def list_events(
+        self, *, limit: int = 200, entity_id: str | None = None
+    ) -> list[dict[str, Any]]:
         if entity_id:
             rows = self.conn.execute(
                 "SELECT id, timestamp, actor, event_type, entity_id, details_json FROM events WHERE entity_id=? ORDER BY timestamp DESC LIMIT ?;",
@@ -230,10 +254,10 @@ class Store:
                 "SELECT id, timestamp, actor, event_type, entity_id, details_json FROM events ORDER BY timestamp DESC LIMIT ?;",
                 (limit,),
             ).fetchall()
-        out=[]
+        out = []
         for r in rows:
-            d=dict(r)
-            d["details"]=json_loads(r["details_json"]) or {}
+            d = dict(r)
+            d["details"] = json_loads(r["details_json"]) or {}
             out.append(d)
         return out
 
@@ -250,8 +274,8 @@ class Store:
         started_at: str,
         ended_at: str,
         status: str,
-        inputs: Dict[str, Any],
-        outputs: Dict[str, Any],
+        inputs: dict[str, Any],
+        outputs: dict[str, Any],
         log: str,
     ) -> None:
         rid = new_id("run")
@@ -260,11 +284,25 @@ class Store:
             INSERT INTO agent_runs (id, agent_id, agent_name, entity_id, actor, started_at, ended_at, status, input_json, output_json, log)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """,
-            (rid, agent_id, agent_name, entity_id, actor, started_at, ended_at, status, json_dumps_compact(inputs), json_dumps_compact(outputs), log),
+            (
+                rid,
+                agent_id,
+                agent_name,
+                entity_id,
+                actor,
+                started_at,
+                ended_at,
+                status,
+                json_dumps_compact(inputs),
+                json_dumps_compact(outputs),
+                log,
+            ),
         )
         self.conn.commit()
 
-    def list_agent_runs(self, *, limit: int = 200, entity_id: str | None = None) -> List[Dict[str, Any]]:
+    def list_agent_runs(
+        self, *, limit: int = 200, entity_id: str | None = None
+    ) -> list[dict[str, Any]]:
         if entity_id:
             rows = self.conn.execute(
                 "SELECT * FROM agent_runs WHERE entity_id=? ORDER BY started_at DESC LIMIT ?;",
@@ -280,7 +318,16 @@ class Store:
     # -----------------------------
     # Workflows
     # -----------------------------
-    def upsert_workflow_def(self, *, wf_id: str, name: str, version: str, entity_type: str, json_def: str, active: bool = True) -> None:
+    def upsert_workflow_def(
+        self,
+        *,
+        wf_id: str,
+        name: str,
+        version: str,
+        entity_type: str,
+        json_def: str,
+        active: bool = True,
+    ) -> None:
         self.conn.execute(
             """
             INSERT INTO workflow_defs (id, name, version, entity_type, json_def, active)
@@ -296,24 +343,37 @@ class Store:
         )
         self.conn.commit()
 
-    def list_workflow_defs(self) -> List[Dict[str, Any]]:
-        rows = self.conn.execute("SELECT id, name, version, entity_type, json_def, active FROM workflow_defs ORDER BY name;").fetchall()
-        out=[]
+    def list_workflow_defs(self) -> list[dict[str, Any]]:
+        rows = self.conn.execute(
+            "SELECT id, name, version, entity_type, json_def, active FROM workflow_defs ORDER BY name;"
+        ).fetchall()
+        out = []
         for r in rows:
-            d=dict(r)
-            d["def"]=json_loads(r["json_def"]) or {}
+            d = dict(r)
+            d["def"] = json_loads(r["json_def"]) or {}
             out.append(d)
         return out
 
-    def get_workflow_def(self, wf_id: str) -> Optional[Dict[str, Any]]:
-        r = self.conn.execute("SELECT id, name, version, entity_type, json_def, active FROM workflow_defs WHERE id=?;", (wf_id,)).fetchone()
+    def get_workflow_def(self, wf_id: str) -> dict[str, Any] | None:
+        r = self.conn.execute(
+            "SELECT id, name, version, entity_type, json_def, active FROM workflow_defs WHERE id=?;",
+            (wf_id,),
+        ).fetchone()
         if not r:
             return None
-        d=dict(r)
-        d["def"]=json_loads(r["json_def"]) or {}
+        d = dict(r)
+        d["def"] = json_loads(r["json_def"]) or {}
         return d
 
-    def create_workflow_instance(self, *, def_id: str, entity_id: str, status: str, current_step_id: str | None, context: Dict[str, Any]) -> str:
+    def create_workflow_instance(
+        self,
+        *,
+        def_id: str,
+        entity_id: str,
+        status: str,
+        current_step_id: str | None,
+        context: dict[str, Any],
+    ) -> str:
         iid = new_id("wfi")
         now = now_iso()
         self.conn.execute(
@@ -321,12 +381,28 @@ class Store:
             INSERT INTO workflow_instances (id, def_id, entity_id, status, current_step_id, context_json, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?);
             """,
-            (iid, def_id, entity_id, status, current_step_id, json_dumps_compact(context), now, now),
+            (
+                iid,
+                def_id,
+                entity_id,
+                status,
+                current_step_id,
+                json_dumps_compact(context),
+                now,
+                now,
+            ),
         )
         self.conn.commit()
         return iid
 
-    def update_workflow_instance(self, instance_id: str, *, status: str | None = None, current_step_id: str | None = None, context: Dict[str, Any] | None = None) -> None:
+    def update_workflow_instance(
+        self,
+        instance_id: str,
+        *,
+        status: str | None = None,
+        current_step_id: str | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> None:
         existing = self.get_workflow_instance(instance_id)
         if not existing:
             raise KeyError(f"Workflow instance not found: {instance_id}")
@@ -344,27 +420,40 @@ class Store:
         )
         self.conn.commit()
 
-    def get_workflow_instance(self, instance_id: str) -> Optional[Dict[str, Any]]:
-        r = self.conn.execute("SELECT * FROM workflow_instances WHERE id=?;", (instance_id,)).fetchone()
+    def get_workflow_instance(self, instance_id: str) -> dict[str, Any] | None:
+        r = self.conn.execute(
+            "SELECT * FROM workflow_instances WHERE id=?;", (instance_id,)
+        ).fetchone()
         if not r:
             return None
-        d=dict(r)
-        d["context"]=json_loads(r["context_json"]) or {}
+        d = dict(r)
+        d["context"] = json_loads(r["context_json"]) or {}
         return d
 
-    def list_workflow_instances(self, *, limit: int = 200) -> List[Dict[str, Any]]:
-        rows = self.conn.execute("SELECT * FROM workflow_instances ORDER BY updated_at DESC LIMIT ?;", (limit,)).fetchall()
-        out=[]
+    def list_workflow_instances(self, *, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.conn.execute(
+            "SELECT * FROM workflow_instances ORDER BY updated_at DESC LIMIT ?;", (limit,)
+        ).fetchall()
+        out = []
         for r in rows:
-            d=dict(r)
-            d["context"]=json_loads(r["context_json"]) or {}
+            d = dict(r)
+            d["context"] = json_loads(r["context_json"]) or {}
             out.append(d)
         return out
 
     # -----------------------------
     # Connectors
     # -----------------------------
-    def upsert_connector(self, *, connector_id: str, system_name: str, category: str | None, status: str, config: Dict[str, Any], last_sync: str | None) -> None:
+    def upsert_connector(
+        self,
+        *,
+        connector_id: str,
+        system_name: str,
+        category: str | None,
+        status: str,
+        config: dict[str, Any],
+        last_sync: str | None,
+    ) -> None:
         self.conn.execute(
             """
             INSERT INTO connectors (id, system_name, category, status, config_json, last_sync)
@@ -380,12 +469,12 @@ class Store:
         )
         self.conn.commit()
 
-    def list_connectors(self) -> List[Dict[str, Any]]:
+    def list_connectors(self) -> list[dict[str, Any]]:
         rows = self.conn.execute("SELECT * FROM connectors ORDER BY system_name;").fetchall()
-        out=[]
+        out = []
         for r in rows:
-            d=dict(r)
-            d["config"]=json_loads(r["config_json"]) or {}
+            d = dict(r)
+            d["config"] = json_loads(r["config_json"]) or {}
             out.append(d)
         return out
 
@@ -401,7 +490,7 @@ class Store:
         )
         self.conn.commit()
 
-    def latest_metrics(self, limit: int = 50) -> List[Dict[str, Any]]:
+    def latest_metrics(self, limit: int = 50) -> list[dict[str, Any]]:
         rows = self.conn.execute(
             "SELECT metric_name, value, timestamp FROM metrics ORDER BY timestamp DESC LIMIT ?;",
             (limit,),
