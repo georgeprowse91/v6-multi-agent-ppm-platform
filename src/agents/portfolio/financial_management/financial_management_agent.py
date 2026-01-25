@@ -5,7 +5,7 @@ Purpose:
 Provides comprehensive financial oversight across portfolios, programs and projects.
 Supports budgeting, cost tracking, forecasting, variance analysis and profitability assessment.
 
-Specification: docs_markdown/specs/agents/portfolio/financial-management/Agent 12 Financial Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 12 Financial Management Agent.md
 """
 
 from datetime import datetime

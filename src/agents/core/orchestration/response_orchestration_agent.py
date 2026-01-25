@@ -5,7 +5,7 @@ Purpose:
 Coordinates multi-agent queries, manages parallel/sequential execution,
 and aggregates responses into coherent outputs.
 
-Specification: docs_markdown/specs/agents/core/orchestration/Agent 2 Response Orchestration Agent.md
+Specification: docs_markdown/specs/agents/Agent 2 Response Orchestration Agent.md
 """
 
 import asyncio

@@ -5,7 +5,7 @@ Purpose:
 Manages both supply of resources (people, equipment, skills) and demand from projects
 and programs. Provides real-time insights into availability, utilization and skill gaps.
 
-Specification: docs_markdown/specs/agents/delivery/resource-capacity/Agent 11 Resource & Capacity Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 11 Resource & Capacity Management Agent.md
 """
 
 from datetime import datetime, timedelta

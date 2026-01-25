@@ -6,7 +6,7 @@ Governs controlled introduction of changes to projects, programs and configurati
 Ensures changes are assessed, approved, implemented and documented to minimize disruption
 and preserve integrity. Maintains CMDB for project artifacts and infrastructure.
 
-Specification: docs_markdown/specs/agents/operations/change-configuration/Agent 17 Change & Configuration Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 17 Change & Configuration Management Agent.md
 """
 
 from datetime import datetime

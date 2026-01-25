@@ -5,7 +5,7 @@ Purpose:
 Constructs and manages project timelines, transforms WBS into schedules, maps task dependencies
 and performs critical path analysis. Supports both predictive and adaptive planning.
 
-Specification: docs_markdown/specs/agents/delivery/planning-scheduling/Agent 10 Schedule & Planning Agent.md
+Specification: docs_markdown/specs/agents/Agent 10 Schedule & Planning Agent.md
 """
 
 from datetime import datetime, timedelta

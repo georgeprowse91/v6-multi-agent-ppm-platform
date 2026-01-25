@@ -391,7 +391,7 @@ See [Observability & Monitoring](docs_markdown/docs/operations/observability/Obs
 - **[Detailed Architecture](docs_markdown/docs/architecture/detailed/)** - In-depth technical specifications
 - **[Data Architecture](docs_markdown/docs/architecture/data/Data%20Architecture.md)** - Data models and flows
 - **[Infrastructure Architecture](docs_markdown/docs/architecture/infrastructure/)** - Deployment and infrastructure
-- **[Agent Specifications](docs_markdown/specs/agents/)** - Individual agent details
+- **[Agent Specifications](docs_markdown/specs/agents/README.md)** - Individual agent details
 - **[API Documentation](http://localhost:8000/api/docs)** - Interactive API reference
 
 ---

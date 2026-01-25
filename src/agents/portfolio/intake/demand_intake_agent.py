@@ -5,7 +5,7 @@ Purpose:
 Captures incoming project requests, ideas, and change initiatives from stakeholders.
 Manages the demand pipeline with automatic categorization and deduplication.
 
-Specification: docs_markdown/specs/agents/portfolio/intake/Agent 4 Demand & Intake Agent.md
+Specification: docs_markdown/specs/agents/Agent 4 Demand & Intake Agent.md
 """
 
 from datetime import datetime

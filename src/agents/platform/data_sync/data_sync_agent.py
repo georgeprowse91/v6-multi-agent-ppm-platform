@@ -5,7 +5,7 @@ Purpose:
 Ensures that data flowing through the PPM platform and across integrated systems remains
 consistent, up-to-date and accurate through master data management and event-driven synchronization.
 
-Specification: docs_markdown/specs/agents/platform/data-sync-consistency/Agent 23 Data Synchronization & Consistency Agent.md
+Specification: docs_markdown/specs/agents/Agent 23 Data Synchronization & Consistency Agent.md
 """
 
 from datetime import datetime

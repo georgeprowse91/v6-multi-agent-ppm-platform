@@ -5,7 +5,7 @@ Purpose:
 Develops comprehensive business cases for proposed projects or change initiatives.
 Performs financial analysis and ROI modelling to support investment decisions.
 
-Specification: docs_markdown/specs/agents/portfolio/investment-analysis/Agent 5 Business Case & Investment Analysis Agent.md
+Specification: docs_markdown/specs/agents/Agent 5 Business Case & Investment Analysis Agent.md
 """
 
 from datetime import datetime

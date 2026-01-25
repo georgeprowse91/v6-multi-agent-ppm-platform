@@ -1,5 +1,5 @@
 {
-  "source_dir": "specs/agents/**/*.docx",
+  "source_dir": "docs_markdown/specs/agents/*.md",
   "agents": [
     {
       "id": 1,
@@ -128,7 +128,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/core/orchestration/Agent 1 Intent Router Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 1 Intent Router Agent.md"
     },
     {
       "id": 2,
@@ -259,7 +259,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/core/orchestration/Agent 2 Response Orchestration Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 2 Response Orchestration Agent.md"
     },
     {
       "id": 3,
@@ -393,7 +393,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/governance/workflows/Agent 3 Approval Workflow Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 3 Approval Workflow Agent.md"
     },
     {
       "id": 4,
@@ -527,7 +527,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/portfolio/intake/Agent 4 Demand & Intake Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 4 Demand & Intake Agent.md"
     },
     {
       "id": 5,
@@ -665,7 +665,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/portfolio/investment-analysis/Agent 5 Business Case & Investment Analysis Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 5 Business Case & Investment Analysis Agent.md"
     },
     {
       "id": 6,
@@ -802,7 +802,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/portfolio/strategy-optimization/Agent 6 Portfolio Strategy & Optimization Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 6 Portfolio Strategy & Optimization Agent.md"
     },
     {
       "id": 7,
@@ -941,7 +941,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/delivery/program-management/Agent 7 Program Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 7 Program Management Agent.md"
     },
     {
       "id": 8,
@@ -1080,7 +1080,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/delivery/project-definition/Agent 8 Project Definition & Scope Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 8 Project Definition & Scope Agent.md"
     },
     {
       "id": 9,
@@ -1219,7 +1219,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/delivery/lifecycle-governance/Agent 9 Project Lifecycle & Governance Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 9 Project Lifecycle & Governance Agent.md"
     },
     {
       "id": 10,
@@ -1363,7 +1363,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/delivery/planning-scheduling/Agent 10 Schedule & Planning Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 10 Schedule & Planning Agent.md"
     },
     {
       "id": 11,
@@ -1529,7 +1529,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/delivery/resource-capacity/Agent 11 Resource & Capacity Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 11 Resource & Capacity Management Agent.md"
     },
     {
       "id": 12,
@@ -1698,7 +1698,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/portfolio/financial-management/Agent 12 Financial Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 12 Financial Management Agent.md"
     },
     {
       "id": 13,
@@ -1866,7 +1866,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/operations/vendor-procurement/Agent 13 Vendor & Procurement Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 13 Vendor & Procurement Management Agent.md"
     },
     {
       "id": 14,
@@ -2031,7 +2031,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/operations/quality-management/Agent 14 Quality Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 14 Quality Management Agent.md"
     },
     {
       "id": 15,
@@ -2198,7 +2198,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/operations/risk-management/Agent 15 Risk Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 15 Risk Management Agent.md"
     },
     {
       "id": 16,
@@ -2362,7 +2362,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/governance/compliance-regulatory/Agent 16 Compliance & Regulatory Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 16 Compliance & Regulatory Agent.md"
     },
     {
       "id": 17,
@@ -2529,7 +2529,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/operations/change-configuration/Agent 17 Change & Configuration Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 17 Change & Configuration Management Agent.md"
     },
     {
       "id": 18,
@@ -2701,7 +2701,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/release-deployment/Agent 18 Release & Deployment Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 18 Release & Deployment Agent.md"
     },
     {
       "id": 19,
@@ -2865,7 +2865,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/knowledge-documentation/Agent 19 Knowledge & Document Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 19 Knowledge & Document Management Agent.md"
     },
     {
       "id": 20,
@@ -3033,7 +3033,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/continuous-improvement-process-mining/Agent 20 Continuous Improvement & Process Mining Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 20 Continuous Improvement & Process Mining Agent.md"
     },
     {
       "id": 21,
@@ -3200,7 +3200,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/operations/stakeholder-communications/Agent 21 Stakeholder & Communications Management Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 21 Stakeholder & Communications Management Agent.md"
     },
     {
       "id": 22,
@@ -3365,7 +3365,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/analytics-insights/Agent 22 Analytics & Insights Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 22 Analytics & Insights Agent.md"
     },
     {
       "id": 23,
@@ -3527,7 +3527,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/data-sync-consistency/Agent 23 Data Synchronization & Consistency Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 23 Data Synchronization & Consistency Agent.md"
     },
     {
       "id": 24,
@@ -3691,7 +3691,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/workflow-process-engine/Agent 24 Workflow & Process Engine Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 24 Workflow & Process Engine Agent.md"
     },
     {
       "id": 25,
@@ -3852,7 +3852,7 @@
           ]
         }
       ],
-      "source_file": "specs/agents/platform/health-monitoring/Agent 25 System Health & Monitoring Agent.docx"
+      "source_file": "docs_markdown/specs/agents/Agent 25 System Health & Monitoring Agent.md"
     }
   ]
 }
