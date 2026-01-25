@@ -1,3 +1,22 @@
 @startuml
+actor User
+participant "API Gateway" as API
+participant "Intent Router (Agent 01)" as IR
+participant "Response Orchestrator (Agent 02)" as RO
+participant "Project Definition (Agent 08)" as A08
+participant "Schedule & Planning (Agent 10)" as A10
+participant "Connector Runtime" as CR
+participant "Canonical Data" as Data
 
+User -> API: "Create a new project for ERP rollout"
+API -> IR: classify intent + context
+IR -> RO: intent=create_project
+RO -> A08: draft charter + scope
+A08 -> Data: validate schema + store draft
+RO -> A10: generate initial WBS
+A10 -> CR: fetch resource availability
+CR -> Data: sync resource data
+A10 -> Data: store schedule baseline
+RO -> API: compose response + next steps
+API -> User: charter + baseline + approvals needed
 @enduml

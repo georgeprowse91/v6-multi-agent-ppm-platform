@@ -1,25 +1,39 @@
 # Agent Specifications Index
 
-This index preserves the conceptual grouping of the 25 agents while keeping all specification files in a single flat folder.
+## Purpose
 
-## Core Orchestration
+Provide a navigable index to the individual agent specification folders in `agents/` and point to the canonical agent catalog in `docs/agents/`.
+
+## Architecture-level context
+
+Agent specs in this directory describe the responsibilities and interfaces for each domain agent. The orchestration logic that ties them together is documented in `docs/architecture/agent-orchestration.md`.
+
+## Agent catalog
+
+Start with the canonical catalog for a cross-agent view:
+
+- [Agent Catalog](../docs/agents/agent-catalog.md)
+
+## Agent specification folders
+
+### Core Orchestration
 
 - [Agent 1 Intent Router Agent](core-orchestration/agent-01-intent-router/README.md)
 - [Agent 2 Response Orchestration Agent](core-orchestration/agent-02-response-orchestration/README.md)
 
-## Governance & Workflow
+### Governance & Workflow
 
 - [Agent 3 Approval Workflow Agent](core-orchestration/agent-03-approval-workflow/README.md)
 - [Agent 16 Compliance & Regulatory Agent](delivery-management/agent-16-compliance-regulatory/README.md)
 
-## Portfolio
+### Portfolio
 
 - [Agent 4 Demand & Intake Agent](portfolio-management/agent-04-demand-intake/README.md)
 - [Agent 5 Business Case & Investment Analysis Agent](portfolio-management/agent-05-business-case-investment/README.md)
 - [Agent 6 Portfolio Strategy & Optimization Agent](portfolio-management/agent-06-portfolio-strategy-optimisation/README.md)
 - [Agent 12 Financial Management Agent](delivery-management/agent-12-financial-management/README.md)
 
-## Delivery
+### Delivery
 
 - [Agent 7 Program Management Agent](portfolio-management/agent-07-program-management/README.md)
 - [Agent 8 Project Definition & Scope Agent](delivery-management/agent-08-project-definition-scope/README.md)
@@ -27,7 +41,7 @@ This index preserves the conceptual grouping of the 25 agents while keeping all 
 - [Agent 10 Schedule & Planning Agent](delivery-management/agent-10-schedule-planning/README.md)
 - [Agent 11 Resource & Capacity Management Agent](delivery-management/agent-11-resource-capacity/README.md)
 
-## Operations
+### Operations
 
 - [Agent 13 Vendor & Procurement Management Agent](delivery-management/agent-13-vendor-procurement/README.md)
 - [Agent 14 Quality Management Agent](delivery-management/agent-14-quality-management/README.md)
@@ -35,7 +49,7 @@ This index preserves the conceptual grouping of the 25 agents while keeping all 
 - [Agent 17 Change & Configuration Management Agent](operations-management/agent-17-change-configuration/README.md)
 - [Agent 21 Stakeholder & Communications Management Agent](operations-management/agent-21-stakeholder-comms/README.md)
 
-## Platform
+### Platform
 
 - [Agent 18 Release & Deployment Agent](operations-management/agent-18-release-deployment/README.md)
 - [Agent 19 Knowledge & Document Management Agent](operations-management/agent-19-knowledge-document-management/README.md)
@@ -44,3 +58,26 @@ This index preserves the conceptual grouping of the 25 agents while keeping all 
 - [Agent 23 Data Synchronization & Consistency Agent](operations-management/agent-23-data-synchronisation-quality/README.md)
 - [Agent 24 Workflow & Process Engine Agent](operations-management/agent-24-workflow-process-engine/README.md)
 - [Agent 25 System Health & Monitoring Agent](operations-management/agent-25-system-health-monitoring/README.md)
+
+## Usage example
+
+Open the Intent Router spec:
+
+```bash
+sed -n '1,40p' agents/core-orchestration/agent-01-intent-router/README.md
+```
+
+## How to verify
+
+List the core orchestration agents:
+
+```bash
+ls agents/core-orchestration
+```
+
+Expected output: the three agent folders.
+
+## Related docs
+
+- [Agent Orchestration](../docs/architecture/agent-orchestration.md)
+- [Solution Overview](../docs/product/solution-overview.md)

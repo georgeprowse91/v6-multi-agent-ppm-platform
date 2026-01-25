@@ -1,3 +1,34 @@
 @startuml
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F7F7F7
+  BorderColor #333333
+}
 
+actor "Portfolio Stakeholders" as Stakeholders
+actor "PMO / Delivery Leads" as PMO
+actor "Finance & Compliance" as Finance
+
+rectangle "Multi-Agent PPM Platform" as Platform {
+  [Web Prototype]
+  [API Gateway]
+  [Agent Orchestration]
+  [Connector Runtime]
+  [Canonical Data + Lineage]
+}
+
+rectangle "Systems of Record" as Systems {
+  [Jira / Azure DevOps]
+  [Planview]
+  [SAP / Workday]
+  [Slack / Teams]
+  [SharePoint]
+  [Azure AD / Okta]
+}
+
+Stakeholders --> Platform : Portfolio insights, approvals
+PMO --> Platform : Project execution workflows
+Finance --> Platform : Budget + compliance oversight
+Platform --> Systems : Sync projects, finances, resources
+Systems --> Platform : Events + source data
 @enduml

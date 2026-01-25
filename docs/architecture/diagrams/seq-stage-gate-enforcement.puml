@@ -1,3 +1,17 @@
 @startuml
+actor "Project Manager" as PM
+participant "Lifecycle & Governance (Agent 09)" as A09
+participant "Approval Workflow (Agent 03)" as A03
+participant "Workflow Engine (Agent 24)" as A24
+participant "Compliance Agent (Agent 16)" as A16
+participant "Audit Log" as Audit
 
+PM -> A09: request stage advance
+A09 -> A24: evaluate gate criteria
+A24 -> A16: run compliance checks
+A16 --> A24: compliance result
+A24 -> A03: route approvals
+A03 -> Audit: log decision
+A03 --> A09: approved / rejected
+A09 --> PM: stage update
 @enduml

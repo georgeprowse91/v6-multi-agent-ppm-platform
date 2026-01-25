@@ -1,34 +1,49 @@
 # Hybrid Methodology
 
-Hybrid templates blending stage-gate governance with agile execution.
+## Purpose
 
-## Quickstart
+Describe the hybrid methodology that blends Waterfall gates with Agile execution cycles.
 
-Copy the hybrid charter template:
+## Architecture-level context
+
+Hybrid maps combine phase-based governance with iterative delivery. Gate checks ensure formal approvals while iterative cycles deliver incremental value. This is common for regulated programs requiring formal sign-offs.
+
+## What the YAML means
+
+- `map.yaml`: phase gates with embedded iteration loops.
+- `gates.yaml`: approvals for phase transitions and iteration readiness.
+
+## Example workflow
+
+1. **Initiation gate**: approve charter and funding.
+2. **Iterative delivery**: execute increments within Planning/Execution phases.
+3. **Phase gate**: review outcomes and approve next phase.
+4. **Closing**: post-implementation review and benefits tracking.
+
+## Usage example
+
+Inspect the hybrid map:
 
 ```bash
-cp docs/methodology/hybrid/templates/hybrid-charter.md /tmp/hybrid-charter.md
+sed -n '1,120p' docs/methodology/hybrid/map.yaml
 ```
 
 ## How to verify
+
+List hybrid templates:
 
 ```bash
 ls docs/methodology/hybrid/templates
 ```
 
-Expected output includes `hybrid-charter.md` and `governance-pack.md`.
+Expected output includes `governance-pack.md` and `hybrid-charter.md`.
 
-## Key files
+## Implementation status
 
-- `docs/methodology/hybrid/templates/hybrid-charter.md`
-- `docs/methodology/hybrid/templates/governance-pack.md`
-- `docs/methodology/hybrid/templates/milestone-plan.xlsx`
+- **Implemented**: Hybrid map and templates.
+- **Planned**: automated gate logic via workflow engine.
 
-## Example snippet
+## Related docs
 
-```text
-## 1. Project Overview
-- **Project name:**
-- **Sponsor:**
-- **Project manager:**
-```
+- [Methodology Overview](../overview.md)
+- [Approval Workflow Agent](../../architecture/agent-orchestration.md)

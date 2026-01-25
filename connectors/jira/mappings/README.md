@@ -1,21 +1,36 @@
-# Jira field mappings
+# Jira Field Mappings
 
-This folder defines how external Jira fields map to the platform's canonical
-portfolio, program, project, and work-item schemas.
+## Purpose
 
-## File expectations
-- Keep mappings in YAML files named after the entity (for example, `project.yaml`).
-- Use `source_field` for the upstream field name and `target_field` for the platform field.
-- Include `transform` when the source format needs normalization.
+Describe how Jira fields map to the platform’s canonical PPM schemas in `data/schemas/`.
 
-## Example
-```yaml
-entity: project
-fields:
-  - source_field: System.Title
-    target_field: title
-    transform: string
-  - source_field: System.State
-    target_field: status
-    transform: enum
+## Architecture-level context
+
+Mappings are consumed by the connector runtime to transform Jira payloads into canonical entities and to emit data quality scores during sync.
+
+## Key files
+
+- `project.yaml`: Jira project metadata → canonical project schema.
+
+## Usage example
+
+View the Jira project mapping:
+
+```bash
+sed -n '1,160p' connectors/jira/mappings/project.yaml
 ```
+
+## How to verify
+
+Check that the mapping file exists:
+
+```bash
+ls connectors/jira/mappings/project.yaml
+```
+
+Expected output: the YAML mapping file path.
+
+## Related docs
+
+- [Connector Overview](../../../docs/connectors/overview.md)
+- [Data Schemas](../../../data/schemas/)

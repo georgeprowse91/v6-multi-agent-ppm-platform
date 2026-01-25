@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": "jira",
+    "name": "Atlassian Jira Cloud",
+    "manifest_path": "connectors/jira/manifest.yaml",
+    "status": "alpha",
+    "certification": "pending"
+  },
+  {
+    "id": "servicenow",
+    "name": "ServiceNow",
+    "manifest_path": "connectors/servicenow/manifest.yaml",
+    "status": "planned",
+    "certification": "not-started"
+  },
+  {
+    "id": "sap",
+    "name": "SAP S/4HANA",
+    "manifest_path": "connectors/sap/manifest.yaml",
+    "status": "planned",
+    "certification": "not-started"
+  }
+]

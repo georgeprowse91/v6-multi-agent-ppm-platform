@@ -1,7 +1,12 @@
 # Connectors
 
-Integration connectors for external systems (PPM tools, finance, collaboration).
-Each connector has source code, mapping templates, and tests.
+## Purpose
+
+Provide the integration layer that synchronizes external systems (PPM, ERP, HR, collaboration) with the platform’s canonical data model.
+
+## Architecture-level context
+
+Connectors translate external payloads into the canonical schemas stored in `data/schemas/`, emit lineage events to `data/lineage/`, and enforce authentication and rate-limit policies described in `docs/connectors/overview.md`.
 
 ## Quickstart
 
@@ -13,6 +18,8 @@ python -m tools.connector_runner run-connector --name jira --dry-run
 
 ## How to verify
 
+List the Jira connector assets:
+
 ```bash
 ls connectors/jira
 ```
@@ -21,20 +28,21 @@ Expected output includes `manifest.yaml`, `mappings/`, and `src/`.
 
 ## Key files
 
-- `connectors/<name>/manifest.yaml`: connector identity and versioning.
-- `connectors/<name>/mappings/`: field mapping templates.
+- `connectors/<name>/manifest.yaml`: connector identity, auth, and sync policies.
+- `connectors/<name>/mappings/`: canonical field mappings.
 - `connectors/<name>/src/`: connector implementation.
-- `connectors/sdk/`: shared SDK utilities.
+- `connectors/registry/connectors.json`: registry of available connectors.
 
-## Example
+## Usage example
 
-Inspect the Jira connector manifest ID:
+Inspect the Jira project mapping:
 
 ```bash
-rg -n "id:" connectors/jira/manifest.yaml
+sed -n '1,160p' connectors/jira/mappings/project.yaml
 ```
 
-## Next steps
+## Related docs
 
-- Implement connector-specific sync logic under each `connectors/<name>/src/`.
-- Wire connector runs into `services/data-sync-service/` workflows.
+- [Connector Overview](../docs/connectors/overview.md)
+- [Connector Certification](../docs/connectors/certification.md)
+- [Data Schemas](../data/schemas/)

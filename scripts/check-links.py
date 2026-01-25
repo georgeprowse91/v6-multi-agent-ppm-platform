@@ -14,6 +14,28 @@ ROOT = Path(__file__).resolve().parents[1]
 LINK_PATTERN = re.compile(r"!?(\[[^\]]*\]\(([^)]+)\))")
 
 
+def strip_code_blocks(text: str) -> str:
+    """Remove fenced code blocks to avoid false-positive link checks."""
+    lines = text.splitlines()
+    output: list[str] = []
+    in_code_block = False
+    fence = ""
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            marker = stripped[:3]
+            if not in_code_block:
+                in_code_block = True
+                fence = marker
+            elif marker == fence:
+                in_code_block = False
+                fence = ""
+            continue
+        if not in_code_block:
+            output.append(line)
+    return "\n".join(output)
+
+
 def iter_markdown_files(root: Path) -> Iterable[Path]:
     return root.rglob("*.md")
 
@@ -70,7 +92,7 @@ def check_links() -> list[dict[str, str]]:
     anchor_cache: dict[Path, set[str]] = {}
 
     for md_file in iter_markdown_files(ROOT):
-        text = md_file.read_text(encoding="utf-8", errors="ignore")
+        text = strip_code_blocks(md_file.read_text(encoding="utf-8", errors="ignore"))
         for match in LINK_PATTERN.finditer(text):
             raw_dest = match.group(2)
             dest = parse_link_destination(raw_dest)

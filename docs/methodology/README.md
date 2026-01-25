@@ -1,33 +1,38 @@
 # Methodology Library
 
-Templates and guidance for Agile, Waterfall, and Hybrid delivery modes.
+## Purpose
 
-## Quickstart
+Provide the canonical methodology maps, gate definitions, and templates used by agents to enforce governance across Agile, Waterfall, and Hybrid delivery.
 
-List available methodology folders:
+## Architecture-level context
 
-```bash
-ls docs/methodology
-```
+Methodology maps encode delivery stages as YAML (`map.yaml`) and define gate criteria in `gates.yaml`. The Approval Workflow agent (Agent 03) and Lifecycle & Governance agent (Agent 09) reference these definitions to enforce stage progression.
 
-## How to verify
-
-```bash
-ls docs/methodology/agile/templates
-```
-
-Expected output includes `sprint-plan.md` and other Agile templates.
-
-## Key files
+## Key folders
 
 - `docs/methodology/agile/`
 - `docs/methodology/waterfall/`
 - `docs/methodology/hybrid/`
 
-## Example
+## Usage example
 
-Copy the sprint plan template for a new project:
+Inspect the Agile map:
 
 ```bash
-cp docs/methodology/agile/templates/sprint-plan.md /tmp/sprint-plan.md
+sed -n '1,120p' docs/methodology/agile/map.yaml
 ```
+
+## How to verify
+
+List the templates for the Agile methodology:
+
+```bash
+ls docs/methodology/agile/templates
+```
+
+Expected output includes `sprint-plan.md`, `release-plan.md`, and `retro-notes.md`.
+
+## Related docs
+
+- [Methodology Overview](overview.md)
+- [Agent Orchestration](../architecture/agent-orchestration.md)

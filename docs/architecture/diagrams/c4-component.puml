@@ -1,3 +1,44 @@
 @startuml
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F7F7F7
+  BorderColor #333333
+}
 
+rectangle "Agent Orchestration" {
+  [Intent Router]
+  [Response Planner]
+  [Policy Guardrails]
+  [Tool Executor]
+}
+
+rectangle "Domain Agents" {
+  [Portfolio Agents]
+  [Delivery Agents]
+  [Governance Agents]
+  [Platform Agents]
+}
+
+rectangle "Integration" {
+  [Connector Registry]
+  [Mapping Engine]
+  [Sync Scheduler]
+}
+
+rectangle "Data Services" {
+  [Schema Validator]
+  [Lineage Recorder]
+  [Quality Scorer]
+}
+
+[Intent Router] --> [Response Planner]
+[Response Planner] --> [Policy Guardrails]
+[Policy Guardrails] --> [Tool Executor]
+[Tool Executor] --> [Domain Agents]
+[Domain Agents] --> [Schema Validator]
+[Schema Validator] --> [Lineage Recorder]
+[Schema Validator] --> [Quality Scorer]
+[Domain Agents] --> [Connector Registry]
+[Connector Registry] --> [Mapping Engine]
+[Mapping Engine] --> [Sync Scheduler]
 @enduml

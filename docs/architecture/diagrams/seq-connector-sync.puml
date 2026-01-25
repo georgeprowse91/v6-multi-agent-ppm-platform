@@ -1,3 +1,18 @@
 @startuml
+actor "Data Sync Agent" as Agent
+participant "Connector Runner" as Runner
+participant "Jira API" as Jira
+participant "Mapping Engine" as Map
+participant "Schema Validator" as Schema
+participant "Canonical Store" as Store
+participant "Lineage Recorder" as Lineage
 
+Agent -> Runner: schedule sync (jira, project)
+Runner -> Jira: GET /rest/api/3/project
+Jira --> Runner: project payloads
+Runner -> Map: apply project.yaml mapping
+Map -> Schema: validate canonical schema
+Schema -> Store: upsert project
+Store -> Lineage: emit lineage + quality
+Runner --> Agent: sync summary
 @enduml

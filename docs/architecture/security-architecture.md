@@ -1,109 +1,79 @@
 # Security Architecture
 
-## Introduction
+## Purpose
 
-Security is a foundational element of the Multi‑Agent PPM Platform. The architecture is designed to protect data, prevent unauthorised access, meet regulatory obligations and build trust with customers. This document outlines the security mechanisms across identity, authentication, authorisation, data protection, network segmentation, audit logging and incident response, drawing on the security architecture described in the source documents.
+Describe how the platform protects data, enforces access controls, captures audit evidence, and satisfies compliance requirements.
 
-## Identity & Authentication
+## Architecture-level context
 
-### Single Sign‑On (SSO)
+Security spans the identity plane (SSO), authorization plane (RBAC/ABAC), data protection (encryption, retention), and audit/monitoring. Security controls are documented in `docs/compliance/` and enforced by agents and infrastructure defined in `infra/`.
 
-The platform integrates with corporate Identity Providers (IdPs) such as Azure Active Directory, Okta or Ping Identity via SAML 2.0 or OAuth 2.0/OIDC. This enables users to authenticate once using their enterprise credentials and access the platform without managing separate passwords. Multi‑factor authentication (MFA) is enforced through the IdP to prevent credential compromise.
+## Identity & authentication
 
-### Service Authentication
+- **SSO**: Azure AD / Okta via OIDC or SAML.
+- **Service authentication**: managed identities or mTLS between internal services.
+- **API tokens**: scoped tokens for external integrations.
 
-Internal service‑to‑service communication between agents and connectors is secured by mutual Transport Layer Security (mTLS). Each microservice presents a client certificate issued by a trusted Certificate Authority (CA) and validates the certificate of the peer. Certificates are rotated automatically and stored in a central secret management system.
+## Authorization model (RBAC + ABAC)
 
-### API Authentication
+- **RBAC**: role-based permissions for portfolios, programs, projects.
+- **ABAC**: attribute-based policies (data classification, region, business unit).
+- **Field-level controls**: sensitive fields masked for restricted roles.
 
-External API consumers (e.g., clients integrating via API) authenticate using OAuth 2.0 access tokens or API keys. Tokens carry scopes representing the permissions granted and have configurable lifetimes. The API gateway validates tokens and maps them to roles.
+## Audit events
 
-## Authorization & RBAC
+Audit events are captured for:
 
-### Role‑Based Access Control (RBAC)
+- Stage-gate approvals
+- Budget or scope changes
+- Data synchronization activity
+- Authentication and authorization decisions
 
-The platform uses a fine‑grained RBAC model to control user access【565999142788795†L6484-L6853】. Roles correspond to job functions (e.g., PMO Director, Project Manager, Resource Manager, Finance Controller, Program Manager, Quality Officer, Vendor Manager). Each role is associated with permissions to perform operations (e.g., read, create, update, delete) on specific resources. Permissions can be scoped to portfolios, programs, projects or business units. For example, a Project Manager may have read/write access to his/her projects but read‑only access to programs.
+Audit schema reference: `data/schemas/audit-event.schema.json`.
 
-Administrators can create custom roles and assign users and groups to roles via an administration UI. The principle of least privilege is enforced: users are granted only the permissions required for their duties.
+## Data protection and retention
 
-### Dynamic Access Control
+- **Encryption**: TLS in transit; AES-256 at rest.
+- **Secrets**: Azure Key Vault references in `config/`.
+- **Retention**: see `docs/compliance/retention-policy.md` for standard schedules.
+- **Privacy**: DPIA template in `docs/compliance/privacy-dpia-template.md`.
 
-In addition to static RBAC, the platform implements dynamic access control rules. These rules evaluate attributes such as project classification (e.g., Confidential, Restricted) and user attributes (e.g., business unit, clearance level) to determine whether access should be granted【565999142788795†L6484-L6853】. For instance, access to Confidential projects may be restricted to users with the appropriate clearance. Policies are defined using an Attribute‑Based Access Control (ABAC) engine and can be updated without code changes.
+## Threat model summary
 
-### Row‑Level & Field‑Level Security
+The threat model (see `docs/compliance/threat-model.md`) highlights the top risks:
 
-Row‑level security restricts users to records they are authorised to view. For example, a Portfolio Manager may see only portfolios assigned to his region. Field‑level security masks or hides sensitive fields (e.g., salary, personally identifiable information) based on user roles【565999142788795†L6484-L6853】. This ensures that sensitive data is not exposed unnecessarily.
+- Connector credential leakage
+- Unauthorized cross-tenant access
+- LLM prompt injection
+- Data exfiltration via integrations
 
-## Data Protection & Secret Management
+Mitigations include secret rotation, tenant isolation, policy guardrails, and audit logging.
 
-### Encryption in Transit
+## Usage example
 
-All data transmitted between clients, agents, connectors and databases is encrypted using TLS 1.3. Clients verify server certificates and vice versa. Secure headers (HSTS, X‑Content‑Type‑Options, X‑Frame‑Options) are set to prevent man‑in‑the‑middle and clickjacking attacks.
+Open the audit event schema:
 
-### Encryption at Rest
+```bash
+sed -n '1,120p' data/schemas/audit-event.schema.json
+```
 
-All persistent data is encrypted using AES‑256 with hardware support. Transparent Data Encryption (TDE) is enabled for databases. For object storage (e.g., documents, backups), the platform uses server‑side encryption with customer‑managed keys.
+## How to verify
 
-### Secret Management
+Check that compliance docs exist:
 
-Secrets (API keys, database credentials, tokens) are stored in a vault (e.g., HashiCorp Vault, Azure Key Vault). Secrets are retrieved at runtime via short‑lived tokens and never stored in code or configuration files. Rotation policies enforce regular renewal of secrets; alerts are triggered when rotation deadlines are approaching. Access to secrets is restricted based on service identities and roles.
+```bash
+ls docs/compliance
+```
 
-### Data Masking & Tokenisation
+Expected output includes `retention-policy.md` and `threat-model.md`.
 
-Sensitive data can be masked or tokenised. For example, credit card numbers or personally identifiable information may be replaced with surrogate values in non‑production environments or user interfaces. Tokenisation is reversible via secure lookup services.
+## Implementation status
 
-## Network Architecture & Segmentation
+- **Implemented**: documentation, audit schema, retention and DPIA templates.
+- **Planned**: production-grade IAM integration and automated policy enforcement.
 
-The platform is deployed in a three‑tier architecture【565999142788795†L6484-L6853】:
+## Related docs
 
-**DMZ (Web Tier):** Hosts load balancers, API gateways and web application firewalls (WAF). Only HTTP(S) traffic from the internet is allowed; incoming traffic is inspected, filtered and forwarded to the application tier. DDoS protection is enabled.
-
-**Application Tier:** Contains the orchestrator, agents, connectors, and workflow services. This tier can only be accessed from the DMZ via specific ports. It communicates with the data tier using private endpoints.
-
-**Data Tier:** Hosts databases, message brokers, caches and storage. It is isolated from the internet and accessible only from the application tier. Additional micro‑segmentation may be applied to separate critical services (e.g., analytics cluster vs. operational database).
-
-In multi‑tenant SaaS deployments, network isolation is achieved through virtual networks and network security groups. Private link endpoints allow clients to access their data directly via a secure path.
-
-## Audit Logging & Incident Response
-
-### Audit Logging
-
-Every access to data or configuration is logged with a timestamp, user/service identity, action (e.g., read, write, delete), resource ID and outcome. Logs are stored in a central log management system (e.g., ELK, Splunk) with tamper‑resistant storage. Sensitive fields are obfuscated in logs to avoid leakage.
-
-Retention policies dictate that audit logs be kept for at least seven years to meet compliance requirements. Logs support forensic analysis and can be exported for external audits.
-
-### Security Monitoring & Alerts
-
-The platform integrates with Security Information and Event Management (SIEM) systems to monitor logs and detect suspicious activities. Alerts are configured for events such as failed login attempts, privilege escalation, unusual data access patterns and API abuse. Anomaly detection models complement rule‑based alerts to identify emerging threats.
-
-### Incident Response
-
-An incident response plan defines roles, procedures and communication channels. It includes:
-
-Identification of the incident and its severity.
-
-Containment measures (e.g., blocking compromised accounts, isolating services).
-
-Eradication and remediation (e.g., patching vulnerabilities, resetting secrets).
-
-Recovery (restoring services, verifying integrity).
-
-Post‑incident analysis and reporting.
-
-Playbooks guide responders through common scenarios. The plan is tested through regular drills.
-
-## Compliance & Certifications
-
-The platform is designed to meet the requirements of various regulatory frameworks and certifications:
-
-**GDPR and Privacy Laws:** Supports data subject rights (access, correction, deletion) and implements Data Protection Impact Assessments (DPIAs).
-
-**SOC 2 & ISO 27001:** Implements controls across security, availability, confidentiality and privacy domains. Undergoes regular third‑party audits.
-
-**Australian ISM & PSPF:** Aligns with Australian government security standards (e.g., controls for identity management, encryption, and audit logging). Includes classification labelling and export control requirements.
-
-**Industry‑Specific Regulations:** Configurable compliance modules support additional standards (e.g., SOX for financial reporting, FDA CFR 21 Part 11 for life sciences).
-
-## Conclusion
-
-Security is embedded at every level of the Multi‑Agent PPM Platform. Through SSO, mTLS, RBAC, dynamic access control, encryption, secret management, network segmentation, comprehensive logging and adherence to international standards, the platform provides a secure environment for sensitive project and portfolio data. Ongoing monitoring, incident response planning and certification ensure that the platform remains resilient against evolving threats.
+- [Compliance Controls Mapping](../compliance/controls-mapping.md)
+- [Retention Policy](../compliance/retention-policy.md)
+- [Threat Model](../compliance/threat-model.md)

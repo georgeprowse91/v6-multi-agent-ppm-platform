@@ -1,0 +1,26 @@
+{
+  "id": "lin-2026-01-15-001",
+  "timestamp": "2026-01-15T14:03:22Z",
+  "connector": "jira",
+  "source": {
+    "system": "jira",
+    "object": "project",
+    "record_id": "PAY"
+  },
+  "target": {
+    "schema": "project",
+    "record_id": "PROJ-2026-001"
+  },
+  "transformations": [
+    "jira.project.key -> project.code",
+    "jira.project.name -> project.name",
+    "jira.project.lead.emailAddress -> project.owner_email"
+  ],
+  "quality": {
+    "score": 0.92,
+    "rules_checked": [
+      "project-required-fields",
+      "work-item-dates"
+    ]
+  }
+}

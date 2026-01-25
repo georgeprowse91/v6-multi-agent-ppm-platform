@@ -1,3 +1,21 @@
 @startuml
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F7F7F7
+  BorderColor #333333
+}
 
+rectangle "Connector Runtime" as Connector
+rectangle "Mapping Engine" as Mapping
+rectangle "Schema Validator" as Schema
+rectangle "Canonical Store" as Store
+rectangle "Lineage Recorder" as Lineage
+rectangle "Quality Rules" as Quality
+
+Connector --> Mapping : source payload
+Mapping --> Schema : canonical payload
+Schema --> Store : upsert
+Schema --> Quality : apply rules
+Store --> Lineage : lineage event
+Quality --> Lineage : quality score
 @enduml

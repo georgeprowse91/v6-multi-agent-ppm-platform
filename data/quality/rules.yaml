@@ -1,0 +1,43 @@
+version: 1
+scoring:
+  weights:
+    completeness: 0.4
+    validity: 0.3
+    consistency: 0.2
+    timeliness: 0.1
+rules:
+  - id: project-required-fields
+    entity: project
+    description: Required project fields must be present.
+    checks:
+      - field: project.id
+        type: required
+      - field: project.name
+        type: required
+      - field: project.status
+        type: required
+  - id: budget-non-negative
+    entity: budget
+    description: Budget values must be zero or positive.
+    checks:
+      - field: budget.total_amount
+        type: min
+        value: 0
+  - id: risk-rating-enum
+    entity: risk
+    description: Risk rating must match allowed enum values.
+    checks:
+      - field: risk.rating
+        type: enum
+        values:
+          - low
+          - medium
+          - high
+  - id: work-item-dates
+    entity: work_item
+    description: Work item dates must be in ISO 8601.
+    checks:
+      - field: work_item.start_date
+        type: datetime
+      - field: work_item.end_date
+        type: datetime

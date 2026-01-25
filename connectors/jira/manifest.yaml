@@ -1,2 +1,26 @@
 id: "jira"
-version: "0.1.0"
+name: "Atlassian Jira Cloud"
+version: "0.2.0"
+description: "Connector for Jira Cloud work items and projects."
+status: "alpha"
+auth:
+  type: "oauth2"
+  scopes:
+    - "read:jira-work"
+    - "write:jira-work"
+  token_url: "https://auth.atlassian.com/oauth/token"
+  audience: "api.atlassian.com"
+sync:
+  mode: "bi-directional"
+  conflict_policy: "source-wins"
+  schedule: "*/30 * * * *"
+capabilities:
+  entities:
+    - "project"
+    - "work_item"
+  supports_webhooks: true
+mappings:
+  project: "connectors/jira/mappings/project.yaml"
+certification:
+  status: "pending"
+  last_reviewed: "2026-01-15"

@@ -1,3 +1,45 @@
 @startuml
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F7F7F7
+  BorderColor #333333
+}
 
+rectangle "Edge" {
+  [Azure Front Door]
+  [WAF / API Gateway]
+}
+
+rectangle "AKS Cluster" {
+  [API Service]
+  [Agent Orchestrator]
+  [Domain Agents]
+  [Connector Runner]
+}
+
+rectangle "Data Services" {
+  [PostgreSQL]
+  [Redis Cache]
+  [Service Bus]
+  [Blob Storage]
+}
+
+rectangle "Security" {
+  [Azure Key Vault]
+  [Managed Identity]
+}
+
+[Azure Front Door] --> [WAF / API Gateway]
+[WAF / API Gateway] --> [API Service]
+[API Service] --> [Agent Orchestrator]
+[Agent Orchestrator] --> [Domain Agents]
+[Agent Orchestrator] --> [Connector Runner]
+[Domain Agents] --> [PostgreSQL]
+[Domain Agents] --> [Service Bus]
+[Connector Runner] --> [PostgreSQL]
+[Connector Runner] --> [Service Bus]
+[PostgreSQL] --> [Blob Storage] : documents metadata
+[Agent Orchestrator] --> [Redis Cache]
+[API Service] --> [Azure Key Vault]
+[Connector Runner] --> [Azure Key Vault]
 @enduml
