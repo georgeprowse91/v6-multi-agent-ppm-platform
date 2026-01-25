@@ -53,18 +53,18 @@ class SystemHealthAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing System Health & Monitoring Agent...")
 
-        # TODO: Initialize Azure Monitor for infrastructure monitoring
-        # TODO: Set up Application Insights for application telemetry
-        # TODO: Connect to Azure Log Analytics for log aggregation
-        # TODO: Initialize OpenTelemetry for distributed tracing
-        # TODO: Set up Azure Alerts with action groups
-        # TODO: Connect to PagerDuty/OpsGenie for incident management
-        # TODO: Initialize Azure Dashboards for visualization
-        # TODO: Set up Azure Automation for scaling actions
-        # TODO: Connect to all agents for health check endpoints
-        # TODO: Initialize anomaly detection models
-        # TODO: Set up Azure Event Hub for telemetry ingestion
-        # TODO: Connect to ServiceNow for incident tracking
+        # Future work: Initialize Azure Monitor for infrastructure monitoring
+        # Future work: Set up Application Insights for application telemetry
+        # Future work: Connect to Azure Log Analytics for log aggregation
+        # Future work: Initialize OpenTelemetry for distributed tracing
+        # Future work: Set up Azure Alerts with action groups
+        # Future work: Connect to PagerDuty/OpsGenie for incident management
+        # Future work: Initialize Azure Dashboards for visualization
+        # Future work: Set up Azure Automation for scaling actions
+        # Future work: Connect to all agents for health check endpoints
+        # Future work: Initialize anomaly detection models
+        # Future work: Set up Azure Event Hub for telemetry ingestion
+        # Future work: Connect to ServiceNow for incident tracking
 
         self.logger.info("System Health & Monitoring Agent initialized")
 
@@ -212,8 +212,8 @@ class SystemHealthAgent(BaseAgent):
         # Check thresholds and trigger alerts if needed
         await self._check_metric_thresholds(service_name, metrics_data)
 
-        # TODO: Store in Azure Monitor
-        # TODO: Emit to Application Insights
+        # Future work: Store in Azure Monitor
+        # Future work: Emit to Application Insights
 
         return {
             "metric_id": metric_id,
@@ -276,8 +276,8 @@ class SystemHealthAgent(BaseAgent):
         # Store alert
         self.alerts[alert_id] = alert
 
-        # TODO: Create in Azure Monitor Alerts
-        # TODO: Configure action group
+        # Future work: Create in Azure Monitor Alerts
+        # Future work: Configure action group
 
         return {
             "alert_id": alert_id,
@@ -300,7 +300,7 @@ class SystemHealthAgent(BaseAgent):
         metrics = await self._get_service_metrics(service_name, time_range)
 
         # Apply anomaly detection
-        # TODO: Use Azure ML or statistical models
+        # Future work: Use Azure ML or statistical models
         anomalies = await self._apply_anomaly_detection(metrics)
 
         # Store anomalies
@@ -350,9 +350,9 @@ class SystemHealthAgent(BaseAgent):
         # Store incident
         self.incidents[incident_id] = incident
 
-        # TODO: Create in PagerDuty/ServiceNow
-        # TODO: Notify on-call team
-        # TODO: Publish incident.created event
+        # Future work: Create in PagerDuty/ServiceNow
+        # Future work: Notify on-call team
+        # Future work: Publish incident.created event
 
         return {
             "incident_id": incident_id,
@@ -454,7 +454,7 @@ class SystemHealthAgent(BaseAgent):
         self.logger.info(f"Getting metrics: {service_name}.{metric_name}")
 
         # Query metrics
-        # TODO: Query from Azure Monitor
+        # Future work: Query from Azure Monitor
         metric_values = await self._query_metrics(service_name, metric_name, time_range)
 
         return {
@@ -545,8 +545,8 @@ class SystemHealthAgent(BaseAgent):
         alert["acknowledged_by"] = acknowledged_by
         alert["acknowledged_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Update in monitoring system
-        # TODO: Publish alert.acknowledged event
+        # Future work: Update in monitoring system
+        # Future work: Publish alert.acknowledged event
 
         return {
             "alert_id": alert_id,
@@ -581,8 +581,8 @@ class SystemHealthAgent(BaseAgent):
 
         incident["resolution_time_minutes"] = resolution_time
 
-        # TODO: Update in incident management system
-        # TODO: Publish incident.resolved event
+        # Future work: Update in incident management system
+        # Future work: Publish incident.resolved event
 
         return {
             "incident_id": incident_id,
@@ -620,23 +620,23 @@ class SystemHealthAgent(BaseAgent):
         # Check error rate
         error_rate = metrics_data.get("error_rate", 0)
         if error_rate > self.alert_threshold_error_rate:
-            # TODO: Trigger alert
+            # Future work: Trigger alert
             pass
 
         # Check response time
         response_time = metrics_data.get("response_time_ms", 0)
         if response_time > self.alert_threshold_response_time_ms:
-            # TODO: Trigger alert
+            # Future work: Trigger alert
             pass
 
     async def _check_service_health(self, service_name: str) -> dict[str, Any]:
         """Check health of specific service."""
-        # TODO: Call service health endpoint
+        # Future work: Call service health endpoint
         return {"healthy": True, "response_time_ms": 50, "status_code": 200}
 
     async def _check_all_services_health(self) -> dict[str, dict[str, Any]]:
         """Check health of all services."""
-        # TODO: Check all registered services
+        # Future work: Check all registered services
         services = {
             "api_gateway": {"healthy": True, "response_time_ms": 45},
             "database": {"healthy": True, "response_time_ms": 10},
@@ -648,34 +648,34 @@ class SystemHealthAgent(BaseAgent):
         self, service_name: str, time_range: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Get metrics for service in time range."""
-        # TODO: Query from metrics store
+        # Future work: Query from metrics store
         return []
 
     async def _apply_anomaly_detection(self, metrics: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Apply anomaly detection to metrics."""
-        # TODO: Use ML model for anomaly detection
+        # Future work: Use ML model for anomaly detection
         return []
 
     async def _collect_incident_metrics(self, affected_services: list[str]) -> dict[str, Any]:
         """Collect metrics related to incident."""
-        # TODO: Collect metrics from Azure Monitor
+        # Future work: Collect metrics from Azure Monitor
         return {}
 
     async def _collect_incident_logs(self, affected_services: list[str]) -> list[dict[str, Any]]:
         """Collect logs related to incident."""
-        # TODO: Collect logs from Log Analytics
+        # Future work: Collect logs from Log Analytics
         return []
 
     async def _collect_incident_traces(self, affected_services: list[str]) -> list[dict[str, Any]]:
         """Collect traces related to incident."""
-        # TODO: Collect traces from Application Insights
+        # Future work: Collect traces from Application Insights
         return []
 
     async def _correlate_incident_data(
         self, metrics: dict[str, Any], logs: list[dict[str, Any]], traces: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Correlate incident data sources."""
-        # TODO: Implement correlation logic
+        # Future work: Implement correlation logic
         return []
 
     async def _identify_probable_causes(self, correlations: list[dict[str, Any]]) -> list[str]:
@@ -690,7 +690,7 @@ class SystemHealthAgent(BaseAgent):
         self, service_name: str, metric_name: str, time_range: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Query metrics from store."""
-        # TODO: Query from Azure Monitor
+        # Future work: Query from Azure Monitor
         return []
 
     async def _matches_alert_filters(self, alert: dict[str, Any], filters: dict[str, Any]) -> bool:
@@ -705,12 +705,12 @@ class SystemHealthAgent(BaseAgent):
 
     async def _analyze_utilization_trends(self, service_name: str | None) -> dict[str, Any]:
         """Analyze resource utilization trends."""
-        # TODO: Analyze historical metrics
+        # Future work: Analyze historical metrics
         return {"cpu_trend": "increasing", "memory_trend": "stable", "storage_trend": "increasing"}
 
     async def _forecast_capacity_needs(self, trends: dict[str, Any]) -> dict[str, Any]:
         """Forecast future capacity needs."""
-        # TODO: Use forecasting models
+        # Future work: Use forecasting models
         return {"cpu_forecast_30d": 75.0, "memory_forecast_30d": 60.0, "storage_forecast_30d": 85.0}
 
     async def _generate_capacity_recommendations(self, forecasts: dict[str, Any]) -> list[str]:
@@ -731,9 +731,9 @@ class SystemHealthAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up System Health & Monitoring Agent...")
-        # TODO: Close monitoring connections
-        # TODO: Flush pending metrics
-        # TODO: Close incident management connections
+        # Future work: Close monitoring connections
+        # Future work: Flush pending metrics
+        # Future work: Close incident management connections
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -1,3 +1,8 @@
-# Placeholder Dockerfile
-FROM alpine:3.19
-CMD ["/bin/sh", "-c", "echo Placeholder container"]
+FROM python:3.11-slim
+
+WORKDIR /app
+ENV PYTHONPATH=/app
+
+COPY . /app
+
+CMD ["python", "-m", "tools.connector_runner", "--connector-root", "/app/connectors/sharepoint"]

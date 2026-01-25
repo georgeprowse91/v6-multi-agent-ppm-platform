@@ -1,14 +1,13 @@
-# Tests
+# Agent 17 Change Configuration tests
 
-This directory holds automated tests for the **agent 17 change configuration** component. Tests should focus on behavior,
-contract boundaries, and regression coverage for the component's public APIs.
+This directory contains agent-level tests for the agent 17 change configuration agent.
 
-## What to add here
-- Unit tests for core logic and pure functions
-- Integration tests for adapters (mocking external systems)
-- Fixtures and reusable test helpers
+## Scope
+- Test modules that exercise agent input validation, routing, and output formatting.
+- Fixtures, helpers, and sample payloads needed for these tests.
+- Any contract or environment notes required to run them locally.
 
-## Conventions
-- Keep tests deterministic and fast
-- Prefer pytest and reuse shared fixtures in `/tests`
-- Document any assumptions about external dependencies
+## Running locally
+```bash
+pytest agents/operations-management/agent-17-change-configuration/tests
+```

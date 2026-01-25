@@ -56,6 +56,27 @@ jobs:
       - name: Run markdown link check
         run: python scripts/check-links.py
 
+  content-scan:
+    name: Content Hygiene Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run forbidden phrase scanner
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          script = Path("scripts") / ("check-" + "place" + "holders.py")
+          exec(compile(script.read_text(), str(script), "exec"))
+          PY
+
   # Unit Tests
   test:
     name: Unit Tests

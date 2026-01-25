@@ -1,1 +1,53 @@
-# Placeholder GraphQL schema
+schema {
+  query: Query
+}
+
+"""
+Entry points for querying portfolio and project data exposed by the API gateway.
+"""
+type Query {
+  """
+  Simple health indicator for GraphQL clients.
+  """
+  health: HealthStatus!
+
+  """
+  Fetch all portfolios visible to the caller.
+  """
+  portfolios: [Portfolio!]!
+
+  """
+  Fetch a single portfolio by identifier.
+  """
+  portfolio(id: ID!): Portfolio
+
+  """
+  Fetch projects, optionally scoped to a portfolio.
+  """
+  projects(portfolioId: ID): [Project!]!
+}
+
+type HealthStatus {
+  status: String!
+  timestamp: String!
+}
+
+type Portfolio {
+  id: ID!
+  name: String!
+  status: String!
+  owner: String
+  createdAt: String!
+  projects: [Project!]!
+}
+
+type Project {
+  id: ID!
+  name: String!
+  status: String!
+  startDate: String
+  endDate: String
+  budget: Float
+  riskScore: Float
+  portfolioId: ID
+}

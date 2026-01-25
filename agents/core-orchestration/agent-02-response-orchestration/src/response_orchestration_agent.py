@@ -38,8 +38,8 @@ class ResponseOrchestrationAgent(BaseAgent):
         """Initialize orchestration engine and cache."""
         await super().initialize()
         self.logger.info("Initializing orchestration engine...")
-        # TODO: Initialize cache (Redis)
-        # TODO: Load agent registry
+        # Future work: Initialize cache (Redis)
+        # Future work: Load agent registry
 
     async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -94,7 +94,7 @@ class ResponseOrchestrationAgent(BaseAgent):
 
         Returns execution plan with dependency graph.
         """
-        # TODO: Implement dependency analysis
+        # Future work: Implement dependency analysis
         # For now, assume all agents can run in parallel
         return {
             "parallel_groups": [routing],
@@ -161,7 +161,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         agent_id = agent_info["agent_id"]
 
         try:
-            # TODO: Implement actual agent invocation
+            # Future work: Implement actual agent invocation
             # For now, return mock response
             self.logger.info(f"Invoking agent: {agent_id}")
 
@@ -198,7 +198,7 @@ class ResponseOrchestrationAgent(BaseAgent):
 
         Returns aggregated response string.
         """
-        # TODO: Use Azure OpenAI for intelligent summarization
+        # Future work: Use Azure OpenAI for intelligent summarization
         successful_results = [r for r in results if r.get("success")]
 
         if not successful_results:

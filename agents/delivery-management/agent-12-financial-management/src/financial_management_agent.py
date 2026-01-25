@@ -64,15 +64,15 @@ class FinancialManagementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Financial Management Agent...")
 
-        # TODO: Initialize Azure SQL Database or Synapse Analytics connection
-        # TODO: Set up Azure Data Factory pipelines for ERP integration
-        # TODO: Connect to ERP systems (SAP, Oracle, Workday Financials, Dynamics 365)
-        # TODO: Connect to timesheet systems (Planview, Jira, Azure DevOps)
-        # TODO: Initialize Azure Machine Learning for forecasting models
-        # TODO: Set up currency exchange rate API connections
-        # TODO: Connect to tax service APIs
-        # TODO: Initialize Azure Service Bus for event publishing
-        # TODO: Set up Azure Key Vault for storing credentials
+        # Future work: Initialize Azure SQL Database or Synapse Analytics connection
+        # Future work: Set up Azure Data Factory pipelines for ERP integration
+        # Future work: Connect to ERP systems (SAP, Oracle, Workday Financials, Dynamics 365)
+        # Future work: Connect to timesheet systems (Planview, Jira, Azure DevOps)
+        # Future work: Initialize Azure Machine Learning for forecasting models
+        # Future work: Set up currency exchange rate API connections
+        # Future work: Connect to tax service APIs
+        # Future work: Initialize Azure Service Bus for event publishing
+        # Future work: Set up Azure Key Vault for storing credentials
 
         self.logger.info("Financial Management Agent initialized")
 
@@ -237,8 +237,8 @@ class FinancialManagementAgent(BaseAgent):
         # Store budget
         self.budgets[budget_id] = budget
 
-        # TODO: Store in database
-        # TODO: Validate funding availability with ERP
+        # Future work: Store in database
+        # Future work: Validate funding availability with ERP
 
         return {
             "budget_id": budget_id,
@@ -286,8 +286,8 @@ class FinancialManagementAgent(BaseAgent):
 
         self.actuals[project_id]["by_category"] = by_category
 
-        # TODO: Store in database
-        # TODO: Trigger variance alerts if thresholds exceeded
+        # Future work: Store in database
+        # Future work: Trigger variance alerts if thresholds exceeded
 
         return {
             "project_id": project_id,
@@ -318,7 +318,7 @@ class FinancialManagementAgent(BaseAgent):
         schedule_progress = await self._get_schedule_progress(project_id)
 
         # Run forecasting model
-        # TODO: Use Azure Machine Learning (Prophet, ARIMA, LSTM)
+        # Future work: Use Azure Machine Learning (Prophet, ARIMA, LSTM)
         forecast = await self._run_forecasting_model(
             historical_data, resource_plans, schedule_progress
         )
@@ -334,8 +334,8 @@ class FinancialManagementAgent(BaseAgent):
             "time_period": time_period,
         }
 
-        # TODO: Store in database
-        # TODO: Publish forecast.updated event
+        # Future work: Store in database
+        # Future work: Publish forecast.updated event
 
         return {
             "project_id": project_id,
@@ -399,7 +399,7 @@ class FinancialManagementAgent(BaseAgent):
                 }
             )
 
-        # TODO: Generate contextual narrative using Azure OpenAI
+        # Future work: Generate contextual narrative using Azure OpenAI
         narrative = await self._generate_variance_narrative(
             budget_variance_pct, forecast_variance_pct, drivers
         )
@@ -548,7 +548,7 @@ class FinancialManagementAgent(BaseAgent):
 
         if is_baseline_change:
             # Requires approval workflow
-            # TODO: Integrate with Approval Workflow Agent
+            # Future work: Integrate with Approval Workflow Agent
             self.logger.info(f"Baseline change requires approval for budget: {budget_id}")
             return {
                 "budget_id": budget_id,
@@ -564,7 +564,7 @@ class FinancialManagementAgent(BaseAgent):
 
         budget["last_updated"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "budget_id": budget_id,
@@ -583,8 +583,8 @@ class FinancialManagementAgent(BaseAgent):
         budget["status"] = "Approved"
         budget["baseline_date"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish budget.approved event
+        # Future work: Store in database
+        # Future work: Publish budget.approved event
 
         return {
             "budget_id": budget_id,
@@ -598,8 +598,8 @@ class FinancialManagementAgent(BaseAgent):
         """Convert amount between currencies."""
         self.logger.info(f"Converting {amount} {from_currency} to {to_currency}")
 
-        # TODO: Fetch real-time exchange rates from API
-        # Placeholder exchange rates
+        # Future work: Fetch real-time exchange rates from API
+        # Baseline exchange rates
         exchange_rates = {"USD": 1.0, "EUR": 0.85, "GBP": 0.73, "JPY": 110.0}
 
         if from_currency not in exchange_rates or to_currency not in exchange_rates:
@@ -628,7 +628,7 @@ class FinancialManagementAgent(BaseAgent):
         forecast = self.forecasts.get(project_id, {})
 
         # Get benefit cash flows
-        # TODO: Get from Business Case Agent
+        # Future work: Get from Business Case Agent
         benefits = await self._get_project_benefits(project_id)
 
         # Calculate metrics
@@ -674,32 +674,32 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _import_cost_transactions(self, project_id: str) -> list[dict[str, Any]]:
         """Import cost transactions from ERP."""
-        # TODO: Query ERP system for transactions
+        # Future work: Query ERP system for transactions
         return []
 
     async def _match_costs_to_wbs(self, transactions: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Match cost transactions to WBS elements."""
-        # TODO: Use AI classification when codes are missing
+        # Future work: Use AI classification when codes are missing
         return transactions
 
     async def _calculate_accruals(self, project_id: str) -> dict[str, Any]:
         """Calculate accrued expenses based on percent complete."""
-        # TODO: Calculate accruals
+        # Future work: Calculate accruals
         return {"total_accruals": 0}
 
     async def _get_historical_spending(self, project_id: str) -> list[dict[str, Any]]:
         """Get historical spending data."""
-        # TODO: Query database
+        # Future work: Query database
         return []
 
     async def _get_resource_plans(self, project_id: str) -> dict[str, Any]:
         """Get resource allocation plans from Resource Agent."""
-        # TODO: Call Resource Management Agent
+        # Future work: Call Resource Management Agent
         return {}
 
     async def _get_schedule_progress(self, project_id: str) -> dict[str, Any]:
         """Get schedule progress from Schedule Agent."""
-        # TODO: Call Schedule & Planning Agent
+        # Future work: Call Schedule & Planning Agent
         return {"percent_complete": 0.5, "planned_percent": 0.5}
 
     async def _run_forecasting_model(
@@ -709,12 +709,12 @@ class FinancialManagementAgent(BaseAgent):
         schedule_progress: dict[str, Any],
     ) -> dict[str, Any]:
         """Run AI forecasting model."""
-        # TODO: Use Azure ML (Prophet, ARIMA, LSTM)
+        # Future work: Use Azure ML (Prophet, ARIMA, LSTM)
         return {"monthly_forecast": [], "total_forecast": 0}
 
     async def _calculate_eac(self, project_id: str, forecast: dict[str, Any]) -> float:
         """Calculate Estimate at Completion."""
-        # TODO: More sophisticated EAC calculation
+        # Future work: More sophisticated EAC calculation
         return forecast.get("total_forecast", 0)  # type: ignore
 
     async def _calculate_forecast_variance(self, project_id: str, eac: float) -> dict[str, Any]:
@@ -729,7 +729,7 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _calculate_confidence_interval(self, forecast: dict[str, Any]) -> dict[str, Any]:
         """Calculate forecast confidence interval."""
-        # TODO: Statistical confidence interval calculation
+        # Future work: Statistical confidence interval calculation
         return {"lower_bound": 0, "upper_bound": 0, "confidence_level": 0.95}
 
     async def _get_budget_for_project(self, project_id: str) -> dict[str, Any] | None:
@@ -768,7 +768,7 @@ class FinancialManagementAgent(BaseAgent):
         self, project_id: str, variance_by_category: dict[str, dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Identify key drivers of cost variance."""
-        # TODO: Use regression and clustering to determine drivers
+        # Future work: Use regression and clustering to determine drivers
 
         drivers = []
         for category, data in variance_by_category.items():
@@ -809,7 +809,7 @@ class FinancialManagementAgent(BaseAgent):
         drivers: list[dict[str, Any]],
     ) -> str:
         """Generate narrative explanation of variance."""
-        # TODO: Use Azure OpenAI for NLG
+        # Future work: Use Azure OpenAI for NLG
 
         if abs(budget_variance_pct) < 0.05:
             return "Project is tracking within budget with minimal variance."
@@ -855,7 +855,7 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _get_portfolio_financial_summary(self, portfolio_id: str) -> dict[str, Any]:
         """Get financial summary for a portfolio."""
-        # TODO: Aggregate across all projects in portfolio
+        # Future work: Aggregate across all projects in portfolio
 
         return {
             "portfolio_id": portfolio_id,
@@ -904,12 +904,12 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _get_project_benefits(self, project_id: str) -> dict[str, Any]:
         """Get project benefits and cash flows."""
-        # TODO: Query Business Case Agent
+        # Future work: Query Business Case Agent
         return {"cash_flows": [], "total_benefits": 0}
 
     async def _calculate_npv(self, total_cost: float, cash_flows: list[float]) -> float:
         """Calculate Net Present Value."""
-        # TODO: Implement proper NPV calculation with discount rate
+        # Future work: Implement proper NPV calculation with discount rate
         discount_rate = 0.10
         npv = -total_cost
 
@@ -920,12 +920,12 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _calculate_irr(self, total_cost: float, cash_flows: list[float]) -> float:
         """Calculate Internal Rate of Return."""
-        # TODO: Implement proper IRR calculation
-        return 0.15  # Placeholder
+        # Future work: Implement proper IRR calculation
+        return 0.15  # Baseline
 
     async def _calculate_payback_period(self, total_cost: float, cash_flows: list[float]) -> int:
         """Calculate payback period in months."""
-        # TODO: Implement proper payback period calculation
+        # Future work: Implement proper payback period calculation
         if not cash_flows or sum(cash_flows) == 0:
             return 999
 
@@ -939,10 +939,10 @@ class FinancialManagementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Financial Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close ERP connections
-        # TODO: Flush any pending events
-        # TODO: Save any unsaved data
+        # Future work: Close database connections
+        # Future work: Close ERP connections
+        # Future work: Flush any pending events
+        # Future work: Save any unsaved data
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

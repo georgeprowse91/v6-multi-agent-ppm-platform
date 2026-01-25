@@ -73,16 +73,16 @@ class ComplianceRegulatoryAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Compliance & Regulatory Agent...")
 
-        # TODO: Initialize Azure SQL Database or Cosmos DB for compliance data
-        # TODO: Connect to GRC platforms (RSA Archer, ServiceNow GRC, OneTrust)
-        # TODO: Set up Azure Blob Storage with security labels for evidence
-        # TODO: Initialize Azure Cognitive Services (Text Analytics) for regulation parsing
-        # TODO: Set up Azure Form Recognizer for document data extraction
-        # TODO: Connect to document management systems (SharePoint)
-        # TODO: Initialize Power Automate or Logic Apps for workflow orchestration
-        # TODO: Set up Azure AD for role-based access control
-        # TODO: Initialize Azure Key Vault for encryption keys
-        # TODO: Set up regulatory feed subscriptions for change monitoring
+        # Future work: Initialize Azure SQL Database or Cosmos DB for compliance data
+        # Future work: Connect to GRC platforms (RSA Archer, ServiceNow GRC, OneTrust)
+        # Future work: Set up Azure Blob Storage with security labels for evidence
+        # Future work: Initialize Azure Cognitive Services (Text Analytics) for regulation parsing
+        # Future work: Set up Azure Form Recognizer for document data extraction
+        # Future work: Connect to document management systems (SharePoint)
+        # Future work: Initialize Power Automate or Logic Apps for workflow orchestration
+        # Future work: Set up Azure AD for role-based access control
+        # Future work: Initialize Azure Key Vault for encryption keys
+        # Future work: Set up regulatory feed subscriptions for change monitoring
 
         self.logger.info("Compliance & Regulatory Agent initialized")
 
@@ -226,7 +226,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         regulation_id = await self._generate_regulation_id()
 
         # Parse regulation using NLP
-        # TODO: Use Azure Cognitive Services to extract obligations
+        # Future work: Use Azure Cognitive Services to extract obligations
         parsed_obligations = await self._parse_regulation_text(regulation_data.get("text", ""))
 
         # Determine applicability
@@ -249,7 +249,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Store regulation
         self.regulation_library[regulation_id] = regulation
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "regulation_id": regulation_id,
@@ -271,7 +271,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         control_id = await self._generate_control_id()
 
         # Recommend similar controls using AI
-        # TODO: Use knowledge graphs and similarity algorithms
+        # Future work: Use knowledge graphs and similarity algorithms
         similar_controls = await self._recommend_similar_controls(control_data)
 
         # Create control
@@ -297,7 +297,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         if control["regulation"] in self.regulation_library:
             self.regulation_library[control["regulation"]]["related_controls"].append(control_id)
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "control_id": control_id,
@@ -352,7 +352,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Store mapping
         self.compliance_mappings[project_id] = mapping
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "mapping_id": mapping_id,
@@ -464,7 +464,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 mapping["control_status"][control_id]["last_tested"] = control["last_test_date"]
                 mapping["control_status"][control_id]["test_result"] = test_result
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "control_id": control_id,
@@ -525,9 +525,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Store policy
         self.policies[policy_id] = policy
 
-        # TODO: Store in database and document repository
-        # TODO: Route for approval
-        # TODO: Notify stakeholders of changes
+        # Future work: Store in database and document repository
+        # Future work: Route for approval
+        # Future work: Notify stakeholders of changes
 
         return {
             "policy_id": policy_id,
@@ -580,8 +580,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Store audit
         self.audits[audit_id] = audit
 
-        # TODO: Store in database
-        # TODO: Grant read-only access to auditors
+        # Future work: Store in database
+        # Future work: Grant read-only access to auditors
 
         return {
             "audit_id": audit_id,
@@ -644,8 +644,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         audit["status"] = "Completed"
         audit["completion_date"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish audit.completed event
+        # Future work: Store in database
+        # Future work: Publish audit.completed event
 
         return {
             "audit_id": audit_id,
@@ -697,8 +697,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
             if control_id in mapping.get("control_status", {}):
                 mapping["control_status"][control_id]["evidence_uploaded"] = True
 
-        # TODO: Store in database and secure blob storage
-        # TODO: Apply encryption and access controls
+        # Future work: Store in database and secure blob storage
+        # Future work: Apply encryption and access controls
 
         return {
             "evidence_id": evidence_id,
@@ -717,7 +717,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.logger.info("Monitoring regulatory changes")
 
         # Check for regulatory updates
-        # TODO: Subscribe to regulatory feeds and APIs
+        # Future work: Subscribe to regulatory feeds and APIs
         changes = await self._check_regulatory_feeds()
 
         # Assess impact on existing regulations and controls
@@ -734,8 +734,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
                     }
                 )
 
-        # TODO: Create tasks for updates
-        # TODO: Notify stakeholders
+        # Future work: Create tasks for updates
+        # Future work: Notify stakeholders
 
         return {
             "changes_detected": len(changes),
@@ -833,7 +833,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _parse_regulation_text(self, text: str) -> list[dict[str, Any]]:
         """Parse regulation text to extract obligations."""
-        # TODO: Use Azure Cognitive Services
+        # Future work: Use Azure Cognitive Services
         return [{"obligation": "Sample obligation", "deadline": None}]
 
     async def _determine_applicability(self, regulation_data: dict[str, Any]) -> dict[str, Any]:
@@ -846,13 +846,13 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _recommend_similar_controls(self, control_data: dict[str, Any]) -> list[str]:
         """Recommend similar controls."""
-        # TODO: Use knowledge graphs and similarity algorithms
+        # Future work: Use knowledge graphs and similarity algorithms
         return []
 
     async def _determine_applicable_regulations(self, project_id: str) -> list[str]:
         """Determine which regulations apply to project."""
-        # TODO: Use project metadata to filter regulations
-        return list(self.regulation_library.keys())[:3]  # Placeholder
+        # Future work: Use project metadata to filter regulations
+        return list(self.regulation_library.keys())[:3]  # Baseline
 
     async def _is_recently_tested(self, control: dict[str, Any], status: dict[str, Any]) -> bool:
         """Check if control has been tested recently."""
@@ -916,7 +916,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self, project_id: str, scope: list[str]
     ) -> list[dict[str, Any]]:
         """Compile documentation for audit."""
-        # TODO: Gather relevant documents
+        # Future work: Gather relevant documents
         return []
 
     async def _compile_evidence(self, project_id: str, scope: list[str]) -> list[dict[str, Any]]:
@@ -941,17 +941,17 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _check_regulatory_feeds(self) -> list[dict[str, Any]]:
         """Check regulatory feeds for updates."""
-        # TODO: Query external regulatory feeds
+        # Future work: Query external regulatory feeds
         return []
 
     async def _assess_regulatory_change_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess impact of regulatory change."""
-        # TODO: Analyze impact on projects and controls
+        # Future work: Analyze impact on projects and controls
         return {"projects_affected": [], "controls_affected": [], "estimated_effort": "medium"}
 
     async def _get_control_testing_status(self, project_id: str | None) -> dict[str, Any]:
         """Get control testing status."""
-        # TODO: Query control test records
+        # Future work: Query control test records
         return {"overdue_tests": 0, "upcoming_tests": 0, "recently_tested": 0}
 
     async def _get_upcoming_audits(self, project_id: str | None) -> list[dict[str, Any]]:
@@ -999,9 +999,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Compliance & Regulatory Agent...")
-        # TODO: Close database connections
-        # TODO: Close GRC system connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close GRC system connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

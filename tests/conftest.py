@@ -29,21 +29,21 @@ def event_loop():
 @pytest.fixture
 def mock_azure_openai():
     """Mock Azure OpenAI client for testing."""
-    # TODO: Implement Azure OpenAI mock
+    # Future work: Implement Azure OpenAI mock
     pass
 
 
 @pytest.fixture
 def mock_database():
     """Mock database connection for testing."""
-    # TODO: Implement database mock
+    # Future work: Implement database mock
     pass
 
 
 @pytest.fixture
 def mock_redis():
     """Mock Redis connection for testing."""
-    # TODO: Implement Redis mock
+    # Future work: Implement Redis mock
     pass
 
 

@@ -7,4 +7,25 @@ jobs:
   license:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "License compliance placeholder"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify license metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tomllib
+
+          pyproject = Path("pyproject.toml")
+          license_file = Path("LICENSE")
+          if not pyproject.exists():
+              raise SystemExit("pyproject.toml missing")
+          if not license_file.exists() or not license_file.read_text().strip():
+              raise SystemExit("LICENSE file missing or empty")
+
+          data = tomllib.loads(pyproject.read_text())
+          license_info = data.get("project", {}).get("license")
+          if not license_info:
+              raise SystemExit("License metadata missing from pyproject.toml")
+          print("License metadata and LICENSE file verified.")
+          PY

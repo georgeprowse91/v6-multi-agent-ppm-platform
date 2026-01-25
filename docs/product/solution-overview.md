@@ -19,7 +19,7 @@ Instead of forcing users to navigate multiple applications, the platform provide
 
 ### Agents as the Workforce
 
-The platform uses a network of specialised agents to handle each domain process—demand intake, business case generation, portfolio optimisation, program management, scheduling, resource management, financial management, vendor procurement, quality assurance, risk management, compliance, and more. Each agent encapsulates the logic, rules and integrations required to perform its function. Agents collaborate via an orchestration layer: the Intent Router determines the user’s intent, Response Orchestration sequences calls to downstream agents, and domain agents read/write data from systems of record. This modular architecture allows new capabilities to be added or replaced without disrupting the whole system.
+The platform uses a network of specialised agents to handle each domain process—demand intake, business case generation, portfolio optimisation, program management, scheduling, resource management, financial management, vendor procurement, quality assurance, risk management, compliance, and more. Each agent encapsulates the logic, rules and integrations required to perform its function. Agents collaborate via an orchestration layer: the Intent Router determines the user’s intent, Response Orchestration sequences calls to downstream agents, and domain agents read/write data from systems of record. This modular architecture allows new capabilities to be introduced or replaced without disrupting the whole system.
 
 ### Interactive Canvas
 

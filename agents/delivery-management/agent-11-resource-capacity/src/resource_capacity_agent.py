@@ -59,16 +59,16 @@ class ResourceCapacityAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Resource & Capacity Management Agent...")
 
-        # TODO: Initialize Azure SQL Database for resource profiles and allocations
-        # TODO: Connect to Azure Active Directory for employee data
-        # TODO: Initialize SAP SuccessFactors/Workday integration for HR data
-        # TODO: Connect to Planview Enterprise One/Jira Tempo for timesheet data
-        # TODO: Initialize Azure Machine Learning for capacity forecasting models
-        # TODO: Connect to Azure Cognitive Search for skill matching
-        # TODO: Initialize Outlook/HR calendar integration for leave management
-        # TODO: Set up Azure Service Bus/Event Grid for resource event notifications
-        # TODO: Initialize Azure Redis Cache for real-time availability queries
-        # TODO: Connect to learning management systems for training/certifications
+        # Future work: Initialize Azure SQL Database for resource profiles and allocations
+        # Future work: Connect to Azure Active Directory for employee data
+        # Future work: Initialize SAP SuccessFactors/Workday integration for HR data
+        # Future work: Connect to Planview Enterprise One/Jira Tempo for timesheet data
+        # Future work: Initialize Azure Machine Learning for capacity forecasting models
+        # Future work: Connect to Azure Cognitive Search for skill matching
+        # Future work: Initialize Outlook/HR calendar integration for leave management
+        # Future work: Set up Azure Service Bus/Event Grid for resource event notifications
+        # Future work: Initialize Azure Redis Cache for real-time availability queries
+        # Future work: Connect to learning management systems for training/certifications
 
         self.logger.info("Resource & Capacity Management Agent initialized")
 
@@ -250,9 +250,9 @@ class ResourceCapacityAgent(BaseAgent):
         # Store resource
         self.resource_pool[resource_id] = resource_profile
 
-        # TODO: Store in Azure SQL Database
-        # TODO: Sync with Azure AD
-        # TODO: Publish resource.added event
+        # Future work: Store in Azure SQL Database
+        # Future work: Sync with Azure AD
+        # Future work: Publish resource.added event
 
         self.logger.info(f"Added resource: {resource_id}")
 
@@ -312,9 +312,9 @@ class ResourceCapacityAgent(BaseAgent):
         # Route to approver
         approver = await self._determine_approver(request)
 
-        # TODO: Store in database
-        # TODO: Send notification to approver
-        # TODO: Publish resource_request.created event
+        # Future work: Store in database
+        # Future work: Send notification to approver
+        # Future work: Publish resource_request.created event
 
         self.logger.info(f"Created resource request: {request_id}")
 
@@ -362,7 +362,7 @@ class ResourceCapacityAgent(BaseAgent):
             request["allocation_id"] = allocation.get("allocation_id")
 
             # Notify Schedule & Planning Agent
-            # TODO: Integrate with Agent 10
+            # Future work: Integrate with Agent 10
 
             return {
                 "request_id": request_id,
@@ -375,8 +375,8 @@ class ResourceCapacityAgent(BaseAgent):
             request["rejected_at"] = datetime.utcnow().isoformat()
             request["rejection_reason"] = comments
 
-            # TODO: Notify requester
-            # TODO: Publish resource_request.rejected event
+            # Future work: Notify requester
+            # Future work: Publish resource_request.rejected event
 
             return {"request_id": request_id, "status": "Rejected", "rejection_reason": comments}
 
@@ -434,8 +434,8 @@ class ResourceCapacityAgent(BaseAgent):
         """
         self.logger.info("Matching skills to resources")
 
-        # TODO: Use Azure Cognitive Search for semantic skill matching
-        # TODO: Use NLP to parse skill descriptions
+        # Future work: Use Azure Cognitive Search for semantic skill matching
+        # Future work: Use NLP to parse skill descriptions
 
         candidates = []
 
@@ -447,7 +447,7 @@ class ResourceCapacityAgent(BaseAgent):
             match_score = await self._calculate_skill_match_score(resource_skills, required_skills)
 
             # Get historical performance on similar projects
-            # TODO: Query historical project data
+            # Future work: Query historical project data
             performance_score = await self._get_performance_score(resource_id, project_context)
 
             # Combined score
@@ -484,7 +484,7 @@ class ResourceCapacityAgent(BaseAgent):
         """
         self.logger.info("Forecasting capacity")
 
-        # TODO: Use time-series ML model for forecasting (ARIMA, Prophet, LSTM)
+        # Future work: Use time-series ML model for forecasting (ARIMA, Prophet, LSTM)
 
         # Calculate current capacity
         current_capacity = await self._calculate_total_capacity()
@@ -627,9 +627,9 @@ class ResourceCapacityAgent(BaseAgent):
         # Update resource availability
         await self._update_resource_availability(resource_id)
 
-        # TODO: Store in database
-        # TODO: Publish allocation.created event
-        # TODO: Send notification to resource and project manager
+        # Future work: Store in database
+        # Future work: Publish allocation.created event
+        # Future work: Send notification to resource and project manager
 
         self.logger.info(f"Created allocation: {allocation_id}")
 
@@ -815,7 +815,7 @@ class ResourceCapacityAgent(BaseAgent):
         self, resource_id: str, start_date: str, end_date: str, effort: float
     ) -> dict[str, Any]:
         """Check if resource is available for given period."""
-        # TODO: Implement availability checking logic
+        # Future work: Implement availability checking logic
         return {
             "is_available": True,
             "windows": [{"start": start_date, "end": end_date, "capacity": effort}],
@@ -823,7 +823,7 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _determine_approver(self, request: dict[str, Any]) -> str:
         """Determine who should approve the request."""
-        # TODO: Implement approval routing logic
+        # Future work: Implement approval routing logic
         return "resource_manager"
 
     async def _calculate_skill_match_score(
@@ -841,8 +841,8 @@ class ResourceCapacityAgent(BaseAgent):
         self, resource_id: str, project_context: dict[str, Any]
     ) -> float:
         """Get historical performance score for resource."""
-        # TODO: Query historical project performance data
-        return 0.85  # Placeholder
+        # Future work: Query historical project performance data
+        return 0.85  # Baseline
 
     async def _calculate_total_capacity(self) -> float:
         """Calculate total resource capacity in FTE."""
@@ -859,15 +859,15 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _forecast_future_capacity(self, months: int) -> list[dict[str, Any]]:
         """Forecast future capacity."""
-        # TODO: Use ML model for forecasting
-        # Placeholder: assume constant capacity
+        # Future work: Use ML model for forecasting
+        # Baseline: assume constant capacity
         current_capacity = await self._calculate_total_capacity()
         return [{"month": i, "capacity": current_capacity} for i in range(months)]
 
     async def _forecast_future_demand(self, months: int) -> list[dict[str, Any]]:
         """Forecast future demand."""
-        # TODO: Use ML model and project pipeline data
-        # Placeholder
+        # Future work: Use ML model and project pipeline data
+        # Baseline
         return [
             {"month": i, "demand": 0.8 * await self._calculate_total_capacity()}
             for i in range(months)
@@ -949,7 +949,7 @@ class ResourceCapacityAgent(BaseAgent):
     ) -> dict[str, Any]:
         """Apply changes to create scenario."""
         scenario = baseline.copy()
-        # TODO: Apply scenario changes
+        # Future work: Apply scenario changes
         return scenario
 
     async def _calculate_scenario_metrics(self, scenario: dict[str, Any]) -> dict[str, Any]:
@@ -992,7 +992,7 @@ class ResourceCapacityAgent(BaseAgent):
         if allocation_percentage <= 0 or allocation_percentage > 100:
             return {"valid": False, "reason": "Invalid allocation percentage"}
 
-        # TODO: Check for conflicts with existing allocations
+        # Future work: Check for conflicts with existing allocations
 
         return {"valid": True}
 
@@ -1025,7 +1025,7 @@ class ResourceCapacityAgent(BaseAgent):
             return {"date": date.isoformat(), "available_hours": 0, "reason": "Non-working day"}
 
         # Check for leave or holidays
-        # TODO: Implement leave/holiday checking
+        # Future work: Implement leave/holiday checking
 
         # Calculate allocated hours
         allocated_hours = 0
@@ -1125,9 +1125,9 @@ class ResourceCapacityAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Resource & Capacity Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close external API connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close external API connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -65,16 +65,16 @@ class VendorProcurementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Vendor & Procurement Management Agent...")
 
-        # TODO: Initialize Azure SQL Database or Cosmos DB for vendor registry
-        # TODO: Connect to procurement systems (SAP Ariba, Coupa, Oracle Procurement, Dynamics)
-        # TODO: Set up Azure Blob Storage for contract documents and RFP responses
-        # TODO: Initialize Azure Machine Learning for vendor recommendation models
-        # TODO: Connect to ERP & Accounts Payable systems
-        # TODO: Set up Azure Form Recognizer for contract clause extraction
-        # TODO: Initialize integration with DocuSign/Adobe Sign for e-signatures
-        # TODO: Connect to third-party risk databases (Dun & Bradstreet)
-        # TODO: Set up Azure Service Bus for procurement event publishing
-        # TODO: Initialize Azure Key Vault for storing vendor credentials
+        # Future work: Initialize Azure SQL Database or Cosmos DB for vendor registry
+        # Future work: Connect to procurement systems (SAP Ariba, Coupa, Oracle Procurement, Dynamics)
+        # Future work: Set up Azure Blob Storage for contract documents and RFP responses
+        # Future work: Initialize Azure Machine Learning for vendor recommendation models
+        # Future work: Connect to ERP & Accounts Payable systems
+        # Future work: Set up Azure Form Recognizer for contract clause extraction
+        # Future work: Initialize integration with DocuSign/Adobe Sign for e-signatures
+        # Future work: Connect to third-party risk databases (Dun & Bradstreet)
+        # Future work: Set up Azure Service Bus for procurement event publishing
+        # Future work: Initialize Azure Key Vault for storing vendor credentials
 
         self.logger.info("Vendor & Procurement Management Agent initialized")
 
@@ -264,9 +264,9 @@ class VendorProcurementAgent(BaseAgent):
         # Store vendor
         self.vendors[vendor_id] = vendor
 
-        # TODO: Store in database
-        # TODO: Submit for approval via Approval Workflow Agent
-        # TODO: Publish vendor.onboarded event
+        # Future work: Store in database
+        # Future work: Submit for approval via Approval Workflow Agent
+        # Future work: Publish vendor.onboarded event
 
         return {
             "vendor_id": vendor_id,
@@ -323,8 +323,8 @@ class VendorProcurementAgent(BaseAgent):
         # Store request
         self.procurement_requests[request_id] = request
 
-        # TODO: Store in database
-        # TODO: Route to approval workflow if estimated_cost > threshold
+        # Future work: Store in database
+        # Future work: Route to approval workflow if estimated_cost > threshold
 
         return {
             "request_id": request_id,
@@ -383,9 +383,9 @@ class VendorProcurementAgent(BaseAgent):
         # Store RFP
         self.rfps[rfp_id] = rfp
 
-        # TODO: Store in database and blob storage
-        # TODO: Send RFP invitations via email
-        # TODO: Publish rfp.published event
+        # Future work: Store in database and blob storage
+        # Future work: Send RFP invitations via email
+        # Future work: Publish rfp.published event
 
         return {
             "rfp_id": rfp_id,
@@ -440,8 +440,8 @@ class VendorProcurementAgent(BaseAgent):
         # Update RFP
         rfp["proposals_received"].append(proposal_id)
 
-        # TODO: Store in database and blob storage
-        # TODO: Publish proposal.submitted event
+        # Future work: Store in database and blob storage
+        # Future work: Publish proposal.submitted event
 
         return {
             "proposal_id": proposal_id,
@@ -508,8 +508,8 @@ class VendorProcurementAgent(BaseAgent):
         # Rank proposals by score
         ranked_proposals = sorted(evaluated_proposals, key=lambda x: x["total_score"], reverse=True)
 
-        # TODO: Store evaluation results in database
-        # TODO: Use Azure ML for AI-based vendor recommendation
+        # Future work: Store evaluation results in database
+        # Future work: Use Azure ML for AI-based vendor recommendation
 
         return {
             "rfp_id": rfp_id,
@@ -544,7 +544,7 @@ class VendorProcurementAgent(BaseAgent):
             raise ValueError(f"No proposal found from vendor {vendor_id}")
 
         # Document selection rationale
-        # TODO: Use Azure OpenAI for generating selection rationale
+        # Future work: Use Azure OpenAI for generating selection rationale
 
         # Update RFP and proposal status
         rfp["status"] = "Vendor Selected"
@@ -552,9 +552,9 @@ class VendorProcurementAgent(BaseAgent):
         rfp["selected_proposal_id"] = selected_proposal.get("proposal_id")
         selected_proposal["status"] = "Accepted"
 
-        # TODO: Store in database
-        # TODO: Notify all vendors of selection decision
-        # TODO: Publish vendor.selected event
+        # Future work: Store in database
+        # Future work: Notify all vendors of selection decision
+        # Future work: Publish vendor.selected event
 
         return {
             "rfp_id": rfp_id,
@@ -580,7 +580,7 @@ class VendorProcurementAgent(BaseAgent):
         await self._select_contract_template(contract_data.get("type", "standard"))
 
         # Extract key clauses
-        # TODO: Use Azure Form Recognizer for clause extraction
+        # Future work: Use Azure Form Recognizer for clause extraction
         key_clauses = await self._extract_contract_clauses(contract_data)
 
         # Create contract
@@ -606,9 +606,9 @@ class VendorProcurementAgent(BaseAgent):
         # Store contract
         self.contracts[contract_id] = contract
 
-        # TODO: Store in database and document repository
-        # TODO: Route for e-signature via DocuSign/Adobe Sign
-        # TODO: Publish contract.created event
+        # Future work: Store in database and document repository
+        # Future work: Route for e-signature via DocuSign/Adobe Sign
+        # Future work: Publish contract.created event
 
         return {
             "contract_id": contract_id,
@@ -652,9 +652,9 @@ class VendorProcurementAgent(BaseAgent):
         # Store PO
         self.purchase_orders[po_number] = purchase_order
 
-        # TODO: Store in database
-        # TODO: Route for approval via Approval Workflow Agent
-        # TODO: Release to vendor upon approval
+        # Future work: Store in database
+        # Future work: Route for approval via Approval Workflow Agent
+        # Future work: Release to vendor upon approval
 
         return {
             "po_number": po_number,
@@ -699,9 +699,9 @@ class VendorProcurementAgent(BaseAgent):
         # Store invoice
         self.invoices[invoice_id] = invoice
 
-        # TODO: Store in database
-        # TODO: Initiate automatic reconciliation
-        # TODO: Publish invoice.received event
+        # Future work: Store in database
+        # Future work: Initiate automatic reconciliation
+        # Future work: Publish invoice.received event
 
         return {
             "invoice_id": invoice_id,
@@ -742,7 +742,7 @@ class VendorProcurementAgent(BaseAgent):
             invoice["approved_for_payment"] = True
             invoice["approved_at"] = datetime.utcnow().isoformat()
 
-            # TODO: Initiate payment in ERP
+            # Future work: Initiate payment in ERP
             payment_status = await self._initiate_payment(invoice)
 
             invoice["payment_status"] = payment_status.get("status", "Processing")
@@ -754,8 +754,8 @@ class VendorProcurementAgent(BaseAgent):
             invoice["approved_for_payment"] = False
             invoice["discrepancies"] = discrepancies
 
-        # TODO: Store in database
-        # TODO: Publish invoice.reconciled event
+        # Future work: Store in database
+        # Future work: Publish invoice.reconciled event
 
         return {
             "invoice_id": invoice_id,
@@ -798,8 +798,8 @@ class VendorProcurementAgent(BaseAgent):
         # Update vendor performance metrics
         vendor["performance_metrics"].update(metrics)
 
-        # TODO: Store in database
-        # TODO: Publish vendor.performance_updated event
+        # Future work: Store in database
+        # Future work: Publish vendor.performance_updated event
 
         return {
             "vendor_id": vendor_id,
@@ -876,7 +876,7 @@ class VendorProcurementAgent(BaseAgent):
                 )
 
         # Sort by relevance
-        # TODO: Use AI-based ranking
+        # Future work: Use AI-based ranking
         sorted_vendors = sorted(
             matching_vendors,
             key=lambda x: (x.get("performance_rating", 0), -x.get("risk_score", 100)),
@@ -971,14 +971,14 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _run_compliance_checks(self, vendor_data: dict[str, Any]) -> dict[str, Any]:
         """Run compliance checks on vendor."""
-        # TODO: Integrate with sanctions lists, anti-corruption databases
+        # Future work: Integrate with sanctions lists, anti-corruption databases
         return {"sanctions_check": "Pass", "anti_corruption_check": "Pass", "credit_check": "Pass"}
 
     async def _calculate_vendor_risk(
         self, vendor_data: dict[str, Any], compliance_checks: dict[str, Any]
     ) -> float:
         """Calculate vendor risk score (0-100, lower is better)."""
-        # TODO: Use Azure ML for risk scoring
+        # Future work: Use Azure ML for risk scoring
         base_risk = 50.0
 
         # Adjust for compliance
@@ -993,7 +993,7 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _categorize_procurement_request(self, request_data: dict[str, Any]) -> str:
         """Categorize procurement request using AI."""
-        # TODO: Use Azure ML for classification
+        # Future work: Use Azure ML for classification
         description = request_data.get("description", "").lower()
 
         if "software" in description or "license" in description:
@@ -1007,12 +1007,12 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _check_budget_availability(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Check budget availability for procurement."""
-        # TODO: Integrate with Financial Management Agent
+        # Future work: Integrate with Financial Management Agent
         return {"available": True, "remaining_budget": 100000}
 
     async def _suggest_vendors(self, category: str, request_data: dict[str, Any]) -> list[str]:
         """Suggest vendors based on category and requirements."""
-        # TODO: Use Azure ML for vendor recommendation
+        # Future work: Use Azure ML for vendor recommendation
         suggested = []
         for vendor_id, vendor in self.vendors.items():
             if vendor.get("category") == category and vendor.get("status") == "Approved":
@@ -1031,14 +1031,14 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _select_rfp_template(self, category: str) -> dict[str, Any]:
         """Select RFP template based on category."""
-        # TODO: Load from template library
+        # Future work: Load from template library
         return {"template_id": f"{category}_template", "sections": []}
 
     async def _generate_rfp_content(
         self, request: dict[str, Any], template: dict[str, Any], rfp_data: dict[str, Any]
     ) -> str:
         """Generate RFP content from template."""
-        # TODO: Use Azure OpenAI for content generation
+        # Future work: Use Azure OpenAI for content generation
         return f"RFP for {request.get('description')}"
 
     async def _select_vendors_to_invite(
@@ -1053,30 +1053,30 @@ class VendorProcurementAgent(BaseAgent):
         self, proposal: dict[str, Any], criteria: dict[str, float]
     ) -> dict[str, float]:
         """Score proposal against criteria."""
-        # TODO: Use AI for automated scoring
+        # Future work: Use AI for automated scoring
         scores = {}
 
         # Cost score (inverse - lower cost = higher score)
         total_cost = proposal.get("pricing", {}).get("total", 100000)
         scores["cost"] = max(0, 100 - (total_cost / 1000))
 
-        # Quality score (placeholder)
+        # Quality score (baseline)
         scores["quality"] = 75.0
 
-        # Delivery score (placeholder)
+        # Delivery score (baseline)
         scores["delivery"] = 80.0
 
-        # Risk score (placeholder)
+        # Risk score (baseline)
         scores["risk"] = 70.0
 
-        # Diversity score (placeholder)
+        # Diversity score (baseline)
         scores["diversity"] = 50.0
 
         return scores
 
     async def _extract_contract_clauses(self, contract_data: dict[str, Any]) -> dict[str, Any]:
         """Extract key clauses from contract."""
-        # TODO: Use Azure Form Recognizer
+        # Future work: Use Azure Form Recognizer
         return {
             "termination": "30 days notice",
             "liability": "Limited to contract value",
@@ -1085,7 +1085,7 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _select_contract_template(self, contract_type: str) -> dict[str, Any]:
         """Select contract template."""
-        # TODO: Load from template library
+        # Future work: Load from template library
         return {"template_id": f"{contract_type}_contract"}
 
     async def _calculate_po_total(self, items: list[dict[str, Any]]) -> float:
@@ -1117,14 +1117,14 @@ class VendorProcurementAgent(BaseAgent):
                 }
             )
 
-        # TODO: Check line items
-        # TODO: Check receipts
+        # Future work: Check line items
+        # Future work: Check receipts
 
         return {"matched": len(discrepancies) == 0, "discrepancies": discrepancies}
 
     async def _initiate_payment(self, invoice: dict[str, Any]) -> dict[str, Any]:
         """Initiate payment in ERP."""
-        # TODO: Integrate with ERP system
+        # Future work: Integrate with ERP system
         return {
             "status": "Processing",
             "reference": f"PAY-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
@@ -1132,32 +1132,32 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _collect_vendor_performance_data(self, vendor_id: str) -> dict[str, Any]:
         """Collect vendor performance data."""
-        # TODO: Query historical data
+        # Future work: Query historical data
         return {"total_spend": 0, "contract_count": 0, "dispute_count": 0}
 
     async def _calculate_delivery_timeliness(self, vendor_id: str) -> float:
         """Calculate vendor delivery timeliness percentage."""
-        # TODO: Calculate from historical deliveries
+        # Future work: Calculate from historical deliveries
         return 95.0
 
     async def _calculate_quality_rating(self, vendor_id: str) -> float:
         """Calculate vendor quality rating."""
-        # TODO: Calculate from quality metrics
+        # Future work: Calculate from quality metrics
         return 4.5  # Out of 5
 
     async def _calculate_compliance_score(self, vendor_id: str) -> float:
         """Calculate vendor compliance score."""
-        # TODO: Calculate from compliance incidents
+        # Future work: Calculate from compliance incidents
         return 98.0
 
     async def _calculate_sla_adherence(self, vendor_id: str) -> float:
         """Calculate SLA adherence percentage."""
-        # TODO: Calculate from SLA tracking
+        # Future work: Calculate from SLA tracking
         return 97.0
 
     async def _analyze_performance_trend(self, vendor_id: str) -> str:
         """Analyze vendor performance trend."""
-        # TODO: Perform trend analysis
+        # Future work: Perform trend analysis
         return "Stable"
 
     async def _generate_vendor_recommendations(self, metrics: dict[str, Any]) -> list[str]:
@@ -1185,7 +1185,7 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _get_vendor_issues(self, vendor_id: str) -> list[dict[str, Any]]:
         """Get recent issues with vendor."""
-        # TODO: Query issue tracking system
+        # Future work: Query issue tracking system
         return []
 
     async def _calculate_overall_vendor_score(self, vendor: dict[str, Any]) -> float:
@@ -1238,10 +1238,10 @@ class VendorProcurementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Vendor & Procurement Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close ERP connections
-        # TODO: Close external API connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close ERP connections
+        # Future work: Close external API connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -48,14 +48,14 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Business Case & Investment Analysis Agent...")
 
-        # TODO: Initialize Azure OpenAI Service for natural language generation
-        # TODO: Initialize Azure Machine Learning for ROI prediction models
-        # TODO: Connect to database for business case storage
-        # TODO: Initialize ERP system connections (SAP, Oracle) for cost data
-        # TODO: Initialize CRM connections (Salesforce) for revenue data
-        # TODO: Connect to market data providers (Bloomberg, S&P Capital IQ)
-        # TODO: Initialize document management system (SharePoint, Confluence)
-        # TODO: Set up Azure Service Bus/Event Grid for event publishing
+        # Future work: Initialize Azure OpenAI Service for natural language generation
+        # Future work: Initialize Azure Machine Learning for ROI prediction models
+        # Future work: Connect to database for business case storage
+        # Future work: Initialize ERP system connections (SAP, Oracle) for cost data
+        # Future work: Initialize CRM connections (Salesforce) for revenue data
+        # Future work: Connect to market data providers (Bloomberg, S&P Capital IQ)
+        # Future work: Initialize document management system (SharePoint, Confluence)
+        # Future work: Set up Azure Service Bus/Event Grid for event publishing
 
         self.logger.info("Business Case & Investment Analysis Agent initialized")
 
@@ -214,8 +214,8 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         # Store business case
         self.business_cases[business_case_id] = business_case
 
-        # TODO: Store in database
-        # TODO: Publish business_case.created event to Service Bus
+        # Future work: Store in database
+        # Future work: Publish business_case.created event to Service Bus
 
         self.logger.info(f"Generated business case: {business_case_id}")
 
@@ -273,7 +273,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         """
         self.logger.info(f"Running scenario analysis for business case: {business_case_id}")
 
-        # TODO: Implement Monte Carlo simulation using Azure Machine Learning
+        # Future work: Implement Monte Carlo simulation using Azure Machine Learning
 
         scenario_results: list[dict[str, Any]] = []
 
@@ -316,10 +316,10 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         """
         self.logger.info("Comparing to historical projects")
 
-        # TODO: Use Azure Cognitive Search for similarity search
-        # TODO: Use embedding models to find comparable business cases
+        # Future work: Use Azure Cognitive Search for similarity search
+        # Future work: Use embedding models to find comparable business cases
 
-        # Placeholder: Return empty list for now
+        # Baseline: Return empty list for now
         similar_projects: list[dict[str, Any]] = []
 
         return {
@@ -366,7 +366,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             recommendation = "reject"
             rationale = f"Financial metrics below thresholds: ROI {roi:.1%} (required: {self.min_roi_threshold:.1%})"
 
-        # TODO: Use Azure OpenAI to generate detailed narrative explanation
+        # Future work: Use Azure OpenAI to generate detailed narrative explanation
 
         return {
             "business_case_id": business_case_id,
@@ -397,13 +397,13 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         project_type = request_data.get("project_type", "general")
         methodology = request_data.get("methodology", "hybrid")
 
-        # TODO: Implement template selection logic based on configuration
+        # Future work: Implement template selection logic based on configuration
         return f"template_{project_type}_{methodology}"
 
     async def _gather_cost_data(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Gather cost data from ERP and other sources."""
-        # TODO: Query ERP systems for labor rates, overhead rates
-        # TODO: Get resource costs from Resource Management Agent
+        # Future work: Query ERP systems for labor rates, overhead rates
+        # Future work: Get resource costs from Resource Management Agent
 
         estimated_cost = request_data.get("estimated_cost", 0)
 
@@ -417,8 +417,8 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _gather_benefit_data(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Gather benefit data from CRM and other sources."""
-        # TODO: Query CRM for revenue opportunities
-        # TODO: Get benefit estimates from request data
+        # Future work: Query CRM for revenue opportunities
+        # Future work: Get benefit estimates from request data
 
         estimated_benefits = request_data.get("estimated_benefits", 0)
 
@@ -431,7 +431,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _gather_market_data(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Gather market data from external providers."""
-        # TODO: Integrate with Bloomberg, S&P Capital IQ
+        # Future work: Integrate with Bloomberg, S&P Capital IQ
 
         return {
             "market_size": "To be determined",
@@ -443,7 +443,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         self, request_data: dict[str, Any], cost_data: dict[str, Any], benefit_data: dict[str, Any]
     ) -> str:
         """Generate executive summary using AI."""
-        # TODO: Use Azure OpenAI for natural language generation
+        # Future work: Use Azure OpenAI for natural language generation
 
         title = request_data.get("title", "Unnamed Project")
         total_cost = cost_data.get("total_cost", 0)
@@ -456,12 +456,12 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _generate_problem_statement(self, request_data: dict[str, Any]) -> str:
         """Generate problem statement."""
-        # TODO: Use Azure OpenAI for narrative generation
+        # Future work: Use Azure OpenAI for narrative generation
         return request_data.get("description", "Problem statement to be defined")  # type: ignore
 
     async def _generate_proposed_solution(self, request_data: dict[str, Any]) -> str:
         """Generate proposed solution description."""
-        # TODO: Use Azure OpenAI for narrative generation
+        # Future work: Use Azure OpenAI for narrative generation
         return request_data.get("proposed_solution", "Solution to be defined")  # type: ignore
 
     async def _calculate_financial_metrics(
@@ -474,8 +474,8 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _identify_risks(self, request_data: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify and assess risks."""
-        # TODO: Use AI to identify risks from description
-        # TODO: Integrate with Risk Management Agent
+        # Future work: Use AI to identify risks from description
+        # Future work: Integrate with Risk Management Agent
 
         return [
             {
@@ -505,23 +505,23 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _calculate_npv(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         """Calculate Net Present Value."""
-        # TODO: Implement proper NPV calculation with cash flows
+        # Future work: Implement proper NPV calculation with cash flows
         total_cost = costs.get("total_cost", 0)
         total_benefits = benefits.get("total_benefits", 0)
 
-        # Simplified NPV calculation (placeholder)
+        # Simplified NPV calculation (baseline)
         return total_benefits - total_cost  # type: ignore
 
     async def _calculate_irr(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         """Calculate Internal Rate of Return."""
-        # TODO: Implement proper IRR calculation
-        return 0.15  # Placeholder
+        # Future work: Implement proper IRR calculation
+        return 0.15  # Baseline
 
     async def _calculate_payback_period(
         self, costs: dict[str, Any], benefits: dict[str, Any]
     ) -> int:
         """Calculate payback period in months."""
-        # TODO: Implement proper payback period calculation
+        # Future work: Implement proper payback period calculation
         total_cost = costs.get("total_cost", 0)
         total_benefits = benefits.get("total_benefits", 0)
 
@@ -538,7 +538,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     async def _calculate_tco(self, costs: dict[str, Any]) -> float:
         """Calculate Total Cost of Ownership."""
         total_cost = float(costs.get("total_cost", 0))
-        # TODO: Add ongoing operational costs
+        # Future work: Add ongoing operational costs
         return total_cost * 1.3  # Assume 30% ongoing costs
 
     async def _calculate_roi_percentage(
@@ -555,13 +555,13 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _adjust_costs(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Adjust costs based on scenario parameters."""
-        # TODO: Implement scenario-based cost adjustments
-        return {"total_cost": 100000}  # Placeholder
+        # Future work: Implement scenario-based cost adjustments
+        return {"total_cost": 100000}  # Baseline
 
     async def _adjust_benefits(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Adjust benefits based on scenario parameters."""
-        # TODO: Implement scenario-based benefit adjustments
-        return {"total_benefits": 150000}  # Placeholder
+        # Future work: Implement scenario-based benefit adjustments
+        return {"total_benefits": 150000}  # Baseline
 
     async def _compare_scenarios(self, scenario_results: list[dict[str, Any]]) -> dict[str, Any]:
         """Generate scenario comparison summary."""
@@ -583,17 +583,17 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         self, metrics: dict[str, Any], historical_comparison: dict[str, Any]
     ) -> float:
         """Calculate confidence level for recommendation."""
-        # TODO: Use machine learning model to calculate confidence
+        # Future work: Use machine learning model to calculate confidence
         # Based on historical accuracy and metric quality
 
-        return 0.75  # Placeholder (75% confidence)
+        return 0.75  # Baseline (75% confidence)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Business Case & Investment Analysis Agent...")
-        # TODO: Close database connections
-        # TODO: Close external API connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close external API connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -1,14 +1,13 @@
-# Tests
+# Slack connector tests
 
-This directory holds automated tests for the **slack** component. Tests should focus on behavior,
-contract boundaries, and regression coverage for the component's public APIs.
+This directory contains connector-level tests for the slack connector.
 
-## What to add here
-- Unit tests for core logic and pure functions
-- Integration tests for adapters (mocking external systems)
-- Fixtures and reusable test helpers
+## Scope
+- Test modules that exercise connector integration contracts and data shape mapping.
+- Fixtures, helpers, and sample payloads needed for these tests.
+- Any contract or environment notes required to run them locally.
 
-## Conventions
-- Keep tests deterministic and fast
-- Prefer pytest and reuse shared fixtures in `/tests`
-- Document any assumptions about external dependencies
+## Running locally
+```bash
+pytest connectors/slack/tests
+```

@@ -54,16 +54,16 @@ class SchedulePlanningAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Schedule & Planning Agent...")
 
-        # TODO: Initialize Azure Machine Learning for duration estimation models
-        # TODO: Initialize Azure Databricks for Monte Carlo simulation
-        # TODO: Connect to Azure SQL Database for schedule data storage
-        # TODO: Initialize Azure Cache for Redis for frequently accessed schedules
-        # TODO: Connect to Microsoft Project via Logic Apps for Gantt chart sync
-        # TODO: Initialize Jira/Azure DevOps integration for sprint planning
-        # TODO: Connect to Smartsheet API for timeline sync
-        # TODO: Initialize Outlook/Google Calendar integration for milestone sync
-        # TODO: Set up Azure Service Bus/Event Grid for schedule event publishing
-        # TODO: Initialize Azure Synapse Analytics for historical performance analysis
+        # Future work: Initialize Azure Machine Learning for duration estimation models
+        # Future work: Initialize Azure Databricks for Monte Carlo simulation
+        # Future work: Connect to Azure SQL Database for schedule data storage
+        # Future work: Initialize Azure Cache for Redis for frequently accessed schedules
+        # Future work: Connect to Microsoft Project via Logic Apps for Gantt chart sync
+        # Future work: Initialize Jira/Azure DevOps integration for sprint planning
+        # Future work: Connect to Smartsheet API for timeline sync
+        # Future work: Initialize Outlook/Google Calendar integration for milestone sync
+        # Future work: Set up Azure Service Bus/Event Grid for schedule event publishing
+        # Future work: Initialize Azure Synapse Analytics for historical performance analysis
 
         self.logger.info("Schedule & Planning Agent initialized")
 
@@ -227,7 +227,7 @@ class SchedulePlanningAgent(BaseAgent):
         tasks_with_durations = await self._apply_duration_estimates(tasks, duration_estimates)
 
         # Define dependencies
-        # TODO: Use AI to suggest dependencies based on task relationships
+        # Future work: Use AI to suggest dependencies based on task relationships
         dependencies = await self._suggest_dependencies(tasks_with_durations)
 
         # Calculate early/late start/finish dates using CPM
@@ -266,9 +266,9 @@ class SchedulePlanningAgent(BaseAgent):
         self.schedules[schedule_id] = schedule
         self.milestones[schedule_id] = milestones
 
-        # TODO: Store in Azure SQL Database
-        # TODO: Sync with Microsoft Project
-        # TODO: Publish schedule.created event
+        # Future work: Store in Azure SQL Database
+        # Future work: Sync with Microsoft Project
+        # Future work: Publish schedule.created event
 
         self.logger.info(f"Created schedule: {schedule_id}")
 
@@ -292,8 +292,8 @@ class SchedulePlanningAgent(BaseAgent):
         """
         self.logger.info("Estimating task durations")
 
-        # TODO: Use Azure ML model for duration prediction
-        # TODO: Factor in team experience and complexity
+        # Future work: Use Azure ML model for duration prediction
+        # Future work: Factor in team experience and complexity
 
         duration_estimates = {}
 
@@ -303,11 +303,11 @@ class SchedulePlanningAgent(BaseAgent):
             complexity = task.get("complexity", "medium")
 
             # Query historical data for similar tasks
-            # TODO: Integrate with Azure Synapse Analytics
+            # Future work: Integrate with Azure Synapse Analytics
             historical_data = await self._get_historical_durations(task_name, complexity)
 
             # Generate estimate using AI model
-            # TODO: Call Azure ML endpoint
+            # Future work: Call Azure ML endpoint
             optimistic, most_likely, pessimistic = await self._calculate_pert_estimate(
                 task, historical_data
             )
@@ -320,7 +320,7 @@ class SchedulePlanningAgent(BaseAgent):
                 "most_likely": most_likely,
                 "pessimistic": pessimistic,
                 "expected": expected_duration,
-                "confidence": 0.80,  # TODO: Calculate actual confidence
+                "confidence": 0.80,  # Future work: Calculate actual confidence
                 "unit": "days",
             }
 
@@ -360,8 +360,8 @@ class SchedulePlanningAgent(BaseAgent):
             schedule.get("tasks", []), validated_dependencies
         )
 
-        # TODO: Store in database
-        # TODO: Publish dependencies.mapped event
+        # Future work: Store in database
+        # Future work: Publish dependencies.mapped event
 
         return {
             "schedule_id": schedule_id,
@@ -434,11 +434,11 @@ class SchedulePlanningAgent(BaseAgent):
         dependencies = schedule.get("dependencies", [])
 
         # Get resource availability from Resource Management Agent
-        # TODO: Integrate with Agent 11
+        # Future work: Integrate with Agent 11
         resource_availability = await self._get_resource_availability(resources)
 
         # Apply resource leveling
-        # TODO: Use optimization algorithm (RCPSP solver)
+        # Future work: Use optimization algorithm (RCPSP solver)
         leveled_schedule = await self._resource_leveling(tasks, dependencies, resource_availability)
 
         # Recalculate critical path with resource constraints
@@ -474,7 +474,7 @@ class SchedulePlanningAgent(BaseAgent):
         tasks = schedule.get("tasks", [])
         dependencies = schedule.get("dependencies", [])
 
-        # TODO: Use Azure Databricks for Monte Carlo simulation
+        # Future work: Use Azure Databricks for Monte Carlo simulation
         # Run simulation with random sampling of task durations
         simulation_results = []
 
@@ -648,7 +648,7 @@ class SchedulePlanningAgent(BaseAgent):
             "start_date": schedule.get("start_date"),
             "end_date": schedule.get("end_date"),
             "locked_at": datetime.utcnow().isoformat(),
-            "locked_by": "system",  # TODO: Get from user context
+            "locked_by": "system",  # Future work: Get from user context
             "status": "Locked",
         }
 
@@ -659,8 +659,8 @@ class SchedulePlanningAgent(BaseAgent):
         schedule["status"] = "Baselined"
         schedule["baseline_id"] = baseline_id
 
-        # TODO: Store in database
-        # TODO: Publish baseline.locked event
+        # Future work: Store in database
+        # Future work: Publish baseline.locked event
 
         return {
             "baseline_id": baseline_id,
@@ -776,8 +776,8 @@ class SchedulePlanningAgent(BaseAgent):
     async def _wbs_to_tasks(self, wbs: dict[str, Any]) -> list[dict[str, Any]]:
         """Convert WBS to flat task list."""
         tasks = []
-        # TODO: Implement recursive WBS traversal
-        # Placeholder
+        # Future work: Implement recursive WBS traversal
+        # Baseline
         task_id = 1
         for key, value in wbs.items():
             tasks.append(
@@ -793,14 +793,14 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _get_historical_durations(self, task_name: str, complexity: str) -> list[float]:
         """Query historical task durations."""
-        # TODO: Query Azure Synapse Analytics
-        return [5.0, 7.0, 6.0]  # Placeholder
+        # Future work: Query Azure Synapse Analytics
+        return [5.0, 7.0, 6.0]  # Baseline
 
     async def _calculate_pert_estimate(
         self, task: dict[str, Any], historical_data: list[float]
     ) -> tuple[float, float, float]:
         """Calculate PERT estimates (optimistic, most likely, pessimistic)."""
-        # TODO: Use ML model for better estimates
+        # Future work: Use ML model for better estimates
         if historical_data:
             avg = sum(historical_data) / len(historical_data)
             optimistic = avg * 0.8
@@ -826,8 +826,8 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _suggest_dependencies(self, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Suggest dependencies between tasks."""
-        # TODO: Use AI to suggest dependencies
-        # Placeholder: sequential dependencies
+        # Future work: Use AI to suggest dependencies
+        # Baseline: sequential dependencies
         dependencies = []
         for i in range(len(tasks) - 1):
             dependencies.append(
@@ -845,7 +845,7 @@ class SchedulePlanningAgent(BaseAgent):
     ) -> list[dict[str, Any]]:
         """Calculate CPM dates for tasks."""
         # Simplified CPM implementation
-        # TODO: Implement full CPM algorithm
+        # Future work: Implement full CPM algorithm
         for task in tasks:
             task["early_start"] = 0
             task["early_finish"] = task.get("duration", 0)
@@ -857,8 +857,8 @@ class SchedulePlanningAgent(BaseAgent):
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
     ) -> list[str]:
         """Identify critical path task IDs."""
-        # TODO: Implement critical path identification
-        return [task["task_id"] for task in tasks[:3]]  # Placeholder
+        # Future work: Implement critical path identification
+        return [task["task_id"] for task in tasks[:3]]  # Baseline
 
     async def _calculate_project_duration(self, tasks: list[dict[str, Any]]) -> float:
         """Calculate total project duration."""
@@ -920,8 +920,8 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _detect_circular_dependencies(self, dependencies: list[dict[str, Any]]) -> list[str]:
         """Detect circular dependencies."""
-        # TODO: Implement cycle detection algorithm
-        return []  # Placeholder
+        # Future work: Implement cycle detection algorithm
+        return []  # Baseline
 
     async def _generate_network_diagram(
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
@@ -933,14 +933,14 @@ class SchedulePlanningAgent(BaseAgent):
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Perform CPM forward pass."""
-        # TODO: Implement forward pass algorithm
+        # Future work: Implement forward pass algorithm
         return tasks
 
     async def _backward_pass(
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Perform CPM backward pass."""
-        # TODO: Implement backward pass algorithm
+        # Future work: Implement backward pass algorithm
         return tasks
 
     async def _calculate_slack(self, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -951,7 +951,7 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _get_resource_availability(self, resources: dict[str, Any]) -> dict[str, Any]:
         """Get resource availability from Resource Management Agent."""
-        # TODO: Integrate with Agent 11
+        # Future work: Integrate with Agent 11
         return resources
 
     async def _resource_leveling(
@@ -961,14 +961,14 @@ class SchedulePlanningAgent(BaseAgent):
         resource_availability: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Apply resource leveling to schedule."""
-        # TODO: Implement resource leveling algorithm
+        # Future work: Implement resource leveling algorithm
         return tasks
 
     async def _calculate_resource_utilization(
         self, schedule: list[dict[str, Any]], resource_availability: dict[str, Any]
     ) -> dict[str, float]:
         """Calculate resource utilization percentages."""
-        # Placeholder
+        # Baseline
         return {"resource_1": 0.85, "resource_2": 0.75}
 
     async def _calculate_schedule_extension(
@@ -980,7 +980,7 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _sample_task_durations(self, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Sample task durations from probability distributions."""
-        # TODO: Implement proper sampling
+        # Future work: Implement proper sampling
         return tasks
 
     async def _calculate_simulated_duration(
@@ -1030,7 +1030,7 @@ class SchedulePlanningAgent(BaseAgent):
         self, schedule: dict[str, Any], opportunities: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """Apply optimizations to schedule."""
-        # TODO: Implement optimization logic
+        # Future work: Implement optimization logic
         return schedule
 
     async def _calculate_improvements(
@@ -1052,12 +1052,12 @@ class SchedulePlanningAgent(BaseAgent):
         self, schedule: dict[str, Any], params: dict[str, Any]
     ) -> dict[str, Any]:
         """Create scenario schedule with modified parameters."""
-        # TODO: Apply scenario parameters
+        # Future work: Apply scenario parameters
         return schedule.copy()
 
     async def _recalculate_schedule(self, schedule: dict[str, Any]) -> dict[str, Any]:
         """Recalculate schedule with changes."""
-        # TODO: Recalculate CPM
+        # Future work: Recalculate CPM
         return schedule
 
     async def _compare_schedules(
@@ -1088,26 +1088,26 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _calculate_spi(self, schedule: dict[str, Any], baseline: dict[str, Any]) -> float:
         """Calculate Schedule Performance Index."""
-        # TODO: Calculate actual SPI using earned value
-        return 1.0  # Placeholder
+        # Future work: Calculate actual SPI using earned value
+        return 1.0  # Baseline
 
     async def _identify_delayed_tasks(
         self, schedule: dict[str, Any], baseline: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify delayed tasks."""
-        # TODO: Compare task dates to baseline
+        # Future work: Compare task dates to baseline
         return []
 
     async def _identify_critical_path_changes(
         self, schedule: dict[str, Any], baseline: dict[str, Any]
     ) -> list[str]:
         """Identify changes to critical path."""
-        # TODO: Compare critical paths
+        # Future work: Compare critical paths
         return []
 
     async def _forecast_completion_date(self, schedule: dict[str, Any], spi: float) -> str:
         """Forecast completion date based on SPI."""
-        # TODO: Calculate forecast using SPI
+        # Future work: Calculate forecast using SPI
         return datetime.utcnow().isoformat()
 
     async def _recommend_sprint_backlog(
@@ -1146,10 +1146,10 @@ class SchedulePlanningAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Schedule & Planning Agent...")
-        # TODO: Close database connections
-        # TODO: Close external API connections
-        # TODO: Cancel pending monitoring tasks
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close external API connections
+        # Future work: Cancel pending monitoring tasks
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

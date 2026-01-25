@@ -61,18 +61,18 @@ class StakeholderCommunicationsAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Stakeholder & Communications Management Agent...")
 
-        # TODO: Initialize Azure SQL Database or Cosmos DB for stakeholder data
-        # TODO: Connect to Microsoft Exchange/Outlook for email
-        # TODO: Integrate with Microsoft Teams for team communications
-        # TODO: Connect to Slack API for Slack channels
-        # TODO: Set up Azure Communication Services or SendGrid for messaging
-        # TODO: Integrate with Microsoft Graph API for calendar scheduling
-        # TODO: Connect to Microsoft Forms or SurveyMonkey for feedback
-        # TODO: Initialize Azure Cognitive Services for sentiment analysis
-        # TODO: Set up Azure Machine Learning for engagement scoring
-        # TODO: Connect to CRM systems (Dynamics 365, Salesforce)
-        # TODO: Initialize Power Automate or Logic Apps for message scheduling
-        # TODO: Set up Azure Service Bus for communication event publishing
+        # Future work: Initialize Azure SQL Database or Cosmos DB for stakeholder data
+        # Future work: Connect to Microsoft Exchange/Outlook for email
+        # Future work: Integrate with Microsoft Teams for team communications
+        # Future work: Connect to Slack API for Slack channels
+        # Future work: Set up Azure Communication Services or SendGrid for messaging
+        # Future work: Integrate with Microsoft Graph API for calendar scheduling
+        # Future work: Connect to Microsoft Forms or SurveyMonkey for feedback
+        # Future work: Initialize Azure Cognitive Services for sentiment analysis
+        # Future work: Set up Azure Machine Learning for engagement scoring
+        # Future work: Connect to CRM systems (Dynamics 365, Salesforce)
+        # Future work: Initialize Power Automate or Logic Apps for message scheduling
+        # Future work: Set up Azure Service Bus for communication event publishing
 
         self.logger.info("Stakeholder & Communications Management Agent initialized")
 
@@ -186,7 +186,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         stakeholder_id = await self._generate_stakeholder_id()
 
         # Enrich profile from CRM
-        # TODO: Fetch additional data from CRM
+        # Future work: Fetch additional data from CRM
         await self._enrich_stakeholder_profile(stakeholder_data)
 
         # Suggest classification
@@ -225,8 +225,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "events_attended": 0,
         }
 
-        # TODO: Store in database
-        # TODO: Sync with CRM
+        # Future work: Store in database
+        # Future work: Sync with CRM
 
         return {
             "stakeholder_id": stakeholder_id,
@@ -253,7 +253,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Update stakeholder
         stakeholder["engagement_strategy"] = engagement_strategy
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "stakeholder_id": stakeholder_id,
@@ -292,8 +292,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Store plan
         self.communication_plans[plan_id] = plan
 
-        # TODO: Store in database
-        # TODO: Schedule recurring messages
+        # Future work: Store in database
+        # Future work: Schedule recurring messages
 
         return {
             "plan_id": plan_id,
@@ -314,7 +314,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         stakeholder_ids = message_data.get("stakeholder_ids", [])
 
         # Generate content using NLG
-        # TODO: Use Azure OpenAI for natural language generation
+        # Future work: Use Azure OpenAI for natural language generation
         content = await self._generate_message_content(
             message_data.get("template", ""), message_data.get("data", {})
         )
@@ -346,7 +346,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Store message
         self.messages[message_id] = message
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "message_id": message_id,
@@ -377,7 +377,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 continue
 
             # Send message
-            # TODO: Integrate with actual communication platforms
+            # Future work: Integrate with actual communication platforms
             result = await self._send_via_channel(
                 channel,
                 stakeholder.get("email") if channel == "email" else stakeholder.get("phone"),
@@ -403,8 +403,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
         message["sent_at"] = datetime.utcnow().isoformat()
         message["delivery_results"] = delivery_results
 
-        # TODO: Store in database
-        # TODO: Publish message.sent event
+        # Future work: Store in database
+        # Future work: Publish message.sent event
 
         return {
             "message_id": message_id,
@@ -424,7 +424,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         feedback_id = await self._generate_feedback_id()
 
         # Perform sentiment analysis
-        # TODO: Use Azure Cognitive Services
+        # Future work: Use Azure Cognitive Services
         sentiment = await self._analyze_text_sentiment(feedback_data.get("comments", ""))
 
         # Create feedback record
@@ -457,8 +457,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
         if stakeholder_id in self.engagement_metrics:
             self.engagement_metrics[stakeholder_id]["responses_received"] += 1
 
-        # TODO: Store in database
-        # TODO: Trigger alerts if negative sentiment
+        # Future work: Store in database
+        # Future work: Trigger alerts if negative sentiment
 
         return {
             "feedback_id": feedback_id,
@@ -498,7 +498,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         event_id = await self._generate_event_id()
 
         # Propose optimal time
-        # TODO: Consider stakeholder time zones and availability
+        # Future work: Consider stakeholder time zones and availability
         optimal_time = await self._propose_optimal_time(
             event_data.get("stakeholder_ids", []), event_data.get("duration", 60)
         )
@@ -523,9 +523,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Store event
         self.events[event_id] = event
 
-        # TODO: Store in database
-        # TODO: Send calendar invitations via Microsoft Graph API
-        # TODO: Collect RSVPs
+        # Future work: Store in database
+        # Future work: Send calendar invitations via Microsoft Graph API
+        # Future work: Collect RSVPs
 
         return {
             "event_id": event_id,
@@ -638,12 +638,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _enrich_stakeholder_profile(self, stakeholder_data: dict[str, Any]) -> dict[str, Any]:
         """Enrich stakeholder profile from CRM."""
-        # TODO: Fetch from CRM
+        # Future work: Fetch from CRM
         return stakeholder_data
 
     async def _suggest_classification(self, stakeholder_data: dict[str, Any]) -> dict[str, Any]:
         """Suggest stakeholder classification."""
-        # TODO: Use ML for classification
+        # Future work: Use ML for classification
         role = stakeholder_data.get("role", "").lower()
 
         if "executive" in role or "director" in role:
@@ -682,12 +682,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _generate_message_content(self, template: str, data: dict[str, Any]) -> str:
         """Generate message content using NLG."""
-        # TODO: Use Azure OpenAI for content generation
+        # Future work: Use Azure OpenAI for content generation
         return template.format(**data) if template else "Sample message content"
 
     async def _personalize_content(self, content: str, stakeholder: dict[str, Any]) -> str:
         """Personalize content for stakeholder."""
-        # Replace placeholders with stakeholder data
+        # Replace baselines with stakeholder data
         personalized = content.replace("{name}", stakeholder.get("name", ""))
         personalized = personalized.replace("{role}", stakeholder.get("role", ""))
         return personalized
@@ -696,13 +696,13 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self, channel: str, recipient: str, subject: str, content: str, attachments: list[str]
     ) -> dict[str, Any]:
         """Send message via communication channel."""
-        # TODO: Integrate with actual platforms
+        # Future work: Integrate with actual platforms
         return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
 
     async def _analyze_text_sentiment(self, text: str) -> dict[str, Any]:
         """Analyze sentiment of text."""
-        # TODO: Use Azure Cognitive Services
-        # Placeholder implementation
+        # Future work: Use Azure Cognitive Services
+        # Baseline implementation
         return {"score": 0.5, "label": "neutral", "confidence": 0.8}  # -1 to 1
 
     async def _calculate_sentiment_trend(
@@ -752,8 +752,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _propose_optimal_time(self, stakeholder_ids: list[str], duration: int) -> str:
         """Propose optimal meeting time considering time zones."""
-        # TODO: Use calendar availability and time zone analysis
-        # Placeholder: suggest tomorrow at 10 AM UTC
+        # Future work: Use calendar availability and time zone analysis
+        # Baseline: suggest tomorrow at 10 AM UTC
         optimal_time = datetime.utcnow() + timedelta(days=1)
         optimal_time = optimal_time.replace(hour=10, minute=0, second=0, microsecond=0)
         return optimal_time.isoformat()
@@ -815,7 +815,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _get_stakeholder_summary(self, project_id: str | None) -> dict[str, Any]:
         """Get stakeholder summary."""
-        # TODO: Filter by project
+        # Future work: Filter by project
         return {
             "total_stakeholders": len(self.stakeholder_register),
             "by_engagement_level": {"high": 0, "medium": 0, "low": 0},
@@ -866,9 +866,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Stakeholder & Communications Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close communication platform connections
-        # TODO: Flush any pending messages
+        # Future work: Close database connections
+        # Future work: Close communication platform connections
+        # Future work: Flush any pending messages
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

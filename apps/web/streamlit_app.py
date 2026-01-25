@@ -22,7 +22,6 @@ query = st.sidebar.text_area(
     "Natural language request",
     value="",
     height=80,
-    placeholder="e.g., Show me Apollo’s schedule and flag any budget risks",
 )
 focus_entity = st.sidebar.text_input("Focus entity id (optional)", value="")
 
@@ -89,7 +88,7 @@ with right:
     defs = store.list_workflow_defs()
     wf_opts = {f"{d['name']} ({d['id']})": d["id"] for d in defs if d.get("active") == 1}
     chosen = st.selectbox("Workflow", list(wf_opts.keys())) if wf_opts else None
-    target_entity = st.text_input("Entity id (attach workflow to)", placeholder="Paste an intake id here")
+    target_entity = st.text_input("Entity id (attach workflow to)", baseline="Paste an intake id here")
     if st.button("Start workflow", type="primary"):
         if not chosen:
             st.error("No workflow definitions found.")

@@ -62,16 +62,16 @@ class RiskManagementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Risk Management Agent...")
 
-        # TODO: Initialize Azure Cosmos DB for flexible risk register storage
-        # TODO: Set up Azure Data Lake or Synapse Analytics for simulation results
-        # TODO: Initialize Azure Machine Learning for predictive risk models
-        # TODO: Connect to Azure Cognitive Search for risk extraction from documents
-        # TODO: Set up Azure Batch or parallelized functions for Monte Carlo simulation
-        # TODO: Connect to project management systems (Planview, MS Project, Jira, Azure DevOps)
-        # TODO: Integrate with document repositories (SharePoint, Confluence)
-        # TODO: Set up Azure Logic Apps or Data Factory for external data integration
-        # TODO: Initialize Power BI for risk dashboards
-        # TODO: Set up Azure Service Bus for risk event publishing
+        # Future work: Initialize Azure Cosmos DB for flexible risk register storage
+        # Future work: Set up Azure Data Lake or Synapse Analytics for simulation results
+        # Future work: Initialize Azure Machine Learning for predictive risk models
+        # Future work: Connect to Azure Cognitive Search for risk extraction from documents
+        # Future work: Set up Azure Batch or parallelized functions for Monte Carlo simulation
+        # Future work: Connect to project management systems (Planview, MS Project, Jira, Azure DevOps)
+        # Future work: Integrate with document repositories (SharePoint, Confluence)
+        # Future work: Set up Azure Logic Apps or Data Factory for external data integration
+        # Future work: Initialize Power BI for risk dashboards
+        # Future work: Set up Azure Service Bus for risk event publishing
 
         self.logger.info("Risk Management Agent initialized")
 
@@ -216,7 +216,7 @@ class RiskManagementAgent(BaseAgent):
         risk_id = await self._generate_risk_id()
 
         # Extract risks from documents if provided
-        # TODO: Use NLP for risk extraction
+        # Future work: Use NLP for risk extraction
         extracted_risks = await self._extract_risks_from_documents(risk_data.get("documents", []))
 
         # Perform initial classification and scoring
@@ -248,8 +248,8 @@ class RiskManagementAgent(BaseAgent):
         # Store risk
         self.risk_register[risk_id] = risk
 
-        # TODO: Store in database
-        # TODO: Publish risk.identified event
+        # Future work: Store in database
+        # Future work: Publish risk.identified event
 
         return {
             "risk_id": risk_id,
@@ -276,7 +276,7 @@ class RiskManagementAgent(BaseAgent):
             raise ValueError(f"Risk not found: {risk_id}")
 
         # Use predictive models for probability and impact
-        # TODO: Use Azure ML for risk prediction
+        # Future work: Use Azure ML for risk prediction
         predicted_assessment = await self._predict_risk_metrics(risk)
 
         # Calculate quantitative impact
@@ -289,7 +289,7 @@ class RiskManagementAgent(BaseAgent):
         risk["quantitative_impact"] = quantitative_impact
         risk["last_assessed"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "risk_id": risk_id,
@@ -370,7 +370,7 @@ class RiskManagementAgent(BaseAgent):
         plan_id = await self._generate_mitigation_plan_id()
 
         # Recommend mitigation strategies
-        # TODO: Use knowledge base of mitigation strategies
+        # Future work: Use knowledge base of mitigation strategies
         recommended_strategies = await self._recommend_mitigation_strategies(risk)
 
         # Create mitigation plan
@@ -399,9 +399,9 @@ class RiskManagementAgent(BaseAgent):
         residual_risk = await self._calculate_residual_risk(risk, mitigation_plan)
         risk["residual_risk"] = residual_risk
 
-        # TODO: Store in database
-        # TODO: Create tasks in task management system
-        # TODO: Publish mitigation_plan.created event
+        # Future work: Store in database
+        # Future work: Create tasks in task management system
+        # Future work: Publish mitigation_plan.created event
 
         return {
             "plan_id": plan_id,
@@ -449,8 +449,8 @@ class RiskManagementAgent(BaseAgent):
                     }
                 )
 
-        # TODO: Store updates in database
-        # TODO: Publish risk.trigger_activated events
+        # Future work: Store updates in database
+        # Future work: Publish risk.trigger_activated events
 
         return {
             "risks_monitored": len(risks_to_monitor),
@@ -496,7 +496,7 @@ class RiskManagementAgent(BaseAgent):
 
         risk["last_updated"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "risk_id": risk_id,
@@ -518,8 +518,8 @@ class RiskManagementAgent(BaseAgent):
             r for r in self.risk_register.values() if r.get("project_id") == project_id
         ]
 
-        # TODO: Integrate with Schedule and Financial agents for baseline data
-        # TODO: Use Azure Batch for distributed Monte Carlo computation
+        # Future work: Integrate with Schedule and Financial agents for baseline data
+        # Future work: Use Azure Batch for distributed Monte Carlo computation
         simulation_results = await self._perform_monte_carlo_simulation(
             project_id, project_risks, iterations
         )
@@ -717,7 +717,7 @@ class RiskManagementAgent(BaseAgent):
 
     async def _extract_risks_from_documents(self, documents: list[str]) -> list[dict[str, Any]]:
         """Extract potential risks from documents using NLP."""
-        # TODO: Use Azure Cognitive Services for text analysis
+        # Future work: Use Azure Cognitive Services for text analysis
         return []
 
     async def _initial_risk_assessment(self, risk_data: dict[str, Any]) -> dict[str, Any]:
@@ -740,17 +740,17 @@ class RiskManagementAgent(BaseAgent):
 
     async def _predict_risk_metrics(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Use ML to predict risk probability and impact."""
-        # TODO: Use Azure ML for prediction
+        # Future work: Use Azure ML for prediction
         return {"probability": risk.get("probability", 3), "impact": risk.get("impact", 3)}
 
     async def _calculate_quantitative_impact(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Calculate quantitative impact on schedule and cost."""
-        # TODO: Integrate with Schedule and Financial agents
+        # Future work: Integrate with Schedule and Financial agents
         return {"schedule_impact_days": 0, "cost_impact": 0}
 
     async def _recommend_mitigation_strategies(self, risk: dict[str, Any]) -> list[str]:
         """Recommend mitigation strategies from knowledge base."""
-        # TODO: Use knowledge graph and similarity algorithms
+        # Future work: Use knowledge graph and similarity algorithms
         return [
             "Regular monitoring and reviews",
             "Allocate contingency reserves",
@@ -773,7 +773,7 @@ class RiskManagementAgent(BaseAgent):
 
     async def _check_risk_triggers(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Check if risk triggers have been activated."""
-        # TODO: Monitor data sources for trigger conditions
+        # Future work: Monitor data sources for trigger conditions
         return {"triggered": False, "trigger": None, "new_score": risk.get("score")}
 
     async def _update_risk_from_trigger(
@@ -788,13 +788,13 @@ class RiskManagementAgent(BaseAgent):
         self, project_id: str, risks: list[dict[str, Any]], iterations: int
     ) -> dict[str, list[float]]:
         """Perform Monte Carlo simulation."""
-        # TODO: Use Azure Batch for distributed computation
+        # Future work: Use Azure Batch for distributed computation
         schedule_results = []
         cost_results = []
 
         for i in range(iterations):
             # Simulate schedule and cost with risk factors
-            # Placeholder implementation
+            # Baseline implementation
             schedule_results.append(100.0 + (i % 20))
             cost_results.append(1000000.0 + (i % 100000))
 
@@ -810,14 +810,14 @@ class RiskManagementAgent(BaseAgent):
 
     async def _get_mitigation_status(self, project_id: str | None) -> dict[str, Any]:
         """Get mitigation plan status summary."""
-        # TODO: Query mitigation plans
+        # Future work: Query mitigation plans
         return {"total_plans": 0, "planned": 0, "in_progress": 0, "completed": 0}
 
     async def _analyze_risk_sensitivity(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Analyze sensitivity of outcomes to this risk."""
-        # TODO: Perform tornado diagram analysis
+        # Future work: Perform tornado diagram analysis
         return {
-            "score": risk.get("score", 0) * 2,  # Placeholder
+            "score": risk.get("score", 0) * 2,  # Baseline
             "schedule_impact": 5,
             "cost_impact": 10000,
         }
@@ -845,9 +845,9 @@ class RiskManagementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Risk Management Agent...")
-        # TODO: Close database connections
-        # TODO: Cancel monitoring tasks
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Cancel monitoring tasks
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

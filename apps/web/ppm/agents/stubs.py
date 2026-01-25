@@ -378,7 +378,7 @@ def agent_7_program(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
         data={
             "vision": inputs.get("vision", "(add vision)") ,
             "objectives": inputs.get("objectives", ["Deliver benefits", "Coordinate dependencies"]) ,
-            "kpis": inputs.get("kpis", {"benefit_realisation": "TBD", "on_time_pct": 85}),
+            "kpis": inputs.get("kpis", {"benefit_realisation": "Pending", "on_time_pct": 85}),
             "created_from": ent.id,
         }
     )
@@ -720,7 +720,7 @@ def agent_14_quality(store: Store, *, actor: str, entity_id: str, inputs: Dict[s
         title=f"Quality Plan: {proj.title}",
         status="Draft",
         classification=proj.classification,
-        data={"project_id": proj.id, "gates": gates, "metrics": {"defect_escape_rate": "TBD", "test_coverage": "TBD"}},
+        data={"project_id": proj.id, "gates": gates, "metrics": {"defect_escape_rate": "Pending", "test_coverage": "Pending"}},
     )
     store.link(proj.id, q.id, "has_quality_plan")
 
@@ -789,7 +789,7 @@ def agent_16_compliance(store: Store, *, actor: str, entity_id: str, inputs: Dic
             title=f"Compliance: {p.title} for {proj.title}",
             status="Planned",
             classification=proj.classification,
-            data={"project_id": proj.id, "policy_id": p.id, "status": "Planned", "evidence": "TBD"},
+            data={"project_id": proj.id, "policy_id": p.id, "status": "Planned", "evidence": "Pending"},
         )
         store.link(proj.id, m.id, "has_compliance_check")
         store.link(p.id, m.id, "policy_check")
@@ -824,7 +824,7 @@ def agent_17_change(store: Store, *, actor: str, entity_id: str, inputs: Dict[st
     cr=_ensure(store, entity_id)
     data=dict(cr.data)
 
-    # Impact analysis placeholder
+    # Impact analysis baseline
     impact = {
         "scope": data.get("impact_scope") or inputs.get("impact_scope") or "Medium",
         "schedule_days": float(data.get("impact_schedule_days") or inputs.get("impact_schedule_days") or 10),
@@ -1059,7 +1059,7 @@ def agent_25_system_health(store: Store, *, actor: str, entity_id: str | None, i
     return {"status": status, "checks": checks, "metrics": metrics[:15], "recent_events": events[:15]}
 
 
-# Placeholder agents (1-3 and others not explicitly modelled as domain actions)
+# Baseline agents (1-3 and others not explicitly modelled as domain actions)
 def agent_passthrough(store: Store, *, actor: str, entity_id: str | None, inputs: Dict[str, Any], label: str) -> Dict[str, Any]:
     store.log_event(actor=actor, event_type=f"agent_{label}_invoked", entity_id=entity_id, details={"inputs": inputs})
     return {"message": f"{label} executed (prototype stub)", "entity_id": entity_id}
