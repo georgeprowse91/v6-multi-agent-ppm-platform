@@ -30,6 +30,9 @@ ALLOWED_TASK_MARKER = re.compile(r"\b(?:"
                           + r"|"
                           + _join("FI", "XME")
                           + r")\(#\d+\):")
+ALLOWED_CONTEXT_PATTERNS = [
+    re.compile(r"\bcheck-placeholders(?:\.py)?\b", re.IGNORECASE),
+]
 
 TEXT_EXTENSIONS = {
     ".md",
@@ -67,15 +70,21 @@ def _iter_files(root: Path):
     for path in root.rglob("*"):
         if any(part in IGNORED_DIRS for part in path.parts):
             continue
+        if path.name == "check-placeholders.py":
+            continue
         if path.is_file() and _is_text_file(path):
             yield path
 
 
-def _scan_file(path: Path, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
+def _scan_file(
+    path: Path, pattern: re.Pattern[str], allowlist: list[re.Pattern[str]] | None = None
+) -> list[tuple[int, str]]:
     matches = []
     lines = path.read_text(errors="ignore").splitlines()
     for idx, line in enumerate(lines, start=1):
         if pattern.search(line):
+            if allowlist and any(allowed.search(line) for allowed in allowlist):
+                continue
             matches.append((idx, line.strip()))
     return matches
 
@@ -92,7 +101,7 @@ def main() -> int:
                                    + r")\b")
 
     for path in _iter_files(root):
-        filler_hits = _scan_file(path, filler_regex)
+        filler_hits = _scan_file(path, filler_regex, ALLOWED_CONTEXT_PATTERNS)
         for line_no, line in filler_hits:
             violations.append(f"{path}:{line_no}: forbidden phrase found: {line}")
 

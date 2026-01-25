@@ -11,6 +11,45 @@ servers:
   - url: https://ppm.example.com
     description: Production base URL configured per deployment.
 paths:
+  /healthz:
+    get:
+      summary: Health probe
+      responses:
+        "200":
+          description: Service is responding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+  /version:
+    get:
+      summary: Service version metadata
+      responses:
+        "200":
+          description: Version metadata for the API service
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    example: multi-agent-ppm-api
+                  version:
+                    type: string
+                    example: 0.1.0
+                  build_sha:
+                    type: string
+                    example: unknown
   /:
     get:
       summary: API root

@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test lint format codegen dev-up dev-down run-agent run-connector clean run-api run-prototype docker-build docker-up docker-down deploy-dev deploy-prod
+.PHONY: help install install-dev test lint format codegen check-links check-placeholders dev-up dev-down run-agent run-connector clean run-api run-prototype docker-build docker-up docker-down deploy-dev deploy-prod
 
 # Default target
 .DEFAULT_GOAL := help
@@ -44,6 +44,12 @@ format: ## Format code with black and ruff
 
 codegen: ## Validate OpenAPI spec and generate summaries
 	$(PYTHON) -m tools.codegen.run
+
+check-links: ## Validate internal markdown links
+	$(PYTHON) scripts/check-links.py
+
+check-placeholders: ## Scan for placeholder phrases in docs and configs
+	$(PYTHON) scripts/check-placeholders.py
 
 dev-up: ## Start the local development stack (docker-compose)
 	bash tools/local-dev/dev_up.sh
@@ -138,7 +144,7 @@ k8s-delete: ## Delete Kubernetes deployment
 	kubectl delete -f infra/kubernetes/secrets.yaml
 
 # CI/CD
-ci-local: lint test ## Run CI checks locally
+ci-local: lint test check-links check-placeholders ## Run CI checks locally
 
 # Documentation
 docs-serve: ## Serve documentation locally
@@ -152,7 +158,7 @@ env-copy: ## Copy .env.example to .env
 	cp .env.example .env
 	@echo "Created .env file. Please update with your values."
 
-check: lint test ## Run all checks (lint + test)
+check: lint test check-links check-placeholders ## Run all checks (lint + test + docs scans)
 
 all: clean install-dev lint test ## Clean, install, lint, and test
 

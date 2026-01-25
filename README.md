@@ -139,6 +139,28 @@ make run-api
 make run-prototype
 ```
 
+### Verify the API is running
+
+```bash
+curl http://localhost:8000/healthz
+```
+
+Expected response:
+
+```json
+{"status":"ok","timestamp":"2024-01-01T12:00:00","version":"0.1.0"}
+```
+
+```bash
+curl http://localhost:8000/version
+```
+
+Expected response:
+
+```json
+{"service":"multi-agent-ppm-api","version":"0.1.0","build_sha":"unknown"}
+```
+
 ### Security Notes (Production Hardening)
 
 - The API CORS policy defaults to local origins for development. Set `ALLOWED_ORIGINS` in `.env` for
