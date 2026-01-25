@@ -1,0 +1,10 @@
+name: License Compliance
+
+on:
+  workflow_dispatch:
+
+jobs:
+  license:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "License compliance placeholder"

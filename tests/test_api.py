@@ -11,7 +11,7 @@ from httpx import ASGITransport, AsyncClient
 @pytest.fixture
 def app():
     """Create FastAPI app for testing."""
-    from src.api.main import app
+    from api.main import app
 
     return app
 
@@ -84,7 +84,7 @@ async def test_liveness_endpoint(app):
 @pytest.mark.asyncio
 async def test_list_agents_endpoint(app, mock_orchestrator):
     """Test listing all agents."""
-    with patch("src.api.main.orchestrator", mock_orchestrator):
+    with patch("api.main.orchestrator", mock_orchestrator):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/agents")
 
@@ -97,7 +97,7 @@ async def test_list_agents_endpoint(app, mock_orchestrator):
 @pytest.mark.asyncio
 async def test_query_endpoint(app, mock_orchestrator):
     """Test query processing endpoint."""
-    with patch("src.api.main.orchestrator", mock_orchestrator):
+    with patch("api.main.orchestrator", mock_orchestrator):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/query",

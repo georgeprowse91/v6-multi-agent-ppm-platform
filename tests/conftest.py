@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from tools.runtime_paths import bootstrap_runtime_paths
+
+bootstrap_runtime_paths()
+
 
 # Configure event loop for async tests
 @pytest.fixture(scope="session")
@@ -46,7 +50,7 @@ def mock_redis():
 @pytest.fixture
 async def orchestrator():
     """Create and initialize an orchestrator instance for testing."""
-    from src.core.orchestration.orchestrator import AgentOrchestrator
+    from orchestrator import AgentOrchestrator
 
     orch = AgentOrchestrator()
     await orch.initialize()

@@ -4,7 +4,7 @@ Tests for ApprovalWorkflowAgent input validation and lifecycle behavior.
 
 import pytest
 
-from src.agents.governance.workflows.approval_workflow_agent import ApprovalWorkflowAgent
+from approval_workflow_agent import ApprovalWorkflowAgent
 
 
 @pytest.mark.asyncio

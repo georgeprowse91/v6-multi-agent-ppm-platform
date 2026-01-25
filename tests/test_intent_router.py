@@ -4,7 +4,7 @@ Tests for Intent Router Agent
 
 import pytest
 
-from src.agents.core.orchestration.intent_router_agent import IntentRouterAgent
+from intent_router_agent import IntentRouterAgent
 
 
 @pytest.mark.asyncio

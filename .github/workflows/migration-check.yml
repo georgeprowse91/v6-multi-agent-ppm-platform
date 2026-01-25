@@ -1,0 +1,10 @@
+name: Migration Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migration-check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Migration check placeholder"

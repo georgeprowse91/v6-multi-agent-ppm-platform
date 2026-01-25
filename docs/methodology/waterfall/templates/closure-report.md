@@ -1,0 +1,3 @@
+# Closure Report
+
+Template placeholder.

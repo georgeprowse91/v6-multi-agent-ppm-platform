@@ -1,0 +1,10 @@
+name: Contract Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Contract tests placeholder"

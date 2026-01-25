@@ -28,7 +28,7 @@ install-dev: ## Install development dependencies
 	pre-commit install
 
 test: ## Run tests with coverage
-	$(PYTEST) tests/ -v --cov=src --cov-report=html --cov-report=term-missing
+	$(PYTEST) tests/ -v --cov=agents --cov=apps --cov=packages --cov-report=html --cov-report=term-missing
 
 test-quick: ## Run tests without coverage (faster)
 	$(PYTEST) tests/ -v
@@ -37,13 +37,13 @@ test-watch: ## Run tests in watch mode
 	$(PYTEST) tests/ -v --looponfail
 
 lint: ## Run linters
-	$(RUFF) check src/ tests/
-	$(BLACK) --check src/ tests/
-	mypy src/ --ignore-missing-imports
+	$(RUFF) check agents/ apps/ packages/ tests/
+	$(BLACK) --check agents/ apps/ packages/ tests/
+	mypy agents/ apps/ packages/ --ignore-missing-imports
 
 format: ## Format code with black and ruff
-	$(RUFF) check --fix src/ tests/
-	$(BLACK) src/ tests/
+	$(RUFF) check --fix agents/ apps/ packages/ tests/
+	$(BLACK) agents/ apps/ packages/ tests/
 
 clean: ## Clean build artifacts and cache
 	find . -type d -name __pycache__ -exec rm -rf {} +
@@ -52,19 +52,19 @@ clean: ## Clean build artifacts and cache
 	rm -rf build/ dist/ .coverage htmlcov/ .pytest_cache/
 
 run-api: ## Run the production API server
-	uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 --app-dir apps/api-gateway/src
 
 run-api-prod: ## Run the API server in production mode
-	uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --workers 4
+	uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 4 --app-dir apps/api-gateway/src
 
 run-prototype: ## Run the Streamlit prototype
-	cd apps/prototype && $(STREAMLIT) run streamlit_app.py
+	cd apps/web && $(STREAMLIT) run streamlit_app.py
 
 docker-build: ## Build Docker image
-	docker build -t multi-agent-ppm:latest .
+	docker build -t multi-agent-ppm:latest -f apps/api-gateway/Dockerfile .
 
 docker-build-prototype: ## Build prototype Docker image
-	docker build -t multi-agent-ppm-prototype:latest -f apps/prototype/Dockerfile apps/prototype
+	docker build -t multi-agent-ppm-web:latest -f apps/web/Dockerfile apps/web
 
 docker-up: ## Start all services with Docker Compose
 	$(DOCKER_COMPOSE) up --build
@@ -98,21 +98,21 @@ db-reset: ## Reset database (WARNING: destroys data)
 
 # Terraform commands
 tf-init: ## Initialize Terraform
-	cd infrastructure/terraform && terraform init
+	cd infra/terraform && terraform init
 
 tf-plan: ## Plan Terraform changes (dev)
-	cd infrastructure/terraform && terraform plan -var="environment=dev"
+	cd infra/terraform && terraform plan -var="environment=dev"
 
 tf-apply: ## Apply Terraform changes (dev)
-	cd infrastructure/terraform && terraform apply -var="environment=dev"
+	cd infra/terraform && terraform apply -var="environment=dev"
 
 tf-destroy: ## Destroy Terraform resources (dev)
-	cd infrastructure/terraform && terraform destroy -var="environment=dev"
+	cd infra/terraform && terraform destroy -var="environment=dev"
 
 # Kubernetes commands
 k8s-deploy: ## Deploy to Kubernetes
-	kubectl apply -f infrastructure/kubernetes/secrets.yaml
-	kubectl apply -f infrastructure/kubernetes/deployment.yaml
+	kubectl apply -f infra/kubernetes/secrets.yaml
+	kubectl apply -f infra/kubernetes/deployment.yaml
 
 k8s-status: ## Check Kubernetes deployment status
 	kubectl get pods -l app=ppm-api
@@ -122,8 +122,8 @@ k8s-logs: ## View Kubernetes logs
 	kubectl logs -f deployment/ppm-api
 
 k8s-delete: ## Delete Kubernetes deployment
-	kubectl delete -f infrastructure/kubernetes/deployment.yaml
-	kubectl delete -f infrastructure/kubernetes/secrets.yaml
+	kubectl delete -f infra/kubernetes/deployment.yaml
+	kubectl delete -f infra/kubernetes/secrets.yaml
 
 # CI/CD
 ci-local: lint test ## Run CI checks locally
@@ -132,8 +132,8 @@ ci-local: lint test ## Run CI checks locally
 docs-serve: ## Serve documentation locally
 	@echo "Documentation available at:"
 	@echo "  - README: file://$(PWD)/README.md"
-	@echo "  - Architecture: file://$(PWD)/docs_markdown/docs/architecture/"
-	@echo "  - Agent Specs: file://$(PWD)/docs_markdown/specs/agents/"
+	@echo "  - Architecture: file://$(PWD)/docs/architecture/"
+	@echo "  - Agent Specs: file://$(PWD)/agents/"
 
 # Development helpers
 env-copy: ## Copy .env.example to .env

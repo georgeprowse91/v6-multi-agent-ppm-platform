@@ -1,0 +1,10 @@
+name: IaC Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "IaC scan placeholder"

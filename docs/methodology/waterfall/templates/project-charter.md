@@ -1,0 +1,3 @@
+# Project Charter
+
+Template placeholder.

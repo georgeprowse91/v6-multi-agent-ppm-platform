@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/api-gateway/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -21,8 +21,11 @@ services:
       redis:
         condition: service_started
     volumes:
-      - ./src:/app/src
-      - ./configs:/app/configs
+      - ./apps/api-gateway/src:/app/apps/api-gateway/src
+      - ./apps/orchestration-service/src:/app/apps/orchestration-service/src
+      - ./agents:/app/agents
+      - ./tools:/app/tools
+      - ./config:/app/config
     networks:
       - ppm-network
     restart: unless-stopped
@@ -68,7 +71,7 @@ services:
   # Web UI (placeholder for React/Vue frontend)
   # ui:
   #   build:
-  #     context: ./src/ui
+  #     context: ./apps/web
   #     dockerfile: Dockerfile
   #   ports:
   #     - "3000:3000"
@@ -81,14 +84,14 @@ services:
   #   restart: unless-stopped
 
   # Streamlit Prototype (for testing/demo)
-  prototype:
+  web:
     build:
-      context: ./apps/prototype
+      context: ./apps/web
       dockerfile: Dockerfile
     ports:
       - "8501:8501"
     volumes:
-      - ./apps/prototype:/app
+      - ./apps/web:/app
       - ./docs:/docs:ro
     networks:
       - ppm-network

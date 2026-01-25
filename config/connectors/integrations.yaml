@@ -1,0 +1,129 @@
+# Integration Connector Configurations
+# See: docs/connectors/overview.md
+
+# Project Management Systems
+planview:
+  enabled: false
+  base_url: "${PLANVIEW_API_URL}"
+  auth:
+    type: "oauth2"
+    token: "${PLANVIEW_API_TOKEN}"
+  sync:
+    enabled: true
+    interval_minutes: 30
+    entities:
+      - projects
+      - resources
+      - financials
+
+jira:
+  enabled: false
+  base_url: "${JIRA_URL}"
+  auth:
+    type: "api_token"
+    email: "${JIRA_EMAIL}"
+    token: "${JIRA_API_TOKEN}"
+  sync:
+    enabled: true
+    interval_minutes: 15
+    entities:
+      - projects
+      - issues
+      - sprints
+  field_mapping:
+    project_key: "project.id"
+    issue_key: "task.id"
+    summary: "task.name"
+
+azure_devops:
+  enabled: false
+  organization: "${AZURE_DEVOPS_ORG}"
+  auth:
+    type: "pat"
+    token: "${AZURE_DEVOPS_PAT}"
+  sync:
+    enabled: true
+    interval_minutes: 15
+
+# Financial Systems
+sap:
+  enabled: false
+  base_url: "${SAP_API_URL}"
+  auth:
+    type: "oauth2"
+  entities:
+    - projects
+    - cost_centers
+    - actual_costs
+
+workday:
+  enabled: false
+  base_url: "${WORKDAY_API_URL}"
+  auth:
+    type: "oauth2"
+    client_id: "${WORKDAY_CLIENT_ID}"
+    client_secret: "${WORKDAY_CLIENT_SECRET}"
+  entities:
+    - workers
+    - cost_centers
+    - suppliers
+
+# Collaboration Tools
+slack:
+  enabled: false
+  auth:
+    type: "bot_token"
+    token: "${SLACK_BOT_TOKEN}"
+  features:
+    notifications: true
+    commands: true
+    interactive_messages: true
+
+teams:
+  enabled: false
+  auth:
+    type: "app_credentials"
+    client_id: "${TEAMS_CLIENT_ID}"
+    client_secret: "${TEAMS_CLIENT_SECRET}"
+    tenant_id: "${TEAMS_TENANT_ID}"
+  features:
+    notifications: true
+    cards: true
+
+# Document Management
+sharepoint:
+  enabled: false
+  site_url: "${SHAREPOINT_SITE_URL}"
+  auth:
+    type: "azure_ad"
+  document_library: "Project Documents"
+
+# CRM & Demand Systems
+salesforce:
+  enabled: false
+  instance_url: "${SALESFORCE_INSTANCE_URL}"
+  auth:
+    type: "oauth2"
+    client_id: "${SALESFORCE_CLIENT_ID}"
+    client_secret: "${SALESFORCE_CLIENT_SECRET}"
+  objects:
+    - Opportunity
+    - Case
+
+# General Integration Settings
+integration_defaults:
+  retry_policy:
+    max_attempts: 3
+    backoff_multiplier: 2
+    initial_backoff_seconds: 2
+  timeout_seconds: 30
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+  error_handling:
+    log_errors: true
+    alert_on_failure: true
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      timeout_seconds: 60

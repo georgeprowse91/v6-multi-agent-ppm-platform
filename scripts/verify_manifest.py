@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify that all files listed in manifest/MANIFEST.csv match their recorded SHA-256.
+"""Verify that all files listed in data/seed/manifest.csv match their recorded SHA-256.
 
 Usage:
   python scripts/verify_manifest.py
@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = REPO_ROOT / 'manifest' / 'MANIFEST.csv'
+MANIFEST = REPO_ROOT / 'data' / 'seed' / 'manifest.csv'
 
 
 def sha256_file(path: Path, chunk_size: int = 1024 * 1024) -> str:

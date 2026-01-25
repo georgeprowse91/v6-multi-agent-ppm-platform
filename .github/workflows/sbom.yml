@@ -1,0 +1,10 @@
+name: SBOM Generation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "SBOM generation placeholder"

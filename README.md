@@ -25,11 +25,11 @@ The Multi-Agent PPM Platform is an enterprise-grade, AI-native solution that tra
 
 ## 📚 Documentation
 
-- **[Solution Overview](docs_markdown/docs/overview/Solution%20Overview.md)** - Product vision and value proposition
-- **[Architecture Documentation](docs_markdown/docs/architecture/)** - System design and technical architecture
-- **[Agent Specifications](docs_markdown/specs/agents/README.md)** - Detailed specs for all 25 agents
-- **[Product Requirements](docs_markdown/docs/product/requirements/)** - Functional and non-functional requirements
-- **[Integration Guides](docs_markdown/integrations/specs/)** - Connector specifications
+- **[Solution Overview](docs/product/solution-overview.md)** - Product vision and value proposition
+- **[Architecture Documentation](docs/architecture/)** - System design and technical architecture
+- **[Agent Specifications](agents/README.md)** - Detailed specs for all 25 agents
+- **[Product Requirements](docs/product/)** - Functional and non-functional requirements
+- **[Integration Guides](docs/connectors/)** - Connector specifications
 - **[API Documentation](http://localhost:8000/api/docs)** - Interactive API docs (when running)
 
 ## 🚀 Quick Start
@@ -62,7 +62,7 @@ This will:
 Services will be available at:
 - **API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/api/docs
-- **Streamlit Prototype**: http://localhost:8501
+- **Web Prototype**: http://localhost:8501
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
 
@@ -91,10 +91,10 @@ See [`.env.example`](.env.example) for all configuration options.
 2. **`pytest: error: unrecognized arguments: --cov...`**
    - You’re missing dev dependencies. Install them with `make install-dev` (or `pip install -e .[dev]`),
      then re-run `make test`.
-3. **`Address already in use` when starting the API or prototype**
+3. **`Address already in use` when starting the API or web prototype**
    - Stop the conflicting process or change ports:
-     - API: `uvicorn src.api.main:app --port 8001`
-     - Prototype: `streamlit run apps/prototype/streamlit_app.py --server.port 8502`
+     - API: `uvicorn api.main:app --port 8001 --app-dir apps/api-gateway/src`
+     - Prototype: `streamlit run apps/web/streamlit_app.py --server.port 8502`
 
 ## 🛠️ Development
 
@@ -135,7 +135,7 @@ make docker-down
 # Terminal 1: Run API
 make run-api
 
-# Terminal 2: Run Streamlit prototype
+# Terminal 2: Run web prototype
 make run-prototype
 ```
 
@@ -177,7 +177,7 @@ make check
 # Build production API image
 make docker-build
 
-# Build prototype image
+# Build web image
 make docker-build-prototype
 ```
 
@@ -196,13 +196,13 @@ make tf-plan
 make tf-apply
 ```
 
-See [infrastructure/README.md](infrastructure/README.md) for detailed deployment instructions.
+See [infra/README.md](infra/README.md) for detailed deployment instructions.
 
 #### 2. Deploy to Kubernetes
 
 ```bash
 # Configure secrets
-cp infrastructure/kubernetes/secrets.yaml.example infrastructure/kubernetes/secrets.yaml
+cp infra/kubernetes/secrets.yaml.example infra/kubernetes/secrets.yaml
 # Edit secrets.yaml with your values
 
 # Deploy
@@ -230,29 +230,16 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
 
 ```
 multi-agent-ppm-platform/
-├── src/                     # Production source code
-│   ├── agents/             # 25 agent implementations
-│   │   ├── core/          # Orchestration agents
-│   │   ├── portfolio/     # Portfolio management agents
-│   │   ├── delivery/      # Project delivery agents
-│   │   ├── governance/    # Governance & compliance agents
-│   │   ├── operations/    # Operations agents
-│   │   └── platform/      # Platform agents
-│   ├── connectors/        # External system integrations
-│   ├── core/              # Shared utilities
-│   ├── api/               # FastAPI application
-│   └── ui/                # Web UI (future)
-│
-├── apps/prototype/        # Streamlit prototype
+├── apps/                  # Deployable apps (API gateway, web)
+├── agents/                # Agent implementations + runtime SDK
+├── connectors/            # Connector implementations
+├── packages/              # Shared libraries
+├── services/              # Supporting backend services
+├── docs/                  # Product, architecture, and ops docs
+├── config/                # Environment and RBAC config
+├── infra/                 # IaC and deployment assets
 ├── tests/                 # Test suite
-├── configs/               # Configuration files
-├── infrastructure/        # IaC and deployment configs
-│   ├── terraform/        # Azure infrastructure
-│   └── kubernetes/       # K8s manifests
-│
-├── docs/                  # Original documentation (.docx)
-├── docs_markdown/         # Markdown documentation
-└── specs/                 # Agent specifications
+└── tools/                 # Dev tooling and helpers
 ```
 
 ## 🤖 Agents
@@ -298,7 +285,7 @@ The platform includes 25 specialized agents organized by domain:
 ### Support (1)
 - **Agent 3**: Approval Workflow
 
-See [docs_markdown/specs/agents/README.md](docs_markdown/specs/agents/README.md) for detailed specifications.
+See [agents/README.md](agents/README.md) for detailed specifications.
 
 ## 🔌 Integrations
 
@@ -311,13 +298,13 @@ Connectors for enterprise systems:
 - **CRM**: Salesforce, ServiceNow
 - **Identity**: Azure AD, Okta
 
-See [Connector Specifications](docs_markdown/integrations/specs/Connector%20&%20Integration%20Specifications.md).
+See [Connector Specifications](docs/connectors/overview.md).
 
 ## 📖 Additional Documentation
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guide
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Architecture overview
-- **[Change Management](docs_markdown/docs/adoption/change-management/)** - Adoption & training
+- **[Docs Hub](docs/README.md)** - Product, architecture, runbooks, and compliance
 - **[API Reference](http://localhost:8000/api/docs)** - Interactive API documentation
 
 ## 🧪 Testing
@@ -327,7 +314,7 @@ See [Connector Specifications](docs_markdown/integrations/specs/Connector%20&%20
 pytest
 
 # With coverage report
-pytest --cov=src --cov-report=html
+pytest --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=html
 
 # View coverage
 open htmlcov/index.html
@@ -343,7 +330,7 @@ Current coverage: **TBD%** (target: >80%)
 - All data encrypted at rest and in transit
 - SOC 2 / ISO 27001 compliance ready
 
-See [Security Architecture](docs_markdown/docs/security/Security%20Architecture.md).
+See [Security Architecture](docs/architecture/security-architecture.md).
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## 📊 Monitoring & Observability
@@ -353,7 +340,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - Distributed tracing with OpenTelemetry
 - Custom dashboards for agent performance
 
-See [Observability & Monitoring](docs_markdown/docs/operations/observability/Observability%20&%20Monitoring.md).
+See [Observability & Monitoring](docs/architecture/observability-architecture.md).
 
 ## 🤝 Contributing
 
@@ -372,12 +359,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙋 Support
 
 - **Issues**: [GitHub Issues](https://github.com/your-org/multi-agent-ppm-platform/issues)
-- **Documentation**: [docs_markdown/](docs_markdown/)
+- **Documentation**: [docs/](docs/)
 - **Discussions**: [GitHub Discussions](https://github.com/your-org/multi-agent-ppm-platform/discussions)
 
 ## 🗺️ Roadmap
 
-See [Implementation Roadmap](docs_markdown/docs/product/roadmap/Implementation%20Roadmap%20&%20Resource%20Plan.md) for the full development plan.
+See [Implementation Roadmap](docs/product/success-metrics.md) for the full development plan.
 
 **Current Status**: v0.1.0 - Alpha
 - ✅ Core orchestration agents implemented

@@ -1,0 +1,3 @@
+# Hybrid Charter
+
+Template placeholder.

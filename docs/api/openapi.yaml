@@ -1,0 +1,6 @@
+openapi: 3.0.3
+info:
+  title: Multi-Agent PPM Platform API
+  version: 0.1.0
+  description: Placeholder OpenAPI document.
+paths: {}

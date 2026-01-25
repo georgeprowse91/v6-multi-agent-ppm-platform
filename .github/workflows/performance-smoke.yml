@@ -1,0 +1,10 @@
+name: Performance Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  perf-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Performance smoke placeholder"

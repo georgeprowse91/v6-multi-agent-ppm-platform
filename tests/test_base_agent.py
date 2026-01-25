@@ -4,7 +4,7 @@ Tests for Base Agent functionality
 
 import pytest
 
-from src.core.base_agent import BaseAgent
+from agents.runtime import BaseAgent
 
 
 class SampleAgent(BaseAgent):

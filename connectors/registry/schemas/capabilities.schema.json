@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Connector Capabilities",
+  "type": "object",
+  "properties": {
+    "read": {"type": "array", "items": {"type": "string"}},
+    "write": {"type": "array", "items": {"type": "string"}}
+  }
+}

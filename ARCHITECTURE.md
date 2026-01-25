@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This document provides a high-level overview of the Multi-Agent PPM Platform architecture. For detailed technical specifications, see the [comprehensive architecture documentation](docs_markdown/docs/architecture/).
+This document provides a high-level overview of the Multi-Agent PPM Platform architecture. For detailed technical specifications, see the [comprehensive architecture documentation](docs/architecture/).
 
 ## Table of Contents
 
@@ -296,7 +296,7 @@ Initialize → Validate → Process → Respond → Cleanup
 - **Audit Logging**: Azure Monitor, Application Insights
 - **Data Classification**: Sensitive data tagging and access controls
 
-See [Security Architecture](docs_markdown/docs/security/Security%20Architecture.md) for details.
+See [Security Architecture](docs/architecture/security-architecture.md) for details.
 
 ## Deployment Architecture
 
@@ -355,7 +355,7 @@ Platform → External systems via:
 - Rate limiting and retry policies
 - Circuit breakers for fault tolerance
 
-See [Integration Architecture](docs_markdown/docs/architecture/integrations/Integration%20Architecture.md) for connector specifications.
+See [Integration Architecture](docs/architecture/integrations/Integration%20Architecture.md) for connector specifications.
 
 ## Performance Considerations
 
@@ -384,14 +384,14 @@ See [Integration Architecture](docs_markdown/docs/architecture/integrations/Inte
 - **Custom Dashboards**: Agent performance metrics
 - **Alerting**: Proactive issue detection
 
-See [Observability & Monitoring](docs_markdown/docs/operations/observability/Observability%20&%20Monitoring.md).
+See [Observability & Monitoring](docs/architecture/observability-architecture.md).
 
 ## Further Reading
 
-- **[Detailed Architecture](docs_markdown/docs/architecture/detailed/)** - In-depth technical specifications
-- **[Data Architecture](docs_markdown/docs/architecture/data/Data%20Architecture.md)** - Data models and flows
-- **[Infrastructure Architecture](docs_markdown/docs/architecture/infrastructure/)** - Deployment and infrastructure
-- **[Agent Specifications](docs_markdown/specs/agents/README.md)** - Individual agent details
+- **[Detailed Architecture](docs/architecture/detailed/)** - In-depth technical specifications
+- **[Data Architecture](docs/architecture/data/Data%20Architecture.md)** - Data models and flows
+- **[Deployment Architecture](docs/architecture/deployment-architecture.md)** - Deployment and infrastructure
+- **[Agent Specifications](agents/README.md)** - Individual agent details
 - **[API Documentation](http://localhost:8000/api/docs)** - Interactive API reference
 
 ---

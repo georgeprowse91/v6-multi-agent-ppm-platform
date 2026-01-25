@@ -280,7 +280,7 @@ tests/
 
 ```python
 import pytest
-from src.agents.core.orchestration.intent_router_agent import IntentRouterAgent
+from intent_router_agent import IntentRouterAgent
 
 @pytest.mark.asyncio
 async def test_intent_classification():
@@ -407,19 +407,20 @@ Closes #123
 1. Create agent file in appropriate domain:
 
 ```bash
-touch src/agents/portfolio/your-agent/your_agent.py
+mkdir -p agents/portfolio-management/agent-XX-your-agent/src
+touch agents/portfolio-management/agent-XX-your-agent/src/your_agent.py
 ```
 
 2. Implement using BaseAgent template:
 
 ```python
-from src.core.base_agent import BaseAgent
+from agents.runtime import BaseAgent
 
 class YourAgent(BaseAgent):
     """
     Your Agent - Brief description
 
-    See specification: docs_markdown/specs/agents/README.md
+    See specification: agents/README.md
     """
 
     async def process(self, input_data: dict) -> dict:
@@ -438,8 +439,8 @@ touch tests/test_your_agent.py
 5. Document capabilities and integration points
 
 See existing agents for examples:
-- `src/agents/core/orchestration/intent_router_agent.py`
-- `src/agents/portfolio/intake/demand_intake_agent.py`
+- `agents/core-orchestration/agent-01-intent-router/src/intent_router_agent.py`
+- `agents/portfolio-management/agent-04-demand-intake/src/demand_intake_agent.py`
 
 ## Connector Development
 
@@ -448,8 +449,8 @@ See existing agents for examples:
 1. Create connector directory:
 
 ```bash
-mkdir -p src/connectors/your-system
-touch src/connectors/your-system/connector.py
+mkdir -p connectors/your-system/src
+touch connectors/your-system/src/connector.py
 ```
 
 2. Implement connector interface:
@@ -470,7 +471,7 @@ class YourSystemConnector:
 3. Add configuration:
 
 ```yaml
-# configs/connectors/integrations.yaml
+# config/connectors/integrations.yaml
 your_system:
   enabled: false
   base_url: "${YOUR_SYSTEM_URL}"
@@ -482,13 +483,13 @@ your_system:
 
 4. Add tests and documentation
 
-See [Connector Specifications](docs_markdown/integrations/specs/Connector%20&%20Integration%20Specifications.md) for detailed requirements.
+See [Connector Specifications](docs/connectors/overview.md) for detailed requirements.
 
 ## Getting Help
 
 - **Questions**: Open a [Discussion](https://github.com/your-org/multi-agent-ppm-platform/discussions)
 - **Bugs**: Open an [Issue](https://github.com/your-org/multi-agent-ppm-platform/issues)
-- **Documentation**: Check [docs_markdown/](docs_markdown/)
+- **Documentation**: Check [docs/](docs/)
 
 ## Recognition
 

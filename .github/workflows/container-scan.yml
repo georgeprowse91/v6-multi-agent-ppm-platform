@@ -1,0 +1,10 @@
+name: Container Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  container-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Container scan placeholder"

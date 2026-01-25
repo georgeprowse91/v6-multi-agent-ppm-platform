@@ -1,0 +1,10 @@
+name: Security Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Security scan placeholder"

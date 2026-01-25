@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repair markdown lead-ins in docs_markdown/.
+"""Repair markdown lead-ins in docs/.
 
 Rules:
 - Skip YAML frontmatter and fenced code blocks.
@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
-DOCS_ROOT = Path("docs_markdown")
+DOCS_ROOT = Path("docs")
 
 LIST_PREFIX_RE = re.compile(r"^(\s*(?:[-*+]\s+|\d+\.\s+))(.*)$")
 
