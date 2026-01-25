@@ -17,7 +17,7 @@ Each pillar contains narratives and concrete artifacts (schemas, manifests, YAML
 
 ## Golden path (non-coder reading order)
 
-1. **Solution Overview** → [docs/product/solution-overview.md](product/solution-overview.md)
+1. **Solution Overview** → [docs/product/solution-overview/README.md](product/solution-overview/README.md)
 2. **Solution Index (current-state diagnosis)** → [docs/solution-index.md](solution-index.md)
 3. **System Context & Architecture** → [docs/architecture/system-context.md](architecture/system-context.md)
 4. **Agent Catalog + Orchestration** → [docs/agents/agent-catalog.md](agents/agent-catalog.md)

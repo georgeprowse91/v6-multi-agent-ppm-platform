@@ -80,4 +80,4 @@ Expected output: the three agent folders.
 ## Related docs
 
 - [Agent Orchestration](../docs/architecture/agent-orchestration.md)
-- [Solution Overview](../docs/product/solution-overview.md)
+- [Solution Overview](../docs/product/solution-overview/README.md)

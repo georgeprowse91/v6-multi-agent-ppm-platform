@@ -19,7 +19,7 @@ The Multi-Agent PPM Platform documentation is organized by solution pillars (arc
 | Data Model, Quality & Lineage | `docs/architecture/data-architecture.md`, `docs/data/`, `data/schemas/` | Canonical schemas, data architecture | Implemented (schemas + example lineage/quality) |
 | Security & Compliance | `docs/architecture/security-architecture.md`, `docs/compliance/` | RBAC/ABAC, threat model, retention | Implemented (docs; enforcement planned) |
 | Observability/Resilience/Performance | `docs/architecture/observability-architecture.md`, `docs/architecture/resilience-architecture.md`, `docs/architecture/performance-architecture.md` | Monitoring, failure modes, performance targets | Implemented (targets documented) |
-| Product & UX | `docs/product/solution-overview.md`, `docs/product/` | Vision, requirements, personas | Partial (needs repo-specific walkthroughs) |
+| Product & UX | `docs/product/solution-overview/README.md`, `docs/product/` | Vision, requirements, personas | Partial (needs repo-specific walkthroughs) |
 | Deployment & Ops | `infra/README.md`, `docs/runbooks/` | Terraform and runbooks | Partial (DR narrative + env matrix needed) |
 
 ## Missing/weak pillars (targeted in this blueprint)
@@ -52,5 +52,5 @@ Expected output: no lines printed and exit code 0.
 ## Related docs
 
 - [Docs Hub](README.md)
-- [Solution Overview](product/solution-overview.md)
+- [Solution Overview](product/solution-overview/README.md)
 - [Architecture Docs](architecture/README.md)
