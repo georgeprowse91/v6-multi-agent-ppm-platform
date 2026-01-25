@@ -5,7 +5,7 @@ Purpose:
 Orchestrates complex workflows and processes across the PPM platform, providing dynamic
 workflow execution, state management, and human task coordination.
 
-Specification: docs_markdown/specs/agents/platform/workflow-process-engine/Agent 24 Workflow & Process Engine Agent.md
+Specification: docs_markdown/specs/agents/Agent 24 Workflow & Process Engine Agent.md
 """
 
 from datetime import datetime

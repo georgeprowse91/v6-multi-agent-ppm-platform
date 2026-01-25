@@ -6,7 +6,7 @@ Proactively identifies, assesses and monitors risks across projects, programs an
 Maintains a central risk register, quantifies probability and impact, recommends mitigation
 strategies and continuously tracks risk status.
 
-Specification: docs_markdown/specs/agents/operations/risk-management/Agent 15 Risk Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 15 Risk Management Agent.md
 """
 
 from datetime import datetime

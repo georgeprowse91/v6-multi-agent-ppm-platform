@@ -27,7 +27,7 @@ The Multi-Agent PPM Platform is an enterprise-grade, AI-native solution that tra
 
 - **[Solution Overview](docs_markdown/docs/overview/Solution%20Overview.md)** - Product vision and value proposition
 - **[Architecture Documentation](docs_markdown/docs/architecture/)** - System design and technical architecture
-- **[Agent Specifications](docs_markdown/specs/agents/)** - Detailed specs for all 25 agents
+- **[Agent Specifications](docs_markdown/specs/agents/README.md)** - Detailed specs for all 25 agents
 - **[Product Requirements](docs_markdown/docs/product/requirements/)** - Functional and non-functional requirements
 - **[Integration Guides](docs_markdown/integrations/specs/)** - Connector specifications
 - **[API Documentation](http://localhost:8000/api/docs)** - Interactive API docs (when running)
@@ -298,7 +298,7 @@ The platform includes 25 specialized agents organized by domain:
 ### Support (1)
 - **Agent 3**: Approval Workflow
 
-See [docs_markdown/specs/agents/](docs_markdown/specs/agents/) for detailed specifications.
+See [docs_markdown/specs/agents/README.md](docs_markdown/specs/agents/README.md) for detailed specifications.
 
 ## 🔌 Integrations
 

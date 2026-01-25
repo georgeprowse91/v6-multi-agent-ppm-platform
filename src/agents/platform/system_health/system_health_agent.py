@@ -5,7 +5,7 @@ Purpose:
 Ensures the operational reliability, performance and availability of the PPM platform through
 comprehensive monitoring, alerting, and proactive maintenance.
 
-Specification: docs_markdown/specs/agents/platform/health-monitoring/Agent 25 System Health & Monitoring Agent.md
+Specification: docs_markdown/specs/agents/Agent 25 System Health & Monitoring Agent.md
 """
 
 from datetime import datetime

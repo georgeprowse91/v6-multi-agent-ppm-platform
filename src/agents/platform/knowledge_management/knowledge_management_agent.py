@@ -5,7 +5,7 @@ Purpose:
 Serves as the central hub for creating, storing, classifying, retrieving and sharing
 documents, decisions and lessons learned across the project portfolio.
 
-Specification: docs_markdown/specs/agents/platform/knowledge-documentation/Agent 19 Knowledge & Document Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 19 Knowledge & Document Management Agent.md
 """
 
 from datetime import datetime

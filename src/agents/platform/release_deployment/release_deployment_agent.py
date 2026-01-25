@@ -5,7 +5,7 @@ Purpose:
 Manages the planning, coordination and execution of software and project deliverable releases
 across environments. Ensures controlled deployments with minimal risk and downtime.
 
-Specification: docs_markdown/specs/agents/platform/release-deployment/Agent 18 Release & Deployment Agent.md
+Specification: docs_markdown/specs/agents/Agent 18 Release & Deployment Agent.md
 """
 
 from datetime import datetime, timedelta

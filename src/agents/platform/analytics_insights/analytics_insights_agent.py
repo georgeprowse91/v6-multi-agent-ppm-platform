@@ -5,7 +5,7 @@ Purpose:
 Delivers comprehensive analytics, reporting and decision-support across the entire project
 portfolio through advanced analytics and machine learning.
 
-Specification: docs_markdown/specs/agents/platform/analytics-insights/Agent 22 Analytics & Insights Agent.md
+Specification: docs_markdown/specs/agents/Agent 22 Analytics & Insights Agent.md
 """
 
 from datetime import datetime, timedelta

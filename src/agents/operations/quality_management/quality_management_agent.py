@@ -6,7 +6,7 @@ Ensures deliverables meet defined quality standards and satisfy stakeholder expe
 Provides tools for planning quality activities, defining metrics, managing test cases and defects,
 performing reviews and audits, and continuously improving processes.
 
-Specification: docs_markdown/specs/agents/operations/quality-management/Agent 14 Quality Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 14 Quality Management Agent.md
 """
 
 from datetime import datetime

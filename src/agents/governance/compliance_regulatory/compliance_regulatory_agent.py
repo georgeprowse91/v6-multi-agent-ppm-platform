@@ -6,7 +6,7 @@ Ensures projects, programs and portfolios adhere to internal policies, external 
 and industry standards. Manages compliance requirements, monitors adherence, and facilitates
 audits and evidence collection.
 
-Specification: docs_markdown/specs/agents/governance/compliance-regulatory/Agent 16 Compliance & Regulatory Agent.md
+Specification: docs_markdown/specs/agents/Agent 16 Compliance & Regulatory Agent.md
 """
 
 from datetime import datetime, timedelta

@@ -6,7 +6,7 @@ Streamlines end-to-end procurement lifecycle from vendor onboarding and contract
 to purchase order processing and invoice reconciliation. Ensures external spending aligns
 with organizational policies and supports vendor performance monitoring.
 
-Specification: docs_markdown/specs/agents/operations/vendor-procurement/Agent 13 Vendor & Procurement Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 13 Vendor & Procurement Management Agent.md
 """
 
 from datetime import datetime

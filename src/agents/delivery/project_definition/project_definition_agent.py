@@ -5,7 +5,7 @@ Purpose:
 Establishes foundational artifacts for a project including project charter, scope statement,
 work breakdown structure (WBS) and requirements. Guides teams through initiation and planning.
 
-Specification: docs_markdown/specs/agents/delivery/project-definition/Agent 8 Project Definition & Scope Agent.md
+Specification: docs_markdown/specs/agents/Agent 8 Project Definition & Scope Agent.md
 """
 
 from datetime import datetime

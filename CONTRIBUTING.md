@@ -419,7 +419,7 @@ class YourAgent(BaseAgent):
     """
     Your Agent - Brief description
 
-    See specification: docs_markdown/specs/agents/...
+    See specification: docs_markdown/specs/agents/README.md
     """
 
     async def process(self, input_data: dict) -> dict:

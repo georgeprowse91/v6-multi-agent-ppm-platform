@@ -6,7 +6,7 @@ Coordinates groups of related projects (programs) to achieve shared strategic ob
 and realize synergies. Manages inter-project dependencies, plans integrated roadmaps
 and monitors program health.
 
-Specification: docs_markdown/specs/agents/delivery/program-management/Agent 7 Program Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 7 Program Management Agent.md
 """
 
 from datetime import datetime

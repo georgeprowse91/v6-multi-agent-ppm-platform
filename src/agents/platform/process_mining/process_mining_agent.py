@@ -5,7 +5,7 @@ Purpose:
 Facilitates ongoing improvement by analyzing execution data to uncover inefficiencies,
 bottlenecks and deviations, and by managing improvement initiatives.
 
-Specification: docs_markdown/specs/agents/platform/continuous-improvement-process-mining/Agent 20 Continuous Improvement & Process Mining Agent.md
+Specification: docs_markdown/specs/agents/Agent 20 Continuous Improvement & Process Mining Agent.md
 """
 
 from datetime import datetime

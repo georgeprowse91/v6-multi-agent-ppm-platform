@@ -5,7 +5,7 @@ Purpose:
 Manages project progression through lifecycle stages, enforces methodology-specific
 governance gates and continuously monitors project health.
 
-Specification: docs_markdown/specs/agents/delivery/lifecycle-governance/Agent 9 Project Lifecycle & Governance Agent.md
+Specification: docs_markdown/specs/agents/Agent 9 Project Lifecycle & Governance Agent.md
 """
 
 from datetime import datetime

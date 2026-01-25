@@ -5,7 +5,7 @@ Purpose:
 Manages the composition and allocation of the project and program portfolio.
 Maximizes strategic value and business outcomes while respecting resource and budget constraints.
 
-Specification: docs_markdown/specs/agents/portfolio/strategy-optimization/Agent 6 Portfolio Strategy & Optimization Agent.md
+Specification: docs_markdown/specs/agents/Agent 6 Portfolio Strategy & Optimization Agent.md
 """
 
 from datetime import datetime

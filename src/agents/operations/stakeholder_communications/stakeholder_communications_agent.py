@@ -6,7 +6,7 @@ Manages stakeholder identification, classification, engagement planning and comm
 execution across the portfolio. Ensures stakeholders receive the right information at the
 right time through appropriate channels, fostering engagement and monitoring sentiment.
 
-Specification: docs_markdown/specs/agents/operations/stakeholder-communications/Agent 21 Stakeholder & Communications Management Agent.md
+Specification: docs_markdown/specs/agents/Agent 21 Stakeholder & Communications Management Agent.md
 """
 
 from datetime import datetime, timedelta

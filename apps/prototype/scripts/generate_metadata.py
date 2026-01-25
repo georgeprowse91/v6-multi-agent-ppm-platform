@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Generate prototype metadata JSON from the repo's source DOCX files.
+"""Generate prototype metadata JSON from the repo's source docs (DOCX/Markdown).
 
 Outputs:
 - apps/prototype/data/requirements.json
@@ -72,22 +72,21 @@ def parse_prd(prd_path: Path) -> Dict[str, Any]:
 
 
 def parse_agent_doc(path: Path) -> Dict[str, Any]:
-    doc = Document(str(path))
+    content = path.read_text(encoding="utf-8")
     title = None
     sections = []
     current = None
     buf: List[str] = []
-    for p in doc.paragraphs:
-        txt = (p.text or "").strip()
+    for raw_line in content.splitlines():
+        txt = raw_line.strip()
         if not txt:
             continue
-        style = p.style.name if p.style else ""
-        if style == "Heading 1":
-            title = txt
-        elif style == "Heading 2":
+        if txt.startswith("# "):
+            title = txt.lstrip("# ").strip()
+        elif txt.startswith("## "):
             if current:
                 sections.append({"heading": current, "content": buf})
-            current = txt
+            current = txt.lstrip("# ").strip()
             buf = []
         else:
             if current:
@@ -96,7 +95,12 @@ def parse_agent_doc(path: Path) -> Dict[str, Any]:
         sections.append({"heading": current, "content": buf})
     m = re.search(r"Agent\s+(\d+)", title or path.name)
     agent_id = int(m.group(1)) if m else 0
-    return {"id": agent_id, "title": title or path.stem, "sections": sections, "source_file": str(path.relative_to(repo_root()))}
+    return {
+        "id": agent_id,
+        "title": title or path.stem,
+        "sections": sections,
+        "source_file": str(path.relative_to(repo_root())),
+    }
 
 
 def main() -> int:
@@ -113,9 +117,12 @@ def main() -> int:
     (out_dir / "requirements.json").write_text(json.dumps(requirements, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # Agents
-    agent_docs = sorted(root.glob("specs/agents/**/*.docx"))
+    agent_docs = sorted(root.glob("docs_markdown/specs/agents/*.md"))
     agents = [parse_agent_doc(p) for p in agent_docs]
-    agents_payload = {"source_dir": "specs/agents/**/*.docx", "agents": sorted(agents, key=lambda a: a.get("id", 0))}
+    agents_payload = {
+        "source_dir": "docs_markdown/specs/agents/*.md",
+        "agents": sorted(agents, key=lambda a: a.get("id", 0)),
+    }
     (out_dir / "agents.json").write_text(json.dumps(agents_payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"Wrote {out_dir / 'requirements.json'}")

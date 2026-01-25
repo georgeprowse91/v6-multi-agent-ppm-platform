@@ -5,7 +5,7 @@ Purpose:
 The Intent Router Agent classifies user queries and determines which domain agents
 should handle the request.
 
-Specification: docs_markdown/specs/agents/core/orchestration/Agent 1 Intent Router Agent.md
+Specification: docs_markdown/specs/agents/Agent 1 Intent Router Agent.md
 """
 
 from typing import Any
