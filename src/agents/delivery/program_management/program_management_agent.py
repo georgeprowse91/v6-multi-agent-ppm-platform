@@ -590,7 +590,7 @@ class ProgramManagementAgent(BaseAgent):
         """Query project schedules from Schedule & Planning Agent."""
         # TODO: Implement integration with Agent 10
         # Placeholder
-        return {pid: {"start": "2024-01-01", "end": "2024-12-31"} for pid in project_ids}
+        return {pid: {"start": "2026-01-01", "end": "2026-12-31"} for pid in project_ids}
 
     async def _identify_dependencies(self, project_ids: list[str]) -> list[dict[str, Any]]:
         """Identify inter-project dependencies."""

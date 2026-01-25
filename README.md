@@ -385,7 +385,7 @@ See [Implementation Roadmap](docs_markdown/docs/product/roadmap/Implementation%2
 - ✅ CI/CD pipeline
 - 🚧 Agent implementations in progress
 - 🚧 Connector integrations in progress
-- 📅 Beta release: Q2 2024
+- 📅 Beta release: Q2 2026
 
 ## 📝 Citation
 
@@ -395,7 +395,7 @@ If you use this platform in your research or work, please cite:
 @software{multi_agent_ppm_platform,
   title = {Multi-Agent PPM Platform},
   author = {Your Organization},
-  year = {2024},
+  year = {2026},
   url = {https://github.com/your-org/multi-agent-ppm-platform}
 }
 ```
