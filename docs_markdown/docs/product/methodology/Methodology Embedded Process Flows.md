@@ -8,31 +8,31 @@ The Agile process is iterative and adaptive, emphasising incremental delivery, s
 
 ### 1.1 User Journey
 
-Demand & Ideation – A stakeholder submits a demand/proposal. The Demand & Intake Agent classifies the request and recommends the Agile methodology based on factors such as uncertainty and stakeholder expectations.
+**Demand & Ideation:** A stakeholder submits a demand/proposal. The Demand & Intake Agent classifies the request and recommends the Agile methodology based on factors such as uncertainty and stakeholder expectations.
 
-Business Case & Approval – The Business Case Agent crafts a lean business case emphasising iterative value delivery and minimum viable product (MVP). Approval is typically lightweight; a product owner or program manager can approve the case.
+**Business Case & Approval:** The Business Case Agent crafts a lean business case emphasising iterative value delivery and minimum viable product (MVP). Approval is typically lightweight; a product owner or program manager can approve the case.
 
-Project Definition (Initiation) – The Project Definition Agent generates the Agile project charter and initial backlog. The methodology map highlights the initiation stage, with tasks such as product vision, initial backlog creation and team formation.
+**Project Definition (Initiation):** The Project Definition Agent generates the Agile project charter and initial backlog. The methodology map highlights the initiation stage, with tasks such as product vision, initial backlog creation and team formation.
 
-Release Planning – Users plan releases at a high level. The Release Goal Definition, feature prioritisation and release roadmap are surfaced as discrete activities on the map. Agents assist in prioritising features and estimating release cadence.
+**Release Planning:** Users plan releases at a high level. The Release Goal Definition, feature prioritisation and release roadmap are surfaced as discrete activities on the map. Agents assist in prioritising features and estimating release cadence.
 
-Sprint Cycles – Each sprint appears as an expandable node (e.g., “Sprint 1 (Jan 6‑19)”) with sub‑activities: sprint planning, daily development, sprint review and sprint retrospective. Users can drill down to current sprints to see tasks, track progress and update status. The Schedule & Planning Agent aids in sprint planning and generates a sprint backlog, while the Approval Workflow Agent records acceptance of stories via definition of done. Continuous monitoring dashboards remain available.
+**Sprint Cycles:** Each sprint appears as an expandable node (e.g., “Sprint 1 (Jan 6‑19)”) with sub‑activities: sprint planning, daily development, sprint review and sprint retrospective. Users can drill down to current sprints to see tasks, track progress and update status. The Schedule & Planning Agent aids in sprint planning and generates a sprint backlog, while the Approval Workflow Agent records acceptance of stories via definition of done. Continuous monitoring dashboards remain available.
 
-Continuous Activities – Backlog refinement, impediment tracking, stakeholder feedback and sprint dashboards are always accessible. The Knowledge Management Agent stores lessons learned and documentation.
+**Continuous Activities:** Backlog refinement, impediment tracking, stakeholder feedback and sprint dashboards are always accessible. The Knowledge Management Agent stores lessons learned and documentation.
 
-Release & Deployment – At the end of a release cycle, Release Testing, Deployment and Release Retrospective activities appear. Agents coordinate testing, deployment, and gather feedback for the next iterations.
+**Release & Deployment:** At the end of a release cycle, Release Testing, Deployment and Release Retrospective activities appear. Agents coordinate testing, deployment, and gather feedback for the next iterations.
 
-Closure & Lessons Learned – Once releases meet stakeholder acceptance criteria, the project may transition to maintenance or closure. The knowledge gained is stored for continuous improvement.
+**Closure & Lessons Learned:** Once releases meet stakeholder acceptance criteria, the project may transition to maintenance or closure. The knowledge gained is stored for continuous improvement.
 
 ### 1.2 Stage‑Gate Governance in Agile
 
 Agile projects rely on sprint ceremonies rather than formal gates. The platform enforces governance through:
 
-Definition of Done (DoD) gates – Each user story or feature must meet agreed acceptance criteria before being marked complete. The Quality Management Agent validates DoD, test coverage and defect metrics. The agent can block completion if criteria are not met and prompt the user to update tests or remediate defects.
+**Definition of Done (DoD) gates:** Each user story or feature must meet agreed acceptance criteria before being marked complete. The Quality Management Agent validates DoD, test coverage and defect metrics. The agent can block completion if criteria are not met and prompt the user to update tests or remediate defects.
 
-Release readiness checks – Before deploying a release, the platform verifies that all planned sprints for the release are completed, critical defects are resolved and stakeholder approvals are recorded. If not, the Release & Deployment Agent prompts users to address outstanding items.
+**Release readiness checks:** Before deploying a release, the platform verifies that all planned sprints for the release are completed, critical defects are resolved and stakeholder approvals are recorded. If not, the Release & Deployment Agent prompts users to address outstanding items.
 
-Continuous Monitoring – The Project Lifecycle Agent monitors metrics such as velocity, burndown, defect density and risk exposure to surface early warnings. Health dashboards and alerts show whether the project is on track and propose corrective actions.
+**Continuous Monitoring:** The Project Lifecycle Agent monitors metrics such as velocity, burndown, defect density and risk exposure to surface early warnings. Health dashboards and alerts show whether the project is on track and propose corrective actions.
 
 ### 1.3 UI & Navigation
 
@@ -40,27 +40,27 @@ The methodology map functions as a timeline and checklist. Completed activities 
 
 ## 2. Waterfall Process Flow
 
-The Waterfall process is linear and predictive, with discrete phases separated by formal stage gates. The platform’s Waterfall methodology map displays the phases – Initiating, Planning, Executing and Closing – with stage gates between them. Monitoring and controlling activities operate continuously.
+**The Waterfall process is linear and predictive, with discrete phases separated by formal stage gates. The platform’s Waterfall methodology map displays the phases:** Initiating, Planning, Executing and Closing – with stage gates between them. Monitoring and controlling activities operate continuously.
 
 ### 2.1 User Journey
 
-Demand & Business Case – A demand triggers the creation of a comprehensive business case emphasising total project ROI, cost‑benefit analysis and long‑term value. The Approval Workflow Agent routes the case through multi‑level approvals.
+**Demand & Business Case:** A demand triggers the creation of a comprehensive business case emphasising total project ROI, cost‑benefit analysis and long‑term value. The Approval Workflow Agent routes the case through multi‑level approvals.
 
-Initiating Phase – Upon approval, the Project Definition & Scope Agent creates the project charter, stakeholder register and preliminary scope baseline. The methodology map lists activities such as Business Case, Project Charter and Stakeholder Analysis.
+**Initiating Phase:** Upon approval, the Project Definition & Scope Agent creates the project charter, stakeholder register and preliminary scope baseline. The methodology map lists activities such as Business Case, Project Charter and Stakeholder Analysis.
 
-Stage Gate 1: Charter Approval – A formal gate reviews the charter for completeness and alignment. The Approval Workflow Agent coordinates sign‑offs from sponsors and the PMO. If criteria are unmet, the Project Lifecycle Agent blocks progression.
+**Stage Gate 1: Charter Approval:** A formal gate reviews the charter for completeness and alignment. The Approval Workflow Agent coordinates sign‑offs from sponsors and the PMO. If criteria are unmet, the Project Lifecycle Agent blocks progression.
 
-Planning Phase – Detailed planning tasks are executed: Scope Definition, Work Breakdown Structure (WBS) Development, Schedule Development, Resource and Budget Planning, Quality Planning, Risk Management Plan and Procurement Plan. Domain agents generate detailed plans and baseline estimates. Each deliverable appears as a checklist item on the map.
+**Planning Phase:** Detailed planning tasks are executed: Scope Definition, Work Breakdown Structure (WBS) Development, Schedule Development, Resource and Budget Planning, Quality Planning, Risk Management Plan and Procurement Plan. Domain agents generate detailed plans and baseline estimates. Each deliverable appears as a checklist item on the map.
 
-Stage Gate 2: Planning Approval – The platform requires approval of all baseline plans. Criteria may include scope completeness, cost and schedule baseline approval, risk register completeness and procurement approvals. The Project Lifecycle Agent evaluates readiness and either allows progression or provides detailed feedback if the gate is not met.
+**Stage Gate 2: Planning Approval:** The platform requires approval of all baseline plans. Criteria may include scope completeness, cost and schedule baseline approval, risk register completeness and procurement approvals. The Project Lifecycle Agent evaluates readiness and either allows progression or provides detailed feedback if the gate is not met.
 
-Executing Phase – The project team executes deliverables. The methodology map shows activities like Deliverable Development, Quality Assurance and Procurement Execution. The Schedule & Planning Agent monitors progress and updates the schedule; the Quality Management Agent tracks testing and acceptance; the Procurement Agent manages vendor engagements.
+**Executing Phase:** The project team executes deliverables. The methodology map shows activities like Deliverable Development, Quality Assurance and Procurement Execution. The Schedule & Planning Agent monitors progress and updates the schedule; the Quality Management Agent tracks testing and acceptance; the Procurement Agent manages vendor engagements.
 
-Stage Gate 3: Execution Review (optional) – For large projects, additional gates may be configured (e.g., mid‑project review) to reassess scope, budget and risk.
+**Stage Gate 3: Execution Review (optional):** For large projects, additional gates may be configured (e.g., mid‑project review) to reassess scope, budget and risk.
 
-Closing Phase – Final Deliverable Acceptance, Contract Closeout, Lessons Learned and Project Archive tasks appear on the map. The project cannot close until all deliverables are accepted, contracts settled and documentation archived. The Knowledge Management Agent captures lessons learned.
+**Closing Phase:** Final Deliverable Acceptance, Contract Closeout, Lessons Learned and Project Archive tasks appear on the map. The project cannot close until all deliverables are accepted, contracts settled and documentation archived. The Knowledge Management Agent captures lessons learned.
 
-Monitoring & Controlling (Continuous) – Throughout the lifecycle, performance tracking, change control, risk monitoring and stakeholder management activities run in parallel. The Project Lifecycle Agent synthesises metrics from other domain agents to calculate a composite health score and surface risks and variances.
+**Monitoring & Controlling (Continuous):** Throughout the lifecycle, performance tracking, change control, risk monitoring and stakeholder management activities run in parallel. The Project Lifecycle Agent synthesises metrics from other domain agents to calculate a composite health score and surface risks and variances.
 
 ### 2.2 Stage‑Gate Governance
 
@@ -76,19 +76,19 @@ Hybrid methodologies combine elements of Agile and Waterfall to suit complex pro
 
 ### 3.1 User Journey
 
-Methodology Selection – When a demand is received, the platform analyses the business case and recommends a hybrid approach if uncertainty exists alongside regulatory constraints. The Project Lifecycle Agent loads a hybrid methodology map combining Waterfall phases and Agile iterations.
+**Methodology Selection:** When a demand is received, the platform analyses the business case and recommends a hybrid approach if uncertainty exists alongside regulatory constraints. The Project Lifecycle Agent loads a hybrid methodology map combining Waterfall phases and Agile iterations.
 
-Initiation & Charter – Similar to Waterfall, a formal charter and stakeholder analysis are prepared and approved through a stage gate.
+**Initiation & Charter:** Similar to Waterfall, a formal charter and stakeholder analysis are prepared and approved through a stage gate.
 
-Planning & Release Framing – The team defines high‑level scope, budget and schedule. The Release Planning Agent outlines milestones (e.g., release 1, release 2) and chooses to deliver value incrementally via sprints within each release. The stage gate for planning ensures baseline approvals.
+**Planning & Release Framing:** The team defines high‑level scope, budget and schedule. The Release Planning Agent outlines milestones (e.g., release 1, release 2) and chooses to deliver value incrementally via sprints within each release. The stage gate for planning ensures baseline approvals.
 
-Iterative Development within Phases – Each release is executed through a series of sprints. The methodology map nests sprints under the corresponding phase; for example, within the “Execution” phase there may be “Sprint 1”, “Sprint 2”, etc. Teams perform sprint planning, daily work, review and retrospectives while still maintaining overall phase objectives and deliverables.
+**Iterative Development within Phases:** Each release is executed through a series of sprints. The methodology map nests sprints under the corresponding phase; for example, within the “Execution” phase there may be “Sprint 1”, “Sprint 2”, etc. Teams perform sprint planning, daily work, review and retrospectives while still maintaining overall phase objectives and deliverables.
 
-Milestone Reviews – At the end of each release or phase, the platform enforces milestone gates requiring validation of deliverables, acceptance from stakeholders, and updated risk and financial assessments. These gates combine Agile acceptance criteria (DoD) with Waterfall governance (formal sign‑offs).
+**Milestone Reviews:** At the end of each release or phase, the platform enforces milestone gates requiring validation of deliverables, acceptance from stakeholders, and updated risk and financial assessments. These gates combine Agile acceptance criteria (DoD) with Waterfall governance (formal sign‑offs).
 
-Continuous Monitoring – The Project Lifecycle Agent monitors both sprint‑level metrics (velocity, burnup) and phase‑level metrics (schedule variance, budget variance). This dual view ensures that iterative progress does not diverge from strategic objectives.
+**Continuous Monitoring:** The Project Lifecycle Agent monitors both sprint‑level metrics (velocity, burnup) and phase‑level metrics (schedule variance, budget variance). This dual view ensures that iterative progress does not diverge from strategic objectives.
 
-Closing & Hand‑over – As with Waterfall, formal closing activities occur once all iterations and milestones are complete, including lessons learned and documentation archiving.
+**Closing & Hand‑over:** As with Waterfall, formal closing activities occur once all iterations and milestones are complete, including lessons learned and documentation archiving.
 
 ### 3.2 Governance & Gates
 
@@ -102,15 +102,15 @@ The hybrid methodology map visually nests sprints within phases. Stage gates app
 
 Across all methodologies, the platform enforces governance and best practice through:
 
-Interactive Methodology Map – The map is both navigation and checklist. It guides users through required steps, reflects current progress and provides visual status. Users cannot arbitrarily skip steps without meeting gate criteria..
+**Interactive Methodology Map:** The map is both navigation and checklist. It guides users through required steps, reflects current progress and provides visual status. Users cannot arbitrarily skip steps without meeting gate criteria..
 
-Agent‑Driven Validation – The Project Lifecycle Agent and domain agents continuously validate readiness for transitions. They check for missing approvals, incomplete registers and outstanding issues, and block progression until resolved.
+**Agent‑Driven Validation:** The Project Lifecycle Agent and domain agents continuously validate readiness for transitions. They check for missing approvals, incomplete registers and outstanding issues, and block progression until resolved.
 
-Conversational Guidance – The assistant provides just‑in‑time recommendations based on the current step. It helps users navigate to relevant canvases, summarises outstanding tasks and provides context‑aware suggestions. The assistant’s context includes methodology, phase and active agents, ensuring guidance is specific.
+**Conversational Guidance:** The assistant provides just‑in‑time recommendations based on the current step. It helps users navigate to relevant canvases, summarises outstanding tasks and provides context‑aware suggestions. The assistant’s context includes methodology, phase and active agents, ensuring guidance is specific.
 
-Monitoring Dashboards – Health dashboards summarise schedule, cost, risk, quality and resource metrics. When a composite score indicates risk, the platform identifies root causes and proposes corrective actions.
+**Monitoring Dashboards:** Health dashboards summarise schedule, cost, risk, quality and resource metrics. When a composite score indicates risk, the platform identifies root causes and proposes corrective actions.
 
-Publishing Workflow – Before writing back to systems of record, users review and approve agent outputs in canvases. This ensures data quality, alignment with governance and prevents unintended changes.
+**Publishing Workflow:** Before writing back to systems of record, users review and approve agent outputs in canvases. This ensures data quality, alignment with governance and prevents unintended changes.
 
 ## Conclusion
 

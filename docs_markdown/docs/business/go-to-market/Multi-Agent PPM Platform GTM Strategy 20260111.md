@@ -216,7 +216,7 @@ Vendor agnostic: Not locked into Planview or Microsoft ecosystem
 
 Client Proof Point:
 
-“We’ve invested $15M in Planview over 8 years. We’re not replacing it. But Planview can’t talk to our SAP financials or our Jira sprints. This platform connects them all and adds the AI intelligence Planview lacks.” — CIO, Global Pharmaceutical Company
+**“We’ve invested $15M in Planview over 8 years. We’re not replacing it. But Planview can’t talk to our SAP financials or our Jira sprints. This platform connects them all and adds the AI intelligence Planview lacks.”:** CIO, Global Pharmaceutical Company
 
 2. Methodology-Embedded Governance
 

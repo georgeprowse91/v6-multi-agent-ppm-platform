@@ -6,77 +6,77 @@ The Compliance & Regulatory Agent (CRA) ensures that projects, programs and po
 
 ## Key Capabilities
 
-Regulatory requirement management – maintain a structured library of regulations, standards and corporate policies (e.g., GDPR, SOX, ISO, industry‑specific rules) with interpretations and applicability criteria.
+**Regulatory requirement management:** maintain a structured library of regulations, standards and corporate policies (e.g., GDPR, SOX, ISO, industry‑specific rules) with interpretations and applicability criteria.
 
-Control library & mapping – define controls required to satisfy each regulation; map controls to project deliverables, processes, systems and responsible roles.
+**Control library & mapping:** define controls required to satisfy each regulation; map controls to project deliverables, processes, systems and responsible roles.
 
-Compliance assessment & gap analysis – evaluate compliance readiness for each project by assessing implemented controls; identify gaps and recommend remediation actions.
+**Compliance assessment & gap analysis:** evaluate compliance readiness for each project by assessing implemented controls; identify gaps and recommend remediation actions.
 
-Control assignment & testing – assign control ownership to individuals or teams; schedule control testing and collect evidence (documents, screenshots, system logs); track pass/fail results.
+**Control assignment & testing:** assign control ownership to individuals or teams; schedule control testing and collect evidence (documents, screenshots, system logs); track pass/fail results.
 
-Policy management & versioning – manage policies and procedures; route updates for approval; notify stakeholders of changes; maintain version history and audit trails.
+**Policy management & versioning:** manage policies and procedures; route updates for approval; notify stakeholders of changes; maintain version history and audit trails.
 
-Audit preparation & management – coordinate internal and external audits; prepare documentation packages; provide auditors with read‑only access to evidence and control status; track audit findings and remediation.
+**Audit preparation & management:** coordinate internal and external audits; prepare documentation packages; provide auditors with read‑only access to evidence and control status; track audit findings and remediation.
 
-Compliance dashboards & reporting – visualise compliance status by requirement, project, program or portfolio; highlight overdue controls, failed tests and upcoming regulatory deadlines.
+**Compliance dashboards & reporting:** visualise compliance status by requirement, project, program or portfolio; highlight overdue controls, failed tests and upcoming regulatory deadlines.
 
-Regulatory change monitoring – monitor sources of regulatory updates (e.g., government websites) and notify relevant stakeholders when new rules or amendments are published.
+**Regulatory change monitoring:** monitor sources of regulatory updates (e.g., government websites) and notify relevant stakeholders when new rules or amendments are published.
 
 ## AI Technologies & Techniques
 
-Regulation text analysis – apply NLP to parse regulatory documents and extract obligations, deadlines and applicability rules.
+**Regulation text analysis:** apply NLP to parse regulatory documents and extract obligations, deadlines and applicability rules.
 
-Control recommendation – use knowledge graphs and similarity algorithms to suggest relevant controls for new projects based on similar projects’ compliance profiles.
+**Control recommendation:** use knowledge graphs and similarity algorithms to suggest relevant controls for new projects based on similar projects’ compliance profiles.
 
-Document classification & redaction – employ machine learning to classify evidence documents, detect sensitive data and automatically redact personally identifiable information (PII) before sharing with auditors.
+**Document classification & redaction:** employ machine learning to classify evidence documents, detect sensitive data and automatically redact personally identifiable information (PII) before sharing with auditors.
 
-Predictive compliance risk – analyse historical compliance audit data to predict likelihood of non‑compliance in current projects and proactively allocate resources to high‑risk areas.
+**Predictive compliance risk:** analyse historical compliance audit data to predict likelihood of non‑compliance in current projects and proactively allocate resources to high‑risk areas.
 
 ## Methodology Adaptation
 
-Agile – support rapid policy updates and integration of compliance activities within sprints; ensure that user stories include compliance acceptance criteria.
+**Agile:** support rapid policy updates and integration of compliance activities within sprints; ensure that user stories include compliance acceptance criteria.
 
-Waterfall – align compliance checks with stage‑gate reviews; emphasise formal documentation and sign‑offs.
+**Waterfall:** align compliance checks with stage‑gate reviews; emphasise formal documentation and sign‑offs.
 
-Hybrid – maintain continuous compliance monitoring while still enforcing formal audits at major milestones.
+**Hybrid:** maintain continuous compliance monitoring while still enforcing formal audits at major milestones.
 
 ## Dependencies & Interactions
 
-Project Lifecycle & Governance Agent (9) – ensures that compliance checks are embedded within phase‑gates; uses CRA data to block progress if controls are not met.
+**Project Lifecycle & Governance Agent (9):** ensures that compliance checks are embedded within phase‑gates; uses CRA data to block progress if controls are not met.
 
-Quality Management Agent (14) – cross‑reference quality audits with compliance controls; manage overlaps between quality and compliance testing.
+**Quality Management Agent (14):** cross‑reference quality audits with compliance controls; manage overlaps between quality and compliance testing.
 
-Risk Management Agent (15) – integrate compliance risks into the risk register; adjust risk probability based on compliance status.
+**Risk Management Agent (15):** integrate compliance risks into the risk register; adjust risk probability based on compliance status.
 
-Vendor & Procurement Agent (13) – verify that vendor contracts include required regulatory clauses and certifications; manage vendor compliance documents.
+**Vendor & Procurement Agent (13):** verify that vendor contracts include required regulatory clauses and certifications; manage vendor compliance documents.
 
-Security & Privacy (if separate) – coordinate security controls and privacy requirements to meet standards such as ISO 27001 and GDPR.
+**Security & Privacy (if separate):** coordinate security controls and privacy requirements to meet standards such as ISO 27001 and GDPR.
 
 ## Integration Responsibilities
 
-GRC tools – integrate with Governance, Risk & Compliance platforms (e.g., RSA Archer, ServiceNow GRC, OneTrust) to import regulatory content and exchange control statuses.
+**GRC tools:** integrate with Governance, Risk & Compliance platforms (e.g., RSA Archer, ServiceNow GRC, OneTrust) to import regulatory content and exchange control statuses.
 
-Document management systems – interface with SharePoint or other repositories to store evidence and policies; use metadata tags for classification and search.
+**Document management systems:** interface with SharePoint or other repositories to store evidence and policies; use metadata tags for classification and search.
 
-Policy & regulatory feeds – subscribe to external services that provide updates on regulatory changes; parse and classify updates using AI.
+**Policy & regulatory feeds:** subscribe to external services that provide updates on regulatory changes; parse and classify updates using AI.
 
-Identity & access management – sync user roles and permissions via Azure AD or similar; ensure that only authorised individuals can view or edit compliance information.
+**Identity & access management:** sync user roles and permissions via Azure AD or similar; ensure that only authorised individuals can view or edit compliance information.
 
 Provide APIs for other agents to query control status, add evidence or subscribe to compliance alerts.
 
 ## Data Ownership & Schemas
 
-Regulation library – regulation name, description, applicable industries/jurisdictions, effective dates, related controls.
+**Regulation library:** regulation name, description, applicable industries/jurisdictions, effective dates, related controls.
 
-Control registry – control ID, description, related regulation, responsible owner, evidence requirements, test frequency, status.
+**Control registry:** control ID, description, related regulation, responsible owner, evidence requirements, test frequency, status.
 
-Project compliance mapping – mapping of controls to projects, deliverables or tasks; status of implementation; evidence references.
+**Project compliance mapping:** mapping of controls to projects, deliverables or tasks; status of implementation; evidence references.
 
-Policy documents – policies, procedures, version history, approval records, effective dates.
+**Policy documents:** policies, procedures, version history, approval records, effective dates.
 
-Audit records – audit scope, auditor, findings, remediation actions, closure date.
+**Audit records:** audit scope, auditor, findings, remediation actions, closure date.
 
-Regulatory change logs – new or amended regulations, effective dates, impacted controls/projects, assigned actions.
+**Regulatory change logs:** new or amended regulations, effective dates, impacted controls/projects, assigned actions.
 
 ## Key Workflows & Use Cases
 
@@ -118,29 +118,29 @@ The agent provides trend analyses of control pass rates and audit findings over 
 
 The CRA embeds compliance management interfaces within the PPM platform:
 
-Regulation & control library – hierarchical view of regulations and associated controls; users can drill down to control descriptions, responsible owners and status.
+**Regulation & control library:** hierarchical view of regulations and associated controls; users can drill down to control descriptions, responsible owners and status.
 
-Project compliance checklist – auto‑generated checklist listing applicable controls for a project; includes progress indicators, evidence attachments and deadlines.
+**Project compliance checklist:** auto‑generated checklist listing applicable controls for a project; includes progress indicators, evidence attachments and deadlines.
 
-Evidence repository – secure repository for uploading and managing evidence documents; supports tagging, versioning and linking to controls.
+**Evidence repository:** secure repository for uploading and managing evidence documents; supports tagging, versioning and linking to controls.
 
-Audit workspace – dedicated interface for auditors to view control status, evidence and findings; includes comment and approval workflows.
+**Audit workspace:** dedicated interface for auditors to view control status, evidence and findings; includes comment and approval workflows.
 
-Regulatory change dashboard – timeline of upcoming regulatory deadlines and changes; displays impact assessment and open actions.
+**Regulatory change dashboard:** timeline of upcoming regulatory deadlines and changes; displays impact assessment and open actions.
 
 The Orchestration layer routes queries like “Are we compliant with SOX for Project Gamma?” to the CRA. The Response Orchestration agent may combine CRA information with financial data (from FMA) and risk exposure (from RMA) to present a complete compliance picture.
 
 ## Configuration Parameters & Environment
 
-Regulation applicability rules – configurable logic for determining which regulations apply based on geography, industry, data types and project characteristics.
+**Regulation applicability rules:** configurable logic for determining which regulations apply based on geography, industry, data types and project characteristics.
 
-Control testing frequencies – default test intervals for controls (monthly, quarterly, annually); override per project or control type.
+**Control testing frequencies:** default test intervals for controls (monthly, quarterly, annually); override per project or control type.
 
-Escalation thresholds – define thresholds for overdue controls, failed tests and pending remediation tasks; configure escalation paths.
+**Escalation thresholds:** define thresholds for overdue controls, failed tests and pending remediation tasks; configure escalation paths.
 
-Audit schedule – plan recurring internal audits by portfolio, program or control group; coordinate with external audit timelines.
+**Audit schedule:** plan recurring internal audits by portfolio, program or control group; coordinate with external audit timelines.
 
-Integration endpoints – set endpoints and authentication for GRC platforms, policy feeds and document repositories.
+**Integration endpoints:** set endpoints and authentication for GRC platforms, policy feeds and document repositories.
 
 ### Azure Implementation Guidance
 
@@ -158,19 +158,19 @@ Scalability: Use serverless functions with consumption plans for regulatory chan
 
 ## Security & Compliance Considerations
 
-Confidential information – evidence may contain sensitive data (e.g., security configurations); implement strict access controls and encryption.
+**Confidential information:** evidence may contain sensitive data (e.g., security configurations); implement strict access controls and encryption.
 
-Audit integrity – maintain immutable evidence logs using Azure Immutable Blob Storage or Confidential Ledger; provide auditors with read‑only access to prevent tampering.
+**Audit integrity:** maintain immutable evidence logs using Azure Immutable Blob Storage or Confidential Ledger; provide auditors with read‑only access to prevent tampering.
 
-Data sovereignty – ensure that evidence and compliance data stored in the cloud comply with data residency laws; leverage Azure regions and data residency offerings.
+**Data sovereignty:** ensure that evidence and compliance data stored in the cloud comply with data residency laws; leverage Azure regions and data residency offerings.
 
 ## Performance & Scalability
 
-Large volumes of evidence – optimise storage with tiering and lifecycle policies; use indexing for fast retrieval.
+**Large volumes of evidence:** optimise storage with tiering and lifecycle policies; use indexing for fast retrieval.
 
-Regulation monitoring – implement efficient polling or subscription mechanisms for regulatory updates; process updates asynchronously.
+**Regulation monitoring:** implement efficient polling or subscription mechanisms for regulatory updates; process updates asynchronously.
 
-Real‑time compliance checks – incorporate event‑driven triggers to detect non‑compliance quickly (e.g., missed control tests) and alert stakeholders.
+**Real‑time compliance checks:** incorporate event‑driven triggers to detect non‑compliance quickly (e.g., missed control tests) and alert stakeholders.
 
 ## Logging & Monitoring
 

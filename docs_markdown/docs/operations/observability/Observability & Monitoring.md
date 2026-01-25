@@ -16,11 +16,11 @@ Distributed tracing tracks requests across multiple agents to understand end‑t
 
 ### Implementation
 
-Tracer Choice – The platform uses Jaeger or Zipkin as the tracing backend. Agents include tracing libraries that automatically create spans and propagate trace and span identifiers in HTTP headers.
+**Tracer Choice:** The platform uses Jaeger or Zipkin as the tracing backend. Agents include tracing libraries that automatically create spans and propagate trace and span identifiers in HTTP headers.
 
-Correlation IDs – Every request is assigned a unique Trace ID. Child spans carry a Span ID. These IDs are propagated through all agent calls and logged alongside application logs.
+**Correlation IDs:** Every request is assigned a unique Trace ID. Child spans carry a Span ID. These IDs are propagated through all agent calls and logged alongside application logs.
 
-Sampling & Storage – Traces are sampled at configurable rates (e.g., 10% of requests in production). Full traces are stored in the tracing backend for retention periods (e.g., 30 days) and can be queried via UI.
+**Sampling & Storage:** Traces are sampled at configurable rates (e.g., 10% of requests in production). Full traces are stored in the tracing backend for retention periods (e.g., 30 days) and can be queried via UI.
 
 ### Example Trace
 
@@ -72,11 +72,11 @@ The platform collects metrics via Prometheus and visualises them in Grafana. Age
 
 ### Types of Metrics
 
-Request Metrics – Number of requests per second, request duration histograms (p50, p95, p99), error rate.
+**Request Metrics:** Number of requests per second, request duration histograms (p50, p95, p99), error rate.
 
-Resource Metrics – CPU utilisation, memory usage, disk I/O and network I/O for each agent.
+**Resource Metrics:** CPU utilisation, memory usage, disk I/O and network I/O for each agent.
 
-Business Metrics – Counts of active projects, portfolio value, resource utilisation percentage, budget variance.
+**Business Metrics:** Counts of active projects, portfolio value, resource utilisation percentage, budget variance.
 
 ### Example Metrics
 

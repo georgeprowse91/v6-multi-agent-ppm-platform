@@ -56,11 +56,11 @@ Sensitive data can be masked or tokenised. For example, credit card numbers or p
 
 The platform is deployed in a three‑tier architecture【565999142788795†L6484-L6853】:
 
-DMZ (Web Tier) – Hosts load balancers, API gateways and web application firewalls (WAF). Only HTTP(S) traffic from the internet is allowed; incoming traffic is inspected, filtered and forwarded to the application tier. DDoS protection is enabled.
+**DMZ (Web Tier):** Hosts load balancers, API gateways and web application firewalls (WAF). Only HTTP(S) traffic from the internet is allowed; incoming traffic is inspected, filtered and forwarded to the application tier. DDoS protection is enabled.
 
-Application Tier – Contains the orchestrator, agents, connectors, and workflow services. This tier can only be accessed from the DMZ via specific ports. It communicates with the data tier using private endpoints.
+**Application Tier:** Contains the orchestrator, agents, connectors, and workflow services. This tier can only be accessed from the DMZ via specific ports. It communicates with the data tier using private endpoints.
 
-Data Tier – Hosts databases, message brokers, caches and storage. It is isolated from the internet and accessible only from the application tier. Additional micro‑segmentation may be applied to separate critical services (e.g., analytics cluster vs. operational database).
+**Data Tier:** Hosts databases, message brokers, caches and storage. It is isolated from the internet and accessible only from the application tier. Additional micro‑segmentation may be applied to separate critical services (e.g., analytics cluster vs. operational database).
 
 In multi‑tenant SaaS deployments, network isolation is achieved through virtual networks and network security groups. Private link endpoints allow clients to access their data directly via a secure path.
 
@@ -96,13 +96,13 @@ Playbooks guide responders through common scenarios. The plan is tested through 
 
 The platform is designed to meet the requirements of various regulatory frameworks and certifications:
 
-GDPR and Privacy Laws – Supports data subject rights (access, correction, deletion) and implements Data Protection Impact Assessments (DPIAs).
+**GDPR and Privacy Laws:** Supports data subject rights (access, correction, deletion) and implements Data Protection Impact Assessments (DPIAs).
 
-SOC 2 & ISO 27001 – Implements controls across security, availability, confidentiality and privacy domains. Undergoes regular third‑party audits.
+**SOC 2 & ISO 27001:** Implements controls across security, availability, confidentiality and privacy domains. Undergoes regular third‑party audits.
 
-Australian ISM & PSPF – Aligns with Australian government security standards (e.g., controls for identity management, encryption, and audit logging). Includes classification labelling and export control requirements.
+**Australian ISM & PSPF:** Aligns with Australian government security standards (e.g., controls for identity management, encryption, and audit logging). Includes classification labelling and export control requirements.
 
-Industry‑Specific Regulations – Configurable compliance modules support additional standards (e.g., SOX for financial reporting, FDA CFR 21 Part 11 for life sciences).
+**Industry‑Specific Regulations:** Configurable compliance modules support additional standards (e.g., SOX for financial reporting, FDA CFR 21 Part 11 for life sciences).
 
 ## Conclusion
 

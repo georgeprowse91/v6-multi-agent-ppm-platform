@@ -78,11 +78,11 @@ Portfolio performance metrics: Tracks delivered value, strategic coverage and re
 
 ## Key Workflows
 
-Portfolio Prioritisation – When a new business case is approved, the agent gathers strategic objectives, current portfolio composition, available capacity and budget information. It evaluates the new proposal against weighted criteria (strategic alignment, ROI, risk, resource feasibility) and runs the optimisation model to recompute the ranked portfolio. The resulting ranking and justification are presented to the portfolio governance board for decision.
+**Portfolio Prioritisation:** When a new business case is approved, the agent gathers strategic objectives, current portfolio composition, available capacity and budget information. It evaluates the new proposal against weighted criteria (strategic alignment, ROI, risk, resource feasibility) and runs the optimisation model to recompute the ranked portfolio. The resulting ranking and justification are presented to the portfolio governance board for decision.
 
-Portfolio Rebalancing – At regular intervals (e.g., quarterly), the agent analyses the current portfolio mix against target allocations (innovation, operations, compliance). It identifies gaps and recommends actions such as accelerating completion of operational projects or approving new innovation proposals. Recommendations include quantified impacts on strategic score and capacity utilisation.
+**Portfolio Rebalancing:** At regular intervals (e.g., quarterly), the agent analyses the current portfolio mix against target allocations (innovation, operations, compliance). It identifies gaps and recommends actions such as accelerating completion of operational projects or approving new innovation proposals. Recommendations include quantified impacts on strategic score and capacity utilisation.
 
-Scenario Planning – Portfolio managers request what‑if analyses (e.g., “What if budget is cut by 10%?”). The agent runs optimisation under new constraints and compares resulting portfolios, highlighting trade‑offs in value, risk and strategic coverage. Users can iteratively refine scenarios via the assistant.
+**Scenario Planning:** Portfolio managers request what‑if analyses (e.g., “What if budget is cut by 10%?”). The agent runs optimisation under new constraints and compares resulting portfolios, highlighting trade‑offs in value, risk and strategic coverage. Users can iteratively refine scenarios via the assistant.
 
 ## UI/UX Design
 

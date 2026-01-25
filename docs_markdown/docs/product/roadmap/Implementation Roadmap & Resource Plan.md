@@ -10,45 +10,45 @@ The platform aims to deliver a comprehensive, AI‑enabled project portfolio man
 
 ## Dependencies & Critical Path
 
-Stakeholder Alignment – Early buy‑in from executives and PMO leadership is essential to secure budget and ensure adoption. Lack of a clear organisational strategy is a known barrier to AI adoption[4].
+**Stakeholder Alignment:** Early buy‑in from executives and PMO leadership is essential to secure budget and ensure adoption. Lack of a clear organisational strategy is a known barrier to AI adoption[4].
 
-Third‑Party Integrations – Connectors for Planview, Jira, SAP, Workday and others are prerequisites for agent functionality. Their availability and API stability drive the sequencing of agent development.
+**Third‑Party Integrations:** Connectors for Planview, Jira, SAP, Workday and others are prerequisites for agent functionality. Their availability and API stability drive the sequencing of agent development.
 
-Data Quality & Migration – The data model must be finalised before migration scripts are written. Clean, consistent data is critical to agent accuracy and ROI.
+**Data Quality & Migration:** The data model must be finalised before migration scripts are written. Clean, consistent data is critical to agent accuracy and ROI.
 
-Security & Compliance – Encryption, RBAC and audit logging must be in place before any production deployment[3]. Regulatory approval (e.g., privacy assessments) may gate go‑live.
+**Security & Compliance:** Encryption, RBAC and audit logging must be in place before any production deployment[3]. Regulatory approval (e.g., privacy assessments) may gate go‑live.
 
-Resource Availability – Specialised roles (e.g., LLM engineers, integration engineers) are scarce. Hiring or contracting them early avoids delays.
+**Resource Availability:** Specialised roles (e.g., LLM engineers, integration engineers) are scarce. Hiring or contracting them early avoids delays.
 
 ## Resource Plan
 
 ### Team Structure
 
-Product Owner / Sponsor (1 FTE) – Owns vision, prioritises backlog, liaises with stakeholders.
+**Product Owner / Sponsor (1 FTE):** Owns vision, prioritises backlog, liaises with stakeholders.
 
-Project Manager / Scrum Master (1 FTE) – Coordinates schedule, manages risks, tracks progress and dependencies.
+**Project Manager / Scrum Master (1 FTE):** Coordinates schedule, manages risks, tracks progress and dependencies.
 
-Solution Architect (1 FTE) – Oversees system architecture, data model, security design and integration patterns.
+**Solution Architect (1 FTE):** Oversees system architecture, data model, security design and integration patterns.
 
-Data Architect (0.5–1 FTE) – Designs data model & schemas, defines data lineage and quality processes.
+**Data Architect (0.5–1 FTE):** Designs data model & schemas, defines data lineage and quality processes.
 
-LLM/AI Engineer (1 FTE) – Responsible for integrating and fine‑tuning LLMs, building AI models for scheduling, risk prediction, etc.
+**LLM/AI Engineer (1 FTE):** Responsible for integrating and fine‑tuning LLMs, building AI models for scheduling, risk prediction, etc.
 
-Backend Engineers (3–5 FTE) – Develop microservices, agents and APIs; implement orchestration logic.
+**Backend Engineers (3–5 FTE):** Develop microservices, agents and APIs; implement orchestration logic.
 
-Frontend/UX Engineers (2–3 FTE) – Build UI components, dashboards, and interactive canvases; work closely with designers.
+**Frontend/UX Engineers (2–3 FTE):** Build UI components, dashboards, and interactive canvases; work closely with designers.
 
-Integration Engineers (2–3 FTE) – Develop connectors to external systems, handle data mapping, and manage API changes.
+**Integration Engineers (2–3 FTE):** Develop connectors to external systems, handle data mapping, and manage API changes.
 
-DevOps Engineers (1–2 FTE) – Set up CI/CD pipelines, infrastructure automation, monitoring, and scaling.
+**DevOps Engineers (1–2 FTE):** Set up CI/CD pipelines, infrastructure automation, monitoring, and scaling.
 
-Quality Assurance/Test Engineers (2–3 FTE) – Design test plans (unit, integration, performance, UAT), automate tests and manage defects.
+**Quality Assurance/Test Engineers (2–3 FTE):** Design test plans (unit, integration, performance, UAT), automate tests and manage defects.
 
-Security & Compliance Specialist (0.5–1 FTE) – Implements security controls, manages compliance, conducts vulnerability assessments.
+**Security & Compliance Specialist (0.5–1 FTE):** Implements security controls, manages compliance, conducts vulnerability assessments.
 
-Change‑Management & Training Lead (1 FTE) – Develops communication strategy, training programmes and monitors adoption.
+**Change‑Management & Training Lead (1 FTE):** Develops communication strategy, training programmes and monitors adoption.
 
-Support Analysts (2 FTE) – Provide Level 1/2 support during pilots and post‑launch; triage incidents and gather user feedback.
+**Support Analysts (2 FTE):** Provide Level 1/2 support during pilots and post‑launch; triage incidents and gather user feedback.
 
 FTE numbers can scale up or down based on organisational size and outsourcing. During the heavy development (Phase 3), additional backend and integration engineers may be needed; later phases require more support and training staff.
 
@@ -58,13 +58,13 @@ Note: FTE values are indicative and represent approximate allocation per phase.
 
 ## Tracking Progress
 
-Sprint planning & retrospectives – Use Agile ceremonies to plan tasks, review progress and address impediments. Maintain a programme backlog with epics for each agent and feature.
+**Sprint planning & retrospectives:** Use Agile ceremonies to plan tasks, review progress and address impediments. Maintain a programme backlog with epics for each agent and feature.
 
-Milestone reviews – At the end of each phase or release, hold a review session to evaluate deliverables against objectives, update the roadmap and adjust resource allocation.
+**Milestone reviews:** At the end of each phase or release, hold a review session to evaluate deliverables against objectives, update the roadmap and adjust resource allocation.
 
-Metrics & KPIs – Track burn‑down charts, velocity, defect leakage, test coverage, and adoption metrics. Monitor the health of integrations and data pipelines using dashboards.
+**Metrics & KPIs:** Track burn‑down charts, velocity, defect leakage, test coverage, and adoption metrics. Monitor the health of integrations and data pipelines using dashboards.
 
-Risk & dependency log – Maintain a live register of risks (technical, commercial, adoption) and dependencies. Assign owners and mitigation actions. Use the risk management plan as a guide.
+**Risk & dependency log:** Maintain a live register of risks (technical, commercial, adoption) and dependencies. Assign owners and mitigation actions. Use the risk management plan as a guide.
 
 ## Conclusion
 

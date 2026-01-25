@@ -6,75 +6,75 @@ The Quality Management Agent (QMA) ensures that deliverables meet defined quali
 
 ## Key Capabilities
 
-Quality planning & metric definition – define quality objectives, acceptance criteria and measurable metrics (defect density, test coverage, customer satisfaction) for each project phase or sprint.
+**Quality planning & metric definition:** define quality objectives, acceptance criteria and measurable metrics (defect density, test coverage, customer satisfaction) for each project phase or sprint.
 
-Test management & execution – manage test plans, test cases, test suites and test execution results; support manual and automated testing; integrate with external test management tools.
+**Test management & execution:** manage test plans, test cases, test suites and test execution results; support manual and automated testing; integrate with external test management tools.
 
-Defect & issue tracking – capture, classify and prioritise defects; assign ownership; track remediation status; enforce defect lifecycle workflows.
+**Defect & issue tracking:** capture, classify and prioritise defects; assign ownership; track remediation status; enforce defect lifecycle workflows.
 
-Review & audit management – schedule and track peer reviews, code reviews, design inspections and quality audits; document findings, action items and approvals.
+**Review & audit management:** schedule and track peer reviews, code reviews, design inspections and quality audits; document findings, action items and approvals.
 
-Quality dashboards & reporting – visualise quality metrics, defect trends and test coverage; generate quality scorecards and heatmaps to highlight risk areas.
+**Quality dashboards & reporting:** visualise quality metrics, defect trends and test coverage; generate quality scorecards and heatmaps to highlight risk areas.
 
-Continuous improvement & root cause analysis – identify recurring defect patterns; perform Pareto analysis; recommend process improvements or training to address underlying causes.
+**Continuous improvement & root cause analysis:** identify recurring defect patterns; perform Pareto analysis; recommend process improvements or training to address underlying causes.
 
-Compliance & standards management – ensure adherence to quality standards (ISO, CMMI), industry regulations and organisational policies; maintain a library of quality procedures and templates.
+**Compliance & standards management:** ensure adherence to quality standards (ISO, CMMI), industry regulations and organisational policies; maintain a library of quality procedures and templates.
 
 ## AI Technologies & Techniques
 
-Defect prediction – train classification models on historical defect data to predict components or areas likely to harbour defects, allowing proactive testing and code reviews.
+**Defect prediction:** train classification models on historical defect data to predict components or areas likely to harbour defects, allowing proactive testing and code reviews.
 
-Automated test case selection – use reinforcement learning or optimisation algorithms to prioritise test cases based on risk, recent changes and historical defect density.
+**Automated test case selection:** use reinforcement learning or optimisation algorithms to prioritise test cases based on risk, recent changes and historical defect density.
 
-Natural language processing – extract quality requirements and acceptance criteria from user stories or specifications; auto‑classify defect severity and root causes.
+**Natural language processing:** extract quality requirements and acceptance criteria from user stories or specifications; auto‑classify defect severity and root causes.
 
-Anomaly detection – detect unusual spikes in defect counts or test failure rates; correlate with code changes or resource fluctuations.
+**Anomaly detection:** detect unusual spikes in defect counts or test failure rates; correlate with code changes or resource fluctuations.
 
-Root cause analysis – leverage clustering and association rule mining to identify patterns in defect data and recommend corrective actions.
+**Root cause analysis:** leverage clustering and association rule mining to identify patterns in defect data and recommend corrective actions.
 
 ## Methodology Adaptation
 
-Agile – align quality activities with sprints; support continuous integration/continuous testing; track sprint-level defect backlog and velocity; embed testers within Agile teams.
+**Agile:** align quality activities with sprints; support continuous integration/continuous testing; track sprint-level defect backlog and velocity; embed testers within Agile teams.
 
-Waterfall – support stage‑gate quality reviews (requirements, design, code, test) and deliverable sign‑offs; emphasise system testing during later phases.
+**Waterfall:** support stage‑gate quality reviews (requirements, design, code, test) and deliverable sign‑offs; emphasise system testing during later phases.
 
-Hybrid – combine iterative testing cycles with formal stage‑gates; maintain separate quality baselines for iterative and sequential deliverables.
+**Hybrid:** combine iterative testing cycles with formal stage‑gates; maintain separate quality baselines for iterative and sequential deliverables.
 
 ## Dependencies & Interactions
 
-Schedule & Planning Agent (10) – uses task schedules to plan testing activities and resource assignments.
+**Schedule & Planning Agent (10):** uses task schedules to plan testing activities and resource assignments.
 
-Resource & Capacity Management Agent (11) – supplies availability of QA resources and skill profiles.
+**Resource & Capacity Management Agent (11):** supplies availability of QA resources and skill profiles.
 
-Risk Management Agent (15) – identifies quality risks and potential failure modes; uses quality metrics to update risk probability and impact.
+**Risk Management Agent (15):** identifies quality risks and potential failure modes; uses quality metrics to update risk probability and impact.
 
-Compliance & Regulatory Agent (16) – ensures quality processes comply with standards and regulations.
+**Compliance & Regulatory Agent (16):** ensures quality processes comply with standards and regulations.
 
-Continuous Improvement Agent (20) – receives quality data to identify process improvement opportunities and update best practices.
+**Continuous Improvement Agent (20):** receives quality data to identify process improvement opportunities and update best practices.
 
 ## Integration Responsibilities
 
-Test management tools – integrate with Azure DevOps Test Plans, Jira Xray, TestRail or Selenium for automated and manual test execution.
+**Test management tools:** integrate with Azure DevOps Test Plans, Jira Xray, TestRail or Selenium for automated and manual test execution.
 
-Issue tracking systems – synchronise defects and issues with Jira, Azure DevOps Boards or ServiceNow; ensure changes reflect across systems.
+**Issue tracking systems:** synchronise defects and issues with Jira, Azure DevOps Boards or ServiceNow; ensure changes reflect across systems.
 
-Code repositories & CI/CD pipelines – interface with GitHub, GitLab or Azure Repos to trigger automated tests upon code check‑in and to record code coverage metrics.
+**Code repositories & CI/CD pipelines:** interface with GitHub, GitLab or Azure Repos to trigger automated tests upon code check‑in and to record code coverage metrics.
 
-Quality standards & templates – maintain library of quality procedures, checklists and templates in a document repository such as SharePoint.
+**Quality standards & templates:** maintain library of quality procedures, checklists and templates in a document repository such as SharePoint.
 
 Provide APIs for other agents to query quality metrics or update defect statuses; publish events when new defects are logged or quality gates are passed/failed.
 
 ## Data Ownership & Schemas
 
-Quality plans – objectives, metrics, thresholds, responsible roles and schedules for quality activities.
+**Quality plans:** objectives, metrics, thresholds, responsible roles and schedules for quality activities.
 
-Test artefacts – test cases (ID, description, steps, expected results), test suites, execution results, associated requirements.
+**Test artefacts:** test cases (ID, description, steps, expected results), test suites, execution results, associated requirements.
 
-Defects & issues – ID, summary, description, severity, priority, component, status, assigned owner, steps to reproduce, resolution, root cause.
+**Defects & issues:** ID, summary, description, severity, priority, component, status, assigned owner, steps to reproduce, resolution, root cause.
 
-Reviews & audits – review records, participants, findings, action items, approvals, audit reports.
+**Reviews & audits:** review records, participants, findings, action items, approvals, audit reports.
 
-Quality metrics – defect density, mean time to resolution, test coverage %, pass/fail rates, audit scores, customer satisfaction scores.
+**Quality metrics:** defect density, mean time to resolution, test coverage %, pass/fail rates, audit scores, customer satisfaction scores.
 
 ## Key Workflows & Use Cases
 
@@ -116,31 +116,31 @@ Findings are passed to the Continuous Improvement agent to manage improvement in
 
 The QMA provides quality management dashboards and tools within the PPM platform:
 
-Quality dashboard – shows key quality metrics (defect counts, test pass rates, coverage, audit scores) with trend charts; allows filtering by project, release or sprint. Drill‑down into specific test suites or defect lists.
+**Quality dashboard:** shows key quality metrics (defect counts, test pass rates, coverage, audit scores) with trend charts; allows filtering by project, release or sprint. Drill‑down into specific test suites or defect lists.
 
-Test management console – interface to create, organise and execute test cases; supports step‑by‑step manual testing and displays automated test runs; integrates with external test tools via API.
+**Test management console:** interface to create, organise and execute test cases; supports step‑by‑step manual testing and displays automated test runs; integrates with external test tools via API.
 
-Defect tracking board – Kanban or list view of defects with filters for severity, status, assignee and age; inline editing for quick updates.
+**Defect tracking board:** Kanban or list view of defects with filters for severity, status, assignee and age; inline editing for quick updates.
 
-Review & audit scheduler – calendar view to schedule reviews and audits; displays upcoming sessions, participants and agenda. Provides forms to capture findings and approvals.
+**Review & audit scheduler:** calendar view to schedule reviews and audits; displays upcoming sessions, participants and agenda. Provides forms to capture findings and approvals.
 
-RCA & improvement workspace – visualisation of defect cause‑effect diagrams, Pareto charts and improvement backlogs.
+**RCA & improvement workspace:** visualisation of defect cause‑effect diagrams, Pareto charts and improvement backlogs.
 
 Interactions with Orchestration: When a user asks “show all high‑severity defects for Release 1”, the Intent Router directs the request to QMA. The Response Orchestration agent fetches defect lists from the QMA, cross‑references risk impacts from the Risk Management agent and schedules capacity from the Resource agent if additional testers are required.
 
 ## Configuration Parameters & Environment
 
-Quality standards & templates – select applicable standards (ISO 9001, IEEE 829) and associated checklists and templates.
+**Quality standards & templates:** select applicable standards (ISO 9001, IEEE 829) and associated checklists and templates.
 
-Severity & priority definitions – configure severity/priority scales and mapping to response time SLAs.
+**Severity & priority definitions:** configure severity/priority scales and mapping to response time SLAs.
 
-Test environments – define available test environments (dev, QA, staging) and their configuration; map to specific projects.
+**Test environments:** define available test environments (dev, QA, staging) and their configuration; map to specific projects.
 
-Defect workflow – configure states, transitions, mandatory fields and notifications per project or organisation.
+**Defect workflow:** configure states, transitions, mandatory fields and notifications per project or organisation.
 
-Review & audit frequencies – specify frequencies for recurring audits, code reviews and quality gates.
+**Review & audit frequencies:** specify frequencies for recurring audits, code reviews and quality gates.
 
-Integration endpoints – define URLs and credentials for test management and defect tracking tools.
+**Integration endpoints:** define URLs and credentials for test management and defect tracking tools.
 
 ### Azure Implementation Guidance
 
@@ -160,19 +160,19 @@ Scalability: Scale QMA services horizontally to handle bursts of test results an
 
 ## Security & Compliance Considerations
 
-Data confidentiality – control access to defect data that might contain proprietary information; implement row‑level security in databases.
+**Data confidentiality:** control access to defect data that might contain proprietary information; implement row‑level security in databases.
 
-Compliance – maintain evidence of quality audits and reviews; support external audits by providing access to immutable audit logs.
+**Compliance:** maintain evidence of quality audits and reviews; support external audits by providing access to immutable audit logs.
 
-Segregation of duties – ensure that the tester recording defects is not the same person verifying resolution for critical defects.
+**Segregation of duties:** ensure that the tester recording defects is not the same person verifying resolution for critical defects.
 
 ## Performance & Scalability
 
-Test result ingestion – design idempotent and scalable ingestion pipelines for automated test results; process thousands of results concurrently.
+**Test result ingestion:** design idempotent and scalable ingestion pipelines for automated test results; process thousands of results concurrently.
 
-Reporting – use materialised views or analytic indexes to accelerate dashboard queries; offload heavy analytics to Synapse or Azure Databricks when needed.
+**Reporting:** use materialised views or analytic indexes to accelerate dashboard queries; offload heavy analytics to Synapse or Azure Databricks when needed.
 
-Continuous monitoring – implement real‑time monitoring of defect rates and test pass/fail status using Azure Event Hub and stream analytics.
+**Continuous monitoring:** implement real‑time monitoring of defect rates and test pass/fail status using Azure Event Hub and stream analytics.
 
 ## Logging & Monitoring
 

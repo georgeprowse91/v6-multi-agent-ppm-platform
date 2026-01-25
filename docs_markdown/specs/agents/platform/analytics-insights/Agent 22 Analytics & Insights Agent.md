@@ -6,75 +6,75 @@ The Analytics & Insights Agent (AIA) delivers comprehensive analytics, reporting
 
 ## Key Capabilities
 
-Data aggregation & modelling – consolidate data from agents (schedule, resource, financial, risk, quality, etc.), external systems (ERP, CRM) and telemetry into a unified analytical model; harmonise data definitions and temporal granularity.
+**Data aggregation & modelling:** consolidate data from agents (schedule, resource, financial, risk, quality, etc.), external systems (ERP, CRM) and telemetry into a unified analytical model; harmonise data definitions and temporal granularity.
 
-Interactive dashboards & visualisations – provide a variety of dashboards (portfolio overview, program health, project performance, risk heatmaps) with drill‑down and drill‑through capabilities; support filtering by time, organisation and other dimensions.
+**Interactive dashboards & visualisations:** provide a variety of dashboards (portfolio overview, program health, project performance, risk heatmaps) with drill‑down and drill‑through capabilities; support filtering by time, organisation and other dimensions.
 
-Self‑service analytics & ad hoc reporting – enable users to build custom reports and charts through a drag‑and‑drop interface; allow natural language queries (e.g., “Show me the top 5 projects by ROI”).
+**Self‑service analytics & ad hoc reporting:** enable users to build custom reports and charts through a drag‑and‑drop interface; allow natural language queries (e.g., “Show me the top 5 projects by ROI”).
 
-Predictive & prescriptive analytics – apply machine learning models to forecast schedule delays, budget overruns, resource bottlenecks and project success probabilities; recommend corrective actions based on predictive insights.
+**Predictive & prescriptive analytics:** apply machine learning models to forecast schedule delays, budget overruns, resource bottlenecks and project success probabilities; recommend corrective actions based on predictive insights.
 
-Scenario analysis & what‑if modelling – simulate different scenarios (adding/delaying projects, resource changes, budget adjustments); evaluate impact on portfolio performance metrics.
+**Scenario analysis & what‑if modelling:** simulate different scenarios (adding/delaying projects, resource changes, budget adjustments); evaluate impact on portfolio performance metrics.
 
-Narrative generation – automatically generate narrative summaries and executive briefs from data using natural language generation; tailor narrative to stakeholder interests.
+**Narrative generation:** automatically generate narrative summaries and executive briefs from data using natural language generation; tailor narrative to stakeholder interests.
 
-KPI & OKR management – define and track key performance indicators (KPIs) and Objectives & Key Results (OKRs) at different levels; alert stakeholders when thresholds are breached.
+**KPI & OKR management:** define and track key performance indicators (KPIs) and Objectives & Key Results (OKRs) at different levels; alert stakeholders when thresholds are breached.
 
-Data governance & lineage – maintain lineage of data used in analytics, including source, transformation and versioning; ensure data quality and auditability.
+**Data governance & lineage:** maintain lineage of data used in analytics, including source, transformation and versioning; ensure data quality and auditability.
 
 ## AI Technologies & Techniques
 
-Machine learning forecasting – use regression, time‑series models and ensemble methods to predict schedule, cost and resource outcomes.
+**Machine learning forecasting:** use regression, time‑series models and ensemble methods to predict schedule, cost and resource outcomes.
 
-Classification & clustering – segment projects or stakeholders based on attributes; identify high‑risk projects or programs needing attention.
+**Classification & clustering:** segment projects or stakeholders based on attributes; identify high‑risk projects or programs needing attention.
 
-Anomaly detection – detect unusual patterns in performance metrics; flag anomalies for investigation.
+**Anomaly detection:** detect unusual patterns in performance metrics; flag anomalies for investigation.
 
-Natural language query & generation – use large language models to interpret user queries and generate narrative insights.
+**Natural language query & generation:** use large language models to interpret user queries and generate narrative insights.
 
-Reinforcement learning – optimise portfolio decisions and resource allocation through simulation and reward functions (future enhancement).
+**Reinforcement learning:** optimise portfolio decisions and resource allocation through simulation and reward functions (future enhancement).
 
 ## Methodology Adaptation
 
-Agile – track burn‑down and burn‑up charts, velocity trends and backlog health; predict sprint completion probabilities; visualise cumulative flow diagrams.
+**Agile:** track burn‑down and burn‑up charts, velocity trends and backlog health; predict sprint completion probabilities; visualise cumulative flow diagrams.
 
-Waterfall – report on earned value management (EVM) metrics (PV, EV, AC, CPI, SPI); forecast phase completion dates and cost at completion.
+**Waterfall:** report on earned value management (EVM) metrics (PV, EV, AC, CPI, SPI); forecast phase completion dates and cost at completion.
 
-Hybrid – integrate Agile and Waterfall metrics into unified dashboards; segment metrics by methodology.
+**Hybrid:** integrate Agile and Waterfall metrics into unified dashboards; segment metrics by methodology.
 
 ## Dependencies & Interactions
 
-Data Synchronisation Agent (23) – ensures consistent and accurate data ingestion from disparate sources and agents; resolves duplicates and conflicts.
+**Data Synchronisation Agent (23):** ensures consistent and accurate data ingestion from disparate sources and agents; resolves duplicates and conflicts.
 
-All domain agents – provide data to the AIA; publish events when data updates occur (e.g., new risk recorded, budget updated).
+**All domain agents:** provide data to the AIA; publish events when data updates occur (e.g., new risk recorded, budget updated).
 
-Workflow & Process Engine Agent (24) – provides process execution data used for analytics; receives insights (e.g., bottlenecks) to adjust workflows.
+**Workflow & Process Engine Agent (24):** provides process execution data used for analytics; receives insights (e.g., bottlenecks) to adjust workflows.
 
-Stakeholder & Communications Agent (21) – embeds analytics in communications; uses narrative summaries to inform stakeholders.
+**Stakeholder & Communications Agent (21):** embeds analytics in communications; uses narrative summaries to inform stakeholders.
 
-Continuous Improvement Agent (20) – consumes analytics results to identify areas for process optimisation; provides improvement outcomes back to the AIA.
+**Continuous Improvement Agent (20):** consumes analytics results to identify areas for process optimisation; provides improvement outcomes back to the AIA.
 
 ## Integration Responsibilities
 
-Data warehouse & lake – store aggregated data in Azure Synapse Analytics, Azure Data Lake Storage or similar; manage star/snowflake schemas for analytics.
+**Data warehouse & lake:** store aggregated data in Azure Synapse Analytics, Azure Data Lake Storage or similar; manage star/snowflake schemas for analytics.
 
-BI tools – integrate with Power BI, Tableau or Qlik for interactive visualisations; embed reports into the PPM UI using Power BI Embedded.
+**BI tools:** integrate with Power BI, Tableau or Qlik for interactive visualisations; embed reports into the PPM UI using Power BI Embedded.
 
-ML platforms – orchestrate model training and scoring using Azure Machine Learning; store and version models in a central registry; schedule retraining.
+**ML platforms:** orchestrate model training and scoring using Azure Machine Learning; store and version models in a central registry; schedule retraining.
 
-Natural language services – use Azure Cognitive Services (Language) or OpenAI for query interpretation and narrative generation.
+**Natural language services:** use Azure Cognitive Services (Language) or OpenAI for query interpretation and narrative generation.
 
-APIs & event streams – expose analytics services via REST/GraphQL; subscribe to event streams from agents via Azure Event Hub or Service Bus for near‑real‑time updates.
+**APIs & event streams:** expose analytics services via REST/GraphQL; subscribe to event streams from agents via Azure Event Hub or Service Bus for near‑real‑time updates.
 
 ## Data Ownership & Schemas
 
-Unified data model – definitions of tables and fields representing projects, programs, portfolios, resources, finances, risks, quality metrics, etc.; includes relationships and hierarchies.
+**Unified data model:** definitions of tables and fields representing projects, programs, portfolios, resources, finances, risks, quality metrics, etc.; includes relationships and hierarchies.
 
-Fact tables & dimensions – fact tables capturing performance metrics (e.g., cost fact, schedule fact) and dimension tables (e.g., time, organisation, methodology).
+**Fact tables & dimensions:** fact tables capturing performance metrics (e.g., cost fact, schedule fact) and dimension tables (e.g., time, organisation, methodology).
 
-Model metadata – information about analytics models, including versions, training data sources, performance metrics and drift indicators.
+**Model metadata:** information about analytics models, including versions, training data sources, performance metrics and drift indicators.
 
-Lineage & provenance – records of data sources, transformations, and pipelines used to create analytical datasets; dependencies between datasets and reports.
+**Lineage & provenance:** records of data sources, transformations, and pipelines used to create analytical datasets; dependencies between datasets and reports.
 
 ## Key Workflows & Use Cases
 
@@ -112,33 +112,33 @@ Narratives are embedded in executive briefings, newsletters or dashboards; users
 
 The AIA provides analytics interfaces via integrated dashboards and tools:
 
-Portfolio overview dashboard – high‑level view of portfolio health across cost, schedule, risk and benefits; includes traffic light indicators and trend lines.
+**Portfolio overview dashboard:** high‑level view of portfolio health across cost, schedule, risk and benefits; includes traffic light indicators and trend lines.
 
-Program & project dashboards – drill‑down dashboards showing detailed metrics, milestones and variances; includes interactive Gantt charts and risk matrices.
+**Program & project dashboards:** drill‑down dashboards showing detailed metrics, milestones and variances; includes interactive Gantt charts and risk matrices.
 
-Predictive insights panel – displays predictions for selected KPIs along with confidence intervals and recommended actions; allows users to adjust model assumptions.
+**Predictive insights panel:** displays predictions for selected KPIs along with confidence intervals and recommended actions; allows users to adjust model assumptions.
 
-Self‑service report builder – drag‑and‑drop interface for creating custom charts and tables; supports formulas, calculated fields and saved views.
+**Self‑service report builder:** drag‑and‑drop interface for creating custom charts and tables; supports formulas, calculated fields and saved views.
 
-Scenario modeller – interactive tool for creating and comparing what‑if scenarios; includes sliders for adjusting variables and charts to visualise outcomes.
+**Scenario modeller:** interactive tool for creating and comparing what‑if scenarios; includes sliders for adjusting variables and charts to visualise outcomes.
 
-Narrative reports – auto‑generated text reports with embedded charts; users can customise tone (executive summary, technical detail) and export as PDF/Word.
+**Narrative reports:** auto‑generated text reports with embedded charts; users can customise tone (executive summary, technical detail) and export as PDF/Word.
 
 In the UI, when a user enters a natural language query like “How many projects are over budget this month?”, the Intent Router passes it to the AIA; the Response Orchestration agent coordinates with the AIA to interpret the query, retrieve data and generate a narrative response.
 
 ## Configuration Parameters & Environment
 
-Data refresh schedules – configure refresh frequencies (e.g., hourly, daily, weekly) for datasets and dashboards; adjust based on data volatility and performance impact.
+**Data refresh schedules:** configure refresh frequencies (e.g., hourly, daily, weekly) for datasets and dashboards; adjust based on data volatility and performance impact.
 
-Model retraining schedules – set retraining cadence for predictive models; monitor drift metrics to trigger retraining.
+**Model retraining schedules:** set retraining cadence for predictive models; monitor drift metrics to trigger retraining.
 
-Thresholds for alerts – define KPI thresholds (e.g., CPI < 0.9, SPI < 0.95) and associated alert severity levels; customise for portfolios or programs.
+**Thresholds for alerts:** define KPI thresholds (e.g., CPI < 0.9, SPI < 0.95) and associated alert severity levels; customise for portfolios or programs.
 
-Report templates & narratives – configure templates for narrative reports; define sections, tone and target audience.
+**Report templates & narratives:** configure templates for narrative reports; define sections, tone and target audience.
 
-User roles & permissions – specify which users can create custom reports, access raw data, or modify predictive models; integrate with Azure AD roles.
+**User roles & permissions:** specify which users can create custom reports, access raw data, or modify predictive models; integrate with Azure AD roles.
 
-Integration endpoints – define connectors to BI tools, ML platforms and event streams; manage authentication.
+**Integration endpoints:** define connectors to BI tools, ML platforms and event streams; manage authentication.
 
 ### Azure Implementation Guidance
 
@@ -160,19 +160,19 @@ Scalability: Scale Synapse dedicated SQL pools, Analysis Services, and App Serv
 
 ## Security & Compliance Considerations
 
-Data privacy – enforce access controls and anonymise sensitive data; comply with regulations such as GDPR; maintain audit logs of data access and analytics usage.
+**Data privacy:** enforce access controls and anonymise sensitive data; comply with regulations such as GDPR; maintain audit logs of data access and analytics usage.
 
-Model governance – document model assumptions, training data and version history; ensure fairness and transparency; monitor model drift and bias.
+**Model governance:** document model assumptions, training data and version history; ensure fairness and transparency; monitor model drift and bias.
 
-Lineage & auditability – record data lineage and transformations; support audits to trace insights back to source data; integrate with the Data Quality & Lineage agent if present.
+**Lineage & auditability:** record data lineage and transformations; support audits to trace insights back to source data; integrate with the Data Quality & Lineage agent if present.
 
 ## Performance & Scalability
 
-Query optimisation – design star/snowflake schemas and indexing strategies to improve query performance; utilise materialised views and aggregation tables.
+**Query optimisation:** design star/snowflake schemas and indexing strategies to improve query performance; utilise materialised views and aggregation tables.
 
-Caching & pre‑aggregation – implement caching layers (e.g., Redis) for frequently accessed aggregates; pre‑compute common metrics during off‑peak hours.
+**Caching & pre‑aggregation:** implement caching layers (e.g., Redis) for frequently accessed aggregates; pre‑compute common metrics during off‑peak hours.
 
-Concurrent user load – plan capacity for high concurrency; scale out reporting services; consider query queueing or load balancing.
+**Concurrent user load:** plan capacity for high concurrency; scale out reporting services; consider query queueing or load balancing.
 
 ## Logging & Monitoring
 

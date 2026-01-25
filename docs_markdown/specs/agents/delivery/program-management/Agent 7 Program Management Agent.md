@@ -78,13 +78,13 @@ Program benefits & outcomes: Stores aggregated benefits, cost savings and realis
 
 ## Key Workflows
 
-Program Roadmap Creation – Upon request, the agent identifies constituent projects, queries each project's schedule and dependencies from the Schedule & Planning Agent and constructs an integrated program roadmap with milestones, dependency arrows and shared components highlighted. The roadmap is presented in a visual canvas where users can modify alignment and share synergy notes.
+**Program Roadmap Creation:** Upon request, the agent identifies constituent projects, queries each project's schedule and dependencies from the Schedule & Planning Agent and constructs an integrated program roadmap with milestones, dependency arrows and shared components highlighted. The roadmap is presented in a visual canvas where users can modify alignment and share synergy notes.
 
-Cross‑Project Dependency Management – When a delay or change occurs in one project (e.g., schedule.delay event), the agent analyses cascading effects across dependent projects. It proposes mitigation options (parallelise tasks, crash schedules, accept delay) and routes decisions to program managers via the assistant.
+**Cross‑Project Dependency Management:** When a delay or change occurs in one project (e.g., schedule.delay event), the agent analyses cascading effects across dependent projects. It proposes mitigation options (parallelise tasks, crash schedules, accept delay) and routes decisions to program managers via the assistant.
 
-Synergy & Benefit Analysis – Periodically scans projects within the program to identify opportunities for shared components or vendor consolidation. Generates recommendations to reuse services or coordinate procurement, quantifying potential cost savings.
+**Synergy & Benefit Analysis:** Periodically scans projects within the program to identify opportunities for shared components or vendor consolidation. Generates recommendations to reuse services or coordinate procurement, quantifying potential cost savings.
 
-Program Health Monitoring – Aggregates health metrics from project lifecycle, schedule, financial and risk agents to produce a composite program health score. Alerts program managers to trends requiring intervention (e.g., declining velocity across projects).
+**Program Health Monitoring:** Aggregates health metrics from project lifecycle, schedule, financial and risk agents to produce a composite program health score. Alerts program managers to trends requiring intervention (e.g., declining velocity across projects).
 
 ## UI/UX Design
 
