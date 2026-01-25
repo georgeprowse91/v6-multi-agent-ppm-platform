@@ -48,6 +48,17 @@ async def test_root_endpoint(app):
 
 
 @pytest.mark.asyncio
+async def test_healthz_endpoint(app):
+    """Test healthz endpoint."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/healthz")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+
+
+@pytest.mark.asyncio
 async def test_health_endpoint(app):
     """Test health check endpoint."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -56,6 +67,18 @@ async def test_health_endpoint(app):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
+
+
+@pytest.mark.asyncio
+async def test_version_endpoint(app):
+    """Test version endpoint."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/version")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["service"] == "multi-agent-ppm-api"
+    assert "version" in data
 
 
 @pytest.mark.asyncio
