@@ -320,7 +320,7 @@ pytest --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=html
 open htmlcov/index.html
 ```
 
-Current coverage: **TBD%** (target: >80%)
+Current coverage: **reported in CI** (target: >80%)
 
 ## 🛡️ Security
 
