@@ -64,6 +64,9 @@ make install-dev
 
 # Set up pre-commit hooks
 pre-commit install
+
+# Alternative dev install without editable package mode
+pip install -r requirements-dev.txt
 ```
 
 ### 3. Configure Environment

@@ -28,6 +28,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
     async def initialize(self) -> None:
         """Initialize approval workflow configurations and connections."""
+        await super().initialize()
         self.logger.info("Initializing Approval Workflow Agent...")
 
         # Load approval policies and routing rules
@@ -38,7 +39,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         self.logger.info("Approval Workflow Agent initialized successfully")
 
-    async def _validate_input(self, input_data: dict[str, Any]) -> bool:
+    async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate approval request input data."""
         required_fields = ["request_type", "request_id", "requester", "details"]
 

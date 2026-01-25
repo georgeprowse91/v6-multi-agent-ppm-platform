@@ -10,6 +10,11 @@ AI-native Project Portfolio Management platform with 25 specialized agents orche
 
 The Multi-Agent PPM Platform is an enterprise-grade, AI-native solution that transforms how organizations manage their project portfolios. It combines 25 specialized AI agents with proven PPM methodologies (Agile, Waterfall, Hybrid) to provide intelligent orchestration, real-time insights, and automated workflows.
 
+**Implementation Status (Alpha):**
+- Core API scaffolding and agent orchestration runtime are implemented.
+- Agent logic is currently mocked/stubbed to keep the system runnable while specs are finalized.
+- Integrations, persistence, and production auth are documented but not yet wired in.
+
 **Key Features:**
 - 🤖 25 specialized AI agents for different PPM domains
 - 🔄 Multi-methodology support (Agile, Waterfall, Hybrid)
@@ -88,6 +93,9 @@ make install
 
 # Development dependencies (recommended)
 make install-dev
+
+# Alternative dev install without editable package mode
+pip install -r requirements-dev.txt
 ```
 
 ### Run Services
@@ -139,6 +147,9 @@ make format
 # Run all checks
 make check
 ```
+
+> Note: Test execution requires development dependencies (pytest-asyncio, pytest-cov). Install them via
+> `make install-dev` or `pip install -r requirements-dev.txt`.
 
 ## 📦 Building & Deployment
 
@@ -315,6 +326,7 @@ Current coverage: **TBD%** (target: >80%)
 - SOC 2 / ISO 27001 compliance ready
 
 See [Security Architecture](docs_markdown/docs/security/Security%20Architecture.md).
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## 📊 Monitoring & Observability
 

@@ -121,12 +121,14 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           tags: multi-agent-ppm:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Test Docker image
         run: |
+          docker image inspect multi-agent-ppm:${{ github.sha }}
           docker run --rm multi-agent-ppm:${{ github.sha }} python -c "import src; print('Import successful')"
 
   # Security Scanning

@@ -7,7 +7,7 @@ import pytest
 from src.core.base_agent import BaseAgent
 
 
-class TestAgent(BaseAgent):
+class SampleAgent(BaseAgent):
     """Test agent implementation."""
 
     async def process(self, input_data: dict) -> dict:
@@ -18,7 +18,7 @@ class TestAgent(BaseAgent):
 @pytest.mark.asyncio
 async def test_agent_initialization():
     """Test agent initialization."""
-    agent = TestAgent(agent_id="test-agent", config={"test": "config"})
+    agent = SampleAgent(agent_id="test-agent", config={"test": "config"})
 
     assert agent.agent_id == "test-agent"
     assert agent.config == {"test": "config"}
@@ -32,7 +32,7 @@ async def test_agent_initialization():
 @pytest.mark.asyncio
 async def test_agent_execute():
     """Test agent execute method."""
-    agent = TestAgent(agent_id="test-agent")
+    agent = SampleAgent(agent_id="test-agent")
 
     result = await agent.execute({"data": "test"})
 
@@ -102,7 +102,7 @@ def test_agent_get_capabilities():
 
 def test_agent_get_config():
     """Test getting configuration values."""
-    agent = TestAgent(agent_id="test-agent", config={"setting1": "value1", "setting2": 42})
+    agent = SampleAgent(agent_id="test-agent", config={"setting1": "value1", "setting2": 42})
 
     assert agent.get_config("setting1") == "value1"
     assert agent.get_config("setting2") == 42

@@ -1,0 +1,5 @@
+# Multi-Agent PPM Platform - Development Dependencies
+# Install with: pip install -r requirements-dev.txt
+
+-e .[dev]
+
