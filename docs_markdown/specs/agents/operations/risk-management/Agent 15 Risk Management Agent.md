@@ -6,75 +6,75 @@ The Risk Management Agent (RMA) proactively identifies, assesses and monitors r
 
 ## Key Capabilities
 
-Risk identification & capture – facilitate brainstorming sessions, checklists and automated discovery to capture risks from stakeholders, documents and project data.
+**Risk identification & capture:** facilitate brainstorming sessions, checklists and automated discovery to capture risks from stakeholders, documents and project data.
 
-Risk classification & scoring – categorise risks (technical, schedule, financial, compliance, external) and assess probability, impact, proximity and detectability. Support qualitative and quantitative scoring methods.
+**Risk classification & scoring:** categorise risks (technical, schedule, financial, compliance, external) and assess probability, impact, proximity and detectability. Support qualitative and quantitative scoring methods.
 
-Risk prioritisation & ranking – compute risk exposure (probability × impact) and rank risks; support Monte Carlo simulation and sensitivity analysis for complex portfolios.
+**Risk prioritisation & ranking:** compute risk exposure (probability × impact) and rank risks; support Monte Carlo simulation and sensitivity analysis for complex portfolios.
 
-Mitigation & response planning – recommend mitigation, avoidance, transfer or acceptance strategies; assign owners and budgets; track response actions and residual risk.
+**Mitigation & response planning:** recommend mitigation, avoidance, transfer or acceptance strategies; assign owners and budgets; track response actions and residual risk.
 
-Trigger & threshold monitoring – define triggers and early warning indicators; automatically monitor data sources to detect when risks may materialise or when thresholds are crossed.
+**Trigger & threshold monitoring:** define triggers and early warning indicators; automatically monitor data sources to detect when risks may materialise or when thresholds are crossed.
 
-Risk reporting & dashboards – provide heat maps, risk matrices, bubble charts and timelines to visualise risk landscape; summarise top risks for management review.
+**Risk reporting & dashboards:** provide heat maps, risk matrices, bubble charts and timelines to visualise risk landscape; summarise top risks for management review.
 
-Integration with other disciplines – link risks to WBS elements, requirements, test cases and compliance controls; propagate risk impacts to schedule, cost and quality forecasts.
+**Integration with other disciplines:** link risks to WBS elements, requirements, test cases and compliance controls; propagate risk impacts to schedule, cost and quality forecasts.
 
 ## AI Technologies & Techniques
 
-NLP‑based risk extraction – analyse project documents, emails and meeting notes to identify potential risks using named entity recognition, sentiment analysis and topic modelling.
+**NLP‑based risk extraction:** analyse project documents, emails and meeting notes to identify potential risks using named entity recognition, sentiment analysis and topic modelling.
 
-Predictive risk modelling – train models on historical project data to predict probability of schedule delays, cost overruns, quality issues or vendor failures.
+**Predictive risk modelling:** train models on historical project data to predict probability of schedule delays, cost overruns, quality issues or vendor failures.
 
-Monte Carlo simulation – perform quantitative risk analysis to model distributions of outcomes; evaluate contingency reserves and risk response effectiveness.
+**Monte Carlo simulation:** perform quantitative risk analysis to model distributions of outcomes; evaluate contingency reserves and risk response effectiveness.
 
-Correlation & clustering analysis – discover correlations between risks (e.g., resource shortage and schedule delays) and group similar risks to streamline mitigation.
+**Correlation & clustering analysis:** discover correlations between risks (e.g., resource shortage and schedule delays) and group similar risks to streamline mitigation.
 
-Anomaly detection – identify emerging risks by detecting deviations in performance metrics, defect rates or resource utilisation.
+**Anomaly detection:** identify emerging risks by detecting deviations in performance metrics, defect rates or resource utilisation.
 
 ## Methodology Adaptation
 
-Agile – integrate risk reviews into sprint retrospectives; track risk burndown; manage technical debt as a form of risk; emphasise continuous identification and mitigation.
+**Agile:** integrate risk reviews into sprint retrospectives; track risk burndown; manage technical debt as a form of risk; emphasise continuous identification and mitigation.
 
-Waterfall – perform risk analysis at major milestones; maintain static risk register with periodic reviews; allocate contingency reserves by phase.
+**Waterfall:** perform risk analysis at major milestones; maintain static risk register with periodic reviews; allocate contingency reserves by phase.
 
-Hybrid – support risk monitoring at both sprint and phase levels; allow risks to be linked to user stories or deliverables.
+**Hybrid:** support risk monitoring at both sprint and phase levels; allow risks to be linked to user stories or deliverables.
 
 ## Dependencies & Interactions
 
-Schedule & Planning Agent (10) – receives risk impacts (e.g., expected delays) to adjust schedule; provides milestone dates used as triggers.
+**Schedule & Planning Agent (10):** receives risk impacts (e.g., expected delays) to adjust schedule; provides milestone dates used as triggers.
 
-Financial Management Agent (12) – assesses cost impact of risks; allocates contingency budgets; tracks risk mitigation expenditures.
+**Financial Management Agent (12):** assesses cost impact of risks; allocates contingency budgets; tracks risk mitigation expenditures.
 
-Quality Management Agent (14) – links quality issues to risks; uses defect trends to predict potential risks.
+**Quality Management Agent (14):** links quality issues to risks; uses defect trends to predict potential risks.
 
-Portfolio Strategy & Optimisation Agent (6) – considers risk exposure when prioritising projects.
+**Portfolio Strategy & Optimisation Agent (6):** considers risk exposure when prioritising projects.
 
-Vendor & Procurement Agent (13) – provides vendor risk assessments and supply chain vulnerabilities.
+**Vendor & Procurement Agent (13):** provides vendor risk assessments and supply chain vulnerabilities.
 
-Compliance & Regulatory Agent (16) – monitors compliance risks and integrates them into the risk register.
+**Compliance & Regulatory Agent (16):** monitors compliance risks and integrates them into the risk register.
 
 ## Integration Responsibilities
 
-Project management systems – integrate with Planview, MS Project, Jira or Azure DevOps to import schedules, tasks and issues for risk linking.
+**Project management systems:** integrate with Planview, MS Project, Jira or Azure DevOps to import schedules, tasks and issues for risk linking.
 
-Document repositories – scan requirements documents, meeting minutes and risk logs stored in SharePoint or Confluence for risk extraction.
+**Document repositories:** scan requirements documents, meeting minutes and risk logs stored in SharePoint or Confluence for risk extraction.
 
-External data sources – pull external risk indicators (e.g., market indices, geopolitical events, natural disaster alerts) via APIs to augment risk identification.
+**External data sources:** pull external risk indicators (e.g., market indices, geopolitical events, natural disaster alerts) via APIs to augment risk identification.
 
 Provide APIs for other agents to retrieve risk information, update risk statuses and subscribe to risk events; publish risk notifications to the Orchestration layer.
 
 ## Data Ownership & Schemas
 
-Risk register – risk ID, title, description, category, probability, impact, score, owner, status, triggers, created/updated dates, related WBS or stories.
+**Risk register:** risk ID, title, description, category, probability, impact, score, owner, status, triggers, created/updated dates, related WBS or stories.
 
-Mitigation plans – mitigation strategy, tasks, budget, due dates, responsible persons, residual risk rating.
+**Mitigation plans:** mitigation strategy, tasks, budget, due dates, responsible persons, residual risk rating.
 
-Triggers & thresholds – conditions or metrics that signal risk activation; data sources monitored.
+**Triggers & thresholds:** conditions or metrics that signal risk activation; data sources monitored.
 
-Quantitative analysis data – distributions, correlation matrices, Monte Carlo simulation outputs, contingency reserves.
+**Quantitative analysis data:** distributions, correlation matrices, Monte Carlo simulation outputs, contingency reserves.
 
-Risk histories – record of risk status changes, mitigation actions taken, outcomes and lessons learned.
+**Risk histories:** record of risk status changes, mitigation actions taken, outcomes and lessons learned.
 
 ## Key Workflows & Use Cases
 
@@ -118,33 +118,33 @@ After a risk is resolved or the project completes, the agent captures lessons le
 
 The RMA includes user interfaces integrated into the PPM portal:
 
-Risk register – interactive table where users can add, edit and view risks; supports filters by project, status, category, owner and risk level. Columns show probability, impact and risk score.
+**Risk register:** interactive table where users can add, edit and view risks; supports filters by project, status, category, owner and risk level. Columns show probability, impact and risk score.
 
-Risk matrix & heatmap – a two‑dimensional matrix plotting probability vs. impact with colour coding; interactive to select and drill down into individual risks.
+**Risk matrix & heatmap:** a two‑dimensional matrix plotting probability vs. impact with colour coding; interactive to select and drill down into individual risks.
 
-Risk detail page – provides complete information about a risk, including description, triggers, mitigation plan, attachments and related tasks; displays history of changes and comments.
+**Risk detail page:** provides complete information about a risk, including description, triggers, mitigation plan, attachments and related tasks; displays history of changes and comments.
 
-Mitigation task board – Kanban board showing mitigation tasks by status (Planned, In Progress, Blocked, Completed); integrates with task management systems.
+**Mitigation task board:** Kanban board showing mitigation tasks by status (Planned, In Progress, Blocked, Completed); integrates with task management systems.
 
-Quantitative analysis view – visualisations of Monte Carlo simulation outputs (histograms, tornado diagrams) and summary statistics.
+**Quantitative analysis view:** visualisations of Monte Carlo simulation outputs (histograms, tornado diagrams) and summary statistics.
 
-Risk alerts panel – feed of active triggers, overdue mitigation tasks, high‑risk items requiring attention.
+**Risk alerts panel:** feed of active triggers, overdue mitigation tasks, high‑risk items requiring attention.
 
 The Orchestration layer routes queries such as “What are the top 5 risks for Program Beta?” to the RMA. The Response Orchestration agent may also consult the Financial agent for cost impact and the Schedule agent for timeline impact when responding.
 
 ## Configuration Parameters & Environment
 
-Risk scoring scales – define probability and impact scales (1–5 or 1–10); specify weighting factors for risk exposure calculation.
+**Risk scoring scales:** define probability and impact scales (1–5 or 1–10); specify weighting factors for risk exposure calculation.
 
-Risk categories – configurable list of risk categories and subcategories; align with organisational taxonomy.
+**Risk categories:** configurable list of risk categories and subcategories; align with organisational taxonomy.
 
-Triggers & thresholds – specify metrics and conditions to monitor (e.g., variance thresholds, milestone dates, vendor delays); associate triggers with risks.
+**Triggers & thresholds:** specify metrics and conditions to monitor (e.g., variance thresholds, milestone dates, vendor delays); associate triggers with risks.
 
-Monte Carlo simulation settings – number of iterations, distribution types, correlation assumptions; configurable per project type.
+**Monte Carlo simulation settings:** number of iterations, distribution types, correlation assumptions; configurable per project type.
 
-Notification & escalation rules – determine how alerts are routed (e.g., email, Teams) and which risk levels trigger escalations.
+**Notification & escalation rules:** determine how alerts are routed (e.g., email, Teams) and which risk levels trigger escalations.
 
-Integration endpoints – configure connections to project management systems, document repositories and external risk data APIs.
+**Integration endpoints:** configure connections to project management systems, document repositories and external risk data APIs.
 
 ### Azure Implementation Guidance
 
@@ -164,19 +164,19 @@ Scalability: Scale out risk monitoring functions using Event Grid and Service B
 
 ## Security & Compliance Considerations
 
-Confidentiality – protect sensitive risk data (e.g., risks relating to security vulnerabilities) from unauthorised access; apply role‑based access controls.
+**Confidentiality:** protect sensitive risk data (e.g., risks relating to security vulnerabilities) from unauthorised access; apply role‑based access controls.
 
-Audit trail – record all changes to the risk register, including updates to scores and mitigation plans; ensure logs are immutable and auditable.
+**Audit trail:** record all changes to the risk register, including updates to scores and mitigation plans; ensure logs are immutable and auditable.
 
-Regulatory compliance – align with governance requirements such as ISO 31000 and ensure integration with compliance risk frameworks via the Compliance & Regulatory agent.
+**Regulatory compliance:** align with governance requirements such as ISO 31000 and ensure integration with compliance risk frameworks via the Compliance & Regulatory agent.
 
 ## Performance & Scalability
 
-Real‑time monitoring – design event‑driven architecture to respond quickly to trigger events; use stream processing for high‑frequency data sources.
+**Real‑time monitoring:** design event‑driven architecture to respond quickly to trigger events; use stream processing for high‑frequency data sources.
 
-Simulation scalability – for Monte Carlo analysis, distribute computations across Azure Batch nodes or serverless functions; store results efficiently using columnar formats.
+**Simulation scalability:** for Monte Carlo analysis, distribute computations across Azure Batch nodes or serverless functions; store results efficiently using columnar formats.
 
-Efficient queries – index risk register fields and use partitioning to support fast retrieval by project or risk level.
+**Efficient queries:** index risk register fields and use partitioning to support fast retrieval by project or risk level.
 
 ## Logging & Monitoring
 

@@ -34,69 +34,69 @@ Usage‑based metrics: Storage and compute consumption, connectors with high tra
 
 For organisations requiring greater control over data residency or integration, the platform can be deployed within the customer’s own Azure subscription or an accredited private cloud environment.
 
-Subscription licence – An annual license fee based on the number of active users (or projects) plus maintenance and support. Includes updates and patches. Tiered pricing similar to SaaS but with a premium (e.g., +20 %) to cover dedicated infrastructure and support.
+**Subscription licence:** An annual license fee based on the number of active users (or projects) plus maintenance and support. Includes updates and patches. Tiered pricing similar to SaaS but with a premium (e.g., +20 %) to cover dedicated infrastructure and support.
 
-Implementation fee – One‑time professional services fee covering installation, configuration, and knowledge transfer. Typically a fixed price based on scope or time‑and‑materials for complex integrations.
+**Implementation fee:** One‑time professional services fee covering installation, configuration, and knowledge transfer. Typically a fixed price based on scope or time‑and‑materials for complex integrations.
 
-Managed services option – The vendor can manage the environment (patching, monitoring, backups) for an additional fee (percentage of the license). This appeals to customers who want private deployment but lack internal capacity.
+**Managed services option:** The vendor can manage the environment (patching, monitoring, backups) for an additional fee (percentage of the license). This appeals to customers who want private deployment but lack internal capacity.
 
 ### 3. On‑Premises / Perpetual License
 
 For highly regulated sectors (government, defence) that cannot use cloud services. The solution is deployed on the customer’s infrastructure.
 
-Perpetual licence – Upfront license cost calculated per server/core or per concurrent user. Annual maintenance (20–25 % of license cost) covers updates and support.
+**Perpetual licence:** Upfront license cost calculated per server/core or per concurrent user. Annual maintenance (20–25 % of license cost) covers updates and support.
 
-Professional services – Required to install and integrate the platform; typically more extensive than cloud deployments.
+**Professional services:** Required to install and integrate the platform; typically more extensive than cloud deployments.
 
-Optional upgrade – Customers can migrate to private‑cloud or SaaS with credit for unused licence value.
+**Optional upgrade:** Customers can migrate to private‑cloud or SaaS with credit for unused licence value.
 
 ### 4. Professional Services & Training
 
 Beyond software licences, professional services accelerate time to value.
 
-Discovery & blueprinting – Assess current PPM processes, identify data sources, define integration plan and success metrics.
+**Discovery & blueprinting:** Assess current PPM processes, identify data sources, define integration plan and success metrics.
 
-Implementation & integration – Configure agents, build custom connectors, migrate data, set up governance and security. Charged as fixed price or time‑and‑materials.
+**Implementation & integration:** Configure agents, build custom connectors, migrate data, set up governance and security. Charged as fixed price or time‑and‑materials.
 
-Customisation & extension – Build custom agents, dashboards, or analytics models. Priced based on complexity.
+**Customisation & extension:** Build custom agents, dashboards, or analytics models. Priced based on complexity.
 
-Training & change management – Deliver workshops, webinars, certification programmes, and change‑management support. Offer packages (e.g., 3‑day onsite training) or subscription‑based training portals. These services align with the Change‑Management & Training plan.
+**Training & change management:** Deliver workshops, webinars, certification programmes, and change‑management support. Offer packages (e.g., 3‑day onsite training) or subscription‑based training portals. These services align with the Change‑Management & Training plan.
 
 ### 5. Partner & OEM Models
 
-OEM / White‑label – Large software vendors may embed the multi‑agent PPM platform into their existing product suites. Pricing based on negotiated royalties or revenue‑sharing.
+**OEM / White‑label:** Large software vendors may embed the multi‑agent PPM platform into their existing product suites. Pricing based on negotiated royalties or revenue‑sharing.
 
-Reseller & system integrator partners – Offer margin or referral fees for partners who sell and implement the platform. Incentivise partners to build connectors and provide domain expertise.
+**Reseller & system integrator partners:** Offer margin or referral fees for partners who sell and implement the platform. Incentivise partners to build connectors and provide domain expertise.
 
 ## Value‑Realisation Metrics
 
 To justify investment and support sales, quantify value using metrics aligned with client objectives. Possible metrics include:
 
-Efficiency Gains – Reduction in manual effort for project setup, reporting and approvals. Measure hours saved per project and headcount reallocation. Highlight that automation and intelligent routing reduce administrative workloads.
+**Efficiency Gains:** Reduction in manual effort for project setup, reporting and approvals. Measure hours saved per project and headcount reallocation. Highlight that automation and intelligent routing reduce administrative workloads.
 
-Schedule Adherence – Reduction in project delays due to improved scheduling, resource balancing and risk detection. Track percentage of projects delivered on time compared with baseline.
+**Schedule Adherence:** Reduction in project delays due to improved scheduling, resource balancing and risk detection. Track percentage of projects delivered on time compared with baseline.
 
-Financial Performance – Improvement in budget accuracy and ROI. The PPM market’s growth is driven by integrated analytics that reduce budget overruns[1]; show cost avoidance through better forecasting and portfolio optimisation.
+**Financial Performance:** Improvement in budget accuracy and ROI. The PPM market’s growth is driven by integrated analytics that reduce budget overruns[1]; show cost avoidance through better forecasting and portfolio optimisation.
 
-Resource Utilisation – Increased utilisation rates and fewer resource conflicts via the resource & capacity agent. Demonstrate improvement in utilisation percentages.
+**Resource Utilisation:** Increased utilisation rates and fewer resource conflicts via the resource & capacity agent. Demonstrate improvement in utilisation percentages.
 
-Decision Quality – Number of insights generated (e.g., risks flagged, opportunities identified) and their impact on portfolio prioritisation. Tie improvements to strategic alignment and benefits realisation.
+**Decision Quality:** Number of insights generated (e.g., risks flagged, opportunities identified) and their impact on portfolio prioritisation. Tie improvements to strategic alignment and benefits realisation.
 
-Adoption & Engagement – Percentage of users actively using the platform, completion of training modules, number of agents activated. Align with change‑management metrics.
+**Adoption & Engagement:** Percentage of users actively using the platform, completion of training modules, number of agents activated. Align with change‑management metrics.
 
-Compliance & Governance – Reduction in audit findings and non‑compliant projects due to consistent stage‑gating and approval workflows. Measure reduction in deviations from methodology.
+**Compliance & Governance:** Reduction in audit findings and non‑compliant projects due to consistent stage‑gating and approval workflows. Measure reduction in deviations from methodology.
 
 ## Pricing Flexibility and Incentives
 
-Pilot and proof‑of‑value programmes – Offer short‑term pilots at reduced cost or free for a limited time to demonstrate value. Use clear success criteria and convert to paid subscriptions based on results.
+**Pilot and proof‑of‑value programmes:** Offer short‑term pilots at reduced cost or free for a limited time to demonstrate value. Use clear success criteria and convert to paid subscriptions based on results.
 
-Enterprise agreements – Provide multi‑year agreements with predictable pricing and built‑in growth allowances. Include rights to new agents and features as they are released.
+**Enterprise agreements:** Provide multi‑year agreements with predictable pricing and built‑in growth allowances. Include rights to new agents and features as they are released.
 
-Volume discounts – Tiered discounts based on number of users, projects, agents or connectors. Encourage enterprise‑wide adoption.
+**Volume discounts:** Tiered discounts based on number of users, projects, agents or connectors. Encourage enterprise‑wide adoption.
 
-Non‑profit and education discounts – Offer special pricing to eligible organisations.
+**Non‑profit and education discounts:** Offer special pricing to eligible organisations.
 
-Referral & loyalty incentives – Discounts or credit for customers who refer new clients or commit to long‑term partnerships.
+**Referral & loyalty incentives:** Discounts or credit for customers who refer new clients or commit to long‑term partnerships.
 
 ## Alignment with GTM Strategy
 

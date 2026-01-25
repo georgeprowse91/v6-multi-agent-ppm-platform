@@ -30,19 +30,19 @@ Integration is not an afterthought: the platform includes a marketplace of conne
 
 The platform offers a broad set of capabilities spanning the entire project and portfolio lifecycle. Some highlights include:
 
-Demand Management – Capture and triage ideas and project requests via forms, Slack, email or Teams. Perform duplicate detection, classify requests by type and complexity, and route them for review.
+**Demand Management:** Capture and triage ideas and project requests via forms, Slack, email or Teams. Perform duplicate detection, classify requests by type and complexity, and route them for review.
 
-Business Case & Investment Analysis – Generate detailed business cases automatically, perform cost–benefit analysis and ROI modelling using scenario simulations, and recommend whether to proceed.
+**Business Case & Investment Analysis:** Generate detailed business cases automatically, perform cost–benefit analysis and ROI modelling using scenario simulations, and recommend whether to proceed.
 
-Portfolio Strategy & Optimisation – Apply multi‑criteria decision analysis and capacity‑constrained optimisation to prioritise projects based on strategic alignment, benefits, risk and resource availability. Explore what‑if scenarios to rebalance the portfolio as conditions change.
+**Portfolio Strategy & Optimisation:** Apply multi‑criteria decision analysis and capacity‑constrained optimisation to prioritise projects based on strategic alignment, benefits, risk and resource availability. Explore what‑if scenarios to rebalance the portfolio as conditions change.
 
-Program & Project Management – Define programs, group related projects, manage dependencies and benefits, and generate program roadmaps. Create project charters, scope baselines and Work Breakdown Structures (WBS). Manage lifecycle stages, enforce gates, monitor health scores, track schedules and tasks, allocate resources, track budgets, handle vendor procurement, and manage quality, risks and issues.
+**Program & Project Management:** Define programs, group related projects, manage dependencies and benefits, and generate program roadmaps. Create project charters, scope baselines and Work Breakdown Structures (WBS). Manage lifecycle stages, enforce gates, monitor health scores, track schedules and tasks, allocate resources, track budgets, handle vendor procurement, and manage quality, risks and issues.
 
-Compliance & Governance – Apply methodology‑specific stage‑gates and ensure that required artefacts (charters, cost approvals, risk assessments, QA reviews) are completed before advancing. Implement RBAC and field‑level security to restrict who can view or edit data.
+**Compliance & Governance:** Apply methodology‑specific stage‑gates and ensure that required artefacts (charters, cost approvals, risk assessments, QA reviews) are completed before advancing. Implement RBAC and field‑level security to restrict who can view or edit data.
 
-Analytics & Insights – Provide dashboards and reports on portfolio health, program benefits, project costs, risk exposure, resource utilisation, vendor performance and more. Use predictive models to forecast schedule delays, cost overruns or risk events.
+**Analytics & Insights:** Provide dashboards and reports on portfolio health, program benefits, project costs, risk exposure, resource utilisation, vendor performance and more. Use predictive models to forecast schedule delays, cost overruns or risk events.
 
-Continuous Improvement – Capture lessons learned and retro insights, perform process mining to identify bottlenecks, and update templates and methodologies. Provide an AI library of best practices and suggestions.
+**Continuous Improvement:** Capture lessons learned and retro insights, perform process mining to identify bottlenecks, and update templates and methodologies. Provide an AI library of best practices and suggestions.
 
 ## Use‑Case Scenarios
 
@@ -58,27 +58,27 @@ For an Agile software project, the methodology map shows Sprints rather than pha
 
 The Multi‑Agent PPM Platform delivers several compelling benefits:
 
-Unified Experience – Project managers operate from a single canvas rather than juggling multiple applications. The methodology map ensures everyone follows the same process, and the AI assistant surfaces what matters most. Data stays synchronised with source systems, reducing duplication and errors.
+**Unified Experience:** Project managers operate from a single canvas rather than juggling multiple applications. The methodology map ensures everyone follows the same process, and the AI assistant surfaces what matters most. Data stays synchronised with source systems, reducing duplication and errors.
 
-Automation & Efficiency – Specialised agents handle routine work such as generating business cases, updating schedules, creating risk registers and performing budget reconciliations. This reduces manual effort and accelerates decision‑making.
+**Automation & Efficiency:** Specialised agents handle routine work such as generating business cases, updating schedules, creating risk registers and performing budget reconciliations. This reduces manual effort and accelerates decision‑making.
 
-Strategic Alignment – Portfolio optimisation ensures investments align with organisational strategy and resource constraints. Scenario modelling helps executives understand trade‑offs and make informed decisions.
+**Strategic Alignment:** Portfolio optimisation ensures investments align with organisational strategy and resource constraints. Scenario modelling helps executives understand trade‑offs and make informed decisions.
 
-Governance & Risk Management – Stage‑gates enforce compliance and quality. Risk and issue management is embedded throughout the lifecycle, with proactive alerts based on predictive models.
+**Governance & Risk Management:** Stage‑gates enforce compliance and quality. Risk and issue management is embedded throughout the lifecycle, with proactive alerts based on predictive models.
 
-Interoperability & Flexibility – The connector marketplace supports the most popular PPM, ERP and collaboration systems. Clients can mix and match tools or migrate systems without disrupting the platform. Interoperability is crucial because 87% of IT leaders consider it critical to AI adoption[1].
+**Interoperability & Flexibility:** The connector marketplace supports the most popular PPM, ERP and collaboration systems. Clients can mix and match tools or migrate systems without disrupting the platform. Interoperability is crucial because 87% of IT leaders consider it critical to AI adoption[1].
 
 ## Unique Differentiators
 
-Methodology as Navigation – Unlike generic PPM tools that rely on static menus, this platform turns the methodology itself into the navigation mechanism. Users always know what step they are on and what deliverables are required.
+**Methodology as Navigation:** Unlike generic PPM tools that rely on static menus, this platform turns the methodology itself into the navigation mechanism. Users always know what step they are on and what deliverables are required.
 
-AI‑Native Architecture – The AI assistant is not a bolt‑on; it is the primary interface. Agents use large language models and machine‑learning algorithms to interpret intent, generate content, optimise portfolios and predict outcomes.
+**AI‑Native Architecture:** The AI assistant is not a bolt‑on; it is the primary interface. Agents use large language models and machine‑learning algorithms to interpret intent, generate content, optimise portfolios and predict outcomes.
 
-Modular Agents & Connector Marketplace – Organisations can enable only the agents they need and connect to their existing tools. New agents can be added to support emerging use cases without rewriting core code.
+**Modular Agents & Connector Marketplace:** Organisations can enable only the agents they need and connect to their existing tools. New agents can be added to support emerging use cases without rewriting core code.
 
-Embedded Governance & Compliance – The platform embeds stage‑gates, approval workflows, RBAC, audit trails and compliance checks into every process. It is designed to satisfy regulatory requirements such as GDPR, Australian ISM/PSPF and SOX.
+**Embedded Governance & Compliance:** The platform embeds stage‑gates, approval workflows, RBAC, audit trails and compliance checks into every process. It is designed to satisfy regulatory requirements such as GDPR, Australian ISM/PSPF and SOX.
 
-Continuous Improvement – Built‑in process mining and lessons‑learned capture enable organisations to refine their methodologies over time and increase project success rates.
+**Continuous Improvement:** Built‑in process mining and lessons‑learned capture enable organisations to refine their methodologies over time and increase project success rates.
 
 ## Conclusion
 

@@ -6,15 +6,15 @@ Enterprise customers use a wide variety of project‑management, finance, HR and
 
 ### Design principles
 
-Modular adapter pattern – implement each external system as a self‑contained adapter exposing domain‑agnostic functions (create/update/read for projects, tasks, resources, costs etc.) so that the orchestration layer can switch between products without changing business logic.
+**Modular adapter pattern:** implement each external system as a self‑contained adapter exposing domain‑agnostic functions (create/update/read for projects, tasks, resources, costs etc.) so that the orchestration layer can switch between products without changing business logic.
 
-Configuration over code – allow clients to supply base URLs, tenant IDs, API versions, credentials, and field mappings through configuration files or UI. Avoid hard‑coded endpoints.
+**Configuration over code:** allow clients to supply base URLs, tenant IDs, API versions, credentials, and field mappings through configuration files or UI. Avoid hard‑coded endpoints.
 
-Standardised data contracts – define canonical PPM entities (Project, Task, Resource, Risk, Cost, Vendor, Document) with required and optional fields. Use data‑mapping tables to convert system‑specific field names to canonical attributes.
+**Standardised data contracts:** define canonical PPM entities (Project, Task, Resource, Risk, Cost, Vendor, Document) with required and optional fields. Use data‑mapping tables to convert system‑specific field names to canonical attributes.
 
-Secure authentication – support OAuth 2.0 wherever possible, falling back to API tokens or basic auth only when OAuth is unavailable. Always store credentials encrypted in Azure Key Vault.
+**Secure authentication:** support OAuth 2.0 wherever possible, falling back to API tokens or basic auth only when OAuth is unavailable. Always store credentials encrypted in Azure Key Vault.
 
-Graceful error handling – handle transient errors with retries and exponential back‑off; surface authentication failures and permission errors clearly; return meaningful error codes to calling agents.
+**Graceful error handling:** handle transient errors with retries and exponential back‑off; surface authentication failures and permission errors clearly; return meaningful error codes to calling agents.
 
 ## 1 Project & Work‑Management Systems
 
@@ -42,13 +42,13 @@ Authentication: Workday REST APIs require OAuth 2.0. Clients must register an A
 
 Key endpoints:
 
-GET /workers – fetch worker records (employee ID, names, supervisory organisation, email, etc.)[8].
+**GET /workers:** fetch worker records (employee ID, names, supervisory organisation, email, etc.)[8].
 
-POST /journals – create financial journals for cost actuals.
+**POST /journals:** create financial journals for cost actuals.
 
-GET /suppliers – retrieve vendor master data.
+**GET /suppliers:** retrieve vendor master data.
 
-GET /projects (if tenant enables professional services module) – return project financial details.
+**GET /projects (if tenant enables professional services module):** return project financial details.
 
 Data mapping: Map Workday worker ID → resource.id; worker’s primary work email → resource.email; cost centre to resource.costCentre; salary to cost.baseCost. Financial journal lines map to cost.transactions with dimensions (project, account, amount).
 
@@ -62,13 +62,13 @@ Authentication: Support Basic authentication, OAuth 2.0 client credentials or S
 
 Key endpoints:
 
-GET /ProjectCollection – fetch projects with header, status, dates.
+**GET /ProjectCollection:** fetch projects with header, status, dates.
 
-GET /WBSCollection – fetch WBS elements.
+**GET /WBSCollection:** fetch WBS elements.
 
-GET /ActualCosts – retrieve cost postings by WBS and period.
+**GET /ActualCosts:** retrieve cost postings by WBS and period.
 
-POST /ProjectCollection – create or update project master data.
+**POST /ProjectCollection:** create or update project master data.
 
 Data mapping: SAP project ID (PSPID) → project.id; WBS element ID → task.id; cost postings (amount, currency, cost element) map to cost.transactions.
 
@@ -90,11 +90,11 @@ In addition to Workday and SuccessFactors, clients may use BambooHR, ServiceNow 
 
 Common API endpoints:
 
-/employees or /workers – list employees with IDs, names, start dates, job titles and managers.
+**/employees or /workers:** list employees with IDs, names, start dates, job titles and managers.
 
-/timeOff or /leaveRequests – get leave balances and approved absences.
+**/timeOff or /leaveRequests:** get leave balances and approved absences.
 
-/assignments – fetch project assignments and utilisation.
+**/assignments:** fetch project assignments and utilisation.
 
 Authentication: Usually OAuth 2.0 (Workday, SuccessFactors) or API key (BambooHR). ServiceNow HR uses basic auth or OAuth depending on the instance.
 
@@ -134,67 +134,67 @@ The agents rely on document repositories to store charters, requirements, WBS fi
 
 These connectors feed pipeline and demand data into the PPM intake process and maintain alignment between sales commitments and project delivery.
 
-Salesforce CRM – Use REST API endpoints under /services/data/vXX.0/, e.g. sobjects/Opportunity/{id} (retrieve opportunity), sobjects/Case/{id}, query/?q=SOQL. Authenticate via OAuth 2.0; obtain an access token by sending client ID, client secret, username and password to Salesforce’s token endpoint and include Authorization: Bearer <access_token> in requests. When performing REST API calls, include the access token in the Authorization header (e.g. GET https://instance.salesforce.com/services/data/v57.0/sobjects/Account/001... with Authorization: Bearer <token>). Handle token expiration by using refresh tokens. Map Opportunity to demand.item; fields like StageName, Amount and CloseDate to intake attributes.
+**Salesforce CRM:** Use REST API endpoints under /services/data/vXX.0/, e.g. sobjects/Opportunity/{id} (retrieve opportunity), sobjects/Case/{id}, query/?q=SOQL. Authenticate via OAuth 2.0; obtain an access token by sending client ID, client secret, username and password to Salesforce’s token endpoint and include Authorization: Bearer <access_token> in requests. When performing REST API calls, include the access token in the Authorization header (e.g. GET https://instance.salesforce.com/services/data/v57.0/sobjects/Account/001... with Authorization: Bearer <token>). Handle token expiration by using refresh tokens. Map Opportunity to demand.item; fields like StageName, Amount and CloseDate to intake attributes.
 
-ServiceNow – Use REST Table API https://<instance>.service-now.com/api/now/table/{table}. Authenticate via basic auth (username/password) or OAuth 2.0. Map incidents, problems and demands to demand.item. Support retrieving sys_id, short_description, state, assignment_group.
+**ServiceNow:** Use REST Table API https://<instance>.service-now.com/api/now/table/{table}. Authenticate via basic auth (username/password) or OAuth 2.0. Map incidents, problems and demands to demand.item. Support retrieving sys_id, short_description, state, assignment_group.
 
-HubSpot – Use HubSpot CRM REST endpoints (e.g. /crm/v3/objects/deals). OAuth 2.0 is recommended. Map deals and tickets to demand objects. Use pagination (after parameter).
+**HubSpot:** Use HubSpot CRM REST endpoints (e.g. /crm/v3/objects/deals). OAuth 2.0 is recommended. Map deals and tickets to demand objects. Use pagination (after parameter).
 
-Zendesk – Use REST endpoints (/api/v2/tickets.json etc.) with OAuth or API token. Map tickets to demand.item with status, priority, assignee. Provide push notifications for new tickets.
+**Zendesk:** Use REST endpoints (/api/v2/tickets.json etc.) with OAuth or API token. Map tickets to demand.item with status, priority, assignee. Provide push notifications for new tickets.
 
 ## 7 Identity & Access Management
 
 Proper identity integration enables fine‑grained access control and Single Sign‑On (SSO).
 
-Azure Active Directory (Microsoft Entra) – Use Microsoft Graph endpoints to synchronise users, groups and roles. For example, GET /users/{id} returns user profile; GET /groups/{id}/members lists group members. Authenticate via Azure AD client credentials. Access tokens must be included as Bearer tokens in the Authorization header[13]. Map AAD user ID → user.id; objectId; displayName; mail. Use groups to assign roles within the PPM platform.
+**Azure Active Directory (Microsoft Entra):** Use Microsoft Graph endpoints to synchronise users, groups and roles. For example, GET /users/{id} returns user profile; GET /groups/{id}/members lists group members. Authenticate via Azure AD client credentials. Access tokens must be included as Bearer tokens in the Authorization header[13]. Map AAD user ID → user.id; objectId; displayName; mail. Use groups to assign roles within the PPM platform.
 
-Okta – Use Okta API base https://<domain>.okta.com/api/v1/. Endpoints: /users (list users), /groups, /apps/{appId}/users. Authenticate using API token (SSWS). Map Okta ID to user.id. Provide SCIM integration for automatic provisioning.
+**Okta:** Use Okta API base https://<domain>.okta.com/api/v1/. Endpoints: /users (list users), /groups, /apps/{appId}/users. Authenticate using API token (SSWS). Map Okta ID to user.id. Provide SCIM integration for automatic provisioning.
 
-Single Sign‑On – Support SAML 2.0 and OpenID Connect for user authentication into the PPM platform. Provide configuration UI to upload SAML metadata or client ID/secret. Support Just‑in‑Time provisioning.
+**Single Sign‑On:** Support SAML 2.0 and OpenID Connect for user authentication into the PPM platform. Provide configuration UI to upload SAML metadata or client ID/secret. Support Just‑in‑Time provisioning.
 
 ## 8 Analytics & Business Intelligence
 
 The platform exposes curated data sets to analytics tools and consumes insights.
 
-Power BI – Use REST API https://api.powerbi.com/v1.0/myorg/. Endpoints: /datasets (create dataset), /imports (upload PBIX), /reports/{id} (get report) and /groups/{groupId}/dashboards. Authenticate with Azure AD application tokens. Provide embed tokens for secure report embedding.
+**Power BI:** Use REST API https://api.powerbi.com/v1.0/myorg/. Endpoints: /datasets (create dataset), /imports (upload PBIX), /reports/{id} (get report) and /groups/{groupId}/dashboards. Authenticate with Azure AD application tokens. Provide embed tokens for secure report embedding.
 
-Tableau – Use REST API https://<server>/api/3.16/. Authenticate by signing in to Tableau server and obtaining a session token. Publish extracts via /sites/{siteId}/workbooks. Map project.id to Tableau project; dataset to workbook.
+**Tableau:** Use REST API https://<server>/api/3.16/. Authenticate by signing in to Tableau server and obtaining a session token. Publish extracts via /sites/{siteId}/workbooks. Map project.id to Tableau project; dataset to workbook.
 
-Other BI tools – For Qlik, Looker etc., follow vendor‑specific REST APIs with OAuth or API keys. Provide connectors that push curated PPM datasets into these platforms.
+**Other BI tools:** For Qlik, Looker etc., follow vendor‑specific REST APIs with OAuth or API keys. Provide connectors that push curated PPM datasets into these platforms.
 
 ## 9 Email & Calendar Services
 
 Agents use email and calendar to send notifications, meeting invites and schedule tasks.
 
-Microsoft Outlook / Exchange – Use Microsoft Graph endpoints /v1.0/me/sendMail (send email) and /v1.0/me/events (create calendar events). Authenticate using Azure AD tokens; include access token in Authorization: Bearer header[13]. Map recipients to stakeholder emails; subject and body to notification content. Parse responses for meeting IDs and update the PPM schedule.
+**Microsoft Outlook / Exchange:** Use Microsoft Graph endpoints /v1.0/me/sendMail (send email) and /v1.0/me/events (create calendar events). Authenticate using Azure AD tokens; include access token in Authorization: Bearer header[13]. Map recipients to stakeholder emails; subject and body to notification content. Parse responses for meeting IDs and update the PPM schedule.
 
-Google Workspace (Gmail, Calendar) – Use Google APIs. Endpoints: /gmail/v1/users/{userId}/messages/send (send email), /calendar/v3/calendars/{calendarId}/events (create event). Authenticate via OAuth 2.0 using a service account or user consent. Support push notifications (webhooks) for event updates.
+**Google Workspace (Gmail, Calendar):** Use Google APIs. Endpoints: /gmail/v1/users/{userId}/messages/send (send email), /calendar/v3/calendars/{calendarId}/events (create event). Authenticate via OAuth 2.0 using a service account or user consent. Support push notifications (webhooks) for event updates.
 
 ## 10 Event & Messaging Infrastructure
 
 For decoupled integrations, the platform can use message queues or event buses.
 
-Azure Service Bus – Use REST or AMQP endpoints. Provide topics and subscriptions for event notifications from agents (e.g. project created, budget approved). Authenticate using Shared Access Signature (SAS) tokens.
+**Azure Service Bus:** Use REST or AMQP endpoints. Provide topics and subscriptions for event notifications from agents (e.g. project created, budget approved). Authenticate using Shared Access Signature (SAS) tokens.
 
-Kafka / Confluent – Use Kafka producers/consumers with SASL/OAuth or SASL/SSL authentication. Map PPM events to Kafka topics; use Avro/JSON schemas for payloads. Implement idempotency and message ordering.
+**Kafka / Confluent:** Use Kafka producers/consumers with SASL/OAuth or SASL/SSL authentication. Map PPM events to Kafka topics; use Avro/JSON schemas for payloads. Implement idempotency and message ordering.
 
 ## 11 Common Error‑Handling & Retry Strategy
 
-Authentication failures – If an API call returns 401/403, refresh the access token (if applicable). If the refresh fails, mark the connector as needing re‑authorization and notify administrators. Do not retry with the same expired token.
+**Authentication failures:** If an API call returns 401/403, refresh the access token (if applicable). If the refresh fails, mark the connector as needing re‑authorization and notify administrators. Do not retry with the same expired token.
 
-Rate limiting – On 429 responses, read the vendor’s Retry‑After header. Use a distributed rate‑limiter to queue subsequent calls. For Slack and Teams, per‑workspace limits apply; dynamic throttling is essential.
+**Rate limiting:** On 429 responses, read the vendor’s Retry‑After header. Use a distributed rate‑limiter to queue subsequent calls. For Slack and Teams, per‑workspace limits apply; dynamic throttling is essential.
 
-Timeouts & network errors – Use short timeouts (e.g., 30 s) with automatic retries up to three attempts. Implement exponential back‑off (e.g., 2 s, 4 s, 8 s). Circuit breakers should prevent overwhelming external systems.
+**Timeouts & network errors:** Use short timeouts (e.g., 30 s) with automatic retries up to three attempts. Implement exponential back‑off (e.g., 2 s, 4 s, 8 s). Circuit breakers should prevent overwhelming external systems.
 
-Data validation errors – Standardise error responses in the connector layer. When an external API returns a validation error (e.g. missing required field), map the vendor’s field names to the canonical PPM field names and return a user‑friendly message.
+**Data validation errors:** Standardise error responses in the connector layer. When an external API returns a validation error (e.g. missing required field), map the vendor’s field names to the canonical PPM field names and return a user‑friendly message.
 
-Logging & monitoring – All connector requests and responses should be logged with correlation IDs. Capture status codes, latency, and payload sizes. Surface metrics to the platform’s monitoring agent for alerting on failures and latencies.
+**Logging & monitoring:** All connector requests and responses should be logged with correlation IDs. Capture status codes, latency, and payload sizes. Surface metrics to the platform’s monitoring agent for alerting on failures and latencies.
 
 ## Conclusion
 
 These specifications provide the foundation for building interoperable connectors across a diverse landscape of external systems. Each connector should expose a uniform interface to the orchestration layer while encapsulating the idiosyncrasies of individual APIs. By following standardised authentication patterns (OAuth 2.0 and API tokens), mapping vendor objects to canonical PPM entities, and implementing robust error‑handling, the multi‑agent PPM platform will ensure reliable data synchronisation and high adoption across varied client environments. Interoperability and security are paramount; treat this document as a living artefact and update it as vendors evolve their APIs.
 
-[1] [2] Extracting Data from the Planview Portfolios REST API using ADF – Introduction | Under the kover of business intelligence
+**[1] [2] Extracting Data from the Planview Portfolios REST API using ADF:** Introduction | Under the kover of business intelligence
 
 https://sqlkover.com/extracting-data-from-the-planview-portfolios-rest-api-using-adf-introduction/
 

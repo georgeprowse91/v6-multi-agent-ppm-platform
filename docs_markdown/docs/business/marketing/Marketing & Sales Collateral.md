@@ -37,17 +37,17 @@ The PPM landscape includes established players like Planview, ServiceNow, Oracle
 
 ### Unique Selling Points
 
-Multi‑agent AI orchestration – Only platform to coordinate ~25 specialised agents across the full project lifecycle, delivering efficiency, scalability and consistent governance[5].
+**Multi‑agent AI orchestration:** Only platform to coordinate ~25 specialised agents across the full project lifecycle, delivering efficiency, scalability and consistent governance[5].
 
-Methodology‑embedded UI – Interactive methodology map guides users through stage gates for Agile, Waterfall and hybrid processes, ensuring governance and compliance.
+**Methodology‑embedded UI:** Interactive methodology map guides users through stage gates for Agile, Waterfall and hybrid processes, ensuring governance and compliance.
 
-Extensible connector framework – Interoperability first: connect to PPM, ERP, HR, CRM and collaboration tools. Interoperability is recognised as critical to AI adoption[3].
+**Extensible connector framework:** Interoperability first: connect to PPM, ERP, HR, CRM and collaboration tools. Interoperability is recognised as critical to AI adoption[3].
 
-Predictive and prescriptive analytics – AI models forecast delays, resource conflicts and ROI; agents provide scenario planning and portfolio optimisation.
+**Predictive and prescriptive analytics:** AI models forecast delays, resource conflicts and ROI; agents provide scenario planning and portfolio optimisation.
 
-Flexible deployment & security – Offer SaaS, private‑cloud and on‑premises options; built‑in encryption and RBAC[7].
+**Flexible deployment & security:** Offer SaaS, private‑cloud and on‑premises options; built‑in encryption and RBAC[7].
 
-Change‑management & adoption support – Comprehensive training, role‑specific guidance and a conversational assistant address adoption barriers identified in surveys[6][4].
+**Change‑management & adoption support:** Comprehensive training, role‑specific guidance and a conversational assistant address adoption barriers identified in surveys[6][4].
 
 ## Case Studies & Use Cases
 
@@ -99,37 +99,37 @@ Increased revenue by identifying capacity for additional client engagements.
 
 Use this structure to build client‑specific ROI models:
 
-Baseline metrics – Gather data on current PPM process costs: number of projects, average project budget, number of FTEs supporting PPM, manual hours spent on reporting, average delay penalties, cost of project failures.
+**Baseline metrics:** Gather data on current PPM process costs: number of projects, average project budget, number of FTEs supporting PPM, manual hours spent on reporting, average delay penalties, cost of project failures.
 
-Efficiency gains – Estimate reduction in manual effort (e.g., 30–50 % of PM time saved), improvement in resource utilisation (e.g., 10–20 %), and faster approval cycles (e.g., 50 % reduction). Convert time savings into cost savings based on blended FTE rates.
+**Efficiency gains:** Estimate reduction in manual effort (e.g., 30–50 % of PM time saved), improvement in resource utilisation (e.g., 10–20 %), and faster approval cycles (e.g., 50 % reduction). Convert time savings into cost savings based on blended FTE rates.
 
-Risk reduction – Quantify cost avoided by early risk detection (e.g., X % reduction in scope creep or schedule overruns). Use industry benchmarks or internal data.
+**Risk reduction:** Quantify cost avoided by early risk detection (e.g., X % reduction in scope creep or schedule overruns). Use industry benchmarks or internal data.
 
-Portfolio optimisation benefits – Estimate uplift in ROI through improved prioritisation. For example, a 5 % increase in NPV or a reduction in low‑value projects.
+**Portfolio optimisation benefits:** Estimate uplift in ROI through improved prioritisation. For example, a 5 % increase in NPV or a reduction in low‑value projects.
 
-Total cost of ownership – Include subscription/licensing fees, implementation costs and training. Spread capital expenses over the expected lifecycle (e.g., three years).
+**Total cost of ownership:** Include subscription/licensing fees, implementation costs and training. Spread capital expenses over the expected lifecycle (e.g., three years).
 
-Net ROI and payback period – Subtract costs from benefits to calculate net ROI. Determine the payback period (months to recoup investment). Highlight intangible benefits such as improved employee engagement and governance.
+**Net ROI and payback period:** Subtract costs from benefits to calculate net ROI. Determine the payback period (months to recoup investment). Highlight intangible benefits such as improved employee engagement and governance.
 
 The sales team can populate these calculators in spreadsheets or interactive web tools, adjusting assumptions to suit each prospect. Use real client case study metrics where available.
 
 ## Sales Enablement Assets
 
-Solution brief – Two‑page document summarising the product, core benefits and technical overview. Include key statistics (market growth, AI adoption, interoperability importance[1][8]) to build urgency.
+**Solution brief:** Two‑page document summarising the product, core benefits and technical overview. Include key statistics (market growth, AI adoption, interoperability importance[1][8]) to build urgency.
 
-Demo script – Step‑by‑step guide for sales engineers to showcase key agents: start with conversational intake, generate a business case, run portfolio optimisation, schedule a project, and show risk dashboard. Tailor script to persona.
+**Demo script:** Step‑by‑step guide for sales engineers to showcase key agents: start with conversational intake, generate a business case, run portfolio optimisation, schedule a project, and show risk dashboard. Tailor script to persona.
 
-Slide deck – Visual storytelling deck with customer challenges, solution overview, architecture diagrams, case study highlights, ROI numbers and pricing options. Use persona‑specific versions.
+**Slide deck:** Visual storytelling deck with customer challenges, solution overview, architecture diagrams, case study highlights, ROI numbers and pricing options. Use persona‑specific versions.
 
-Customer testimonials – Short quotes or videos from pilot customers or reference clients describing benefits achieved.
+**Customer testimonials:** Short quotes or videos from pilot customers or reference clients describing benefits achieved.
 
-Competitive battlecards – One‑page summaries comparing the platform against key competitors with talking points on strengths and weaknesses.
+**Competitive battlecards:** One‑page summaries comparing the platform against key competitors with talking points on strengths and weaknesses.
 
-Email templates – Outreach messages personalised by persona and industry; include a compelling statistic or case study snippet and a call to action (e.g., schedule a demo).
+**Email templates:** Outreach messages personalised by persona and industry; include a compelling statistic or case study snippet and a call to action (e.g., schedule a demo).
 
-Interactive ROI calculator – Spreadsheet or web tool for sellers to build ROI scenarios during discovery calls.
+**Interactive ROI calculator:** Spreadsheet or web tool for sellers to build ROI scenarios during discovery calls.
 
-Whitepaper – Thought leadership piece on the future of AI in project management, referencing industry surveys such as PMI and IPMA and positioning the platform as the solution.
+**Whitepaper:** Thought leadership piece on the future of AI in project management, referencing industry surveys such as PMI and IPMA and positioning the platform as the solution.
 
 ## Conclusion
 
