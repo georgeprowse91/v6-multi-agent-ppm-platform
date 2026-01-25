@@ -21,6 +21,12 @@
 - [On-call](runbooks/oncall.md)
 - [LLM Degradation](runbooks/llm-degradation.md)
 
+## Methodology
+- [Methodology Library](methodology/README.md)
+
 ## Compliance
 - [Controls Mapping](compliance/controls-mapping.md)
 - [Threat Model](compliance/threat-model.md)
+
+## API
+- [OpenAPI Specification](api/openapi.yaml)

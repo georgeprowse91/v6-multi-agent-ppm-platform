@@ -2,5 +2,216 @@ openapi: 3.0.3
 info:
   title: Multi-Agent PPM Platform API
   version: 0.1.0
-  description: Placeholder OpenAPI document.
-paths: {}
+  description: |
+    OpenAPI specification for the Multi-Agent PPM Platform API gateway.
+    This document covers the currently implemented endpoints in `apps/api-gateway`.
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://ppm.example.com
+    description: TODO: Replace with production base URL
+paths:
+  /:
+    get:
+      summary: API root
+      responses:
+        "200":
+          description: API metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiRoot"
+  /api/v1/status:
+    get:
+      summary: Platform status
+      responses:
+        "200":
+          description: Platform status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStatus"
+  /api/v1/health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Health check response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheck"
+  /api/v1/health/ready:
+    get:
+      summary: Readiness check
+      responses:
+        "200":
+          description: Readiness response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessCheck"
+  /api/v1/health/live:
+    get:
+      summary: Liveness check
+      responses:
+        "200":
+          description: Liveness response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LivenessCheck"
+  /api/v1/query:
+    post:
+      summary: Process a natural language query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueryRequest"
+      responses:
+        "200":
+          description: Query response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryResponse"
+        "503":
+          description: Orchestrator not initialized
+  /api/v1/agents:
+    get:
+      summary: List available agents
+      responses:
+        "200":
+          description: Agent list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentList"
+  /api/v1/agents/{agent_id}:
+    get:
+      summary: Get agent details
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentDetails"
+        "404":
+          description: Agent not found
+components:
+  schemas:
+    ApiRoot:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        status:
+          type: string
+        documentation:
+          type: string
+    PlatformStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        orchestrator_initialized:
+          type: boolean
+        agents_loaded:
+          type: integer
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        service:
+          type: string
+    ReadinessCheck:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: object
+          additionalProperties:
+            type: boolean
+        timestamp:
+          type: string
+          format: date-time
+    LivenessCheck:
+      type: object
+      properties:
+        alive:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+    QueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Natural language query to route through the agent system.
+        context:
+          type: object
+          additionalProperties: true
+          description: Optional contextual data for the query.
+    QueryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+        error:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    AgentList:
+      type: object
+      properties:
+        total_agents:
+          type: integer
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentSummary"
+    AgentSummary:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        name:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+    AgentDetails:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        initialized:
+          type: boolean
