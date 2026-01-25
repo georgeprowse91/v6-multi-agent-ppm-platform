@@ -1,113 +1,121 @@
+"""Agent runner CLI for listing and running agent components."""
+
 from __future__ import annotations
 
 import argparse
-import asyncio
-import importlib
-import importlib.util
-import inspect
-import json
-import os
-import sys
+import subprocess
 from pathlib import Path
-from typing import Any, Type
 
-from agents.runtime import BaseAgent
-
-
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
-
-
-def _ensure_repo_on_path() -> None:
-    root = _repo_root()
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
-
-
-def _load_module_from_path(path: Path):
-    spec = importlib.util.spec_from_file_location("agent_module", path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Unable to load agent module from {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def _resolve_agent_class(module, class_name: str | None) -> Type[BaseAgent]:
-    candidates = [
-        obj
-        for obj in module.__dict__.values()
-        if inspect.isclass(obj) and issubclass(obj, BaseAgent) and obj is not BaseAgent
-    ]
-    if class_name:
-        for candidate in candidates:
-            if candidate.__name__ == class_name:
-                return candidate
-        raise LookupError(f"Agent class {class_name} not found in module.")
-    if len(candidates) == 1:
-        return candidates[0]
-    if not candidates:
-        raise LookupError("No BaseAgent subclass found in module.")
-    names = ", ".join(sorted(cls.__name__ for cls in candidates))
-    raise LookupError(f"Multiple agent classes found ({names}). Provide --agent-class.")
-
-
-async def _run_agent(agent: BaseAgent, input_payload: dict[str, Any] | None) -> None:
-    if input_payload:
-        result = await agent.execute(input_payload)
-        print(json.dumps(result, indent=2))
-        return
-
-    await agent.initialize()
-    summary = {
-        "agent_id": agent.agent_id,
-        "capabilities": agent.get_capabilities(),
-        "config_keys": sorted(agent.config.keys()),
-    }
-    print(json.dumps(summary, indent=2))
+from tools.component_runner import Component, discover_agents
+from tools.runtime_paths import repo_root
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run a single PPM agent for local validation.")
-    parser.add_argument("--agent-path", help="Path to the agent Python file.")
-    parser.add_argument("--agent-module", help="Import path to the agent module.")
-    parser.add_argument("--agent-class", help="Class name of the agent to instantiate.")
-    parser.add_argument("--agent-id", help="Optional agent id override.")
-    parser.add_argument("--input", help="JSON payload to pass to agent.execute().")
+    parser = argparse.ArgumentParser(description="Agent runner for local development.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    list_parser = subparsers.add_parser("list-agents", help="List available agents.")
+    list_parser.add_argument("--json", action="store_true", help="Output JSON.")
+
+    run_parser = subparsers.add_parser("run-agent", help="Run a single agent.")
+    run_parser.add_argument("--id", help="Agent id suffix (e.g., 10).")
+    run_parser.add_argument("--name", help="Full agent folder name.")
+    run_parser.add_argument("--docker", action="store_true", help="Run using Dockerfile.")
+    run_parser.add_argument("--dry-run", action="store_true", help="Print command without running.")
+
     return parser.parse_args()
 
 
-def _load_config() -> dict[str, Any]:
-    raw = os.getenv("AGENT_CONFIG_JSON", "").strip()
-    if not raw:
-        return {}
-    return json.loads(raw)
+def _format_agent_id(agent: Component) -> str:
+    parts = agent.name.split("-", maxsplit=2)
+    if len(parts) >= 2 and parts[1].isdigit():
+        return parts[1]
+    return agent.name
+
+
+def _select_agent(agent_id: str | None, name: str | None) -> Component:
+    agents = discover_agents()
+    if name:
+        for agent in agents:
+            if agent.name == name:
+                return agent
+        raise SystemExit(f"Agent '{name}' not found.")
+
+    if agent_id:
+        for agent in agents:
+            if _format_agent_id(agent) == agent_id:
+                return agent
+        raise SystemExit(f"Agent with id '{agent_id}' not found.")
+
+    raise SystemExit("Provide --id or --name to run an agent.")
+
+
+def _run_agent(agent: Component, use_docker: bool, dry_run: bool) -> None:
+    if use_docker:
+        dockerfile = agent.path / "Dockerfile"
+        if not dockerfile.exists():
+            raise SystemExit(f"No Dockerfile found for {agent.name} at {dockerfile}.")
+        image_tag = f"ppm-agent-{agent.name}"
+        commands = [
+            ["docker", "build", "-t", image_tag, "-f", str(dockerfile), str(agent.path)],
+            ["docker", "run", "--rm", image_tag],
+        ]
+        for command in commands:
+            _execute(command, repo_root(), dry_run)
+        return
+
+    runner = Path("tools/agent_runner_core.py")
+    if not runner.exists():
+        raise SystemExit("Missing tools/agent_runner_core.py. Add a runtime entrypoint.")
+    command = [
+        "python",
+        "-m",
+        "tools.agent_runner_core",
+        "--agent-path",
+        str(_default_agent_entrypoint(agent)),
+    ]
+    _execute(command, repo_root(), dry_run)
+
+
+def _default_agent_entrypoint(agent: Component) -> Path:
+    candidates = sorted(agent.path.glob("**/src/**/*.py"))
+    for candidate in candidates:
+        if candidate.name != "__init__.py":
+            return candidate
+    raise SystemExit(
+        f"No Python entrypoint found under {agent.path}. Add a module under src/."
+    )
+
+
+def _execute(command: list[str], cwd: Path, dry_run: bool) -> None:
+    display = " ".join(command)
+    if dry_run:
+        print(f"[dry-run] {display}")
+        return
+    subprocess.run(command, check=True, cwd=cwd)
+
+
+def _render_agents(agents: list[Component], as_json: bool) -> None:
+    if as_json:
+        import json
+
+        payload = [{"name": agent.name, "path": str(agent.path)} for agent in agents]
+        print(json.dumps(payload, indent=2))
+        return
+
+    for agent in agents:
+        print(f"{agent.name} -> {agent.path}")
 
 
 def main() -> None:
-    _ensure_repo_on_path()
     args = _parse_args()
 
-    agent_path = args.agent_path or os.getenv("AGENT_PATH")
-    agent_module = args.agent_module or os.getenv("AGENT_MODULE")
-    agent_class = args.agent_class or os.getenv("AGENT_CLASS")
-    agent_id = args.agent_id or os.getenv("AGENT_ID")
+    if args.command == "list-agents":
+        _render_agents(discover_agents(), args.json)
+        return
 
-    if not agent_path and not agent_module:
-        raise SystemExit("Provide --agent-path or --agent-module to run an agent.")
-
-    if agent_path:
-        module = _load_module_from_path(Path(agent_path))
-    else:
-        module = importlib.import_module(agent_module)
-
-    agent_cls = _resolve_agent_class(module, agent_class)
-    config = _load_config()
-    agent = agent_cls(agent_id=agent_id or agent_cls.__name__.lower(), config=config)
-
-    input_payload = args.input or os.getenv("AGENT_INPUT")
-    payload = json.loads(input_payload) if input_payload else None
-    asyncio.run(_run_agent(agent, payload))
+    agent = _select_agent(args.id, args.name)
+    _run_agent(agent, args.docker, args.dry_run)
 
 
 if __name__ == "__main__":

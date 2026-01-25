@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test lint format clean run-api run-prototype docker-build docker-up docker-down deploy-dev deploy-prod
+.PHONY: help install install-dev test lint format codegen dev-up dev-down run-agent run-connector clean run-api run-prototype docker-build docker-up docker-down deploy-dev deploy-prod
 
 # Default target
 .DEFAULT_GOAL := help
@@ -37,13 +37,25 @@ test-watch: ## Run tests in watch mode
 	$(PYTEST) tests/ -v --looponfail
 
 lint: ## Run linters
-	$(RUFF) check agents/ apps/ packages/ tests/
-	$(BLACK) --check agents/ apps/ packages/ tests/
-	mypy agents/ apps/ packages/ --ignore-missing-imports
+	$(PYTHON) -m tools.lint.run
 
 format: ## Format code with black and ruff
-	$(RUFF) check --fix agents/ apps/ packages/ tests/
-	$(BLACK) agents/ apps/ packages/ tests/
+	$(PYTHON) -m tools.format.run
+
+codegen: ## Validate OpenAPI spec and generate summaries
+	$(PYTHON) -m tools.codegen.run
+
+dev-up: ## Start the local development stack (docker-compose)
+	bash tools/local-dev/dev_up.sh
+
+dev-down: ## Stop the local development stack (docker-compose)
+	bash tools/local-dev/dev_down.sh
+
+run-agent: ## Run a single agent locally (AGENT=<agent-name> or ID=<id>)
+	$(PYTHON) -m tools.agent_runner run-agent $(if $(AGENT),--name $(AGENT),) $(if $(ID),--id $(ID),)
+
+run-connector: ## Run a connector locally (CONNECTOR=<name> and optional DRY_RUN=1)
+	$(PYTHON) -m tools.connector_runner run-connector --name $(CONNECTOR) $(if $(DRY_RUN),--dry-run,)
 
 clean: ## Clean build artifacts and cache
 	find . -type d -name __pycache__ -exec rm -rf {} +

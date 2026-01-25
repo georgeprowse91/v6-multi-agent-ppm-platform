@@ -1,0 +1,4 @@
+spec_path: docs/api/openapi.yaml
+output_dir: apps/api-gateway/openapi
+summary_filename: openapi_summary.json
+paths_filename: openapi_paths.txt
