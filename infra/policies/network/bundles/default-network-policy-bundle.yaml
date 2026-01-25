@@ -1,0 +1,30 @@
+apiVersion: ppm.policies/v1
+kind: PolicyBundle
+metadata:
+  name: infra-network-default
+  version: "1.0.0"
+  owner: infra-networking
+  scope: infra/network
+  description: Baseline network segmentation and ingress policies.
+policies:
+  - id: net-001
+    name: Restrict public ingress
+    description: Public ingress requires an approved service tag.
+    severity: high
+    enforcement: blocking
+    rules:
+      - field: ingress.is_public
+        operator: equals
+        value: true
+      - field: ingress.service_tag
+        operator: equals
+        value: ""
+  - id: net-002
+    name: Require mTLS in east-west traffic
+    description: East-west traffic must enable mTLS.
+    severity: medium
+    enforcement: advisory
+    rules:
+      - field: service.mesh.mtls
+        operator: equals
+        value: false

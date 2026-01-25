@@ -1,0 +1,27 @@
+apiVersion: ppm.policies/v1
+kind: PolicyBundle
+metadata:
+  name: document-default
+  version: "1.0.0"
+  owner: document-platform
+  scope: document-service
+  description: Document ingestion, retention, and access baseline policies.
+policies:
+  - id: doc-001
+    name: Block uploads without classification
+    description: Require classification for every document upload.
+    severity: high
+    enforcement: blocking
+    rules:
+      - field: document.classification
+        operator: equals
+        value: ""
+  - id: doc-002
+    name: Enforce retention window
+    description: Ensure retention is at least 90 days for project docs.
+    severity: medium
+    enforcement: advisory
+    rules:
+      - field: document.retention_days
+        operator: gte
+        value: 90

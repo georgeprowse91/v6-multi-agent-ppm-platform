@@ -1,0 +1,5 @@
+apiVersion: v2
+name: data-sync-service
+description: Helm chart for the data sync service component in the multi-agent PPM platform
+version: 0.1.0
+appVersion: "0.1.0"

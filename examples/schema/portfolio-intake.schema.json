@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PortfolioIntakeRequest",
+  "type": "object",
+  "required": [
+    "request_id",
+    "portfolio_id",
+    "summary",
+    "owner",
+    "priority"
+  ],
+  "properties": {
+    "request_id": {
+      "type": "string"
+    },
+    "portfolio_id": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

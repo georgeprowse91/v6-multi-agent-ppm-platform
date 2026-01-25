@@ -1,0 +1,20 @@
+apiVersion: ppm.workflows/v1
+kind: Workflow
+metadata:
+  name: portfolio-intake
+  version: "1.0.0"
+  owner: examples
+  description: Example workflow for portfolio intake used in demos.
+steps:
+  - id: record-request
+    type: task
+    next: notify-pmo
+    config:
+      agent: demand_intake_agent
+      action: capture_request
+  - id: notify-pmo
+    type: notification
+    next: null
+    config:
+      channel: email
+      template: portfolio-intake

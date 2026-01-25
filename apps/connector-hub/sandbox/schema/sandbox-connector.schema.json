@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SandboxConnectorConfig",
+  "type": "object",
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "connector",
+    "sandbox"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "pattern": "^ppm.connectors/v1$"
+    },
+    "kind": {
+      "type": "string",
+      "const": "ConnectorSandbox"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "name",
+        "owner"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "connector": {
+      "type": "object",
+      "required": [
+        "type",
+        "base_url",
+        "auth"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "base_url": {
+          "type": "string"
+        },
+        "auth": {
+          "type": "object",
+          "required": [
+            "method"
+          ],
+          "properties": {
+            "method": {
+              "type": "string"
+            },
+            "token_env": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "sandbox": {
+      "type": "object",
+      "required": [
+        "fixtures",
+        "rate_limit_per_minute"
+      ],
+      "properties": {
+        "fixtures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "response_file"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "response_file": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "rate_limit_per_minute": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

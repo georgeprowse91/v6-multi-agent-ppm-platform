@@ -1,0 +1,34 @@
+apiVersion: ppm.jobs/v1
+kind: AnalyticsJob
+metadata:
+  name: daily-portfolio-rollup
+  owner: analytics-service
+  version: "1.0.0"
+  description: Aggregate daily KPIs for active portfolios.
+schedule:
+  cron: "0 2 * * *"
+  timezone: "UTC"
+inputs:
+  - name: portfolio-events
+    source: event-bus/portfolio.events
+    format: json
+  - name: budget-snapshots
+    source: warehouse/budget_snapshots
+    format: parquet
+outputs:
+  - name: portfolio-kpis
+    destination: warehouse/portfolio_kpis_daily
+    format: parquet
+steps:
+  - id: extract-events
+    type: extract
+    config:
+      window_hours: 24
+  - id: join-budget
+    type: transform
+    config:
+      join_key: portfolio_id
+  - id: write-output
+    type: load
+    config:
+      mode: overwrite

@@ -1,11 +1,48 @@
-# Helm Chart
+# Api Gateway Helm Chart
 
-This folder will contain the Helm chart definition for **api gateway**. The chart should package the
-service deployment, service, config, and secrets templates.
+## Purpose
+This chart packages the **api-gateway** deployment for the Multi-Agent PPM platform when deploying to
+Kubernetes. It defines the Deployment, Service, and ConfigMap used by the api-gateway runtime.
 
-## Expected contents
-- `Chart.yaml` and `values.yaml`
-- Kubernetes manifests under `templates/`
-- Environment-specific overlays managed via CI/CD
+## Responsibilities
+- Package the api-gateway container image and runtime settings.
+- Provide a stable Service for inter-service communication on port 8080.
+- Externalize runtime configuration via `values.yaml` and `templates/configmap.yaml`.
 
-Assumption: Helm is the primary packaging method for Kubernetes deployments in this repo.
+## Folder structure
+```
+apps/api-gateway/helm/
+├── Chart.yaml
+├── values.yaml
+├── templates/
+│   ├── _helpers.tpl
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   └── service.yaml
+```
+
+## Conventions
+- `Chart.yaml` **name** must match the parent directory name (`api-gateway`).
+- `values.yaml` defines `image.repository`, `image.tag`, and `service.port`.
+- All templates use the `name` helper from `_helpers.tpl` for consistent naming.
+
+## How to add a new template
+1. Add a new manifest under `apps/api-gateway/helm/templates/` (e.g. `ingress.yaml`).
+2. Reference new values under `values.yaml` and keep defaults minimal.
+3. Update this README with the new path and a short usage note.
+4. Validate the chart with the command below.
+
+## How to validate/test
+```bash
+python scripts/validate-helm-charts.py apps/api-gateway/helm
+```
+
+## Example
+`values.yaml` excerpt:
+```yaml
+image:
+  repository: ghcr.io/your-org/api-gateway
+  tag: "0.1.0"
+service:
+  port: 8080
+```

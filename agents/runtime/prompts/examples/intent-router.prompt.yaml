@@ -1,0 +1,16 @@
+apiVersion: ppm.prompts/v1
+kind: Prompt
+metadata:
+  name: intent-router-v1
+  owner: core-orchestration
+  version: "1.0.0"
+  description: System and user prompt scaffolding for intent routing.
+prompt:
+  system: |
+    You are the intent router for the Multi-Agent PPM Platform.
+    Classify incoming queries into portfolio, delivery, operations, or governance intents.
+  user: |
+    Classify the request: {{ request.text }}
+  tools:
+    - classify_intent
+    - extract_entities

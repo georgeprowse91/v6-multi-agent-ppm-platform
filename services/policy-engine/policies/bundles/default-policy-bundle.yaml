@@ -1,0 +1,27 @@
+apiVersion: ppm.policies/v1
+kind: PolicyBundle
+metadata:
+  name: policy-engine-default
+  version: "1.0.0"
+  owner: policy-platform
+  scope: policy-engine
+  description: Shared platform policy controls for evaluating bundles.
+policies:
+  - id: pe-001
+    name: Enforce bundle versioning
+    description: Require semantic versioning for bundle metadata.
+    severity: medium
+    enforcement: blocking
+    rules:
+      - field: metadata.version
+        operator: contains
+        value: "."
+  - id: pe-002
+    name: Require policy owner
+    description: Ensure every bundle has an owner field.
+    severity: low
+    enforcement: advisory
+    rules:
+      - field: metadata.owner
+        operator: not_contains
+        value: ""

@@ -3,6 +3,7 @@ Agent Orchestrator - Manages agent lifecycle and routing
 """
 
 import logging
+from pathlib import Path
 from typing import Any, cast
 
 from tools.runtime_paths import bootstrap_runtime_paths
@@ -47,6 +48,9 @@ from business_case_investment_agent import BusinessCaseInvestmentAgent
 from portfolio_strategy_agent import PortfolioStrategyAgent
 
 logger = logging.getLogger(__name__)
+DEFAULT_POLICY_BUNDLE_PATH = (
+    Path(__file__).resolve().parents[1] / "policies" / "bundles" / "default-policy-bundle.yaml"
+)
 
 
 class AgentOrchestrator:
@@ -61,10 +65,12 @@ class AgentOrchestrator:
         self.initialized = False
         self.intent_router = None
         self.response_orchestrator = None
+        self.policy_bundle_path = DEFAULT_POLICY_BUNDLE_PATH
 
     async def initialize(self):
         """Initialize all 25 agents."""
         logger.info("Initializing Agent Orchestrator...")
+        logger.info("Using policy bundle: %s", self.policy_bundle_path)
 
         # Initialize core orchestration agents (Agents 1-2)
         self.intent_router = IntentRouterAgent()

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentPrompt",
+  "type": "object",
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "prompt"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "pattern": "^ppm.prompts/v1$"
+    },
+    "kind": {
+      "type": "string",
+      "const": "Prompt"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "name",
+        "owner",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "prompt": {
+      "type": "object",
+      "required": [
+        "system",
+        "user"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

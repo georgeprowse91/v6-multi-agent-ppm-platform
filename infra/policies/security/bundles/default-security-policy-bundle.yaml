@@ -1,0 +1,27 @@
+apiVersion: ppm.policies/v1
+kind: PolicyBundle
+metadata:
+  name: infra-security-default
+  version: "1.0.0"
+  owner: infra-security
+  scope: infra/security
+  description: Security baseline for identity and access controls.
+policies:
+  - id: sec-001
+    name: Enforce MFA
+    description: Users must have MFA enabled for admin roles.
+    severity: critical
+    enforcement: blocking
+    rules:
+      - field: identity.mfa_enabled
+        operator: equals
+        value: false
+  - id: sec-002
+    name: Restrict privileged roles
+    description: Require change ticket for privileged role assignment.
+    severity: high
+    enforcement: advisory
+    rules:
+      - field: identity.change_ticket
+        operator: equals
+        value: ""

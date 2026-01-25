@@ -1,0 +1,30 @@
+apiVersion: ppm.policies/v1
+kind: PolicyBundle
+metadata:
+  name: orchestration-default
+  version: "1.0.0"
+  owner: platform-governance
+  scope: orchestration-service
+  description: Baseline orchestration policy bundle for routing and execution.
+policies:
+  - id: orch-001
+    name: Block deprecated agent versions
+    description: Prevent routing to agents marked as deprecated.
+    severity: high
+    enforcement: blocking
+    rules:
+      - field: agent.version_status
+        operator: equals
+        value: deprecated
+  - id: orch-002
+    name: Require portfolio context for routing
+    description: Ensure portfolio_id is present for portfolio-specific intents.
+    severity: medium
+    enforcement: advisory
+    rules:
+      - field: request.intent
+        operator: contains
+        value: portfolio
+      - field: request.portfolio_id
+        operator: not_contains
+        value: ""

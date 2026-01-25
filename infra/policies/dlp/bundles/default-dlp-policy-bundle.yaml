@@ -1,0 +1,27 @@
+apiVersion: ppm.policies/v1
+kind: PolicyBundle
+metadata:
+  name: infra-dlp-default
+  version: "1.0.0"
+  owner: infra-security
+  scope: infra/dlp
+  description: DLP policies for protecting sensitive data.
+policies:
+  - id: dlp-001
+    name: Block uploads with PAN
+    description: Prevent storing unmasked payment card numbers.
+    severity: critical
+    enforcement: blocking
+    rules:
+      - field: content.regex
+        operator: contains
+        value: "\b[0-9]{13,19}\b"
+  - id: dlp-002
+    name: Require encryption at rest
+    description: Flag stores without encryption at rest.
+    severity: high
+    enforcement: advisory
+    rules:
+      - field: storage.encryption_at_rest
+        operator: equals
+        value: false

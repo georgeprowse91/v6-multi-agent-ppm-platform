@@ -1,0 +1,5 @@
+apiVersion: v2
+name: connector-hub
+description: Helm chart for the connector hub component in the multi-agent PPM platform
+version: 0.1.0
+appVersion: "0.1.0"
