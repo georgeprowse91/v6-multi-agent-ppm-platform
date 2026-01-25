@@ -7,4 +7,8 @@ jobs:
   migration-check:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Migration check placeholder"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run migration validation
+        run: python scripts/check-migrations.py

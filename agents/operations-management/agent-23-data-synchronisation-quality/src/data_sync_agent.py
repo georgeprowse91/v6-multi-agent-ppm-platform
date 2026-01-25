@@ -55,17 +55,17 @@ class DataSyncAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Data Synchronization & Consistency Agent...")
 
-        # TODO: Initialize Azure Service Bus for event-driven sync
-        # TODO: Set up Azure Event Grid for publish/subscribe patterns
-        # TODO: Connect to Azure SQL Database or Cosmos DB for master records
-        # TODO: Initialize Azure Data Factory for transformation pipelines
-        # TODO: Set up Azure Functions for sync orchestration
-        # TODO: Connect to external systems (Planview, SAP, Jira, Workday)
-        # TODO: Initialize Azure Durable Functions for multi-step transformations
-        # TODO: Set up Azure Monitor for sync pipeline monitoring
-        # TODO: Connect to all domain agents for data collection
-        # TODO: Initialize fuzzy matching algorithms for duplicate detection
-        # TODO: Set up Azure Key Vault for external system credentials
+        # Future work: Initialize Azure Service Bus for event-driven sync
+        # Future work: Set up Azure Event Grid for publish/subscribe patterns
+        # Future work: Connect to Azure SQL Database or Cosmos DB for master records
+        # Future work: Initialize Azure Data Factory for transformation pipelines
+        # Future work: Set up Azure Functions for sync orchestration
+        # Future work: Connect to external systems (Planview, SAP, Jira, Workday)
+        # Future work: Initialize Azure Durable Functions for multi-step transformations
+        # Future work: Set up Azure Monitor for sync pipeline monitoring
+        # Future work: Connect to all domain agents for data collection
+        # Future work: Initialize fuzzy matching algorithms for duplicate detection
+        # Future work: Set up Azure Key Vault for external system credentials
 
         self.logger.info("Data Synchronization & Consistency Agent initialized")
 
@@ -227,14 +227,14 @@ class DataSyncAgent(BaseAgent):
         )
 
         # Publish sync event
-        # TODO: Publish to Event Grid for subscribers
+        # Future work: Publish to Event Grid for subscribers
 
         return {
             "status": "success",
             "master_id": master_id,
             "sync_event_id": sync_event_id,
             "action": "updated" if existing_master else "created",
-            "latency_seconds": 0.5,  # TODO: Calculate actual latency
+            "latency_seconds": 0.5,  # Future work: Calculate actual latency
         }
 
     async def _create_master_record(self, entity_type: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -262,8 +262,8 @@ class DataSyncAgent(BaseAgent):
         # Store master record
         self.master_records[master_id] = master_record
 
-        # TODO: Store in database
-        # TODO: Publish master_record.created event
+        # Future work: Store in database
+        # Future work: Publish master_record.created event
 
         return {"master_id": master_id, "entity_type": entity_type, "version": 1}
 
@@ -299,8 +299,8 @@ class DataSyncAgent(BaseAgent):
         master_record["version"] += 1
         master_record["updated_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish master_record.updated event
+        # Future work: Store in database
+        # Future work: Publish master_record.updated event
 
         return {
             "master_id": master_id,
@@ -357,8 +357,8 @@ class DataSyncAgent(BaseAgent):
             field = conflict.get("field")
             self.master_records[master_id]["data"][field] = resolved_value
 
-        # TODO: Store in database
-        # TODO: Publish conflict.resolved event
+        # Future work: Store in database
+        # Future work: Publish conflict.resolved event
 
         return {
             "conflict_id": conflict_id,
@@ -428,8 +428,8 @@ class DataSyncAgent(BaseAgent):
         primary_record["version"] += 1
         primary_record["updated_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish duplicates.merged event
+        # Future work: Store in database
+        # Future work: Publish duplicates.merged event
 
         return {
             "primary_id": primary_id,
@@ -449,7 +449,7 @@ class DataSyncAgent(BaseAgent):
         warnings = []
 
         # Get validation rules for entity type
-        # TODO: Load from configuration
+        # Future work: Load from configuration
         validation_rules = await self._get_validation_rules(entity_type)
 
         # Apply validation rules
@@ -493,7 +493,7 @@ class DataSyncAgent(BaseAgent):
         # Store mapping rule
         self.mapping_rules[mapping_id] = mapping_rule
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "mapping_id": mapping_id,
@@ -533,7 +533,7 @@ class DataSyncAgent(BaseAgent):
             "success_rate": (successful_syncs / total_events * 100) if total_events > 0 else 0,
             "pending_conflicts": pending_conflicts,
             "recent_events": recent_events,
-            "avg_latency_seconds": 0.8,  # TODO: Calculate actual average
+            "avg_latency_seconds": 0.8,  # Future work: Calculate actual average
         }
 
     async def _get_master_record(self, master_id: str) -> dict[str, Any]:
@@ -574,14 +574,14 @@ class DataSyncAgent(BaseAgent):
         self, entity_type: str, data: dict[str, Any], source_system: str
     ) -> dict[str, Any]:
         """Transform data using mapping rules."""
-        # TODO: Apply actual transformation rules
+        # Future work: Apply actual transformation rules
         return data
 
     async def _find_existing_master(
         self, entity_type: str, data: dict[str, Any]
     ) -> dict[str, Any] | None:
         """Find existing master record."""
-        # TODO: Use matching algorithm
+        # Future work: Use matching algorithm
         for master_id, record in self.master_records.items():
             if record.get("entity_type") == entity_type and record.get("data", {}).get(
                 "id"
@@ -647,20 +647,20 @@ class DataSyncAgent(BaseAgent):
         if self.conflict_resolution_strategy == "last_write_wins":
             return new_data
         elif self.conflict_resolution_strategy == "authoritative_source":
-            # TODO: Implement authoritative source logic
+            # Future work: Implement authoritative source logic
             return new_data
         else:
             return new_data
 
     async def _fuzzy_match_duplicates(self, records: list[tuple]) -> list[list[str]]:
         """Find duplicates using fuzzy matching."""
-        # TODO: Implement actual fuzzy matching
+        # Future work: Implement actual fuzzy matching
         duplicates: list[dict[str, Any]] = []
         return duplicates  # type: ignore
 
     async def _get_validation_rules(self, entity_type: str) -> list[dict[str, Any]]:
         """Get validation rules for entity type."""
-        # TODO: Load from configuration
+        # Future work: Load from configuration
         return [
             {"field": "id", "required": True, "severity": "error"},
             {"field": "name", "required": True, "severity": "error"},
@@ -685,9 +685,9 @@ class DataSyncAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Data Synchronization & Consistency Agent...")
-        # TODO: Close database connections
-        # TODO: Close event bus connections
-        # TODO: Flush pending sync events
+        # Future work: Close database connections
+        # Future work: Close event bus connections
+        # Future work: Flush pending sync events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

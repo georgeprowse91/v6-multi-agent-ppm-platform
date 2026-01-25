@@ -1,9 +1,21 @@
-# Connector Mappings
+# Azure Devops field mappings
 
-This directory holds mapping templates for the **azure_devops** connector. Mappings translate external
-system fields into the platform's canonical data model.
+This folder defines how external Azure Devops fields map to the platform's canonical
+portfolio, program, project, and work-item schemas.
 
-## Add here
-- Field mapping files (CSV/YAML)
-- Transformation notes (units, formats, enums)
-- Validation rules for required fields
+## File expectations
+- Keep mappings in YAML files named after the entity (for example, `project.yaml`).
+- Use `source_field` for the upstream field name and `target_field` for the platform field.
+- Include `transform` when the source format needs normalization.
+
+## Example
+```yaml
+entity: project
+fields:
+  - source_field: System.Title
+    target_field: title
+    transform: string
+  - source_field: System.State
+    target_field: status
+    transform: enum
+```

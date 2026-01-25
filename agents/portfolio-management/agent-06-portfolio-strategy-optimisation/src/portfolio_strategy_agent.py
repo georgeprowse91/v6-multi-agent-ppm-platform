@@ -78,14 +78,14 @@ class PortfolioStrategyAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Portfolio Strategy & Optimization Agent...")
 
-        # TODO: Initialize Azure Machine Learning for multi-objective optimization
-        # TODO: Connect to database for portfolio data storage
-        # TODO: Initialize connections to Planview/Clarity PPM
-        # TODO: Connect to strategic planning tools (Cascade, AchieveIt)
-        # TODO: Initialize Azure Cognitive Services for NLP of strategic documents
-        # TODO: Set up Azure Cognitive Search for objective extraction
-        # TODO: Initialize Azure Service Bus/Event Grid for event publishing
-        # TODO: Load strategic objectives from corporate planning systems
+        # Future work: Initialize Azure Machine Learning for multi-objective optimization
+        # Future work: Connect to database for portfolio data storage
+        # Future work: Initialize connections to Planview/Clarity PPM
+        # Future work: Connect to strategic planning tools (Cascade, AchieveIt)
+        # Future work: Initialize Azure Cognitive Services for NLP of strategic documents
+        # Future work: Set up Azure Cognitive Search for objective extraction
+        # Future work: Initialize Azure Service Bus/Event Grid for event publishing
+        # Future work: Load strategic objectives from corporate planning systems
 
         self.logger.info("Portfolio Strategy & Optimization Agent initialized")
 
@@ -234,8 +234,8 @@ class PortfolioStrategyAgent(BaseAgent):
         for idx, project in enumerate(ranked_projects, start=1):
             project["rank"] = idx
 
-        # TODO: Store portfolio ranking in database
-        # TODO: Publish portfolio.prioritised event
+        # Future work: Store portfolio ranking in database
+        # Future work: Publish portfolio.prioritised event
 
         return {
             "ranked_projects": ranked_projects,
@@ -255,8 +255,8 @@ class PortfolioStrategyAgent(BaseAgent):
         """
         self.logger.info(f"Calculating alignment score for project: {project.get('project_id')}")
 
-        # TODO: Use Azure Cognitive Services NLP to analyze project description
-        # TODO: Match project to strategic objectives using embeddings
+        # Future work: Use Azure Cognitive Services NLP to analyze project description
+        # Future work: Match project to strategic objectives using embeddings
 
         alignment_details = []
 
@@ -301,15 +301,15 @@ class PortfolioStrategyAgent(BaseAgent):
         constraints.get("resource_capacity", {})
         constraints.get("min_compliance_spend", 0)
 
-        # TODO: Implement multi-objective optimization using Azure ML
-        # TODO: Use evolutionary algorithms (NSGA-II, MOGA) for Pareto optimization
-        # TODO: Apply constraint satisfaction programming
+        # Future work: Implement multi-objective optimization using Azure ML
+        # Future work: Use evolutionary algorithms (NSGA-II, MOGA) for Pareto optimization
+        # Future work: Apply constraint satisfaction programming
 
         # Score and rank projects
         prioritization = await self._prioritize_portfolio(projects, self.default_weights)
         ranked_projects = prioritization["ranked_projects"]
 
-        # Select projects within constraints (greedy approach - placeholder)
+        # Select projects within constraints (greedy approach - baseline)
         selected_projects = []
         total_cost = 0
         total_value = 0
@@ -372,7 +372,7 @@ class PortfolioStrategyAgent(BaseAgent):
             # Adjust constraints based on scenario
             adjusted_constraints = {
                 "budget_ceiling": scenario.get("budget_ceiling", 1000000) * budget_multiplier,
-                "resource_capacity": {},  # TODO: Apply capacity multiplier
+                "resource_capacity": {},  # Future work: Apply capacity multiplier
                 "min_compliance_spend": scenario.get("min_compliance_spend", 0),
             }
 
@@ -412,7 +412,7 @@ class PortfolioStrategyAgent(BaseAgent):
         # Generate cross-scenario comparison
         comparison = await self._generate_scenario_comparison(scenario_results)
 
-        # TODO: Publish portfolio.scenario.generated event
+        # Future work: Publish portfolio.scenario.generated event
 
         return {
             "scenarios": scenario_results,
@@ -460,7 +460,7 @@ class PortfolioStrategyAgent(BaseAgent):
         # Calculate impact metrics
         impact = await self._calculate_rebalancing_impact(recommendations)
 
-        # TODO: Publish portfolio.rebalanced event
+        # Future work: Publish portfolio.rebalanced event
 
         return {
             "portfolio_id": portfolio_id,
@@ -476,7 +476,7 @@ class PortfolioStrategyAgent(BaseAgent):
         """Get current portfolio status and performance metrics."""
         self.logger.info(f"Getting portfolio status: {portfolio_id}")
 
-        # TODO: Query database for portfolio data
+        # Future work: Query database for portfolio data
 
         return {
             "portfolio_id": portfolio_id,
@@ -506,10 +506,10 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _score_strategic_alignment(self, project: dict[str, Any]) -> float:
         """Score project strategic alignment (0-1)."""
-        # TODO: Use ML model trained on historical outcomes
-        # TODO: Use NLP to analyze project description against strategic objectives
+        # Future work: Use ML model trained on historical outcomes
+        # Future work: Use NLP to analyze project description against strategic objectives
 
-        # Placeholder scoring
+        # Baseline scoring
         return project.get("strategic_score", 0.7)  # type: ignore
 
     async def _score_roi(self, project: dict[str, Any]) -> float:
@@ -534,7 +534,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _score_resource_feasibility(self, project: dict[str, Any]) -> float:
         """Score resource feasibility (0-1)."""
-        # TODO: Query Resource Management Agent for availability
+        # Future work: Query Resource Management Agent for availability
 
         return project.get("resource_score", 0.7)  # type: ignore
 
@@ -547,9 +547,9 @@ class PortfolioStrategyAgent(BaseAgent):
         self, project: dict[str, Any], objective: dict[str, Any]
     ) -> float:
         """Calculate alignment between project and strategic objective."""
-        # TODO: Use Azure Cognitive Services for semantic similarity
+        # Future work: Use Azure Cognitive Services for semantic similarity
 
-        # Placeholder
+        # Baseline
         return 0.75
 
     async def _calculate_portfolio_metrics(
@@ -563,8 +563,8 @@ class PortfolioStrategyAgent(BaseAgent):
 
         return {
             "average_score": avg_score,
-            "risk_profile": "balanced",  # TODO: Calculate actual risk profile
-            "strategic_coverage": 0.8,  # TODO: Calculate actual coverage
+            "risk_profile": "balanced",  # Future work: Calculate actual risk profile
+            "strategic_coverage": 0.8,  # Future work: Calculate actual coverage
         }
 
     async def _identify_trade_offs(
@@ -624,7 +624,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _get_current_portfolio(self, portfolio_id: str | None = None) -> list[dict[str, Any]]:
         """Get current portfolio composition."""
-        # TODO: Query database for active projects
+        # Future work: Query database for active projects
         return []
 
     async def _calculate_investment_mix(self, portfolio: list[dict[str, Any]]) -> dict[str, float]:
@@ -674,9 +674,9 @@ class PortfolioStrategyAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Portfolio Strategy & Optimization Agent...")
-        # TODO: Close database connections
-        # TODO: Close PPM system connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close PPM system connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

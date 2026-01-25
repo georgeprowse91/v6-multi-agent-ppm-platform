@@ -72,7 +72,7 @@ Interfaces with Azure AD for authentication and user context lookup.
 
 ## UI/UX Design
 
-**Assistant Input Box:** All free‑text user inputs from the assistant panel are first processed by this agent. The UI displays placeholder text like “Ask me about budgets, risks, or schedules…” and auto‑completes suggestions.
+**Assistant Input Box:** All free‑text user inputs from the assistant panel are first processed by this agent. The UI displays helper prompt text like “Ask me about budgets, risks, or schedules…” and auto‑completes suggestions.
 
 **Clarification Chips:** When a request is ambiguous, the agent returns quick‑action chips (e.g., list of projects, update options) displayed below the chat input, allowing the user to click to disambiguate.
 

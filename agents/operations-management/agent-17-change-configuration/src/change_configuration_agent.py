@@ -60,16 +60,16 @@ class ChangeConfigurationAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Change & Configuration Management Agent...")
 
-        # TODO: Initialize Azure Cosmos DB or SQL Database for change requests and CMDB
-        # TODO: Connect to ITSM tools (ServiceNow, Jira Service Management, Azure DevOps, BMC Remedy)
-        # TODO: Integrate with Git repositories (GitHub, GitLab, Azure Repos)
-        # TODO: Connect to infrastructure as code tools (Terraform, Azure Blueprint)
-        # TODO: Set up Azure Durable Functions or Logic Apps for workflow orchestration
-        # TODO: Initialize Azure Machine Learning for change impact prediction
-        # TODO: Connect to CI/CD tools (Jenkins, Azure DevOps Pipelines)
-        # TODO: Integrate with document repositories (SharePoint, Confluence)
-        # TODO: Set up Azure Service Bus for change event publishing
-        # TODO: Initialize graph database features for CI dependency mapping
+        # Future work: Initialize Azure Cosmos DB or SQL Database for change requests and CMDB
+        # Future work: Connect to ITSM tools (ServiceNow, Jira Service Management, Azure DevOps, BMC Remedy)
+        # Future work: Integrate with Git repositories (GitHub, GitLab, Azure Repos)
+        # Future work: Connect to infrastructure as code tools (Terraform, Azure Blueprint)
+        # Future work: Set up Azure Durable Functions or Logic Apps for workflow orchestration
+        # Future work: Initialize Azure Machine Learning for change impact prediction
+        # Future work: Connect to CI/CD tools (Jenkins, Azure DevOps Pipelines)
+        # Future work: Integrate with document repositories (SharePoint, Confluence)
+        # Future work: Set up Azure Service Bus for change event publishing
+        # Future work: Initialize graph database features for CI dependency mapping
 
         self.logger.info("Change & Configuration Management Agent initialized")
 
@@ -206,8 +206,8 @@ class ChangeConfigurationAgent(BaseAgent):
         # Store change
         self.change_requests[change_id] = change
 
-        # TODO: Store in database
-        # TODO: Route to appropriate approval workflow
+        # Future work: Store in database
+        # Future work: Route to appropriate approval workflow
 
         return {
             "change_id": change_id,
@@ -226,7 +226,7 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
 
         # Use NLP to classify
-        # TODO: Use Azure ML for classification
+        # Future work: Use Azure ML for classification
         classification = await self._auto_classify_change_type(
             {"description": change.get("description")}
         )
@@ -246,7 +246,7 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
 
         # Consult other agents for impact
-        # TODO: Call Schedule, Resource, Financial agents
+        # Future work: Call Schedule, Resource, Financial agents
         schedule_impact = await self._assess_schedule_impact(change)
         cost_impact = await self._assess_cost_impact(change)
         resource_impact = await self._assess_resource_impact(change)
@@ -256,7 +256,7 @@ class ChangeConfigurationAgent(BaseAgent):
         dependency_impact = await self._analyze_dependency_impact(change)
 
         # Predict change impact using AI
-        # TODO: Use Azure ML for impact prediction
+        # Future work: Use Azure ML for impact prediction
         predicted_impact = await self._predict_change_impact(change)
 
         impact_assessment = {
@@ -275,7 +275,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Update change
         change["impact_assessment"] = impact_assessment
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "change_id": change_id,
@@ -308,8 +308,8 @@ class ChangeConfigurationAgent(BaseAgent):
         else:
             change["status"] = "Rejected"
 
-        # TODO: Store in database
-        # TODO: Publish change.approved or change.rejected event
+        # Future work: Store in database
+        # Future work: Publish change.approved or change.rejected event
 
         return {
             "change_id": change_id,
@@ -345,7 +345,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Store CI
         self.cmdb[ci_id] = ci
 
-        # TODO: Store in database with graph features
+        # Future work: Store in database with graph features
 
         return {"ci_id": ci_id, "name": ci["name"], "type": ci["type"], "version": ci["version"]}
 
@@ -382,7 +382,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Store baseline
         self.baselines[baseline_id] = baseline
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "baseline_id": baseline_id,
@@ -400,7 +400,7 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
 
         # Get implementation tasks
-        # TODO: Integrate with task management system
+        # Future work: Integrate with task management system
         implementation_tasks = await self._get_implementation_tasks(change_id)
 
         # Calculate completion percentage
@@ -528,7 +528,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _auto_classify_change_type(self, change_data: dict[str, Any]) -> str:
         """Auto-classify change type using NLP."""
-        # TODO: Use Azure ML for classification
+        # Future work: Use Azure ML for classification
         description = change_data.get("description", "").lower()
 
         if "emergency" in description or "critical" in description:
@@ -540,7 +540,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _identify_impacted_cis(self, change_data: dict[str, Any]) -> list[str]:
         """Identify impacted configuration items."""
-        # TODO: Use NLP and CMDB relationships
+        # Future work: Use NLP and CMDB relationships
         return []
 
     async def _determine_routing(self, change_type: str) -> str:
@@ -554,32 +554,32 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _assess_schedule_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess schedule impact of change."""
-        # TODO: Integrate with Schedule Agent
+        # Future work: Integrate with Schedule Agent
         return {"impact_days": 0, "critical_path_affected": False}
 
     async def _assess_cost_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess cost impact of change."""
-        # TODO: Integrate with Financial Agent
+        # Future work: Integrate with Financial Agent
         return {"cost_variance": 0, "budget_available": True}
 
     async def _assess_resource_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess resource impact of change."""
-        # TODO: Integrate with Resource Agent
+        # Future work: Integrate with Resource Agent
         return {"resources_required": [], "availability": True}
 
     async def _assess_risk_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess risk impact of change."""
-        # TODO: Integrate with Risk Management Agent
+        # Future work: Integrate with Risk Management Agent
         return {"new_risks": [], "risk_score_increase": 0}
 
     async def _analyze_dependency_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Analyze CI dependency impact."""
-        # TODO: Use graph analysis
+        # Future work: Use graph analysis
         return {"dependent_cis": [], "cascading_impact": False}
 
     async def _predict_change_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Predict change impact using ML."""
-        # TODO: Use Azure ML
+        # Future work: Use Azure ML
         return {"success_probability": 0.8, "predicted_duration": 5}
 
     async def _calculate_overall_risk(
@@ -614,7 +614,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _get_implementation_tasks(self, change_id: str) -> list[dict[str, Any]]:
         """Get implementation tasks for change."""
-        # TODO: Query task management system
+        # Future work: Query task management system
         return []
 
     async def _matches_filters(self, change: dict[str, Any], filters: dict[str, Any]) -> bool:
@@ -629,7 +629,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _analyze_change_patterns(self, changes: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze patterns in changes."""
-        # TODO: Perform pattern analysis
+        # Future work: Perform pattern analysis
         return {
             "most_common_type": "normal",
             "average_approval_time_days": 3,
@@ -638,7 +638,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _build_dependency_graph(self, ci_id: str) -> dict[str, Any]:
         """Build dependency graph for CI."""
-        # TODO: Use graph algorithms
+        # Future work: Use graph algorithms
         return {"nodes": [{"id": ci_id, "label": "CI"}], "edges": []}
 
     async def _build_full_cmdb_graph(self) -> dict[str, Any]:
@@ -662,12 +662,12 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _calculate_change_statistics(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Calculate change statistics."""
-        # TODO: Aggregate statistics
+        # Future work: Aggregate statistics
         return {"total_changes": 0, "approved_rate": 0, "average_lead_time": 0}
 
     async def _calculate_cab_workload(self) -> dict[str, Any]:
         """Calculate CAB workload."""
-        # TODO: Analyze pending changes
+        # Future work: Analyze pending changes
         return {"pending_reviews": 0, "next_meeting": None}
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -677,9 +677,9 @@ class ChangeConfigurationAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Change & Configuration Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close ITSM connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close ITSM connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

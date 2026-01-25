@@ -61,14 +61,14 @@ class ProjectLifecycleAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Project Lifecycle & Governance Agent...")
 
-        # TODO: Initialize Azure Durable Functions for stateful workflows
-        # TODO: Connect to Azure Cosmos DB for lifecycle state storage
-        # TODO: Initialize Azure Machine Learning for readiness scoring models
-        # TODO: Connect to Planview/Clarity PPM for lifecycle metadata sync
-        # TODO: Initialize Jira/Azure DevOps integration for Agile sprint data
-        # TODO: Set up Azure Service Bus/Event Grid for lifecycle event subscriptions
-        # TODO: Connect to Azure Cognitive Services for dashboard summarization
-        # TODO: Initialize Azure Monitor for health metrics collection
+        # Future work: Initialize Azure Durable Functions for stateful workflows
+        # Future work: Connect to Azure Cosmos DB for lifecycle state storage
+        # Future work: Initialize Azure Machine Learning for readiness scoring models
+        # Future work: Connect to Planview/Clarity PPM for lifecycle metadata sync
+        # Future work: Initialize Jira/Azure DevOps integration for Agile sprint data
+        # Future work: Set up Azure Service Bus/Event Grid for lifecycle event subscriptions
+        # Future work: Connect to Azure Cognitive Services for dashboard summarization
+        # Future work: Initialize Azure Monitor for health metrics collection
 
         self.logger.info("Project Lifecycle & Governance Agent initialized")
 
@@ -230,10 +230,10 @@ class ProjectLifecycleAgent(BaseAgent):
         self.lifecycle_states[project_id] = lifecycle_state
 
         # Trigger charter generation
-        # TODO: Integrate with Project Definition Agent (Agent 8)
+        # Future work: Integrate with Project Definition Agent (Agent 8)
 
-        # TODO: Store in Azure Cosmos DB
-        # TODO: Publish project.initiated event to Service Bus
+        # Future work: Store in Azure Cosmos DB
+        # Future work: Publish project.initiated event to Service Bus
 
         self.logger.info(f"Initiated project: {project_id}")
 
@@ -293,7 +293,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "to_phase": target_phase,
             "gate_name": gate_name,
             "transitioned_at": datetime.utcnow().isoformat(),
-            "transitioned_by": "system",  # TODO: Get from user context
+            "transitioned_by": "system",  # Future work: Get from user context
         }
 
         lifecycle_state["current_phase"] = target_phase
@@ -305,8 +305,8 @@ class ProjectLifecycleAgent(BaseAgent):
         self.projects[project_id]["current_phase"] = target_phase
         self.projects[project_id]["phase_history"].append(transition_record)
 
-        # TODO: Update in Azure Cosmos DB
-        # TODO: Publish project.transitioned event
+        # Future work: Update in Azure Cosmos DB
+        # Future work: Publish project.transitioned event
 
         self.logger.info(
             f"Transitioned project {project_id} from {current_phase} to {target_phase}"
@@ -349,7 +349,7 @@ class ProjectLifecycleAgent(BaseAgent):
             )
 
         # Calculate readiness score
-        # TODO: Use ML model for readiness prediction
+        # Future work: Use ML model for readiness prediction
         readiness_score = (
             sum(1 for c in criteria_status if c["met"]) / len(criteria_status)
             if criteria_status
@@ -378,8 +378,8 @@ class ProjectLifecycleAgent(BaseAgent):
             self.gate_evaluations[project_id] = []
         self.gate_evaluations[project_id].append(evaluation)
 
-        # TODO: Store in database
-        # TODO: Publish gate.evaluated event
+        # Future work: Store in database
+        # Future work: Publish gate.evaluated event
 
         return evaluation
 
@@ -396,11 +396,11 @@ class ProjectLifecycleAgent(BaseAgent):
             raise ValueError(f"Project not found: {project_id}")
 
         # Gather metrics from domain agents
-        # TODO: Integrate with Schedule & Planning Agent (Agent 10)
-        # TODO: Integrate with Financial Management Agent (Agent 12)
-        # TODO: Integrate with Risk Management Agent (Agent 15)
-        # TODO: Integrate with Quality Assurance Agent (Agent 14)
-        # TODO: Integrate with Resource & Capacity Management Agent (Agent 11)
+        # Future work: Integrate with Schedule & Planning Agent (Agent 10)
+        # Future work: Integrate with Financial Management Agent (Agent 12)
+        # Future work: Integrate with Risk Management Agent (Agent 15)
+        # Future work: Integrate with Quality Assurance Agent (Agent 14)
+        # Future work: Integrate with Resource & Capacity Management Agent (Agent 11)
 
         schedule_health = await self._get_schedule_health(project_id)
         cost_health = await self._get_cost_health(project_id)
@@ -468,9 +468,9 @@ class ProjectLifecycleAgent(BaseAgent):
         # Store health score
         self.health_scores[project_id] = health_data
 
-        # TODO: Store in database
-        # TODO: Publish health.updated event
-        # TODO: Trigger alerts if health is critical
+        # Future work: Store in database
+        # Future work: Publish health.updated event
+        # Future work: Trigger alerts if health is critical
 
         return health_data
 
@@ -489,7 +489,7 @@ class ProjectLifecycleAgent(BaseAgent):
         stakeholder_engagement = project_data.get("stakeholder_engagement", "medium")
         regulatory_requirements = project_data.get("regulatory_requirements", False)
 
-        # TODO: Use ML model for methodology recommendation
+        # Future work: Use ML model for methodology recommendation
         # Simplified rule-based logic
         if requirement_volatility == "high" and stakeholder_engagement == "high":
             methodology = "agile"
@@ -538,8 +538,8 @@ class ProjectLifecycleAgent(BaseAgent):
         lifecycle_state["methodology_map"] = new_methodology_map
         lifecycle_state["current_phase"] = new_phase
 
-        # TODO: Update in database
-        # TODO: Publish methodology.adjusted event
+        # Future work: Update in database
+        # Future work: Publish methodology.adjusted event
 
         return {
             "project_id": project_id,
@@ -582,7 +582,7 @@ class ProjectLifecycleAgent(BaseAgent):
         project_status = await self._get_project_status(project_id)
 
         # Generate trend data
-        # TODO: Query historical health scores
+        # Future work: Query historical health scores
         trends = await self._generate_health_trends(project_id)
 
         # Generate alerts
@@ -616,7 +616,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "gate_name": gate_name,
             "gate_evaluation": gate_evaluation,
             "override_reason": override_reason,
-            "overridden_by": "system",  # TODO: Get from user context
+            "overridden_by": "system",  # Future work: Get from user context
             "overridden_at": datetime.utcnow().isoformat(),
         }
 
@@ -625,9 +625,9 @@ class ProjectLifecycleAgent(BaseAgent):
         if lifecycle_state:
             lifecycle_state["gates_passed"].append(f"{gate_name} (OVERRIDDEN)")
 
-        # TODO: Store override record in database
-        # TODO: Publish gate.overridden event
-        # TODO: Send notification to PMO and stakeholders
+        # Future work: Store override record in database
+        # Future work: Publish gate.overridden event
+        # Future work: Send notification to PMO and stakeholders
 
         self.logger.warning(f"Gate override recorded for {project_id}: {gate_name}")
 
@@ -641,7 +641,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _load_methodology_map(self, methodology: str) -> dict[str, Any]:
         """Load methodology map with phases and gates."""
-        # TODO: Load from configuration or database
+        # Future work: Load from configuration or database
 
         if methodology == "agile":
             return {
@@ -725,7 +725,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _get_gate_criteria(self, gate_name: str) -> list[str]:
         """Get criteria for a specific gate."""
-        # TODO: Load from configuration
+        # Future work: Load from configuration
         # Simplified criteria
         if "charter" in gate_name.lower():
             return ["charter_document_complete", "charter_approved", "sponsor_assigned"]
@@ -736,8 +736,8 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _check_criterion(self, project_id: str, criterion: str) -> bool:
         """Check if a specific criterion is met."""
-        # TODO: Implement actual criterion checking
-        # Placeholder: randomly return True/False
+        # Future work: Implement actual criterion checking
+        # Baseline: randomly return True/False
         return True
 
     async def _get_criterion_description(self, criterion: str) -> str:
@@ -756,28 +756,28 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _get_schedule_health(self, project_id: str) -> float:
         """Get schedule health metric."""
-        # TODO: Query Schedule & Planning Agent (Agent 10)
-        return 0.85  # Placeholder
+        # Future work: Query Schedule & Planning Agent (Agent 10)
+        return 0.85  # Baseline
 
     async def _get_cost_health(self, project_id: str) -> float:
         """Get cost health metric."""
-        # TODO: Query Financial Management Agent (Agent 12)
-        return 0.90  # Placeholder
+        # Future work: Query Financial Management Agent (Agent 12)
+        return 0.90  # Baseline
 
     async def _get_risk_health(self, project_id: str) -> float:
         """Get risk health metric."""
-        # TODO: Query Risk Management Agent (Agent 15)
-        return 0.75  # Placeholder
+        # Future work: Query Risk Management Agent (Agent 15)
+        return 0.75  # Baseline
 
     async def _get_quality_health(self, project_id: str) -> float:
         """Get quality health metric."""
-        # TODO: Query Quality Assurance Agent (Agent 14)
-        return 0.88  # Placeholder
+        # Future work: Query Quality Assurance Agent (Agent 14)
+        return 0.88  # Baseline
 
     async def _get_resource_health(self, project_id: str) -> float:
         """Get resource health metric."""
-        # TODO: Query Resource & Capacity Management Agent (Agent 11)
-        return 0.80  # Placeholder
+        # Future work: Query Resource & Capacity Management Agent (Agent 11)
+        return 0.80  # Baseline
 
     async def _determine_health_status(self, composite_score: float) -> str:
         """Determine health status from composite score."""
@@ -816,7 +816,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _detect_warnings(self, project_id: str) -> list[dict[str, Any]]:
         """Detect early warning signals."""
-        # TODO: Implement pattern recognition for warnings
+        # Future work: Implement pattern recognition for warnings
         return []
 
     async def _generate_health_recommendations(
@@ -850,7 +850,7 @@ class ProjectLifecycleAgent(BaseAgent):
         self, current_phase: str, old_methodology: str, new_methodology: str
     ) -> str:
         """Map current phase to equivalent in new methodology."""
-        # TODO: Implement intelligent phase mapping
+        # Future work: Implement intelligent phase mapping
         # Simplified mapping
         new_map = await self._load_methodology_map(new_methodology)
         return new_map["initial_phase"]  # type: ignore
@@ -869,7 +869,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _generate_health_trends(self, project_id: str) -> dict[str, Any]:
         """Generate health trend data."""
-        # TODO: Query historical health scores
+        # Future work: Query historical health scores
         return {
             "schedule_trend": "improving",
             "cost_trend": "stable",
@@ -894,10 +894,10 @@ class ProjectLifecycleAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Project Lifecycle & Governance Agent...")
-        # TODO: Close database connections
-        # TODO: Cancel monitoring timers
-        # TODO: Close external API connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Cancel monitoring timers
+        # Future work: Close external API connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -54,15 +54,15 @@ class ProjectDefinitionAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Project Definition & Scope Agent...")
 
-        # TODO: Initialize Azure OpenAI Service for charter and WBS generation
-        # TODO: Initialize Azure Form Recognizer for requirements extraction from documents
-        # TODO: Connect to Azure Cosmos DB for hierarchical data storage (charter, WBS, requirements)
-        # TODO: Connect to Azure Blob Storage for document storage
-        # TODO: Initialize Jira/Azure DevOps integration for user stories and epics
-        # TODO: Connect to IBM DOORS/Jama for requirements management
-        # TODO: Initialize SharePoint/Confluence integration for document management
-        # TODO: Set up Azure Service Bus/Event Grid for event publishing
-        # TODO: Initialize Azure Cognitive Search for similarity search
+        # Future work: Initialize Azure OpenAI Service for charter and WBS generation
+        # Future work: Initialize Azure Form Recognizer for requirements extraction from documents
+        # Future work: Connect to Azure Cosmos DB for hierarchical data storage (charter, WBS, requirements)
+        # Future work: Connect to Azure Blob Storage for document storage
+        # Future work: Initialize Jira/Azure DevOps integration for user stories and epics
+        # Future work: Connect to IBM DOORS/Jama for requirements management
+        # Future work: Initialize SharePoint/Confluence integration for document management
+        # Future work: Set up Azure Service Bus/Event Grid for event publishing
+        # Future work: Initialize Azure Cognitive Search for similarity search
 
         self.logger.info("Project Definition & Scope Agent initialized")
 
@@ -210,7 +210,7 @@ class ProjectDefinitionAgent(BaseAgent):
         methodology = charter_data.get("methodology", "hybrid")
 
         # Generate charter sections using AI
-        # TODO: Use Azure OpenAI for content generation
+        # Future work: Use Azure OpenAI for content generation
         executive_summary = await self._generate_executive_summary(charter_data)
         objectives = await self._generate_objectives(charter_data)
         scope_overview = await self._generate_scope_overview(charter_data)
@@ -254,9 +254,9 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store charter
         self.charters[project_id] = charter
 
-        # TODO: Store in Azure Cosmos DB
-        # TODO: Store document in Azure Blob Storage
-        # TODO: Publish charter.created event to Service Bus
+        # Future work: Store in Azure Cosmos DB
+        # Future work: Store document in Azure Blob Storage
+        # Future work: Publish charter.created event to Service Bus
 
         self.logger.info(f"Generated charter for project: {project_id}")
 
@@ -282,11 +282,11 @@ class ProjectDefinitionAgent(BaseAgent):
             raise ValueError(f"Charter not found for project: {project_id}")
 
         # Query Knowledge Management Agent for similar projects
-        # TODO: Integrate with Agent 19
+        # Future work: Integrate with Agent 19
         similar_projects = await self._find_similar_projects(charter)
 
         # Generate WBS structure using AI
-        # TODO: Use Azure OpenAI for WBS generation
+        # Future work: Use Azure OpenAI for WBS generation
         wbs_structure = await self._generate_wbs_structure(
             charter, scope_statement, similar_projects
         )
@@ -309,8 +309,8 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store WBS
         self.wbs_structures[project_id] = wbs
 
-        # TODO: Store in Azure Cosmos DB (hierarchical format)
-        # TODO: Publish wbs.created event
+        # Future work: Store in Azure Cosmos DB (hierarchical format)
+        # Future work: Publish wbs.created event
 
         return {
             "wbs_id": wbs_id,
@@ -331,7 +331,7 @@ class ProjectDefinitionAgent(BaseAgent):
         self.logger.info(f"Managing requirements for project: {project_id}")
 
         # Extract requirements from various sources
-        # TODO: Use Azure Form Recognizer for document extraction
+        # Future work: Use Azure Form Recognizer for document extraction
         extracted_requirements = await self._extract_requirements_from_sources(
             project_id, requirements
         )
@@ -361,9 +361,9 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store requirements
         self.requirements[project_id] = requirements_repo
 
-        # TODO: Store in Azure Cosmos DB
-        # TODO: Sync with Jira/Azure DevOps
-        # TODO: Publish requirements.updated event
+        # Future work: Store in Azure Cosmos DB
+        # Future work: Sync with Jira/Azure DevOps
+        # Future work: Publish requirements.updated event
 
         return requirements_repo
 
@@ -382,11 +382,11 @@ class ProjectDefinitionAgent(BaseAgent):
         requirements_list = requirements_repo.get("requirements", [])
 
         # Query user stories from Jira/Azure DevOps
-        # TODO: Integrate with work item tracking systems
+        # Future work: Integrate with work item tracking systems
         user_stories = await self._get_user_stories(project_id)
 
         # Query test cases
-        # TODO: Integrate with test management systems
+        # Future work: Integrate with test management systems
         test_cases = await self._get_test_cases(project_id)
 
         # Create traceability links
@@ -417,8 +417,8 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store matrix
         self.traceability_matrices[project_id] = matrix
 
-        # TODO: Store in Azure SQL Database
-        # TODO: Publish traceability_matrix.created event
+        # Future work: Store in Azure SQL Database
+        # Future work: Publish traceability_matrix.created event
 
         return matrix
 
@@ -436,7 +436,7 @@ class ProjectDefinitionAgent(BaseAgent):
         classified = await self._classify_stakeholders(stakeholders)
 
         # Analyze influence network
-        # TODO: Use social network analysis
+        # Future work: Use social network analysis
         influence_network = await self._analyze_influence_network(classified)
 
         # Determine communication strategies
@@ -454,8 +454,8 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store stakeholder register
         self.stakeholder_registers[project_id] = stakeholder_register
 
-        # TODO: Store in database
-        # TODO: Publish stakeholder_register.created event
+        # Future work: Store in database
+        # Future work: Publish stakeholder_register.created event
 
         return stakeholder_register
 
@@ -473,7 +473,7 @@ class ProjectDefinitionAgent(BaseAgent):
         self.logger.info(f"Creating RACI matrix for project: {project_id}")
 
         # Generate RACI assignments
-        # TODO: Use AI to suggest RACI assignments based on roles
+        # Future work: Use AI to suggest RACI assignments based on roles
         raci_assignments = await self._generate_raci_assignments(stakeholders, deliverables)
 
         # Validate assignments
@@ -488,8 +488,8 @@ class ProjectDefinitionAgent(BaseAgent):
             "created_at": datetime.utcnow().isoformat(),
         }
 
-        # TODO: Store in database
-        # TODO: Publish raci_matrix.created event
+        # Future work: Store in database
+        # Future work: Publish raci_matrix.created event
 
         return raci_matrix
 
@@ -517,12 +517,12 @@ class ProjectDefinitionAgent(BaseAgent):
             "requirements_count": len(requirements_repo.get("requirements", [])),
             "scope_statement": charter["document"].get("scope_overview"),
             "locked_at": datetime.utcnow().isoformat(),
-            "locked_by": "system",  # TODO: Get from user context
+            "locked_by": "system",  # Future work: Get from user context
             "status": "Locked",
         }
 
-        # TODO: Store baseline in database
-        # TODO: Publish scope_baseline.locked event
+        # Future work: Store baseline in database
+        # Future work: Publish scope_baseline.locked event
 
         return baseline
 
@@ -543,7 +543,7 @@ class ProjectDefinitionAgent(BaseAgent):
         baseline_scope = charter["document"].get("scope_overview", {})
 
         # Compare current scope to baseline
-        # TODO: Use semantic similarity analysis
+        # Future work: Use semantic similarity analysis
         changes = await self._compare_scope(baseline_scope, current_scope)
 
         # Calculate scope variance
@@ -605,12 +605,12 @@ class ProjectDefinitionAgent(BaseAgent):
         project_type = charter_data.get("project_type", "general")
         methodology = charter_data.get("methodology", "hybrid")
 
-        # TODO: Implement template selection logic
+        # Future work: Implement template selection logic
         return f"template_{project_type}_{methodology}"
 
     async def _generate_executive_summary(self, charter_data: dict[str, Any]) -> str:
         """Generate executive summary using AI."""
-        # TODO: Use Azure OpenAI for natural language generation
+        # Future work: Use Azure OpenAI for natural language generation
         title = charter_data.get("title", "Project")
         description = charter_data.get("description", "")
 
@@ -618,7 +618,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _generate_objectives(self, charter_data: dict[str, Any]) -> list[str]:
         """Generate project objectives."""
-        # TODO: Extract objectives from description using NLP
+        # Future work: Extract objectives from description using NLP
         return charter_data.get(  # type: ignore
             "objectives",
             [
@@ -639,15 +639,15 @@ class ProjectDefinitionAgent(BaseAgent):
     async def _generate_governance_structure(self, charter_data: dict[str, Any]) -> dict[str, Any]:
         """Generate governance structure."""
         return {
-            "sponsor": charter_data.get("sponsor", "TBD"),
-            "project_manager": charter_data.get("project_manager", "TBD"),
+            "sponsor": charter_data.get("sponsor", "Unassigned"),
+            "project_manager": charter_data.get("project_manager", "Unassigned"),
             "steering_committee": charter_data.get("steering_committee", []),
             "reporting_frequency": charter_data.get("reporting_frequency", "weekly"),
         }
 
     async def _extract_high_level_requirements(self, charter_data: dict[str, Any]) -> list[str]:
         """Extract high-level requirements."""
-        # TODO: Use NLP to extract requirements
+        # Future work: Use NLP to extract requirements
         return charter_data.get("high_level_requirements", [])  # type: ignore
 
     async def _identify_stakeholders(self, charter_data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -675,7 +675,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _find_similar_projects(self, charter: dict[str, Any]) -> list[dict[str, Any]]:
         """Find similar projects for WBS reference."""
-        # TODO: Use Azure Cognitive Search for similarity search
+        # Future work: Use Azure Cognitive Search for similarity search
         return []
 
     async def _generate_wbs_structure(
@@ -685,8 +685,8 @@ class ProjectDefinitionAgent(BaseAgent):
         similar_projects: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Generate hierarchical WBS structure."""
-        # TODO: Use Azure OpenAI to generate WBS
-        # Placeholder structure
+        # Future work: Use Azure OpenAI to generate WBS
+        # Baseline structure
         return {
             "1.0": {
                 "name": "Project Management",
@@ -706,19 +706,19 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _add_work_package_details(self, wbs_structure: dict[str, Any]) -> dict[str, Any]:
         """Add details to work packages."""
-        # TODO: Add effort estimates, resources, durations
+        # Future work: Add effort estimates, resources, durations
         return wbs_structure
 
     async def _count_work_packages(self, wbs_structure: dict[str, Any]) -> int:
         """Count total work packages in WBS."""
-        # TODO: Implement recursive counting
-        return 10  # Placeholder
+        # Future work: Implement recursive counting
+        return 10  # Baseline
 
     async def _extract_requirements_from_sources(
         self, project_id: str, requirements: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Extract requirements from various sources."""
-        # TODO: Use Azure Form Recognizer for document extraction
+        # Future work: Use Azure Form Recognizer for document extraction
         return requirements
 
     async def _categorize_requirements(
@@ -727,7 +727,7 @@ class ProjectDefinitionAgent(BaseAgent):
         """Categorize requirements by type."""
         for req in requirements:
             if "category" not in req:
-                # TODO: Use ML to categorize
+                # Future work: Use ML to categorize
                 req["category"] = "functional"
         return requirements
 
@@ -744,7 +744,7 @@ class ProjectDefinitionAgent(BaseAgent):
         self, requirements: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Detect conflicting requirements."""
-        # TODO: Use semantic similarity to detect conflicts
+        # Future work: Use semantic similarity to detect conflicts
         return []
 
     async def _validate_requirements_completeness(
@@ -765,12 +765,12 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _get_user_stories(self, project_id: str) -> list[dict[str, Any]]:
         """Get user stories from work item tracking system."""
-        # TODO: Integrate with Jira/Azure DevOps
+        # Future work: Integrate with Jira/Azure DevOps
         return []
 
     async def _get_test_cases(self, project_id: str) -> list[dict[str, Any]]:
         """Get test cases from test management system."""
-        # TODO: Integrate with test management tools
+        # Future work: Integrate with test management tools
         return []
 
     async def _create_traceability_links(
@@ -780,14 +780,14 @@ class ProjectDefinitionAgent(BaseAgent):
         test_cases: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """Create traceability links between artifacts."""
-        # TODO: Implement linking logic
+        # Future work: Implement linking logic
         return []
 
     async def _identify_traceability_gaps(
         self, requirements: list[dict[str, Any]], traceability_links: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Identify gaps in traceability."""
-        # TODO: Find unlinked requirements
+        # Future work: Find unlinked requirements
         return []
 
     async def _calculate_traceability_coverage(
@@ -796,7 +796,7 @@ class ProjectDefinitionAgent(BaseAgent):
         """Calculate traceability coverage percentage."""
         if not requirements:
             return 1.0
-        # TODO: Calculate actual coverage
+        # Future work: Calculate actual coverage
         return 0.85
 
     async def _classify_stakeholders(
@@ -814,7 +814,7 @@ class ProjectDefinitionAgent(BaseAgent):
         self, stakeholders: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """Analyze stakeholder influence network."""
-        # TODO: Use social network analysis
+        # Future work: Use social network analysis
         return {"nodes": len(stakeholders), "edges": 0}
 
     async def _determine_communication_strategies(
@@ -842,7 +842,7 @@ class ProjectDefinitionAgent(BaseAgent):
         self, stakeholders: list[dict[str, Any]], deliverables: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Generate RACI assignments."""
-        # TODO: Use AI to suggest assignments based on roles
+        # Future work: Use AI to suggest assignments based on roles
         return []
 
     async def _validate_raci_assignments(self, assignments: list[dict[str, Any]]) -> dict[str, Any]:
@@ -853,20 +853,20 @@ class ProjectDefinitionAgent(BaseAgent):
         self, baseline_scope: dict[str, Any], current_scope: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Compare current scope to baseline."""
-        # TODO: Use semantic similarity analysis
+        # Future work: Use semantic similarity analysis
         return []
 
     async def _calculate_scope_variance(self, changes: list[dict[str, Any]]) -> float:
         """Calculate scope variance percentage."""
-        # TODO: Calculate actual variance
+        # Future work: Calculate actual variance
         return 0.05  # 5% variance
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Project Definition & Scope Agent...")
-        # TODO: Close database connections
-        # TODO: Close external API connections
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close external API connections
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

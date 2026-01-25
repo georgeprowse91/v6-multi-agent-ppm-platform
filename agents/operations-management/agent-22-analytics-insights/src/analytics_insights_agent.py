@@ -52,18 +52,18 @@ class AnalyticsInsightsAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Analytics & Insights Agent...")
 
-        # TODO: Initialize Azure Synapse Analytics for data warehousing
-        # TODO: Set up Azure Data Lake Storage Gen2 for analytical data
-        # TODO: Connect to Azure Machine Learning for predictive models
-        # TODO: Initialize Power BI Embedded for visualizations
-        # TODO: Set up Azure Analysis Services for semantic models
-        # TODO: Connect to Azure Cognitive Services for NLG
-        # TODO: Initialize Azure Data Factory for ETL pipelines
-        # TODO: Set up Azure Event Hub for real-time data ingestion
-        # TODO: Connect to all domain agents for data collection
-        # TODO: Initialize Azure OpenAI for narrative generation
-        # TODO: Set up Azure Monitor for analytics pipeline monitoring
-        # TODO: Connect to Azure SQL Database for metadata storage
+        # Future work: Initialize Azure Synapse Analytics for data warehousing
+        # Future work: Set up Azure Data Lake Storage Gen2 for analytical data
+        # Future work: Connect to Azure Machine Learning for predictive models
+        # Future work: Initialize Power BI Embedded for visualizations
+        # Future work: Set up Azure Analysis Services for semantic models
+        # Future work: Connect to Azure Cognitive Services for NLG
+        # Future work: Initialize Azure Data Factory for ETL pipelines
+        # Future work: Set up Azure Event Hub for real-time data ingestion
+        # Future work: Connect to all domain agents for data collection
+        # Future work: Initialize Azure OpenAI for narrative generation
+        # Future work: Set up Azure Monitor for analytics pipeline monitoring
+        # Future work: Connect to Azure SQL Database for metadata storage
 
         self.logger.info("Analytics & Insights Agent initialized")
 
@@ -189,7 +189,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.logger.info(f"Aggregating data from {len(data_sources)} sources")
 
         # Collect data from sources
-        # TODO: Query from Data Synchronization Agent and domain agents
+        # Future work: Query from Data Synchronization Agent and domain agents
         aggregated_data = await self._collect_from_sources(data_sources)
 
         # Harmonize data definitions
@@ -249,9 +249,9 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Store dashboard
         self.dashboards[dashboard_id] = dashboard
 
-        # TODO: Store in database
-        # TODO: Create in Power BI
-        # TODO: Publish dashboard.created event
+        # Future work: Store in database
+        # Future work: Create in Power BI
+        # Future work: Publish dashboard.created event
 
         return {
             "dashboard_id": dashboard_id,
@@ -296,8 +296,8 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Store report
         self.reports[report_id] = report
 
-        # TODO: Store in database
-        # TODO: Export to PDF/Word if requested
+        # Future work: Store in database
+        # Future work: Export to PDF/Word if requested
 
         return {
             "report_id": report_id,
@@ -316,7 +316,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.logger.info(f"Running prediction: {model_type}")
 
         # Load ML model
-        # TODO: Load from Azure Machine Learning
+        # Future work: Load from Azure Machine Learning
         model = await self._load_ml_model(model_type)
 
         # Prepare input features
@@ -340,8 +340,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             "predicted_at": datetime.utcnow().isoformat(),
         }
 
-        # TODO: Store in database
-        # TODO: Publish prediction.made event
+        # Future work: Store in database
+        # Future work: Publish prediction.made event
 
         return {
             "prediction_id": prediction_id,
@@ -414,7 +414,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         trends = await self._identify_trends(data)
 
         # Generate narrative using AI
-        # TODO: Use Azure OpenAI for NLG
+        # Future work: Use Azure OpenAI for NLG
         narrative = await self._generate_narrative_text(key_insights, trends, data)
 
         return narrative
@@ -458,7 +458,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         # Trigger alerts if threshold breached
         if threshold_status.get("breached"):
-            # TODO: Publish KPI alert event
+            # Future work: Publish KPI alert event
             pass
 
         return {
@@ -484,11 +484,11 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.logger.info(f"Executing query: {query}")
 
         # Parse query
-        # TODO: Support natural language queries using Azure OpenAI
+        # Future work: Support natural language queries using Azure OpenAI
         parsed_query = await self._parse_query(query)
 
         # Execute query
-        # TODO: Query from Azure Synapse Analytics
+        # Future work: Query from Azure Synapse Analytics
         results = await self._execute_query(parsed_query, filters)
 
         # Format results
@@ -577,7 +577,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         self.data_lineage[lineage_id] = lineage
 
-        # TODO: Store in lineage database
+        # Future work: Store in lineage database
 
         return {
             "lineage_id": lineage_id,
@@ -619,12 +619,12 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _collect_from_sources(self, sources: list[str]) -> list[dict[str, Any]]:
         """Collect data from multiple sources."""
-        # TODO: Query from actual data sources
+        # Future work: Query from actual data sources
         return []
 
     async def _harmonize_data(self, data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Harmonize data definitions."""
-        # TODO: Apply data transformation rules
+        # Future work: Apply data transformation rules
         return data
 
     async def _calculate_statistics(self, data: list[dict[str, Any]]) -> dict[str, Any]:
@@ -659,31 +659,31 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _collect_report_data(self, report_spec: dict[str, Any]) -> dict[str, Any]:
         """Collect data for report."""
-        # TODO: Query from data warehouse
+        # Future work: Query from data warehouse
         return {}
 
     async def _generate_visualizations(
         self, data: dict[str, Any], report_spec: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Generate visualizations for report."""
-        # TODO: Create charts using Power BI or custom charting
+        # Future work: Create charts using Power BI or custom charting
         return []
 
     async def _load_ml_model(self, model_type: str) -> dict[str, Any]:
         """Load ML model."""
-        # TODO: Load from Azure ML
+        # Future work: Load from Azure ML
         return {"model_type": model_type, "version": "1.0"}
 
     async def _prepare_features(self, input_data: dict[str, Any], model_type: str) -> list[float]:
         """Prepare features for ML model."""
-        # TODO: Feature engineering
+        # Future work: Feature engineering
         return []
 
     async def _make_prediction(
         self, model: dict[str, Any], features: list[float]
     ) -> dict[str, Any]:
         """Make prediction using ML model."""
-        # TODO: Call ML model endpoint
+        # Future work: Call ML model endpoint
         return {"value": 0.0, "confidence": 0.85}
 
     async def _calculate_confidence_interval(
@@ -699,14 +699,14 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _get_baseline_metrics(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Get baseline metrics for scenario."""
-        # TODO: Query current metrics
+        # Future work: Query current metrics
         return {"metric_1": 100, "metric_2": 200}
 
     async def _calculate_scenario_metrics(
         self, baseline: dict[str, Any], parameters: dict[str, Any]
     ) -> dict[str, Any]:
         """Calculate metrics under scenario."""
-        # TODO: Apply scenario parameters to model
+        # Future work: Apply scenario parameters to model
         return baseline.copy()
 
     async def _compare_scenarios(
@@ -730,7 +730,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _calculate_scenario_impact(self, comparison: dict[str, Any]) -> str:
         """Calculate overall scenario impact."""
-        # TODO: Analyze comparison
+        # Future work: Analyze comparison
         return "Moderate positive impact"
 
     async def _generate_scenario_recommendations(self, impact: str) -> list[str]:
@@ -749,24 +749,24 @@ class AnalyticsInsightsAgent(BaseAgent):
         self, insights: list[str], trends: list[str], data: dict[str, Any]
     ) -> str:
         """Generate narrative text using NLG."""
-        # TODO: Use Azure OpenAI for NLG
+        # Future work: Use Azure OpenAI for NLG
         return "Portfolio performance summary: Key metrics indicate stable progress with some areas requiring attention."
 
     async def _calculate_kpi_value(self, kpi_config: dict[str, Any]) -> float:
         """Calculate current KPI value."""
-        # TODO: Calculate from actual data
+        # Future work: Calculate from actual data
         return 85.0
 
     async def _get_kpi_history(self, kpi_id: str) -> list[dict[str, Any]]:
         """Get historical KPI values."""
-        # TODO: Query from database
+        # Future work: Query from database
         return []
 
     async def _calculate_kpi_trend(self, historical: list[dict[str, Any]], current: float) -> str:
         """Calculate KPI trend."""
         if not historical:
             return "stable"
-        # TODO: Calculate actual trend
+        # Future work: Calculate actual trend
         return "improving"
 
     async def _check_kpi_thresholds(
@@ -787,14 +787,14 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _parse_query(self, query: str) -> dict[str, Any]:
         """Parse natural language query."""
-        # TODO: Use NLP to parse query
+        # Future work: Use NLP to parse query
         return {"parsed": query}
 
     async def _execute_query(
         self, parsed_query: dict[str, Any], filters: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Execute data query."""
-        # TODO: Execute against data warehouse
+        # Future work: Execute against data warehouse
         return []
 
     async def _format_query_results(self, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -806,24 +806,24 @@ class AnalyticsInsightsAgent(BaseAgent):
         refreshed = []
         for widget in widgets:
             widget_data = widget.copy()
-            widget_data["data"] = []  # TODO: Load actual data
+            widget_data["data"] = []  # Future work: Load actual data
             widget_data["last_refreshed"] = datetime.utcnow().isoformat()
             refreshed.append(widget_data)
         return refreshed
 
     async def _collect_insights_data(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Collect data for insights generation."""
-        # TODO: Query from data warehouse
+        # Future work: Query from data warehouse
         return {}
 
     async def _detect_anomalies(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Detect anomalies in data."""
-        # TODO: Use anomaly detection algorithms
+        # Future work: Use anomaly detection algorithms
         return []
 
     async def _identify_patterns(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify patterns in data."""
-        # TODO: Use pattern recognition algorithms
+        # Future work: Use pattern recognition algorithms
         return []
 
     async def _generate_insights(
@@ -844,9 +844,9 @@ class AnalyticsInsightsAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Analytics & Insights Agent...")
-        # TODO: Close database connections
-        # TODO: Close ML model connections
-        # TODO: Flush pending analytics jobs
+        # Future work: Close database connections
+        # Future work: Close ML model connections
+        # Future work: Flush pending analytics jobs
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

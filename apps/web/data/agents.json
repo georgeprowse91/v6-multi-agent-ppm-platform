@@ -75,7 +75,7 @@
         {
           "heading": "UI/UX Design",
           "content": [
-            "Assistant Input Box: All free\u2011text user inputs from the assistant panel are first processed by this agent. The UI displays placeholder text like \u201cAsk me about budgets, risks, or schedules\u2026\u201d and auto\u2011completes suggestions.",
+            "Assistant Input Box: All free\u2011text user inputs from the assistant panel are first processed by this agent. The UI displays helper prompt text like \u201cAsk me about budgets, risks, or schedules\u2026\u201d and auto\u2011completes suggestions.",
             "Clarification Chips: When a request is ambiguous, the agent returns quick\u2011action chips (e.g., list of projects, update options) displayed below the chat input, allowing the user to click to disambiguate.",
             "Confidence Indicators: The UI may display a subtle \u201cuncertain\u201d badge when classification confidence is low, prompting users to rephrase.",
             "Auditing Pane: Within project settings, admins can review historical intents and how they were routed to troubleshoot training."

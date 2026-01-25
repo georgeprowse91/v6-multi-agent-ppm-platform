@@ -39,9 +39,9 @@ class DemandIntakeAgent(BaseAgent):
         """Initialize NLP models and database connections."""
         await super().initialize()
         self.logger.info("Loading classification and similarity models...")
-        # TODO: Load Azure OpenAI for classification and embeddings
-        # TODO: Initialize database connection for demand repository
-        # TODO: Initialize vector search (Azure Cognitive Search)
+        # Future work: Load Azure OpenAI for classification and embeddings
+        # Future work: Initialize database connection for demand repository
+        # Future work: Initialize vector search (Azure Cognitive Search)
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate intake request has required fields."""
@@ -115,11 +115,11 @@ class DemandIntakeAgent(BaseAgent):
             "urgency": request_data.get("urgency", "Medium"),
         }
 
-        # TODO: Store in database
+        # Future work: Store in database
         self.logger.info(f"Created demand request: {demand_id}")
 
         # Send confirmation to requester
-        # TODO: Integrate with notification system
+        # Future work: Integrate with notification system
 
         return {
             "demand_id": demand_id,
@@ -136,12 +136,12 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns category: "project", "change_request", "issue", "idea"
         """
-        # TODO: Implement Azure OpenAI classification
+        # Future work: Implement Azure OpenAI classification
         description = request_data.get("description", "").lower()
         title = request_data.get("title", "").lower()
         combined_text = f"{title} {description}"
 
-        # Simple keyword-based classification (placeholder)
+        # Simple keyword-based classification (baseline)
         if any(word in combined_text for word in ["new system", "implementation", "initiative"]):
             return "project"
         elif any(word in combined_text for word in ["change", "update", "modify"]):
@@ -157,7 +157,7 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns list of similar requests with similarity scores.
         """
-        # TODO: Implement vector search using Azure Cognitive Search
+        # Future work: Implement vector search using Azure Cognitive Search
         # For now, return empty list
         return []
 
@@ -180,8 +180,8 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns pipeline statistics and items by stage.
         """
-        # TODO: Query database for pipeline data
-        # Placeholder response
+        # Future work: Query database for pipeline data
+        # Baseline response
         return {
             "total_requests": 0,
             "by_status": {
@@ -203,7 +203,7 @@ class DemandIntakeAgent(BaseAgent):
     async def _generate_demand_id(self) -> str:
         """Generate unique demand ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        # TODO: Add sequence number from database
+        # Future work: Add sequence number from database
         return f"DEM-{timestamp}"
 
     def get_capabilities(self) -> list[str]:

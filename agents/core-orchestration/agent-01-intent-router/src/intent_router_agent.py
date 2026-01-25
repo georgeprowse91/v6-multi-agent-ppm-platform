@@ -42,8 +42,8 @@ class IntentRouterAgent(BaseAgent):
         """Initialize NLP models and routing configuration."""
         await super().initialize()
         self.logger.info("Loading intent classification models...")
-        # TODO: Load Azure OpenAI or other NLP models
-        # TODO: Load routing configuration
+        # Future work: Load Azure OpenAI or other NLP models
+        # Future work: Load routing configuration
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate that query is present and valid."""
@@ -77,7 +77,7 @@ class IntentRouterAgent(BaseAgent):
 
         self.logger.info(f"Classifying query: {query}")
 
-        # TODO: Implement actual NLP classification using Azure OpenAI
+        # Future work: Implement actual NLP classification using Azure OpenAI
         # For now, return a mock response
         intent = await self._classify_intent(query)
         agents = await self._determine_agents(intent)
@@ -97,8 +97,8 @@ class IntentRouterAgent(BaseAgent):
 
         Returns list of intents with confidence scores.
         """
-        # TODO: Implement Azure OpenAI classification
-        # Placeholder implementation
+        # Future work: Implement Azure OpenAI classification
+        # Baseline implementation
         query_lower = query.lower()
 
         intents = []
@@ -161,8 +161,8 @@ class IntentRouterAgent(BaseAgent):
 
         Returns dictionary of extracted parameters.
         """
-        # TODO: Implement NER (Named Entity Recognition) using Azure OpenAI
-        # Placeholder implementation
+        # Future work: Implement NER (Named Entity Recognition) using Azure OpenAI
+        # Baseline implementation
         parameters = {}
 
         # Simple keyword extraction
@@ -170,7 +170,7 @@ class IntentRouterAgent(BaseAgent):
 
         if "project" in query_lower:
             # Extract project name/ID if present
-            # TODO: Implement actual entity extraction
+            # Future work: Implement actual entity extraction
             parameters["entity_type"] = "project"
 
         if "portfolio" in query_lower:

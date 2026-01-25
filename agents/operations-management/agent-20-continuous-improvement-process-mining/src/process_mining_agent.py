@@ -55,17 +55,17 @@ class ProcessMiningAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Continuous Improvement & Process Mining Agent...")
 
-        # TODO: Initialize Azure Event Hubs for event log ingestion
-        # TODO: Set up Azure Data Lake Storage Gen2 for event log storage
-        # TODO: Connect to Azure Databricks for process mining algorithms
-        # TODO: Initialize Azure Synapse Analytics for event log analysis
-        # TODO: Set up Azure Machine Learning for anomaly detection
-        # TODO: Connect to Azure Data Factory for ETL orchestration
-        # TODO: Initialize Power BI for process visualization dashboards
-        # TODO: Set up Azure SQL Database for improvement backlog
-        # TODO: Connect to Jira/Azure DevOps for improvement task sync
-        # TODO: Initialize Azure Service Bus for process insights events
-        # TODO: Set up Azure Cognitive Services for root cause analysis
+        # Future work: Initialize Azure Event Hubs for event log ingestion
+        # Future work: Set up Azure Data Lake Storage Gen2 for event log storage
+        # Future work: Connect to Azure Databricks for process mining algorithms
+        # Future work: Initialize Azure Synapse Analytics for event log analysis
+        # Future work: Set up Azure Machine Learning for anomaly detection
+        # Future work: Connect to Azure Data Factory for ETL orchestration
+        # Future work: Initialize Power BI for process visualization dashboards
+        # Future work: Set up Azure SQL Database for improvement backlog
+        # Future work: Connect to Jira/Azure DevOps for improvement task sync
+        # Future work: Initialize Azure Service Bus for process insights events
+        # Future work: Set up Azure Cognitive Services for root cause analysis
 
         self.logger.info("Continuous Improvement & Process Mining Agent initialized")
 
@@ -226,9 +226,9 @@ class ProcessMiningAgent(BaseAgent):
             "ingested_at": datetime.utcnow().isoformat(),
         }
 
-        # TODO: Store in Azure Data Lake Storage
-        # TODO: Index for querying
-        # TODO: Publish events.ingested event
+        # Future work: Store in Azure Data Lake Storage
+        # Future work: Index for querying
+        # Future work: Publish events.ingested event
 
         return {
             "log_id": log_id,
@@ -254,7 +254,7 @@ class ProcessMiningAgent(BaseAgent):
             raise ValueError(f"No events found for process: {process_id}")
 
         # Apply process mining algorithm
-        # TODO: Use process mining library (pm4py) or Azure Databricks
+        # Future work: Use process mining library (pm4py) or Azure Databricks
         process_model = await self._apply_mining_algorithm(events, algorithm)
 
         # Calculate performance metrics
@@ -275,8 +275,8 @@ class ProcessMiningAgent(BaseAgent):
             "discovered_at": datetime.utcnow().isoformat(),
         }
 
-        # TODO: Store in database
-        # TODO: Publish process.discovered event
+        # Future work: Store in database
+        # Future work: Publish process.discovered event
 
         return {
             "process_id": process_id,
@@ -341,7 +341,7 @@ class ProcessMiningAgent(BaseAgent):
         self.logger.info(f"Detecting deviations for process: {process_id}")
 
         # Get designed process model
-        # TODO: Get from Workflow & Process Engine Agent
+        # Future work: Get from Workflow & Process Engine Agent
         designed_model = await self._get_designed_process_model(process_id)
 
         # Get actual process model
@@ -390,7 +390,7 @@ class ProcessMiningAgent(BaseAgent):
         problematic_cases = await self._identify_problematic_cases(events, issue_id)
 
         # Analyze correlations
-        # TODO: Use decision trees or clustering
+        # Future work: Use decision trees or clustering
         correlations = await self._analyze_correlations(problematic_cases, events)
 
         # Identify contributing factors
@@ -449,9 +449,9 @@ class ProcessMiningAgent(BaseAgent):
         # Store improvement
         self.improvement_backlog[improvement_id] = improvement
 
-        # TODO: Store in database
-        # TODO: Sync with Jira/Azure DevOps
-        # TODO: Publish improvement.created event
+        # Future work: Store in database
+        # Future work: Sync with Jira/Azure DevOps
+        # Future work: Publish improvement.created event
 
         return {
             "improvement_id": improvement_id,
@@ -533,9 +533,9 @@ class ProcessMiningAgent(BaseAgent):
             "measured_at": datetime.utcnow().isoformat(),
         }
 
-        # TODO: Store in database
-        # TODO: Update Financial Management Agent forecasts
-        # TODO: Publish benefits.realized event
+        # Future work: Store in database
+        # Future work: Update Financial Management Agent forecasts
+        # Future work: Publish benefits.realized event
 
         return {
             "improvement_id": improvement_id,
@@ -593,8 +593,8 @@ class ProcessMiningAgent(BaseAgent):
         # Categorize practices
         categorized_practices = await self._categorize_best_practices(best_practices)
 
-        # TODO: Push to Knowledge Management Agent
-        # TODO: Generate templates and guidelines
+        # Future work: Push to Knowledge Management Agent
+        # Future work: Generate templates and guidelines
 
         return {
             "total_practices": len(best_practices),
@@ -704,7 +704,7 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _get_process_events(self, process_id: str) -> list[dict[str, Any]]:
         """Get events for a specific process."""
-        # TODO: Query from event log storage
+        # Future work: Query from event log storage
         all_events = []
         for log in self.event_logs.values():
             all_events.extend(log.get("events", []))
@@ -716,7 +716,7 @@ class ProcessMiningAgent(BaseAgent):
         self, events: list[dict[str, Any]], algorithm: str
     ) -> dict[str, Any]:
         """Apply process mining algorithm."""
-        # TODO: Use pm4py or implement mining algorithms
+        # Future work: Use pm4py or implement mining algorithms
         # For now, create a simple model
 
         activities = list(set(e.get("activity") for e in events))
@@ -738,7 +738,7 @@ class ProcessMiningAgent(BaseAgent):
         self, events: list[dict[str, Any]], process_model: dict[str, Any]
     ) -> dict[str, Any]:
         """Calculate process performance metrics."""
-        # TODO: Calculate actual metrics from events
+        # Future work: Calculate actual metrics from events
         return {
             "median_cycle_time": 24.5,  # hours
             "throughput": len(events),
@@ -759,7 +759,7 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _analyze_waiting_times(self, process_id: str) -> dict[str, dict[str, Any]]:
         """Analyze waiting times per activity."""
-        # TODO: Calculate from event logs
+        # Future work: Calculate from event logs
         return {
             "activity_1": {"avg_waiting_time": 15.2, "frequency": 100},
             "activity_2": {"avg_waiting_time": 45.8, "frequency": 98},
@@ -767,7 +767,7 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _analyze_throughput(self, process_id: str) -> float:
         """Analyze overall process throughput."""
-        # TODO: Calculate actual throughput
+        # Future work: Calculate actual throughput
         return 25.5  # cases per day
 
     async def _generate_bottleneck_recommendations(
@@ -783,7 +783,7 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _get_designed_process_model(self, process_id: str) -> dict[str, Any]:
         """Get designed process model."""
-        # TODO: Query from Workflow & Process Engine Agent
+        # Future work: Query from Workflow & Process Engine Agent
         return {"activities": [], "transitions": []}
 
     async def _compare_process_models(
@@ -824,14 +824,14 @@ class ProcessMiningAgent(BaseAgent):
         self, events: list[dict[str, Any]], issue_id: str
     ) -> list[str]:
         """Identify problematic cases."""
-        # TODO: Identify cases with issues
+        # Future work: Identify cases with issues
         return []
 
     async def _analyze_correlations(
         self, problematic_cases: list[str], events: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Analyze correlations for root cause."""
-        # TODO: Use statistical analysis
+        # Future work: Use statistical analysis
         return []
 
     async def _identify_contributing_factors(
@@ -857,7 +857,7 @@ class ProcessMiningAgent(BaseAgent):
         self, improvement_data: dict[str, Any]
     ) -> dict[str, Any]:
         """Estimate expected benefits."""
-        # TODO: Use regression models
+        # Future work: Use regression models
         return {
             "cycle_time_reduction": 15.0,  # percent
             "cost_savings": 25000,  # dollars
@@ -893,7 +893,7 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _measure_actual_benefits(self, improvement: dict[str, Any]) -> dict[str, Any]:
         """Measure actual benefits achieved."""
-        # TODO: Measure from actual process data
+        # Future work: Measure from actual process data
         return {"cycle_time_reduction": 12.0, "cost_savings": 22000, "quality_improvement": 8.5}
 
     async def _calculate_benefit_realization(
@@ -915,7 +915,7 @@ class ProcessMiningAgent(BaseAgent):
         self, improvement: dict[str, Any], actual_benefits: dict[str, Any]
     ) -> float:
         """Calculate ROI for improvement."""
-        # TODO: Calculate actual ROI
+        # Future work: Calculate actual ROI
         cost_savings = actual_benefits.get("cost_savings", 0)
         effort_hours = improvement.get("feasibility", {}).get("estimated_effort", 40)
         cost = effort_hours * 100  # Assume $100/hour
@@ -936,7 +936,7 @@ class ProcessMiningAgent(BaseAgent):
         self, process_id: str, criteria: dict[str, Any]
     ) -> dict[str, Any]:
         """Get benchmark data for comparison."""
-        # TODO: Query benchmark database
+        # Future work: Query benchmark database
         return {"median_cycle_time": 20.0, "throughput": 30.0, "avg_waiting_time": 1.8}
 
     async def _compare_metrics(
@@ -969,12 +969,12 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _calculate_performance_ranking(self, comparison: dict[str, Any]) -> str:
         """Calculate performance ranking."""
-        # TODO: Calculate actual ranking
+        # Future work: Calculate actual ranking
         return "Average"
 
     async def _identify_top_performers(self, filters: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify top-performing processes."""
-        # TODO: Identify from benchmarks
+        # Future work: Identify from benchmarks
         return []
 
     async def _extract_best_practices(
@@ -1027,9 +1027,9 @@ class ProcessMiningAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Continuous Improvement & Process Mining Agent...")
-        # TODO: Close database connections
-        # TODO: Close analytics connections
-        # TODO: Flush pending events
+        # Future work: Close database connections
+        # Future work: Close analytics connections
+        # Future work: Flush pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

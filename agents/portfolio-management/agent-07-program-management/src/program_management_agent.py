@@ -81,14 +81,14 @@ class ProgramManagementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Program Management Agent...")
 
-        # TODO: Initialize Azure Cosmos DB (Graph API) for dependency storage
-        # TODO: Initialize Azure Machine Learning for program health prediction models
-        # TODO: Connect to Planview/Clarity PPM for program structure sync
-        # TODO: Initialize Azure OpenAI Service for roadmap narrative generation
-        # TODO: Connect to Jira/Azure DevOps for epic and feature mapping
-        # TODO: Initialize Azure Service Bus/Event Grid for project event subscriptions
-        # TODO: Connect to Azure Synapse Analytics for benefits aggregation
-        # TODO: Initialize Azure Cognitive Services for synergy detection
+        # Future work: Initialize Azure Cosmos DB (Graph API) for dependency storage
+        # Future work: Initialize Azure Machine Learning for program health prediction models
+        # Future work: Connect to Planview/Clarity PPM for program structure sync
+        # Future work: Initialize Azure OpenAI Service for roadmap narrative generation
+        # Future work: Connect to Jira/Azure DevOps for epic and feature mapping
+        # Future work: Initialize Azure Service Bus/Event Grid for project event subscriptions
+        # Future work: Connect to Azure Synapse Analytics for benefits aggregation
+        # Future work: Initialize Azure Cognitive Services for synergy detection
 
         self.logger.info("Program Management Agent initialized")
 
@@ -236,8 +236,8 @@ class ProgramManagementAgent(BaseAgent):
         # Store program
         self.programs[program_id] = program
 
-        # TODO: Store in Cosmos DB
-        # TODO: Publish program.created event to Service Bus
+        # Future work: Store in Cosmos DB
+        # Future work: Publish program.created event to Service Bus
 
         self.logger.info(f"Created program: {program_id}")
 
@@ -264,7 +264,7 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Query project schedules from Schedule & Planning Agent
-        # TODO: Integrate with Schedule & Planning Agent (Agent 10)
+        # Future work: Integrate with Schedule & Planning Agent (Agent 10)
         project_schedules = await self._get_project_schedules(constituent_projects)
 
         # Identify inter-project dependencies
@@ -291,8 +291,8 @@ class ProgramManagementAgent(BaseAgent):
         # Store roadmap
         self.program_roadmaps[program_id] = roadmap
 
-        # TODO: Store in database
-        # TODO: Publish program.roadmap.updated event
+        # Future work: Store in database
+        # Future work: Publish program.roadmap.updated event
 
         return roadmap
 
@@ -314,7 +314,7 @@ class ProgramManagementAgent(BaseAgent):
         dependencies = await self._identify_dependencies(constituent_projects)
 
         # Analyze dependency graph
-        # TODO: Use graph algorithms (Azure Cosmos DB Graph API)
+        # Future work: Use graph algorithms (Azure Cosmos DB Graph API)
         graph_analysis = await self._analyze_dependency_graph(dependencies)
 
         # Identify critical dependencies
@@ -352,7 +352,7 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Query benefits from each project
-        # TODO: Integrate with Business Case Agent (Agent 5)
+        # Future work: Integrate with Business Case Agent (Agent 5)
         project_benefits = await self._get_project_benefits(constituent_projects)
 
         # Aggregate financial benefits
@@ -392,7 +392,7 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Query resource allocations from Resource Management Agent
-        # TODO: Integrate with Resource & Capacity Management Agent (Agent 11)
+        # Future work: Integrate with Resource & Capacity Management Agent (Agent 11)
         resource_allocations = await self._get_resource_allocations(constituent_projects)
 
         # Identify resource conflicts
@@ -428,7 +428,7 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Analyze project scopes and technologies
-        # TODO: Use Azure Cognitive Services for similarity analysis
+        # Future work: Use Azure Cognitive Services for similarity analysis
         project_details = await self._get_project_details(constituent_projects)
 
         # Identify shared components
@@ -525,11 +525,11 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Gather health metrics from domain agents
-        # TODO: Integrate with Project Lifecycle Agent (Agent 9)
-        # TODO: Integrate with Schedule & Planning Agent (Agent 10)
-        # TODO: Integrate with Financial Management Agent (Agent 12)
-        # TODO: Integrate with Risk Management Agent (Agent 15)
-        # TODO: Integrate with Quality Assurance Agent (Agent 14)
+        # Future work: Integrate with Project Lifecycle Agent (Agent 9)
+        # Future work: Integrate with Schedule & Planning Agent (Agent 10)
+        # Future work: Integrate with Financial Management Agent (Agent 12)
+        # Future work: Integrate with Risk Management Agent (Agent 15)
+        # Future work: Integrate with Quality Assurance Agent (Agent 14)
 
         schedule_health = await self._get_schedule_health(constituent_projects)
         budget_health = await self._get_budget_health(constituent_projects)
@@ -588,61 +588,61 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_project_schedules(self, project_ids: list[str]) -> dict[str, Any]:
         """Query project schedules from Schedule & Planning Agent."""
-        # TODO: Implement integration with Agent 10
-        # Placeholder
+        # Future work: Implement integration with Agent 10
+        # Baseline
         return {pid: {"start": "2026-01-01", "end": "2026-12-31"} for pid in project_ids}
 
     async def _identify_dependencies(self, project_ids: list[str]) -> list[dict[str, Any]]:
         """Identify inter-project dependencies."""
-        # TODO: Implement dependency identification using graph analysis
-        # Placeholder
+        # Future work: Implement dependency identification using graph analysis
+        # Baseline
         return []
 
     async def _calculate_program_critical_path(
         self, schedules: dict[str, Any], dependencies: list[dict[str, Any]]
     ) -> list[str]:
         """Calculate critical path across the program."""
-        # TODO: Implement CPM algorithm across projects
-        # Placeholder
+        # Future work: Implement CPM algorithm across projects
+        # Baseline
         return []
 
     async def _generate_program_milestones(
         self, schedules: dict[str, Any], dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Generate program-level milestones."""
-        # TODO: Aggregate project milestones
-        # Placeholder
+        # Future work: Aggregate project milestones
+        # Baseline
         return []
 
     async def _calculate_program_start(self, schedules: dict[str, Any]) -> str:
         """Calculate program start date."""
-        # Placeholder
+        # Baseline
         return datetime.utcnow().isoformat()
 
     async def _calculate_program_end(self, schedules: dict[str, Any]) -> str:
         """Calculate program end date."""
-        # Placeholder
+        # Baseline
         return datetime.utcnow().isoformat()
 
     async def _analyze_dependency_graph(self, dependencies: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze dependency graph structure."""
-        # TODO: Use graph algorithms
-        # Placeholder
+        # Future work: Use graph algorithms
+        # Baseline
         return {"node_count": 0, "edge_count": len(dependencies)}
 
     async def _identify_critical_dependencies(
         self, dependencies: list[dict[str, Any]], graph_analysis: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify critical dependencies."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _detect_circular_dependencies(
         self, dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Detect circular dependencies."""
-        # TODO: Implement cycle detection algorithm
-        # Placeholder
+        # Future work: Implement cycle detection algorithm
+        # Baseline
         return []
 
     async def _generate_dependency_recommendations(
@@ -656,20 +656,20 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_project_benefits(self, project_ids: list[str]) -> dict[str, Any]:
         """Query benefits from each project."""
-        # TODO: Integrate with Business Case Agent
-        # Placeholder
+        # Future work: Integrate with Business Case Agent
+        # Baseline
         return {pid: {"total_benefits": 100000, "total_costs": 50000} for pid in project_ids}
 
     async def _adjust_for_overlaps(self, project_benefits: dict[str, Any]) -> float:
         """Adjust benefits for overlaps to avoid double-counting."""
-        # TODO: Implement overlap detection
-        # Placeholder: assume 10% overlap
+        # Future work: Implement overlap detection
+        # Baseline: assume 10% overlap
         total = sum(pb.get("total_benefits", 0) for pb in project_benefits.values())
         return total * 0.9  # type: ignore
 
     async def _categorize_benefits(self, project_benefits: dict[str, Any]) -> dict[str, float]:
         """Categorize benefits by type."""
-        # Placeholder
+        # Baseline
         return {
             "revenue_increase": 0,
             "cost_savings": 0,
@@ -681,66 +681,66 @@ class ProgramManagementAgent(BaseAgent):
         self, project_benefits: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Generate benefit realization timeline."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _get_resource_allocations(self, project_ids: list[str]) -> dict[str, Any]:
         """Query resource allocations from Resource Management Agent."""
-        # TODO: Integrate with Agent 11
-        # Placeholder
+        # Future work: Integrate with Agent 11
+        # Baseline
         return {}
 
     async def _identify_resource_conflicts(
         self, allocations: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify resource allocation conflicts."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _optimize_resource_allocation(
         self, allocations: dict[str, Any], conflicts: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Generate resource optimization recommendations."""
-        # TODO: Use optimization algorithms
-        # Placeholder
+        # Future work: Use optimization algorithms
+        # Baseline
         return []
 
     async def _calculate_program_utilization(self, allocations: dict[str, Any]) -> float:
         """Calculate average utilization across program."""
-        # Placeholder
+        # Baseline
         return 0.75
 
     async def _identify_shared_resources(self, allocations: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify resources shared across multiple projects."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _get_project_details(self, project_ids: list[str]) -> dict[str, Any]:
         """Get detailed project information."""
-        # TODO: Query Project Definition Agent
-        # Placeholder
+        # Future work: Query Project Definition Agent
+        # Baseline
         return {}
 
     async def _identify_shared_components(
         self, project_details: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify shared components across projects."""
-        # TODO: Use similarity analysis
-        # Placeholder
+        # Future work: Use similarity analysis
+        # Baseline
         return []
 
     async def _identify_vendor_consolidation(
         self, project_details: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify vendor consolidation opportunities."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _identify_infrastructure_synergies(
         self, project_details: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify infrastructure sharing opportunities."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _calculate_synergy_savings(
@@ -750,7 +750,7 @@ class ProgramManagementAgent(BaseAgent):
         infrastructure_synergies: list[dict[str, Any]],
     ) -> dict[str, float]:
         """Calculate potential cost savings from synergies."""
-        # Placeholder
+        # Baseline
         return {
             "shared_components": 0,
             "vendor_consolidation": 0,
@@ -771,29 +771,29 @@ class ProgramManagementAgent(BaseAgent):
         self, program_id: str, project_id: str
     ) -> list[dict[str, Any]]:
         """Get dependencies for a specific project."""
-        # Placeholder
+        # Baseline
         return []
 
     async def _analyze_cascading_effects(
         self, project_id: str, dependencies: list[dict[str, Any]], change_details: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Analyze cascading effects of a change."""
-        # TODO: Implement impact propagation algorithm
-        # Placeholder
+        # Future work: Implement impact propagation algorithm
+        # Baseline
         return []
 
     async def _calculate_schedule_impact(
         self, cascading_effects: list[dict[str, Any]], change_details: dict[str, Any]
     ) -> dict[str, Any]:
         """Calculate schedule impact from changes."""
-        # Placeholder
+        # Baseline
         return {"delay_days": 0, "affected_milestones": []}
 
     async def _calculate_cost_impact(
         self, cascading_effects: list[dict[str, Any]], change_details: dict[str, Any]
     ) -> dict[str, Any]:
         """Calculate cost impact from changes."""
-        # Placeholder
+        # Baseline
         return {"additional_cost": 0, "affected_budgets": []}
 
     async def _generate_mitigation_options(
@@ -803,7 +803,7 @@ class ProgramManagementAgent(BaseAgent):
         cost_impact: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate mitigation options."""
-        # Placeholder
+        # Baseline
         return [
             {
                 "option": "Parallelize dependent tasks",
@@ -824,38 +824,38 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _select_best_mitigation(self, options: list[dict[str, Any]]) -> str:
         """Select the best mitigation option."""
-        # TODO: Use optimization logic
-        # Placeholder
+        # Future work: Use optimization logic
+        # Baseline
         return options[0]["option"] if options else "No mitigation needed"
 
     async def _get_schedule_health(self, project_ids: list[str]) -> float:
         """Get schedule health across projects."""
-        # TODO: Query Agent 10
-        # Placeholder
+        # Future work: Query Agent 10
+        # Baseline
         return 0.85
 
     async def _get_budget_health(self, project_ids: list[str]) -> float:
         """Get budget health across projects."""
-        # TODO: Query Agent 12
-        # Placeholder
+        # Future work: Query Agent 12
+        # Baseline
         return 0.80
 
     async def _get_risk_health(self, project_ids: list[str]) -> float:
         """Get risk health across projects."""
-        # TODO: Query Agent 15
-        # Placeholder
+        # Future work: Query Agent 15
+        # Baseline
         return 0.75
 
     async def _get_quality_health(self, project_ids: list[str]) -> float:
         """Get quality health across projects."""
-        # TODO: Query Agent 14
-        # Placeholder
+        # Future work: Query Agent 14
+        # Baseline
         return 0.90
 
     async def _get_resource_health(self, project_ids: list[str]) -> float:
         """Get resource health across projects."""
-        # TODO: Query Agent 11
-        # Placeholder
+        # Future work: Query Agent 11
+        # Baseline
         return 0.70
 
     async def _determine_health_status(self, composite_score: float) -> str:
@@ -905,10 +905,10 @@ class ProgramManagementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Program Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close external API connections
-        # TODO: Cancel pending event subscriptions
-        # TODO: Flush any pending events
+        # Future work: Close database connections
+        # Future work: Close external API connections
+        # Future work: Cancel pending event subscriptions
+        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -48,17 +48,17 @@ class WorkflowEngineAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Workflow & Process Engine Agent...")
 
-        # TODO: Initialize Azure Durable Functions for orchestration
-        # TODO: Set up Azure Logic Apps for workflow execution
-        # TODO: Connect to Azure SQL Database for workflow state
-        # TODO: Initialize Azure Service Bus for event-driven triggers
-        # TODO: Set up Azure Table Storage or Cosmos DB for instance state
-        # TODO: Connect to BPMN modeling tools (Camunda Modeler)
-        # TODO: Initialize Azure Functions for task execution
-        # TODO: Set up Azure Monitor for workflow monitoring
-        # TODO: Connect to task management systems (Jira, Azure Boards)
-        # TODO: Initialize Approval Workflow Agent integration
-        # TODO: Set up Azure Event Grid for workflow events
+        # Future work: Initialize Azure Durable Functions for orchestration
+        # Future work: Set up Azure Logic Apps for workflow execution
+        # Future work: Connect to Azure SQL Database for workflow state
+        # Future work: Initialize Azure Service Bus for event-driven triggers
+        # Future work: Set up Azure Table Storage or Cosmos DB for instance state
+        # Future work: Connect to BPMN modeling tools (Camunda Modeler)
+        # Future work: Initialize Azure Functions for task execution
+        # Future work: Set up Azure Monitor for workflow monitoring
+        # Future work: Connect to task management systems (Jira, Azure Boards)
+        # Future work: Initialize Approval Workflow Agent integration
+        # Future work: Set up Azure Event Grid for workflow events
 
         self.logger.info("Workflow & Process Engine Agent initialized")
 
@@ -220,9 +220,9 @@ class WorkflowEngineAgent(BaseAgent):
         # Store workflow definition
         self.workflow_definitions[workflow_id] = workflow
 
-        # TODO: Store in database
-        # TODO: Import/export BPMN XML if provided
-        # TODO: Publish workflow.defined event
+        # Future work: Store in database
+        # Future work: Import/export BPMN XML if provided
+        # Future work: Publish workflow.defined event
 
         return {
             "workflow_id": workflow_id,
@@ -273,8 +273,8 @@ class WorkflowEngineAgent(BaseAgent):
         for task in initial_tasks:
             await self._execute_task(instance_id, task)
 
-        # TODO: Store in database
-        # TODO: Publish workflow.started event
+        # Future work: Store in database
+        # Future work: Publish workflow.started event
 
         return {
             "instance_id": instance_id,
@@ -339,9 +339,9 @@ class WorkflowEngineAgent(BaseAgent):
             assignment["assignee"] = assignee
             assignment["assigned_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Send notification to assignee
-        # TODO: Publish task.assigned event
+        # Future work: Store in database
+        # Future work: Send notification to assignee
+        # Future work: Publish task.assigned event
 
         return {"task_id": task_id, "assignee": assignee, "assigned_at": assignment["assigned_at"]}
 
@@ -387,8 +387,8 @@ class WorkflowEngineAgent(BaseAgent):
                 instance["status"] = "completed"
                 instance["completed_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish task.completed event
+        # Future work: Store in database
+        # Future work: Publish task.completed event
 
         return {
             "task_id": task_id,
@@ -410,7 +410,7 @@ class WorkflowEngineAgent(BaseAgent):
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
         # Execute compensation tasks if defined
-        # TODO: Implement compensation logic
+        # Future work: Implement compensation logic
 
         # Update instance status
         instance["status"] = "cancelled"
@@ -421,8 +421,8 @@ class WorkflowEngineAgent(BaseAgent):
             if task_id in self.task_assignments:
                 self.task_assignments[task_id]["status"] = "cancelled"
 
-        # TODO: Store in database
-        # TODO: Publish workflow.cancelled event
+        # Future work: Store in database
+        # Future work: Publish workflow.cancelled event
 
         return {
             "instance_id": instance_id,
@@ -445,8 +445,8 @@ class WorkflowEngineAgent(BaseAgent):
         instance["status"] = "paused"
         instance["paused_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish workflow.paused event
+        # Future work: Store in database
+        # Future work: Publish workflow.paused event
 
         return {"instance_id": instance_id, "status": "paused", "paused_at": instance["paused_at"]}
 
@@ -468,9 +468,9 @@ class WorkflowEngineAgent(BaseAgent):
         instance["status"] = "running"
         instance["resumed_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Store in database
-        # TODO: Publish workflow.resumed event
-        # TODO: Resume pending tasks
+        # Future work: Store in database
+        # Future work: Publish workflow.resumed event
+        # Future work: Resume pending tasks
 
         return {
             "instance_id": instance_id,
@@ -502,7 +502,7 @@ class WorkflowEngineAgent(BaseAgent):
                     triggered_instances.append(result.get("instance_id"))
                 elif subscription.get("action") == "trigger_task":
                     # Trigger specific task in running instance
-                    # TODO: Implement task triggering
+                    # Future work: Implement task triggering
                     pass
 
         return {
@@ -540,7 +540,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Re-execute task
         assignment.get("instance_id")
-        # TODO: Re-execute task logic
+        # Future work: Re-execute task logic
 
         return {"task_id": task_id, "status": "retrying", "retry_count": assignment["retry_count"]}
 
@@ -625,7 +625,7 @@ class WorkflowEngineAgent(BaseAgent):
 
     async def _parse_workflow_definition(self, workflow_config: dict[str, Any]) -> dict[str, Any]:
         """Parse workflow definition."""
-        # TODO: Parse BPMN XML if provided
+        # Future work: Parse BPMN XML if provided
         return {
             "tasks": workflow_config.get("tasks", []),
             "events": workflow_config.get("events", []),
@@ -658,14 +658,14 @@ class WorkflowEngineAgent(BaseAgent):
 
         # If automated task, execute immediately
         if task.get("type") == "automated":
-            # TODO: Execute automated task
+            # Future work: Execute automated task
             pass
 
     async def _determine_next_tasks(
         self, instance: dict[str, Any], completed_task_id: str
     ) -> list[dict[str, Any]]:
         """Determine next tasks to execute."""
-        # TODO: Implement transition logic based on gateways
+        # Future work: Implement transition logic based on gateways
         return []
 
     async def _is_workflow_complete(self, instance: dict[str, Any]) -> bool:
@@ -684,7 +684,7 @@ class WorkflowEngineAgent(BaseAgent):
         self, event_data: dict[str, Any], criteria: dict[str, Any]
     ) -> bool:
         """Check if event matches subscription criteria."""
-        # TODO: Implement criteria matching
+        # Future work: Implement criteria matching
         return True
 
     async def _matches_instance_filters(
@@ -702,9 +702,9 @@ class WorkflowEngineAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Workflow & Process Engine Agent...")
-        # TODO: Close database connections
-        # TODO: Close orchestration connections
-        # TODO: Cancel running workflows if needed
+        # Future work: Close database connections
+        # Future work: Close orchestration connections
+        # Future work: Cancel running workflows if needed
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

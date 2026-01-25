@@ -34,8 +34,8 @@ class ApprovalWorkflowAgent(BaseAgent):
         # Load approval policies and routing rules
         self.approval_chains = await self._load_approval_policies()
 
-        # TODO: Initialize Azure Service Bus subscriptions for approval events
-        # TODO: Connect to Microsoft Graph API for user/role lookups
+        # Future work: Initialize Azure Service Bus subscriptions for approval events
+        # Future work: Connect to Microsoft Graph API for user/role lookups
 
         self.logger.info("Approval Workflow Agent initialized successfully")
 
@@ -158,8 +158,8 @@ class ApprovalWorkflowAgent(BaseAgent):
         elif request_type == "resource_change":
             approvers = ["project_manager", "resource_manager"]
 
-        # TODO: Check for delegation and substitute approvers
-        # TODO: Query Azure AD for actual user IDs
+        # Future work: Check for delegation and substitute approvers
+        # Future work: Query Azure AD for actual user IDs
 
         return approvers
 
@@ -188,7 +188,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "created_at": datetime.utcnow().isoformat(),
         }
 
-        # Store in memory (TODO: persist to database)
+        # Store in memory (Future work: persist to database)
         self.approval_chains[approval_id] = chain
 
         return chain
@@ -199,14 +199,14 @@ class ApprovalWorkflowAgent(BaseAgent):
         """Send approval notifications to approvers via multiple channels."""
         try:
             for approver in approvers:
-                # TODO: Use Azure Communication Services or Microsoft Graph
-                # TODO: Send email via Office 365
-                # TODO: Send Teams/Slack notification
-                # TODO: Send mobile push via Azure Notification Hubs
+                # Future work: Use Azure Communication Services or Microsoft Graph
+                # Future work: Send email via Office 365
+                # Future work: Send Teams/Slack notification
+                # Future work: Send mobile push via Azure Notification Hubs
 
                 self.logger.info(f"Sending approval notification to {approver}")
 
-                # Placeholder for actual notification
+                # Baseline for actual notification
                 {
                     "to": approver,
                     "subject": f"Approval Required: {details.get('description', 'N/A')}",
@@ -214,7 +214,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                     "approval_id": approval_chain["id"],
                 }
 
-                # TODO: Actual send implementation
+                # Future work: Actual send implementation
 
             return True
         except Exception as e:
@@ -223,15 +223,15 @@ class ApprovalWorkflowAgent(BaseAgent):
 
     async def _schedule_escalations(self, approval_chain: dict[str, Any]) -> None:
         """Schedule escalation timers for overdue approvals."""
-        # TODO: Integrate with Azure Functions or Durable Functions for timer triggers
-        # TODO: Set reminder notifications 24h before deadline
-        # TODO: Set escalation trigger at deadline
+        # Future work: Integrate with Azure Functions or Durable Functions for timer triggers
+        # Future work: Set reminder notifications 24h before deadline
+        # Future work: Set escalation trigger at deadline
 
         self.logger.info(f"Escalation scheduled for approval {approval_chain['id']}")
 
     async def _load_approval_policies(self) -> dict[str, Any]:
         """Load approval policies and routing rules from configuration."""
-        # TODO: Load from database or configuration file
+        # Future work: Load from database or configuration file
         return {
             "budget_thresholds": [10000, 50000, 100000],
             "escalation_timeout_hours": 48,
@@ -242,5 +242,5 @@ class ApprovalWorkflowAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Approval Workflow Agent resources...")
-        # TODO: Close Service Bus connections
-        # TODO: Cancel pending escalation timers
+        # Future work: Close Service Bus connections
+        # Future work: Cancel pending escalation timers

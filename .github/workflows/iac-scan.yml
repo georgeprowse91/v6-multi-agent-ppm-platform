@@ -7,4 +7,10 @@ jobs:
   iac-scan:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "IaC scan placeholder"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra

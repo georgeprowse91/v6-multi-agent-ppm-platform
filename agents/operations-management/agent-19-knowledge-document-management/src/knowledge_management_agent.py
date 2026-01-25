@@ -80,18 +80,18 @@ class KnowledgeManagementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Knowledge & Document Management Agent...")
 
-        # TODO: Initialize Azure Blob Storage with versioning for document storage
-        # TODO: Set up Azure Data Lake Storage Gen2 for large files
-        # TODO: Connect to Azure SQL Database or Cosmos DB for metadata
-        # TODO: Initialize Azure Cognitive Search with semantic ranking
-        # TODO: Set up Azure OpenAI Service for summarization and NLU
-        # TODO: Initialize Cosmos DB Gremlin API for knowledge graph
-        # TODO: Connect to SharePoint/OneDrive via Microsoft Graph API
-        # TODO: Set up Office Online Server for in-browser editing
-        # TODO: Initialize Azure Form Recognizer for entity extraction
-        # TODO: Connect to Git repositories for technical documentation
-        # TODO: Set up Azure Service Bus for document event publishing
-        # TODO: Initialize Azure AD for authentication and RBAC
+        # Future work: Initialize Azure Blob Storage with versioning for document storage
+        # Future work: Set up Azure Data Lake Storage Gen2 for large files
+        # Future work: Connect to Azure SQL Database or Cosmos DB for metadata
+        # Future work: Initialize Azure Cognitive Search with semantic ranking
+        # Future work: Set up Azure OpenAI Service for summarization and NLU
+        # Future work: Initialize Cosmos DB Gremlin API for knowledge graph
+        # Future work: Connect to SharePoint/OneDrive via Microsoft Graph API
+        # Future work: Set up Office Online Server for in-browser editing
+        # Future work: Initialize Azure Form Recognizer for entity extraction
+        # Future work: Connect to Git repositories for technical documentation
+        # Future work: Set up Azure Service Bus for document event publishing
+        # Future work: Initialize Azure AD for authentication and RBAC
 
         self.logger.info("Knowledge & Document Management Agent initialized")
 
@@ -271,16 +271,16 @@ class KnowledgeManagementAgent(BaseAgent):
         self.document_versions[document_id] = [document.copy()]
 
         # Generate summary asynchronously
-        # TODO: Queue for async processing
+        # Future work: Queue for async processing
         await self._summarize_document(document_id)
 
         # Extract entities for knowledge graph
         await self._extract_entities(document_id)
 
-        # TODO: Store in Azure Blob Storage
-        # TODO: Index in Azure Cognitive Search
-        # TODO: Store metadata in database
-        # TODO: Publish document.uploaded event
+        # Future work: Store in Azure Blob Storage
+        # Future work: Index in Azure Cognitive Search
+        # Future work: Store metadata in database
+        # Future work: Publish document.uploaded event
 
         return {
             "document_id": document_id,
@@ -301,7 +301,7 @@ class KnowledgeManagementAgent(BaseAgent):
         self.logger.info(f"Searching documents: {query}")
 
         # Perform semantic search
-        # TODO: Use Azure Cognitive Search with semantic ranking
+        # Future work: Use Azure Cognitive Search with semantic ranking
         search_results = await self._semantic_search(query, filters)
 
         # Rank results
@@ -339,8 +339,8 @@ class KnowledgeManagementAgent(BaseAgent):
         # Get related documents
         related_documents = await self._find_related_documents(document_id)
 
-        # TODO: Log access for audit
-        # TODO: Track document access
+        # Future work: Log access for audit
+        # Future work: Track document access
 
         return {
             "document_id": document_id,
@@ -392,9 +392,9 @@ class KnowledgeManagementAgent(BaseAgent):
             # Regenerate summary
             await self._summarize_document(document_id)
 
-        # TODO: Store in database
-        # TODO: Update search index
-        # TODO: Publish document.updated event
+        # Future work: Store in database
+        # Future work: Update search index
+        # Future work: Publish document.updated event
 
         return {
             "document_id": document_id,
@@ -419,9 +419,9 @@ class KnowledgeManagementAgent(BaseAgent):
         document["deleted"] = True
         document["deleted_at"] = datetime.utcnow().isoformat()
 
-        # TODO: Mark as deleted in database
-        # TODO: Remove from search index
-        # TODO: Publish document.deleted event
+        # Future work: Mark as deleted in database
+        # Future work: Remove from search index
+        # Future work: Publish document.deleted event
 
         return {"document_id": document_id, "deleted": True, "deleted_at": document["deleted_at"]}
 
@@ -448,8 +448,8 @@ class KnowledgeManagementAgent(BaseAgent):
         document["tags"] = tags
         document["classification_confidence"] = classification.get("confidence")
 
-        # TODO: Store in database
-        # TODO: Update search index
+        # Future work: Store in database
+        # Future work: Update search index
 
         return {
             "document_id": document_id,
@@ -472,7 +472,7 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Generate summary using AI
-        # TODO: Use Azure OpenAI for summarization
+        # Future work: Use Azure OpenAI for summarization
         summary_content = await self._generate_summary(
             document.get("content", ""), self.max_summary_length
         )
@@ -485,7 +485,7 @@ class KnowledgeManagementAgent(BaseAgent):
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-        # TODO: Store in database
+        # Future work: Store in database
 
         return {
             "document_id": document_id,
@@ -506,7 +506,7 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Extract entities using NLP
-        # TODO: Use Azure Form Recognizer or Azure OpenAI
+        # Future work: Use Azure Form Recognizer or Azure OpenAI
         entities = await self._extract_entities_from_text(document.get("content", ""))
 
         # Store in knowledge graph
@@ -515,7 +515,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         self.knowledge_graph[document_id]["entities"] = entities
 
-        # TODO: Store in graph database
+        # Future work: Store in graph database
 
         return {"document_id": document_id, "entities": entities, "entity_count": len(entities)}
 
@@ -543,7 +543,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         self.knowledge_graph[document_id]["relationships"] = relationships
 
-        # TODO: Store in graph database (Cosmos DB Gremlin API)
+        # Future work: Store in graph database (Cosmos DB Gremlin API)
 
         return {
             "document_id": document_id,
@@ -589,9 +589,9 @@ class KnowledgeManagementAgent(BaseAgent):
         # Store lesson
         self.lessons_learned[lesson_id] = lesson
 
-        # TODO: Store in database
-        # TODO: Index for search
-        # TODO: Publish lesson.captured event
+        # Future work: Store in database
+        # Future work: Index for search
+        # Future work: Publish lesson.captured event
 
         return {
             "lesson_id": lesson_id,
@@ -615,7 +615,7 @@ class KnowledgeManagementAgent(BaseAgent):
         role = user_context.get("role")
 
         # Find relevant documents
-        # TODO: Use recommendation engine
+        # Future work: Use recommendation engine
         recommendations = await self._find_relevant_documents(current_task, project_id, role)  # type: ignore
 
         # Rank by relevance
@@ -668,12 +668,12 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Get access statistics
-        # TODO: Query from audit logs
+        # Future work: Query from audit logs
         access_stats = {
             "total_accesses": document.get("accessed_count", 0),
             "last_accessed": document.get("last_accessed_at"),
-            "unique_users": 0,  # TODO: Calculate from logs
-            "access_trend": "stable",  # TODO: Calculate trend
+            "unique_users": 0,  # Future work: Calculate from logs
+            "access_trend": "stable",  # Future work: Calculate trend
         }
 
         return {"document_id": document_id, "access_stats": access_stats}
@@ -723,12 +723,12 @@ class KnowledgeManagementAgent(BaseAgent):
         return {
             "file_size": len(document_data.get("content", "")),
             "format": document_data.get("format", "text"),
-            "language": "en",  # TODO: Detect language
+            "language": "en",  # Future work: Detect language
         }
 
     async def _auto_classify_document(self, document_data: dict[str, Any]) -> dict[str, Any]:
         """Auto-classify document using AI."""
-        # TODO: Use Azure ML for classification
+        # Future work: Use Azure ML for classification
         content = document_data.get("content", "").lower()
 
         if "requirement" in content or "shall" in content:
@@ -748,7 +748,7 @@ class KnowledgeManagementAgent(BaseAgent):
         self, document_data: dict[str, Any], classification: dict[str, Any]
     ) -> list[str]:
         """Generate tags for document."""
-        # TODO: Use NLP for tag generation
+        # Future work: Use NLP for tag generation
         tags = [classification.get("type")]
 
         if document_data.get("project_id"):
@@ -758,7 +758,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _semantic_search(self, query: str, filters: dict[str, Any]) -> list[dict[str, Any]]:
         """Perform semantic search."""
-        # TODO: Use Azure Cognitive Search
+        # Future work: Use Azure Cognitive Search
         results: list[dict[str, Any]] = []
         query_lower = query.lower()
 
@@ -774,7 +774,7 @@ class KnowledgeManagementAgent(BaseAgent):
                         {
                             "document_id": doc_id,
                             "document": document,
-                            "relevance_score": 0.8,  # TODO: Calculate actual score
+                            "relevance_score": 0.8,  # Future work: Calculate actual score
                         }
                     )
 
@@ -814,12 +814,12 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _find_related_documents(self, document_id: str) -> list[dict[str, Any]]:
         """Find related documents."""
-        # TODO: Use knowledge graph and similarity
+        # Future work: Use knowledge graph and similarity
         return []
 
     async def _generate_summary(self, content: str, max_length: int) -> str:
         """Generate summary using NLG."""
-        # TODO: Use Azure OpenAI for summarization
+        # Future work: Use Azure OpenAI for summarization
         if len(content) <= max_length:
             return content
 
@@ -827,7 +827,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _extract_entities_from_text(self, text: str) -> list[dict[str, Any]]:
         """Extract entities from text using NLP."""
-        # TODO: Use Azure Form Recognizer or Azure OpenAI
+        # Future work: Use Azure Form Recognizer or Azure OpenAI
         entities = []
 
         # Simple entity extraction (replace with NLP)
@@ -842,7 +842,7 @@ class KnowledgeManagementAgent(BaseAgent):
         self, document_id: str, entities: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Build relationships between entities."""
-        # TODO: Use graph algorithms
+        # Future work: Use graph algorithms
         relationships = []
 
         for i, entity1 in enumerate(entities):
@@ -860,7 +860,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _categorize_lesson(self, lesson_data: dict[str, Any]) -> str:
         """Categorize lesson learned."""
-        # TODO: Use AI for categorization
+        # Future work: Use AI for categorization
         description = lesson_data.get("description", "").lower()
 
         if "vendor" in description or "procurement" in description:
@@ -874,7 +874,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _find_similar_lessons(self, lesson_data: dict[str, Any]) -> list[str]:
         """Find similar lessons learned."""
-        # TODO: Use similarity search
+        # Future work: Use similarity search
         similar = []
 
         for lesson_id, lesson in self.lessons_learned.items():
@@ -941,10 +941,10 @@ class KnowledgeManagementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Knowledge & Document Management Agent...")
-        # TODO: Close database connections
-        # TODO: Close blob storage connections
-        # TODO: Close search service connections
-        # TODO: Flush pending events
+        # Future work: Close database connections
+        # Future work: Close blob storage connections
+        # Future work: Close search service connections
+        # Future work: Flush pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

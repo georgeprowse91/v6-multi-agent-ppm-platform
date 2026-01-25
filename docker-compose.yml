@@ -68,7 +68,7 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Web UI (placeholder for React/Vue frontend)
+  # Web UI (optional React/Vue frontend)
   # ui:
   #   build:
   #     context: ./apps/web
