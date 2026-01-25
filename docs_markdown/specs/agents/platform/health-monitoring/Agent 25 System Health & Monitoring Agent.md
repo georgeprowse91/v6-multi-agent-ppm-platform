@@ -120,7 +120,7 @@ The SHMA offers operational dashboards and tools within the PPM platform:
 
 **Capacity & trend analysis:** dashboards showing resource utilisation trends, capacity thresholds and predicted exhaustion dates; includes recommendations for scaling.
 
-Interactions with Orchestration: When a user reports “The system is slow,” the Intent Router directs the SHMA to provide current performance metrics and identify potential causes. The SHMA may collaborate with the Workflow and Release agents to correlate incidents with recent changes.
+**Interactions with Orchestration:** When a user reports “The system is slow,” the Intent Router directs the SHMA to provide current performance metrics and identify potential causes. The SHMA may collaborate with the Workflow and Release agents to correlate incidents with recent changes.
 
 ## Configuration Parameters & Environment
 
@@ -136,19 +136,19 @@ Interactions with Orchestration: When a user reports “The system is slow,” t
 
 ### Azure Implementation Guidance
 
-Monitoring & telemetry: Use Azure Monitor and Application Insights to collect metrics and application logs; instrument services using Application Insights SDK; enable Azure Diagnostic Settings for infrastructure resources.
+**Monitoring & telemetry:** Use Azure Monitor and Application Insights to collect metrics and application logs; instrument services using Application Insights SDK; enable Azure Diagnostic Settings for infrastructure resources.
 
-Logging & tracing: Aggregate logs in Azure Log Analytics; enable distributed tracing with OpenTelemetry and integrate with Application Insights or Jaeger running on AKS.
+**Logging & tracing:** Aggregate logs in Azure Log Analytics; enable distributed tracing with OpenTelemetry and integrate with Application Insights or Jaeger running on AKS.
 
-Alerting & incident management: Configure Azure Monitor Alerts with action groups linked to email, SMS, Teams and webhook endpoints; integrate with PagerDuty or ServiceNow using webhooks or Logic Apps.
+**Alerting & incident management:** Configure Azure Monitor Alerts with action groups linked to email, SMS, Teams and webhook endpoints; integrate with PagerDuty or ServiceNow using webhooks or Logic Apps.
 
-Dashboards: Create custom Azure dashboards or integrate with Grafana to visualise metrics; embed dashboards into the PPM portal via iframes or custom components.
+**Dashboards:** Create custom Azure dashboards or integrate with Grafana to visualise metrics; embed dashboards into the PPM portal via iframes or custom components.
 
-Automation & scaling: Use Azure Automation, Runbooks or Autoscale settings to adjust resources based on SHMA recommendations.
+**Automation & scaling:** Use Azure Automation, Runbooks or Autoscale settings to adjust resources based on SHMA recommendations.
 
-Security: Manage access to monitoring data using Azure RBAC; store credentials and API keys in Key Vault; ensure logs are encrypted and access audited.
+**Security:** Manage access to monitoring data using Azure RBAC; store credentials and API keys in Key Vault; ensure logs are encrypted and access audited.
 
-Scalability: Leverage Azure Monitor’s built‑in scalability; for custom ingestion, use Event Hub or Kafka clusters; distribute log processing across multiple nodes.
+**Scalability:** Leverage Azure Monitor’s built‑in scalability; for custom ingestion, use Event Hub or Kafka clusters; distribute log processing across multiple nodes.
 
 ## Security & Compliance Considerations
 

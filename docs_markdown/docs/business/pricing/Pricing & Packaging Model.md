@@ -26,9 +26,9 @@ This is the primary offering. Customers access the platform via a cloud‑hosted
 
 Tiers:
 
-Per‑agent activation: Customers can activate additional specialised agents (e.g., vendor & procurement, continuous improvement, system health monitoring) at an additional monthly fee per agent (e.g., AUD $2 K–$5 K per agent per month) or per transaction bundle (e.g., 10 K API calls). Unused agents remain dormant, reducing cost for clients who only need core functions initially.
+**Per‑agent activation:** Customers can activate additional specialised agents (e.g., vendor & procurement, continuous improvement, system health monitoring) at an additional monthly fee per agent (e.g., AUD $2 K–$5 K per agent per month) or per transaction bundle (e.g., 10 K API calls). Unused agents remain dormant, reducing cost for clients who only need core functions initially.
 
-Usage‑based metrics: Storage and compute consumption, connectors with high transaction volumes, and AI inference usage may be billed separately at published rates. Provide consumption dashboards and threshold alerts.
+**Usage‑based metrics:** Storage and compute consumption, connectors with high transaction volumes, and AI inference usage may be billed separately at published rates. Provide consumption dashboards and threshold alerts.
 
 ### 2. Private‑Cloud License
 

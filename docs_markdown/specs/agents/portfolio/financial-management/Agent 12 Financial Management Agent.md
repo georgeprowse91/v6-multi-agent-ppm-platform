@@ -150,19 +150,19 @@ In the UI, the Intent Router sends natural language queries like “show me the 
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure SQL Database or Azure Synapse Analytics for structured financial data; leverage Azure Data Lake Storage Gen2 to store transaction files and audit logs.
+**Data storage:** Use Azure SQL Database or Azure Synapse Analytics for structured financial data; leverage Azure Data Lake Storage Gen2 to store transaction files and audit logs.
 
-ETL & integration: Orchestrate data ingestion from ERP and timesheet systems using Azure Data Factory, with pipelines that map and transform data into the PPM schema.
+**ETL & integration:** Orchestrate data ingestion from ERP and timesheet systems using Azure Data Factory, with pipelines that map and transform data into the PPM schema.
 
-API hosting: Host the FMA microservice on Azure App Service or AKS; expose APIs via Azure API Management; secure them using managed identities and OAuth.
+**API hosting:** Host the FMA microservice on Azure App Service or AKS; expose APIs via Azure API Management; secure them using managed identities and OAuth.
 
-Machine learning: Use Azure Machine Learning for forecasting models; version and monitor models with MLflow; schedule retraining triggered by new data or model drift detection.
+**Machine learning:** Use Azure Machine Learning for forecasting models; version and monitor models with MLflow; schedule retraining triggered by new data or model drift detection.
 
-Analytics: Build dashboards using Power BI connecting to Synapse; embed these reports in the PPM UI via Power BI Embedded.
+**Analytics:** Build dashboards using Power BI connecting to Synapse; embed these reports in the PPM UI via Power BI Embedded.
 
-Security: Store sensitive financial keys and secrets in Azure Key Vault; enforce row‑level security for users via dynamic data masking.
+**Security:** Store sensitive financial keys and secrets in Azure Key Vault; enforce row‑level security for users via dynamic data masking.
 
-Compliance: Use Azure Policy and Blueprints to enforce regulatory compliance (SOX, IFRS) across cloud resources.
+**Compliance:** Use Azure Policy and Blueprints to enforce regulatory compliance (SOX, IFRS) across cloud resources.
 
 ## Security & Compliance Considerations
 

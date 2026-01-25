@@ -22,7 +22,7 @@ The UI is built as a single‑page application using modern web frameworks (e.g.
 
 This layer comprises the brain of the platform. It includes the Intent Router and Response Orchestration agents that interpret user input, decide which domain agents to call and aggregate results. Domain agents implement specific business capabilities (e.g., Demand & Intake, Business Case, Portfolio Optimisation, Program Management, etc.). Each agent encapsulates its own logic, integration calls and data management. Agents are stateless by design, relying on the data layer for persistence and using message queues (e.g., Azure Service Bus, Kafka) to communicate.
 
-Agents follow the principles outlined in the architecture document: they own their integrations, expose APIs for other agents, and publish events when data changes. The orchestrator coordinates multi‑agent workflows and ensures responses are returned in the correct order. Agents can be added, removed or replaced without impacting others, promoting extensibility.
+**Agents follow the principles outlined in the architecture document:** they own their integrations, expose APIs for other agents, and publish events when data changes. The orchestrator coordinates multi‑agent workflows and ensures responses are returned in the correct order. Agents can be added, removed or replaced without impacting others, promoting extensibility.
 
 ### 3. Integration & Data Layer
 
@@ -70,7 +70,7 @@ In scenarios where real‑time or on‑demand data retrieval is needed (e.g., a 
 
 ### Cache‑Aside Pattern
 
-The platform employs a cache‑aside strategy: when an agent retrieves data, it first checks the cache. If the data is not present, it fetches from the ODS or external system, stores it in cache and returns the result. Events or TTL expiration invalidate stale cache entries. This pattern improves performance while avoiding stale data.
+**The platform employs a cache‑aside strategy:** when an agent retrieves data, it first checks the cache. If the data is not present, it fetches from the ODS or external system, stores it in cache and returns the result. Events or TTL expiration invalidate stale cache entries. This pattern improves performance while avoiding stale data.
 
 ## Scalability & Deployment Models
 

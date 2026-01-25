@@ -30,25 +30,25 @@ The User Experience Model
 
 This is not a traditional PPM tool but rather an intelligent workspace where:
 
-Methodology is the navigation: The project management methodology (Agile, Waterfall, Hybrid) is embedded as an interactive map guiding users through stages and activities
+**Methodology is the navigation:** The project management methodology (Agile, Waterfall, Hybrid) is embedded as an interactive map guiding users through stages and activities
 
-AI is the interface: A conversational assistant serves as the primary interaction method, understanding context and suggesting next actions
+**AI is the interface:** A conversational assistant serves as the primary interaction method, understanding context and suggesting next actions
 
-Agents are the workers: Specialized AI agents execute tasks, generate artifacts, and provide insights
+**Agents are the workers:** Specialized AI agents execute tasks, generate artifacts, and provide insights
 
-Canvas is the workspace: Agent outputs appear in interactive canvases where users review, edit, and approve before publishing
+**Canvas is the workspace:** Agent outputs appear in interactive canvases where users review, edit, and approve before publishing
 
-Systems of record are orchestrated: The platform integrates with existing enterprise tools (Planview, Jira, SAP, etc.) through user-approved connectors
+**Systems of record are orchestrated:** The platform integrates with existing enterprise tools (Planview, Jira, SAP, etc.) through user-approved connectors
 
 Core Design Philosophy
 
-Guided Methodology Compliance: Users navigate their project through a visual methodology map that enforces governance checkpoints while remaining flexible and adaptive.
+**Guided Methodology Compliance:** Users navigate their project through a visual methodology map that enforces governance checkpoints while remaining flexible and adaptive.
 
-Context-Aware Intelligence: The system knows where the user is in their project lifecycle and proactively suggests the most valuable next action.
+**Context-Aware Intelligence:** The system knows where the user is in their project lifecycle and proactively suggests the most valuable next action.
 
-Human-AI Collaboration: Agents generate drafts and recommendations; humans review, refine, and approve before publication.
+**Human-AI Collaboration:** Agents generate drafts and recommendations; humans review, refine, and approve before publication.
 
-Adaptive Behavior: The system adapts its structure, agent behaviors, and artifact formats based on the chosen project methodology (Agile vs. Waterfall vs. Hybrid).
+**Adaptive Behavior:** The system adapts its structure, agent behaviors, and artifact formats based on the chosen project methodology (Agile vs. Waterfall vs. Hybrid).
 
 User Interface Architecture
 
@@ -106,7 +106,7 @@ Main Application Layout
 
 └──────────────┴──────────────────────────────────────────┴───────────────────┘
 
-Left Panel: Methodology Navigation
+**Left Panel:** Methodology Navigation
 
 Visual Design
 
@@ -226,7 +226,7 @@ Stage Gates:
 
 Stages are locked (grayed out) until prerequisites are complete
 
-Example: “Planning” stage is locked until all “Initiating” activities are marked complete
+**Example:** “Planning” stage is locked until all “Initiating” activities are marked complete
 
 Users can view locked stages but cannot create artifacts for them
 
@@ -250,7 +250,7 @@ Clicking an activity also updates assistant context
 
 Assistant panel shows activity-specific next actions
 
-Example: Click “Budget Planning” → Assistant suggests: “Shall I generate a budget template based on your WBS?”
+**Example:** Click “Budget Planning” → Assistant suggests: “Shall I generate a budget template based on your WBS?”
 
 Continuous Monitoring:
 
@@ -260,7 +260,7 @@ Contains dashboard and ongoing management activities
 
 Indicated visually as distinct from sequential stages
 
-Right Panel: AI Assistant
+**Right Panel:** AI Assistant
 
 Panel Layout
 
@@ -324,7 +324,7 @@ Panel Layout
 
 Context-Aware Intelligence
 
-Current Context Display: The assistant always knows:
+**Current Context Display:** The assistant always knows:
 
 Current project and phase
 
@@ -336,11 +336,11 @@ Available actions based on methodology stage
 
 Example Context Awareness:
 
-Scenario 1: User tries to skip ahead
+**Scenario 1:** User tries to skip ahead
 
-User: "Create the project schedule"
+**User:** "Create the project schedule"
 
-Assistant: "I notice you haven't completed your scope definition yet.
+**Assistant:** "I notice you haven't completed your scope definition yet.
 
 The schedule needs a WBS to build from.
 
@@ -352,11 +352,11 @@ Would you like me to:
 
 [💬 Explain why WBS is needed]"
 
-Scenario 2: User completes an activity
+**Scenario 2:** User completes an activity
 
-User: [Approves charter in canvas]
+**User:** [Approves charter in canvas]
 
-Assistant: "Great! Your charter is now approved and saved to Planview.
+**Assistant:** "Great! Your charter is now approved and saved to Planview.
 
 Since you've completed the charter, you're ready to move to scope
 
@@ -370,9 +370,9 @@ definition. I can help you:
 
 Which would you like to start with?"
 
-Scenario 3: Proactive recommendations
+**Scenario 3:** Proactive recommendations
 
-Assistant: "⚠️ I noticed you're 3 days into planning with no identified
+**Assistant:** "⚠️ I noticed you're 3 days into planning with no identified
 
 risks yet.
 
@@ -392,25 +392,25 @@ Displayed as interactive buttons below conversation
 
 Color-coded by action type:
 
-Blue: Create artifact
+**Blue:** Create artifact
 
-Orange: Review/approval needed
+**Orange:** Review/approval needed
 
-Red: Risk/issue action
+**Red:** Risk/issue action
 
-Green: Methodology progression
+**Green:** Methodology progression
 
 Action Types:
 
-Create: Generate new artifacts (charter, WBS, schedule)
+**Create:** Generate new artifacts (charter, WBS, schedule)
 
-Review: Review agent outputs in canvas
+**Review:** Review agent outputs in canvas
 
-Approve: Approve for publishing to SoRs
+**Approve:** Approve for publishing to SoRs
 
-Analyze: Run what-if scenarios, health checks
+**Analyze:** Run what-if scenarios, health checks
 
-Navigate: Jump to specific activity or dashboard
+**Navigate:** Jump to specific activity or dashboard
 
 Interaction:
 
@@ -432,7 +432,7 @@ Users can always bypass suggested actions with natural language:
 
 “Add a new vendor to procurement tracking”
 
-Main Canvas: Output Workspace
+**Main Canvas:** Output Workspace
 
 Canvas Types (Output-Specific)
 
@@ -440,7 +440,7 @@ The main canvas area adapts its format based on the type of artifact being creat
 
 1. Document Canvas (for text-heavy artifacts)
 
-Used for: Project Charter, Scope Statement, Plans, Reports
+**Used for:** Project Charter, Scope Statement, Plans, Reports
 
 ┌──────────────────────────────────────────────────────────────┐
 
@@ -488,7 +488,7 @@ Direct editing by user
 
 2. Structured Data Canvas (for hierarchical artifacts)
 
-Used for: Work Breakdown Structure (WBS), Organization Breakdown Structure
+**Used for:** Work Breakdown Structure (WBS), Organization Breakdown Structure
 
 ┌──────────────────────────────────────────────────────────────┐
 
@@ -536,7 +536,7 @@ Visual indentation for hierarchy
 
 3. Timeline Canvas (for schedules)
 
-Used for: Project Schedule, Gantt Chart, Milestone Timeline
+**Used for:** Project Schedule, Gantt Chart, Milestone Timeline
 
 ┌──────────────────────────────────────────────────────────────┐
 
@@ -584,7 +584,7 @@ Resource loading view (toggle)
 
 4. Spreadsheet Canvas (for financial data)
 
-Used for: Budget, Resource Allocation, Cost Tracking
+**Used for:** Budget, Resource Allocation, Cost Tracking
 
 ┌──────────────────────────────────────────────────────────────┐
 
@@ -630,7 +630,7 @@ Export to Excel/CSV
 
 5. Dashboard Canvas (for monitoring)
 
-Used for: Project Health Dashboard, KPI Tracking, Portfolio Overview
+**Used for:** Project Health Dashboard, KPI Tracking, Portfolio Overview
 
 ┌──────────────────────────────────────────────────────────────┐
 
@@ -722,7 +722,7 @@ User is in Planning stage:
 
 1. Creates WBS (appears in new tab)
 
-2. Assistant suggests: "Create schedule from WBS?"
+2. **Assistant suggests:** "Create schedule from WBS?"
 
 3. User agrees → Schedule tab opens alongside WBS
 
@@ -742,11 +742,11 @@ User can request assistant to regenerate specific sections
 
 Example Interaction:
 
-User: [Edits charter executive summary directly in document]
+**User:** [Edits charter executive summary directly in document]
 
-User: "Can you make the business case section more compelling?"
+**User:** "Can you make the business case section more compelling?"
 
-Assistant: "I've updated the business case with stronger ROI messaging
+**Assistant:** "I've updated the business case with stronger ROI messaging
 
 and added customer satisfaction metrics. See changes highlighted in
 
@@ -756,9 +756,9 @@ yellow. Like it?"
 
 Conversational Feedback
 
-User: "This WBS is too detailed. Simplify to 2 levels only."
+**User:** "This WBS is too detailed. Simplify to 2 levels only."
 
-Assistant: "Collapsing WBS to Level 2. I'll keep detailed tasks in
+**Assistant:** "Collapsing WBS to Level 2. I'll keep detailed tasks in
 
 the background for schedule development. Done!"
 
@@ -868,19 +868,19 @@ Each agent card displays:
 
 Name and Icon
 
-Status: ON (active for this project) or OFF (available but inactive)
+**Status:** ON (active for this project) or OFF (available but inactive)
 
-Description: What the agent does and key AI capabilities
+**Description:** What the agent does and key AI capabilities
 
-Outputs: Types of artifacts this agent produces
+**Outputs:** Types of artifacts this agent produces
 
 Actions:
 
-View Sample Outputs: See example agent outputs from similar projects
+**View Sample Outputs:** See example agent outputs from similar projects
 
-Configure: Adjust agent parameters (for PMO admins and PMs)
+**Configure:** Adjust agent parameters (for PMO admins and PMs)
 
-Enable/Disable: Toggle agent for this project
+**Enable/Disable:** Toggle agent for this project
 
 Configuration Modal (when clicking “Configure”)
 
@@ -926,11 +926,11 @@ Configuration Modal (when clicking “Configure”)
 
 Role-Based Access
 
-PMO Administrator: Can configure all agents org-wide, set defaults, enable/disable agents globally
+**PMO Administrator:** Can configure all agents org-wide, set defaults, enable/disable agents globally
 
-Project Manager: Can configure agents for their projects, override org defaults, view but not edit system-level settings
+**Project Manager:** Can configure agents for their projects, override org defaults, view but not edit system-level settings
 
-Team Members: Can view agent descriptions and sample outputs only
+**Team Members:** Can view agent descriptions and sample outputs only
 
 2. Tool/Connector Gallery
 
@@ -1002,13 +1002,13 @@ Organization Level (set by PMO Admin):
 
 Default connectors selected for all new projects
 
-Example: “All projects use Planview + Jira + SAP by default”
+**Example:** “All projects use Planview + Jira + SAP by default”
 
 Project Level (set by Project Manager):
 
 Override org defaults for specific project needs
 
-Example: “This R&D project uses Azure DevOps instead of Jira”
+**Example:** “This R&D project uses Azure DevOps instead of Jira”
 
 Enable additional connectors not in org defaults
 
@@ -1194,29 +1194,29 @@ Specific agents enabled/disabled
 
 Agent configurations pre-set
 
-Example: Agile template enables Sprint Planning Agent, disables Phase Gate Agent
+**Example:** Agile template enables Sprint Planning Agent, disables Phase Gate Agent
 
 Connector Selections:
 
 Default tools for this project type
 
-Example: Software Dev template → Jira + GitHub + Azure DevOps
+**Example:** Software Dev template → Jira + GitHub + Azure DevOps
 
 Artifact Templates:
 
 Document templates appropriate for methodology
 
-Example: Agile → Product Backlog template, User Story template
+**Example:** Agile → Product Backlog template, User Story template
 
-Example: Waterfall → Detailed Project Plan template, Requirements Specification
+**Example:** Waterfall → Detailed Project Plan template, Requirements Specification
 
 Dashboard Views:
 
 Relevant KPIs and metrics
 
-Example: Agile → Sprint burndown, velocity charts
+**Example:** Agile → Sprint burndown, velocity charts
 
-Example: Waterfall → Gantt timeline, EVM metrics
+**Example:** Waterfall → Gantt timeline, EVM metrics
 
 Creating Custom Templates (PMO Admin Capability)
 
@@ -1520,7 +1520,7 @@ How Agent Behavior Changes by Methodology
 
 The system adapts agent outputs, workflows, and UI based on selected methodology:
 
-Example 1: Project Definition & Scope Agent
+**Example 1:** Project Definition & Scope Agent
 
 Agile Canvas Example:
 
@@ -1618,7 +1618,7 @@ Waterfall Canvas Example:
 
 └────────────────────────────────────────────────────────────┘
 
-Example 2: Schedule & Planning Agent
+**Example 2:** Schedule & Planning Agent
 
 Agile Canvas Example:
 
@@ -1724,7 +1724,7 @@ Waterfall Canvas Example:
 
 └────────────────────────────────────────────────────────────┘
 
-Example 3: Quality Assurance Agent
+**Example 3:** Quality Assurance Agent
 
 Methodology Map Differences
 
@@ -1850,13 +1850,13 @@ Agile Methodology Map (Left Panel)
 
 Key Differences:
 
-Waterfall: Linear stages with gates
+**Waterfall:** Linear stages with gates
 
-Agile: Iterative cycles with continuous refinement
+**Agile:** Iterative cycles with continuous refinement
 
-Both: Monitoring activities always accessible
+**Both:** Monitoring activities always accessible
 
-Both: Stage gates or sprint ceremonies enforce quality checkpoints
+**Both:** Stage gates or sprint ceremonies enforce quality checkpoints
 
 User-Mediated SoR Integration & Complete Agent Architecture
 
@@ -1868,13 +1868,13 @@ When an agent produces output and the user approves it, the publishing workflow
 
 Step-by-Step Flow:
 
-Step 1: User Reviews Agent Output in Canvas
+**Step 1:** User Reviews Agent Output in Canvas
 
 [User has reviewed Project Charter in document canvas]
 
 [User clicks "Publish" button in canvas toolbar]
 
-Step 2: Assistant Presents Publishing Options
+**Step 2:** Assistant Presents Publishing Options
 
 ┌────────────────────────────────────────────────────────────┐
 
@@ -1982,7 +1982,7 @@ Customization Modal (if user clicks “Customize”):
 
 └────────────────────────────────────────────────────────────┘
 
-Step 3: User Approves Publishing
+**Step 3:** User Approves Publishing
 
 User clicks [Confirm & Publish]
 
@@ -2006,7 +2006,7 @@ Each agent executes write operation
 
 Agents report success/failure back to assistant
 
-Step 4: Assistant Confirms Completion
+**Step 4:** Assistant Confirms Completion
 
 ┌────────────────────────────────────────────────────────────┐
 
@@ -2054,11 +2054,11 @@ All writes to systems of record require explicit user approval via assistant int
 
 Example:
 
-Agent: "I've generated a budget forecast showing $50K overrun."
+**Agent:** "I've generated a budget forecast showing $50K overrun."
 
-User: "Update SAP with the new forecast."
+**User:** "Update SAP with the new forecast."
 
-Assistant: "Before I update SAP, please confirm:
+**Assistant:** "Before I update SAP, please confirm:
 
 • New budget: $760,000 (was $710,000)
 
@@ -2074,9 +2074,9 @@ Would you like me to:
 
 [3] Cancel"
 
-User: [Selects option 1]
+**User:** [Selects option 1]
 
-Assistant: "Saved to SAP as pending. Approval request sent to CFO."
+**Assistant:** "Saved to SAP as pending. Approval request sent to CFO."
 
 Auto-Sync Pattern (Opt-In)
 
@@ -2140,7 +2140,7 @@ Read-Only Pattern
 
 For sensitive systems, users can configure read-only access.
 
-Example: Financial ERP (SAP)
+**Example:** Financial ERP (SAP)
 
 Configuration:
 
@@ -2150,9 +2150,9 @@ Configuration:
 
 Behavior:
 
-User: "Update the project budget to $800K"
+**User:** "Update the project budget to $800K"
 
-Assistant: "I can't write to SAP directly (read-only mode).
+**Assistant:** "I can't write to SAP directly (read-only mode).
 
 I can:
 
@@ -2166,11 +2166,11 @@ Conflict Resolution
 
 When multiple systems contain overlapping data:
 
-Scenario: Task exists in both internal system and Jira
+**Scenario:** Task exists in both internal system and Jira
 
 User updates task in internal canvas → triggers sync to Jira
 
-BUT: Task was also updated in Jira by another team member
+**BUT:** Task was also updated in Jira by another team member
 
 ↓
 
@@ -2226,13 +2226,13 @@ Assistant prompts user:
 
 Resolution Logic:
 
-Use my version: Overwrite Jira with user’s changes
+**Use my version:** Overwrite Jira with user’s changes
 
-Use Jira version: Discard user’s changes, pull from Jira
+**Use Jira version:** Discard user’s changes, pull from Jira
 
-Merge: Intelligent merge (e.g., keep latest timestamp per field)
+**Merge:** Intelligent merge (e.g., keep latest timestamp per field)
 
-Manual: User selects winning value for each conflicting field
+**Manual:** User selects winning value for each conflicting field
 
 Complete Agent Architecture
 
@@ -2240,27 +2240,27 @@ Agent Architecture Principles
 
 Each agent specification includes:
 
-Purpose: Core responsibility and value proposition
+**Purpose:** Core responsibility and value proposition
 
-Key Capabilities: Primary functions and features
+**Key Capabilities:** Primary functions and features
 
-AI Technologies: Specific ML/NLP/LLM capabilities employed
+**AI Technologies:** Specific ML/NLP/LLM capabilities employed
 
-Methodology Adaptations: How behavior changes for Agile vs. Waterfall
+**Methodology Adaptations:** How behavior changes for Agile vs. Waterfall
 
-Integration Responsibilities: Which systems of record this agent connects to
+**Integration Responsibilities:** Which systems of record this agent connects to
 
-Data Ownership: What data this agent is authoritative for
+**Data Ownership:** What data this agent is authoritative for
 
-Key Workflows: Primary interaction patterns with other agents
+**Key Workflows:** Primary interaction patterns with other agents
 
-User Interactions: How users interact with this agent via assistant
+**User Interactions:** How users interact with this agent via assistant
 
-Layer 1: User Experience & Orchestration Agents
+**Layer 1:** User Experience & Orchestration Agents
 
-Agent 1: Intent Router Agent
+**Agent 1:** Intent Router Agent
 
-Purpose: Analyzes user natural language requests and routes them to appropriate downstream agents for processing.
+**Purpose:** Analyzes user natural language requests and routes them to appropriate downstream agents for processing.
 
 Key Capabilities:
 
@@ -2290,9 +2290,9 @@ Confidence scoring to determine when to ask clarifying questions
 
 Methodology Adaptations:
 
-Agile Context: Recognizes sprint-specific terminology (“burndown”, “velocity”, “story points”)
+**Agile Context:** Recognizes sprint-specific terminology (“burndown”, “velocity”, “story points”)
 
-Waterfall Context: Recognizes phase-gate terminology (“baseline”, “EVM”, “critical path”)
+**Waterfall Context:** Recognizes phase-gate terminology (“baseline”, “EVM”, “critical path”)
 
 Adapts suggested next actions based on active methodology
 
@@ -2314,19 +2314,19 @@ User interaction patterns (for personalization)
 
 Key Workflows:
 
-Workflow 1: Simple Query Routing
+**Workflow 1:** Simple Query Routing
 
-User: "What's the budget for Project Apollo?"
+**User:** "What's the budget for Project Apollo?"
 
 ↓
 
 Intent Router classifies:
 
-- Intent: query.project.budget
+- **Intent:** query.project.budget
 
-- Entity: Project = "Apollo"
+- **Entity:** Project = "Apollo"
 
-- Response Type: factual_answer
+- **Response Type:** factual_answer
 
 ↓
 
@@ -2344,9 +2344,9 @@ priority: "normal"
 
 }
 
-Workflow 2: Complex Multi-Intent Request
+**Workflow 2:** Complex Multi-Intent Request
 
-User: "Show me Apollo's schedule and flag any budget risks"
+**User:** "Show me Apollo's schedule and flag any budget risks"
 
 ↓
 
@@ -2376,9 +2376,9 @@ aggregation: "dashboard"
 
 }
 
-Workflow 3: Ambiguous Request Requiring Clarification
+**Workflow 3:** Ambiguous Request Requiring Clarification
 
-User: "Update the schedule"
+**User:** "Update the schedule"
 
 ↓
 
@@ -2396,7 +2396,7 @@ Responds with clarification chips:
 
 [Project Apollo] [Project Phoenix] [Project Nova]"
 
-User: [Selects Apollo]
+**User:** [Selects Apollo]
 
 ↓
 
@@ -2412,9 +2412,9 @@ Intent Router determines if request can be answered immediately or requires mult
 
 Provides suggested action pills based on detected intent and methodology context
 
-Agent 2: Response Orchestration Agent
+**Agent 2:** Response Orchestration Agent
 
-Purpose: Coordinates queries across multiple agents and aggregates responses into unified answers for users.
+**Purpose:** Coordinates queries across multiple agents and aggregates responses into unified answers for users.
 
 Key Capabilities:
 
@@ -2444,9 +2444,9 @@ Relevance ranking to prioritize most important information in aggregated respons
 
 Methodology Adaptations:
 
-Agile Projects: Prioritizes sprint-level data over release-level when orchestrating dashboard queries
+**Agile Projects:** Prioritizes sprint-level data over release-level when orchestrating dashboard queries
 
-Waterfall Projects: Emphasizes phase completion status and baseline variances
+**Waterfall Projects:** Emphasizes phase completion status and baseline variances
 
 Adjusts response format based on methodology (e.g., burndown chart vs. Gantt view)
 
@@ -2470,9 +2470,9 @@ Agent performance metrics (response time, error rate per agent)
 
 Key Workflows:
 
-Workflow 1: Parallel Agent Invocation
+**Workflow 1:** Parallel Agent Invocation
 
-Request: "Show me Project Apollo health dashboard"
+**Request:** "Show me Project Apollo health dashboard"
 
 ↓
 
@@ -2522,17 +2522,17 @@ risk: {score: 65, level: "medium", source: "Risk Agent"}
 
 Returns to Intent Router for formatting and display
 
-Workflow 2: Sequential Agent Invocation (Dependent)
+**Workflow 2:** Sequential Agent Invocation (Dependent)
 
-Request: "Create a project plan for Apollo based on the approved charter"
+**Request:** "Create a project plan for Apollo based on the approved charter"
 
 ↓
 
 Orchestrator determines SEQUENTIAL execution needed:
 
-Step 1: Query Project Definition Agent for charter
+**Step 1:** Query Project Definition Agent for charter
 
-Step 2: Pass charter to Schedule & Planning Agent to generate plan
+**Step 2:** Pass charter to Schedule & Planning Agent to generate plan
 
 ↓
 
@@ -2546,9 +2546,9 @@ Feeds charter output to Step 2 → waits for schedule
 
 Returns generated schedule to user via canvas
 
-Workflow 3: Graceful Degradation (Agent Failure)
+**Workflow 3:** Graceful Degradation (Agent Failure)
 
-Request: "Show Apollo dashboard"
+**Request:** "Show Apollo dashboard"
 
 ↓
 
@@ -2562,9 +2562,9 @@ Orchestrator invokes 4 agents in parallel
 
 Orchestrator decision:
 
-- Option 1: Wait longer (if risk is critical to query)
+- **Option 1:** Wait longer (if risk is critical to query)
 
-- Option 2: Return partial response with warning
+- **Option 2:** Return partial response with warning
 
 ↓
 
@@ -2586,9 +2586,9 @@ Orchestrator works behind the scenes to make multi-agent queries feel instant
 
 Surfaces fallback options when agents are unavailable
 
-Agent 3: Approval Workflow Agent
+**Agent 3:** Approval Workflow Agent
 
-Purpose: Orchestrates all human-in-the-loop approval workflows across business processes, ensuring governance compliance and proper authorization.
+**Purpose:** Orchestrates all human-in-the-loop approval workflows across business processes, ensuring governance compliance and proper authorization.
 
 Key Capabilities:
 
@@ -2620,9 +2620,9 @@ Pattern recognition to identify approval bottlenecks
 
 Methodology Adaptations:
 
-Agile Projects: Lightweight approvals (e.g., Product Owner accepts stories)
+**Agile Projects:** Lightweight approvals (e.g., Product Owner accepts stories)
 
-Waterfall Projects: Formal sign-offs with Change Control Board processes
+**Waterfall Projects:** Formal sign-offs with Change Control Board processes
 
 Different approval templates and workflows per methodology
 
@@ -2650,13 +2650,13 @@ Approval audit logs (who approved what, when, via which channel)
 
 Key Workflows:
 
-Workflow 1: Budget Change Approval (Threshold-Based Routing)
+**Workflow 1:** Budget Change Approval (Threshold-Based Routing)
 
 Financial Management Agent detects budget overrun of $75,000
 
 ↓
 
-Publishes event: budget.change_required
+**Publishes event:** budget.change_required
 
 ↓
 
@@ -2666,21 +2666,21 @@ Approval Workflow Agent receives event
 
 Applies routing rules:
 
-- Amount: $75K
+- **Amount:** $75K
 
-- Rule: >$50K requires CFO approval
+- **Rule:** >$50K requires CFO approval
 
-- Rule: Budget changes require PM + Sponsor dual approval
+- **Rule:** Budget changes require PM + Sponsor dual approval
 
 ↓
 
 Creates approval request:
 
-Approvers: [Project Manager, Sponsor, CFO]
+**Approvers:** [Project Manager, Sponsor, CFO]
 
-Type: Parallel (all must approve)
+**Type:** Parallel (all must approve)
 
-Deadline: 3 business days
+**Deadline:** 3 business days
 
 ↓
 
@@ -2704,39 +2704,39 @@ Tracks responses:
 
 ↓
 
-All approvals received → Publishes: budget.change_approved
+**All approvals received → Publishes:** budget.change_approved
 
 ↓
 
 Financial Management Agent proceeds with budget update
 
-Workflow 2: Escalation Upon Non-Response
+**Workflow 2:** Escalation Upon Non-Response
 
 Approval Workflow creates request for Scope Change
 
-Approver: Project Sponsor
+**Approver:** Project Sponsor
 
-Deadline: 2 business days
-
-↓
-
-Day 1: No response → Reminder email sent
-
-Day 2 (deadline): No response → Escalation triggered
+**Deadline:** 2 business days
 
 ↓
 
-Escalation Rule: Escalate to PMO Director after 2 days
+**Day 1:** No response → Reminder email sent
+
+**Day 2 (deadline):** No response → Escalation triggered
+
+↓
+
+**Escalation Rule:** Escalate to PMO Director after 2 days
 
 ↓
 
 Approval Workflow sends escalation notification:
 
-To: PMO Director
+**To:** PMO Director
 
-CC: Project Sponsor
+**CC:** Project Sponsor
 
-Message: "Scope change approval overdue. Please review or reassign."
+**Message:** "Scope change approval overdue. Please review or reassign."
 
 ↓
 
@@ -2746,7 +2746,7 @@ PMO Director reviews and approves
 
 Workflow completes with escalation audit entry
 
-Workflow 3: Delegation Handling
+**Workflow 3:** Delegation Handling
 
 Approval request sent to CFO
 
@@ -2756,7 +2756,7 @@ CFO is on vacation (calendar integration detects this)
 
 Approval Workflow checks for delegation:
 
-- CFO has delegated authority to VP Finance (valid: Jan 15-25)
+- **CFO has delegated authority to VP Finance (valid:** Jan 15-25)
 
 ↓
 
@@ -2782,11 +2782,11 @@ Users can view approval history and pending approvals in “My Approvals” dash
 
 Approvers can add comments/conditions with their approval/rejection
 
-Layer 2: Demand & Investment Management Agents
+**Layer 2:** Demand & Investment Management Agents
 
-Agent 4: Demand & Intake Agent
+**Agent 4:** Demand & Intake Agent
 
-Purpose: Captures incoming project requests, ideas, and opportunities from stakeholders and manages the demand pipeline.
+**Purpose:** Captures incoming project requests, ideas, and opportunities from stakeholders and manages the demand pipeline.
 
 Key Capabilities:
 
@@ -2844,7 +2844,7 @@ Request categorization taxonomy
 
 Key Workflows:
 
-Workflow 1: Email-Based Intake
+**Workflow 1:** Email-Based Intake
 
 Stakeholder emails pmo@company.com with project idea
 
@@ -2856,31 +2856,31 @@ Demand & Intake Agent monitors email inbox
 
 Extracts information from email:
 
-- Subject: "Need mobile app for customer service"
+- **Subject:** "Need mobile app for customer service"
 
-- Body: "Our customers want to check their orders on mobile..."
+- **Body:** "Our customers want to check their orders on mobile..."
 
-- Sender: jane.doe@company.com
+- **Sender:** jane.doe@company.com
 
 ↓
 
 NLP extraction identifies:
 
-- Type: New Project
+- **Type:** New Project
 
-- Business Unit: Customer Service
+- **Business Unit:** Customer Service
 
-- Estimated Budget: Not specified
+- **Estimated Budget:** Not specified
 
-- Expected Outcome: Mobile app development
+- **Expected Outcome:** Mobile app development
 
 ↓
 
 Creates intake request in pipeline:
 
-ID: REQ-2026-0042
+**ID:** REQ-2026-0042
 
-Status: Awaiting Triage
+**Status:** Awaiting Triage
 
 ↓
 
@@ -2892,11 +2892,11 @@ A PMO analyst will review within 3 business days."
 
 ↓
 
-Publishes event: demand.intake.received
+**Publishes event:** demand.intake.received
 
-Workflow 2: Duplicate Detection
+**Workflow 2:** Duplicate Detection
 
-New request arrives: "Mobile app for order tracking"
+**New request arrives:** "Mobile app for order tracking"
 
 ↓
 
@@ -2924,15 +2924,15 @@ Would you like to:
 
 ↓
 
-If merged: Consolidates requirements and notifies both requestors
+**If merged:** Consolidates requirements and notifies both requestors
 
-Workflow 3: Triage and Routing
+**Workflow 3:** Triage and Routing
 
 PMO Analyst reviews intake request REQ-2026-0042
 
 ↓
 
-Via assistant: "Triage this request"
+**Via assistant:** "Triage this request"
 
 ↓
 
@@ -2952,7 +2952,7 @@ Suggested Actions:
 
 ↓
 
-Analyst selects: [Approve for Business Case]
+**Analyst selects:** [Approve for Business Case]
 
 ↓
 
@@ -2960,7 +2960,7 @@ Demand Agent updates status and routes to Business Case Agent
 
 ↓
 
-Publishes event: demand.approved_for_business_case
+**Publishes event:** demand.approved_for_business_case
 
 ↓
 
@@ -2974,9 +2974,9 @@ PMO analysts use assistant to triage and route requests
 
 Executives view demand pipeline dashboard showing request volumes and trends
 
-Agent 5: Business Case & Investment Analysis Agent
+**Agent 5:** Business Case & Investment Analysis Agent
 
-Purpose: Develops comprehensive business cases for investment decisions, performing financial analysis and ROI modeling.
+**Purpose:** Develops comprehensive business cases for investment decisions, performing financial analysis and ROI modeling.
 
 Key Capabilities:
 
@@ -3010,9 +3010,9 @@ Automated financial report generation
 
 Methodology Adaptations:
 
-Agile Projects: Business case emphasizes iterative value delivery, MVP benefits
+**Agile Projects:** Business case emphasizes iterative value delivery, MVP benefits
 
-Waterfall Projects: Business case emphasizes total project ROI, phase-wise benefits
+**Waterfall Projects:** Business case emphasizes total project ROI, phase-wise benefits
 
 Different financial metrics emphasized (e.g., Agile → Time-to-market value)
 
@@ -3040,9 +3040,9 @@ Market research and competitive intelligence
 
 Key Workflows:
 
-Workflow 1: Business Case Generation
+**Workflow 1:** Business Case Generation
 
-User (via assistant): "Create business case for mobile app request REQ-2026-0042"
+**User (via assistant):** "Create business case for mobile app request REQ-2026-0042"
 
 ↓
 
@@ -3050,7 +3050,7 @@ Business Case Agent retrieves request details from Demand Agent
 
 ↓
 
-Identifies project type: Mobile App Development
+**Identifies project type:** Mobile App Development
 
 ↓
 
@@ -3060,25 +3060,25 @@ Loads appropriate business case template
 
 Queries external systems for data:
 
-- Financial Agent: Average mobile app development cost ($400K-$600K)
+- **Financial Agent:** Average mobile app development cost ($400K-$600K)
 
-- CRM: Customer service call volume (50K calls/month)
+- **CRM:** Customer service call volume (50K calls/month)
 
-- Market data: Industry benchmarks for mobile app adoption
+- **Market data:** Industry benchmarks for mobile app adoption
 
 ↓
 
 Performs calculations:
 
-- Cost estimate: $525K (development + infrastructure)
+- **Cost estimate:** $525K (development + infrastructure)
 
-- Benefit estimate: 30% call reduction = 15K calls/month saved
+- **Benefit estimate:** 30% call reduction = 15K calls/month saved
 
 @ $5/call = $75K/month = $900K/year savings
 
-- ROI: ($900K - $525K) / $525K = 71% first year
+- **ROI:** ($900K - $525K) / $525K = 71% first year
 
-- Payback period: 7 months
+- **Payback period:** 7 months
 
 ↓
 
@@ -3100,9 +3100,9 @@ Generates business case document in canvas:
 
 Presents to user for review and refinement
 
-Workflow 2: Scenario Analysis
+**Workflow 2:** Scenario Analysis
 
-User: "What if adoption is only 20% instead of 30%?"
+**User:** "What if adoption is only 20% instead of 30%?"
 
 ↓
 
@@ -3110,29 +3110,29 @@ Business Case Agent re-runs financial model:
 
 - 20% call reduction = 10K calls saved
 
-- Annual savings: $600K
+- **Annual savings:** $600K
 
-- ROI: 14% first year
+- **ROI:** 14% first year
 
-- Payback period: 10.5 months
+- **Payback period:** 10.5 months
 
 ↓
 
 Updates business case with scenario comparison:
 
-Base Case (30% adoption): ROI 71%, Payback 7 months
+**Base Case (30% adoption):** ROI 71%, Payback 7 months
 
-Conservative (20% adoption): ROI 14%, Payback 10.5 months
+**Conservative (20% adoption):** ROI 14%, Payback 10.5 months
 
-Optimistic (40% adoption): ROI 129%, Payback 5 months
+**Optimistic (40% adoption):** ROI 129%, Payback 5 months
 
 ↓
 
-Recommendation: "Proceed with caution. Even conservative scenario
+**Recommendation:** "Proceed with caution. Even conservative scenario
 
 shows positive ROI, but consider MVP approach."
 
-Workflow 3: Investment Recommendation
+**Workflow 3:** Investment Recommendation
 
 Business case complete → User requests investment recommendation
 
@@ -3146,7 +3146,7 @@ Business Case Agent performs comparative analysis:
 
 - Analyzes actual vs. projected ROI
 
-- Success rate: 2/3 achieved projected benefits
+- **Success rate:** 2/3 achieved projected benefits
 
 ↓
 
@@ -3158,11 +3158,11 @@ Reasoning:
 
 - Strong financial case (71% ROI, 7-month payback)
 
-- Aligns with strategic priority: Customer Experience
+- **Aligns with strategic priority:** Customer Experience
 
 - Comparable projects achieved 67% of projected benefits on average
 
-- Risk: Technology dependencies on third-party APIs
+- **Risk:** Technology dependencies on third-party APIs
 
 Suggested Approach:
 
@@ -3184,11 +3184,11 @@ Users can request what-if scenarios conversationally
 
 Executives view summary recommendations in approval workflows
 
-Layer 3: Portfolio & Program Governance Agents
+**Layer 3:** Portfolio & Program Governance Agents
 
-Agent 6: Portfolio Strategy & Optimization Agent
+**Agent 6:** Portfolio Strategy & Optimization Agent
 
-Purpose: Optimizes portfolio composition to maximize strategic value within resource and budget constraints.
+**Purpose:** Optimizes portfolio composition to maximize strategic value within resource and budget constraints.
 
 Key Capabilities:
 
@@ -3220,11 +3220,11 @@ NLP analysis of strategic documents to extract objectives
 
 Methodology Adaptations:
 
-Agile portfolios: Emphasizes value stream mapping, flow metrics
+**Agile portfolios:** Emphasizes value stream mapping, flow metrics
 
-Waterfall portfolios: Emphasizes phase-gate alignment, resource leveling
+**Waterfall portfolios:** Emphasizes phase-gate alignment, resource leveling
 
-Hybrid: Balances both approaches
+**Hybrid:** Balances both approaches
 
 Integration Responsibilities:
 
@@ -3248,7 +3248,7 @@ Portfolio performance metrics (value delivered, strategic coverage)
 
 Key Workflows:
 
-Workflow 1: Portfolio Prioritization
+**Workflow 1:** Portfolio Prioritization
 
 New business case approved → needs portfolio ranking
 
@@ -3268,21 +3268,21 @@ Portfolio Strategy Agent gathers inputs:
 
 Scores new project against criteria:
 
-- Strategic Alignment: 85/100 (high alignment to CX strategy)
+- **Strategic Alignment:** 85/100 (high alignment to CX strategy)
 
-- Financial Value: 71% ROI → 90/100
+- **Financial Value:** 71% ROI → 90/100
 
-- Risk: Medium risk → 60/100
+- **Risk:** Medium risk → 60/100
 
-- Resource Feasibility: Requires 5 developers, 3 available → 50/100
+- **Resource Feasibility:** Requires 5 developers, 3 available → 50/100
 
 ↓
 
 Runs optimization algorithm:
 
-Objective: Maximize strategic value + financial value
+**Objective:** Maximize strategic value + financial value
 
-Constraints: Total budget ≤ $50M, Total resources ≤ 200 FTEs
+**Constraints:** Total budget ≤ $50M, Total resources ≤ 200 FTEs
 
 ↓
 
@@ -3308,7 +3308,7 @@ Recommendation to Portfolio Governance Board:
 
 Recommend deferring Project Omega (low strategic fit) to free capacity."
 
-Workflow 2: Portfolio Rebalancing (Quarterly)
+**Workflow 2:** Portfolio Rebalancing (Quarterly)
 
 Quarterly portfolio review triggered
 
@@ -3318,11 +3318,11 @@ Portfolio Strategy Agent analyzes current state:
 
 - 12 active projects
 
-- Strategic coverage: Innovation 30%, Operations 50%, Compliance 20%
+- **Strategic coverage:** Innovation 30%, Operations 50%, Compliance 20%
 
-- Target mix: Innovation 40%, Operations 40%, Compliance 20%
+- **Target mix:** Innovation 40%, Operations 40%, Compliance 20%
 
-- Gap: Under-invested in Innovation by 10%
+- **Gap:** Under-invested in Innovation by 10%
 
 ↓
 
@@ -3348,9 +3348,9 @@ Recommends rebalancing actions:
 
 Presents scenario comparison:
 
-Current: 30% Innovation, Strategic Score: 72/100
+**Current:** 30% Innovation, Strategic Score: 72/100
 
-Proposed: 40% Innovation, Strategic Score: 85/100 (projected)
+**Proposed:** 40% Innovation, Strategic Score: 85/100 (projected)
 
 ↓
 
@@ -3364,9 +3364,9 @@ Executives review prioritized portfolios in dashboard views
 
 Assistant explains prioritization rationale conversationally
 
-Agent 7: Program Management Agent
+**Agent 7:** Program Management Agent
 
-Purpose: Coordinates groups of related projects to achieve strategic objectives and realize synergies.
+**Purpose:** Coordinates groups of related projects to achieve strategic objectives and realize synergies.
 
 Key Capabilities:
 
@@ -3398,11 +3398,11 @@ Natural language generation for program status reports
 
 Methodology Adaptations:
 
-Agile Programs: Manages release trains, cross-team dependencies
+**Agile Programs:** Manages release trains, cross-team dependencies
 
-Waterfall Programs: Manages phase alignment, integrated master schedule
+**Waterfall Programs:** Manages phase alignment, integrated master schedule
 
-Both: Tracks program-level benefits realization
+**Both:** Tracks program-level benefits realization
 
 Integration Responsibilities:
 
@@ -3424,9 +3424,9 @@ Program-level benefits and outcomes
 
 Key Workflows:
 
-Workflow 1: Program Roadmap Creation
+**Workflow 1:** Program Roadmap Creation
 
-User: "Create a program roadmap for Customer Experience Program"
+**User:** "Create a program roadmap for Customer Experience Program"
 
 ↓
 
@@ -3454,13 +3454,13 @@ Identifies dependencies:
 
 Creates integrated program roadmap:
 
-Q1 2026: Atlas Phase 1 (APIs)
+**Q1 2026:** Atlas Phase 1 (APIs)
 
-Q2 2026: Apollo (Portal) + Artemis Phase 1 (Mobile - basic features)
+**Q2 2026:** Apollo (Portal) + Artemis Phase 1 (Mobile - basic features)
 
-Q3 2026: Atlas Phase 2 + Artemis Phase 2 (Mobile - advanced features)
+**Q3 2026:** Atlas Phase 2 + Artemis Phase 2 (Mobile - advanced features)
 
-Q4 2026: Integration testing and launch
+**Q4 2026:** Integration testing and launch
 
 ↓
 
@@ -3482,13 +3482,13 @@ Generates program roadmap canvas with:
 
 - Program milestones (e.g., "Customer Data Model Complete")
 
-Workflow 2: Cross-Project Dependency Management
+**Workflow 2:** Cross-Project Dependency Management
 
 Project Atlas schedule slips by 2 weeks
 
 ↓
 
-Schedule & Planning Agent publishes: schedule.delay event
+**Schedule & Planning Agent publishes:** schedule.delay event
 
 ↓
 
@@ -3496,9 +3496,9 @@ Program Management Agent receives event and analyzes impact:
 
 - Atlas API delivery delayed from Mar 15 → Mar 29
 
-- Project Artemis depends on this API (start date: Mar 20)
+- **Project Artemis depends on this API (start date:** Mar 20)
 
-- Impact: Artemis must delay start by 2 weeks
+- **Impact:** Artemis must delay start by 2 weeks
 
 ↓
 
@@ -3508,7 +3508,7 @@ Program Agent calculates cascading effects:
 
 - Program benefit realization delayed by 2 weeks
 
-- Financial impact: $50K in delayed revenue
+- **Financial impact:** $50K in delayed revenue
 
 ↓
 
@@ -3534,19 +3534,19 @@ Assistant proactively alerts to dependency risks
 
 Users request program-level reports (benefits, health, financials)
 
-Layer 4: Project Planning & Execution Agents
+**Layer 4:** Project Planning & Execution Agents
 
-Agent 8: Project Definition & Scope Agent
+**Agent 8:** Project Definition & Scope Agent
 
-Purpose: Establishes project foundations including charter, scope statement, and requirements.
+**Purpose:** Establishes project foundations including charter, scope statement, and requirements.
 
 Key Capabilities:
 
-Project Charter Generation: Authorization, objectives, stakeholder identification, governance
+**Project Charter Generation:** Authorization, objectives, stakeholder identification, governance
 
-Scope Management: Scope statements, work breakdown structure (WBS), deliverables definition
+**Scope Management:** Scope statements, work breakdown structure (WBS), deliverables definition
 
-Requirements Management: Gathering, documentation, traceability matrices, acceptance criteria
+**Requirements Management:** Gathering, documentation, traceability matrices, acceptance criteria
 
 Scope baseline management and change control
 
@@ -3570,11 +3570,11 @@ Similarity matching to pull relevant content from past project charters
 
 Methodology Adaptations:
 
-Agile: Generates product vision, initial backlog, user story templates
+**Agile:** Generates product vision, initial backlog, user story templates
 
-Waterfall: Generates detailed charter with formal scope baseline, comprehensive WBS
+**Waterfall:** Generates detailed charter with formal scope baseline, comprehensive WBS
 
-Hybrid: Combines vision with phased WBS
+**Hybrid:** Combines vision with phased WBS
 
 Integration Responsibilities:
 
@@ -3600,9 +3600,9 @@ Stakeholder registers
 
 Key Workflows:
 
-Workflow 1: Charter Generation
+**Workflow 1:** Charter Generation
 
-User: "Create charter for Project Apollo"
+**User:** "Create charter for Project Apollo"
 
 ↓
 
@@ -3618,29 +3618,29 @@ Project Definition Agent retrieves context:
 
 Selects charter template based on:
 
-- Project type: Software Development
+- **Project type:** Software Development
 
-- Methodology: Agile
+- **Methodology:** Agile
 
-- Industry: Financial Services
+- **Industry:** Financial Services
 
 ↓
 
 Populates charter sections:
 
-- Project Name: Apollo Customer Portal
+- **Project Name:** Apollo Customer Portal
 
-- Business Case Summary: [from Business Case Agent]
+- **Business Case Summary:** [from Business Case Agent]
 
-- Objectives: Reduce call volume 30%, improve CSAT by 15 points
+- **Objectives:** Reduce call volume 30%, improve CSAT by 15 points
 
-- Scope (High-Level): Web portal with account management features
+- **Scope (High-Level):** Web portal with account management features
 
-- Stakeholders: [auto-populated from business case]
+- **Stakeholders:** [auto-populated from business case]
 
-- Success Criteria: [extracted from business case]
+- **Success Criteria:** [extracted from business case]
 
-- Governance: [org standard Agile governance]
+- **Governance:** [org standard Agile governance]
 
 ↓
 
@@ -3650,17 +3650,17 @@ Generates draft charter in document canvas
 
 User reviews and refines via conversational edits:
 
-User: "Add compliance requirement for SOC 2"
+**User:** "Add compliance requirement for SOC 2"
 
-Agent: "Added compliance section with SOC 2 requirement."
+**Agent:** "Added compliance section with SOC 2 requirement."
 
 ↓
 
 User approves → routes to Approval Workflow for sponsor sign-off
 
-Workflow 2: WBS Generation
+**Workflow 2:** WBS Generation
 
-User: "Generate WBS from charter and requirements"
+**User:** "Generate WBS from charter and requirements"
 
 ↓
 
@@ -3730,7 +3730,7 @@ User refines by adding/removing/reordering nodes
 
 WBS approved → becomes input for Schedule & Planning Agent
 
-Workflow 3: Requirements Traceability
+**Workflow 3:** Requirements Traceability
 
 100 requirements documented across business case, charter, user stories
 
@@ -3738,9 +3738,9 @@ Workflow 3: Requirements Traceability
 
 Project Definition Agent creates traceability matrix:
 
-REQ-001: User login → User Story US-042 → Test Case TC-089
+**REQ-001:** User login → User Story US-042 → Test Case TC-089
 
-REQ-002: Password reset → User Story US-043 → Test Case TC-090
+**REQ-002:** Password reset → User Story US-043 → Test Case TC-090
 
 ...
 
@@ -3750,9 +3750,9 @@ Identifies gaps:
 
 "⚠️ 5 requirements have no associated user stories:
 
-REQ-034: Multi-factor authentication
+**REQ-034:** Multi-factor authentication
 
-REQ-067: Session timeout after 15 minutes
+**REQ-067:** Session timeout after 15 minutes
 
 ...
 
@@ -3770,9 +3770,9 @@ Conversational refinement (“make the scope more specific”)
 
 WBS creation via natural language (“break down Backend Development further”)
 
-Agent 9: Project Lifecycle & Governance Agent
+**Agent 9:** Project Lifecycle & Governance Agent
 
-Purpose: Manages project phases, governance gates, and overall health monitoring throughout the project lifecycle.
+**Purpose:** Manages project phases, governance gates, and overall health monitoring throughout the project lifecycle.
 
 Key Capabilities:
 
@@ -3804,11 +3804,11 @@ Pattern recognition for early warning signals
 
 Methodology Adaptations:
 
-Agile: Manages sprint cycles, iteration reviews, release planning
+**Agile:** Manages sprint cycles, iteration reviews, release planning
 
-Waterfall: Manages sequential phases with formal gates
+**Waterfall:** Manages sequential phases with formal gates
 
-Hybrid: Manages combination of phases and iterations
+**Hybrid:** Manages combination of phases and iterations
 
 Integration Responsibilities:
 
@@ -3832,13 +3832,13 @@ Dashboard configurations
 
 Key Workflows:
 
-Workflow 1: Project Initiation
+**Workflow 1:** Project Initiation
 
 Portfolio Strategy Agent approves new project for execution
 
 ↓
 
-Publishes event: project.approved_for_initiation
+**Publishes event:** project.approved_for_initiation
 
 ↓
 
@@ -3846,9 +3846,9 @@ Project Lifecycle Agent receives event and initiates project:
 
 - Creates project record in system
 
-- Sets initial state: "Initiating"
+- **Sets initial state:** "Initiating"
 
-- Selects methodology based on business case recommendation: Agile
+- **Selects methodology based on business case recommendation:** Agile
 
 - Loads Agile methodology map into left panel navigation
 
@@ -3868,13 +3868,13 @@ Once charter approved, transitions to "Planning" state
 
 ↓
 
-Publishes event: project.transitioned_to_planning
+**Publishes event:** project.transitioned_to_planning
 
 ↓
 
 Schedule, Resource, Financial agents respond and begin planning workflows
 
-Workflow 2: Phase Gate Enforcement
+**Workflow 2:** Phase Gate Enforcement
 
 Project in "Planning" phase
 
@@ -3914,13 +3914,13 @@ Would you like to:
 
 ↓
 
-User selects: [Complete risk identification]
+**User selects:** [Complete risk identification]
 
 ↓
 
 Agent routes to Risk Management Agent to assist with risk identification
 
-Workflow 3: Project Health Monitoring
+**Workflow 3:** Project Health Monitoring
 
 Project Lifecycle Agent continuously monitors project health (hourly)
 
@@ -3928,15 +3928,15 @@ Project Lifecycle Agent continuously monitors project health (hourly)
 
 Queries metrics from domain agents:
 
-- Schedule Agent: SPI (Schedule Performance Index) = 0.95 (5% behind)
+- **Schedule Agent:** SPI (Schedule Performance Index) = 0.95 (5% behind)
 
-- Financial Agent: CPI (Cost Performance Index) = 1.02 (2% under budget)
+- **Financial Agent:** CPI (Cost Performance Index) = 1.02 (2% under budget)
 
-- Risk Agent: Risk Score = 65/100 (Medium risk)
+- **Risk Agent:** Risk Score = 65/100 (Medium risk)
 
-- Quality Agent: Defect Density = 2.1 defects/KLOC (within threshold)
+- **Quality Agent:** Defect Density = 2.1 defects/KLOC (within threshold)
 
-- Resource Agent: Utilization = 88% (healthy)
+- **Resource Agent:** Utilization = 88% (healthy)
 
 ↓
 
@@ -3946,7 +3946,7 @@ Overall Health = 78/100 → "At Risk" (due to schedule variance)
 
 ↓
 
-Identifies primary concern: Schedule
+**Identifies primary concern:** Schedule
 
 ↓
 
@@ -3958,13 +3958,13 @@ Alerts user via assistant:
 
 "⚠️ Project Apollo health: AT RISK
 
-Primary concern: Schedule 5% behind plan
+**Primary concern:** Schedule 5% behind plan
 
-Root cause analysis: Development team velocity lower than planned (32 vs 40 points)
+**Root cause analysis:** Development team velocity lower than planned (32 vs 40 points)
 
 Recommendations:
 
-1. Add 1 developer to team (cost: $15K/sprint)
+1. **Add 1 developer to team (cost:** $15K/sprint)
 
 2. Descope 2 low-priority features
 
@@ -3982,9 +3982,9 @@ Health dashboard always accessible in Monitoring section
 
 Users request what-if scenarios via assistant
 
-Agent 10: Schedule & Planning Agent
+**Agent 10:** Schedule & Planning Agent
 
-Purpose: Manages project timelines, task dependencies, and critical path analysis.
+**Purpose:** Manages project timelines, task dependencies, and critical path analysis.
 
 Key Capabilities:
 
@@ -4020,9 +4020,9 @@ Monte Carlo simulation for probabilistic completion dates
 
 Methodology Adaptations:
 
-Agile: Sprint planning, velocity-based forecasting, burndown charts
+**Agile:** Sprint planning, velocity-based forecasting, burndown charts
 
-Waterfall: Gantt charts, critical path, resource leveling
+**Waterfall:** Gantt charts, critical path, resource leveling
 
 Different estimation approaches (story points vs. hours)
 
@@ -4050,9 +4050,9 @@ Task effort estimates and actuals
 
 Key Workflows:
 
-Workflow 1: Schedule Creation from WBS (Waterfall)
+**Workflow 1:** Schedule Creation from WBS (Waterfall)
 
-User: "Create schedule from approved WBS"
+**User:** "Create schedule from approved WBS"
 
 ↓
 
@@ -4064,11 +4064,11 @@ For each WBS work package, estimates duration:
 
 - Queries historical task data for similar tasks
 
-- Applies AI duration model: "API Development" → 15 days (based on 12 similar past tasks)
+- **Applies AI duration model:** "API Development" → 15 days (based on 12 similar past tasks)
 
-- Applies team velocity adjustment: -10% (team new to technology)
+- **Applies team velocity adjustment:** 10% (team new to technology)
 
-- Final estimate: 17 days
+- **Final estimate:** 17 days
 
 ↓
 
@@ -4076,9 +4076,9 @@ Prompts user for dependencies:
 
 "Task 1.2.1 'Authentication UI' depends on which prior tasks?"
 
-User (via assistant): "It needs the tech architecture from 1.1.3"
+**User (via assistant):** "It needs the tech architecture from 1.1.3"
 
-Agent: "Noted. Adding dependency: 1.1.3 → 1.2.1 (Finish-to-Start)"
+**Agent:** "Noted. Adding dependency: 1.1.3 → 1.2.1 (Finish-to-Start)"
 
 ↓
 
@@ -4088,11 +4088,11 @@ Builds schedule network diagram
 
 Runs critical path analysis:
 
-Critical Path: 1.1.1 → 1.1.3 → 1.2.1 → 1.3.1 → 1.5 → 1.6
+**Critical Path:** 1.1.1 → 1.1.3 → 1.2.1 → 1.3.1 → 1.5 → 1.6
 
-Total Duration: 120 days
+**Total Duration:** 120 days
 
-Project Completion: June 15, 2026
+**Project Completion:** June 15, 2026
 
 ↓
 
@@ -4110,11 +4110,11 @@ User reviews and adjusts (e.g., "Make 1.2.1 and 1.2.2 parallel")
 
 User approves baseline → Schedule locked as baseline
 
-Workflow 2: Sprint Planning (Agile)
+**Workflow 2:** Sprint Planning (Agile)
 
 Sprint 2 planning begins
 
-User: "Plan Sprint 2"
+**User:** "Plan Sprint 2"
 
 ↓
 
@@ -4122,29 +4122,29 @@ Schedule & Planning Agent retrieves:
 
 - Product backlog from Project Definition Agent
 
-- Team velocity from Sprint 1: 38 story points completed
+- **Team velocity from Sprint 1:** 38 story points completed
 
-- Team capacity for Sprint 2: 10 days × 5 developers = 50 dev-days
+- **Team capacity for Sprint 2:** 10 days × 5 developers = 50 dev-days
 
 ↓
 
-Recommends sprint capacity: 40 story points (based on velocity trend)
+**Recommends sprint capacity:** 40 story points (based on velocity trend)
 
 ↓
 
 Suggests highest-priority stories that fit capacity:
 
-User Story #12: Account balance display (8 pts)
+**User Story #12:** Account balance display (8 pts)
 
-User Story #13: Transaction history (13 pts)
+**User Story #13:** Transaction history (13 pts)
 
-User Story #14: Profile update (5 pts)
+**User Story #14:** Profile update (5 pts)
 
-User Story #15: Password change (3 pts)
+**User Story #15:** Password change (3 pts)
 
-User Story #16: Email preferences (5 pts)
+**User Story #16:** Email preferences (5 pts)
 
-Total: 34 points (within 40-point capacity)
+**Total:** 34 points (within 40-point capacity)
 
 ↓
 
@@ -4160,25 +4160,25 @@ Sprint plan approved → burndown chart initialized
 
 ↓
 
-Daily: Agent tracks story completion and updates burndown
+**Daily:** Agent tracks story completion and updates burndown
 
-Workflow 3: Delay Prediction and Early Warning
+**Workflow 3:** Delay Prediction and Early Warning
 
 Schedule & Planning Agent monitors task progress daily
 
 ↓
 
-Detects: "Backend API Development" task is 60% complete but 80% of duration elapsed
+**Detects:** "Backend API Development" task is 60% complete but 80% of duration elapsed
 
 ↓
 
 Predictive model calculates:
 
-- Expected completion: 8 days late (based on current progress rate)
+- **Expected completion:** 8 days late (based on current progress rate)
 
-- Impact to critical path: 8-day project delay
+- **Impact to critical path:** 8-day project delay
 
-- Confidence: 85%
+- **Confidence:** 85%
 
 ↓
 
@@ -4186,11 +4186,11 @@ Alerts user via assistant:
 
 "⚠️ Potential delay detected: Backend API Development
 
-Current status: 60% complete, 80% time elapsed
+**Current status:** 60% complete, 80% time elapsed
 
-Predicted delay: 8 days
+**Predicted delay:** 8 days
 
-Impact: Project completion pushed to June 23 (8 days late)
+**Impact:** Project completion pushed to June 23 (8 days late)
 
 Recommended actions:
 
@@ -4210,7 +4210,7 @@ User selects option 1
 
 Agent updates schedule with additional resource and recalculates:
 
-New completion: June 17 (only 2 days late, $12K additional cost)
+**New completion:** June 17 (only 2 days late, $12K additional cost)
 
 User Interactions:
 
@@ -4220,9 +4220,9 @@ Conversational dependency mapping (“Task B depends on Task A”)
 
 What-if analysis via natural language (“What if I add another developer?”)
 
-Agent 11: Resource & Capacity Management Agent
+**Agent 11:** Resource & Capacity Management Agent
 
-Purpose: Manages people, skills, and capacity across projects and the portfolio.
+**Purpose:** Manages people, skills, and capacity across projects and the portfolio.
 
 Key Capabilities:
 
@@ -4258,11 +4258,11 @@ Skills recommendation based on career paths
 
 Methodology Adaptations:
 
-Agile: Team-based allocation, velocity-based capacity planning
+**Agile:** Team-based allocation, velocity-based capacity planning
 
-Waterfall: Task-based allocation, resource leveling
+**Waterfall:** Task-based allocation, resource leveling
 
-Both: Skills matching and utilization tracking
+**Both:** Skills matching and utilization tracking
 
 Integration Responsibilities:
 
@@ -4290,7 +4290,7 @@ Utilization metrics
 
 Key Workflows:
 
-Workflow 1: Skills-Based Resource Matching
+**Workflow 1:** Skills-Based Resource Matching
 
 Schedule & Planning Agent requests resource for "Senior React Developer"
 
@@ -4298,13 +4298,13 @@ Schedule & Planning Agent requests resource for "Senior React Developer"
 
 Resource & Capacity Management Agent receives request:
 
-Role: Senior React Developer
+**Role:** Senior React Developer
 
-Required Skills: React, TypeScript, REST APIs
+**Required Skills:** React, TypeScript, REST APIs
 
-Duration: 3 months (Feb 1 - Apr 30)
+**Duration:** 3 months (Feb 1 - Apr 30)
 
-Allocation: 100%
+**Allocation:** 100%
 
 ↓
 
@@ -4316,25 +4316,25 @@ Finds 4 candidates with React + TypeScript skills
 
 Filters by availability:
 
-- Sarah Chen: 50% available (allocated to another project)
+- **Sarah Chen:** 50% available (allocated to another project)
 
-- Mike Johnson: 100% available
+- **Mike Johnson:** 100% available
 
-- Lisa Wong: 80% available (training commitment 20%)
+- **Lisa Wong:** 80% available (training commitment 20%)
 
-- David Kim: 100% available but junior level
+- **David Kim:** 100% available but junior level
 
 ↓
 
 Scores candidates:
 
-Mike Johnson: 95/100 (best match - senior, fully available)
+**Mike Johnson:** 95/100 (best match - senior, fully available)
 
-Lisa Wong: 85/100 (senior but only 80% available)
+**Lisa Wong:** 85/100 (senior but only 80% available)
 
-Sarah Chen: 70/100 (senior but conflict with other project)
+**Sarah Chen:** 70/100 (senior but conflict with other project)
 
-David Kim: 60/100 (available but junior, need mentoring)
+**David Kim:** 60/100 (available but junior, need mentoring)
 
 ↓
 
@@ -4346,11 +4346,11 @@ User approves → Agent allocates Mike to Project Apollo
 
 ↓
 
-Updates capacity calendars and publishes event: resource.allocated
+**Updates capacity calendars and publishes event:** resource.allocated
 
-Workflow 2: Resource Conflict Resolution
+**Workflow 2:** Resource Conflict Resolution
 
-Two high-priority projects both request same resource: Sarah Chen
+**Two high-priority projects both request same resource:** Sarah Chen
 
 ↓
 
@@ -4360,17 +4360,17 @@ Project Apollo needs Sarah 50% (Feb 1 - Apr 30)
 
 Project Phoenix needs Sarah 75% (Mar 1 - May 31)
 
-Overlap period: Mar 1 - Apr 30 (125% allocation - CONFLICT)
+**Overlap period:** Mar 1 - Apr 30 (125% allocation - CONFLICT)
 
 ↓
 
 Agent analyzes options:
 
-Option 1: Allocate Sarah 50/50 to both projects (each gets less than requested)
+**Option 1:** Allocate Sarah 50/50 to both projects (each gets less than requested)
 
-Option 2: Prioritize Apollo (higher portfolio rank), find alternate for Phoenix
+**Option 2:** Prioritize Apollo (higher portfolio rank), find alternate for Phoenix
 
-Option 3: Find alternate for Apollo, allocate Sarah fully to Phoenix
+**Option 3:** Find alternate for Apollo, allocate Sarah fully to Phoenix
 
 ↓
 
@@ -4390,13 +4390,13 @@ Recommends Lisa Wong (90% skill match, available)
 
 Decision communicated to both project managers via assistant
 
-Workflow 3: Utilization Monitoring and Forecasting
+**Workflow 3:** Utilization Monitoring and Forecasting
 
 Resource Agent monitors utilization weekly
 
 ↓
 
-Calculates current utilization: 78% (below target 80-85%)
+**Calculates current utilization:** 78% (below target 80-85%)
 
 ↓
 
@@ -4410,7 +4410,7 @@ Forecasts next quarter utilization based on:
 
 ↓
 
-Forecast: Q2 utilization will drop to 68% (capacity surplus)
+**Forecast:** Q2 utilization will drop to 68% (capacity surplus)
 
 ↓
 
@@ -4424,7 +4424,7 @@ Recommend accelerating 2 pipeline projects to utilize capacity"
 
 Portfolio Strategy Agent factors this into portfolio rebalancing
 
-Workflow 4: Timesheet Validation
+**Workflow 4:** Timesheet Validation
 
 Weekly timesheet submission
 
@@ -4480,11 +4480,11 @@ Team members submit timesheets via assistant or integrated time tracking tools
 
 Assistant alerts to capacity shortages or conflicts
 
-Layer 5: Financial & Procurement Management Agents
+**Layer 5:** Financial & Procurement Management Agents
 
-Agent 12: Financial Management Agent
+**Agent 12:** Financial Management Agent
 
-Purpose: Manages project and portfolio budgets, cost tracking, and financial performance.
+**Purpose:** Manages project and portfolio budgets, cost tracking, and financial performance.
 
 Key Capabilities:
 
@@ -4492,7 +4492,7 @@ Budget planning and allocation
 
 Cost tracking and variance analysis
 
-Earned Value Management (EVM): PV, EV, AC, CPI, SPI
+**Earned Value Management (EVM):** PV, EV, AC, CPI, SPI
 
 Financial forecasting and projection
 
@@ -4518,11 +4518,11 @@ Financial trend analysis and pattern recognition
 
 Methodology Adaptations:
 
-Agile: Budget per sprint/release, value-based budgeting
+**Agile:** Budget per sprint/release, value-based budgeting
 
-Waterfall: Phase-based budgets, detailed cost baselines
+**Waterfall:** Phase-based budgets, detailed cost baselines
 
-Both: EVM and variance tracking
+**Both:** EVM and variance tracking
 
 Integration Responsibilities:
 
@@ -4554,9 +4554,9 @@ Cost baselines
 
 Key Workflows:
 
-Workflow 1: Budget Planning
+**Workflow 1:** Budget Planning
 
-User: "Create budget for Project Apollo"
+**User:** "Create budget for Project Apollo"
 
 ↓
 
@@ -4580,31 +4580,31 @@ Labor Costs:
 
 - 1 QA × $100/hr × 400 hours = $40K
 
-Total Labor: $998K
+**Total Labor:** $998K
 
 Software/Tools:
 
-- Development tools: $15K
+- **Development tools:** $15K
 
-- Cloud infrastructure: $25K
+- **Cloud infrastructure:** $25K
 
-Total Software: $40K
+**Total Software:** $40K
 
 Third-Party Services:
 
-- UI/UX Design contractor: $50K
+- **UI/UX Design contractor:** $50K
 
-- Security audit: $30K
+- **Security audit:** $30K
 
-Total Services: $80K
+**Total Services:** $80K
 
-Contingency (10%): $112K
+**Contingency (10%):** $112K
 
-Total Budget: $1,230K
+**Total Budget:** $1,230K
 
 ↓
 
-Compares to business case budget: $525K (MISMATCH!)
+**Compares to business case budget:** $525K (MISMATCH!)
 
 ↓
 
@@ -4620,13 +4620,13 @@ Possible actions:
 
 3. Re-estimate with more aggressive assumptions
 
-Recommendation: Revise scope. Current scope may be over-designed."
+**Recommendation:** Revise scope. Current scope may be over-designed."
 
 ↓
 
 User opts to revise scope → coordinates with Project Definition Agent
 
-Workflow 2: Cost Tracking and EVM
+**Workflow 2:** Cost Tracking and EVM
 
 Monthly financial update (end of Month 2)
 
@@ -4634,23 +4634,23 @@ Monthly financial update (end of Month 2)
 
 Financial Management Agent collects actuals:
 
-- Labor hours from Resource Management Agent: $180K logged
+- **Labor hours from Resource Management Agent:** $180K logged
 
-- Software/tools expenses: $8K
+- **Software/tools expenses:** $8K
 
-- Contractor invoices: $15K
+- **Contractor invoices:** $15K
 
-Total Actual Cost (AC): $203K
+**Total Actual Cost (AC):** $203K
 
 ↓
 
 Retrieves earned value:
 
-- Schedule Agent reports: 20% of work complete
+- **Schedule Agent reports:** 20% of work complete
 
-- Planned Value at Month 2: $246K (20% of $1.23M budget)
+- **Planned Value at Month 2:** $246K (20% of $1.23M budget)
 
-- Earned Value: 20% × $1.23M = $246K
+- **Earned Value:** 20% × $1.23M = $246K
 
 ↓
 
@@ -4668,7 +4668,7 @@ Forecast at completion:
 
 - Estimate at Completion (EAC) = Budget / CPI = $1.23M / 1.21 = $1.02M
 
-- Forecasted savings: $210K
+- **Forecasted savings:** $210K
 
 ↓
 
@@ -4676,29 +4676,29 @@ Generates financial dashboard:
 
 "✅ Project Apollo - Financial Health: EXCELLENT
 
-Budget: $1.23M
+**Budget:** $1.23M
 
-Spent: $203K (17%)
+**Spent:** $203K (17%)
 
-Earned: $246K (20%)
+**Earned:** $246K (20%)
 
-CPI: 1.21 (21% under budget)
+**CPI:** 1.21 (21% under budget)
 
-Forecast: $1.02M (expect $210K savings)
+**Forecast:** $1.02M (expect $210K savings)
 
-Key insight: Efficient delivery. Team ahead of cost curve."
+**Key insight:** Efficient delivery. Team ahead of cost curve."
 
-Workflow 3: Budget Overrun Alert
+**Workflow 3:** Budget Overrun Alert
 
-Month 4: Financial Agent detects trend reversal
+**Month 4:** Financial Agent detects trend reversal
 
 ↓
 
 Actual costs accelerating:
 
-Month 3: $380K cumulative (CPI = 1.15)
+**Month 3:** $380K cumulative (CPI = 1.15)
 
-Month 4: $550K cumulative (CPI = 1.05) ← declining
+**Month 4:** $550K cumulative (CPI = 1.05) ← declining
 
 ↓
 
@@ -4716,7 +4716,7 @@ Generates early warning alert:
 
 "⚠️ Budget overrun risk detected
 
-Current CPI: 1.05 (trending down from 1.21)
+**Current CPI:** 1.05 (trending down from 1.21)
 
 Root cause analysis:
 
@@ -4724,7 +4724,7 @@ Root cause analysis:
 
 - Contractor scope creep ($25K unplanned)
 
-Forecasted overrun: $150K (12% over budget)
+**Forecasted overrun:** $150K (12% over budget)
 
 Recommended actions:
 
@@ -4750,9 +4750,9 @@ Budget change requests initiated via assistant
 
 What-if financial scenarios (“What if we add 2 more months?”)
 
-Agent 13: Vendor & Procurement Agent
+**Agent 13:** Vendor & Procurement Agent
 
-Purpose: Manages external vendors, contracts, and procurement processes.
+**Purpose:** Manages external vendors, contracts, and procurement processes.
 
 Key Capabilities:
 
@@ -4816,17 +4816,17 @@ RFP/RFQ documents
 
 Key Workflows:
 
-Workflow 1: Vendor Selection
+**Workflow 1:** Vendor Selection
 
-User: "Find a vendor for UI/UX design services"
+**User:** "Find a vendor for UI/UX design services"
 
 ↓
 
 Vendor & Procurement Agent queries vendor database:
 
-Category: Design Services
+**Category:** Design Services
 
-Required capabilities: Web UI, Mobile App, Financial Services experience
+**Required capabilities:** Web UI, Mobile App, Financial Services experience
 
 ↓
 
@@ -4836,11 +4836,11 @@ Identifies 6 potential vendors
 
 Scores vendors:
 
-Vendor A: 88/100 (strong financial services portfolio, 4.5-star rating)
+**Vendor A:** 88/100 (strong financial services portfolio, 4.5-star rating)
 
-Vendor B: 82/100 (excellent design but no fintech experience)
+**Vendor B:** 82/100 (excellent design but no fintech experience)
 
-Vendor C: 75/100 (lower cost but mixed reviews)
+**Vendor C:** 75/100 (lower cost but mixed reviews)
 
 ...
 
@@ -4860,7 +4860,7 @@ Recommends top 3 vendors:
 
 "Based on your requirements (web UI, mobile, fintech):
 
-1. Vendor A: DesignCo ($50K, 6 weeks, low risk)
+1. **Vendor A:** DesignCo ($50K, 6 weeks, low risk)
 
 • 4.5/5 rating
 
@@ -4868,25 +4868,25 @@ Recommends top 3 vendors:
 
 • SOC 2 certified
 
-2. Vendor B: CreativeStudio ($45K, 7 weeks, medium risk)
+2. **Vendor B:** CreativeStudio ($45K, 7 weeks, medium risk)
 
 • 5/5 rating
 
 • No fintech experience (learning curve risk)
 
-3. Vendor C: BudgetDesign ($35K, 8 weeks, medium-high risk)
+3. **Vendor C:** BudgetDesign ($35K, 8 weeks, medium-high risk)
 
 • 3.5/5 rating
 
 • Cost savings but quality concerns
 
-Recommendation: DesignCo (best balance of quality, experience, risk)"
+**Recommendation:** DesignCo (best balance of quality, experience, risk)"
 
 ↓
 
 User selects DesignCo → Agent initiates contracting workflow
 
-Workflow 2: Contract Management
+**Workflow 2:** Contract Management
 
 Contract signed with DesignCo
 
@@ -4894,19 +4894,19 @@ Contract signed with DesignCo
 
 Vendor & Procurement Agent extracts contract terms using NLP:
 
-- Contract value: $50,000
+- **Contract value:** $50,000
 
-- Start date: Feb 1, 2026
+- **Start date:** Feb 1, 2026
 
-- End date: Mar 15, 2026
+- **End date:** Mar 15, 2026
 
-- Deliverables: Wireframes, UI mockups, final designs
+- **Deliverables:** Wireframes, UI mockups, final designs
 
-- Payment terms: 50% upfront, 50% on completion
+- **Payment terms:** 50% upfront, 50% on completion
 
-- SLA: Revisions within 48 hours
+- **SLA:** Revisions within 48 hours
 
-- Renewal clause: None (fixed-term contract)
+- **Renewal clause:** None (fixed-term contract)
 
 ↓
 
@@ -4916,13 +4916,13 @@ Creates contract record in system
 
 Sets reminders:
 
-- Feb 1: Contract start (notify PM)
+- **Feb 1:** Contract start (notify PM)
 
-- Feb 15: Mid-point check-in (validate progress)
+- **Feb 15:** Mid-point check-in (validate progress)
 
-- Mar 8: 1 week before end (prepare for final delivery)
+- **Mar 8:** 1 week before end (prepare for final delivery)
 
-- Mar 15: Contract end (verify deliverables, release final payment)
+- **Mar 15:** Contract end (verify deliverables, release final payment)
 
 ↓
 
@@ -4940,21 +4940,21 @@ At contract end, generates vendor scorecard:
 
 "DesignCo Performance on Project Apollo:
 
-Quality: 4.5/5 (excellent designs)
+**Quality:** 4.5/5 (excellent designs)
 
-Timeliness: 5/5 (delivered on time)
+**Timeliness:** 5/5 (delivered on time)
 
-Cost: 5/5 (no overruns)
+**Cost:** 5/5 (no overruns)
 
-SLA Compliance: 4/5 (1 late revision response)
+**SLA Compliance:** 4/5 (1 late revision response)
 
-Overall: 4.6/5 - Highly Recommended
+**Overall:** 4.6/5 - Highly Recommended
 
 Add to preferred vendor list?"
 
-Workflow 3: Purchase Order Approval
+**Workflow 3:** Purchase Order Approval
 
-User: "Create PO for $50K to DesignCo"
+**User:** "Create PO for $50K to DesignCo"
 
 ↓
 
@@ -4962,13 +4962,13 @@ Vendor & Procurement Agent creates PO draft:
 
 PO-2026-1234
 
-Vendor: DesignCo
+**Vendor:** DesignCo
 
-Amount: $50,000
+**Amount:** $50,000
 
-Budget Code: Apollo Project - Contractors
+**Budget Code:** Apollo Project - Contractors
 
-Description: UI/UX Design Services
+**Description:** UI/UX Design Services
 
 ↓
 
@@ -4978,7 +4978,7 @@ Checks approval policy:
 
 - POs >$50K require VP Finance approval
 
-- This PO: $50K (requires Procurement Manager only)
+- **This PO:** $50K (requires Procurement Manager only)
 
 ↓
 
@@ -4990,11 +4990,11 @@ Procurement Manager receives approval request:
 
 "PO-2026-1234: $50K to DesignCo for UI/UX design
 
-Budget: ✓ Available ($80K contractor budget, $30K remaining)
+**Budget:** ✓ Available ($80K contractor budget, $30K remaining)
 
-Vendor: ✓ Approved vendor (4.5/5 rating)
+**Vendor:** ✓ Approved vendor (4.5/5 rating)
 
-Contract: ✓ Valid (Feb 1 - Mar 15, 2026)
+**Contract:** ✓ Valid (Feb 1 - Mar 15, 2026)
 
 [Approve] [Reject] [Request More Info]"
 
@@ -5008,7 +5008,7 @@ Vendor Agent sends PO to DesignCo via email
 
 ↓
 
-Publishes event: po.approved → Financial Agent records commitment
+**Publishes event:** po.approved → Financial Agent records commitment
 
 User Interactions:
 
@@ -5020,11 +5020,11 @@ Approval requests surfaced in assistant panel
 
 Vendor performance dashboards in monitoring section
 
-Layer 6: Quality, Risk & Compliance Agents
+**Layer 6:** Quality, Risk & Compliance Agents
 
-Agent 14: Quality Assurance Agent
+**Agent 14:** Quality Assurance Agent
 
-Purpose: Enforces quality standards, coordinates testing, and ensures deliverable quality.
+**Purpose:** Enforces quality standards, coordinates testing, and ensures deliverable quality.
 
 Key Capabilities:
 
@@ -5058,9 +5058,9 @@ Quality trend forecasting
 
 Methodology Adaptations:
 
-Agile: Definition of Done enforcement, continuous testing, acceptance criteria validation
+**Agile:** Definition of Done enforcement, continuous testing, acceptance criteria validation
 
-Waterfall: Phase-based testing (unit, integration, system, UAT), formal QA gates
+**Waterfall:** Phase-based testing (unit, integration, system, UAT), formal QA gates
 
 Different quality metrics emphasized
 
@@ -5090,7 +5090,7 @@ Compliance audit results
 
 Key Workflows:
 
-Workflow 1: Quality Gate Enforcement
+**Workflow 1:** Quality Gate Enforcement
 
 User attempts to mark "Development" phase complete
 
@@ -5120,11 +5120,11 @@ Issues:
 
 • 3 CRITICAL defects must be resolved before proceeding:
 
-- DEF-234: Login fails for 10% of users
+- **DEF-234:** Login fails for 10% of users
 
-- DEF-456: Data corruption in transaction history
+- **DEF-456:** Data corruption in transaction history
 
-- DEF-789: Security vulnerability (SQL injection)
+- **DEF-789:** Security vulnerability (SQL injection)
 
 Recommended actions:
 
@@ -5144,29 +5144,29 @@ Team resolves defects
 
 ↓
 
-Quality Agent re-checks: All critical defects closed ✓
+**Quality Agent re-checks:** All critical defects closed ✓
 
 ↓
 
 Gate criteria now met → allows phase transition
 
-Workflow 2: Predictive Defect Detection
+**Workflow 2:** Predictive Defect Detection
 
 Quality Agent analyzes code metrics from SonarQube:
 
-Module: PaymentProcessor.java
+**Module:** PaymentProcessor.java
 
-- Cyclomatic complexity: 42 (very high)
+- **Cyclomatic complexity:** 42 (very high)
 
-- Lines of code: 850 (large)
+- **Lines of code:** 850 (large)
 
-- Code coverage: 62% (below threshold)
+- **Code coverage:** 62% (below threshold)
 
-- Code smells: 15
+- **Code smells:** 15
 
 ↓
 
-Predictive model calculates defect probability: 78% (HIGH RISK)
+**Predictive model calculates defect probability:** 78% (HIGH RISK)
 
 ↓
 
@@ -5182,7 +5182,7 @@ Risk factors:
 
 • 15 code quality issues detected
 
-Predicted defect likelihood: 78%
+**Predicted defect likelihood:** 78%
 
 Recommendations:
 
@@ -5198,7 +5198,7 @@ Similar modules with these characteristics had avg 8 defects post-release."
 
 Team refactors module → risk score drops to 35%
 
-Workflow 3: Defect Trend Analysis
+**Workflow 3:** Defect Trend Analysis
 
 Quality Agent monitors defect metrics weekly
 
@@ -5206,13 +5206,13 @@ Quality Agent monitors defect metrics weekly
 
 Week 8 analysis:
 
-- Defects opened: 45 (up from 30 last week)
+- **Defects opened:** 45 (up from 30 last week)
 
-- Defects closed: 28 (down from 40 last week)
+- **Defects closed:** 28 (down from 40 last week)
 
-- Open defect backlog: 89 (growing trend)
+- **Open defect backlog:** 89 (growing trend)
 
-- Defect density: 3.2 defects/KLOC (above threshold of 2.5)
+- **Defect density:** 3.2 defects/KLOC (above threshold of 2.5)
 
 ↓
 
@@ -5230,9 +5230,9 @@ Generates quality alert:
 
 "⚠️ Quality degradation detected
 
-Defect backlog growing: 89 open (was 72 last week)
+**Defect backlog growing:** 89 open (was 72 last week)
 
-Trend: +24% increase in 1 week
+**Trend:** +24% increase in 1 week
 
 Root cause analysis:
 
@@ -5262,9 +5262,9 @@ Assistant alerts to quality risks proactively
 
 Users request quality reports via assistant
 
-Agent 15: Risk Management Agent
+**Agent 15:** Risk Management Agent
 
-Purpose: Identifies, assesses, tracks, and mitigates project and portfolio risks.
+**Purpose:** Identifies, assesses, tracks, and mitigates project and portfolio risks.
 
 Key Capabilities:
 
@@ -5300,11 +5300,11 @@ Automated risk categorization
 
 Methodology Adaptations:
 
-Agile: Risk management integrated into sprints, impediment tracking
+**Agile:** Risk management integrated into sprints, impediment tracking
 
-Waterfall: Formal risk register, scheduled risk reviews
+**Waterfall:** Formal risk register, scheduled risk reviews
 
-Both: Continuous risk monitoring
+**Both:** Continuous risk monitoring
 
 Integration Responsibilities:
 
@@ -5330,7 +5330,7 @@ Historical risk database
 
 Key Workflows:
 
-Workflow 1: Automated Risk Identification
+**Workflow 1:** Automated Risk Identification
 
 Risk Management Agent continuously monitors project data
 
@@ -5344,23 +5344,23 @@ Scans recent email thread from vendor DesignCo:
 
 NLP extraction identifies potential risk:
 
-Risk: Vendor delivery delay
+**Risk:** Vendor delivery delay
 
-Probability: Medium (based on keyword "may need")
+**Probability:** Medium (based on keyword "may need")
 
-Impact: Unknown (requires assessment)
+**Impact:** Unknown (requires assessment)
 
 ↓
 
 Creates draft risk:
 
-RISK-042: DesignCo delivery delay
+**RISK-042:** DesignCo delivery delay
 
-Description: Vendor indicated potential 1-week delay
+**Description:** Vendor indicated potential 1-week delay
 
-Category: Vendor/External
+**Category:** Vendor/External
 
-Status: Proposed
+**Status:** Proposed
 
 ↓
 
@@ -5368,9 +5368,9 @@ Suggests to PM via assistant:
 
 "📋 Potential risk detected from vendor email:
 
-Risk: DesignCo may delay delivery by 1 week
+**Risk:** DesignCo may delay delivery by 1 week
 
-Source: Email from vendor dated Jan 15
+**Source:** Email from vendor dated Jan 15
 
 Would you like me to:
 
@@ -5390,21 +5390,21 @@ Agent prompts for risk assessment:
 
 "Assess risk probability and impact:
 
-Probability: [Low / Medium / High]
+**Probability:** [Low / Medium / High]
 
-Impact: [Low / Medium / High / Critical]"
-
-↓
-
-PM assesses: Probability: High, Impact: Medium
+**Impact:** [Low / Medium / High / Critical]"
 
 ↓
 
-Risk added to register with risk score: 6/10
+**PM assesses:** Probability: High, Impact: Medium
 
-Workflow 2: Risk Mitigation Planning
+↓
 
-High-priority risk identified: RISK-042 (score 6/10)
+**Risk added to register with risk score:** 6/10
+
+**Workflow 2:** Risk Mitigation Planning
+
+**High-priority risk identified:** RISK-042 (score 6/10)
 
 ↓
 
@@ -5416,9 +5416,9 @@ Found 5 similar vendor delay risks from past projects
 
 Analyzes successful mitigation strategies:
 
-- Strategy A: Added buffer time (used in 3 projects, 100% effective)
+- **Strategy A:** Added buffer time (used in 3 projects, 100% effective)
 
-- Strategy B: Identified backup vendor (used in 2 projects, 50% effective)
+- **Strategy B:** Identified backup vendor (used in 2 projects, 50% effective)
 
 ↓
 
@@ -5428,21 +5428,21 @@ Recommends mitigation:
 
 1. Add 1-week buffer to schedule (HIGH CONFIDENCE)
 
-Pros: Absorbs delay, low cost
+**Pros:** Absorbs delay, low cost
 
-Cons: Pushes project end date
+**Cons:** Pushes project end date
 
-Past success rate: 100% (3/3 projects)
+**Past success rate:** 100% (3/3 projects)
 
 2. Identify backup vendor (MEDIUM CONFIDENCE)
 
-Pros: Fallback option if delay confirmed
+**Pros:** Fallback option if delay confirmed
 
-Cons: Onboarding cost, time to ramp up
+**Cons:** Onboarding cost, time to ramp up
 
-Past success rate: 50% (1/2 projects)
+**Past success rate:** 50% (1/2 projects)
 
-Recommendation: Implement Strategy 1 (add buffer)"
+**Recommendation:** Implement Strategy 1 (add buffer)"
 
 ↓
 
@@ -5454,9 +5454,9 @@ Agent coordinates with Schedule Agent to add buffer
 
 ↓
 
-Risk status updated: Mitigated
+**Risk status updated:** Mitigated
 
-Workflow 3: Risk Escalation
+**Workflow 3:** Risk Escalation
 
 Risk Management Agent monitors risk RISK-042 daily
 
@@ -5468,15 +5468,15 @@ Vendor confirms 1-week delay (risk materialized)
 
 Agent updates risk:
 
-Status: Active → Materialized
+**Status:** Active → Materialized
 
-Probability: High → 100% (confirmed)
+**Probability:** High → 100% (confirmed)
 
 ↓
 
 Checks escalation policy:
 
-- Medium impact risks: Escalate to Project Sponsor if mitigated and still materializes
+- **Medium impact risks:** Escalate to Project Sponsor if mitigated and still materializes
 
 ↓
 
@@ -5484,13 +5484,13 @@ Escalates to sponsor via assistant:
 
 "⚠️ Risk RISK-042 has materialized despite mitigation
 
-Risk: DesignCo delivery delayed by 1 week
+**Risk:** DesignCo delivery delayed by 1 week
 
-Impact: Project end date pushed from Jun 15 → Jun 22
+**Impact:** Project end date pushed from Jun 15 → Jun 22
 
-Mitigation: Buffer added (absorbed delay)
+**Mitigation:** Buffer added (absorbed delay)
 
-Status: Under control (delay absorbed by buffer)
+**Status:** Under control (delay absorbed by buffer)
 
 No action required from sponsor at this time.
 
@@ -5502,21 +5502,21 @@ Users view risk register in monitoring section (heatmap visualization)
 
 Assistant proactively suggests risks based on project data
 
-Users add risks conversationally (“Add risk: vendor may go out of business”)
+**Users add risks conversationally (“Add risk:** vendor may go out of business”)
 
 Risk dashboard shows risk trends over time
 
-Agent 16: Compliance & Security Agent
+**Agent 16:** Compliance & Security Agent
 
-Purpose: Ensures regulatory compliance, enforces security standards, and maintains audit readiness.
+**Purpose:** Ensures regulatory compliance, enforces security standards, and maintains audit readiness.
 
 Key Capabilities:
 
-Compliance Monitoring: Regulatory requirements tracking (SOX, GDPR, HIPAA, SOC 2, etc.)
+**Compliance Monitoring:** Regulatory requirements tracking (SOX, GDPR, HIPAA, SOC 2, etc.)
 
-Security Governance: Data classification, access controls, security policies
+**Security Governance:** Data classification, access controls, security policies
 
-Audit Management: Audit trail generation, evidence collection, audit coordination
+**Audit Management:** Audit trail generation, evidence collection, audit coordination
 
 Compliance gap analysis and remediation
 
@@ -5552,7 +5552,7 @@ GRC platforms (Archer, ServiceNow GRC, OneTrust)
 
 Identity and access management (Okta, Azure AD, Ping Identity)
 
-Security information and event management (SIEM: Splunk, QRadar)
+**Security information and event management (SIEM:** Splunk, QRadar)
 
 Data loss prevention (DLP) tools
 
@@ -5574,7 +5574,7 @@ Audit finding repository
 
 Key Workflows:
 
-Workflow 1: Compliance Gap Analysis
+**Workflow 1:** Compliance Gap Analysis
 
 New project (Apollo) initiated with SOC 2 compliance requirement
 
@@ -5586,11 +5586,11 @@ Compliance & Security Agent loads SOC 2 control framework
 
 Maps SOC 2 controls to project activities:
 
-- CC6.1: Logical access controls → User authentication requirement
+- **CC6.1:** Logical access controls → User authentication requirement
 
-- CC6.6: Encryption → Data-at-rest and in-transit encryption
+- **CC6.6:** Encryption → Data-at-rest and in-transit encryption
 
-- CC7.2: Change management → Code review and approval process
+- **CC7.2:** Change management → Code review and approval process
 
 ...
 
@@ -5618,23 +5618,23 @@ Generates compliance gap report:
 
 "⚠️ SOC 2 Compliance Analysis for Project Apollo
 
-Status: 138/150 controls covered (92%)
+**Status:** 138/150 controls covered (92%)
 
-Gaps: 12 controls missing
+**Gaps:** 12 controls missing
 
 High-Priority Gaps:
 
-1. CC6.6: Data encryption not specified
+1. **CC6.6:** Data encryption not specified
 
-Recommendation: Add requirement for AES-256 encryption
+**Recommendation:** Add requirement for AES-256 encryption
 
-2. CC7.2: No change management process
+2. **CC7.2:** No change management process
 
-Recommendation: Implement code review workflow in Jira
+**Recommendation:** Implement code review workflow in Jira
 
-3. CC8.1: No data retention policy
+3. **CC8.1:** No data retention policy
 
-Recommendation: Define retention periods for customer data
+**Recommendation:** Define retention periods for customer data
 
 [View Full Gap Report] [Generate Remediation Plan]"
 
@@ -5646,7 +5646,7 @@ User requests remediation plan
 
 Agent generates action items and assigns to Project Definition Agent
 
-Workflow 2: Security Violation Detection
+**Workflow 2:** Security Violation Detection
 
 Compliance Agent monitors access logs in real-time
 
@@ -5654,27 +5654,27 @@ Compliance Agent monitors access logs in real-time
 
 Detects anomaly:
 
-User: john.doe@company.com
+**User:** john.doe@company.com
 
-Action: Downloaded entire customer database (50K records)
+**Action:** Downloaded entire customer database (50K records)
 
-Time: 2:00 AM (outside normal business hours)
+**Time:** 2:00 AM (outside normal business hours)
 
-Location: Unusual IP address (VPN from foreign country)
+**Location:** Unusual IP address (VPN from foreign country)
 
 ↓
 
 Risk scoring:
 
-- Large data download: High risk
+- **Large data download:** High risk
 
-- Unusual time: High risk
+- **Unusual time:** High risk
 
-- Unusual location: High risk
+- **Unusual location:** High risk
 
-- User role: Has database access (authorized)
+- **User role:** Has database access (authorized)
 
-Overall Risk: CRITICAL
+**Overall Risk:** CRITICAL
 
 ↓
 
@@ -5682,13 +5682,13 @@ Agent triggers security alert:
 
 "🚨 SECURITY ALERT: Potential data exfiltration
 
-User: john.doe@company.com
+**User:** john.doe@company.com
 
-Action: Downloaded 50K customer records
+**Action:** Downloaded 50K customer records
 
-Time: 2:00 AM (unusual)
+**Time:** 2:00 AM (unusual)
 
-Location: VPN from [foreign country] (unusual)
+**Location:** VPN from [foreign country] (unusual)
 
 Automated response:
 
@@ -5702,7 +5702,7 @@ Awaiting security team investigation."
 
 ↓
 
-Security team investigates: False positive (authorized data migration)
+**Security team investigates:** False positive (authorized data migration)
 
 ↓
 
@@ -5712,7 +5712,7 @@ Account reinstated, incident closed with justification
 
 Agent logs incident for audit trail
 
-Workflow 3: Audit Evidence Collection
+**Workflow 3:** Audit Evidence Collection
 
 External audit scheduled for Project Apollo (SOC 2)
 
@@ -5752,13 +5752,13 @@ Auto-collects evidence from integrated systems:
 
 Organizes evidence by control:
 
-CC6.1: Logical Access
+**CC6.1:** Logical Access
 
 - Access logs (Jan-Dec 2026).pdf
 
 - User provisioning records.xlsx
 
-CC6.6: Encryption
+**CC6.6:** Encryption
 
 - TLS certificates.pdf
 
@@ -5772,11 +5772,11 @@ Generates audit evidence package:
 
 "✅ Audit evidence package ready
 
-Controls covered: 150/150
+**Controls covered:** 150/150
 
-Evidence files: 847
+**Evidence files:** 847
 
-Total size: 2.3 GB
+**Total size:** 2.3 GB
 
 Package organized by:
 
@@ -5798,11 +5798,11 @@ Users request compliance reports via assistant
 
 Audit evidence auto-generated (no manual collection)
 
-Layer 7: Change & Release Management Agents
+**Layer 7:** Change & Release Management Agents
 
-Agent 17: Change & Configuration Management Agent
+**Agent 17:** Change & Configuration Management Agent
 
-Purpose: Manages change requests, configuration baselines, and change impact analysis.
+**Purpose:** Manages change requests, configuration baselines, and change impact analysis.
 
 Key Capabilities:
 
@@ -5836,9 +5836,9 @@ Similar change recommendation (leverage past successful changes)
 
 Methodology Adaptations:
 
-Agile: Lightweight change process (backlog reprioritization), continuous baseline updates
+**Agile:** Lightweight change process (backlog reprioritization), continuous baseline updates
 
-Waterfall: Formal change control board, baseline lock and change tracking
+**Waterfall:** Formal change control board, baseline lock and change tracking
 
 Different approval workflows
 
@@ -5868,7 +5868,7 @@ Configuration items and relationships
 
 Key Workflows:
 
-Workflow 1: Change Request Impact Analysis
+**Workflow 1:** Change Request Impact Analysis
 
 User submits change request:
 
@@ -5882,11 +5882,11 @@ Change & Configuration Management Agent receives request
 
 Categorizes change:
 
-Type: Scope Addition
+**Type:** Scope Addition
 
-Magnitude: Medium (new feature)
+**Magnitude:** Medium (new feature)
 
-Urgency: Low (enhancement, not defect)
+**Urgency:** Low (enhancement, not defect)
 
 ↓
 
@@ -5894,27 +5894,27 @@ Performs automated impact analysis:
 
 SCOPE IMPACT:
 
-- New work items: 3 user stories, estimated 21 story points
+- **New work items:** 3 user stories, estimated 21 story points
 
-- Affected WBS elements: 1.2.1 (Authentication UI), 1.3.1 (Backend API)
+- **Affected WBS elements:** 1.2.1 (Authentication UI), 1.3.1 (Backend API)
 
 SCHEDULE IMPACT:
 
-- Additional effort: 21 story points ÷ 40 pts/sprint = 0.5 sprints
+- **Additional effort:** 21 story points ÷ 40 pts/sprint = 0.5 sprints
 
-- Critical path impact: None (can be parallelized)
+- **Critical path impact:** None (can be parallelized)
 
-- Estimated delay: +1 week to accommodate in sprint
+- **Estimated delay:** +1 week to accommodate in sprint
 
 COST IMPACT:
 
-- Development cost: 21 pts × $500/pt = $10,500
+- **Development cost:** 21 pts × $500/pt = $10,500
 
-- Third-party SDK license: $2,000/year
+- **Third-party SDK license:** $2,000/year
 
-- Testing effort: +$3,000
+- **Testing effort:** +$3,000
 
-- Total cost: $15,500
+- **Total cost:** $15,500
 
 RISK IMPACT:
 
@@ -5940,27 +5940,27 @@ Generates change impact summary:
 
 Impact Summary:
 
-Scope: +3 user stories (21 points)
+**Scope:** +3 user stories (21 points)
 
-Schedule: +1 week
+**Schedule:** +1 week
 
-Cost: +$15,500
+**Cost:** +$15,500
 
-Risk: Medium (third-party dependency)
+**Risk:** Medium (third-party dependency)
 
-Benefit: High (security + UX improvement)
+**Benefit:** High (security + UX improvement)
 
-Recommendation: APPROVE
+**Recommendation:** APPROVE
 
-Rationale: Benefits outweigh costs, manageable risk
+**Rationale:** Benefits outweigh costs, manageable risk
 
-Route to: [Product Owner for approval]"
+**Route to:** [Product Owner for approval]"
 
 ↓
 
 Routes to Approval Workflow Agent
 
-Workflow 2: Baseline Update After Change
+**Workflow 2:** Baseline Update After Change
 
 Change request CR-2026-042 approved
 
@@ -5970,27 +5970,27 @@ Change Agent updates baselines:
 
 Scope Baseline:
 
-- Original: 85 user stories
+- **Original:** 85 user stories
 
-- Updated: 88 user stories (+3 for biometric feature)
+- **Updated:** 88 user stories (+3 for biometric feature)
 
-- Baseline version incremented: v1.0 → v1.1
+- **Baseline version incremented:** v1.0 → v1.1
 
 Schedule Baseline:
 
-- Original end date: June 15
+- **Original end date:** June 15
 
-- Updated end date: June 22 (+1 week)
+- **Updated end date:** June 22 (+1 week)
 
-- Baseline version: v1.0 → v1.1
+- **Baseline version:** v1.0 → v1.1
 
 Budget Baseline:
 
-- Original budget: $1,230,000
+- **Original budget:** $1,230,000
 
-- Updated budget: $1,245,500 (+$15,500)
+- **Updated budget:** $1,245,500 (+$15,500)
 
-- Baseline version: v1.0 → v1.1
+- **Baseline version:** v1.0 → v1.1
 
 ↓
 
@@ -6018,9 +6018,9 @@ Impact analysis automatically presented in assistant
 
 Users review change history and baseline versions in monitoring section
 
-Agent 18: Release & Deployment Agent
+**Agent 18:** Release & Deployment Agent
 
-Purpose: Orchestrates software and system releases to production environments. (Primarily for IT/software project contexts)
+**Purpose:** Orchestrates software and system releases to production environments. (Primarily for IT/software project contexts)
 
 Key Capabilities:
 
@@ -6052,9 +6052,9 @@ Release success prediction based on readiness criteria
 
 Methodology Adaptations:
 
-Agile: Continuous deployment, automated pipelines, sprint releases
+**Agile:** Continuous deployment, automated pipelines, sprint releases
 
-Waterfall: Big-bang releases, extensive UAT, formal go-live
+**Waterfall:** Big-bang releases, extensive UAT, formal go-live
 
 Different release frequencies and processes
 
@@ -6082,7 +6082,7 @@ Release metrics (lead time, deployment frequency, MTTR, change failure rate)
 
 Key Workflows:
 
-Workflow 1: Release Planning
+**Workflow 1:** Release Planning
 
 Sprint 8 nearing completion → Release 1.0 planned
 
@@ -6090,11 +6090,11 @@ Sprint 8 nearing completion → Release 1.0 planned
 
 Release & Deployment Agent initiates release planning:
 
-Release: v1.0
+**Release:** v1.0
 
-Target Date: June 30, 2026
+**Target Date:** June 30, 2026
 
-Scope: 85 user stories completed across 8 sprints
+**Scope:** 85 user stories completed across 8 sprints
 
 ↓
 
@@ -6114,25 +6114,25 @@ Generates release readiness checklist:
 
 ↓
 
-Identifies blockers: UAT, security scan, runbook
+**Identifies blockers:** UAT, security scan, runbook
 
 ↓
 
 Creates release plan:
 
-June 25-27: User Acceptance Testing
+**June 25-27:** User Acceptance Testing
 
-June 28: Security scan and remediation
+**June 28:** Security scan and remediation
 
-June 29: Final release readiness review
+**June 29:** Final release readiness review
 
-June 30 8PM: Production deployment (low-traffic window)
+**June 30 8PM:** Production deployment (low-traffic window)
 
 ↓
 
 Analyzes optimal deployment window:
 
-Recommended: June 30, 8 PM - 10 PM
+**Recommended:** June 30, 8 PM - 10 PM
 
 Rationale:
 
@@ -6146,7 +6146,7 @@ Rationale:
 
 Presents release plan to PM for approval
 
-Workflow 2: Automated Deployment Orchestration
+**Workflow 2:** Automated Deployment Orchestration
 
 June 30, 8:00 PM: Release go-live time
 
@@ -6154,17 +6154,17 @@ June 30, 8:00 PM: Release go-live time
 
 Release Agent triggers deployment pipeline:
 
-Step 1: Pre-deployment validation
+**Step 1:** Pre-deployment validation
 
-- Database backup: ✓ Complete
+- **Database backup:** ✓ Complete
 
-- Rollback plan tested: ✓ Verified
+- **Rollback plan tested:** ✓ Verified
 
-- Monitoring dashboards: ✓ Active
+- **Monitoring dashboards:** ✓ Active
 
-- On-call team notified: ✓ Confirmed
+- **On-call team notified:** ✓ Confirmed
 
-Step 2: Deployment to production
+**Step 2:** Deployment to production
 
 - Deploy application version v1.0
 
@@ -6174,15 +6174,15 @@ Step 2: Deployment to production
 
 - Warm up application caches
 
-Step 3: Post-deployment validation
+**Step 3:** Post-deployment validation
 
-- Health check endpoints: ✓ Passing
+- **Health check endpoints:** ✓ Passing
 
-- Smoke tests: ✓ Passing (12/12)
+- **Smoke tests:** ✓ Passing (12/12)
 
-- Performance baseline: ✓ Normal (response time <200ms)
+- **Performance baseline:** ✓ Normal (response time <200ms)
 
-- Error rate: ✓ <0.1%
+- **Error rate:** ✓ <0.1%
 
 ↓
 
@@ -6194,23 +6194,23 @@ Release Agent publishes success notification:
 
 "✅ Release v1.0 deployed successfully
 
-Deployment time: 8:00 PM - 8:45 PM (45 min)
+**Deployment time:** 8:00 PM - 8:45 PM (45 min)
 
-Status: All systems operational
+**Status:** All systems operational
 
-Performance: Normal
+**Performance:** Normal
 
-Errors: 0
+**Errors:** 0
 
 Post-deployment monitoring active for next 24 hours."
 
-Workflow 3: Rollback Decision
+**Workflow 3:** Rollback Decision
 
 Post-deployment monitoring detects issue:
 
-Error rate spike: 0.1% → 5% (50x increase)
+**Error rate spike:** 0.1% → 5% (50x increase)
 
-Errors: "Payment processing failure"
+**Errors:** "Payment processing failure"
 
 ↓
 
@@ -6220,7 +6220,7 @@ Release Agent analyzes severity:
 
 - Affects 5% of users
 
-- Business impact: ~$10K/hour in lost transactions
+- **Business impact:** ~$10K/hour in lost transactions
 
 ↓
 
@@ -6228,9 +6228,9 @@ Triggers automated rollback decision:
 
 "🚨 CRITICAL: Deployment issue detected
 
-Issue: Payment processing errors (5% failure rate)
+**Issue:** Payment processing errors (5% failure rate)
 
-Impact: HIGH (revenue loss)
+**Impact:** HIGH (revenue loss)
 
 Automated rollback triggered in 5 minutes unless overridden.
 
@@ -6270,17 +6270,17 @@ Rollback decisions surfaced as urgent alerts
 
 Release metrics (DORA) available in analytics dashboards
 
-Layer 8: Knowledge & Continuous Improvement Agents
+**Layer 8:** Knowledge & Continuous Improvement Agents
 
-Agent 19: Knowledge & Document Management Agent
+**Agent 19:** Knowledge & Document Management Agent
 
-Purpose: Manages organizational knowledge, lessons learned, and formal document control.
+**Purpose:** Manages organizational knowledge, lessons learned, and formal document control.
 
 Key Capabilities:
 
-Knowledge Management: Lessons learned capture, best practice recommendations, contextual search
+**Knowledge Management:** Lessons learned capture, best practice recommendations, contextual search
 
-Document Control: Version control, approval workflows, retention management, lifecycle tracking
+**Document Control:** Version control, approval workflows, retention management, lifecycle tracking
 
 Template and artifact library management
 
@@ -6308,11 +6308,11 @@ NLP-based content analysis
 
 Methodology Adaptations:
 
-Agile: Captures sprint retrospectives, iteration lessons
+**Agile:** Captures sprint retrospectives, iteration lessons
 
-Waterfall: Captures phase lessons, formal project closure documentation
+**Waterfall:** Captures phase lessons, formal project closure documentation
 
-Both: Maintains document version control and templates
+**Both:** Maintains document version control and templates
 
 Integration Responsibilities:
 
@@ -6340,7 +6340,7 @@ Document metadata and classifications
 
 Key Workflows:
 
-Workflow 1: Lessons Learned Capture
+**Workflow 1:** Lessons Learned Capture
 
 Project Apollo closure initiated
 
@@ -6380,7 +6380,7 @@ What Went Well:
 
 Weekly demos with product owner led to early feedback and alignment.
 
-Recommendation: Continue this practice for future projects.
+**Recommendation:** Continue this practice for future projects.
 
 2. Agile Methodology Adoption (Medium Impact)
 
@@ -6392,13 +6392,13 @@ What Didn't Go Well:
 
 UI/UX vendor delayed by 1 week, impacting schedule.
 
-Recommendation: Build 2-week buffer for vendor dependencies.
+**Recommendation:** Build 2-week buffer for vendor dependencies.
 
 2. Technical Complexity (Medium Impact)
 
 Biometric integration more complex than estimated.
 
-Recommendation: Conduct deeper technical spikes before estimation.
+**Recommendation:** Conduct deeper technical spikes before estimation.
 
 Key Risks Encountered:
 
@@ -6412,21 +6412,21 @@ Stores in lessons learned repository
 
 ↓
 
-Tags for searchability: #vendor-management, #agile, #biometric, #mobile-app
+**Tags for searchability:** #vendor-management, #agile, #biometric, #mobile-app
 
-Workflow 2: Contextual Knowledge Retrieval (RAG)
+**Workflow 2:** Contextual Knowledge Retrieval (RAG)
 
-New project starting: Mobile app for inventory management
+**New project starting:** Mobile app for inventory management
 
 ↓
 
-User asks assistant: "Are there any lessons from past mobile app projects?"
+**User asks assistant:** "Are there any lessons from past mobile app projects?"
 
 ↓
 
 Knowledge & Document Management Agent performs semantic search:
 
-- Embedding of query: [vector representation]
+- **Embedding of query:** [vector representation]
 
 - Searches lessons learned repository using vector similarity
 
@@ -6466,7 +6466,7 @@ Real device testing essential. Simulators missed 40% of bugs.
 
 Would you like the full lessons learned documents?"
 
-Workflow 3: Document Lifecycle Management
+**Workflow 3:** Document Lifecycle Management
 
 Project charter document created
 
@@ -6474,19 +6474,19 @@ Project charter document created
 
 Knowledge Agent assigns metadata:
 
-- Document Type: Project Charter
+- **Document Type:** Project Charter
 
-- Project: Apollo
+- **Project:** Apollo
 
-- Version: 1.0
+- **Version:** 1.0
 
-- Author: Sarah Chen
+- **Author:** Sarah Chen
 
-- Created: Jan 10, 2026
+- **Created:** Jan 10, 2026
 
-- Classification: Internal Confidential
+- **Classification:** Internal Confidential
 
-- Retention Period: 7 years (per policy)
+- **Retention Period:** 7 years (per policy)
 
 ↓
 
@@ -6494,11 +6494,11 @@ Document goes through approval workflow
 
 ↓
 
-Once approved, version locked: v1.0 (Read-Only)
+**Once approved, version locked:** v1.0 (Read-Only)
 
 ↓
 
-User requests revision → new version created: v1.1 (Draft)
+**User requests revision → new version created:** v1.1 (Draft)
 
 ↓
 
@@ -6512,9 +6512,9 @@ Both versions retained with full history
 
 After project closure (June 30, 2026):
 
-- Final version: v1.3
+- **Final version:** v1.3
 
-- Agent schedules archival: July 1, 2033 (7 years)
+- **Agent schedules archival:** July 1, 2033 (7 years)
 
 ↓
 
@@ -6522,11 +6522,11 @@ In 2033, agent triggers archival:
 
 "Document retention period expired: Apollo Project Charter
 
-Action: Move to long-term archive storage
+**Action:** Move to long-term archive storage
 
-Compliance: Financial Services regulation requires 7-year retention ✓
+**Compliance:** Financial Services regulation requires 7-year retention ✓
 
-Archived to: /archive/2033/apollo/charter_v1.3.pdf"
+**Archived to:** /archive/2033/apollo/charter_v1.3.pdf"
 
 User Interactions:
 
@@ -6538,9 +6538,9 @@ Version history accessible in document canvas
 
 Lessons learned proactively suggested for similar new projects
 
-Agent 20: Continuous Improvement & Learning Agent
+**Agent 20:** Continuous Improvement & Learning Agent
 
-Purpose: Drives organizational learning, process optimization, and team development.
+**Purpose:** Drives organizational learning, process optimization, and team development.
 
 Key Capabilities:
 
@@ -6584,7 +6584,7 @@ Identifies when hybrid approaches are most effective
 
 Integration Responsibilities:
 
-Learning management systems (LMS: Cornerstone, Docebo, SAP SuccessFactors Learning)
+**Learning management systems (LMS:** Cornerstone, Docebo, SAP SuccessFactors Learning)
 
 Process mining tools (Celonis, UiPath Process Mining)
 
@@ -6612,7 +6612,7 @@ Process improvement experiments and results
 
 Key Workflows:
 
-Workflow 1: Process Bottleneck Identification
+**Workflow 1:** Process Bottleneck Identification
 
 Continuous Improvement Agent analyzes project lifecycle data across 25 projects
 
@@ -6622,23 +6622,23 @@ Applies process mining to identify bottlenecks:
 
 Average project duration by phase:
 
-- Initiating: 12 days (fast)
+- **Initiating:** 12 days (fast)
 
-- Planning: 45 days (BOTTLENECK - 60% longer than industry benchmark)
+- **Planning:** 45 days (BOTTLENECK - 60% longer than industry benchmark)
 
-- Executing: 90 days (normal)
+- **Executing:** 90 days (normal)
 
-- Closing: 8 days (fast)
+- **Closing:** 8 days (fast)
 
 ↓
 
 Drills into Planning phase:
 
-- Average time for WBS creation: 15 days (SLOW)
+- **Average time for WBS creation:** 15 days (SLOW)
 
-- Average time for budget approval: 22 days (VERY SLOW)
+- **Average time for budget approval:** 22 days (VERY SLOW)
 
-- Average time for schedule creation: 8 days (normal)
+- **Average time for schedule creation:** 8 days (normal)
 
 ↓
 
@@ -6646,9 +6646,9 @@ Root cause analysis:
 
 - Budget approvals stuck in multi-level approval chains
 
-- Average approval wait time: 18 days
+- **Average approval wait time:** 18 days
 
-- Bottleneck: CFO approval (14-day average wait)
+- **Bottleneck:** CFO approval (14-day average wait)
 
 ↓
 
@@ -6656,13 +6656,13 @@ Generates improvement recommendation:
 
 "Process Improvement Opportunity: Budget Approval Acceleration
 
-Problem: Budget approvals take 22 days on average (60% of planning phase)
+**Problem:** Budget approvals take 22 days on average (60% of planning phase)
 
-Root Cause: Multi-level approval chain, CFO bottleneck (14 days)
+**Root Cause:** Multi-level approval chain, CFO bottleneck (14 days)
 
-Impact: Delays project start by 3 weeks on average
+**Impact:** Delays project start by 3 weeks on average
 
-Portfolio Impact: Could accelerate 15 projects/year
+**Portfolio Impact:** Could accelerate 15 projects/year
 
 Recommendations:
 
@@ -6680,7 +6680,7 @@ Recommendations:
 
 → Estimated time savings: 5 days
 
-Estimated Portfolio Benefit: 15 projects × 8 days = 120 days saved/year
+**Estimated Portfolio Benefit:** 15 projects × 8 days = 120 days saved/year
 
 Run pilot program to test?"
 
@@ -6692,7 +6692,7 @@ PMO approves pilot
 
 Agent tracks pilot results and measures improvement
 
-Workflow 2: Skills Gap Analysis
+**Workflow 2:** Skills Gap Analysis
 
 Portfolio pipeline shows 5 AI/ML projects planned for next year
 
@@ -6702,39 +6702,39 @@ Continuous Improvement Agent analyzes team skills:
 
 Current skills inventory:
 
-- Data Science: 3 team members (proficient)
+- **Data Science:** 3 team members (proficient)
 
-- Machine Learning: 2 team members (expert)
+- **Machine Learning:** 2 team members (expert)
 
-- Python: 10 team members (proficient)
+- **Python:** 10 team members (proficient)
 
-- TensorFlow: 1 team member (expert)
+- **TensorFlow:** 1 team member (expert)
 
-- Cloud ML platforms: 0 team members
+- **Cloud ML platforms:** 0 team members
 
 ↓
 
 Estimates skills needed for pipeline:
 
-- Data Science: 6 FTEs required
+- **Data Science:** 6 FTEs required
 
-- Machine Learning: 5 FTEs required
+- **Machine Learning:** 5 FTEs required
 
-- TensorFlow: 4 FTEs required
+- **TensorFlow:** 4 FTEs required
 
-- Cloud ML (AWS SageMaker): 3 FTEs required
+- **Cloud ML (AWS SageMaker):** 3 FTEs required
 
 ↓
 
 Identifies gaps:
 
-- Data Science: 3 FTE gap
+- **Data Science:** 3 FTE gap
 
-- Machine Learning: 3 FTE gap
+- **Machine Learning:** 3 FTE gap
 
-- TensorFlow: 3 FTE gap
+- **TensorFlow:** 3 FTE gap
 
-- Cloud ML: 3 FTE gap (CRITICAL - zero current capability)
+- **Cloud ML:** 3 FTE gap (CRITICAL - zero current capability)
 
 ↓
 
@@ -6758,39 +6758,39 @@ Recommended Actions:
 
 Hire 2 ML Engineers with Cloud ML experience
 
-Cost: $300K/year
+**Cost:** $300K/year
 
-Timeline: 3 months to recruit
+**Timeline:** 3 months to recruit
 
 2. Internal Training (Medium-term)
 
 Upskill 4 Python developers to ML/TensorFlow
 
-Training: 6-month ML bootcamp
+**Training:** 6-month ML bootcamp
 
-Cost: $40K ($10K per person)
+**Cost:** $40K ($10K per person)
 
-Timeline: 6 months
+**Timeline:** 6 months
 
 3. Vendor Partnership (Short-term)
 
 Contract with ML consulting firm for initial projects
 
-Cost: $500K for 2 projects
+**Cost:** $500K for 2 projects
 
-Benefit: Knowledge transfer to internal team
+**Benefit:** Knowledge transfer to internal team
 
-Recommendation: Hybrid approach (hire 2, train 4, contract 1 vendor)
+**Recommendation:** Hybrid approach (hire 2, train 4, contract 1 vendor)
 
-Total Investment: $840K
+**Total Investment:** $840K
 
-Timeline: 6 months to full capability"
+**Timeline:** 6 months to full capability"
 
 ↓
 
 Routes to HR and PMO for approval and action
 
-Workflow 3: Methodology Performance Analysis
+**Workflow 3:** Methodology Performance Analysis
 
 Agent analyzes outcomes of 50 projects (25 Agile, 25 Waterfall) over 2 years
 
@@ -6800,23 +6800,23 @@ Compares performance metrics:
 
 Agile Projects:
 
-- On-time delivery: 72% (18/25)
+- **On-time delivery:** 72% (18/25)
 
-- On-budget: 76% (19/25)
+- **On-budget:** 76% (19/25)
 
-- Stakeholder satisfaction: 4.2/5
+- **Stakeholder satisfaction:** 4.2/5
 
-- Avg time to market: 6 months
+- **Avg time to market:** 6 months
 
 Waterfall Projects:
 
-- On-time delivery: 56% (14/25)
+- **On-time delivery:** 56% (14/25)
 
-- On-budget: 68% (17/25)
+- **On-budget:** 68% (17/25)
 
-- Stakeholder satisfaction: 3.8/5
+- **Stakeholder satisfaction:** 3.8/5
 
-- Avg time to market: 12 months
+- **Avg time to market:** 12 months
 
 ↓
 
@@ -6836,7 +6836,7 @@ Generates methodology recommendation:
 
 "Methodology Optimization Recommendations
 
-Analysis: Agile outperforms Waterfall by 16% on-time delivery
+**Analysis:** Agile outperforms Waterfall by 16% on-time delivery
 
 When to use Agile:
 
@@ -6866,7 +6866,7 @@ Hybrid Approach Recommended For:
 
 • Predicted success rate: 78% (combining strengths)
 
-Recommendation: Expand Agile use to 70% of portfolio
+**Recommendation:** Expand Agile use to 70% of portfolio
 
 (currently 50%)"
 
@@ -6880,11 +6880,11 @@ Process performance metrics available in analytics section
 
 Users can request benchmarking (“How do we compare to industry?”)
 
-Layer 9: Stakeholder Engagement & Reporting Agents
+**Layer 9:** Stakeholder Engagement & Reporting Agents
 
-Agent 21: Stakeholder Communication Agent
+**Agent 21:** Stakeholder Communication Agent
 
-Purpose: Manages communication with stakeholders, automates reporting, and tracks stakeholder engagement.
+**Purpose:** Manages communication with stakeholders, automates reporting, and tracks stakeholder engagement.
 
 Key Capabilities:
 
@@ -6920,9 +6920,9 @@ Natural language generation for status updates
 
 Methodology Adaptations:
 
-Agile: Sprint review prep, burndown sharing, demo scheduling
+**Agile:** Sprint review prep, burndown sharing, demo scheduling
 
-Waterfall: Phase gate presentations, milestone reports, formal status meetings
+**Waterfall:** Phase gate presentations, milestone reports, formal status meetings
 
 Different communication cadences
 
@@ -6952,23 +6952,23 @@ Stakeholder sentiment scores
 
 Key Workflows:
 
-Workflow 1: Automated Weekly Status Report
+**Workflow 1:** Automated Weekly Status Report
 
-Friday 4 PM: Weekly status report trigger
+**Friday 4 PM:** Weekly status report trigger
 
 ↓
 
 Stakeholder Communication Agent gathers data from agents:
 
-- Project Lifecycle: Overall health, current phase, milestones
+- **Project Lifecycle:** Overall health, current phase, milestones
 
-- Schedule: Timeline status, critical path
+- **Schedule:** Timeline status, critical path
 
-- Financial: Budget status, EVM metrics
+- **Financial:** Budget status, EVM metrics
 
-- Risk: Top risks and new risks
+- **Risk:** Top risks and new risks
 
-- Quality: Defect metrics, test progress
+- **Quality:** Defect metrics, test progress
 
 ↓
 
@@ -6976,27 +6976,27 @@ Identifies stakeholder groups and preferences:
 
 Executive Sponsor (John Smith):
 
-- Preference: High-level summary only
+- **Preference:** High-level summary only
 
-- Format: Email with dashboard image
+- **Format:** Email with dashboard image
 
-- Frequency: Weekly
+- **Frequency:** Weekly
 
 PMO Director (Maria Garcia):
 
-- Preference: Detailed metrics
+- **Preference:** Detailed metrics
 
-- Format: PDF report with all sections
+- **Format:** PDF report with all sections
 
-- Frequency: Weekly
+- **Frequency:** Weekly
 
 Project Team:
 
-- Preference: Sprint progress, blockers
+- **Preference:** Sprint progress, blockers
 
-- Format: Slack message
+- **Format:** Slack message
 
-- Frequency: Daily
+- **Frequency:** Daily
 
 ↓
 
@@ -7004,9 +7004,9 @@ Generates personalized reports:
 
 EMAIL TO JOHN (Executive):
 
-Subject: Project Apollo - Weekly Update (Week of Jan 13)
+**Subject:** Project Apollo - Weekly Update (Week of Jan 13)
 
-Status: 🟡 AT RISK (schedule concern)
+**Status:** 🟡 AT RISK (schedule concern)
 
 Quick Summary:
 
@@ -7018,7 +7018,7 @@ Quick Summary:
 
 • Next Milestone: Sprint Review (Jan 20)
 
-Action needed: None. Monitor vendor delivery next week.
+**Action needed:** None. Monitor vendor delivery next week.
 
 [View Dashboard]
 
@@ -7056,9 +7056,9 @@ Tracks engagement:
 
 - Maria downloaded PDF at 8:30 AM (Mon)
 
-- Team Slack message: 12 reactions, 3 replies
+- **Team Slack message:** 12 reactions, 3 replies
 
-Workflow 2: Meeting Scheduling and Preparation
+**Workflow 2:** Meeting Scheduling and Preparation
 
 Sprint Review scheduled for Jan 20
 
@@ -7074,19 +7074,19 @@ Stakeholder Communication Agent prepares:
 
 - Development team (required)
 
-- Stakeholders (optional: 5 people)
+- **Stakeholders (optional:** 5 people)
 
 2. Check calendar availability:
 
 - Queries Outlook calendar for all attendees
 
-- Finds optimal time: Jan 20, 2 PM (all required attendees free)
+- **Finds optimal time:** Jan 20, 2 PM (all required attendees free)
 
 3. Send calendar invitations:
 
-- Subject: Sprint 2 Review - Project Apollo
+- **Subject:** Sprint 2 Review - Project Apollo
 
-- Location: Zoom (auto-generates meeting link)
+- **Location:** Zoom (auto-generates meeting link)
 
 - Agenda:
 
@@ -7106,7 +7106,7 @@ Stakeholder Communication Agent prepares:
 
 "Story #12: Account balance display
 
-Demo: Show login → navigate to dashboard → balance displays"
+**Demo:** Show login → navigate to dashboard → balance displays"
 
 - Exports demo environment link
 
@@ -7118,7 +7118,7 @@ Demo: Show login → navigate to dashboard → balance displays"
 
 ↓
 
-After meeting: Agent listens to Zoom recording
+**After meeting:** Agent listens to Zoom recording
 
 ↓
 
@@ -7126,7 +7126,7 @@ Generates meeting summary:
 
 "Sprint 2 Review Summary
 
-Attendees: 8/10 (2 stakeholders absent)
+**Attendees:** 8/10 (2 stakeholders absent)
 
 Demos Presented:
 
@@ -7144,17 +7144,17 @@ Feedback:
 
 Action Items:
 
-1. UI Team: Increase mobile font size [Owner: Lisa Wong, Due: Jan 22]
+1. **UI Team:** Increase mobile font size [Owner: Lisa Wong, Due: Jan 22]
 
-2. Product Owner: Prioritize CSV export feature [Owner: John Smith, Due: Jan 21]
+2. **Product Owner:** Prioritize CSV export feature [Owner: John Smith, Due: Jan 21]
 
-Next Sprint Preview: Sprint 3 will focus on payment integration"
+**Next Sprint Preview:** Sprint 3 will focus on payment integration"
 
 ↓
 
 Distributes summary to all attendees
 
-Workflow 3: Sentiment Analysis and Engagement Tracking
+**Workflow 3:** Sentiment Analysis and Engagement Tracking
 
 Stakeholder Communication Agent monitors stakeholder interactions
 
@@ -7166,33 +7166,33 @@ Email from Project Sponsor (John Smith):
 
 "I'm concerned about the vendor delay. This could impact our launch date."
 
-Sentiment: 😟 Negative (concern detected)
+**Sentiment:** 😟 Negative (concern detected)
 
 Slack message from team member:
 
 "Great sprint! Really proud of what we shipped."
 
-Sentiment: 😊 Positive
+**Sentiment:** 😊 Positive
 
 Survey response from end-user:
 
 "The new portal is exactly what I needed!"
 
-Sentiment: 😊 Positive
+**Sentiment:** 😊 Positive
 
 ↓
 
 Aggregates sentiment scores:
 
-- Executive stakeholders: 60/100 (concerned about vendor risk)
+- **Executive stakeholders:** 60/100 (concerned about vendor risk)
 
-- Team members: 85/100 (high morale)
+- **Team members:** 85/100 (high morale)
 
-- End-users: 90/100 (very satisfied)
+- **End-users:** 90/100 (very satisfied)
 
 ↓
 
-Identifies trend: Executive sentiment declining over 3 weeks
+**Identifies trend:** Executive sentiment declining over 3 weeks
 
 ↓
 
@@ -7202,11 +7202,11 @@ Alerts PM via assistant:
 
 Executive sponsor sentiment declining:
 
-Week 1: 80/100
+**Week 1:** 80/100
 
-Week 2: 70/100
+**Week 2:** 70/100
 
-Week 3: 60/100 (current)
+**Week 3:** 60/100 (current)
 
 Key concerns (extracted from communications):
 
@@ -7214,7 +7214,7 @@ Key concerns (extracted from communications):
 
 • Timeline uncertainty
 
-Recommendation: Schedule 1-on-1 with sponsor to address concerns
+**Recommendation:** Schedule 1-on-1 with sponsor to address concerns
 
 [Schedule Meeting] [View Sentiment Details]"
 
@@ -7224,7 +7224,7 @@ PM schedules meeting to address concerns
 
 ↓
 
-Post-meeting, sentiment improves: 75/100
+**Post-meeting, sentiment improves:** 75/100
 
 User Interactions:
 
@@ -7236,17 +7236,17 @@ Meeting summaries automatically generated and distributed
 
 Sentiment alerts surface in assistant panel
 
-Agent 22: Analytics, Insights & Benefits Realization Agent
+**Agent 22:** Analytics, Insights & Benefits Realization Agent
 
-Purpose: Provides portfolio analytics, predictive insights, executive reporting, and post-delivery outcome tracking.
+**Purpose:** Provides portfolio analytics, predictive insights, executive reporting, and post-delivery outcome tracking.
 
 Key Capabilities:
 
-Real-Time Analytics: KPI calculation, trend analysis, predictive forecasting across portfolio
+**Real-Time Analytics:** KPI calculation, trend analysis, predictive forecasting across portfolio
 
-Executive Reporting: Portfolio dashboards, variance analysis, what-if scenarios
+**Executive Reporting:** Portfolio dashboards, variance analysis, what-if scenarios
 
-Benefits Realization: Post-project value tracking, outcome measurement, ROI validation
+**Benefits Realization:** Post-project value tracking, outcome measurement, ROI validation
 
 Machine learning model training and deployment
 
@@ -7304,7 +7304,7 @@ ML model registry and performance
 
 Key Workflows:
 
-Workflow 1: Portfolio Health Dashboard
+**Workflow 1:** Portfolio Health Dashboard
 
 Executive requests portfolio overview
 
@@ -7316,15 +7316,15 @@ Analytics & Insights Agent queries all active projects (25 projects)
 
 Gathers metrics from domain agents:
 
-- Project Lifecycle: Status, health scores
+- **Project Lifecycle:** Status, health scores
 
-- Schedule: On-time %
+- **Schedule:** On-time %
 
-- Financial: On-budget %, total spend
+- **Financial:** On-budget %, total spend
 
-- Risk: Portfolio risk score
+- **Risk:** Portfolio risk score
 
-- Resource: Utilization %
+- **Resource:** Utilization %
 
 ↓
 
@@ -7332,7 +7332,7 @@ Calculates portfolio KPIs:
 
 PORTFOLIO HEALTH SUMMARY (Q1 2026)
 
-Overall: 🟡 AT RISK (12% of projects critical)
+**Overall:** 🟡 AT RISK (12% of projects critical)
 
 Project Status:
 
@@ -7344,25 +7344,25 @@ Project Status:
 
 Schedule Performance:
 
-On-time: 72% (18/25 projects)
+**On-time:** 72% (18/25 projects)
 
-Delayed: 28% (7/25 projects, avg 2 weeks late)
+**Delayed:** 28% (7/25 projects, avg 2 weeks late)
 
 Financial Performance:
 
-On-budget: 80% (20/25 projects)
+**On-budget:** 80% (20/25 projects)
 
-Over-budget: 20% (5/25 projects, avg 8% overrun)
+**Over-budget:** 20% (5/25 projects, avg 8% overrun)
 
-Total Portfolio Value: $45.2M invested
+**Total Portfolio Value:** $45.2M invested
 
 Risk:
 
-Portfolio Risk Score: 58/100 (Medium)
+**Portfolio Risk Score:** 58/100 (Medium)
 
-High-severity risks: 12 across portfolio
+**High-severity risks:** 12 across portfolio
 
-Resource Utilization: 78% (target: 80-85%)
+**Resource Utilization:** 78% (target: 80-85%)
 
 ↓
 
@@ -7370,11 +7370,11 @@ Identifies anomalies:
 
 "⚠️ Anomaly detected: Project Zeta
 
-Schedule delay: 6 weeks (outlier, 3x portfolio average)
+**Schedule delay:** 6 weeks (outlier, 3x portfolio average)
 
-Root cause (AI analysis): Resource turnover (3 team members left)
+**Root cause (AI analysis):** Resource turnover (3 team members left)
 
-Recommendation: Immediate intervention required"
+**Recommendation:** Immediate intervention required"
 
 ↓
 
@@ -7408,7 +7408,7 @@ Renders interactive dashboard in canvas
 
 Executive can drill down into any metric or project
 
-Workflow 2: Predictive Analytics - Project Success Probability
+**Workflow 2:** Predictive Analytics - Project Success Probability
 
 Project Apollo in Planning phase
 
@@ -7418,35 +7418,35 @@ Analytics Agent calculates success probability using ML model:
 
 Input Features:
 
-- Project size: $1.23M (medium)
+- **Project size:** $1.23M (medium)
 
-- Duration: 6 months (short-medium)
+- **Duration:** 6 months (short-medium)
 
-- Team size: 7 people
+- **Team size:** 7 people
 
-- Team experience: 60% have done similar projects
+- **Team experience:** 60% have done similar projects
 
-- Technology stack: Familiar (React, Node.js)
+- **Technology stack:** Familiar (React, Node.js)
 
-- Methodology: Agile
+- **Methodology:** Agile
 
-- Complexity score: 6/10
+- **Complexity score:** 6/10
 
-- Stakeholder engagement: High
+- **Stakeholder engagement:** High
 
-- Vendor dependencies: 1 vendor
+- **Vendor dependencies:** 1 vendor
 
 ↓
 
 ML Model predicts:
 
-- On-time probability: 78%
+- **On-time probability:** 78%
 
-- On-budget probability: 82%
+- **On-budget probability:** 82%
 
-- Overall success probability: 75%
+- **Overall success probability:** 75%
 
-- Confidence: High (trained on 200 similar projects)
+- **Confidence:** High (trained on 200 similar projects)
 
 ↓
 
@@ -7462,7 +7462,7 @@ Generates predictive report:
 
 "Project Apollo Success Forecast
 
-Overall Success Probability: 75% ✅ (above 70% threshold)
+**Overall Success Probability:** 75% ✅ (above 70% threshold)
 
 Breakdown:
 
@@ -7482,13 +7482,13 @@ Risk Factors:
 
 ⚠️ Vendor dependency (12% risk contribution)
 
-Mitigation: Add 2-week buffer, weekly vendor check-ins
+**Mitigation:** Add 2-week buffer, weekly vendor check-ins
 
 ⚠️ Technology integration (10% risk contribution)
 
-Mitigation: Conduct proof-of-concept early
+**Mitigation:** Conduct proof-of-concept early
 
-Recommendation: PROCEED with suggested mitigations"
+**Recommendation:** PROCEED with suggested mitigations"
 
 ↓
 
@@ -7496,9 +7496,9 @@ PM implements suggested mitigations
 
 ↓
 
-Agent re-calculates: Success probability increases to 83%
+**Agent re-calculates:** Success probability increases to 83%
 
-Workflow 3: Benefits Realization Tracking
+**Workflow 3:** Benefits Realization Tracking
 
 Project Apollo completed June 22, 2026
 
@@ -7510,31 +7510,31 @@ Analytics Agent transitions to benefits realization mode
 
 Retrieves expected benefits from business case:
 
-- Reduce call center volume by 30% (baseline: 50K calls/month)
+- **Reduce call center volume by 30% (baseline:** 50K calls/month)
 
-- Improve customer satisfaction by 15 points (baseline: 65/100)
+- **Improve customer satisfaction by 15 points (baseline:** 65/100)
 
-- Annual savings: $900K
+- **Annual savings:** $900K
 
 ↓
 
 Integrates with operational systems to track actuals:
 
-- Call center system: Current call volume data
+- **Call center system:** Current call volume data
 
-- Customer feedback system: CSAT scores
+- **Customer feedback system:** CSAT scores
 
-- Financial system: Actual cost savings
+- **Financial system:** Actual cost savings
 
 ↓
 
 Month 1 post-launch (July 2026):
 
-Call volume: 48K (4% reduction - below target 30%)
+**Call volume:** 48K (4% reduction - below target 30%)
 
-CSAT: 68 (+3 points - below target +15)
+**CSAT:** 68 (+3 points - below target +15)
 
-Savings: $36K/month (on track for $432K/year - below target $900K)
+**Savings:** $36K/month (on track for $432K/year - below target $900K)
 
 ↓
 
@@ -7544,15 +7544,15 @@ Generates benefits realization alert:
 
 Project Apollo - 1 Month Post-Launch
 
-Status: 🟡 AT RISK
+**Status:** 🟡 AT RISK
 
 Call Volume Reduction:
 
-Target: -30% (35K calls/month)
+**Target:** 30% (35K calls/month)
 
-Actual: -4% (48K calls/month)
+**Actual:** 4% (48K calls/month)
 
-Gap: 26 percentage points below target
+**Gap:** 26 percentage points below target
 
 Root Cause Analysis (AI):
 
@@ -7570,9 +7570,9 @@ Recommendations:
 
 Forecast:
 
-If no action taken: Will achieve only 40% of projected benefits
+**If no action taken:** Will achieve only 40% of projected benefits
 
-If recommendations implemented: 80% probability of hitting targets by Month 6"
+**If recommendations implemented:** 80% probability of hitting targets by Month 6"
 
 ↓
 
@@ -7580,9 +7580,9 @@ Stakeholder implements recommendations
 
 ↓
 
-Month 3: Call volume reduction improves to 22%
+**Month 3:** Call volume reduction improves to 22%
 
-Month 6: Call volume reduction achieves 28% (close to 30% target)
+**Month 6:** Call volume reduction achieves 28% (close to 30% target)
 
 ↓
 
@@ -7592,15 +7592,15 @@ Agent validates benefits:
 
 6-month review:
 
-• Call volume: -28% (93% of target)
+**• Call volume:** 28% (93% of target)
 
 • CSAT: +14 points (93% of target)
 
 • Savings: $800K annualized (89% of target)
 
-ROI Validation: 71% (as projected in business case)
+**ROI Validation:** 71% (as projected in business case)
 
-Status: Benefits largely realized. Minor gap acceptable."
+**Status:** Benefits largely realized. Minor gap acceptable."
 
 User Interactions:
 
@@ -7612,11 +7612,11 @@ Users request what-if scenarios (“What if we add 2 developers?”)
 
 Benefits realization dashboards accessible in monitoring section
 
-Layer 10: Platform Services Agents
+**Layer 10:** Platform Services Agents
 
-Agent 23: Data Synchronization & Consistency Agent
+**Agent 23:** Data Synchronization & Consistency Agent
 
-Purpose: Maintains data consistency across agents and external systems of record.
+**Purpose:** Maintains data consistency across agents and external systems of record.
 
 Key Capabilities:
 
@@ -7666,7 +7666,7 @@ Reconciliation logs and conflict resolution history
 
 Key Workflows:
 
-Workflow 1: Data Reconciliation
+**Workflow 1:** Data Reconciliation
 
 Data Sync Agent runs daily reconciliation job
 
@@ -7674,29 +7674,29 @@ Data Sync Agent runs daily reconciliation job
 
 Compares project data across systems:
 
-System A (Internal DB): Project Apollo budget = $1,230,000
+**System A (Internal DB):** Project Apollo budget = $1,230,000
 
-System B (Planview): Project Apollo budget = $1,245,500
+**System B (Planview):** Project Apollo budget = $1,245,500
 
-System C (SAP): Project Apollo budget = $1,230,000
+**System C (SAP):** Project Apollo budget = $1,230,000
 
 ↓
 
-Detects inconsistency: Planview has different value
+**Detects inconsistency:** Planview has different value
 
 ↓
 
 Checks audit log:
 
-- Budget updated in Internal DB: Jan 15 (change request approved)
+- **Budget updated in Internal DB:** Jan 15 (change request approved)
 
 - Budget NOT updated in Planview (sync failed due to network error)
 
-- SAP updated successfully: Jan 15
+- **SAP updated successfully:** Jan 15
 
 ↓
 
-Determines correct value: $1,245,500 (from approved change request)
+**Determines correct value:** $1,245,500 (from approved change request)
 
 ↓
 
@@ -7706,7 +7706,7 @@ Auto-remediates:
 
 - Logs reconciliation action
 
-- Publishes event: data.reconciled
+- **Publishes event:** data.reconciled
 
 ↓
 
@@ -7716,15 +7716,15 @@ Notifies Financial Agent:
 
 Planview budget updated from $1,230K → $1,245,500"
 
-Workflow 2: Concurrent Update Conflict
+**Workflow 2:** Concurrent Update Conflict
 
 Two agents attempt to update same data simultaneously:
 
 Time 11:00:00.000:
 
-- Resource Agent updates Sarah Chen allocation: 75% → 50%
+- **Resource Agent updates Sarah Chen allocation:** 75% → 50%
 
-- Schedule Agent updates Sarah Chen allocation: 75% → 100%
+- **Schedule Agent updates Sarah Chen allocation:** 75% → 100%
 
 ↓
 
@@ -7734,15 +7734,15 @@ Data Sync Agent detects conflict
 
 Applies conflict resolution rules:
 
-Rule: Latest timestamp wins
+**Rule:** Latest timestamp wins
 
-Resource Agent timestamp: 11:00:00.123
+**Resource Agent timestamp:** 11:00:00.123
 
-Schedule Agent timestamp: 11:00:00.456 (LATER)
+**Schedule Agent timestamp:** 11:00:00.456 (LATER)
 
 ↓
 
-Resolves conflict: Schedule Agent update wins (100%)
+**Resolves conflict:** Schedule Agent update wins (100%)
 
 ↓
 
@@ -7750,11 +7750,11 @@ Notifies Resource Agent:
 
 "⚠️ Your update to Sarah Chen allocation was overwritten
 
-Your change: 75% → 50%
+**Your change:** 75% → 50%
 
-Newer change: 75% → 100% (from Schedule Agent at 11:00:00.456)
+**Newer change:** 75% → 100% (from Schedule Agent at 11:00:00.456)
 
-Current value: 100%
+**Current value:** 100%
 
 If this is incorrect, please update again."
 
@@ -7770,9 +7770,9 @@ Data quality alerts surface in System Health dashboard
 
 Conflict resolution decisions logged in audit trail
 
-Agent 24: Workflow & Process Engine Agent
+**Agent 24:** Workflow & Process Engine Agent
 
-Purpose: Executes complex, multi-agent workflows and business processes.
+**Purpose:** Executes complex, multi-agent workflows and business processes.
 
 Key Capabilities:
 
@@ -7804,9 +7804,9 @@ Project closure (deliverable acceptance → lessons learned → benefits trackin
 
 Methodology Adaptations:
 
-Agile: Sprint workflow (planning → execution → review → retro)
+**Agile:** Sprint workflow (planning → execution → review → retro)
 
-Waterfall: Phase workflow (initiate → plan → execute → monitor → close)
+**Waterfall:** Phase workflow (initiate → plan → execute → monitor → close)
 
 Different workflow definitions per methodology
 
@@ -7832,15 +7832,15 @@ Compensation transaction logs
 
 Key Workflows:
 
-Workflow 1: Project Initiation Workflow
+**Workflow 1:** Project Initiation Workflow
 
-Trigger: Business case approved
+**Trigger:** Business case approved
 
 ↓
 
 Workflow Engine initiates "Project Initiation" workflow:
 
-Step 1: Create project record
+**Step 1:** Create project record
 
 → Calls Project Lifecycle Agent
 
@@ -7848,7 +7848,7 @@ Step 1: Create project record
 
 ✅ Project created: ID = APOLLO-001
 
-Step 2: Generate charter (parallel with Step 3)
+**Step 2:** Generate charter (parallel with Step 3)
 
 → Calls Project Definition Agent
 
@@ -7856,7 +7856,7 @@ Step 2: Generate charter (parallel with Step 3)
 
 ✅ Charter draft ready
 
-Step 3: Assign resources (parallel with Step 2)
+**Step 3:** Assign resources (parallel with Step 2)
 
 → Calls Resource Management Agent
 
@@ -7864,7 +7864,7 @@ Step 3: Assign resources (parallel with Step 2)
 
 ✅ PM assigned: Sarah Chen
 
-Step 4: Charter approval
+**Step 4:** Charter approval
 
 → Calls Approval Workflow Agent
 
@@ -7874,7 +7874,7 @@ Step 4: Charter approval
 
 ✅ Charter approved (2 days later)
 
-Step 5: Baseline creation
+**Step 5:** Baseline creation
 
 → Calls Schedule Agent (create schedule baseline)
 
@@ -7884,7 +7884,7 @@ Step 5: Baseline creation
 
 ✅ Baselines created
 
-Step 6: Transition to Planning
+**Step 6:** Transition to Planning
 
 → Calls Project Lifecycle Agent
 
@@ -7896,21 +7896,21 @@ Step 6: Transition to Planning
 
 ↓
 
-Total workflow duration: 5 days (including 2-day approval wait)
+**Total workflow duration:** 5 days (including 2-day approval wait)
 
 ↓
 
 Workflow Engine logs completion and archives workflow state
 
-Workflow 2: Saga Pattern with Compensation
+**Workflow 2:** Saga Pattern with Compensation
 
-Trigger: Budget change request (increase by $15K)
+**Trigger:** Budget change request (increase by $15K)
 
 ↓
 
 Workflow Engine starts "Budget Change" saga:
 
-Step 1: Update budget baseline
+**Step 1:** Update budget baseline
 
 → Calls Financial Agent
 
@@ -7918,7 +7918,7 @@ Step 1: Update budget baseline
 
 ✅ Success (compensatable action recorded)
 
-Step 2: Update Planview
+**Step 2:** Update Planview
 
 → Calls Planview connector
 
@@ -7930,7 +7930,7 @@ Step 2: Update Planview
 
 Saga detects failure → triggers compensation:
 
-Compensation Step 1: Rollback budget baseline
+**Compensation Step 1:** Rollback budget baseline
 
 → Calls Financial Agent
 
@@ -7948,11 +7948,11 @@ Notifies user:
 
 "❌ Budget update failed
 
-Attempted: Update budget to $1,245,500
+**Attempted:** Update budget to $1,245,500
 
-Failure: Planview API timeout
+**Failure:** Planview API timeout
 
-Rollback: Budget reverted to $1,230K
+**Rollback:** Budget reverted to $1,230K
 
 Your data is consistent. Please retry later."
 
@@ -7968,9 +7968,9 @@ Users see workflow progress in assistant (e.g., “Charter approval pending…�
 
 Failed workflows surface as alerts with retry options
 
-Agent 25: System Health & Monitoring Agent
+**Agent 25:** System Health & Monitoring Agent
 
-Purpose: Monitors system health, agent performance, and operational excellence.
+**Purpose:** Monitors system health, agent performance, and operational excellence.
 
 Key Capabilities:
 
@@ -8004,15 +8004,15 @@ Root cause analysis for incidents
 
 Integration Responsibilities:
 
-Application performance monitoring (APM): Datadog, New Relic, AppDynamics
+**Application performance monitoring (APM):** Datadog, New Relic, AppDynamics
 
-Logging platforms: Splunk, Elasticsearch (ELK stack)
+**Logging platforms:** Splunk, Elasticsearch (ELK stack)
 
-Monitoring systems: Prometheus, Grafana
+**Monitoring systems:** Prometheus, Grafana
 
-Incident management: PagerDuty, Opsgenie
+**Incident management:** PagerDuty, Opsgenie
 
-Distributed tracing: Jaeger, Zipkin
+**Distributed tracing:** Jaeger, Zipkin
 
 Data Ownership:
 
@@ -8028,7 +8028,7 @@ System topology and dependencies
 
 Key Workflows:
 
-Workflow 1: Agent Health Monitoring
+**Workflow 1:** Agent Health Monitoring
 
 System Health Agent monitors all 25 agents every 60 seconds
 
@@ -8038,27 +8038,27 @@ Collects metrics:
 
 Intent Router Agent:
 
-- Status: ✅ Healthy
+- **Status:** ✅ Healthy
 
-- Response time: 120ms (p95)
+- **Response time:** 120ms (p95)
 
-- Request rate: 45 req/min
+- **Request rate:** 45 req/min
 
-- Error rate: 0.1%
+- **Error rate:** 0.1%
 
 Financial Management Agent:
 
-- Status: ⚠️ Degraded
+- **Status:** ⚠️ Degraded
 
-- Response time: 2,500ms (p95) ← SLOW (baseline: 800ms)
+- **Response time:** 2,500ms (p95) ← SLOW (baseline: 800ms)
 
-- Request rate: 12 req/min
+- **Request rate:** 12 req/min
 
-- Error rate: 2.3% ← ELEVATED (baseline: 0.5%)
+- **Error rate:** 2.3% ← ELEVATED (baseline: 0.5%)
 
 ↓
 
-Detects anomaly: Financial Agent degraded
+**Detects anomaly:** Financial Agent degraded
 
 ↓
 
@@ -8066,7 +8066,7 @@ Root cause analysis:
 
 - Database query slow (5-second query detected)
 
-- Likely cause: Missing database index
+- **Likely cause:** Missing database index
 
 ↓
 
@@ -8076,9 +8076,9 @@ Auto-remediation attempt:
 
 - Monitors for 2 minutes
 
-- Response time improves: 2,500ms → 900ms ✅
+- **Response time improves:** 2,500ms → 900ms ✅
 
-- Error rate normalizes: 2.3% → 0.6% ✅
+- **Error rate normalizes:** 2.3% → 0.6% ✅
 
 ↓
 
@@ -8090,15 +8090,15 @@ Logs incident:
 
 "Financial Agent degraded performance (auto-resolved)
 
-Duration: 5 minutes
+**Duration:** 5 minutes
 
-Root cause: Database query performance
+**Root cause:** Database query performance
 
-Resolution: Agent restart
+**Resolution:** Agent restart
 
-Recommendation: Add database index on transactions table"
+**Recommendation:** Add database index on transactions table"
 
-Workflow 2: Predictive Failure Detection
+**Workflow 2:** Predictive Failure Detection
 
 System Health Agent monitors Resource Management Agent
 
@@ -8108,9 +8108,9 @@ Detects pattern:
 
 - Memory usage trending upward
 
-- Current: 75% (was 60% 1 hour ago)
+- **Current:** 75% (was 60% 1 hour ago)
 
-- Trend: +15% per hour
+- **Trend:** +15% per hour
 
 ↓
 
@@ -8118,7 +8118,7 @@ Predictive model forecasts:
 
 - Memory will reach 100% in 1.5 hours
 
-- Likely result: Agent crash due to out-of-memory (OOM)
+- **Likely result:** Agent crash due to out-of-memory (OOM)
 
 ↓
 
@@ -8126,11 +8126,11 @@ Generates proactive alert:
 
 "⚠️ PREDICTIVE ALERT: Resource Management Agent
 
-Issue: Memory leak detected
+**Issue:** Memory leak detected
 
-Current memory: 75%
+**Current memory:** 75%
 
-Forecast: Out of memory in 1.5 hours (11:30 AM)
+**Forecast:** Out of memory in 1.5 hours (11:30 AM)
 
 Recommended action:
 
@@ -8156,11 +8156,11 @@ System Health Agent orchestrates graceful restart:
 
 - Resumes traffic
 
-Total downtime: 28 seconds
+**Total downtime:** 28 seconds
 
 ↓
 
-Crisis averted: Agent continues operating normally
+**Crisis averted:** Agent continues operating normally
 
 User Interactions:
 
@@ -8362,7 +8362,7 @@ Budget Entity:
 
 "forecast_cost": 850000.00,
 
-"variance": -148000.00,
+**"variance":** 148000.00,
 
 "currency": "USD",
 
@@ -8380,29 +8380,29 @@ Universal Standards Applied Across All Agents:
 
 Identifiers:
 
-Format: UUID v4 or human-readable prefix format (e.g., APOLLO-001)
+**Format:** UUID v4 or human-readable prefix format (e.g., APOLLO-001)
 
-Uniqueness: Globally unique across entire system
+**Uniqueness:** Globally unique across entire system
 
-Immutability: IDs never change once assigned
+**Immutability:** IDs never change once assigned
 
 Timestamps:
 
-Format: ISO 8601 with timezone (e.g., 2026-01-15T14:30:00Z)
+**Format:** ISO 8601 with timezone (e.g., 2026-01-15T14:30:00Z)
 
-Timezone: All stored in UTC, converted to user timezone on display
+**Timezone:** All stored in UTC, converted to user timezone on display
 
-Precision: Millisecond precision where needed
+**Precision:** Millisecond precision where needed
 
 Status Enumerations:
 
-Project Status: draft, proposed, approved, active, on_hold, completed, cancelled
+**Project Status:** draft, proposed, approved, active, on_hold, completed, cancelled
 
-Task Status: not_started, in_progress, blocked, completed, cancelled
+**Task Status:** not_started, in_progress, blocked, completed, cancelled
 
-Approval Status: pending, approved, rejected, expired
+**Approval Status:** pending, approved, rejected, expired
 
-Risk Status: proposed, active, mitigated, accepted, closed
+**Risk Status:** proposed, active, mitigated, accepted, closed
 
 Currency:
 
@@ -8410,25 +8410,25 @@ All financial data includes currency code (ISO 4217)
 
 System supports multi-currency with conversion rates
 
-Primary currency: USD (configurable per organization)
+**Primary currency:** USD (configurable per organization)
 
 Versioning:
 
 All baseline entities (scope, schedule, budget) are versioned
 
-Format: Semantic versioning (v1.0, v1.1, v2.0)
+**Format:** Semantic versioning (v1.0, v1.1, v2.0)
 
 Full version history maintained for audit
 
 Audit Fields:
 
-Every entity includes: created_at, created_by, updated_at, updated_by
+**Every entity includes:** created_at, created_by, updated_at, updated_by
 
-Soft deletes: deleted_at, deleted_by(records never physically deleted)
+**Soft deletes:** deleted_at, deleted_by(records never physically deleted)
 
 Data Flow Patterns
 
-Pattern 1: Event-Driven Data Propagation
+**Pattern 1:** Event-Driven Data Propagation
 
 When data changes in one agent, events notify dependent agents:
 
@@ -8488,7 +8488,7 @@ Asynchronous (non-blocking operations)
 
 Audit trail (all events logged)
 
-Pattern 2: API-Based Data Retrieval
+**Pattern 2:** API-Based Data Retrieval
 
 When an agent needs current data, it queries the owning agent’s API:
 
@@ -8556,7 +8556,7 @@ Single source of truth (no stale copies)
 
 Access control (API enforces permissions)
 
-Pattern 3: Cache-Aside for Performance
+**Pattern 3:** Cache-Aside for Performance
 
 Frequently accessed data is cached to reduce latency:
 
@@ -8566,7 +8566,7 @@ Analytics Agent needs portfolio metrics (requested every 30 seconds by dashboard
 
 Check Redis cache:
 
-Key: "portfolio_metrics:2026-01"
+**Key:** "portfolio_metrics:2026-01"
 
 ↓
 
@@ -8582,7 +8582,7 @@ Cache MISS → Query agents via API (500ms response time)
 
 ↓
 
-Store in cache with TTL (time-to-live: 5 minutes)
+**Store in cache with TTL (time-to-live:** 5 minutes)
 
 ↓
 
@@ -8590,11 +8590,11 @@ Return data to requester
 
 ↓
 
-Event received: "portfolio.project_updated"
+**Event received:** "portfolio.project_updated"
 
 ↓
 
-Invalidate cache key: "portfolio_metrics:2026-01"
+**Invalidate cache key:** "portfolio_metrics:2026-01"
 
 ↓
 
@@ -8612,7 +8612,7 @@ Data Storage Architecture
 
 Operational Data Store (PostgreSQL)
 
-Purpose: Transactional data for real-time operations
+**Purpose:** Transactional data for real-time operations
 
 Schema Design:
 
@@ -8656,7 +8656,7 @@ Daily snapshots retained for 30 days
 
 Event Store (EventStoreDB or Kafka with retention)
 
-Purpose: Complete audit trail and event sourcing
+**Purpose:** Complete audit trail and event sourcing
 
 Schema Design:
 
@@ -8688,7 +8688,7 @@ Compressed and archived to cold storage after 2 years
 
 Analytics Data Platform (Snowflake/Databricks)
 
-Purpose: Historical analysis, reporting, ML model training
+**Purpose:** Historical analysis, reporting, ML model training
 
 Schema Design:
 
@@ -8728,27 +8728,27 @@ Compressed columnar storage (Parquet format)
 
 Cache Layer (Redis)
 
-Purpose: High-performance caching for frequently accessed data
+**Purpose:** High-performance caching for frequently accessed data
 
 Data Stored:
 
-Portfolio dashboards (TTL: 5 minutes)
+**Portfolio dashboards (TTL:** 5 minutes)
 
-Project health scores (TTL: 15 minutes)
+**Project health scores (TTL:** 15 minutes)
 
-Resource availability (TTL: 10 minutes)
+**Resource availability (TTL:** 10 minutes)
 
-User session data (TTL: 24 hours)
+**User session data (TTL:** 24 hours)
 
-API response cache (TTL: varies by endpoint)
+**API response cache (TTL:** varies by endpoint)
 
 Cache Invalidation Strategies:
 
-Event-based: Events trigger cache invalidation
+**Event-based:** Events trigger cache invalidation
 
-TTL-based: Data expires after time period
+**TTL-based:** Data expires after time period
 
-Manual: Agents can explicitly invalidate cache keys
+**Manual:** Agents can explicitly invalidate cache keys
 
 High Availability:
 
@@ -8760,7 +8760,7 @@ Automatic failover
 
 Document Store (MongoDB - Optional)
 
-Purpose: Unstructured or semi-structured documents
+**Purpose:** Unstructured or semi-structured documents
 
 Use Cases:
 
@@ -8806,7 +8806,7 @@ Risk score = probability × impact (auto-calculated)
 
 Data Completeness:
 
-Required fields: project name, PM, start date, methodology
+**Required fields:** project name, PM, start date, methodology
 
 Missing required fields trigger validation errors
 
@@ -8828,49 +8828,49 @@ Completeness Score:
 
 % of records with all required fields populated
 
-Target: >95%
+**Target:** >95%
 
 Accuracy Score:
 
 % of records passing validation rules
 
-Target: >98%
+**Target:** >98%
 
 Consistency Score:
 
 % of records consistent across all systems
 
-Target: >99%
+**Target:** >99%
 
 Timeliness Score:
 
 % of data updated within SLA (e.g., actuals updated within 24 hours)
 
-Target: >90%
+**Target:** >90%
 
 Data Quality Dashboard:
 
 Data Quality Overview (January 2026)
 
-Overall Score: 97/100 ✅
+**Overall Score:** 97/100 ✅
 
-Completeness: 96% ✅ (Target: 95%)
+**Completeness:** 96% ✅ (Target: 95%)
 
-Issue: 12 projects missing budget data
+**Issue:** 12 projects missing budget data
 
-Accuracy: 99% ✅ (Target: 98%)
+**Accuracy:** 99% ✅ (Target: 98%)
 
-Issue: 3 resources with invalid email addresses
+**Issue:** 3 resources with invalid email addresses
 
-Consistency: 98% ⚠️ (Target: 99%)
+**Consistency:** 98% ⚠️ (Target: 99%)
 
-Issue: 8 projects have budget mismatch between internal DB and SAP
+**Issue:** 8 projects have budget mismatch between internal DB and SAP
 
-Action: Auto-remediation scheduled
+**Action:** Auto-remediation scheduled
 
-Timeliness: 92% ✅ (Target: 90%)
+**Timeliness:** 92% ✅ (Target: 90%)
 
-Issue: 15% of timesheets submitted late
+**Issue:** 15% of timesheets submitted late
 
 Automated Data Remediation
 
@@ -8880,7 +8880,7 @@ Missing Data:
 
 Infers missing values from related records
 
-Example: Missing project end date → infer from schedule baseline
+**Example:** Missing project end date → infer from schedule baseline
 
 Inconsistent Data:
 
@@ -8892,7 +8892,7 @@ Duplicate Data:
 
 Detects and merges duplicate records
 
-Example: Same person entered twice with different IDs
+**Example:** Same person entered twice with different IDs
 
 Stale Data:
 
@@ -8956,9 +8956,9 @@ Right to Erasure:
 
 Users can request deletion (with exceptions)
 
-Soft delete: Data marked as deleted but retained for compliance
+**Soft delete:** Data marked as deleted but retained for compliance
 
-Hard delete: Only after retention periods expire
+**Hard delete:** Only after retention periods expire
 
 Right to Portability:
 
@@ -8968,13 +8968,13 @@ Delivered via secure download link
 
 Data Retention:
 
-Financial data: 7 years (regulatory requirement)
+**Financial data:** 7 years (regulatory requirement)
 
-Project data: 5 years (business need)
+**Project data:** 5 years (business need)
 
-Audit logs: 10 years (compliance requirement)
+**Audit logs:** 10 years (compliance requirement)
 
-Personal data: Minimum necessary, deleted when no longer needed
+**Personal data:** Minimum necessary, deleted when no longer needed
 
 Integration Architecture
 
@@ -8990,11 +8990,11 @@ Agents use shared connector libraries for consistency
 
 Bi-Directional Synchronization:
 
-Read from SoRs: Agents pull latest data
+**Read from SoRs:** Agents pull latest data
 
-Write to SoRs: Agents push updates (with user approval)
+**Write to SoRs:** Agents push updates (with user approval)
 
-Event-driven: SoRs push change notifications via webhooks
+**Event-driven:** SoRs push change notifications via webhooks
 
 Eventual Consistency:
 
@@ -9124,11 +9124,11 @@ Integration Patterns by Agent
 
 Financial Management Agent → SAP Integration
 
-Scenario: Sync budget data bi-directionally
+**Scenario:** Sync budget data bi-directionally
 
 Read Pattern (SAP → Agent):
 
-Schedule: Every 15 minutes (cron job)
+**Schedule:** Every 15 minutes (cron job)
 
 ↓
 
@@ -9136,7 +9136,7 @@ Financial Agent queries SAP for budget changes:
 
 GET /sap/api/projects/{project_code}/budget
 
-Filter: updated_since = last_sync_timestamp
+**Filter:** updated_since = last_sync_timestamp
 
 ↓
 
@@ -9166,7 +9166,7 @@ Financial Agent updates internal database
 
 ↓
 
-Publishes event: budget.updated
+**Publishes event:** budget.updated
 
 ↓
 
@@ -9238,15 +9238,15 @@ Updates internal database
 
 ↓
 
-Flags for review: "Budget changed outside system by CFO"
+**Flags for review:** "Budget changed outside system by CFO"
 
 Resource Management Agent → Workday Integration
 
-Scenario: Sync employee data and skills
+**Scenario:** Sync employee data and skills
 
 Read Pattern:
 
-Schedule: Nightly at 2 AM (batch sync)
+**Schedule:** Nightly at 2 AM (batch sync)
 
 ↓
 
@@ -9254,19 +9254,19 @@ Resource Agent queries Workday:
 
 GET /workday/api/workers
 
-Filter: updated_since = yesterday
+**Filter:** updated_since = yesterday
 
 ↓
 
 Workday returns employee changes:
 
-- New hires: 3 employees
+- **New hires:** 3 employees
 
-- Terminations: 1 employee
+- **Terminations:** 1 employee
 
-- Skill updates: 5 employees
+- **Skill updates:** 5 employees
 
-- Manager changes: 2 employees
+- **Manager changes:** 2 employees
 
 ↓
 
@@ -9292,11 +9292,11 @@ Resource Agent cannot write back to Workday
 
 Project Definition Agent → Jira Integration
 
-Scenario: Bi-directional sync of requirements and user stories
+**Scenario:** Bi-directional sync of requirements and user stories
 
 Read Pattern:
 
-Real-time: Jira webhook triggers on issue update
+**Real-time:** Jira webhook triggers on issue update
 
 ↓
 
@@ -9328,7 +9328,7 @@ Updates internal work item record
 
 ↓
 
-Publishes event: work_item.updated
+**Publishes event:** work_item.updated
 
 Write Pattern:
 
@@ -9364,19 +9364,19 @@ POST /jira/api/issue
 
 ↓
 
-Jira creates issue and returns ID: APOLLO-98
+**Jira creates issue and returns ID:** APOLLO-98
 
 ↓
 
-Agent stores mapping: internal_id → APOLLO-98
+**Agent stores mapping:** internal_id → APOLLO-98
 
 Integration Conflict Resolution
 
-Scenario: Data changed in both systems simultaneously
+**Scenario:** Data changed in both systems simultaneously
 
-Example: Task status updated in both Jira and internal system
+**Example:** Task status updated in both Jira and internal system
 
-T=0: Task status in both systems: "In Progress"
+**T=0:** Task status in both systems: "In Progress"
 
 ↓
 
@@ -9392,27 +9392,27 @@ T=10:05:00: Sync job runs
 
 Conflict detected:
 
-Internal system: "Completed"
+**Internal system:** "Completed"
 
-Jira: "Blocked"
+**Jira:** "Blocked"
 
 ↓
 
 Conflict resolution strategy (configurable):
 
-Option 1: Latest timestamp wins
+**Option 1:** Latest timestamp wins
 
 → Jira update (10:00:05) > Internal (10:00:00)
 
 → Jira wins: Final status = "Blocked"
 
-Option 2: System of record wins
+**Option 2:** System of record wins
 
 → Jira configured as SoR for task status
 
 → Jira wins: Final status = "Blocked"
 
-Option 3: Manual resolution
+**Option 3:** Manual resolution
 
 → Alert user to conflict
 
@@ -9436,25 +9436,25 @@ Sync Success Rate:
 
 % of successful sync operations
 
-Target: >99.5%
+**Target:** >99.5%
 
 Sync Latency:
 
 Time from change in SoR to update in agent
 
-Target: <5 minutes (p95)
+**Target:** <5 minutes (p95)
 
 Error Rate:
 
 % of failed API calls
 
-Target: <0.5%
+**Target:** <0.5%
 
 Data Freshness:
 
 Age of cached data from SoR
 
-Target: <15 minutes
+**Target:** <15 minutes
 
 Integration Health Dashboard:
 
@@ -9482,9 +9482,9 @@ Integration Health (January 15, 2026)
 
 ⚠️ Alert: SAP sync latency elevated (m vs m target)
 
-Root cause: Database query performance
+**Root cause:** Database query performance
 
-Action: DBA investigating
+**Action:** DBA investigating
 
 Security & Access Control
 
@@ -9544,7 +9544,7 @@ Required for privileged accounts (PMO admins, executives)
 
 Optional but recommended for all users
 
-Methods: Authenticator app, SMS, hardware token
+**Methods:** Authenticator app, SMS, hardware token
 
 Agent-to-Agent Authentication
 
@@ -9688,7 +9688,7 @@ System revokes Sarah's Apollo-specific permissions
 
 ↓
 
-Sarah retains: View-only access to completed projects
+**Sarah retains:** View-only access to completed projects
 
 Business Unit-Based Access:
 
@@ -9840,7 +9840,7 @@ Agent authenticates to Vault using service account token
 
 Vault validates token and checks policy:
 
-Policy: "financial_agent can read secret/sap/api-key"
+**Policy:** "financial_agent can read secret/sap/api-key"
 
 ↓
 
@@ -9944,7 +9944,7 @@ Encryption
 
 Data in Transit:
 
-TLS 1.3 for all HTTPS connections (minimum: TLS 1.2)
+**TLS 1.3 for all HTTPS connections (minimum:** TLS 1.2)
 
 mTLS for agent-to-agent communication
 
@@ -9952,19 +9952,19 @@ VPN or dedicated connection (AWS Direct Connect, Azure ExpressRoute) for SoR int
 
 Data at Rest:
 
-Database encryption: AES-256
+**Database encryption:** AES-256
 
-File storage encryption: AES-256
+**File storage encryption:** AES-256
 
-Backup encryption: AES-256
+**Backup encryption:** AES-256
 
-Key management: AWS KMS, Azure Key Vault, or HashiCorp Vault
+**Key management:** AWS KMS, Azure Key Vault, or HashiCorp Vault
 
 Data in Use:
 
 Secrets decrypted in memory only (never written to disk)
 
-Secure enclaves for sensitive operations (optional: AWS Nitro Enclaves)
+**Secure enclaves for sensitive operations (optional:** AWS Nitro Enclaves)
 
 Web Application Firewall (WAF)
 
@@ -9986,7 +9986,7 @@ Rate Limiting:
 
 10,000 requests/min per agent (burst: 500)
 
-Blocked IPs: Geo-blocked countries (configurable)
+**Blocked IPs:** Geo-blocked countries (configurable)
 
 Audit & Compliance
 
@@ -10080,15 +10080,15 @@ SOC 2 compliance report (quarterly)
 
 GDPR compliance report (annual)
 
-Access certification (semi-annual: “Who has access to what?”)
+**Access certification (semi-annual:** “Who has access to what?”)
 
 Segregation of duties violations (monthly)
 
-Example: Access Certification Report
+**Example:** Access Certification Report
 
 Access Certification Report (Q1 2026)
 
-Users with access to Restricted data: 12
+**Users with access to Restricted data:** 12
 
 - 10 PMO staff (expected)
 
@@ -10096,17 +10096,17 @@ Users with access to Restricted data: 12
 
 - 1 Team Member (EXCEPTION - flagged for review)
 
-Privileged accounts (PMO Admin): 3
+**Privileged accounts (PMO Admin):** 3
 
 - All 3 have completed security training ✅
 
 - All 3 use MFA ✅
 
-Stale accounts (no login in 90 days): 5
+**Stale accounts (no login in 90 days):** 5
 
-- Action: Accounts deactivated automatically
+- **Action:** Accounts deactivated automatically
 
-Segregation of duties violations: 0 ✅
+**Segregation of duties violations:** 0 ✅
 
 Security Incident Response
 
@@ -10134,7 +10134,7 @@ Compliance & Security Agent creates incident ticket
 
 ↓
 
-Severity assessed: Critical, High, Medium, Low
+**Severity assessed:** Critical, High, Medium, Low
 
 ↓
 
@@ -10160,9 +10160,9 @@ Security team investigates:
 
 Resolution:
 
-- False positive: Reinstate account, document
+- **False positive:** Reinstate account, document
 
-- Confirmed incident: Containment, eradication, recovery
+- **Confirmed incident:** Containment, eradication, recovery
 
 ↓
 
@@ -10202,13 +10202,13 @@ Example DLP Alert:
 
 ⚠️ DLP Alert: Potential Data Leak
 
-User: john.doe@company.com
+**User:** john.doe@company.com
 
-Action: Attempted to export 5,000 customer records to CSV
+**Action:** Attempted to export 5,000 customer records to CSV
 
-Classification: Restricted data
+**Classification:** Restricted data
 
-DLP Action: BLOCKED
+**DLP Action:** BLOCKED
 
 Justification requested from user.
 
@@ -10224,13 +10224,13 @@ Observability Strategy
 
 Distributed Tracing
 
-Purpose: Track requests across multiple agents to understand end-to-end latency and identify bottlenecks.
+**Purpose:** Track requests across multiple agents to understand end-to-end latency and identify bottlenecks.
 
-Implementation: Jaeger or Zipkin
+**Implementation:** Jaeger or Zipkin
 
 Trace Example:
 
-User Request: "Show me Project Apollo health dashboard"
+**User Request:** "Show me Project Apollo health dashboard"
 
 ↓
 
@@ -10238,17 +10238,17 @@ User Request: "Show me Project Apollo health dashboard"
 
 ↓
 
-Span 1: Intent Router Agent (120ms)
+**Span 1:** Intent Router Agent (120ms)
 
 - Parse natural language query
 
-- Classify intent: query.project.health
+- **Classify intent:** query.project.health
 
-- Extract entity: project = "Apollo"
+- **Extract entity:** project = "Apollo"
 
 ↓
 
-Span 2: Response Orchestration Agent (450ms)
+**Span 2:** Response Orchestration Agent (450ms)
 
 - Determine required agents (4 agents)
 
@@ -10256,7 +10256,7 @@ Span 2: Response Orchestration Agent (450ms)
 
 ↓
 
-Span 2.1: Project Lifecycle Agent (180ms)
+**Span 2.1:** Project Lifecycle Agent (180ms)
 
 - Query project status
 
@@ -10264,7 +10264,7 @@ Span 2.1: Project Lifecycle Agent (180ms)
 
 ↓
 
-Span 2.2: Schedule & Planning Agent (220ms)
+**Span 2.2:** Schedule & Planning Agent (220ms)
 
 - Query schedule status
 
@@ -10272,7 +10272,7 @@ Span 2.2: Schedule & Planning Agent (220ms)
 
 ↓
 
-Span 2.3: Financial Management Agent (280ms)
+**Span 2.3:** Financial Management Agent (280ms)
 
 - Query budget status
 
@@ -10280,7 +10280,7 @@ Span 2.3: Financial Management Agent (280ms)
 
 ↓
 
-Span 2.4: Risk Management Agent (150ms)
+**Span 2.4:** Risk Management Agent (150ms)
 
 - Query risk score
 
@@ -10288,7 +10288,7 @@ Span 2.4: Risk Management Agent (150ms)
 
 ↓
 
-Span 3: Response Orchestration Agent (80ms)
+**Span 3:** Response Orchestration Agent (80ms)
 
 - Aggregate responses
 
@@ -10296,11 +10296,11 @@ Span 3: Response Orchestration Agent (80ms)
 
 ↓
 
-Total Request Time: 650ms (p95 target: <2s) ✅
+**Total Request Time:** 650ms (p95 target: <2s) ✅
 
 Trace Analysis:
 
-Identify slow agents (Financial Agent took longest: 280ms)
+**Identify slow agents (Financial Agent took longest:** 280ms)
 
 Detect serial vs. parallel execution
 
@@ -10318,7 +10318,7 @@ All logs tagged with trace ID for easy debugging
 
 Centralized Logging
 
-Implementation: Elasticsearch (ELK Stack) or Splunk
+**Implementation:** Elasticsearch (ELK Stack) or Splunk
 
 Log Aggregation:
 
@@ -10358,25 +10358,25 @@ Structured Logging Format:
 
 Log Levels:
 
-DEBUG: Detailed diagnostic information (disabled in production)
+**DEBUG:** Detailed diagnostic information (disabled in production)
 
-INFO: General informational messages (normal operations)
+**INFO:** General informational messages (normal operations)
 
-WARN: Warning messages (potential issues, degraded performance)
+**WARN:** Warning messages (potential issues, degraded performance)
 
-ERROR: Error messages (operation failed but system continues)
+**ERROR:** Error messages (operation failed but system continues)
 
-CRITICAL: Critical errors (system failure, immediate action required)
+**CRITICAL:** Critical errors (system failure, immediate action required)
 
 Log Retention:
 
-DEBUG/INFO: 30 days
+**DEBUG/INFO:** 30 days
 
-WARN: 90 days
+**WARN:** 90 days
 
-ERROR/CRITICAL: 1 year
+**ERROR/CRITICAL:** 1 year
 
-Audit logs: 10 years (separate system)
+**Audit logs:** 10 years (separate system)
 
 Common Log Queries:
 
@@ -10398,7 +10398,7 @@ user_id:"sarah.chen@company.com" AND timestamp:[now-24h TO now]
 
 Metrics & Monitoring
 
-Implementation: Prometheus + Grafana
+**Implementation:** Prometheus + Grafana
 
 Metrics Collected per Agent:
 
@@ -10406,7 +10406,7 @@ Request Metrics:
 
 Request rate (requests/second)
 
-Request duration (histogram: p50, p95, p99)
+**Request duration (histogram:** p50, p95, p99)
 
 Error rate (errors/requests)
 
@@ -10598,11 +10598,11 @@ description: "Only {{ $value }} connections available"
 
 Alert Routing:
 
-Critical: Page on-call engineer immediately (PagerDuty/Opsgenie)
+**Critical:** Page on-call engineer immediately (PagerDuty/Opsgenie)
 
-Warning: Slack notification to ops channel
+**Warning:** Slack notification to ops channel
 
-Info: Email to operations team
+**Info:** Email to operations team
 
 Alert Suppression:
 
@@ -10616,7 +10616,7 @@ Resilience Patterns
 
 Circuit Breaker Pattern
 
-Purpose: Prevent cascading failures when a dependency (agent or SoR) is failing.
+**Purpose:** Prevent cascading failures when a dependency (agent or SoR) is failing.
 
 Implementation per Agent:
 
@@ -10634,7 +10634,7 @@ Circuit breaker wraps SAP API calls
 
 - Stays open for 60 seconds
 
-- Half-open: Try one request to test recovery
+- **Half-open:** Try one request to test recovery
 
 """
 
@@ -10692,7 +10692,7 @@ SAP is currently unavailable. Refreshing in 60 seconds."
 
 Retry with Exponential Backoff
 
-Purpose: Transient failures (network blips, temporary overload) should be retried, not immediately failed.
+**Purpose:** Transient failures (network blips, temporary overload) should be retried, not immediately failed.
 
 Retry Strategy:
 
@@ -10714,11 +10714,11 @@ def call_planview_api(project_id):
 
 Retry with exponential backoff:
 
-- Attempt 1: Immediate
+- **Attempt 1:** Immediate
 
-- Attempt 2: Wait 1 second
+- **Attempt 2:** Wait 1 second
 
-- Attempt 3: Wait 2 seconds
+- **Attempt 3:** Wait 2 seconds
 
 - Max 3 attempts, then fail
 
@@ -10728,11 +10728,11 @@ return planview_client.get_project(project_id)
 
 Retry Behavior:
 
-Attempt 1: Call Planview API → Timeout (network blip)
+**Attempt 1:** Call Planview API → Timeout (network blip)
 
 Wait 1 second
 
-Attempt 2: Call Planview API → Success ✅
+**Attempt 2:** Call Planview API → Success ✅
 
 Return data
 
@@ -10740,15 +10740,15 @@ Idempotency:
 
 All write operations are idempotent (safe to retry)
 
-Example: “Update budget to $1.2M” (not “Increase budget by $100K”)
+**Example:** “Update budget to $1.2M” (not “Increase budget by $100K”)
 
 Prevents double-writes on retry
 
 Bulkhead Pattern
 
-Purpose: Isolate failures so one failing component doesn’t exhaust all resources.
+**Purpose:** Isolate failures so one failing component doesn’t exhaust all resources.
 
-Implementation: Separate Thread Pools per Integration
+**Implementation:** Separate Thread Pools per Integration
 
 # SAP integration has dedicated thread pool (10 threads)
 
@@ -10784,13 +10784,13 @@ Response Orchestration calls 4 agents in parallel (5-second timeout)
 
 Agent responses:
 
-- Project Lifecycle: 180ms ✅
+- **Project Lifecycle:** 180ms ✅
 
-- Schedule: 220ms ✅
+- **Schedule:** 220ms ✅
 
-- Financial: 5.1s ⏱️ TIMEOUT
+- **Financial:** 5.1s ⏱️ TIMEOUT
 
-- Risk: 150ms ✅
+- **Risk:** 150ms ✅
 
 ↓
 
@@ -10808,7 +10808,7 @@ Graceful Degradation
 
 System Continues Functioning with Reduced Capabilities:
 
-Example: Portfolio Dashboard with Financial Agent Down
+**Example:** Portfolio Dashboard with Financial Agent Down
 
 User requests portfolio dashboard
 
@@ -10858,7 +10858,7 @@ GitHub Actions / GitLab CI triggers
 
 ↓
 
-Stage 1: Build
+**Stage 1:** Build
 
 - Compile code
 
@@ -10870,7 +10870,7 @@ Stage 1: Build
 
 ↓
 
-Stage 2: Test
+**Stage 2:** Test
 
 - Integration tests
 
@@ -10880,7 +10880,7 @@ Stage 2: Test
 
 ↓
 
-Stage 3: Deploy to Staging
+**Stage 3:** Deploy to Staging
 
 - Deploy to staging environment
 
@@ -10890,7 +10890,7 @@ Stage 3: Deploy to Staging
 
 ↓
 
-Stage 4: Deploy to Production (Blue-Green)
+**Stage 4:** Deploy to Production (Blue-Green)
 
 - Deploy to "green" environment
 
@@ -10898,23 +10898,23 @@ Stage 4: Deploy to Production (Blue-Green)
 
 - Run canary tests (5% traffic)
 
-- Gradually increase traffic: 5% → 25% → 50% → 100%
+- **Gradually increase traffic:** 5% → 25% → 50% → 100%
 
 - Monitor metrics (error rate, latency)
 
 ↓
 
-Stage 5: Cleanup
+**Stage 5:** Cleanup
 
-- If successful: Keep green, decommission blue
+- **If successful:** Keep green, decommission blue
 
-- If failed: Rollback to blue
+- **If failed:** Rollback to blue
 
 Blue-Green Deployment
 
 Zero-Downtime Deployments:
 
-Current Production: Blue Environment (v1.2)
+**Current Production:** Blue Environment (v1.2)
 
 ↓
 
@@ -10932,21 +10932,21 @@ Route 5% of traffic to Green (Canary)
 
 Monitor for 10 minutes:
 
-- Error rate: 0.1% (normal) ✅
+- **Error rate:** 0.1% (normal) ✅
 
-- Response time: 200ms (normal) ✅
+- **Response time:** 200ms (normal) ✅
 
-- Business metrics: Stable ✅
+- **Business metrics:** Stable ✅
 
 ↓
 
-Increase traffic to Green: 25%
+**Increase traffic to Green:** 25%
 
 Monitor for 10 minutes → ✅
 
 ↓
 
-Increase traffic to Green: 50%
+**Increase traffic to Green:** 50%
 
 Monitor for 10 minutes → ✅
 
@@ -10960,7 +10960,7 @@ Keep Blue online for 24 hours (easy rollback if needed)
 
 ↓
 
-After 24 hours: Decommission Blue
+**After 24 hours:** Decommission Blue
 
 Rollback on Failure:
 
@@ -10970,7 +10970,7 @@ Route 5% traffic to Green
 
 ↓
 
-Error rate spikes: 0.1% → 5% ❌
+**Error rate spikes:** 0.1% → 5% ❌
 
 ↓
 
@@ -10984,7 +10984,7 @@ Automated rollback triggered:
 
 ↓
 
-Total user impact: 5% of users for 5 minutes
+**Total user impact:** 5% of users for 5 minutes
 
 API Versioning
 
@@ -11008,15 +11008,15 @@ GET /api/v3/projects/{id} → Returns v3 format (beta)
 
 Deprecation Process:
 
-Announce: v1 deprecated (6 months notice)
+**Announce:** v1 deprecated (6 months notice)
 
-Warn: Add deprecation headers to v1 responses
+**Warn:** Add deprecation headers to v1 responses
 
-Migrate: Clients update to v2
+**Migrate:** Clients update to v2
 
-Monitor: Track v1 usage (should decline to <1%)
+**Monitor:** Track v1 usage (should decline to <1%)
 
-Remove: After 6 months, remove v1 support
+**Remove:** After 6 months, remove v1 support
 
 Breaking Change Migration:
 
@@ -11062,9 +11062,9 @@ Database Migrations
 
 Zero-Downtime Schema Changes:
 
-Example: Add new column to projects table
+**Example:** Add new column to projects table
 
-Step 1: Add column (nullable)
+**Step 1:** Add column (nullable)
 
 -- Deployment 1: Add column (backwards compatible)
 
@@ -11074,13 +11074,13 @@ Old code continues working (ignores new column)
 
 New code can write to new column
 
-Step 2: Backfill data
+**Step 2:** Backfill data
 
 -- Background job: Populate priority for existing projects
 
 UPDATE projects SET priority = 'medium' WHERE priority IS NULL;
 
-Step 3: Make column required (new deployment)
+**Step 3:** Make column required (new deployment)
 
 -- Deployment 2: Make column NOT NULL
 
@@ -11102,33 +11102,33 @@ Backup Strategy
 
 Operational Database (PostgreSQL):
 
-Continuous Replication: Standby replica in secondary region (cross-region)
+**Continuous Replication:** Standby replica in secondary region (cross-region)
 
 Point-in-Time Recovery (PITR):Transaction logs replicated every 5 minutes
 
-Snapshots: Full database snapshot daily, retained 30 days
+**Snapshots:** Full database snapshot daily, retained 30 days
 
-Backup Testing: Monthly restore test to verify backups
+**Backup Testing:** Monthly restore test to verify backups
 
 Event Store:
 
-Replication: 3 copies across availability zones
+**Replication:** 3 copies across availability zones
 
-Archival: Events archived to object storage (S3/Azure Blob) daily
+**Archival:** Events archived to object storage (S3/Azure Blob) daily
 
-Immutable: Archives are write-once, read-many (WORM)
+**Immutable:** Archives are write-once, read-many (WORM)
 
 Document Storage:
 
-Geo-Replication: Files replicated to 3 regions automatically
+**Geo-Replication:** Files replicated to 3 regions automatically
 
-Versioning: All versions retained (soft delete)
+**Versioning:** All versions retained (soft delete)
 
 Configuration & Secrets:
 
-Vault Backup: Daily snapshot of HashiCorp Vault to encrypted storage
+**Vault Backup:** Daily snapshot of HashiCorp Vault to encrypted storage
 
-Infrastructure as Code: All infrastructure defined in Git (reproducible)
+**Infrastructure as Code:** All infrastructure defined in Git (reproducible)
 
 Recovery Time & Recovery Point Objectives
 
@@ -11136,19 +11136,19 @@ Defined SLAs:
 
 Explanation:
 
-RTO: How long before system is back online
+**RTO:** How long before system is back online
 
-RPO: Maximum acceptable data loss (how far back to recover)
+**RPO:** Maximum acceptable data loss (how far back to recover)
 
-Example: Operational Database Failure
+**Example:** Operational Database Failure
 
-RPO: 15 minutes → Recover to state from 15 minutes before failure
+**RPO:** 15 minutes → Recover to state from 15 minutes before failure
 
-RTO: 4 hours → System fully operational within 4 hours
+**RTO:** 4 hours → System fully operational within 4 hours
 
 Disaster Recovery Procedures
 
-Scenario 1: Database Corruption
+**Scenario 1:** Database Corruption
 
 Database corruption detected
 
@@ -11174,11 +11174,11 @@ New standby replica created from backup
 
 ↓
 
-Total downtime: 2 minutes (within 4-hour RTO) ✅
+**Total downtime:** 2 minutes (within 4-hour RTO) ✅
 
-Data loss: None (PITR from 5 minutes before corruption) ✅
+**Data loss:** None (PITR from 5 minutes before corruption) ✅
 
-Scenario 2: Regional Outage (AWS us-east-1 down)
+**Scenario 2:** Regional Outage (AWS us-east-1 down)
 
 Primary region (us-east-1) unavailable
 
@@ -11204,11 +11204,11 @@ System operational in secondary region
 
 ↓
 
-Total downtime: 10 minutes ✅
+**Total downtime:** 10 minutes ✅
 
-Data loss: Up to 15 minutes (last transaction log sync) ✅
+**Data loss:** Up to 15 minutes (last transaction log sync) ✅
 
-Scenario 3: Complete Data Center Failure
+**Scenario 3:** Complete Data Center Failure
 
 Entire data center destroyed (earthquake, fire, etc.)
 
@@ -11220,11 +11220,11 @@ Manual DR procedure initiated (within 1 hour of detection)
 
 Restore from most recent backup:
 
-- Database: Snapshot from 2 AM (14 hours old)
+- **Database:** Snapshot from 2 AM (14 hours old)
 
-- Event Store: Archive from yesterday
+- **Event Store:** Archive from yesterday
 
-- Documents: Geo-replicated (no loss)
+- **Documents:** Geo-replicated (no loss)
 
 ↓
 
@@ -11246,9 +11246,9 @@ Resume operations
 
 ↓
 
-Total downtime: 6 hours (within 4-hour RTO - MISSED)
+**Total downtime:** 6 hours (within 4-hour RTO - MISSED)
 
-Data loss: 14 hours (worse than 15-min RPO - MISSED)
+**Data loss:** 14 hours (worse than 15-min RPO - MISSED)
 
 ↓
 
@@ -11264,23 +11264,23 @@ Disaster Recovery Testing
 
 Quarterly DR Drills:
 
-Q1: Database failover test
+**Q1:** Database failover test
 
-Q2: Regional failover test
+**Q2:** Regional failover test
 
-Q3: Full restore from backup test
+**Q3:** Full restore from backup test
 
-Q4: Simulated data center failure
+**Q4:** Simulated data center failure
 
 DR Test Report (Example):
 
-DR Drill: Regional Failover Test (Q2 2026)
+**DR Drill:** Regional Failover Test (Q2 2026)
 
-Scenario: Simulate AWS us-east-1 outage
+**Scenario:** Simulate AWS us-east-1 outage
 
-Date: April 15, 2026
+**Date:** April 15, 2026
 
-Duration: 2 hours (planned)
+**Duration:** 2 hours (planned)
 
 Results:
 
@@ -11300,7 +11300,7 @@ Action Items:
 
 3. Improve monitoring of cross-region replication lag
 
-Next Drill: July 15, 2026 (Full restore from backup)
+**Next Drill:** July 15, 2026 (Full restore from backup)
 
 Testing Strategy
 
@@ -11330,19 +11330,19 @@ Testing Pyramid
 
 /________________________\
 
-Unit Tests (70%):        Fast, isolated, many
+**Unit Tests (70%):** Fast, isolated, many
 
-Integration Tests (20%): Medium speed, agent pairs
+**Integration Tests (20%):** Medium speed, agent pairs
 
-E2E Tests (10%):         Slow, full workflows, critical paths
+**E2E Tests (10%):** Slow, full workflows, critical paths
 
 Unit Testing
 
-Purpose: Test individual functions and methods in isolation.
+**Purpose:** Test individual functions and methods in isolation.
 
-Coverage Target: >80% code coverage per agent
+**Coverage Target:** >80% code coverage per agent
 
-Example: Financial Management Agent Unit Test
+**Example:** Financial Management Agent Unit Test
 
 import pytest
 
@@ -11430,7 +11430,7 @@ mock_sap_client.get_budget.assert_called_once_with('APOLLO-001')
 
 Integration Testing
 
-Purpose: Test interactions between two or more agents.
+**Purpose:** Test interactions between two or more agents.
 
 Test Agent Pairs:
 
@@ -11442,7 +11442,7 @@ Project Definition Agent ↔ Jira connector
 
 Any agent ↔ Data Synchronization Agent
 
-Example: Schedule + Resource Integration Test
+**Example:** Schedule + Resource Integration Test
 
 import pytest
 
@@ -11530,11 +11530,11 @@ jira_client.delete_issue(issue['key'])
 
 Contract Testing
 
-Purpose: Ensure agents’ APIs remain compatible across versions.
+**Purpose:** Ensure agents’ APIs remain compatible across versions.
 
-Implementation: Pact (Consumer-Driven Contract Testing)
+**Implementation:** Pact (Consumer-Driven Contract Testing)
 
-Example: Schedule Agent (Consumer) ↔ Resource Agent (Provider)
+**Example:** Schedule Agent (Consumer) ↔ Resource Agent (Provider)
 
 Consumer Test (Schedule Agent):
 
@@ -11614,7 +11614,7 @@ Self-documenting API contracts
 
 End-to-End Testing
 
-Purpose: Test complete user workflows across entire system.
+**Purpose:** Test complete user workflows across entire system.
 
 Critical User Journeys:
 
@@ -11626,7 +11626,7 @@ Budget Change Request (change request → impact analysis → approval → basel
 
 Project Closure (deliverable acceptance → lessons learned → benefits tracking)
 
-Example E2E Test: Project Initiation Workflow
+**Example E2E Test:** Project Initiation Workflow
 
 import pytest
 
@@ -11716,23 +11716,23 @@ browser.close()
 
 E2E Test Infrastructure:
 
-Test Environment: Dedicated staging environment with test data
+**Test Environment:** Dedicated staging environment with test data
 
-Test Data: Seeded with known projects, users, budgets
+**Test Data:** Seeded with known projects, users, budgets
 
-External Systems: Mocked or test instances (test Jira, test SAP)
+**External Systems:** Mocked or test instances (test Jira, test SAP)
 
-Execution: Nightly on CI/CD pipeline
+**Execution:** Nightly on CI/CD pipeline
 
-Duration: 30-60 minutes for full suite
+**Duration:** 30-60 minutes for full suite
 
 Chaos Engineering
 
-Purpose: Test system resilience by intentionally injecting failures.
+**Purpose:** Test system resilience by intentionally injecting failures.
 
 Chaos Experiments:
 
-Experiment 1: Random Agent Termination
+**Experiment 1:** Random Agent Termination
 
 # Chaos Mesh experiment
 
@@ -11774,7 +11774,7 @@ System continues functioning with degraded performance
 
 No user-facing errors (graceful degradation)
 
-Experiment 2: Network Latency Injection
+**Experiment 2:** Network Latency Injection
 
 # Inject 500ms latency to SAP API calls
 
@@ -11820,7 +11820,7 @@ Cached data served to users
 
 Alert triggered for slow SAP API
 
-Experiment 3: Database Connection Pool Exhaustion
+**Experiment 3:** Database Connection Pool Exhaustion
 
 # Simulate high load to exhaust database connections
 
@@ -11850,7 +11850,7 @@ Expected Outcome:
 
 New requests queue or fail gracefully
 
-Alert triggered: “Database pool exhausted”
+**Alert triggered:** “Database pool exhausted”
 
 Auto-scaling increases connection pool size
 
@@ -11858,19 +11858,19 @@ System recovers after connections released
 
 Chaos Testing Schedule:
 
-Weekly: Low-severity experiments (agent restarts)
+**Weekly:** Low-severity experiments (agent restarts)
 
-Monthly: Medium-severity experiments (network issues)
+**Monthly:** Medium-severity experiments (network issues)
 
-Quarterly: High-severity experiments (database failures)
+**Quarterly:** High-severity experiments (database failures)
 
 Performance Testing
 
 Load Testing:
 
-Simulate: 1000 concurrent users
+**Simulate:** 1000 concurrent users
 
-Tools: JMeter, Gatling, or k6
+**Tools:** JMeter, Gatling, or k6
 
 Scenarios:
 
@@ -11882,19 +11882,19 @@ Scenarios:
 
 Stress Testing:
 
-Simulate: Gradual load increase until system breaks
+**Simulate:** Gradual load increase until system breaks
 
-Goal: Identify breaking point (e.g., 5000 concurrent users)
+**Goal:** Identify breaking point (e.g., 5000 concurrent users)
 
-Metrics: Response time, error rate, resource utilization
+**Metrics:** Response time, error rate, resource utilization
 
 Soak Testing:
 
-Simulate: 500 concurrent users for 24 hours
+**Simulate:** 500 concurrent users for 24 hours
 
-Goal: Identify memory leaks, resource exhaustion
+**Goal:** Identify memory leaks, resource exhaustion
 
-Metrics: Memory usage trend, database connection leaks
+**Metrics:** Memory usage trend, database connection leaks
 
 Performance Benchmarks:
 
@@ -11912,11 +11912,11 @@ Load Test (1000 concurrent users):
 
 Stress Test:
 
-Breaking Point: 4800 concurrent users
+**Breaking Point:** 4800 concurrent users
 
-Failure Mode: Database connection pool exhausted
+**Failure Mode:** Database connection pool exhausted
 
-Action Item: Increase max connections from 200 → 400
+**Action Item:** Increase max connections from 200 → 400
 
 Soak Test (24 hours):
 
@@ -11926,7 +11926,7 @@ Soak Test (24 hours):
 
 ⚠️ Redis cache hit rate declined from 95% → 88%
 
-Action Item: Increase cache TTL from 5min → 10min
+**Action Item:** Increase cache TTL from 5min → 10min
 
 Success Metrics
 
@@ -11954,57 +11954,57 @@ ROI Metrics
 
 Cost Savings:
 
-Manual Effort Reduction: 40% reduction in manual reporting (8 hours/week → 4.8 hours/week)
+**Manual Effort Reduction:** 40% reduction in manual reporting (8 hours/week → 4.8 hours/week)
 
-Faster Decision Making: Portfolio rebalancing from 2 weeks → 2 days
+**Faster Decision Making:** Portfolio rebalancing from 2 weeks → 2 days
 
-Risk Avoidance: Predictive alerts prevented 3 budget overruns (saved $450K)
+**Risk Avoidance:** Predictive alerts prevented 3 budget overruns (saved $450K)
 
 Efficiency Gains:
 
-Project Initiation Time: 3 weeks → 1 week (67% faster)
+**Project Initiation Time:** 3 weeks → 1 week (67% faster)
 
-Status Report Generation: 4 hours/week → 10 minutes/week (96% faster)
+**Status Report Generation:** 4 hours/week → 10 minutes/week (96% faster)
 
-Approval Cycle Time: 5 days → 2 days (60% faster)
+**Approval Cycle Time:** 5 days → 2 days (60% faster)
 
 Business Outcomes:
 
-Portfolio Value: $45.2M invested, $52M value delivered (115% of planned)
+**Portfolio Value:** $45.2M invested, $52M value delivered (115% of planned)
 
-Strategic Coverage: 95% of strategic objectives have aligned projects
+**Strategic Coverage:** 95% of strategic objectives have aligned projects
 
-Benefits Realization: 88% of projected benefits realized within 6 months
+**Benefits Realization:** 88% of projected benefits realized within 6 months
 
 System Costs:
 
-Infrastructure: $120K/year (cloud hosting, databases)
+**Infrastructure:** $120K/year (cloud hosting, databases)
 
-Licensing: $80K/year (SoR connectors, monitoring tools)
+**Licensing:** $80K/year (SoR connectors, monitoring tools)
 
-Operations: $200K/year (DevOps team, 24/7 support)
+**Operations:** $200K/year (DevOps team, 24/7 support)
 
-Total: $400K/year
+**Total:** $400K/year
 
 ROI Calculation:
 
 Annual Benefits:
 
-- Manual effort savings: $250K (500 hours × $50/hour × 10 people)
+- **Manual effort savings:** $250K (500 hours × $50/hour × 10 people)
 
-- Faster time-to-market: $400K (2 weeks faster × 15 projects × $13K/week value)
+- **Faster time-to-market:** $400K (2 weeks faster × 15 projects × $13K/week value)
 
-- Risk avoidance: $450K (prevented overruns)
+- **Risk avoidance:** $450K (prevented overruns)
 
-- Better resource utilization: $300K (2% improvement × 200 FTEs × $150K avg salary)
+- **Better resource utilization:** $300K (2% improvement × 200 FTEs × $150K avg salary)
 
-Total Benefits: $1.4M/year
+**Total Benefits:** $1.4M/year
 
-Annual Costs: $400K/year
+**Annual Costs:** $400K/year
 
-ROI: ($1.4M - $400K) / $400K = 250%
+**ROI:** ($1.4M - $400K) / $400K = 250%
 
-Payback Period: 5 months
+**Payback Period:** 5 months
 
 Implementation Considerations
 
@@ -12014,37 +12014,37 @@ Required Capabilities:
 
 1. Technical Teams:
 
-Enterprise Architects (2-3 FTEs): Design agent interactions, data flows
+**Enterprise Architects (2-3 FTEs):** Design agent interactions, data flows
 
-Backend Engineers (5-8 FTEs): Build agents, APIs, integrations
+**Backend Engineers (5-8 FTEs):** Build agents, APIs, integrations
 
-Frontend Engineers (3-4 FTEs): Build UI, assistant interface, dashboards
+**Frontend Engineers (3-4 FTEs):** Build UI, assistant interface, dashboards
 
-Data Engineers (2-3 FTEs): Build data pipelines, ETL, analytics
+**Data Engineers (2-3 FTEs):** Build data pipelines, ETL, analytics
 
-ML Engineers (2-3 FTEs): Train models, implement AI features
+**ML Engineers (2-3 FTEs):** Train models, implement AI features
 
-DevOps/SRE (2-3 FTEs): CI/CD, monitoring, infrastructure
+**DevOps/SRE (2-3 FTEs):** CI/CD, monitoring, infrastructure
 
-QA Engineers (2-3 FTEs): Test strategy, automation, quality
+**QA Engineers (2-3 FTEs):** Test strategy, automation, quality
 
 2. Business Teams:
 
-PMO Leadership: Executive sponsor, change champion
+**PMO Leadership:** Executive sponsor, change champion
 
-PMO Analysts: Requirements gathering, user acceptance testing
+**PMO Analysts:** Requirements gathering, user acceptance testing
 
-Project Managers: Pilot users, feedback providers
+**Project Managers:** Pilot users, feedback providers
 
-Change Management: Training, communication, adoption
+**Change Management:** Training, communication, adoption
 
 3. External Partners:
 
-System Integrator: Implementation acceleration (optional)
+**System Integrator:** Implementation acceleration (optional)
 
-Cloud Provider: Architecture guidance (AWS, Azure, GCP)
+**Cloud Provider:** Architecture guidance (AWS, Azure, GCP)
 
-PPM Vendor: API support, roadmap alignment (Planview, Clarity)
+**PPM Vendor:** API support, roadmap alignment (Planview, Clarity)
 
 Technology Stack Decisions
 
@@ -12052,37 +12052,37 @@ Programming Languages:
 
 Cloud Provider:
 
-Option 1: AWS
+**Option 1:** AWS
 
-Pros: Mature services, large ecosystem, cost-effective
+**Pros:** Mature services, large ecosystem, cost-effective
 
-Services: ECS/EKS (agents), RDS (database), MSK (Kafka), S3 (storage), Lambda (serverless)
+**Services:** ECS/EKS (agents), RDS (database), MSK (Kafka), S3 (storage), Lambda (serverless)
 
-Recommendation: Best for organizations already on AWS
+**Recommendation:** Best for organizations already on AWS
 
-Option 2: Azure
+**Option 2:** Azure
 
-Pros: Strong integration with Microsoft ecosystem (Office 365, Azure AD)
+**Pros:** Strong integration with Microsoft ecosystem (Office 365, Azure AD)
 
-Services: AKS (agents), Azure SQL, Event Hubs (Kafka), Blob Storage, Functions
+**Services:** AKS (agents), Azure SQL, Event Hubs (Kafka), Blob Storage, Functions
 
-Recommendation: Best for Microsoft-centric organizations
+**Recommendation:** Best for Microsoft-centric organizations
 
-Option 3: Google Cloud
+**Option 3:** Google Cloud
 
-Pros: Strong AI/ML capabilities, BigQuery for analytics
+**Pros:** Strong AI/ML capabilities, BigQuery for analytics
 
-Services: GKE (agents), Cloud SQL, Pub/Sub (messaging), Cloud Storage, Cloud Functions
+**Services:** GKE (agents), Cloud SQL, Pub/Sub (messaging), Cloud Storage, Cloud Functions
 
-Recommendation: Best for organizations prioritizing AI/ML
+**Recommendation:** Best for organizations prioritizing AI/ML
 
-Option 4: Multi-Cloud
+**Option 4:** Multi-Cloud
 
-Pros: Avoid vendor lock-in, resilience across providers
+**Pros:** Avoid vendor lock-in, resilience across providers
 
-Cons: Increased complexity, higher costs
+**Cons:** Increased complexity, higher costs
 
-Recommendation: Only for large enterprises with multi-cloud mandate
+**Recommendation:** Only for large enterprises with multi-cloud mandate
 
 Vendor Partnerships
 
@@ -12090,43 +12090,43 @@ Critical Partnerships:
 
 1. PPM Platform Vendor (Planview / Clarity / Workfront):
 
-Engagement: Strategic partnership, roadmap alignment
+**Engagement:** Strategic partnership, roadmap alignment
 
-API Support: Dedicated support for integration questions
+**API Support:** Dedicated support for integration questions
 
-Certification: Certified integration (vendor validates compatibility)
+**Certification:** Certified integration (vendor validates compatibility)
 
-Benefits: Faster implementation, fewer surprises, vendor support during issues
+**Benefits:** Faster implementation, fewer surprises, vendor support during issues
 
 2. ERP Vendor (SAP / Oracle):
 
-Engagement: Integration certification program
+**Engagement:** Integration certification program
 
-API Documentation: Access to detailed API docs, sandbox environment
+**API Documentation:** Access to detailed API docs, sandbox environment
 
-Support: Dedicated integration engineer
+**Support:** Dedicated integration engineer
 
-Benefits: Proven integration patterns, reduced risk
+**Benefits:** Proven integration patterns, reduced risk
 
 3. Cloud Provider (AWS / Azure / GCP):
 
-Engagement: Solution architecture support
+**Engagement:** Solution architecture support
 
-Well-Architected Review: Cloud provider reviews architecture for best practices
+**Well-Architected Review:** Cloud provider reviews architecture for best practices
 
-Credits: Startup credits or enterprise discount agreement
+**Credits:** Startup credits or enterprise discount agreement
 
-Benefits: Architecture validation, cost optimization, technical support
+**Benefits:** Architecture validation, cost optimization, technical support
 
 4. System Integrator (Optional):
 
-Firms: Accenture, Deloitte, IBM, Capgemini
+**Firms:** Accenture, Deloitte, IBM, Capgemini
 
-Engagement: Fixed-price or time-and-materials
+**Engagement:** Fixed-price or time-and-materials
 
-Scope: Accelerate implementation (6 months instead of 12)
+**Scope:** Accelerate implementation (6 months instead of 12)
 
-Benefits: Proven methodology, experienced team, faster time-to-value
+**Benefits:** Proven methodology, experienced team, faster time-to-value
 
 Procurement Considerations
 
@@ -12138,17 +12138,17 @@ Ongoing Operations:
 
 Total 3-Year TCO:
 
-Year 1: $2,550,000 (implementation) + $1,090,000 (operations) = $3,640,000
+**Year 1:** $2,550,000 (implementation) + $1,090,000 (operations) = $3,640,000
 
-Year 2-3: $1,090,000/year × 2 = $2,180,000
+**Year 2-3:** $1,090,000/year × 2 = $2,180,000
 
-Total 3-Year TCO: $5,820,000
+**Total 3-Year TCO:** $5,820,000
 
 Change Management Strategy
 
 User Adoption Plan:
 
-Phase 1: Awareness (Months 1-2)
+**Phase 1:** Awareness (Months 1-2)
 
 Town halls with executives explaining vision
 
@@ -12158,17 +12158,17 @@ Email campaigns highlighting benefits
 
 FAQ document addressing concerns
 
-Phase 2: Training (Months 3-4)
+**Phase 2:** Training (Months 3-4)
 
 Role-based training:
 
-Executives: 2-hour dashboard overview
+**Executives:** 2-hour dashboard overview
 
-PMO Analysts: 2-day comprehensive training
+**PMO Analysts:** 2-day comprehensive training
 
-Project Managers: 1-day hands-on training
+**Project Managers:** 1-day hands-on training
 
-Team Members: 4-hour introduction
+**Team Members:** 4-hour introduction
 
 Training materials:
 
@@ -12178,7 +12178,7 @@ Quick reference guides
 
 Interactive sandbox environment
 
-Phase 3: Pilot (Months 5-6)
+**Phase 3:** Pilot (Months 5-6)
 
 Select 3 pilot projects (small, medium, large)
 
@@ -12188,7 +12188,7 @@ Weekly feedback sessions
 
 Refine system based on feedback
 
-Phase 4: Rollout (Months 7-12)
+**Phase 4:** Rollout (Months 7-12)
 
 Gradual rollout by business unit
 
@@ -12198,7 +12198,7 @@ Office hours for questions
 
 Ongoing feedback collection
 
-Phase 5: Optimization (Months 13+)
+**Phase 5:** Optimization (Months 13+)
 
 Quarterly user surveys
 
@@ -12256,81 +12256,81 @@ Risk Factors:
 
 Integration Complexity:
 
-Mitigation: Start with most critical integrations, add others incrementally
+**Mitigation:** Start with most critical integrations, add others incrementally
 
-Mitigation: Use proven connector libraries
+**Mitigation:** Use proven connector libraries
 
 User Resistance:
 
-Mitigation: Involve users early, address concerns, show value quickly
+**Mitigation:** Involve users early, address concerns, show value quickly
 
-Mitigation: Executive mandate for adoption
+**Mitigation:** Executive mandate for adoption
 
 Data Quality Issues:
 
-Mitigation: Data cleanup project before go-live
+**Mitigation:** Data cleanup project before go-live
 
-Mitigation: Automated data validation
+**Mitigation:** Automated data validation
 
 Scope Creep:
 
-Mitigation: Strict change control process
+**Mitigation:** Strict change control process
 
-Mitigation: MVP approach, add features post-launch
+**Mitigation:** MVP approach, add features post-launch
 
 Technical Complexity:
 
-Mitigation: Experienced technical team or system integrator
+**Mitigation:** Experienced technical team or system integrator
 
-Mitigation: Agile development with frequent demos
+**Mitigation:** Agile development with frequent demos
 
 Appendices
 
-Appendix A: Agent Summary Table
+**Appendix A:** Agent Summary Table
 
-Appendix B: Glossary of Terms
+**Appendix B:** Glossary of Terms
 
-Agent: Autonomous software component responsible for specific business capabilities
+**Agent:** Autonomous software component responsible for specific business capabilities
 
-API Gateway: Central entry point for all external API requests, providing security, rate limiting, and routing
+**API Gateway:** Central entry point for all external API requests, providing security, rate limiting, and routing
 
-Baseline: Approved version of project scope, schedule, or budget used as reference point for measuring changes
+**Baseline:** Approved version of project scope, schedule, or budget used as reference point for measuring changes
 
-Business Case: Document analyzing costs, benefits, and ROI of proposed investment
+**Business Case:** Document analyzing costs, benefits, and ROI of proposed investment
 
-Canvas: Interactive workspace in UI where agent-generated content is displayed and edited
+**Canvas:** Interactive workspace in UI where agent-generated content is displayed and edited
 
-Circuit Breaker: Resilience pattern that prevents cascading failures by failing fast when dependency is unavailable
+**Circuit Breaker:** Resilience pattern that prevents cascading failures by failing fast when dependency is unavailable
 
-CQRS: Command Query Responsibility Segregation - separate read and write operations for performance
+**CQRS:** Command Query Responsibility Segregation - separate read and write operations for performance
 
-Earned Value Management (EVM): Project management technique measuring project performance (CPI, SPI, variance)
+**Earned Value Management (EVM):** Project management technique measuring project performance (CPI, SPI, variance)
 
-Event Sourcing: Architectural pattern storing all changes as sequence of events for complete audit trail
+**Event Sourcing:** Architectural pattern storing all changes as sequence of events for complete audit trail
 
-Graceful Degradation: System continues operating with reduced functionality when components fail
+**Graceful Degradation:** System continues operating with reduced functionality when components fail
 
-HITL: Human-in-the-Loop - requiring human approval/decision in automated workflows
+**HITL:** Human-in-the-Loop - requiring human approval/decision in automated workflows
 
-Idempotent: Operation that produces same result whether executed once or multiple times
+**Idempotent:** Operation that produces same result whether executed once or multiple times
 
-Intent: User’s goal or purpose extracted from natural language query by Intent Router
+**Intent:** User’s goal or purpose extracted from natural language query by Intent Router
 
-Methodology Map: Visual representation of project management methodology (Agile/Waterfall) as navigational structure
+**Methodology Map:** Visual representation of project management methodology (Agile/Waterfall) as navigational structure
 
-Observability: Ability to understand internal system state from external outputs (logs, metrics, traces)
+**Observability:** Ability to understand internal system state from external outputs (logs, metrics, traces)
 
-Orchestration: Centralized coordination of multiple agents/services to complete workflow
+**Orchestration:** Centralized coordination of multiple agents/services to complete workflow
 
-RAG: Retrieval-Augmented Generation - LLM technique combining search with generation for contextual responses
+**RAG:** Retrieval-Augmented Generation - LLM technique combining search with generation for contextual responses
 
-Saga: Long-running workflow pattern with compensation logic for distributed transactions
+**Saga:** Long-running workflow pattern with compensation logic for distributed transactions
 
-SoR: System of Record - authoritative source for specific data (e.g., SAP for financials, Jira for tasks)
+**SoR:** System of Record - authoritative source for specific data (e.g., SAP for financials, Jira for tasks)
 
-WBS: Work Breakdown Structure - hierarchical decomposition of project scope into manageable work packages
+**WBS:** Work Breakdown Structure - hierarchical decomposition of project scope into manageable work packages
 
-Appendix C: Reference Architecture Diagram
+**Appendix C:** Reference Architecture Diagram
 
 ┌─────────────────────────────────────────────────────────────────────────┐
 
@@ -12450,9 +12450,9 @@ Appendix C: Reference Architecture Diagram
 
 └─────────────────────────────────────────────────────────────────────────┘
 
-Appendix D: Sample User Workflows
+**Appendix D:** Sample User Workflows
 
-Workflow 1: Executive Viewing Portfolio Dashboard
+**Workflow 1:** Executive Viewing Portfolio Dashboard
 
 Executive logs in via SSO
 
@@ -12472,13 +12472,13 @@ Executive requests what-if analysis via assistant
 
 Analytics Agent runs scenario and displays results
 
-Workflow 2: Project Manager Creating New Project
+**Workflow 2:** Project Manager Creating New Project
 
 PM logs in, clicks “New Project”
 
-Selects quick start template: “Software Development (Agile)”
+**Selects quick start template:** “Software Development (Agile)”
 
-Template loads: Agile methodology map, Jira connector, relevant agents
+**Template loads:** Agile methodology map, Jira connector, relevant agents
 
 PM fills in basic project info (name, objective, dates)
 
@@ -12498,29 +12498,29 @@ Methodology map unlocks Planning activities
 
 PM begins sprint planning with assistance from Schedule Agent
 
-Workflow 3: Team Member Logging Time
+**Workflow 3:** Team Member Logging Time
 
 Team member accesses assistant panel
 
-Says: “Log 8 hours to user story APOLLO-42”
+**Says:** “Log 8 hours to user story APOLLO-42”
 
-Intent Router classifies: action.log_time
+**Intent Router classifies:** action.log_time
 
 Resource Management Agent receives request
 
-Agent validates: Story exists, user assigned, hours reasonable
+**Agent validates:** Story exists, user assigned, hours reasonable
 
 Timesheet entry created
 
 Entry synced to Jira (actual hours updated)
 
-Confirmation shown to user: “✅ 8 hours logged to APOLLO-42”
+**Confirmation shown to user:** “✅ 8 hours logged to APOLLO-42”
 
-Workflow 4: PMO Analyst Running Portfolio Rebalancing
+**Workflow 4:** PMO Analyst Running Portfolio Rebalancing
 
 Analyst opens Portfolio Dashboard
 
-Requests via assistant: “Recommend portfolio rebalancing for Q2”
+**Requests via assistant:** “Recommend portfolio rebalancing for Q2”
 
 Portfolio Strategy Agent analyzes:
 
@@ -12544,7 +12544,7 @@ Analyst approves recommended changes
 
 Changes routed to Approval Workflow for executive approval
 
-Appendix E: Deployment Checklist
+**Appendix E:** Deployment Checklist
 
 Pre-Deployment (2 weeks before go-live):
 
@@ -12608,35 +12608,35 @@ Conclusion
 
 This multi-agent architecture provides a comprehensive, AI-powered platform for enterprise Project and Portfolio Management. The system orchestrates 25 specialized agents across 10 functional layers to deliver:
 
-Unified User Experience: Methodology-driven workspace with conversational AI assistant
+**Unified User Experience:** Methodology-driven workspace with conversational AI assistant
 
-Intelligent Automation: AI-driven insights, predictions, and recommendations
+**Intelligent Automation:** AI-driven insights, predictions, and recommendations
 
-Seamless Integration: Bi-directional sync with existing PPM systems of record
+**Seamless Integration:** Bi-directional sync with existing PPM systems of record
 
-Robust Governance: Built-in approval workflows, audit trails, and compliance
+**Robust Governance:** Built-in approval workflows, audit trails, and compliance
 
-Enterprise Scalability: Event-driven architecture supporting large portfolios
+**Enterprise Scalability:** Event-driven architecture supporting large portfolios
 
-Continuous Learning: Lessons learned, process optimization, benefits realization
+**Continuous Learning:** Lessons learned, process optimization, benefits realization
 
 Key Differentiators:
 
-Methodology-as-Navigation: Project management methodology embedded as UI navigation
+**Methodology-as-Navigation:** Project management methodology embedded as UI navigation
 
-Context-Aware AI: Assistant understands project phase and suggests next best actions
+**Context-Aware AI:** Assistant understands project phase and suggests next best actions
 
-User-Mediated Integration: Users approve all writes to systems of record
+**User-Mediated Integration:** Users approve all writes to systems of record
 
-Adaptive Behavior: Agents adjust outputs for Agile vs. Waterfall methodologies
+**Adaptive Behavior:** Agents adjust outputs for Agile vs. Waterfall methodologies
 
-Comprehensive Coverage: End-to-end from demand intake to benefits realization
+**Comprehensive Coverage:** End-to-end from demand intake to benefits realization
 
-Implementation Timeline: 12-18 months from inception to full deployment
+**Implementation Timeline:** 12-18 months from inception to full deployment
 
-Total Cost of Ownership (3 years): $5.8M
+**Total Cost of Ownership (3 years):** $5.8M
 
-Expected ROI: 250% (payback in 5 months)
+**Expected ROI:** 250% (payback in 5 months)
 
 Success Metrics:
 
@@ -12650,10 +12650,10 @@ Success Metrics:
 
 This architecture is designed for incremental adoption, allowing organizations to start with core capabilities and expand over time based on maturity and business needs. The modular design ensures that individual agents can be enhanced or replaced without disrupting the entire system.
 
-Document Classification: Confidential - Client Use Only
-Version: 1.0 (Complete Architecture)
-Last Updated: January 2026
-Total Pages: Parts 1-4 Combined
+**Document Classification:** Confidential - Client Use Only
+**Version:** 1.0 (Complete Architecture)
+**Last Updated:** January 2026
+**Total Pages:** Parts 1-4 Combined
 
 End of Multi-Agent PPM Architecture Documentation
 

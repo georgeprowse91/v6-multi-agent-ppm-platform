@@ -146,19 +146,19 @@ When a user asks “What is the impact of adding Feature Z to Release 3?”, the
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure Cosmos DB or SQL Database for storing change requests and CMDB data; leverage graph features (e.g., Cosmos DB Gremlin API) to model CI relationships.
+**Data storage:** Use Azure Cosmos DB or SQL Database for storing change requests and CMDB data; leverage graph features (e.g., Cosmos DB Gremlin API) to model CI relationships.
 
-Microservices & workflows: Host the CCMA services on Azure Kubernetes Service (AKS) or App Service; orchestrate change workflows using Azure Logic Apps or Durable Functions.
+**Microservices & workflows:** Host the CCMA services on Azure Kubernetes Service (AKS) or App Service; orchestrate change workflows using Azure Logic Apps or Durable Functions.
 
-AI components: Train impact prediction models using Azure Machine Learning; implement classification and risk scoring with Cognitive Services (Language Studio for text classification).
+**AI components:** Train impact prediction models using Azure Machine Learning; implement classification and risk scoring with Cognitive Services (Language Studio for text classification).
 
-CI/CD integration: Use Azure DevOps pipelines to automatically update the CMDB when new versions are released; register release artifacts in the CMDB.
+**CI/CD integration:** Use Azure DevOps pipelines to automatically update the CMDB when new versions are released; register release artifacts in the CMDB.
 
-Visualization: Build configuration graphs using front‑end libraries (e.g., Cytoscape.js) and host within the portal; leverage Power BI for change metrics and trends.
+**Visualization:** Build configuration graphs using front‑end libraries (e.g., Cytoscape.js) and host within the portal; leverage Power BI for change metrics and trends.
 
-Security: Enforce RBAC with Azure AD; manage secrets (e.g., API tokens) in Azure Key Vault; enable soft‑delete and versioning on Blob storage for configuration documents.
+**Security:** Enforce RBAC with Azure AD; manage secrets (e.g., API tokens) in Azure Key Vault; enable soft‑delete and versioning on Blob storage for configuration documents.
 
-Scalability: Use event‑driven functions and Service Bus queues to handle high volumes of change requests and asynchronous tasks.
+**Scalability:** Use event‑driven functions and Service Bus queues to handle high volumes of change requests and asynchronous tasks.
 
 ## Security & Compliance Considerations
 

@@ -126,7 +126,7 @@ The QMA provides quality management dashboards and tools within the PPM platform
 
 **RCA & improvement workspace:** visualisation of defect cause‑effect diagrams, Pareto charts and improvement backlogs.
 
-Interactions with Orchestration: When a user asks “show all high‑severity defects for Release 1”, the Intent Router directs the request to QMA. The Response Orchestration agent fetches defect lists from the QMA, cross‑references risk impacts from the Risk Management agent and schedules capacity from the Resource agent if additional testers are required.
+**Interactions with Orchestration:** When a user asks “show all high‑severity defects for Release 1”, the Intent Router directs the request to QMA. The Response Orchestration agent fetches defect lists from the QMA, cross‑references risk impacts from the Risk Management agent and schedules capacity from the Resource agent if additional testers are required.
 
 ## Configuration Parameters & Environment
 
@@ -144,19 +144,19 @@ Interactions with Orchestration: When a user asks “show all high‑severity de
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure SQL Database or Cosmos DB for structured quality data (test cases, defects); store large test artefacts or audit documents in Azure Blob Storage.
+**Data storage:** Use Azure SQL Database or Cosmos DB for structured quality data (test cases, defects); store large test artefacts or audit documents in Azure Blob Storage.
 
-API & services: Host the QMA as a microservice on Azure Kubernetes Service (AKS) or Azure App Service; use Azure Functions for event‑driven tasks (e.g., ingestion of automated test results).
+**API & services:** Host the QMA as a microservice on Azure Kubernetes Service (AKS) or Azure App Service; use Azure Functions for event‑driven tasks (e.g., ingestion of automated test results).
 
-AI services: Implement defect prediction and root cause models in Azure Machine Learning; leverage Azure Cognitive Services for text extraction from test artefacts.
+**AI services:** Implement defect prediction and root cause models in Azure Machine Learning; leverage Azure Cognitive Services for text extraction from test artefacts.
 
-Integration: Use Azure DevOps REST APIs to interact with pipelines and test plans; integrate with GitHub Actions or Jenkins via webhooks and Logic Apps.
+**Integration:** Use Azure DevOps REST APIs to interact with pipelines and test plans; integrate with GitHub Actions or Jenkins via webhooks and Logic Apps.
 
-Dashboards: Build interactive quality dashboards using Power BI or embed custom React components in the PPM UI; connect to data via direct queries or analysis services.
+**Dashboards:** Build interactive quality dashboards using Power BI or embed custom React components in the PPM UI; connect to data via direct queries or analysis services.
 
-Security: Protect sensitive defect details using Azure AD role‑based access; store encryption keys in Azure Key Vault.
+**Security:** Protect sensitive defect details using Azure AD role‑based access; store encryption keys in Azure Key Vault.
 
-Scalability: Scale QMA services horizontally to handle bursts of test results and defect submissions; use Azure Functions consumption plan for event processing.
+**Scalability:** Scale QMA services horizontally to handle bursts of test results and defect submissions; use Azure Functions consumption plan for event processing.
 
 ## Security & Compliance Considerations
 

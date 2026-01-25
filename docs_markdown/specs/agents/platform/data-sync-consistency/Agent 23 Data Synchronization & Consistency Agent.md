@@ -136,21 +136,21 @@ When other agents require consistent data (e.g., the Financial agent needing up�
 
 ### Azure Implementation Guidance
 
-Event ingestion: Use Azure Event Grid or Azure Service Bus for event‑driven sync; configure topics per entity and subscription filters.
+**Event ingestion:** Use Azure Event Grid or Azure Service Bus for event‑driven sync; configure topics per entity and subscription filters.
 
-Data transformation: Implement transformation logic using Azure Functions, Logic Apps or Azure Data Factory mapping data flows; utilise Azure Durable Functions for orchestrating multi‑step transformations.
+**Data transformation:** Implement transformation logic using Azure Functions, Logic Apps or Azure Data Factory mapping data flows; utilise Azure Durable Functions for orchestrating multi‑step transformations.
 
-Master data storage: Store master records in Azure SQL Database or Cosmos DB; implement versioning and soft deletes.
+**Master data storage:** Store master records in Azure SQL Database or Cosmos DB; implement versioning and soft deletes.
 
-Conflict & duplicate detection: Run periodic checks using Azure Functions or Databricks; implement fuzzy matching with libraries (e.g., FuzzyWuzzy) or ML models.
+**Conflict & duplicate detection:** Run periodic checks using Azure Functions or Databricks; implement fuzzy matching with libraries (e.g., FuzzyWuzzy) or ML models.
 
-API management: Expose DSCA endpoints via Azure API Management; secure with OAuth and manage throttling.
+**API management:** Expose DSCA endpoints via Azure API Management; secure with OAuth and manage throttling.
 
-Monitoring: Use Azure Monitor, Application Insights and Log Analytics to track sync pipelines; publish custom metrics.
+**Monitoring:** Use Azure Monitor, Application Insights and Log Analytics to track sync pipelines; publish custom metrics.
 
-Security: Use Azure AD for authentication; manage secrets via Key Vault; encrypt data in transit and at rest.
+**Security:** Use Azure AD for authentication; manage secrets via Key Vault; encrypt data in transit and at rest.
 
-Scalability: Design event processing to scale horizontally; use partitioning and parallelism for high‑throughput sync operations.
+**Scalability:** Design event processing to scale horizontally; use partitioning and parallelism for high‑throughput sync operations.
 
 ## Security & Compliance Considerations
 

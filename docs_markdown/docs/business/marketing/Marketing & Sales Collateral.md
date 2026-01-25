@@ -53,9 +53,9 @@ The PPM landscape includes established players like Planview, ServiceNow, Oracle
 
 ### Case Study 1: Global Manufacturing Enterprise
 
-Challenge: A Fortune 500 manufacturing company managed hundreds of projects across multiple business units. Disparate tools made it difficult to prioritise investments and allocate resources effectively. Projects frequently overran budgets.
+**Challenge:** A Fortune 500 manufacturing company managed hundreds of projects across multiple business units. Disparate tools made it difficult to prioritise investments and allocate resources effectively. Projects frequently overran budgets.
 
-Solution: The company adopted the Multi‑Agent PPM Platform. Agents automated demand intake and business case generation, ran multi‑criteria portfolio optimisation, and used predictive scheduling to flag potential delays. Integration with SAP provided real‑time financial data.
+**Solution:** The company adopted the Multi‑Agent PPM Platform. Agents automated demand intake and business case generation, ran multi‑criteria portfolio optimisation, and used predictive scheduling to flag potential delays. Integration with SAP provided real‑time financial data.
 
 Results:
 
@@ -69,9 +69,9 @@ Executive dashboards allowed leadership to realign investments quarterly, increa
 
 ### Case Study 2: Government Agency
 
-Challenge: A public sector agency needed to standardise project governance across departments while complying with stringent data‑sovereignty requirements. Manual approvals and fragmented reporting created delays and audit issues.
+**Challenge:** A public sector agency needed to standardise project governance across departments while complying with stringent data‑sovereignty requirements. Manual approvals and fragmented reporting created delays and audit issues.
 
-Solution: The agency deployed the platform in a private cloud. The approval workflow agent enforced role‑based approval chains and audited decisions. The lifecycle & governance agent ensured projects adhered to the mandated methodology. Data was stored in‑country with encryption and RBAC[7].
+**Solution:** The agency deployed the platform in a private cloud. The approval workflow agent enforced role‑based approval chains and audited decisions. The lifecycle & governance agent ensured projects adhered to the mandated methodology. Data was stored in‑country with encryption and RBAC[7].
 
 Results:
 
@@ -83,9 +83,9 @@ Provided real‑time visibility to executives and auditors via analytics dashboa
 
 ### Case Study 3: Professional Services Firm
 
-Challenge: A fast‑growing consultancy struggled to forecast demand and manage resources across concurrent client projects. Senior consultants spent significant time compiling reports.
+**Challenge:** A fast‑growing consultancy struggled to forecast demand and manage resources across concurrent client projects. Senior consultants spent significant time compiling reports.
 
-Solution: The firm implemented the platform’s resource & capacity agent, schedule planning agent, and reporting & insights agent. Integration with Jira and HubSpot enabled automatic data synchronisation.
+**Solution:** The firm implemented the platform’s resource & capacity agent, schedule planning agent, and reporting & insights agent. Integration with Jira and HubSpot enabled automatic data synchronisation.
 
 Results:
 

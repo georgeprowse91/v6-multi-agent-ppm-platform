@@ -6,17 +6,17 @@ The Intent Router Agent is the front‑door of the multi‑agent PPM platform. 
 
 ## Key Capabilities
 
-Multi‑intent detection: Identifies one or more intents within a single user request and maintains session context (e.g., “Show me Apollo’s schedule and flag any budget risks”).
+**Multi‑intent detection:** Identifies one or more intents within a single user request and maintains session context (e.g., “Show me Apollo’s schedule and flag any budget risks”).
 
-Context extraction: Uses conversation history to infer implicit parameters (project names, methodologies) and fill missing data.
+**Context extraction:** Uses conversation history to infer implicit parameters (project names, methodologies) and fill missing data.
 
-Disambiguation and clarification: Detects ambiguous requests and prompts the user for clarification (e.g., asking which project or what type of schedule update).
+**Disambiguation and clarification:** Detects ambiguous requests and prompts the user for clarification (e.g., asking which project or what type of schedule update).
 
-Routing prioritization: Prioritizes requests based on user role, urgency and complexity and forwards them to the Response Orchestration Agent.
+**Routing prioritization:** Prioritizes requests based on user role, urgency and complexity and forwards them to the Response Orchestration Agent.
 
-Session state management: Maintains conversational state across turns and stores user preferences and classification history.
+**Session state management:** Maintains conversational state across turns and stores user preferences and classification history.
 
-Fallback handling: Provides human‑readable fallback responses and clarifications for out‑of‑scope or low‑confidence intents.
+**Fallback handling:** Provides human‑readable fallback responses and clarifications for out‑of‑scope or low‑confidence intents.
 
 ## AI Technologies
 
@@ -26,25 +26,25 @@ Azure Language Understanding (CLU) for contextual embeddings and similarity matc
 
 Azure Cognitive Search for retrieving historical classifications and improving suggestions.
 
-Confidence scoring: Statistical models to score classification confidence; triggers clarification when below threshold.
+**Confidence scoring:** Statistical models to score classification confidence; triggers clarification when below threshold.
 
 ## Methodology Adaptations
 
 The agent adjusts vocabulary and suggested next actions based on the selected project methodology:
 
-Agile: Understands sprint terminology (burndown, velocity, user story points) and suggests sprint‑specific actions.
+**Agile:** Understands sprint terminology (burndown, velocity, user story points) and suggests sprint‑specific actions.
 
-Waterfall: Recognizes phase‑gate terminology (baseline, critical path, earned value) and suggests phase‑specific actions.
+**Waterfall:** Recognizes phase‑gate terminology (baseline, critical path, earned value) and suggests phase‑specific actions.
 
-Hybrid: Uses a combination of the above and defers ambiguous terms to the user.
+**Hybrid:** Uses a combination of the above and defers ambiguous terms to the user.
 
 ## Dependencies & Interactions
 
-Response Orchestration Agent (Agent 2): Receives a routing payload containing the classified intents, target agents, execution order and metadata.
+**Response Orchestration Agent (Agent 2):** Receives a routing payload containing the classified intents, target agents, execution order and metadata.
 
-User Profile Service: Queries for user role, permissions and active projects to refine classification.
+**User Profile Service:** Queries for user role, permissions and active projects to refine classification.
 
-Project Lifecycle Agent (Agent 9): Uses methodology selection data to adjust classification.
+**Project Lifecycle Agent (Agent 9):** Uses methodology selection data to adjust classification.
 
 ## Integration Responsibilities
 
@@ -56,55 +56,55 @@ Interfaces with Azure AD for authentication and user context lookup.
 
 ## Data Ownership
 
-Session state: Current conversation context (active project, methodology).
+**Session state:** Current conversation context (active project, methodology).
 
-Intent history: Records of classified intents and associated entities for analytics and model improvement.
+**Intent history:** Records of classified intents and associated entities for analytics and model improvement.
 
-User preferences: Preferred terminology, response formats and disambiguation choices.
+**User preferences:** Preferred terminology, response formats and disambiguation choices.
 
 ## Key Workflows
 
-Simple Query Routing: The user asks a fact‑based question (“What’s the budget for Project Apollo?”). The agent classifies the intent (e.g., query.project.budget), extracts entities (Project = “Apollo”) and forwards the request to the Response Orchestration Agent with the target of the Financial Management Agent.
+**Simple Query Routing:** The user asks a fact‑based question (“What’s the budget for Project Apollo?”). The agent classifies the intent (e.g., query.project.budget), extracts entities (Project = “Apollo”) and forwards the request to the Response Orchestration Agent with the target of the Financial Management Agent.
 
-Multi‑Intent Request: The user asks for multiple pieces of information (“Show me Apollo’s schedule and flag budget risks”). The agent detects both schedule and risk intents and packages them into a compound routing payload for parallel execution.
+**Multi‑Intent Request:** The user asks for multiple pieces of information (“Show me Apollo’s schedule and flag budget risks”). The agent detects both schedule and risk intents and packages them into a compound routing payload for parallel execution.
 
-Ambiguous Request: The user provides insufficient data (“Update the schedule”). The agent prompts the user to specify the project and the type of update.
+**Ambiguous Request:** The user provides insufficient data (“Update the schedule”). The agent prompts the user to specify the project and the type of update.
 
 ## UI/UX Design
 
-Assistant Input Box: All free‑text user inputs from the assistant panel are first processed by this agent. The UI displays placeholder text like “Ask me about budgets, risks, or schedules…” and auto‑completes suggestions.
+**Assistant Input Box:** All free‑text user inputs from the assistant panel are first processed by this agent. The UI displays placeholder text like “Ask me about budgets, risks, or schedules…” and auto‑completes suggestions.
 
-Clarification Chips: When a request is ambiguous, the agent returns quick‑action chips (e.g., list of projects, update options) displayed below the chat input, allowing the user to click to disambiguate.
+**Clarification Chips:** When a request is ambiguous, the agent returns quick‑action chips (e.g., list of projects, update options) displayed below the chat input, allowing the user to click to disambiguate.
 
-Confidence Indicators: The UI may display a subtle “uncertain” badge when classification confidence is low, prompting users to rephrase.
+**Confidence Indicators:** The UI may display a subtle “uncertain” badge when classification confidence is low, prompting users to rephrase.
 
-Auditing Pane: Within project settings, admins can review historical intents and how they were routed to troubleshoot training.
+**Auditing Pane:** Within project settings, admins can review historical intents and how they were routed to troubleshoot training.
 
 ## Configuration Parameters
 
-Classification Confidence Threshold: Default 0.75; below this, the agent asks for clarification.
+**Classification Confidence Threshold:** Default 0.75; below this, the agent asks for clarification.
 
-Disambiguation Timeout: Default 15 seconds; time the agent waits for user clarification before re‑prompting.
+**Disambiguation Timeout:** Default 15 seconds; time the agent waits for user clarification before re‑prompting.
 
-Max Parallel Intents: Default 3; maximum number of concurrent intents to avoid overloading downstream agents.
+**Max Parallel Intents:** Default 3; maximum number of concurrent intents to avoid overloading downstream agents.
 
-Language Support: List of supported languages/locales; default [“en‑US”].
+**Language Support:** List of supported languages/locales; default [“en‑US”].
 
-Caching Time‑to‑Live: Duration (in minutes) to cache classification results; default 10 minutes.
+**Caching Time‑to‑Live:** Duration (in minutes) to cache classification results; default 10 minutes.
 
 ## Azure Implementation Guidance
 
-Compute: Deploy the agent as an Azure Function (HTTP trigger) written in Python or C# for stateless classification. Use Durable Functions if extended conversational state is required.
+**Compute:** Deploy the agent as an Azure Function (HTTP trigger) written in Python or C# for stateless classification. Use Durable Functions if extended conversational state is required.
 
-AI Services: Integrate with Azure OpenAI for LLM calls and Language Understanding (CLU) for intent classification. Use Azure Cognitive Search for historical query retrieval.
+**AI Services:** Integrate with Azure OpenAI for LLM calls and Language Understanding (CLU) for intent classification. Use Azure Cognitive Search for historical query retrieval.
 
-State Management: Store session and intent history in Azure Cosmos DB (NoSQL) or Azure Table Storage. Use Redis Cache for transient conversation context.
+**State Management:** Store session and intent history in Azure Cosmos DB (NoSQL) or Azure Table Storage. Use Redis Cache for transient conversation context.
 
-Messaging: Use Azure Service Bus or Event Grid to publish routing events to downstream agents.
+**Messaging:** Use Azure Service Bus or Event Grid to publish routing events to downstream agents.
 
-Authentication: Rely on Azure Active Directory for token-based authentication and to retrieve user profiles.
+**Authentication:** Rely on Azure Active Directory for token-based authentication and to retrieve user profiles.
 
-Monitoring: Use Application Insights to track classification latency, error rates and model confidence scores. Set up alerts for classification errors.
+**Monitoring:** Use Application Insights to track classification latency, error rates and model confidence scores. Set up alerts for classification errors.
 
 ## Security & Compliance
 

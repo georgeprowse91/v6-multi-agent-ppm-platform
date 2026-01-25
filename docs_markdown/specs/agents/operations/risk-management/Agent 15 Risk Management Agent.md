@@ -148,19 +148,19 @@ The Orchestration layer routes queries such as “What are the top 5 risks for P
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure Cosmos DB for flexible storage of risk registers, triggers and mitigation tasks; store simulation results in Azure Data Lake or Synapse Analytics for analysis.
+**Data storage:** Use Azure Cosmos DB for flexible storage of risk registers, triggers and mitigation tasks; store simulation results in Azure Data Lake or Synapse Analytics for analysis.
 
-API & orchestration: Host the RMA microservice on Azure App Service or AKS; use Azure Functions with timer or event triggers to monitor thresholds and run simulations.
+**API & orchestration:** Host the RMA microservice on Azure App Service or AKS; use Azure Functions with timer or event triggers to monitor thresholds and run simulations.
 
-AI & ML: Implement predictive risk models using Azure Machine Learning; use Azure Cognitive Search to extract risks from documents; run Monte Carlo simulations using Azure Batch or parallelised functions.
+**AI & ML:** Implement predictive risk models using Azure Machine Learning; use Azure Cognitive Search to extract risks from documents; run Monte Carlo simulations using Azure Batch or parallelised functions.
 
-Integration: Leverage Azure Logic Apps or Data Factory to connect to external data sources (e.g., risk indicators, weather API). Integrate with Azure DevOps, Jira or Planview via REST APIs.
+**Integration:** Leverage Azure Logic Apps or Data Factory to connect to external data sources (e.g., risk indicators, weather API). Integrate with Azure DevOps, Jira or Planview via REST APIs.
 
-Dashboards: Build interactive dashboards using Power BI; embed risk visualisations in the PPM UI using Power BI Embedded or custom D3.js components.
+**Dashboards:** Build interactive dashboards using Power BI; embed risk visualisations in the PPM UI using Power BI Embedded or custom D3.js components.
 
-Security: Manage access using Azure AD groups; encrypt sensitive risk data with keys managed in Azure Key Vault.
+**Security:** Manage access using Azure AD groups; encrypt sensitive risk data with keys managed in Azure Key Vault.
 
-Scalability: Scale out risk monitoring functions using Event Grid and Service Bus to process a high volume of triggers and notifications.
+**Scalability:** Scale out risk monitoring functions using Event Grid and Service Bus to process a high volume of triggers and notifications.
 
 ## Security & Compliance Considerations
 
