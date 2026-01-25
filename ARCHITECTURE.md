@@ -355,7 +355,7 @@ Platform → External systems via:
 - Rate limiting and retry policies
 - Circuit breakers for fault tolerance
 
-See [Integration Architecture](docs/architecture/integrations/Integration%20Architecture.md) for connector specifications.
+See [Integration Architecture](docs/architecture/connector-architecture.md) for connector specifications.
 
 ## Performance Considerations
 
@@ -388,8 +388,8 @@ See [Observability & Monitoring](docs/architecture/observability-architecture.md
 
 ## Further Reading
 
-- **[Detailed Architecture](docs/architecture/detailed/)** - In-depth technical specifications
-- **[Data Architecture](docs/architecture/data/Data%20Architecture.md)** - Data models and flows
+- **[Detailed Architecture](docs/architecture/README.md)** - In-depth technical specifications
+- **[Data Architecture](docs/architecture/data-architecture.md)** - Data models and flows
 - **[Deployment Architecture](docs/architecture/deployment-architecture.md)** - Deployment and infrastructure
 - **[Agent Specifications](agents/README.md)** - Individual agent details
 - **[API Documentation](http://localhost:8000/api/docs)** - Interactive API reference
