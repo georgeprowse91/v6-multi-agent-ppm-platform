@@ -6,7 +6,7 @@ The Multi‑Agent PPM Platform relies on a robust data architecture to store, ma
 
 ## Data Ownership Model
 
-The platform adopts a domain‑driven data ownership model: each agent is the system of record for its domain entities. For example, the Demand & Intake agent owns Idea and Proposal objects; the Business Case agent owns BusinessCase and associated financial models; the Portfolio Strategy agent owns Portfolio, Scenario and AlignmentScore records; the Program Management agent owns Program and ProgramDependency; the Project Definition agent owns Project, Charter, Requirement, WBSItem; and so on. This pattern ensures that:
+**The platform adopts a domain‑driven data ownership model:** each agent is the system of record for its domain entities. For example, the Demand & Intake agent owns Idea and Proposal objects; the Business Case agent owns BusinessCase and associated financial models; the Portfolio Strategy agent owns Portfolio, Scenario and AlignmentScore records; the Program Management agent owns Program and ProgramDependency; the Project Definition agent owns Project, Charter, Requirement, WBSItem; and so on. This pattern ensures that:
 
 Each entity has a single authoritative owner responsible for CRUD operations and enforcing business rules.
 

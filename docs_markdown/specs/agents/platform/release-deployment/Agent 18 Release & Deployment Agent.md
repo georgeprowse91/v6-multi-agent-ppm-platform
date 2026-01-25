@@ -154,19 +154,19 @@ When a user asks “When is the next production release for Program Delta?”, t
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure SQL Database or Cosmos DB for release calendars and deployment metadata; store deployment scripts and logs in Azure Blob Storage.
+**Data storage:** Use Azure SQL Database or Cosmos DB for release calendars and deployment metadata; store deployment scripts and logs in Azure Blob Storage.
 
-Pipeline integration: Trigger and monitor pipelines using Azure DevOps REST APIs or GitHub Actions; orchestrate multi‑stage deployments using Azure Pipelines or Azure Deployment Manager.
+**Pipeline integration:** Trigger and monitor pipelines using Azure DevOps REST APIs or GitHub Actions; orchestrate multi‑stage deployments using Azure Pipelines or Azure Deployment Manager.
 
-Infrastructure automation: Use Azure Resource Manager (ARM) templates, Bicep, Terraform or Ansible executed via Azure Automation or Functions to provision environments.
+**Infrastructure automation:** Use Azure Resource Manager (ARM) templates, Bicep, Terraform or Ansible executed via Azure Automation or Functions to provision environments.
 
-Release coordination: Host the RDA microservices on Azure Kubernetes Service (AKS) or App Service; orchestrate release workflows via Durable Functions or Logic Apps.
+**Release coordination:** Host the RDA microservices on Azure Kubernetes Service (AKS) or App Service; orchestrate release workflows via Durable Functions or Logic Apps.
 
-Monitoring & observability: Integrate with Azure Monitor, Application Insights and Log Analytics to collect deployment telemetry; use Azure Alerts for anomalies.
+**Monitoring & observability:** Integrate with Azure Monitor, Application Insights and Log Analytics to collect deployment telemetry; use Azure Alerts for anomalies.
 
-Security: Enforce least privilege for deployment operations using Azure AD roles; store secrets in Azure Key Vault; sign release artifacts to ensure integrity.
+**Security:** Enforce least privilege for deployment operations using Azure AD roles; store secrets in Azure Key Vault; sign release artifacts to ensure integrity.
 
-Scalability: Use event‑driven architecture with Event Grid to handle asynchronous release events; scale microservices based on message volume.
+**Scalability:** Use event‑driven architecture with Event Grid to handle asynchronous release events; scale microservices based on message volume.
 
 ## Security & Compliance Considerations
 

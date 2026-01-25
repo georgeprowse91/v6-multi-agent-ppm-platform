@@ -8,7 +8,7 @@ The Multi‑Agent PPM Platform is an AI‑powered Project Portfolio Management (
 
 ### Methodology‑Driven Navigation
 
-At the heart of the platform is a methodology map: a visual workflow that guides users through the entire project lifecycle. Whether your organisation follows Waterfall, Agile, or a hybrid approach, the platform turns the methodology into the primary navigation mechanism. Each stage (e.g., Initiation, Planning, Execution, Monitoring and Closing) contains detailed sub‑tasks and stage‑gates that must be completed. The left panel of the user interface displays this map, allowing users to see where they are and what comes next. Selecting a node surfaces the relevant tasks and documentation, ensuring consistent governance and best practice across projects.
+**At the heart of the platform is a methodology map:** a visual workflow that guides users through the entire project lifecycle. Whether your organisation follows Waterfall, Agile, or a hybrid approach, the platform turns the methodology into the primary navigation mechanism. Each stage (e.g., Initiation, Planning, Execution, Monitoring and Closing) contains detailed sub‑tasks and stage‑gates that must be completed. The left panel of the user interface displays this map, allowing users to see where they are and what comes next. Selecting a node surfaces the relevant tasks and documentation, ensuring consistent governance and best practice across projects.
 
 ### AI as the Primary Interface
 
@@ -24,7 +24,7 @@ The central canvas is the workspace where content and data from multiple sources
 
 ### Connector Marketplace
 
-Integration is not an afterthought: the platform includes a marketplace of connectors for popular PPM, ERP, HR and collaboration systems. Each connector encapsulates authentication, data mapping and error handling for an external system, and exposes consistent APIs to the agents. The architecture document stresses that organisations can choose which connectors to enable and how data flows (read‑only, read/write, one‑way or bi‑directional). This approach acknowledges that different clients may use different tools for the same function (e.g., Planview vs. Clarity vs. Asana) and ensures interoperability.
+**Integration is not an afterthought:** the platform includes a marketplace of connectors for popular PPM, ERP, HR and collaboration systems. Each connector encapsulates authentication, data mapping and error handling for an external system, and exposes consistent APIs to the agents. The architecture document stresses that organisations can choose which connectors to enable and how data flows (read‑only, read/write, one‑way or bi‑directional). This approach acknowledges that different clients may use different tools for the same function (e.g., Planview vs. Clarity vs. Asana) and ensures interoperability.
 
 ## Key Capabilities
 

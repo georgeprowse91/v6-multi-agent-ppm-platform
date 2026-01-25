@@ -144,17 +144,17 @@ The Orchestration layer routes queries like “Are we compliant with SOX for Pro
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure SQL Database or Cosmos DB for structured compliance data (regulations, controls, mappings); store evidence in Azure Blob Storage with appropriate security labels.
+**Data storage:** Use Azure SQL Database or Cosmos DB for structured compliance data (regulations, controls, mappings); store evidence in Azure Blob Storage with appropriate security labels.
 
-API & microservices: Implement CRA microservices using Azure Functions or AKS; expose REST endpoints via API Management; integrate with external GRC tools via Logic Apps.
+**API & microservices:** Implement CRA microservices using Azure Functions or AKS; expose REST endpoints via API Management; integrate with external GRC tools via Logic Apps.
 
-AI services: Use Azure Cognitive Services (Text Analytics) to parse regulatory documents; apply Form Recognizer to extract data from audit evidence.
+**AI services:** Use Azure Cognitive Services (Text Analytics) to parse regulatory documents; apply Form Recognizer to extract data from audit evidence.
 
-Workflow automation: Use Power Automate or Logic Apps to orchestrate control testing, evidence collection and audit tasks.
+**Workflow automation:** Use Power Automate or Logic Apps to orchestrate control testing, evidence collection and audit tasks.
 
-Security: Enforce least‑privilege access using Azure AD roles; implement encryption of data at rest and in transit; manage keys in Azure Key Vault.
+**Security:** Enforce least‑privilege access using Azure AD roles; implement encryption of data at rest and in transit; manage keys in Azure Key Vault.
 
-Scalability: Use serverless functions with consumption plans for regulatory change monitoring; scale microservices based on load.
+**Scalability:** Use serverless functions with consumption plans for regulatory change monitoring; scale microservices based on load.
 
 ## Security & Compliance Considerations
 

@@ -134,7 +134,7 @@ The VPMA provides a procurement portal accessible from the PPM interface:
 
 **Supplier scorecard:** dashboards summarising vendor performance across quality, delivery, cost and compliance; includes trend lines, benchmarking and drill‑down into incidents.
 
-Interactions with Orchestration & Other Agents: The Intent Router routes natural language queries like “select a vendor for Project Alpha’s hardware purchase” to the VPMA. The Response Orchestration agent may call the Risk Management agent to fetch vendor risk scores, the Financial agent to verify budget availability, and the Approval Workflow agent to initiate approvals. The VPMA exposes events (e.g., new invoice received) to the Data Synchronisation agent to update financials.
+**Interactions with Orchestration & Other Agents:** The Intent Router routes natural language queries like “select a vendor for Project Alpha’s hardware purchase” to the VPMA. The Response Orchestration agent may call the Risk Management agent to fetch vendor risk scores, the Financial agent to verify budget availability, and the Approval Workflow agent to initiate approvals. The VPMA exposes events (e.g., new invoice received) to the Data Synchronisation agent to update financials.
 
 ## Configuration Parameters & Environment
 
@@ -150,17 +150,17 @@ Interactions with Orchestration & Other Agents: The Intent Router routes natural
 
 ### Azure Implementation Guidance
 
-Data storage: Use Azure SQL Database or Azure Cosmos DB for vendor registry, procurement requests and contract metadata. Store contract documents and RFP responses in Azure Blob Storage with lifecycle policies.
+**Data storage:** Use Azure SQL Database or Azure Cosmos DB for vendor registry, procurement requests and contract metadata. Store contract documents and RFP responses in Azure Blob Storage with lifecycle policies.
 
-API & workflow hosting: Implement the VPMA as a set of Azure Functions or microservices in Azure Kubernetes Service (AKS). Use Azure Logic Apps to orchestrate integrations with external procurement systems and e‑signature services.
+**API & workflow hosting:** Implement the VPMA as a set of Azure Functions or microservices in Azure Kubernetes Service (AKS). Use Azure Logic Apps to orchestrate integrations with external procurement systems and e‑signature services.
 
-AI services: Deploy vendor recommendation models using Azure Machine Learning; perform contract clause extraction using Azure Form Recognizer or Language Studio. Use Azure Cognitive Search for searching contract text.
+**AI services:** Deploy vendor recommendation models using Azure Machine Learning; perform contract clause extraction using Azure Form Recognizer or Language Studio. Use Azure Cognitive Search for searching contract text.
 
-B2B integrations: Use Azure Service Bus or Event Grid to publish procurement events; leverage API Management for secure external vendor portals.
+**B2B integrations:** Use Azure Service Bus or Event Grid to publish procurement events; leverage API Management for secure external vendor portals.
 
-Security: Use Azure AD B2B for vendor authentication; protect sensitive documents using Azure Information Protection and integrate with Azure Key Vault for encryption keys.
+**Security:** Use Azure AD B2B for vendor authentication; protect sensitive documents using Azure Information Protection and integrate with Azure Key Vault for encryption keys.
 
-Scalability: Leverage serverless compute with consumption plan for irregular procurement workloads; scale out microservices during RFP or invoice processing peaks.
+**Scalability:** Leverage serverless compute with consumption plan for irregular procurement workloads; scale out microservices during RFP or invoice processing peaks.
 
 ## Security & Compliance Considerations
 

@@ -54,7 +54,7 @@ FTE numbers can scale up or down based on organisational size and outsourcing. D
 
 ### Staffing by Phase
 
-Note: FTE values are indicative and represent approximate allocation per phase.
+**Note:** FTE values are indicative and represent approximate allocation per phase.
 
 ## Tracking Progress
 

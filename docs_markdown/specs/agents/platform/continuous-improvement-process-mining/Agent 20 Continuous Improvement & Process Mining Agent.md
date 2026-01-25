@@ -132,7 +132,7 @@ The CIPMA provides a rich interactive interface:
 
 **Insights & recommendations feed:** list of automatically generated insights and recommended actions; users can accept, modify or dismiss them.
 
-Interactions with Orchestration: When a user queries “Where are we seeing bottlenecks in the change management process?”, the Intent Router forwards the request to CIPMA. The Response Orchestration agent may also call the Change agent for baseline process models and event logs. CIPMA returns visualisations and suggestions.
+**Interactions with Orchestration:** When a user queries “Where are we seeing bottlenecks in the change management process?”, the Intent Router forwards the request to CIPMA. The Response Orchestration agent may also call the Change agent for baseline process models and event logs. CIPMA returns visualisations and suggestions.
 
 ## Configuration Parameters & Environment
 
@@ -150,19 +150,19 @@ Interactions with Orchestration: When a user queries “Where are we seeing bott
 
 ### Azure Implementation Guidance
 
-Data ingestion & storage: Use Azure Event Hubs or Azure Data Explorer to ingest event logs from various sources; store aggregated logs in Azure Data Lake Storage Gen2 or Azure Synapse Analytics.
+**Data ingestion & storage:** Use Azure Event Hubs or Azure Data Explorer to ingest event logs from various sources; store aggregated logs in Azure Data Lake Storage Gen2 or Azure Synapse Analytics.
 
-Process mining & analytics: Run process mining algorithms using Azure Databricks or Azure Machine Learning notebooks; use Azure Data Factory to orchestrate data preparation and analysis pipelines.
+**Process mining & analytics:** Run process mining algorithms using Azure Databricks or Azure Machine Learning notebooks; use Azure Data Factory to orchestrate data preparation and analysis pipelines.
 
-Microservices & APIs: Host CIPMA services on Azure Kubernetes Service (AKS) or App Service; expose REST endpoints for insights and improvement management via API Management.
+**Microservices & APIs:** Host CIPMA services on Azure Kubernetes Service (AKS) or App Service; expose REST endpoints for insights and improvement management via API Management.
 
-Data visualisation: Utilise Power BI and custom visual components to render process maps, dashboards and benchmarking charts; embed these into the PPM UI.
+**Data visualisation:** Utilise Power BI and custom visual components to render process maps, dashboards and benchmarking charts; embed these into the PPM UI.
 
-Integration & automation: Use Logic Apps to connect CIPMA with Jira, Azure DevOps and other backlog tools; integrate with the Workflow & Process Engine agent for automated improvements.
+**Integration & automation:** Use Logic Apps to connect CIPMA with Jira, Azure DevOps and other backlog tools; integrate with the Workflow & Process Engine agent for automated improvements.
 
-Security: Protect event logs with encryption at rest; enforce access controls via Azure AD; manage keys through Azure Key Vault.
+**Security:** Protect event logs with encryption at rest; enforce access controls via Azure AD; manage keys through Azure Key Vault.
 
-Scalability: Scale analytical workloads using serverless Spark clusters in Databricks or Synapse; use auto‑scaling on microservices to handle peaks in analysis requests.
+**Scalability:** Scale analytical workloads using serverless Spark clusters in Databricks or Synapse; use auto‑scaling on microservices to handle peaks in analysis requests.
 
 ## Security & Compliance Considerations
 

@@ -130,7 +130,7 @@ The SCMA provides a range of interfaces within the PPM platform:
 
 **Engagement dashboard:** highlights upcoming communications, overdue responses and stakeholders with declining engagement; provides filters and call‑to‑action buttons.
 
-Interactions with Orchestration: When a project manager asks “Send the latest financial update to the executive steering committee”, the Intent Router directs the request to SCMA. The Response Orchestration agent retrieves financial data from the Financial agent and stakeholder details from the SCMA; the SCMA generates and sends the message, and returns confirmation.
+**Interactions with Orchestration:** When a project manager asks “Send the latest financial update to the executive steering committee”, the Intent Router directs the request to SCMA. The Response Orchestration agent retrieves financial data from the Financial agent and stakeholder details from the SCMA; the SCMA generates and sends the message, and returns confirmation.
 
 ## Configuration Parameters & Environment
 
@@ -146,19 +146,19 @@ Interactions with Orchestration: When a project manager asks “Send the latest 
 
 ### Azure Implementation Guidance
 
-Data storage: Store stakeholder profiles, communication plans and engagement metrics in Azure SQL Database or Cosmos DB; store messages and templates in Blob Storage or a document database.
+**Data storage:** Store stakeholder profiles, communication plans and engagement metrics in Azure SQL Database or Cosmos DB; store messages and templates in Blob Storage or a document database.
 
-Service hosting: Host SCMA microservices on Azure App Service or AKS; expose REST and webhook endpoints via API Management.
+**Service hosting:** Host SCMA microservices on Azure App Service or AKS; expose REST and webhook endpoints via API Management.
 
-Messaging & delivery: Use Azure Communication Services or SendGrid to send emails and SMS; integrate with Microsoft Graph API for Teams and Outlook; handle message scheduling via Azure Functions or Logic Apps.
+**Messaging & delivery:** Use Azure Communication Services or SendGrid to send emails and SMS; integrate with Microsoft Graph API for Teams and Outlook; handle message scheduling via Azure Functions or Logic Apps.
 
-AI & analytics: Use Azure Cognitive Services for sentiment analysis; implement engagement scoring models using Azure Machine Learning; build dashboards with Power BI.
+**AI & analytics:** Use Azure Cognitive Services for sentiment analysis; implement engagement scoring models using Azure Machine Learning; build dashboards with Power BI.
 
-Integration: Use Power Automate or Logic Apps to orchestrate surveys and event scheduling; integrate with CRM systems using connectors.
+**Integration:** Use Power Automate or Logic Apps to orchestrate surveys and event scheduling; integrate with CRM systems using connectors.
 
-Security: Use Azure AD for authentication; enforce role‑based access; store tokens and secrets in Azure Key Vault.
+**Security:** Use Azure AD for authentication; enforce role‑based access; store tokens and secrets in Azure Key Vault.
 
-Scalability: Auto‑scale based on message volume; use queue‑triggered functions for asynchronous message processing.
+**Scalability:** Auto‑scale based on message volume; use queue‑triggered functions for asynchronous message processing.
 
 ## Security & Compliance Considerations
 

@@ -142,21 +142,21 @@ In the UI, when a user enters a natural language query like “How many projects
 
 ### Azure Implementation Guidance
 
-Data storage & warehousing: Use Azure Synapse Analytics for a scalable data warehouse; implement data lake layers for raw, curated and enriched data in Data Lake Storage Gen2.
+**Data storage & warehousing:** Use Azure Synapse Analytics for a scalable data warehouse; implement data lake layers for raw, curated and enriched data in Data Lake Storage Gen2.
 
-Data integration & pipelines: Orchestrate ETL/ELT processes using Azure Data Factory or Synapse Pipelines; employ mapping data flows for transformations and data quality checks.
+**Data integration & pipelines:** Orchestrate ETL/ELT processes using Azure Data Factory or Synapse Pipelines; employ mapping data flows for transformations and data quality checks.
 
-Analytics services: Leverage Azure Analysis Services or Power BI Premium to build semantic models; enable DirectQuery or import modes depending on performance needs.
+**Analytics services:** Leverage Azure Analysis Services or Power BI Premium to build semantic models; enable DirectQuery or import modes depending on performance needs.
 
-Machine learning: Train models using Azure Machine Learning or Databricks; deploy scoring services as Azure Functions or AKS microservices; store models in a registry with version control.
+**Machine learning:** Train models using Azure Machine Learning or Databricks; deploy scoring services as Azure Functions or AKS microservices; store models in a registry with version control.
 
-Natural language: Use Azure Cognitive Services Language or Azure OpenAI Service to interpret queries and generate narratives.
+**Natural language:** Use Azure Cognitive Services Language or Azure OpenAI Service to interpret queries and generate narratives.
 
-Visualisation: Develop interactive dashboards in Power BI and embed them within the PPM UI using Power BI Embedded; provide custom visual components using React and D3.js when required.
+**Visualisation:** Develop interactive dashboards in Power BI and embed them within the PPM UI using Power BI Embedded; provide custom visual components using React and D3.js when required.
 
-Security: Implement data masking and row‑level security in Synapse; manage credentials with Key Vault; enforce RBAC via Azure AD.
+**Security:** Implement data masking and row‑level security in Synapse; manage credentials with Key Vault; enforce RBAC via Azure AD.
 
-Scalability: Scale Synapse dedicated SQL pools, Analysis Services, and App Service based on query loads; employ autoscaling for ML scoring endpoints.
+**Scalability:** Scale Synapse dedicated SQL pools, Analysis Services, and App Service based on query loads; employ autoscaling for ML scoring endpoints.
 
 ## Security & Compliance Considerations
 

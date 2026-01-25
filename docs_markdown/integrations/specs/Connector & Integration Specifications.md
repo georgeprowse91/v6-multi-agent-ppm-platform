@@ -36,9 +36,9 @@ The platform must exchange cost, budget, invoice and procurement data with enter
 
 ### Workday Financials and HCM
 
-Base URL: Workday REST APIs follow the pattern https://{host}/ccx/api/v1/{tenant}/{resource} where resource may be workers, jobs, journals or other objects[4].
+**Base URL:** Workday REST APIs follow the pattern https://{host}/ccx/api/v1/{tenant}/{resource} where resource may be workers, jobs, journals or other objects[4].
 
-Authentication: Workday REST APIs require OAuth 2.0. Clients must register an API client in Workday, generate a non‑expiring refresh token and obtain an access token from https://<workday_domain>/ccx/oauth2/token using client ID and secret[5]. Access tokens are sent as Bearer tokens in subsequent API calls (e.g. GET /workers with Authorization header)[6]. Workday also supports Integration System Users (ISU) for SOAP and REST; connectors should allow either method[7].
+**Authentication:** Workday REST APIs require OAuth 2.0. Clients must register an API client in Workday, generate a non‑expiring refresh token and obtain an access token from https://<workday_domain>/ccx/oauth2/token using client ID and secret[5]. Access tokens are sent as Bearer tokens in subsequent API calls (e.g. GET /workers with Authorization header)[6]. Workday also supports Integration System Users (ISU) for SOAP and REST; connectors should allow either method[7].
 
 Key endpoints:
 
@@ -50,15 +50,15 @@ Key endpoints:
 
 **GET /projects (if tenant enables professional services module):** return project financial details.
 
-Data mapping: Map Workday worker ID → resource.id; worker’s primary work email → resource.email; cost centre to resource.costCentre; salary to cost.baseCost. Financial journal lines map to cost.transactions with dimensions (project, account, amount).
+**Data mapping:** Map Workday worker ID → resource.id; worker’s primary work email → resource.email; cost centre to resource.costCentre; salary to cost.baseCost. Financial journal lines map to cost.transactions with dimensions (project, account, amount).
 
-Notes: Workday may return large datasets; connectors should implement pagination via ?limit and ?cursor. Support both JSON and XML formats.
+**Notes:** Workday may return large datasets; connectors should implement pagination via ?limit and ?cursor. Support both JSON and XML formats.
 
 ### SAP (S/4HANA, ECC, SuccessFactors)
 
-Base API patterns: SAP exposes OData services under /sap/opu/odata/sap/<SERVICE_NAME> for on‑premise S/4HANA and SuccessFactors (e.g. API_PROJ_ENGMT_SRV for project engagements, API_COST_CENTER_SRV for cost centres). Cloud systems may expose APIs via SAP Business Accelerator Hub.
+**Base API patterns:** SAP exposes OData services under /sap/opu/odata/sap/<SERVICE_NAME> for on‑premise S/4HANA and SuccessFactors (e.g. API_PROJ_ENGMT_SRV for project engagements, API_COST_CENTER_SRV for cost centres). Cloud systems may expose APIs via SAP Business Accelerator Hub.
 
-Authentication: Support Basic authentication, OAuth 2.0 client credentials or SAML depending on the customer’s configuration. Many cloud integrations now require OAuth 2.0; connectors should allow clients to register OAuth clients and obtain tokens.
+**Authentication:** Support Basic authentication, OAuth 2.0 client credentials or SAML depending on the customer’s configuration. Many cloud integrations now require OAuth 2.0; connectors should allow clients to register OAuth clients and obtain tokens.
 
 Key endpoints:
 
@@ -70,19 +70,19 @@ Key endpoints:
 
 **POST /ProjectCollection:** create or update project master data.
 
-Data mapping: SAP project ID (PSPID) → project.id; WBS element ID → task.id; cost postings (amount, currency, cost element) map to cost.transactions.
+**Data mapping:** SAP project ID (PSPID) → project.id; WBS element ID → task.id; cost postings (amount, currency, cost element) map to cost.transactions.
 
-Notes: SAP responses may include nested sets; connectors must expand navigation properties ($expand) and filter results ($filter). Support delta extraction using $filter=LastChangeDateTime gt <timestamp>.
+**Notes:** SAP responses may include nested sets; connectors must expand navigation properties ($expand) and filter results ($filter). Support delta extraction using $filter=LastChangeDateTime gt <timestamp>.
 
 ### Oracle Fusion Cloud / NetSuite
 
-Endpoints: Oracle Fusion Cloud uses REST resources under /fscmRestApi/resources/v11/ (e.g. projects, projectBudgets, accountsReceivableInvoices). NetSuite uses RESTlets or SuiteTalk REST endpoints at /rest, such as /record/v1/project/<id>. Connectors must support these patterns.
+**Endpoints:** Oracle Fusion Cloud uses REST resources under /fscmRestApi/resources/v11/ (e.g. projects, projectBudgets, accountsReceivableInvoices). NetSuite uses RESTlets or SuiteTalk REST endpoints at /rest, such as /record/v1/project/<id>. Connectors must support these patterns.
 
-Authentication: Use OAuth 2.0 with client credentials for Fusion Cloud. NetSuite uses OAuth 1.0a (consumer key, consumer secret, token, token secret) or token‑based authentication (TBA). Provide configuration fields for each credential set.
+**Authentication:** Use OAuth 2.0 with client credentials for Fusion Cloud. NetSuite uses OAuth 1.0a (consumer key, consumer secret, token, token secret) or token‑based authentication (TBA). Provide configuration fields for each credential set.
 
-Data mapping: Map project number → project.id; tasks to task; cost and revenue transactions to cost and revenue entities; vendor data to vendor.
+**Data mapping:** Map project number → project.id; tasks to task; cost and revenue transactions to cost and revenue entities; vendor data to vendor.
 
-Error handling: Oracle and NetSuite return error objects with codes and messages; connectors should surface these codes and attempt retries only on 5xx errors.
+**Error handling:** Oracle and NetSuite return error objects with codes and messages; connectors should surface these codes and attempt retries only on 5xx errors.
 
 ## 3 HR & Resource Management
 
@@ -96,9 +96,9 @@ Common API endpoints:
 
 **/assignments:** fetch project assignments and utilisation.
 
-Authentication: Usually OAuth 2.0 (Workday, SuccessFactors) or API key (BambooHR). ServiceNow HR uses basic auth or OAuth depending on the instance.
+**Authentication:** Usually OAuth 2.0 (Workday, SuccessFactors) or API key (BambooHR). ServiceNow HR uses basic auth or OAuth depending on the instance.
 
-Data mapping: Employee ID → resource.id; job title → resource.role; employment type (FTE, contractor) → resource.type; start and end dates to capacity calendars. Leave requests map to availability exceptions.
+**Data mapping:** Employee ID → resource.id; job title → resource.role; employment type (FTE, contractor) → resource.type; start and end dates to capacity calendars. Leave requests map to availability exceptions.
 
 ## 4 Collaboration & Messaging
 
@@ -106,25 +106,25 @@ Real‑time communication with stakeholders is critical. The platform sends noti
 
 ### Slack
 
-Token types: Slack distinguishes between bot, user and workflow tokens. Tokens are the keys to the Slack platform; they tie together all scopes and permissions your app has obtained[9]. Bot tokens (prefixed xoxb-) are recommended because they allow the app to act independently of a user[10].
+**Token types:** Slack distinguishes between bot, user and workflow tokens. Tokens are the keys to the Slack platform; they tie together all scopes and permissions your app has obtained[9]. Bot tokens (prefixed xoxb-) are recommended because they allow the app to act independently of a user[10].
 
-Endpoints: Use the Web API base https://slack.com/api/. Common methods: chat.postMessage (send message), conversations.list (list channels), users.info (get user details), files.upload (upload documents), workflows.stepCompleted (notify Slack Workflow). Also listen for events via the Events API and Slash Commands.
+**Endpoints:** Use the Web API base https://slack.com/api/. Common methods: chat.postMessage (send message), conversations.list (list channels), users.info (get user details), files.upload (upload documents), workflows.stepCompleted (notify Slack Workflow). Also listen for events via the Events API and Slash Commands.
 
-Authentication: Provide the bot token in the Authorization: Bearer <token> header. Slack recommends limiting scopes to those needed (e.g. chat:write, channels:read).
+**Authentication:** Provide the bot token in the Authorization: Bearer <token> header. Slack recommends limiting scopes to those needed (e.g. chat:write, channels:read).
 
-Verifying incoming requests: Slack signs requests with the X‑Slack‑Signature header and timestamp. Connectors must verify each request using the signing secret by hashing the body and comparing signatures[11]. Reject requests older than five minutes to prevent replay attacks[12].
+**Verifying incoming requests:** Slack signs requests with the X‑Slack‑Signature header and timestamp. Connectors must verify each request using the signing secret by hashing the body and comparing signatures[11]. Reject requests older than five minutes to prevent replay attacks[12].
 
-Error handling: Slack Web API returns JSON with an ok boolean and error string. Retry on ratelimited responses after waiting for the Retry‑After header. Do not retry on invalid_auth or missing_scope errors; log and prompt the administrator to re‑authorize the app.
+**Error handling:** Slack Web API returns JSON with an ok boolean and error string. Retry on ratelimited responses after waiting for the Retry‑After header. Do not retry on invalid_auth or missing_scope errors; log and prompt the administrator to re‑authorize the app.
 
 ### Microsoft Teams / Graph
 
-Endpoints: Microsoft Teams messages are delivered via Microsoft Graph. Key endpoints include POST /teams/{id}/channels/{id}/messages (send message to channel), POST /chats/{id}/messages (send 1:1 messages), GET /me/events (calendar) and GET /users/{id} (user lookup). Additional endpoints exist for calls and meeting transcripts.
+**Endpoints:** Microsoft Teams messages are delivered via Microsoft Graph. Key endpoints include POST /teams/{id}/channels/{id}/messages (send message to channel), POST /chats/{id}/messages (send 1:1 messages), GET /me/events (calendar) and GET /users/{id} (user lookup). Additional endpoints exist for calls and meeting transcripts.
 
-Authentication: Use Microsoft identity platform (Azure AD) to obtain access tokens. Apps must be registered and granted delegated or application permissions. To call Microsoft Graph, the app must include the access token as a Bearer token in the HTTP Authorization header[13]. Access tokens contain claims about the application and user which Graph uses to validate permissions[14].
+**Authentication:** Use Microsoft identity platform (Azure AD) to obtain access tokens. Apps must be registered and granted delegated or application permissions. To call Microsoft Graph, the app must include the access token as a Bearer token in the HTTP Authorization header[13]. Access tokens contain claims about the application and user which Graph uses to validate permissions[14].
 
-Data mapping: Teams channel ID ↔ channel.id; message text ↔ notification.message; attachments map to document objects.
+**Data mapping:** Teams channel ID ↔ channel.id; message text ↔ notification.message; attachments map to document objects.
 
-Error handling: Graph returns standard HTTP codes; 401/403 indicate expired or insufficient permissions; 429 indicates throttling; respect Retry‑After header. Use Microsoft Authentication Library (MSAL) for token acquisition and caching[15].
+**Error handling:** Graph returns standard HTTP codes; 401/403 indicate expired or insufficient permissions; 429 indicates throttling; respect Retry‑After header. Use Microsoft Authentication Library (MSAL) for token acquisition and caching[15].
 
 ## 5 Document & Knowledge Repositories
 

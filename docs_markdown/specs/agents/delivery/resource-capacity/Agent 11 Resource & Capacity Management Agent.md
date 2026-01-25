@@ -128,7 +128,7 @@ The Resource & Capacity Management Agent provides both planner‑facing and ma
 
 **Notifications & approvals:** integration with the Approval Workflow Agent to display approval tasks in the user’s workspace, with quick actions (approve, reject, modify).
 
-Integration with the Orchestration Layer: When a user interacts with the resource dashboard, the Intent Router passes the query to the RCA. The Response Orchestration agent coordinates calls to the RCA, Schedule & Planning agent, and Financial agent (for cost data), assembles a consolidated response and returns to the UI.
+**Integration with the Orchestration Layer:** When a user interacts with the resource dashboard, the Intent Router passes the query to the RCA. The Response Orchestration agent coordinates calls to the RCA, Schedule & Planning agent, and Financial agent (for cost data), assembles a consolidated response and returns to the UI.
 
 ## Configuration Parameters & Environment
 
@@ -146,17 +146,17 @@ Integration with the Orchestration Layer: When a user interacts with the resourc
 
 Assuming an Azure‑centric architecture:
 
-Data storage: Use Azure SQL Database or Azure Cosmos DB for structured resource profiles, allocations and requests. Azure Blob Storage can store unstructured resumes or training documents.
+**Data storage:** Use Azure SQL Database or Azure Cosmos DB for structured resource profiles, allocations and requests. Azure Blob Storage can store unstructured resumes or training documents.
 
-API hosting & orchestration: Implement the RCA as a microservice using Azure Functions or Azure App Service. Use Azure API Management to expose REST/GraphQL endpoints to other agents and UIs. Inter‑agent communication occurs via Azure Service Bus topics and queues.
+**API hosting & orchestration:** Implement the RCA as a microservice using Azure Functions or Azure App Service. Use Azure API Management to expose REST/GraphQL endpoints to other agents and UIs. Inter‑agent communication occurs via Azure Service Bus topics and queues.
 
-Machine learning: Deploy forecasting and optimisation models using Azure Machine Learning; register models in an ML registry, orchestrate retraining pipelines and monitor drift. Use Azure Cognitive Search with semantic search for skill matching.
+**Machine learning:** Deploy forecasting and optimisation models using Azure Machine Learning; register models in an ML registry, orchestrate retraining pipelines and monitor drift. Use Azure Cognitive Search with semantic search for skill matching.
 
-Integration: Connect to HR and timesheet systems via Azure Logic Apps or Azure Data Factory with prebuilt connectors (e.g., Workday, SAP). Use Microsoft Graph API to fetch calendar data from Outlook.
+**Integration:** Connect to HR and timesheet systems via Azure Logic Apps or Azure Data Factory with prebuilt connectors (e.g., Workday, SAP). Use Microsoft Graph API to fetch calendar data from Outlook.
 
-Security: Enforce role‑based access via Azure AD groups and managed identities. Sensitive data such as cost rates must be encrypted at rest using Azure Key Vault for key management.
+**Security:** Enforce role‑based access via Azure AD groups and managed identities. Sensitive data such as cost rates must be encrypted at rest using Azure Key Vault for key management.
 
-Scalability: Use Azure Kubernetes Service (AKS) or serverless premium plans to scale microservices horizontally based on message queue length or CPU usage.
+**Scalability:** Use Azure Kubernetes Service (AKS) or serverless premium plans to scale microservices horizontally based on message queue length or CPU usage.
 
 ## Security & Compliance Considerations
 

@@ -140,21 +140,21 @@ When a user says “Initiate the new employee onboarding process,” the Intent 
 
 ### Azure Implementation Guidance
 
-Process orchestration: Leverage Azure Durable Functions or Logic Apps to implement workflows; use the orchestrator pattern to manage state, retries and parallelism.
+**Process orchestration:** Leverage Azure Durable Functions or Logic Apps to implement workflows; use the orchestrator pattern to manage state, retries and parallelism.
 
-Model storage: Store workflow definitions in Azure Blob Storage or Cosmos DB; use versioning through metadata or Git integration.
+**Model storage:** Store workflow definitions in Azure Blob Storage or Cosmos DB; use versioning through metadata or Git integration.
 
-State management: Persist workflow instance state in Azure Table Storage, Cosmos DB or SQL Database; ensure transactional consistency.
+**State management:** Persist workflow instance state in Azure Table Storage, Cosmos DB or SQL Database; ensure transactional consistency.
 
-Messaging & events: Use Azure Service Bus or Event Grid to handle events and inter‑agent communication; implement topics for different workflow types.
+**Messaging & events:** Use Azure Service Bus or Event Grid to handle events and inter‑agent communication; implement topics for different workflow types.
 
-User tasks: Integrate with Power Automate or custom UI components to manage human tasks; connect to Outlook/Teams for notifications.
+**User tasks:** Integrate with Power Automate or custom UI components to manage human tasks; connect to Outlook/Teams for notifications.
 
-Monitoring & logging: Instrument workflows with Application Insights; record events, exceptions and durations; integrate with Azure Monitor and Log Analytics.
+**Monitoring & logging:** Instrument workflows with Application Insights; record events, exceptions and durations; integrate with Azure Monitor and Log Analytics.
 
-Security: Secure endpoints using Azure AD; manage secrets in Key Vault; ensure that only authorised users can deploy or modify workflows.
+**Security:** Secure endpoints using Azure AD; manage secrets in Key Vault; ensure that only authorised users can deploy or modify workflows.
 
-Scalability: Design workflows to scale out via Durable Functions or Logic Apps; leverage serverless execution for cost efficiency; partition workflows to distribute load.
+**Scalability:** Design workflows to scale out via Durable Functions or Logic Apps; leverage serverless execution for cost efficiency; partition workflows to distribute load.
 
 ## Security & Compliance Considerations
 

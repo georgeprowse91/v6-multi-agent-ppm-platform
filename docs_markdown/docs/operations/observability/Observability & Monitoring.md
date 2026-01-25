@@ -50,19 +50,19 @@ Logs from all 25 agents are forwarded to a central aggregator and stored in Elas
 
 ### Log Levels & Retention
 
-Log levels follow a standard hierarchy: DEBUG (disabled in production), INFO (normal operations), WARN (potential issues), ERROR (failed operations) and CRITICAL (system failure). Retention policies differentiate by severity: DEBUG/INFO logs are kept for 30 days, WARN for 90 days, ERROR/CRITICAL for one year, and audit logs for ten years. Log data may be archived to cold storage after retention periods.
+**Log levels follow a standard hierarchy:** DEBUG (disabled in production), INFO (normal operations), WARN (potential issues), ERROR (failed operations) and CRITICAL (system failure). Retention policies differentiate by severity: DEBUG/INFO logs are kept for 30 days, WARN for 90 days, ERROR/CRITICAL for one year, and audit logs for ten years. Log data may be archived to cold storage after retention periods.
 
 ### Querying Logs
 
 Operators can perform structured queries using fields and time ranges. Examples include:
 
-Find all errors in the last hour: level:ERROR AND timestamp:[now-1h TO now].
+**Find all errors in the last hour:** level:ERROR AND timestamp:[now-1h TO now].
 
-Identify slow queries: query_duration_ms:>1000.
+**Identify slow queries:** query_duration_ms:>1000.
 
-Audit user activity: user_id:"sarah.chen@company.com" AND timestamp:[now-24h TO now].
+**Audit user activity:** user_id:"sarah.chen@company.com" AND timestamp:[now-24h TO now].
 
-Investigate failed API calls: agent:financial_management AND message:"SAP API call failed".
+**Investigate failed API calls:** agent:financial_management AND message:"SAP API call failed".
 
 ## Metrics & Monitoring
 

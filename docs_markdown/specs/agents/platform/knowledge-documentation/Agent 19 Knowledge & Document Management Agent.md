@@ -124,7 +124,7 @@ Within the PPM portal, the KDMA provides the following interfaces:
 
 **Knowledge graph visualiser:** interactive graph displaying relationships between documents, tasks, risks and agents; supports clicking nodes to navigate to related items.
 
-Interactions with Orchestration: When a user asks “Show me lessons learned about vendor management”, the Intent Router routes the query to the KDMA. The Response Orchestration agent may also call the Vendor & Procurement agent to provide additional context. The KDMA returns summarised lessons and links to relevant documents.
+**Interactions with Orchestration:** When a user asks “Show me lessons learned about vendor management”, the Intent Router routes the query to the KDMA. The Response Orchestration agent may also call the Vendor & Procurement agent to provide additional context. The KDMA returns summarised lessons and links to relevant documents.
 
 ## Configuration Parameters & Environment
 
@@ -142,19 +142,19 @@ Interactions with Orchestration: When a user asks “Show me lessons learned abo
 
 ### Azure Implementation Guidance
 
-Storage: Use Azure Blob Storage with versioning enabled to store documents; enable Azure Data Lake Storage Gen2 for large files and analytics workloads.
+**Storage:** Use Azure Blob Storage with versioning enabled to store documents; enable Azure Data Lake Storage Gen2 for large files and analytics workloads.
 
-Metadata & knowledge graph: Store metadata in Azure SQL Database or Cosmos DB; build the knowledge graph using Cosmos DB Gremlin API or Neo4j hosted on Azure.
+**Metadata & knowledge graph:** Store metadata in Azure SQL Database or Cosmos DB; build the knowledge graph using Cosmos DB Gremlin API or Neo4j hosted on Azure.
 
-Search & AI: Implement semantic search and summarisation using Azure Cognitive Search and Azure OpenAI Service; configure custom skillsets for entity extraction and summarisation.
+**Search & AI:** Implement semantic search and summarisation using Azure Cognitive Search and Azure OpenAI Service; configure custom skillsets for entity extraction and summarisation.
 
-APIs & microservices: Host KDMA services on Azure App Service, Functions or AKS; expose REST endpoints via API Management; use Service Bus topics for asynchronous events.
+**APIs & microservices:** Host KDMA services on Azure App Service, Functions or AKS; expose REST endpoints via API Management; use Service Bus topics for asynchronous events.
 
-Collaboration: Integrate with Microsoft Graph API for real‑time co‑authoring and presence detection; embed Office Online Server or Office 365 editing capabilities.
+**Collaboration:** Integrate with Microsoft Graph API for real‑time co‑authoring and presence detection; embed Office Online Server or Office 365 editing capabilities.
 
-Security: Leverage Azure AD for authentication; enforce access via role‑based access control (RBAC); use Key Vault to manage encryption keys.
+**Security:** Leverage Azure AD for authentication; enforce access via role‑based access control (RBAC); use Key Vault to manage encryption keys.
 
-Scalability: Use auto‑scale capabilities on App Service or AKS to handle variable workloads (e.g., search queries, document uploads); enable search indexing to scale with data volume.
+**Scalability:** Use auto‑scale capabilities on App Service or AKS to handle variable workloads (e.g., search queries, document uploads); enable search indexing to scale with data volume.
 
 ## Security & Compliance Considerations
 
