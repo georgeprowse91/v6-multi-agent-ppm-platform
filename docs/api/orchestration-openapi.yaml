@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info:
+  title: Orchestration Service API
+  version: 0.1.0
+  description: HTTP interface for workflow orchestration lifecycle management.
+servers:
+  - url: http://orchestration-service:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /agents:
+    get:
+      summary: List orchestrated agents
+      responses:
+        "200":
+          description: Agent list
+  /workflows/run:
+    post:
+      summary: Start a workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                run_id:
+                  type: string
+                intent:
+                  type: string
+                payload:
+                  type: object
+      responses:
+        "200":
+          description: Workflow state
+  /workflows:
+    get:
+      summary: List workflow states
+      responses:
+        "200":
+          description: Workflow list
+  /workflows/{run_id}:
+    get:
+      summary: Get workflow state
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Workflow state
+  /workflows/{run_id}/resume:
+    post:
+      summary: Resume workflow
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Workflow state

@@ -30,3 +30,14 @@
 | 59 | Complete DPIA documentation with actual system details | Done | `docs/compliance/privacy-dpia.md`. |
 | 60 | Implement backup and recovery procedures (docs + automated checks/tests where possible) | Done | `docs/runbooks/backup-recovery.md`, `tests/test_backup_runbook.py`. |
 | 74 | Coverage gate >= 80% automated coverage | Done | `.github/workflows/ci.yml`. |
+| 34 | Convert orchestration service to HTTP-based interface | Done | `apps/orchestration-service/src/main.py`, `docs/api/orchestration-openapi.yaml`, `apps/orchestration-service/helm/values.yaml`. |
+| 35 | Implement analytics service job scheduler (real scheduling, persistence, tests) | Done | `apps/analytics-service/src/scheduler.py`, `apps/analytics-service/src/main.py`, `apps/analytics-service/tests/test_scheduler.py`. |
+| 36 | Implement document service storage APIs (classification/retention hooks) | Done | `apps/document-service/src/main.py`, `apps/document-service/src/policy.py`, `apps/document-service/src/storage.py`. |
+| 37 | Implement connector hub lifecycle management (enable/disable/version/health, tenant-aware) | Done | `apps/connector-hub/src/main.py`, `apps/connector-hub/src/storage.py`. |
+| 38 | Expand alert coverage to at least 15 alerts (SLO-related) | Done | `infra/observability/alerts/ppm-alerts.yaml`. |
+| 39 | Add distributed tracing to all services (OpenTelemetry propagation) | Done | `packages/observability/src/observability/tracing.py`, `packages/observability/src/observability/metrics.py`, service `main.py` updates. |
+| 40 | Implement custom business metrics (KPIs) with exporters | Done | `packages/observability/src/observability/metrics.py`, service KPI counters in app/service `main.py`. |
+| 41 | Add SLO dashboards and tracking | Done | `infra/observability/dashboards/ppm-slo.json`, `infra/observability/slo/ppm-slo.yaml`. |
+| 42 | Configure Azure Monitor diagnostic settings in IaC | Done | `infra/terraform/main.tf`. |
+| 77 | Ensure HTTP interfaces exist for all services | Done | `apps/orchestration-service/src/main.py`, `apps/analytics-service/src/main.py`, `apps/document-service/src/main.py`, `apps/connector-hub/src/main.py`. |
+| 79 | Define and actively monitor SLOs | Done | `infra/observability/slo/ppm-slo.yaml`, `infra/observability/dashboards/ppm-slo.json`, `infra/observability/alerts/ppm-alerts.yaml`. |

@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: Document Service API
+  version: 0.1.0
+  description: Document storage APIs with classification and retention enforcement.
+servers:
+  - url: http://document-service:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /documents:
+    get:
+      summary: List documents
+      responses:
+        "200":
+          description: Document list
+    post:
+      summary: Store document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                content:
+                  type: string
+                classification:
+                  type: string
+                retention_days:
+                  type: integer
+                metadata:
+                  type: object
+      responses:
+        "200":
+          description: Document stored
+  /documents/{document_id}:
+    get:
+      summary: Get document
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document detail

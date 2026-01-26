@@ -13,9 +13,13 @@ from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-if str(SECURITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(SECURITY_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("notification-service")
@@ -47,6 +51,10 @@ class NotificationResponse(BaseModel):
 
 app = FastAPI(title="Notification Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+configure_tracing("notification-service")
+configure_metrics("notification-service")
+app.add_middleware(TraceMiddleware, service_name="notification-service")
+app.add_middleware(RequestMetricsMiddleware, service_name="notification-service")
 
 
 @app.get("/healthz", response_model=HealthResponse)

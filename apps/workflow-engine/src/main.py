@@ -14,10 +14,14 @@ from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-if str(SECURITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(SECURITY_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
 from audit import emit_audit_event  # noqa: E402
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from workflow_storage import WorkflowStore  # noqa: E402
 
@@ -31,6 +35,10 @@ SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 
 app = FastAPI(title="Workflow Engine", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+configure_tracing("workflow-engine")
+configure_metrics("workflow-engine")
+app.add_middleware(TraceMiddleware, service_name="workflow-engine")
+app.add_middleware(RequestMetricsMiddleware, service_name="workflow-engine")
 store = WorkflowStore(DB_PATH)
 
 

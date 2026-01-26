@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -14,6 +15,14 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+if str(OBSERVABILITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(OBSERVABILITY_ROOT))
+
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
 
@@ -22,6 +31,10 @@ SESSION_STORE: dict[str, dict[str, Any]] = {}
 
 app = FastAPI(title="PPM Web Console", version="1.0.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+configure_tracing("web-ui")
+configure_metrics("web-ui")
+app.add_middleware(TraceMiddleware, service_name="web-ui")
+app.add_middleware(RequestMetricsMiddleware, service_name="web-ui")
 
 
 class HealthResponse(BaseModel):

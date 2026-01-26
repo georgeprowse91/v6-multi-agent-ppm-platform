@@ -19,8 +19,13 @@ from api.routes import agents, health
 from api.runtime_bootstrap import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (REPO_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -65,6 +70,10 @@ app.add_middleware(
 )
 app.add_middleware(AuthTenantMiddleware)
 app.add_middleware(FieldMaskingMiddleware)
+configure_tracing("api-gateway")
+configure_metrics("api-gateway")
+app.add_middleware(TraceMiddleware, service_name="api-gateway")
+app.add_middleware(RequestMetricsMiddleware, service_name="api-gateway")
 
 # Global orchestrator instance
 orchestrator = None

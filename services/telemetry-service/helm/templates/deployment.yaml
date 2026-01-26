@@ -26,6 +26,8 @@ spec:
               value: {{ .Values.env.LOG_LEVEL | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
+            - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+              value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
             - name: AZURE_MONITOR_CONNECTION_STRING
               value: {{ .Values.env.AZURE_MONITOR_CONNECTION_STRING | quote }}
           readinessProbe:

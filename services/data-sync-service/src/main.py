@@ -14,11 +14,15 @@ from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-if str(SECURITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(SECURITY_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
 from data_sync_queue import get_queue_client  # noqa: E402
 from data_sync_status import get_status_store  # noqa: E402
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
 
@@ -65,6 +69,16 @@ class SyncStatusResponse(BaseModel):
 
 app = FastAPI(title="Data Sync Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+configure_tracing("data-sync-service")
+configure_metrics("data-sync-service")
+app.add_middleware(TraceMiddleware, service_name="data-sync-service")
+app.add_middleware(RequestMetricsMiddleware, service_name="data-sync-service")
+
+data_sync_jobs_total = configure_metrics("data-sync-service").create_counter(
+    name="data_sync_jobs_total",
+    description="Data sync jobs processed",
+    unit="1",
+)
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -110,6 +124,7 @@ async def run_sync(request: SyncRunRequest) -> SyncRunResponse:
         }
     )
     status_store.update(job_id, "queued")
+    data_sync_jobs_total.add(1, {"status": "queued"})
 
     logger.info(
         "sync_run_triggered",

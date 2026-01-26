@@ -13,6 +13,7 @@ env:
   LOG_LEVEL: info
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   AZURE_MONITOR_CONNECTION_STRING: "InstrumentationKey=00000000-0000-0000-0000-000000000000"
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
 
 livenessProbe:
   path: /healthz

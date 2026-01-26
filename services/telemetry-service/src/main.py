@@ -13,9 +13,13 @@ from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-if str(SECURITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(SECURITY_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("telemetry-service")
@@ -43,6 +47,16 @@ class TelemetryResponse(BaseModel):
 
 app = FastAPI(title="Telemetry Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+configure_tracing("telemetry-service")
+configure_metrics("telemetry-service")
+app.add_middleware(TraceMiddleware, service_name="telemetry-service")
+app.add_middleware(RequestMetricsMiddleware, service_name="telemetry-service")
+
+telemetry_ingest_total = configure_metrics("telemetry-service").create_counter(
+    name="telemetry_ingest_total",
+    description="Telemetry envelopes ingested",
+    unit="1",
+)
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -66,6 +80,7 @@ async def ingest(payload: TelemetryEnvelope) -> TelemetryResponse:
         "telemetry_ingested",
         extra={"correlation_id": correlation_id, "type": payload.type},
     )
+    telemetry_ingest_total.add(1, {"type": payload.type})
     return TelemetryResponse(
         ingested=True,
         correlation_id=correlation_id,

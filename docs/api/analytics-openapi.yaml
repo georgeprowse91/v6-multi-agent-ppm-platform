@@ -1,0 +1,73 @@
+openapi: 3.0.3
+info:
+  title: Analytics Service API
+  version: 0.1.0
+  description: Job scheduling APIs for analytics workloads.
+servers:
+  - url: http://analytics-service:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /jobs:
+    get:
+      summary: List scheduled jobs
+      responses:
+        "200":
+          description: Job list
+    post:
+      summary: Create job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                interval_minutes:
+                  type: integer
+                payload:
+                  type: object
+      responses:
+        "200":
+          description: Job created
+  /jobs/{job_id}:
+    patch:
+      summary: Update job
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                interval_minutes:
+                  type: integer
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Job updated
+  /jobs/{job_id}/run:
+    post:
+      summary: Run job immediately
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job executed
