@@ -1,44 +1,47 @@
 # Notification Service
 
-Email/chat notification templates and delivery scaffolding.
+The notification service renders templates and delivers notifications through a dev adapter. It is
+structured so production adapters (email/Slack/etc.) can be added via environment configuration.
 
-## Current state
+## Contracts
 
-- Helm chart under `services/notification-service/helm/`.
-- Templates stored in `services/notification-service/templates/`.
-- No outbound delivery implementation yet.
+- OpenAPI: `services/notification-service/contracts/openapi.yaml`
+- Templates: `services/notification-service/templates/*.txt`
 
-## Quickstart
-
-Validate the Helm chart:
+## Run locally
 
 ```bash
-python scripts/validate-helm-charts.py services/notification-service/helm
+python -m tools.component_runner run --type service --name notification-service
 ```
 
-## How to verify
+## Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `NOTIFICATION_TEMPLATES_DIR` | `services/notification-service/templates` | Template directory |
+| `NOTIFICATION_OUTBOX_DIR` | `services/notification-service/outbox` | File delivery directory for non-stdout channels |
+| `LOG_LEVEL` | `info` | Logging verbosity |
+| `PORT` | `8080` | HTTP port for the service |
+
+## Example request
 
 ```bash
-ls services/notification-service/templates
+curl -X POST http://localhost:8080/notifications/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template": "welcome",
+    "variables": {
+      "recipient_name": "Morgan",
+      "event_name": "Stage Gate Approved",
+      "event_time": "2025-01-01T00:00:00Z"
+    },
+    "channel": "stdout",
+    "recipient": "morgan@example.com"
+  }'
 ```
 
-Expected output includes notification template files.
-
-## Key files
-
-- `services/notification-service/templates/`: message templates.
-- `services/notification-service/src/`: service scaffolding.
-- `services/notification-service/helm/`: deployment assets.
-
-## Example
-
-Search for template subjects:
+## Tests
 
 ```bash
-rg -n "subject" services/notification-service/templates
+pytest services/notification-service/tests
 ```
-
-## Next steps
-
-- Implement delivery handlers in `services/notification-service/src/`.
-- Connect to workflow triggers in `apps/workflow-engine/`.

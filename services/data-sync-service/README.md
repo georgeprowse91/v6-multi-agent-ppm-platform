@@ -1,44 +1,37 @@
 # Data Sync Service
 
-Background synchronization and reconciliation for connector data.
+The data sync service plans connector reconciliation jobs and exposes a minimal HTTP trigger for
+local development. In dev mode it reads YAML rule definitions and returns the planned sync actions.
 
-## Current state
+## Contracts
 
-- Helm chart lives at `services/data-sync-service/helm/`.
-- Synchronization rules are under `services/data-sync-service/rules/`.
-- No runtime worker process is wired yet.
+- OpenAPI: `services/data-sync-service/contracts/openapi.yaml`
+- Rule format: `services/data-sync-service/rules/*.yaml`
 
-## Quickstart
-
-Validate the Helm chart:
+## Run locally
 
 ```bash
-python scripts/validate-helm-charts.py services/data-sync-service/helm
+python -m tools.component_runner run --type service --name data-sync-service
 ```
 
-## How to verify
+## Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `DATA_SYNC_RULES_DIR` | `services/data-sync-service/rules` | Directory containing sync rule YAML files |
+| `LOG_LEVEL` | `info` | Logging verbosity |
+| `PORT` | `8080` | HTTP port for the service |
+
+## Example request
 
 ```bash
-ls services/data-sync-service/rules
+curl -X POST http://localhost:8080/sync/run \
+  -H "Content-Type: application/json" \
+  -d '{"connector": "jira", "dry_run": true}'
 ```
 
-Expected output lists synchronization rule files.
-
-## Key files
-
-- `services/data-sync-service/helm/`: deployment assets.
-- `services/data-sync-service/rules/`: reconciliation rules.
-- `services/data-sync-service/src/`: implementation scaffolding.
-
-## Example
-
-Search for rule identifiers:
+## Tests
 
 ```bash
-rg -n "rule" services/data-sync-service/rules
+pytest services/data-sync-service/tests
 ```
-
-## Next steps
-
-- Implement sync workers under `services/data-sync-service/src/`.
-- Wire connector outputs from `apps/connector-hub/`.

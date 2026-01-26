@@ -1,44 +1,44 @@
 # Policy Engine
 
-Policy evaluation and compliance rule enforcement for the platform.
+The policy engine evaluates policy bundles and returns allow/deny decisions with reasons. It loads
+the default policy bundle in dev mode and can be pointed at other bundles via configuration.
 
-## Current state
+## Contracts
 
-- Policy bundles are stored under `services/policy-engine/policies/`.
-- Helm chart exists under `services/policy-engine/helm/`.
-- No runtime policy evaluation service yet.
+- OpenAPI: `services/policy-engine/contracts/openapi.yaml`
+- Policy bundles: `services/policy-engine/policies/`
 
-## Quickstart
-
-Validate the default policy bundle:
+## Run locally
 
 ```bash
-python scripts/validate-policies.py services/policy-engine/policies/bundles/default-policy-bundle.yaml
+python -m tools.component_runner run --type service --name policy-engine
 ```
 
-## How to verify
+## Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `POLICY_BUNDLE_PATH` | `services/policy-engine/policies/bundles/default-policy-bundle.yaml` | Bundle used for evaluation |
+| `LOG_LEVEL` | `info` | Logging verbosity |
+| `PORT` | `8080` | HTTP port for the service |
+
+## Example request
 
 ```bash
-ls services/policy-engine/policies/bundles
+curl -X POST http://localhost:8080/policies/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bundle": {
+      "apiVersion": "ppm.policies/v1",
+      "kind": "PolicyBundle",
+      "metadata": {"name": "demo", "version": "1.0.0", "owner": "qa"},
+      "policies": []
+    }
+  }'
 ```
 
-Expected output includes the default policy bundle YAML.
-
-## Key files
-
-- `services/policy-engine/policies/`: policy bundles and rules.
-- `services/policy-engine/helm/`: deployment assets.
-- `services/policy-engine/src/`: service scaffolding.
-
-## Example
-
-List policy bundle IDs:
+## Tests
 
 ```bash
-rg -n "id:" services/policy-engine/policies/bundles
+pytest services/policy-engine/tests
 ```
-
-## Next steps
-
-- Implement evaluation APIs in `services/policy-engine/src/`.
-- Integrate policy checks into `apps/api-gateway/src/api/routes/`.

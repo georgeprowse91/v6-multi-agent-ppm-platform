@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: Policy Engine Service
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /policies/evaluate:
+    post:
+      summary: Evaluate a policy bundle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyEvaluationRequest"
+      responses:
+        "200":
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyEvaluationResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+      required: [status, service]
+    PolicyEvaluationRequest:
+      type: object
+      properties:
+        bundle:
+          type: object
+          additionalProperties: true
+      required: [bundle]
+    PolicyEvaluationResponse:
+      type: object
+      properties:
+        decision:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+      required: [decision, reasons]

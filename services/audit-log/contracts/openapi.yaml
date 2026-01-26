@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Audit Log Service
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /audit/events:
+    post:
+      summary: Ingest an audit event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuditEvent"
+      responses:
+        "200":
+          description: Event accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditIngestResponse"
+  /audit/events/{event_id}:
+    get:
+      summary: Fetch an audit event by ID
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditEvent"
+        "404":
+          description: Event not found
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+      required: [status, service]
+    AuditEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        actor:
+          type: object
+          additionalProperties: true
+        action:
+          type: string
+        resource:
+          type: object
+          additionalProperties: true
+        outcome:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        trace_id:
+          type: string
+        correlation_id:
+          type: string
+      required: [id, timestamp, actor, action, resource, outcome]
+    AuditIngestResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        event:
+          $ref: "#/components/schemas/AuditEvent"
+      required: [status, event]

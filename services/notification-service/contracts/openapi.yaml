@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info:
+  title: Notification Service
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /notifications/send:
+    post:
+      summary: Render and send a notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationRequest"
+      responses:
+        "200":
+          description: Notification delivered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+      required: [status, service]
+    NotificationRequest:
+      type: object
+      properties:
+        template:
+          type: string
+        variables:
+          type: object
+          additionalProperties: true
+        channel:
+          type: string
+        recipient:
+          type: string
+      required: [template]
+    NotificationResponse:
+      type: object
+      properties:
+        delivery_id:
+          type: string
+        status:
+          type: string
+        rendered:
+          type: string
+        delivered_to:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required: [delivery_id, status, rendered, delivered_to, timestamp]

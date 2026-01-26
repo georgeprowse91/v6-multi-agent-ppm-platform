@@ -2,5 +2,35 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Audit Event",
   "type": "object",
-  "properties": {}
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "actor": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string"},
+        "display_name": {"type": "string"}
+      },
+      "required": ["id", "type"]
+    },
+    "action": {"type": "string"},
+    "resource": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string"},
+        "name": {"type": "string"}
+      },
+      "required": ["id", "type"]
+    },
+    "outcome": {"type": "string", "enum": ["success", "failure", "unknown"]},
+    "metadata": {"type": "object", "additionalProperties": true},
+    "trace_id": {"type": "string"},
+    "correlation_id": {"type": "string"}
+  },
+  "required": ["id", "timestamp", "actor", "action", "resource", "outcome"]
 }

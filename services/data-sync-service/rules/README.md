@@ -1,9 +1,16 @@
-# Synchronisation Rules
+# Sync Rules
 
-This directory will hold rule definitions for **data sync service** data synchronisation. Rules describe how
-incoming records are matched, merged, and validated.
+This folder contains YAML rule definitions consumed by the data sync service. The runtime loads all
+`*.yaml` files and plans reconciliation jobs based on their IDs.
 
-## Expected artifacts
-- Rule configuration files (YAML/JSON)
-- Mapping metadata (source → canonical fields)
-- QA notes describing edge cases
+## Example
+
+```yaml
+id: ds-001
+description: Default merge of connector work items into canonical model
+source: connector-hub
+target: canonical-work-items
+mode: merge
+filters:
+  status: active
+```

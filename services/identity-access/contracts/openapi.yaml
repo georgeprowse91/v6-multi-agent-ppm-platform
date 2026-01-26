@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: Identity Access Service
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /auth/validate:
+    post:
+      summary: Validate a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthValidateRequest"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthValidateResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+      required: [status, service]
+    AuthValidateRequest:
+      type: object
+      properties:
+        token:
+          type: string
+      required: [token]
+    AuthValidateResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+        subject:
+          type: string
+        claims:
+          type: object
+          additionalProperties: true
+      required: [active]

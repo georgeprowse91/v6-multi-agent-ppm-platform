@@ -1,7 +1,8 @@
 # Services
 
 Supporting services that provide cross-cutting platform capabilities (audit logging, telemetry,
-policy evaluation, and notifications). Each service ships its own Helm chart and skeleton code.
+policy evaluation, identity access, data sync, and notifications). Each service ships its own Helm
+chart, OpenAPI contract, and runnable MVP implementation.
 
 ## Quickstart
 
@@ -36,19 +37,21 @@ telemetry-service
 
 ## Key files
 
+- `services/*/contracts/`: OpenAPI contracts per service.
+- `services/*/src/`: service runtime code.
+- `services/*/tests/`: service smoke tests.
 - `services/*/helm/`: Helm charts per service.
-- `services/*/src/`: service code scaffolding.
 - `services/policy-engine/policies/`: policy bundles and rules.
 
 ## Example
 
-```bash
-ls services/audit-log/helm
-```
+Run the audit log service:
 
-Expected output includes `Chart.yaml` and `values.yaml`.
+```bash
+python -m tools.component_runner run --type service --name audit-log
+```
 
 ## Next steps
 
-- Implement service handlers under each `services/*/src/` folder.
-- Wire shared contracts via `packages/` once service APIs are defined.
+- Extend service handlers with production integrations.
+- Wire shared contracts via `packages/` as service APIs evolve.

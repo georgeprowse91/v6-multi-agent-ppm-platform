@@ -1,0 +1,6 @@
+Hello {recipient_name},
+
+Your workflow event "{event_name}" was triggered at {event_time}.
+
+Thanks,
+Multi-Agent PPM Platform

@@ -28,7 +28,13 @@ spec:
               value: {{ .Values.env.PORT | quote }}
           readinessProbe:
             httpGet:
-              path: /health
+              path: /healthz
               port: {{ .Values.service.port }}
             initialDelaySeconds: 5
             periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
