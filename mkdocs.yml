@@ -1,0 +1,9 @@
+site_name: Multi-Agent PPM Platform
+site_description: Production readiness documentation for the PPM platform.
+docs_dir: docs
+site_dir: site
+nav:
+  - Home: README.md
+  - Solution Index: solution-index.md
+  - Production Readiness:
+      - Checklist: production-readiness/checklist.md

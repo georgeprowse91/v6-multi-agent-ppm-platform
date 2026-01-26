@@ -14,7 +14,9 @@ They are referenced by infra compliance reviews and policy-engine evaluations.
 infra/policies/dlp/
 ├── README.md
 ├── bundles/
-│   └── default-dlp-policy-bundle.yaml
+│   ├── default-dlp-policy-bundle.yaml
+│   ├── pii.rego
+│   └── credentials.rego
 ├── ../schema/policy-bundle.schema.json
 └── ../README.md
 ```
@@ -33,6 +35,9 @@ infra/policies/dlp/
 ```bash
 python scripts/validate-policies.py infra/policies/dlp/bundles/default-dlp-policy-bundle.yaml
 ```
+
+The OPA/Rego bundles are exercised by `tests/policies/test_dlp_rego.py` and should be wired into the
+policy-engine evaluation path for runtime enforcement.
 
 ## Example
 ```yaml

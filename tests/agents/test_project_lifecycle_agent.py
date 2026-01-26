@@ -1,5 +1,4 @@
 import pytest
-
 from project_lifecycle_agent import ProjectLifecycleAgent
 
 

@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import logging
 import os
-from dataclasses import dataclass
 import time
-
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
+from dataclasses import dataclass
+from typing import Any, cast
 
 from opentelemetry import metrics
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 logger = logging.getLogger("observability.metrics")
 
@@ -23,8 +23,8 @@ _METER = None
 
 @dataclass(frozen=True)
 class KPIHandles:
-    requests: any
-    errors: any
+    requests: Any
+    errors: Any
 
 
 class RequestMetricsMiddleware(BaseHTTPMiddleware):
@@ -45,7 +45,7 @@ class RequestMetricsMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next) -> Response:
         start = time.perf_counter()
-        response = await call_next(request)
+        response = cast(Response, await call_next(request))
         elapsed = time.perf_counter() - start
         attributes = {
             "service": self._service_name,

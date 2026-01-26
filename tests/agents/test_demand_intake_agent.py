@@ -1,5 +1,4 @@
 import pytest
-
 from demand_intake_agent import DemandIntakeAgent
 
 

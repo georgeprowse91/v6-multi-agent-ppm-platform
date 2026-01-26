@@ -1,0 +1,17 @@
+{{- if and .Values.ingress.enabled .Values.ingress.tls.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "name" . }}-tls
+  labels:
+    app.kubernetes.io/name: {{ include "name" . }}
+spec:
+  secretName: {{ default (printf "%s-tls" (include "name" .)) .Values.ingress.tls.secretName }}
+  issuerRef:
+    kind: ClusterIssuer
+    name: {{ required "ingress.clusterIssuer is required when TLS is enabled" .Values.ingress.clusterIssuer }}
+  dnsNames:
+  {{- range $host := .Values.ingress.hosts }}
+    - {{ required "ingress.hosts[].host is required" $host.host }}
+  {{- end }}
+{{- end }}

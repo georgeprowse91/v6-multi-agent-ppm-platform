@@ -1,5 +1,4 @@
 import pytest
-
 from portfolio_strategy_agent import PortfolioStrategyAgent
 
 

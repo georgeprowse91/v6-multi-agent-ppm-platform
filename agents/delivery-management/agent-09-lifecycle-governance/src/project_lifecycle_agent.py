@@ -804,9 +804,9 @@ class ProjectLifecycleAgent(BaseAgent):
         quality = project.get("quality", {})
         test_pass_rate = quality.get("test_pass_rate")
         if test_pass_rate is None:
-            defects = quality.get("defects", 0)
-            test_pass_rate = max(0.0, 1.0 - (defects / 20))
-        return max(0.0, min(float(test_pass_rate), 1.0))
+            defects = float(quality.get("defects", 0) or 0)
+            test_pass_rate = max(0.0, 1.0 - (defects / 20.0))
+        return max(0.0, min(float(test_pass_rate or 0), 1.0))
 
     async def _get_resource_health(self, project_id: str) -> float:
         """Get resource health metric."""
@@ -814,7 +814,9 @@ class ProjectLifecycleAgent(BaseAgent):
         resource = project.get("resource", {})
         utilization = resource.get("utilization")
         if utilization is None:
-            utilization = resource.get("utilization_pct", 0) / 100
+            utilization = float(resource.get("utilization_pct", 0) or 0) / 100
+        else:
+            utilization = float(utilization)
         # Ideal utilization 0.75-0.9
         if utilization < 0.75:
             score = utilization / 0.75

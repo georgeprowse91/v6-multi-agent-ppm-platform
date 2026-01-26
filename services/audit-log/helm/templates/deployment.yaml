@@ -1,3 +1,6 @@
+{{- if not .Values.keyVault.enabled }}
+{{- fail "keyVault.enabled must be true for audit-log to mount Key Vault secrets" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,6 +18,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "name" . }}
     spec:
+      serviceAccountName: {{ include "name" . }}-kv
       containers:
         - name: {{ include "name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -27,9 +31,15 @@ spec:
             - name: AUDIT_WORM_CONTAINER
               value: {{ .Values.env.AUDIT_WORM_CONTAINER | quote }}
             - name: AUDIT_WORM_CONNECTION_STRING
-              value: {{ .Values.env.AUDIT_WORM_CONNECTION_STRING | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keyVault.secretName | quote }}
+                  key: {{ .Values.keyVault.secrets.auditWormConnectionString | quote }}
             - name: AUDIT_LOG_ENCRYPTION_KEY
-              value: {{ .Values.env.AUDIT_LOG_ENCRYPTION_KEY | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keyVault.secretName | quote }}
+                  key: {{ .Values.keyVault.secrets.auditLogEncryptionKey | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
             - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
@@ -48,3 +58,14 @@ spec:
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "name" . }}-kv

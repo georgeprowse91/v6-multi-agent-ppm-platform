@@ -25,3 +25,27 @@ policies:
       - field: storage.encryption_at_rest
         operator: equals
         value: false
+  - id: dlp-003
+    name: Block uploads with email or SSN
+    description: Prevent storing email addresses and US SSNs in raw payloads.
+    severity: high
+    enforcement: blocking
+    rules:
+      - field: content.regex
+        operator: contains
+        value: "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+      - field: content.regex
+        operator: contains
+        value: "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+  - id: dlp-004
+    name: Block credential and token patterns
+    description: Prevent storing credentials, API keys, and access tokens.
+    severity: critical
+    enforcement: blocking
+    rules:
+      - field: content.regex
+        operator: contains
+        value: "AKIA[0-9A-Z]{16}"
+      - field: content.regex
+        operator: contains
+        value: "ghp_[A-Za-z0-9]{36}"

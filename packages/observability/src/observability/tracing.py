@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any
+from typing import cast
 
 from opentelemetry import propagate, trace
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -58,7 +58,7 @@ class TraceMiddleware(BaseHTTPMiddleware):
             span.set_attribute("http.scheme", request.url.scheme)
             span.set_attribute("http.client_ip", request.client.host if request.client else "")
             span.set_attribute("http.user_agent", request.headers.get("user-agent", ""))
-            response = await call_next(request)
+            response = cast(Response, await call_next(request))
             span.set_attribute("http.status_code", response.status_code)
             if response.status_code >= 500:
                 span.set_status(Status(StatusCode.ERROR))

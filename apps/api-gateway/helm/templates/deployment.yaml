@@ -27,6 +27,10 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.env.ENVIRONMENT | quote }}
+            - name: ALLOWED_ORIGINS
+              value: {{ .Values.env.ALLOWED_ORIGINS | quote }}
             - name: IDENTITY_ACCESS_URL
               value: {{ .Values.env.IDENTITY_ACCESS_URL | quote }}
             - name: POLICY_ENGINE_URL
@@ -35,6 +39,10 @@ spec:
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
             - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
+            - name: RATE_LIMIT_DEFAULT
+              value: {{ .Values.env.RATE_LIMIT_DEFAULT | quote }}
+            - name: RATE_LIMIT_STORAGE
+              value: {{ .Values.env.RATE_LIMIT_STORAGE | quote }}
             {{- if .Values.keyVault.enabled }}
             - name: IDENTITY_JWT_SECRET
               valueFrom:

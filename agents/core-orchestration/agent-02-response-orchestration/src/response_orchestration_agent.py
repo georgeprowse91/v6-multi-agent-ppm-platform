@@ -13,9 +13,7 @@ from typing import Any, cast
 
 import httpx
 
-from agents.runtime import InMemoryEventBus
-
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
 
 
 class ResponseOrchestrationAgent(BaseAgent):
@@ -169,6 +167,8 @@ class ResponseOrchestrationAgent(BaseAgent):
 
         Returns agent result or error.
         """
+        assert self.http_client is not None
+        assert self.event_bus is not None
         agent_id = agent_info["agent_id"]
 
         endpoint = agent_info.get("endpoint") or self.agent_endpoints.get(agent_id)

@@ -11,10 +11,14 @@ service:
 
 env:
   LOG_LEVEL: info
+  ENVIRONMENT: "development"
+  ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8501,http://localhost:8000"
   IDENTITY_ACCESS_URL: "http://identity-access:8080"
   POLICY_ENGINE_URL: "http://policy-engine:8080"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
+  RATE_LIMIT_DEFAULT: "100/minute"
+  RATE_LIMIT_STORAGE: "memory://"
 
 keyVault:
   enabled: false
@@ -40,6 +44,7 @@ pdb:
 ingress:
   enabled: false
   className: ""
+  clusterIssuer: "letsencrypt-prod"
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
@@ -50,3 +55,10 @@ ingress:
   tls:
     enabled: true
     secretName: ""
+
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75

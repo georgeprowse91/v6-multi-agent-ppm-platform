@@ -42,6 +42,12 @@ variable "resource_prefix" {
   default     = "ppm"
 }
 
+variable "key_vault_name" {
+  description = "Optional override for the Key Vault name"
+  type        = string
+  default     = ""
+}
+
 variable "postgres_database_name" {
   description = "PostgreSQL database name"
   type        = string
@@ -66,6 +72,13 @@ variable "azure_openai_api_key" {
   sensitive   = true
 }
 
+variable "azure_monitor_connection_string" {
+  description = "Azure Monitor connection string for OpenTelemetry exporter"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "workload_identity_issuer_url" {
   description = "OIDC issuer URL for AKS workload identity"
   type        = string
@@ -88,6 +101,18 @@ variable "vnet_address_space" {
   description = "Address space for the virtual network"
   type        = list(string)
   default     = ["10.20.0.0/16"]
+}
+
+variable "aks_subnet_address_prefixes" {
+  description = "Address prefixes for the AKS subnet"
+  type        = list(string)
+  default     = ["10.20.2.0/23"]
+}
+
+variable "app_gateway_subnet_address_prefixes" {
+  description = "Address prefixes for the Application Gateway subnet"
+  type        = list(string)
+  default     = ["10.20.4.0/24"]
 }
 
 variable "private_endpoint_subnet_address_prefixes" {
@@ -253,6 +278,72 @@ variable "redis_maxmemory_policy" {
   default     = "allkeys-lru"
 }
 
+variable "aks_dns_prefix" {
+  description = "DNS prefix for the AKS cluster"
+  type        = string
+  default     = "ppm-aks"
+}
+
+variable "aks_system_node_vm_size" {
+  description = "VM size for the AKS system node pool"
+  type        = string
+  default     = "Standard_DS3_v2"
+}
+
+variable "aks_system_node_count" {
+  description = "Node count for the AKS system pool"
+  type        = number
+  default     = 2
+}
+
+variable "aks_user_node_vm_size" {
+  description = "VM size for the AKS user node pool"
+  type        = string
+  default     = "Standard_DS3_v2"
+}
+
+variable "aks_user_node_count" {
+  description = "Node count for the AKS user pool"
+  type        = number
+  default     = 2
+}
+
+variable "aks_user_node_min_count" {
+  description = "Minimum nodes for the AKS user pool"
+  type        = number
+  default     = 2
+}
+
+variable "aks_user_node_max_count" {
+  description = "Maximum nodes for the AKS user pool"
+  type        = number
+  default     = 6
+}
+
+variable "aks_admin_group_object_ids" {
+  description = "AAD group object IDs to grant cluster admin access"
+  type        = list(string)
+  default     = []
+}
+
+variable "audit_immutability_days" {
+  description = "Retention window for immutable audit blobs (in days)"
+  type        = number
+  default     = 2555
+}
+
+variable "ingress_backend_fqdn" {
+  description = "Ingress endpoint FQDN behind the WAF (e.g., ingress internal load balancer)"
+  type        = string
+  default     = "ingress.internal"
+}
+
+variable "app_gateway_capacity" {
+  description = "Instance count for the Application Gateway WAF_v2"
+  type        = number
+  default     = 2
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_prefix}-${var.environment}-rg"
@@ -264,203 +355,26 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
-resource "azurerm_log_analytics_workspace" "main" {
-  name                = "${var.resource_prefix}-${var.environment}-logs"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
+module "monitoring" {
+  source = "./modules/monitoring"
 
-resource "azurerm_virtual_network" "main" {
-  name                = "${var.resource_prefix}-${var.environment}-vnet"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  address_space       = var.vnet_address_space
-
-  tags = {
-    Environment = var.environment
-  }
+  resource_prefix     = var.resource_prefix
+  environment         = var.environment
 }
 
-resource "azurerm_subnet" "private_endpoints" {
-  name                 = "${var.resource_prefix}-${var.environment}-pe-subnet"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = var.private_endpoint_subnet_address_prefixes
+module "networking" {
+  source = "./modules/networking"
 
-  private_endpoint_network_policies_enabled = false
-}
-
-resource "azurerm_network_security_group" "private_endpoints" {
-  name                = "${var.resource_prefix}-${var.environment}-pe-nsg"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  security_rule {
-    name                       = "allow-vnet-inbound"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "VirtualNetwork"
-  }
-
-  security_rule {
-    name                       = "deny-internet-inbound"
-    priority                   = 400
-    direction                  = "Inbound"
-    access                     = "Deny"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "allow-vnet-outbound"
-    priority                   = 100
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "VirtualNetwork"
-  }
-
-  security_rule {
-    name                       = "deny-internet-outbound"
-    priority                   = 400
-    direction                  = "Outbound"
-    access                     = "Deny"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "Internet"
-  }
-
-  tags = {
-    Environment = var.environment
-  }
-}
-
-resource "azurerm_subnet_network_security_group_association" "private_endpoints" {
-  subnet_id                 = azurerm_subnet.private_endpoints.id
-  network_security_group_id = azurerm_network_security_group.private_endpoints.id
-}
-
-resource "azurerm_private_dns_zone" "acr" {
-  name                = "privatelink.azurecr.io"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "postgres" {
-  name                = "privatelink.postgres.database.azure.com"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "redis" {
-  name                = "privatelink.redis.cache.windows.net"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "key_vault" {
-  name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "storage_blob" {
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "storage_dfs" {
-  name                = "privatelink.dfs.core.windows.net"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "service_bus" {
-  name                = "privatelink.servicebus.windows.net"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "openai" {
-  name                = "privatelink.openai.azure.com"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone" "cosmos" {
-  name                = "privatelink.documents.azure.com"
-  resource_group_name = azurerm_resource_group.main.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
-  name                  = "${var.resource_prefix}-${var.environment}-acr-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.acr.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
-  name                  = "${var.resource_prefix}-${var.environment}-postgres-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.postgres.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "redis" {
-  name                  = "${var.resource_prefix}-${var.environment}-redis-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.redis.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
-  name                  = "${var.resource_prefix}-${var.environment}-kv-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.key_vault.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "storage_blob" {
-  name                  = "${var.resource_prefix}-${var.environment}-blob-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.storage_blob.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "storage_dfs" {
-  name                  = "${var.resource_prefix}-${var.environment}-dfs-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.storage_dfs.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "service_bus" {
-  name                  = "${var.resource_prefix}-${var.environment}-sb-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.service_bus.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
-  name                  = "${var.resource_prefix}-${var.environment}-openai-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.openai.name
-  virtual_network_id    = azurerm_virtual_network.main.id
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "cosmos" {
-  name                  = "${var.resource_prefix}-${var.environment}-cosmos-dns-link"
-  resource_group_name   = azurerm_resource_group.main.name
-  private_dns_zone_name = azurerm_private_dns_zone.cosmos.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  resource_group_name                  = azurerm_resource_group.main.name
+  location                             = azurerm_resource_group.main.location
+  resource_prefix                      = var.resource_prefix
+  environment                          = var.environment
+  vnet_address_space                   = var.vnet_address_space
+  private_endpoint_subnet_address_prefixes = var.private_endpoint_subnet_address_prefixes
+  aks_subnet_address_prefixes          = var.aks_subnet_address_prefixes
+  app_gateway_subnet_address_prefixes  = var.app_gateway_subnet_address_prefixes
 }
 
 # Azure Container Registry
@@ -477,53 +391,130 @@ resource "azurerm_container_registry" "acr" {
   }
 }
 
-# Azure Container Apps Environment
-resource "azurerm_container_app_environment" "main" {
-  name                = "${var.resource_prefix}-${var.environment}-env"
-  resource_group_name = azurerm_resource_group.main.name
+resource "azurerm_public_ip" "app_gateway" {
+  name                = "${var.resource_prefix}-${var.environment}-agw-pip"
   location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
-# PostgreSQL Flexible Server
-resource "azurerm_postgresql_flexible_server" "main" {
-  name                = "${var.resource_prefix}-${var.environment}-psql"
+resource "azurerm_web_application_firewall_policy" "main" {
+  name                = "${var.resource_prefix}-${var.environment}-waf"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 
-  sku_name   = var.postgres_sku_name
-  storage_mb = var.postgres_storage_mb
-  version    = "15"
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
 
-  administrator_login    = "ppmadmin"
-  administrator_password = random_password.db_password.result
-
-  backup_retention_days        = var.postgres_backup_retention_days
-  geo_redundant_backup_enabled = var.postgres_geo_redundant_backup_enabled
-  public_network_access_enabled = false
-  zone                          = var.postgres_primary_zone
-
-  dynamic "high_availability" {
-    for_each = var.postgres_ha_mode == "Disabled" ? [] : [var.postgres_ha_mode]
-    content {
-      mode                      = high_availability.value
-      standby_availability_zone = var.postgres_standby_zone
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
     }
   }
+}
+
+resource "azurerm_application_gateway" "main" {
+  name                = "${var.resource_prefix}-${var.environment}-agw"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = var.app_gateway_capacity
+  }
+
+  gateway_ip_configuration {
+    name      = "gateway-ip-config"
+    subnet_id = module.networking.app_gateway_subnet_id
+  }
+
+  frontend_port {
+    name = "http"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "public"
+    public_ip_address_id = azurerm_public_ip.app_gateway.id
+  }
+
+  backend_address_pool {
+    name  = "aks-ingress"
+    fqdns = [var.ingress_backend_fqdn]
+  }
+
+  backend_http_settings {
+    name                  = "http-settings"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 30
+  }
+
+  http_listener {
+    name                           = "http-listener"
+    frontend_ip_configuration_name = "public"
+    frontend_port_name             = "http"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "default-route"
+    rule_type                  = "Basic"
+    http_listener_name         = "http-listener"
+    backend_address_pool_name  = "aks-ingress"
+    backend_http_settings_name = "http-settings"
+  }
+
+  firewall_policy_id = azurerm_web_application_firewall_policy.main.id
 
   tags = {
     Environment = var.environment
   }
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "minimum_tls_version" {
-  name      = "ssl_minimum_tls_version"
-  server_id = azurerm_postgresql_flexible_server.main.id
-  value     = var.postgres_minimum_tls_version
+module "aks" {
+  source = "./modules/aks"
+
+  resource_group_name   = azurerm_resource_group.main.name
+  location              = azurerm_resource_group.main.location
+  resource_prefix       = var.resource_prefix
+  environment           = var.environment
+  dns_prefix            = var.aks_dns_prefix
+  aks_subnet_id         = module.networking.aks_subnet_id
+  private_dns_zone_id   = module.networking.private_dns_zone_ids["aks"]
+  system_node_vm_size   = var.aks_system_node_vm_size
+  system_node_count     = var.aks_system_node_count
+  user_node_vm_size     = var.aks_user_node_vm_size
+  user_node_count       = var.aks_user_node_count
+  user_node_min_count   = var.aks_user_node_min_count
+  user_node_max_count   = var.aks_user_node_max_count
+  admin_group_object_ids = var.aks_admin_group_object_ids
+  acr_id                = azurerm_container_registry.acr.id
 }
 
-resource "random_password" "db_password" {
-  length  = 32
-  special = true
+module "postgresql" {
+  source = "./modules/postgresql"
+
+  resource_group_name                = azurerm_resource_group.main.name
+  location                           = azurerm_resource_group.main.location
+  resource_prefix                     = var.resource_prefix
+  environment                         = var.environment
+  postgres_sku_name                   = var.postgres_sku_name
+  postgres_storage_mb                 = var.postgres_storage_mb
+  postgres_backup_retention_days      = var.postgres_backup_retention_days
+  postgres_geo_redundant_backup_enabled = var.postgres_geo_redundant_backup_enabled
+  postgres_ha_mode                    = var.postgres_ha_mode
+  postgres_primary_zone               = var.postgres_primary_zone
+  postgres_standby_zone               = var.postgres_standby_zone
+  postgres_minimum_tls_version        = var.postgres_minimum_tls_version
+  private_endpoint_subnet_id          = module.networking.private_endpoint_subnet_id
+  private_dns_zone_id                 = module.networking.private_dns_zone_ids["postgres"]
 }
 
 # Azure Cosmos DB (optional - for production scale)
@@ -591,60 +582,41 @@ resource "azurerm_cognitive_account" "openai" {
   }
 }
 
-# Azure Key Vault
-resource "azurerm_key_vault" "main" {
-  name                = "${var.resource_prefix}-${var.environment}-kv"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-
-  enable_rbac_authorization = true
-  public_network_access_enabled = false
-
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-  }
-
-  tags = {
-    Environment = var.environment
-  }
-}
-
 data "azurerm_client_config" "current" {}
 
 locals {
-  database_url = "postgresql://${azurerm_postgresql_flexible_server.main.administrator_login}:${random_password.db_password.result}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.postgres_database_name}?sslmode=require"
+  database_url = "postgresql://${module.postgresql.administrator_login}:${module.postgresql.administrator_password}@${module.postgresql.fqdn}:5432/${var.postgres_database_name}?sslmode=require"
   redis_url    = "rediss://:${azurerm_redis_cache.main.primary_access_key}@${azurerm_redis_cache.main.hostname}:${azurerm_redis_cache.main.ssl_port}/0"
 }
 
-resource "azurerm_user_assigned_identity" "key_vault_workload" {
-  name                = "${var.resource_prefix}-${var.environment}-kv-identity"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
+resource "random_password" "audit_log_encryption_key" {
+  length  = 64
+  special = false
 }
 
-resource "azurerm_role_assignment" "key_vault_admin" {
-  scope                = azurerm_key_vault.main.id
-  role_definition_name = "Key Vault Administrator"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
+module "keyvault" {
+  source = "./modules/keyvault"
 
-resource "azurerm_role_assignment" "key_vault_secrets_user" {
-  scope                = azurerm_key_vault.main.id
-  role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_user_assigned_identity.key_vault_workload.principal_id
-}
-
-resource "azurerm_federated_identity_credential" "key_vault" {
-  count               = var.workload_identity_issuer_url != "" && var.workload_identity_subject != "" ? 1 : 0
-  name                = "${var.resource_prefix}-${var.environment}-kv-fic"
-  resource_group_name = azurerm_resource_group.main.name
-  parent_id           = azurerm_user_assigned_identity.key_vault_workload.id
-  issuer              = var.workload_identity_issuer_url
-  subject             = var.workload_identity_subject
-  audience            = [var.workload_identity_audience]
+  resource_group_name            = azurerm_resource_group.main.name
+  location                       = azurerm_resource_group.main.location
+  resource_prefix                = var.resource_prefix
+  environment                    = var.environment
+  key_vault_name                 = var.key_vault_name != "" ? var.key_vault_name : "${var.resource_prefix}-${var.environment}-kv"
+  tenant_id                      = data.azurerm_client_config.current.tenant_id
+  current_object_id              = data.azurerm_client_config.current.object_id
+  workload_identity_subject      = var.workload_identity_subject
+  workload_identity_audience     = var.workload_identity_audience
+  workload_identity_issuer_url   = coalesce(nullif(var.workload_identity_issuer_url, ""), module.aks.oidc_issuer_url)
+  database_url                   = local.database_url
+  redis_url                      = local.redis_url
+  azure_openai_endpoint          = azurerm_cognitive_account.openai.endpoint
+  azure_openai_api_key           = var.azure_openai_api_key
+  identity_client_secret         = var.identity_client_secret
+  service_bus_connection_string  = var.service_bus_connection_string
+  storage_account_key            = azurerm_storage_account.main.primary_access_key
+  audit_worm_connection_string   = azurerm_storage_account.main.primary_connection_string
+  audit_log_encryption_key       = random_password.audit_log_encryption_key.result
+  azure_monitor_connection_string = var.azure_monitor_connection_string
 }
 
 # Storage Account for Data Lake
@@ -659,6 +631,11 @@ resource "azurerm_storage_account" "main" {
   enable_https_traffic_only = true
   min_tls_version           = var.storage_minimum_tls_version
   public_network_access_enabled = false
+  immutable_storage_enabled      = true
+
+  blob_properties {
+    versioning_enabled = true
+  }
 
   network_rules {
     default_action = "Deny"
@@ -701,6 +678,13 @@ resource "azurerm_storage_container" "audit_events" {
   name                  = "audit-events"
   storage_account_name  = azurerm_storage_account.main.name
   container_access_type = "private"
+
+  immutability_policy {
+    period_since_creation_in_days = var.audit_immutability_days
+    state                         = "Locked"
+  }
+
+  legal_hold = true
 }
 
 # Storage lifecycle policies for retention enforcement
@@ -786,53 +770,12 @@ resource "azurerm_servicebus_queue" "data_sync" {
   max_delivery_count  = 10
 }
 
-resource "azurerm_key_vault_secret" "database_url" {
-  name         = "database-url"
-  value        = local.database_url
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_key_vault_secret" "redis_url" {
-  name         = "redis-url"
-  value        = local.redis_url
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_key_vault_secret" "azure_openai_endpoint" {
-  name         = "azure-openai-endpoint"
-  value        = azurerm_cognitive_account.openai.endpoint
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_key_vault_secret" "azure_openai_api_key" {
-  name         = "azure-openai-api-key"
-  value        = var.azure_openai_api_key
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_key_vault_secret" "identity_client_secret" {
-  name         = "identity-client-secret"
-  value        = var.identity_client_secret
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_key_vault_secret" "service_bus_connection" {
-  name         = "servicebus-connection"
-  value        = var.service_bus_connection_string
-  key_vault_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_key_vault_secret" "storage_account_key" {
-  name         = "storage-account-key"
-  value        = azurerm_storage_account.main.primary_access_key
-  key_vault_id = azurerm_key_vault.main.id
-}
 
 resource "azurerm_private_endpoint" "acr" {
   name                = "${var.resource_prefix}-${var.environment}-acr-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-acr-psc"
@@ -843,34 +786,16 @@ resource "azurerm_private_endpoint" "acr" {
 
   private_dns_zone_group {
     name                 = "acr-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.acr.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["acr"]]
   }
 }
 
-resource "azurerm_private_endpoint" "postgres" {
-  name                = "${var.resource_prefix}-${var.environment}-postgres-pe"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
-
-  private_service_connection {
-    name                           = "${var.resource_prefix}-${var.environment}-postgres-psc"
-    private_connection_resource_id = azurerm_postgresql_flexible_server.main.id
-    subresource_names              = ["postgresqlServer"]
-    is_manual_connection           = false
-  }
-
-  private_dns_zone_group {
-    name                 = "postgres-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.postgres.id]
-  }
-}
 
 resource "azurerm_private_endpoint" "redis" {
   name                = "${var.resource_prefix}-${var.environment}-redis-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-redis-psc"
@@ -881,7 +806,7 @@ resource "azurerm_private_endpoint" "redis" {
 
   private_dns_zone_group {
     name                 = "redis-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.redis.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["redis"]]
   }
 }
 
@@ -889,18 +814,18 @@ resource "azurerm_private_endpoint" "key_vault" {
   name                = "${var.resource_prefix}-${var.environment}-kv-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-kv-psc"
-    private_connection_resource_id = azurerm_key_vault.main.id
+    private_connection_resource_id = module.keyvault.key_vault_id
     subresource_names              = ["vault"]
     is_manual_connection           = false
   }
 
   private_dns_zone_group {
     name                 = "kv-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.key_vault.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["key_vault"]]
   }
 }
 
@@ -908,7 +833,7 @@ resource "azurerm_private_endpoint" "storage_blob" {
   name                = "${var.resource_prefix}-${var.environment}-storage-blob-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-storage-blob-psc"
@@ -919,7 +844,7 @@ resource "azurerm_private_endpoint" "storage_blob" {
 
   private_dns_zone_group {
     name                 = "storage-blob-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.storage_blob.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["storage_blob"]]
   }
 }
 
@@ -927,7 +852,7 @@ resource "azurerm_private_endpoint" "storage_dfs" {
   name                = "${var.resource_prefix}-${var.environment}-storage-dfs-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-storage-dfs-psc"
@@ -938,7 +863,7 @@ resource "azurerm_private_endpoint" "storage_dfs" {
 
   private_dns_zone_group {
     name                 = "storage-dfs-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.storage_dfs.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["storage_dfs"]]
   }
 }
 
@@ -946,7 +871,7 @@ resource "azurerm_private_endpoint" "redis_backup_blob" {
   name                = "${var.resource_prefix}-${var.environment}-redisbk-blob-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-redisbk-blob-psc"
@@ -957,7 +882,7 @@ resource "azurerm_private_endpoint" "redis_backup_blob" {
 
   private_dns_zone_group {
     name                 = "redisbk-blob-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.storage_blob.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["storage_blob"]]
   }
 }
 
@@ -965,7 +890,7 @@ resource "azurerm_private_endpoint" "service_bus" {
   name                = "${var.resource_prefix}-${var.environment}-sb-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-sb-psc"
@@ -976,7 +901,7 @@ resource "azurerm_private_endpoint" "service_bus" {
 
   private_dns_zone_group {
     name                 = "sb-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.service_bus.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["service_bus"]]
   }
 }
 
@@ -984,7 +909,7 @@ resource "azurerm_private_endpoint" "openai" {
   name                = "${var.resource_prefix}-${var.environment}-openai-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-openai-psc"
@@ -995,7 +920,7 @@ resource "azurerm_private_endpoint" "openai" {
 
   private_dns_zone_group {
     name                 = "openai-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.openai.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["openai"]]
   }
 }
 
@@ -1003,7 +928,7 @@ resource "azurerm_private_endpoint" "cosmos" {
   name                = "${var.resource_prefix}-${var.environment}-cosmos-pe"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
+  subnet_id           = module.networking.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.resource_prefix}-${var.environment}-cosmos-psc"
@@ -1014,15 +939,15 @@ resource "azurerm_private_endpoint" "cosmos" {
 
   private_dns_zone_group {
     name                 = "cosmos-dns"
-    private_dns_zone_ids = [azurerm_private_dns_zone.cosmos.id]
+    private_dns_zone_ids = [module.networking.private_dns_zone_ids["cosmos"]]
   }
 }
 
 # Azure Monitor Diagnostics
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {
   name                       = "${var.resource_prefix}-${var.environment}-kv-diag"
-  target_resource_id         = azurerm_key_vault.main.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  target_resource_id         = module.keyvault.key_vault_id
+  log_analytics_workspace_id = module.monitoring.workspace_id
 
   enabled_log {
     category_group = "allLogs"
@@ -1036,7 +961,7 @@ resource "azurerm_monitor_diagnostic_setting" "key_vault" {
 resource "azurerm_monitor_diagnostic_setting" "storage_main" {
   name                       = "${var.resource_prefix}-${var.environment}-storage-diag"
   target_resource_id         = azurerm_storage_account.main.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  log_analytics_workspace_id = module.monitoring.workspace_id
 
   enabled_log {
     category_group = "allLogs"
@@ -1050,7 +975,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage_main" {
 resource "azurerm_monitor_diagnostic_setting" "storage_redis" {
   name                       = "${var.resource_prefix}-${var.environment}-redis-storage-diag"
   target_resource_id         = azurerm_storage_account.redis_backup.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  log_analytics_workspace_id = module.monitoring.workspace_id
 
   enabled_log {
     category_group = "allLogs"
@@ -1064,7 +989,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage_redis" {
 resource "azurerm_monitor_diagnostic_setting" "service_bus" {
   name                       = "${var.resource_prefix}-${var.environment}-servicebus-diag"
   target_resource_id         = azurerm_servicebus_namespace.main.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  log_analytics_workspace_id = module.monitoring.workspace_id
 
   enabled_log {
     category_group = "allLogs"
@@ -1078,7 +1003,7 @@ resource "azurerm_monitor_diagnostic_setting" "service_bus" {
 resource "azurerm_monitor_diagnostic_setting" "container_registry" {
   name                       = "${var.resource_prefix}-${var.environment}-acr-diag"
   target_resource_id         = azurerm_container_registry.acr.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  log_analytics_workspace_id = module.monitoring.workspace_id
 
   enabled_log {
     category_group = "allLogs"
@@ -1089,10 +1014,10 @@ resource "azurerm_monitor_diagnostic_setting" "container_registry" {
   }
 }
 
-resource "azurerm_monitor_diagnostic_setting" "container_apps" {
-  name                       = "${var.resource_prefix}-${var.environment}-containerapps-diag"
-  target_resource_id         = azurerm_container_app_environment.main.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+resource "azurerm_monitor_diagnostic_setting" "aks" {
+  name                       = "${var.resource_prefix}-${var.environment}-aks-diag"
+  target_resource_id         = module.aks.cluster_id
+  log_analytics_workspace_id = module.monitoring.workspace_id
 
   enabled_log {
     category_group = "allLogs"
@@ -1112,8 +1037,20 @@ output "container_registry_login_server" {
   value = azurerm_container_registry.acr.login_server
 }
 
+output "app_gateway_public_ip" {
+  value = azurerm_public_ip.app_gateway.ip_address
+}
+
+output "aks_name" {
+  value = module.aks.name
+}
+
+output "aks_oidc_issuer_url" {
+  value = module.aks.oidc_issuer_url
+}
+
 output "postgresql_fqdn" {
-  value     = azurerm_postgresql_flexible_server.main.fqdn
+  value     = module.postgresql.fqdn
   sensitive = true
 }
 
@@ -1133,10 +1070,10 @@ output "openai_endpoint" {
 }
 
 output "key_vault_uri" {
-  value = azurerm_key_vault.main.vault_uri
+  value = module.keyvault.vault_uri
 }
 
 output "key_vault_workload_identity_client_id" {
-  value     = azurerm_user_assigned_identity.key_vault_workload.client_id
+  value     = module.keyvault.workload_identity_client_id
   sensitive = true
 }

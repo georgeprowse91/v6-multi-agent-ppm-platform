@@ -2,18 +2,23 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
+from azure.core.exceptions import HttpResponseError, ResourceModifiedError
 from azure.storage.blob import BlobServiceClient
 from cryptography.fernet import Fernet
 
 
 class WORMStorageError(RuntimeError):
     pass
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -113,7 +118,10 @@ class AzureBlobWORMStorage(WORMStorage):
         payload["retention_until"] = (
             datetime.utcnow() + timedelta(days=retention.duration_days)
         ).isoformat()
-        blob_client.upload_blob(json.dumps(payload), overwrite=False)
+        try:
+            blob_client.upload_blob(json.dumps(payload), overwrite=False)
+        except HttpResponseError as exc:
+            raise WORMStorageError("Failed to persist audit event to immutable storage") from exc
 
     def fetch_event(self, event_id: str) -> dict[str, Any] | None:
         blob_client = self.client.get_blob_client(self.container, f"{event_id}.json")
@@ -136,8 +144,16 @@ class AzureBlobWORMStorage(WORMStorage):
             if cutoff.tzinfo is None:
                 cutoff = cutoff.replace(tzinfo=timezone.utc)
             if cutoff <= now:
-                blob_client.delete_blob()
-                deleted += 1
+                try:
+                    blob_client.delete_blob()
+                    deleted += 1
+                except ResourceModifiedError:
+                    logger.warning("immutable_blob_retention_locked", extra={"blob": blob.name})
+                except HttpResponseError as exc:
+                    logger.warning(
+                        "immutable_blob_delete_failed",
+                        extra={"blob": blob.name, "error": str(exc)},
+                    )
         return deleted
 
 

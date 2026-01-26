@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -21,7 +21,7 @@ class PolicyDecision:
 
 def _load_policy_bundle() -> dict[str, Any]:
     bundle_path = Path(DEFAULT_POLICY_BUNDLE_PATH)
-    return yaml.safe_load(bundle_path.read_text())
+    return cast(dict[str, Any], yaml.safe_load(bundle_path.read_text()))
 
 
 def _get_field(data: dict[str, Any], path: str) -> Any:
@@ -39,8 +39,12 @@ def _apply_rule(document: dict[str, Any], rule: dict[str, Any]) -> bool:
     operator = rule.get("operator")
     expected = rule.get("value")
     if operator == "equals":
-        return value == expected
+        return bool(value == expected)
+    if operator == "not_equals":
+        return bool(value != expected)
     if operator == "gte":
+        if value is None or expected is None:
+            return False
         try:
             return float(value) >= float(expected)
         except (TypeError, ValueError):
