@@ -1,4 +1,26 @@
-# Helm Charts
+# Helm Charts Infrastructure
 
-This folder hosts shared charts, including the `ppm-platform` umbrella chart that deploys the
-entire platform stack using local service/app charts.
+## Purpose
+
+Document infrastructure resources under infra/kubernetes/helm-charts.
+
+## What's inside
+
+- `infra/kubernetes/helm-charts/ppm-platform`: Subdirectory containing ppm platform assets for this area.
+
+## How it's used
+
+These assets are referenced during deployment and operational runbooks.
+
+## How to run / develop / test
+
+Use Terraform/Helm/Kubernetes tooling referenced in this directory to apply changes.
+
+## Configuration
+
+Infrastructure configuration lives in the files within this folder and `.env` for local tooling.
+
+## Troubleshooting
+
+- Terraform errors: ensure the correct workspace/env variables are set.
+- Kubernetes apply failures: verify cluster access and namespace settings.

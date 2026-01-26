@@ -1,57 +1,29 @@
-# Policy Engine Bundles
+# Policy Engine: Policies
 
 ## Purpose
-This folder stores policy bundles evaluated by the policy engine service. The default bundle path
-is captured in `services/policy-engine/src/policy_config.py` and used as the baseline for
-validating downstream service policy packs.
 
-## Responsibilities
-- Maintain platform-wide policy bundles used by the policy engine.
-- Validate bundle schemas before deployment to avoid runtime enforcement errors.
-- Track ownership and versioning for compliance reviews.
+Document the policies assets owned by the Policy Engine service.
 
-## Folder structure
-```
-services/policy-engine/policies/
-├── README.md
-├── bundles/
-│   └── default-policy-bundle.yaml
-└── schema/
-    └── policy-bundle.schema.json
-```
+## What's inside
 
-## Conventions
-- Policy IDs should be prefixed with `pe-` for policy engine rules.
-- `metadata.scope` is `policy-engine` for core evaluation bundles.
-- Keep bundle versions aligned with policy-engine release versions.
+- `services/policy-engine/policies/bundles`: Subdirectory containing bundles assets for this area.
+- `services/policy-engine/policies/schema`: Schemas or validation rules for component assets.
 
-## How to add a new policy bundle
-1. Copy `bundles/default-policy-bundle.yaml` and update the `metadata` fields.
-2. Add new policy rules with unique IDs.
-3. Run validation locally and in CI.
+## How it's used
 
-## How to validate/test
+These assets are consumed by the service runtime or deployment tooling.
+
+## How to run / develop / test
+
 ```bash
-python scripts/validate-policies.py services/policy-engine/policies/bundles/default-policy-bundle.yaml
+ls services/policy-engine/policies
 ```
 
-## Example
-```yaml
-apiVersion: ppm.policies/v1
-kind: PolicyBundle
-metadata:
-  name: policy-engine-default
-  version: "1.0.0"
-  owner: policy-platform
-  scope: policy-engine
-policies:
-  - id: pe-001
-    name: Enforce bundle versioning
-    description: Require semantic versioning for bundle metadata.
-    severity: medium
-    enforcement: blocking
-    rules:
-      - field: metadata.version
-        operator: contains
-        value: "."
-```
+## Configuration
+
+Configuration is inherited from the parent service and `.env` settings.
+
+## Troubleshooting
+
+- Missing asset files: ensure the parent service references valid paths.
+- Validation failures: confirm schema compatibility with the parent service.

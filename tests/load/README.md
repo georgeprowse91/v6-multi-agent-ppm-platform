@@ -1,22 +1,29 @@
-# Load tests
+# Load Tests
 
-This directory contains load tests for the platform.
+## Purpose
 
-## Scope
-- Test modules that exercise the platform's cross-cutting behavior.
-- Fixtures, helpers, and sample payloads needed for these tests.
-- Any contract or environment notes required to run them locally.
+Document the load test scope and how these checks validate the platform.
 
-## SLA targets
-Load profiles are defined in `tests/load/sla_targets.json` and enforced in `tests/load/test_load_sla.py`.
-Use the `LOAD_PROFILE` environment variable to select a profile (defaults to `ci`).
+## What's inside
 
-## Running locally
+- `tests/load/sla_targets.json`: Load-test SLA profiles and thresholds.
+- `tests/load/test_load_sla.py`: Load-test SLA validation suite.
+
+## How it's used
+
+These tests run under `pytest` and are included when executing `make test`.
+
+## How to run / develop / test
+
 ```bash
 pytest tests/load
 ```
 
-To run the standalone load runner against a live environment:
-```bash
-LOAD_PROFILE=production python scripts/load-test.py --profile tests/load/sla_targets.json --target https://api.example.com/healthz
-```
+## Configuration
+
+Tests use repo-wide fixtures in `tests/conftest.py` and environment variables from `.env`.
+
+## Troubleshooting
+
+- Import errors: install dev dependencies with `make install-dev`.
+- Failing network calls: ensure dependent services are running or use mocks as defined in tests.

@@ -1,27 +1,28 @@
-# Terraform (Azure)
+# Terraform Infrastructure
 
-## Audit WORM immutability verification
+## Purpose
 
-After `terraform apply`, confirm immutable storage is enabled for audit logs:
+Document infrastructure resources under infra/terraform.
 
-```bash
-az storage account show --name <storage-account> --resource-group <rg> --query "immutableStorageWithVersioning.enabled"
-```
+## What's inside
 
-```bash
-az storage container immutability-policy show \
-  --account-name <storage-account> \
-  --container-name audit-events
-```
+- `infra/terraform/envs`: Environment-specific overlays.
+- `infra/terraform/modules`: Reusable Terraform modules.
+- `infra/terraform/main.tf`: File asset used by this component.
 
-The audit container should show a **Locked** immutability policy with the configured retention period, and storage account versioning should be enabled.
+## How it's used
 
-## WAF traffic flow
+These assets are referenced during deployment and operational runbooks.
 
-Application traffic should follow this path:
+## How to run / develop / test
 
-```
-Client -> Application Gateway WAF_v2 -> Kubernetes ingress (NGINX) -> Services
-```
+Use Terraform/Helm/Kubernetes tooling referenced in this directory to apply changes.
 
-Ensure the `ingress_backend_fqdn` variable resolves to the ingress controller endpoint (internal load balancer or private DNS).
+## Configuration
+
+Infrastructure configuration lives in the files within this folder and `.env` for local tooling.
+
+## Troubleshooting
+
+- Terraform errors: ensure the correct workspace/env variables are set.
+- Kubernetes apply failures: verify cluster access and namespace settings.

@@ -1,7 +1,27 @@
-# Dashboards
+# Dashboards Infrastructure
 
-This directory holds dashboard definitions for **observability** (Grafana, Azure Monitor, etc.). Include
-JSON exports and screenshots when possible.
+## Purpose
 
-- `ppm-platform.json`: platform overview panels.
-- `ppm-slo.json`: SLO tracking panels for availability, latency, and KPI success rates.
+Document infrastructure resources under infra/observability/dashboards.
+
+## What's inside
+
+- `infra/observability/dashboards/ppm-platform.json`: JSON data asset or configuration.
+- `infra/observability/dashboards/ppm-slo.json`: JSON data asset or configuration.
+
+## How it's used
+
+These assets are referenced during deployment and operational runbooks.
+
+## How to run / develop / test
+
+Use Terraform/Helm/Kubernetes tooling referenced in this directory to apply changes.
+
+## Configuration
+
+Infrastructure configuration lives in the files within this folder and `.env` for local tooling.
+
+## Troubleshooting
+
+- Terraform errors: ensure the correct workspace/env variables are set.
+- Kubernetes apply failures: verify cluster access and namespace settings.

@@ -1,37 +1,35 @@
 # Orchestration Service
 
-Central multi-agent coordinator used by the API gateway. The orchestrator loads agent
-implementations, resumes workflow state, and exposes routing through the API.
+## Purpose
 
-## Current state
+Describe the Orchestration Service application and its role in the platform experience layer.
 
-- Orchestrator is implemented as a Python module (`apps/orchestration-service/src/orchestrator.py`).
-- Workflow state persistence is stored in `apps/orchestration-service/storage/orchestration-state.json`.
-- It is invoked by the API gateway at startup; there is no standalone HTTP server yet.
+## What's inside
 
-## Quickstart
+- `apps/orchestration-service/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/orchestration-service/planners`: Planning templates and orchestration hints.
+- `apps/orchestration-service/policies`: Policy definitions enforced by the platform.
+- `apps/orchestration-service/src`: Implementation source for this component.
+- `apps/orchestration-service/tests`: Test suites and fixtures.
+- `apps/orchestration-service/Dockerfile`: Container build recipe for local or CI use.
 
-Run the API gateway, which bootstraps the orchestrator:
+## How it's used
+
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
+
+## How to run / develop / test
+
+Run the app locally (dry run to see the command):
 
 ```bash
-make run-api
+python -m tools.component_runner run --type app --name orchestration-service --dry-run
 ```
 
-## How to verify
+## Configuration
 
-```bash
-curl http://localhost:8000/api/v1/status
-```
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
 
-Expected response includes:
+## Troubleshooting
 
-```json
-{"status":"healthy","orchestrator_initialized":true,"agents_loaded":25}
-```
-
-## Key files
-
-- `apps/orchestration-service/src/orchestrator.py`: agent lifecycle manager.
-- `apps/orchestration-service/src/persistence.py`: workflow state persistence.
-- `agents/**/src/*.py`: agent implementations loaded by the orchestrator.
-- `apps/orchestration-service/policies/bundles/default-policy-bundle.yaml`: default policy bundle path.
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

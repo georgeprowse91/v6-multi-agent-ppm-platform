@@ -1,37 +1,35 @@
 # Telemetry Service
 
-The telemetry service ingests structured log/metric/trace payloads and emits them to an OpenTelemetry
-pipeline. It supports exporting to Azure Monitor via the OTLP collector.
+## Purpose
 
-## Contracts
+Define the Telemetry Service service responsibilities and how it integrates with the platform.
 
-- OpenAPI: `services/telemetry-service/contracts/openapi.yaml`
+## What's inside
 
-## Run locally
+- `services/telemetry-service/contracts`: Service contracts and schema artifacts.
+- `services/telemetry-service/helm`: Helm chart packaging for Kubernetes deployments.
+- `services/telemetry-service/pipelines`: Pipeline definitions for telemetry ingestion.
+- `services/telemetry-service/src`: Implementation source for this component.
+- `services/telemetry-service/tests`: Test suites and fixtures.
+- `services/telemetry-service/Dockerfile`: Container build recipe for local or CI use.
 
-```bash
-python -m tools.component_runner run --type service --name telemetry-service
-```
+## How it's used
 
-## Environment variables
+Services are run via `tools/component_runner` or Docker and are referenced by API and orchestration layers.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | unset | OTLP endpoint (collector) |
-| `AZURE_MONITOR_CONNECTION_STRING` | unset | Azure Monitor connection string |
-| `LOG_LEVEL` | `info` | Logging verbosity |
-| `PORT` | `8080` | HTTP port for the service |
+## How to run / develop / test
 
-## Example request
+Run the service locally (dry run to inspect the command):
 
 ```bash
-curl -X POST http://localhost:8080/telemetry/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"source": "api-gateway", "type": "log", "payload": {"message": "hello"}}'
+python -m tools.component_runner run --type service --name telemetry-service --dry-run
 ```
 
-## Tests
+## Configuration
 
-```bash
-pytest services/telemetry-service/tests
-```
+Service-specific environment variables should be defined in `.env` and, for production, in secrets managers.
+
+## Troubleshooting
+
+- Missing env vars: review the service README or source code for required settings.
+- Port conflicts: adjust `PORT` or Docker/Helm values.

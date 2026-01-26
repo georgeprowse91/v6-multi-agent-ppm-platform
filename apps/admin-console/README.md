@@ -1,42 +1,32 @@
 # Admin Console
 
-Administrative UI for tenant setup, permissions, and governance workflows.
+## Purpose
 
-## Current state
+Describe the Admin Console application and its role in the platform experience layer.
 
-- UI scaffolding and deployment assets are tracked under `apps/admin-console/`.
-- No runtime server is wired in this repo yet; this app is an initial scaffold for the eventual UI.
+## What's inside
 
-## Quickstart
+- `apps/admin-console/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/admin-console/tests`: Test suites and fixtures.
+- `apps/admin-console/Dockerfile`: Container build recipe for local or CI use.
 
-List deployment assets:
+## How it's used
 
-```bash
-ls apps/admin-console
-```
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls apps/admin-console/helm
-```
-
-Expected output includes Helm chart templates for the admin console deployment.
-
-## Key files
-
-- `apps/admin-console/helm/`: deployment manifests.
-- `apps/admin-console/tests/`: test scaffolding for the UI.
-
-## Example
-
-Search for the admin console name in deployment manifests:
+Run the app locally (dry run to see the command):
 
 ```bash
-rg -n "admin" apps/admin-console/helm
+python -m tools.component_runner run --type app --name admin-console --dry-run
 ```
 
-## Next steps
+## Configuration
 
-- Implement UI sources under `apps/admin-console/src/`.
-- Wire auth flows via `services/identity-access/`.
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
+
+## Troubleshooting
+
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

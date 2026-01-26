@@ -1,12 +1,27 @@
-# OpenTelemetry Collector
+# Otel Infrastructure
 
-This chart deploys the OpenTelemetry Collector with Azure Monitor export enabled. Configure the Key
-Vault CSI integration to provide `AZURE_MONITOR_CONNECTION_STRING`.
+## Purpose
 
-## Deploy
-```bash
-helm upgrade --install otel-collector infra/observability/otel/helm \
-  --set keyVault.name=<kv> \
-  --set keyVault.tenantId=<tenant> \
-  --set keyVault.clientId=<client>
-```
+Document infrastructure resources under infra/observability/otel.
+
+## What's inside
+
+- `infra/observability/otel/helm`: Helm chart packaging for Kubernetes deployments.
+- `infra/observability/otel/collector.yaml`: YAML definition or configuration used by this component.
+
+## How it's used
+
+These assets are referenced during deployment and operational runbooks.
+
+## How to run / develop / test
+
+Use Terraform/Helm/Kubernetes tooling referenced in this directory to apply changes.
+
+## Configuration
+
+Infrastructure configuration lives in the files within this folder and `.env` for local tooling.
+
+## Troubleshooting
+
+- Terraform errors: ensure the correct workspace/env variables are set.
+- Kubernetes apply failures: verify cluster access and namespace settings.

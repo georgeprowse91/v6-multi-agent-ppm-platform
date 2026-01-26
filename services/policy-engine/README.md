@@ -1,36 +1,35 @@
 # Policy Engine
 
-The policy engine evaluates policy bundles and enforces RBAC decisions for the platform. It loads
-policy bundles from `services/policy-engine/policies/` and exposes an RBAC evaluation endpoint that
-API gateway uses for authorization.
+## Purpose
 
-## Endpoints
+Define the Policy Engine service responsibilities and how it integrates with the platform.
 
-- `POST /policies/evaluate`: Validate policy bundles.
-- `POST /rbac/evaluate`: Evaluate tenant RBAC decisions.
+## What's inside
 
-## Run locally
+- `services/policy-engine/contracts`: Service contracts and schema artifacts.
+- `services/policy-engine/helm`: Helm chart packaging for Kubernetes deployments.
+- `services/policy-engine/policies`: Policy definitions enforced by the platform.
+- `services/policy-engine/src`: Implementation source for this component.
+- `services/policy-engine/tests`: Test suites and fixtures.
+- `services/policy-engine/Dockerfile`: Container build recipe for local or CI use.
 
-```bash
-python -m tools.component_runner run --type service --name policy-engine
-```
+## How it's used
 
-## Environment variables
+Services are run via `tools/component_runner` or Docker and are referenced by API and orchestration layers.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `POLICY_BUNDLE_PATH` | `services/policy-engine/policies/bundles/default-policy-bundle.yaml` | Bundle used for validation |
+## How to run / develop / test
 
-## Example
+Run the service locally (dry run to inspect the command):
 
 ```bash
-curl -X POST http://localhost:8080/rbac/evaluate \
-  -H "Content-Type: application/json" \
-  -d '{"tenant_id":"tenant-alpha","roles":["portfolio_admin"],"permission":"project.read"}'
+python -m tools.component_runner run --type service --name policy-engine --dry-run
 ```
 
-## Tests
+## Configuration
 
-```bash
-pytest services/policy-engine/tests
-```
+Service-specific environment variables should be defined in `.env` and, for production, in secrets managers.
+
+## Troubleshooting
+
+- Missing env vars: review the service README or source code for required settings.
+- Port conflicts: adjust `PORT` or Docker/Helm values.

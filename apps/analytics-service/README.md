@@ -1,44 +1,35 @@
 # Analytics Service
 
-Analytics job definitions and models that power KPI dashboards and portfolio insights.
+## Purpose
 
-## Current state
+Describe the Analytics Service application and its role in the platform experience layer.
 
-- Batch/stream job specs live in `apps/analytics-service/jobs/`.
-- Data models live in `apps/analytics-service/models/`.
-- Validation is handled by `scripts/validate-analytics-jobs.py`.
+## What's inside
 
-## Quickstart
+- `apps/analytics-service/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/analytics-service/jobs`: Job manifests and schedules.
+- `apps/analytics-service/models`: Data model definitions used by this component.
+- `apps/analytics-service/src`: Implementation source for this component.
+- `apps/analytics-service/tests`: Test suites and fixtures.
+- `apps/analytics-service/Dockerfile`: Container build recipe for local or CI use.
 
-Validate the analytics job specs:
+## How it's used
 
-```bash
-python scripts/validate-analytics-jobs.py
-```
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls apps/analytics-service/jobs
-```
-
-Expected output includes job YAML files used by analytics pipelines.
-
-## Key files
-
-- `apps/analytics-service/jobs/`: job definitions.
-- `apps/analytics-service/models/`: analytics data models.
-- `scripts/validate-analytics-jobs.py`: validation entrypoint.
-
-## Example
-
-List analytics model names:
+Run the app locally (dry run to see the command):
 
 ```bash
-rg -n "model" apps/analytics-service/models
+python -m tools.component_runner run --type app --name analytics-service --dry-run
 ```
 
-## Next steps
+## Configuration
 
-- Add execution runners under `apps/analytics-service/src/`.
-- Wire outputs into `services/telemetry-service/` for storage and reporting.
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
+
+## Troubleshooting
+
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

@@ -1,48 +1,33 @@
 # Document Service Helm Chart
 
 ## Purpose
-This chart packages the **document-service** deployment for the Multi-Agent PPM platform when deploying to
-Kubernetes. It defines the Deployment, Service, and ConfigMap used by the document-service runtime.
 
-## Responsibilities
-- Package the document-service container image and runtime settings.
-- Provide a stable Service for inter-service communication on port 8080.
-- Externalize runtime configuration via `values.yaml` and `templates/configmap.yaml`.
+Package Kubernetes deployment manifests for this component.
 
-## Folder structure
-```
-apps/document-service/helm/
-├── Chart.yaml
-├── values.yaml
-├── templates/
-│   ├── _helpers.tpl
-│   ├── configmap.yaml
-│   ├── deployment.yaml
-│   └── service.yaml
-```
+## What's inside
 
-## Conventions
-- `Chart.yaml` **name** must match the parent directory name (`document-service`).
-- `values.yaml` defines `image.repository`, `image.tag`, and `service.port`.
-- All templates use the `name` helper from `_helpers.tpl` for consistent naming.
+- `apps/document-service/helm/templates`: Templates used by the component (deployment or message content).
+- `apps/document-service/helm/Chart.yaml`: Helm chart metadata and versioning.
+- `apps/document-service/helm/values.yaml`: Helm values for environment-specific overrides.
 
-## How to add a new template
-1. Add a new manifest under `apps/document-service/helm/templates/` (e.g. `ingress.yaml`).
-2. Reference new values under `values.yaml` and keep defaults minimal.
-3. Update this README with the new path and a short usage note.
-4. Validate the chart with the command below.
+## How it's used
 
-## How to validate/test
+Used by deployment pipelines and `helm` to render Kubernetes manifests.
+
+## How to run / develop / test
+
+Lint and render the chart locally:
+
 ```bash
-python scripts/validate-helm-charts.py apps/document-service/helm
+helm lint apps/document-service/helm
+helm template document-service apps/document-service/helm
 ```
 
-## Example
-`values.yaml` excerpt:
-```yaml
-image:
-  repository: ghcr.io/georgeprowse91/document-service
-  tag: "0.1.0"
-service:
-  port: 8080
-```
+## Configuration
+
+Edit `values.yaml` for environment-specific overrides.
+
+## Troubleshooting
+
+- Helm lint errors: validate YAML formatting and required values.
+- Rendered manifests missing resources: check `templates/` for missing files.

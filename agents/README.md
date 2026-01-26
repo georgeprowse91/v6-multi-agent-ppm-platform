@@ -1,83 +1,33 @@
-# Agent Specifications Index
+# Agents
 
 ## Purpose
 
-Provide a navigable index to the individual agent specification folders in `agents/` and point to the canonical agent catalog in `docs/agents/`.
+Document the 25 specialized domain agents and how they integrate into the orchestration layer.
 
-## Architecture-level context
+## What's inside
 
-Agent specs in this directory describe the responsibilities and interfaces for each domain agent. The orchestration logic that ties them together is documented in `docs/architecture/agent-orchestration.md`.
+- `agents/core-orchestration`: Subdirectory containing core orchestration assets for this area.
+- `agents/delivery-management`: Subdirectory containing delivery management assets for this area.
+- `agents/operations-management`: Subdirectory containing operations management assets for this area.
+- `agents/portfolio-management`: Subdirectory containing portfolio management assets for this area.
+- `agents/runtime`: Subdirectory containing runtime assets for this area.
+- `agents/__init__.py`: Python module used by this component.
 
-## Agent catalog
+## How it's used
 
-Start with the canonical catalog for a cross-agent view:
+Agents are discovered by `tools/agent_runner` and referenced by the orchestration docs in `docs/agents/`.
 
-- [Agent Catalog](../docs/agents/agent-catalog.md)
-
-## Agent specification folders
-
-### Core Orchestration
-
-- [Agent 1 Intent Router Agent](core-orchestration/agent-01-intent-router/README.md)
-- [Agent 2 Response Orchestration Agent](core-orchestration/agent-02-response-orchestration/README.md)
-
-### Governance & Workflow
-
-- [Agent 3 Approval Workflow Agent](core-orchestration/agent-03-approval-workflow/README.md)
-- [Agent 16 Compliance & Regulatory Agent](delivery-management/agent-16-compliance-regulatory/README.md)
-
-### Portfolio
-
-- [Agent 4 Demand & Intake Agent](portfolio-management/agent-04-demand-intake/README.md)
-- [Agent 5 Business Case & Investment Analysis Agent](portfolio-management/agent-05-business-case-investment/README.md)
-- [Agent 6 Portfolio Strategy & Optimization Agent](portfolio-management/agent-06-portfolio-strategy-optimisation/README.md)
-- [Agent 12 Financial Management Agent](delivery-management/agent-12-financial-management/README.md)
-
-### Delivery
-
-- [Agent 7 Program Management Agent](portfolio-management/agent-07-program-management/README.md)
-- [Agent 8 Project Definition & Scope Agent](delivery-management/agent-08-project-definition-scope/README.md)
-- [Agent 9 Project Lifecycle & Governance Agent](delivery-management/agent-09-lifecycle-governance/README.md)
-- [Agent 10 Schedule & Planning Agent](delivery-management/agent-10-schedule-planning/README.md)
-- [Agent 11 Resource & Capacity Management Agent](delivery-management/agent-11-resource-capacity/README.md)
-
-### Operations
-
-- [Agent 13 Vendor & Procurement Management Agent](delivery-management/agent-13-vendor-procurement/README.md)
-- [Agent 14 Quality Management Agent](delivery-management/agent-14-quality-management/README.md)
-- [Agent 15 Risk Management Agent](delivery-management/agent-15-risk-issue-management/README.md)
-- [Agent 17 Change & Configuration Management Agent](operations-management/agent-17-change-configuration/README.md)
-- [Agent 21 Stakeholder & Communications Management Agent](operations-management/agent-21-stakeholder-comms/README.md)
-
-### Platform
-
-- [Agent 18 Release & Deployment Agent](operations-management/agent-18-release-deployment/README.md)
-- [Agent 19 Knowledge & Document Management Agent](operations-management/agent-19-knowledge-document-management/README.md)
-- [Agent 20 Continuous Improvement & Process Mining Agent](operations-management/agent-20-continuous-improvement-process-mining/README.md)
-- [Agent 22 Analytics & Insights Agent](operations-management/agent-22-analytics-insights/README.md)
-- [Agent 23 Data Synchronization & Consistency Agent](operations-management/agent-23-data-synchronisation-quality/README.md)
-- [Agent 24 Workflow & Process Engine Agent](operations-management/agent-24-workflow-process-engine/README.md)
-- [Agent 25 System Health & Monitoring Agent](operations-management/agent-25-system-health-monitoring/README.md)
-
-## Usage example
-
-Open the Intent Router spec:
+## How to run / develop / test
 
 ```bash
-sed -n '1,40p' agents/core-orchestration/agent-01-intent-router/README.md
+python -m tools.agent_runner list-agents
 ```
 
-## How to verify
+## Configuration
 
-List the core orchestration agents:
+Agent runtime settings live in `.env` (see `.env.example`) and shared config files under `config/`.
 
-```bash
-ls agents/core-orchestration
-```
+## Troubleshooting
 
-Expected output: the three agent folders.
-
-## Related docs
-
-- [Agent Orchestration](../docs/architecture/agent-orchestration.md)
-- [Solution Overview](../docs/product/solution-overview/README.md)
+- Agent not listed: ensure it lives under `agents/**/agent-*`.
+- Runtime failures: verify required environment variables are set.

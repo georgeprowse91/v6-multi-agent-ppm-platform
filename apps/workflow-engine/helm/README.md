@@ -1,48 +1,33 @@
 # Workflow Engine Helm Chart
 
 ## Purpose
-This chart packages the **workflow-engine** deployment for the Multi-Agent PPM platform when deploying to
-Kubernetes. It defines the Deployment, Service, and ConfigMap used by the workflow-engine runtime.
 
-## Responsibilities
-- Package the workflow-engine container image and runtime settings.
-- Provide a stable Service for inter-service communication on port 8080.
-- Externalize runtime configuration via `values.yaml` and `templates/configmap.yaml`.
+Package Kubernetes deployment manifests for this component.
 
-## Folder structure
-```
-apps/workflow-engine/helm/
-├── Chart.yaml
-├── values.yaml
-├── templates/
-│   ├── _helpers.tpl
-│   ├── configmap.yaml
-│   ├── deployment.yaml
-│   └── service.yaml
-```
+## What's inside
 
-## Conventions
-- `Chart.yaml` **name** must match the parent directory name (`workflow-engine`).
-- `values.yaml` defines `image.repository`, `image.tag`, and `service.port`.
-- All templates use the `name` helper from `_helpers.tpl` for consistent naming.
+- `apps/workflow-engine/helm/templates`: Templates used by the component (deployment or message content).
+- `apps/workflow-engine/helm/Chart.yaml`: Helm chart metadata and versioning.
+- `apps/workflow-engine/helm/values.yaml`: Helm values for environment-specific overrides.
 
-## How to add a new template
-1. Add a new manifest under `apps/workflow-engine/helm/templates/` (e.g. `ingress.yaml`).
-2. Reference new values under `values.yaml` and keep defaults minimal.
-3. Update this README with the new path and a short usage note.
-4. Validate the chart with the command below.
+## How it's used
 
-## How to validate/test
+Used by deployment pipelines and `helm` to render Kubernetes manifests.
+
+## How to run / develop / test
+
+Lint and render the chart locally:
+
 ```bash
-python scripts/validate-helm-charts.py apps/workflow-engine/helm
+helm lint apps/workflow-engine/helm
+helm template workflow-engine apps/workflow-engine/helm
 ```
 
-## Example
-`values.yaml` excerpt:
-```yaml
-image:
-  repository: ghcr.io/georgeprowse91/workflow-engine
-  tag: "0.1.0"
-service:
-  port: 8080
-```
+## Configuration
+
+Edit `values.yaml` for environment-specific overrides.
+
+## Troubleshooting
+
+- Helm lint errors: validate YAML formatting and required values.
+- Rendered manifests missing resources: check `templates/` for missing files.

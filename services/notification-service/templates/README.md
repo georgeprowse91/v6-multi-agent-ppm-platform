@@ -1,6 +1,28 @@
-# Notification Templates
+# Notification Service: Templates
 
-Templates are stored as `.txt` files and rendered using Python `str.format` with the variables
-provided in `/notifications/send`.
+## Purpose
 
-Example: `welcome.txt` expects `recipient_name`, `event_name`, and `event_time`.
+Document the templates assets owned by the Notification Service service.
+
+## What's inside
+
+- `services/notification-service/templates/welcome.txt`: Text asset used by this component.
+
+## How it's used
+
+These assets are consumed by the service runtime or deployment tooling.
+
+## How to run / develop / test
+
+```bash
+ls services/notification-service/templates
+```
+
+## Configuration
+
+Configuration is inherited from the parent service and `.env` settings.
+
+## Troubleshooting
+
+- Missing asset files: ensure the parent service references valid paths.
+- Validation failures: confirm schema compatibility with the parent service.

@@ -1,42 +1,30 @@
-# LLM Package
+# Llm Package
 
-Shared LLM client helpers intended for agent runtime integration.
+## Purpose
 
-## Current state
+Describe the Llm shared package and how it supports platform services.
 
-- No package implementation yet in `packages/llm/`.
-- Agent runtime integrations live under `agents/runtime/src/`.
+## What's inside
 
-## Quickstart
+- `packages/llm/src`: Implementation source for this component.
 
-Inspect the agent runtime base agent:
+## How it's used
 
-```bash
-sed -n '1,80p' agents/runtime/src/base_agent.py
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls agents/runtime/src
-```
-
-Expected output lists runtime modules used by agents.
-
-## Key files
-
-- `agents/runtime/src/`: current runtime implementation.
-- `packages/llm/README.md`: scope and next steps.
-
-## Example
-
-Search for OpenAI client usage:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "openai" agents/runtime/src
+pytest packages/llm
 ```
 
-## Next steps
+## Configuration
 
-- Add shared client wrappers in `packages/llm/src/`.
-- Replace direct client calls in agents with the shared helpers.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

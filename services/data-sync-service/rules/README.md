@@ -1,16 +1,28 @@
-# Sync Rules
+# Data Sync Service: Rules
 
-This folder contains YAML rule definitions consumed by the data sync service. The runtime loads all
-`*.yaml` files and plans reconciliation jobs based on their IDs.
+## Purpose
 
-## Example
+Document the rules assets owned by the Data Sync Service service.
 
-```yaml
-id: ds-001
-description: Default merge of connector work items into canonical model
-source: connector-hub
-target: canonical-work-items
-mode: merge
-filters:
-  status: active
+## What's inside
+
+- `services/data-sync-service/rules/default-sync.yaml`: YAML definition or configuration used by this component.
+
+## How it's used
+
+These assets are consumed by the service runtime or deployment tooling.
+
+## How to run / develop / test
+
+```bash
+ls services/data-sync-service/rules
 ```
+
+## Configuration
+
+Configuration is inherited from the parent service and `.env` settings.
+
+## Troubleshooting
+
+- Missing asset files: ensure the parent service references valid paths.
+- Validation failures: confirm schema compatibility with the parent service.

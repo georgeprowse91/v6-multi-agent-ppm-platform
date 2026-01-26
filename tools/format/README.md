@@ -1,27 +1,28 @@
-# Formatting
+# Format Tools
 
-Formatter wrapper that runs Ruff autofixes and Black with the repo defaults.
+## Purpose
 
-## Quickstart
+Document the format tooling used to automate development and CI workflows.
 
-```bash
-python -m tools.format.run
-```
+## What's inside
 
-## How to verify
+- `tools/format/__init__.py`: Python module used by this component.
+- `tools/format/format_config.yaml`: YAML definition or configuration used by this component.
+- `tools/format/run.py`: Python module used by this component.
 
-Re-run the formatter after a clean run; it should exit 0 without additional changes.
+## How it's used
 
-## Key files
+These tools are invoked by Make targets and CI pipelines.
 
-- `tools/format/run.py`: formatter wrapper entrypoint.
-- `tools/format/format_config.yaml`: default format target paths.
-- `pyproject.toml`: shared Ruff/Black settings.
+## How to run / develop / test
 
-## Example
+Refer to the Makefile targets or run the module directly as needed.
 
-Format only the API gateway and tests:
+## Configuration
 
-```bash
-python -m tools.format.run --paths apps/api-gateway tests
-```
+Tooling configuration lives in repo-level config files and `.env` where applicable.
+
+## Troubleshooting
+
+- Command not found: ensure dev dependencies are installed (`make install-dev`).
+- Tool errors: inspect logs and verify referenced paths exist.

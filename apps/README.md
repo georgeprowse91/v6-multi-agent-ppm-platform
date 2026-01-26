@@ -1,48 +1,36 @@
 # Applications
 
-User-facing apps and API services that make up the platform runtime.
+## Purpose
 
-## Apps in this repository
+Catalog the user-facing applications and their deployment assets.
 
-- **admin-console**: admin UI for tenants, permissions, and governance.
-- **analytics-service**: analytics job definitions and data models.
-- **api-gateway**: FastAPI entrypoint for agent queries and platform APIs.
-- **connector-hub**: registry and sandbox for external connectors.
-- **document-service**: document ingestion, storage, and retrieval workflows.
-- **orchestration-service**: multi-agent coordinator invoked by the API gateway.
-- **web**: production web console with identity-aware access.
-- **workflow-engine**: workflow definitions and orchestration runtime.
+## What's inside
 
-## Quickstart
+- `apps/admin-console`: Subdirectory containing admin console assets for this area.
+- `apps/analytics-service`: Subdirectory containing analytics service assets for this area.
+- `apps/api-gateway`: Subdirectory containing api gateway assets for this area.
+- `apps/connector-hub`: Subdirectory containing connector hub assets for this area.
+- `apps/document-service`: Subdirectory containing document service assets for this area.
+- `apps/orchestration-service`: Subdirectory containing orchestration service assets for this area.
 
-Run the core developer-facing apps:
+## How it's used
 
-```bash
-make run-api
-make run-web
-```
+Apps are runnable via `tools/component_runner` and deployed using Helm charts under each app folder.
 
-Or start everything in Docker:
+## How to run / develop / test
+
+List available apps and run one locally:
 
 ```bash
-make docker-up
+python -m tools.component_runner list --type app
+python -m tools.component_runner run --type app --name api-gateway --dry-run
 ```
 
-## How to verify
+## Configuration
 
-```bash
-curl http://localhost:8000/healthz
-```
+Apps rely on `.env` and config files under `config/` for tenant and environment settings.
 
-Expected response:
+## Troubleshooting
 
-```json
-{"status":"ok","timestamp":"2024-01-01T12:00:00","version":"0.1.0"}
-```
-
-## Key files
-
-- `apps/api-gateway/src/api/main.py`: API entrypoint.
-- `apps/web/src/main.py`: web console backend.
-- `apps/orchestration-service/src/orchestrator.py`: agent orchestrator.
-- `apps/workflow-engine/workflows/`: workflow definitions.
+- No runnable entrypoint detected: ensure each app has `src/main.py` or a Dockerfile.
+- Port conflicts: check the port mappings in the app Dockerfile or FastAPI config.

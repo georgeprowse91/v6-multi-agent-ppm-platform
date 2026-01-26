@@ -1,50 +1,31 @@
 # Examples
 
 ## Purpose
-This folder contains runnable, validated examples used in documentation and demos. Each example is
-paired with a schema or validator so it can be checked in CI.
 
-## Responsibilities
-- Provide canonical JSON/YAML examples for onboarding and demos.
-- Keep examples validated against schemas in this repository.
-- Showcase how agents and services expect payloads.
+Provide example artifacts that demonstrate how to use the platform assets.
 
-## Folder structure
-```
-examples/
-├── README.md
-├── portfolio-intake-request.json
-├── schema/
-│   └── portfolio-intake.schema.json
-└── workflows/
-    └── portfolio-intake.workflow.yaml
-```
+## What's inside
 
-## Conventions
-- Example payloads should be minimal but complete.
-- JSON examples must match their schemas in `examples/schema`.
-- Workflow examples reuse the workflow engine schema in `apps/workflow-engine/workflows/schema/`.
+- `examples/connector-configs`: Subdirectory containing connector config assets for this area.
+- `examples/demo-scenarios`: Subdirectory containing demo scenario assets for this area.
+- `examples/methodology-maps`: Subdirectory containing methodology map assets for this area.
+- `examples/schema`: Schemas or validation rules for component assets.
+- `examples/workflows`: Workflow definitions and examples.
+- `examples/portfolio-intake-request.json`: JSON data asset or configuration.
 
-## How to add a new example
-1. Add a schema under `examples/schema/` if one does not exist.
-2. Create the example JSON/YAML file in this folder or a subfolder.
-3. Register the new example in the validator script (e.g. `scripts/validate-examples.py`).
-4. Run validation commands below.
+## How it's used
 
-## How to validate/test
-```bash
-python scripts/validate-examples.py examples/portfolio-intake-request.json
-python scripts/validate-workflows.py examples/workflows/portfolio-intake.workflow.yaml
-```
+Examples are referenced from docs and can be copied into local experiments or demos.
 
-## Example
-```json
-{
-  "request_id": "req-2024-09-001",
-  "portfolio_id": "portfolio-apollo",
-  "summary": "New analytics program for enterprise reporting.",
-  "owner": "portfolio.manager@ppm.example",
-  "priority": "high",
-  "tags": ["analytics", "apollo"]
-}
-```
+## How to run / develop / test
+
+Review example files directly and adapt them for your environment.
+
+## Configuration
+
+Examples are static artifacts and do not require runtime configuration.
+
+## Troubleshooting
+
+- Example format mismatch: ensure the referenced schema or manifest matches the current repo version.
+- Missing files: confirm example assets are committed to this folder.

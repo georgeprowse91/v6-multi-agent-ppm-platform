@@ -1,43 +1,29 @@
 # Connector SDK
 
-Shared utilities for connector authentication, pagination, and retry logic.
+## Purpose
 
-## Current state
+Provide shared helpers and scaffolding for building connectors that conform to the platform manifest and mapping model.
 
-- SDK source code is in `connectors/sdk/src/`.
-- Tests live in `connectors/sdk/tests/`.
-- No published package yet; it is consumed by local connector modules.
+## What's inside
 
-## Quickstart
+- `connectors/sdk/src`: Implementation source for this component.
+- `connectors/sdk/tests`: Test suites and fixtures.
 
-List available SDK modules:
+## How it's used
 
-```bash
-ls connectors/sdk/src
-```
+The SDK is imported by connector implementations and validated in connector tests.
 
-## How to verify
+## How to run / develop / test
 
 ```bash
-ls connectors/sdk/tests
+pytest connectors/sdk/tests
 ```
 
-Expected output includes test files that exercise SDK helpers.
+## Configuration
 
-## Key files
+Configuration is inherited from the connector runtime and `.env` settings.
 
-- `connectors/sdk/src/`: SDK implementation.
-- `connectors/sdk/tests/`: SDK tests.
+## Troubleshooting
 
-## Example
-
-Search for retry helpers:
-
-```bash
-rg -n "retry" connectors/sdk/src
-```
-
-## Next steps
-
-- Publish the SDK as a package once connector APIs are stabilized.
-- Add integration tests under `connectors/sdk/tests/` that run in CI.
+- Import errors: install dev dependencies with `make install-dev`.
+- Missing helper modules: ensure the SDK package path is correct.

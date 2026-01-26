@@ -1,58 +1,31 @@
-# Document Service Policies
+# Document Service: Policies
 
 ## Purpose
-Policy bundles in this folder define access controls, retention requirements, and validation rules
-for the document service. The default bundle path is captured in
-`apps/document-service/document_policy_config.py` for downstream services to consume.
 
-## Responsibilities
-- Capture document ingestion and retention rules for the document service.
-- Maintain versioned policy bundles tied to document workflows.
-- Provide schema-validated YAML bundles for policy evaluation.
+Document the policies assets for the Document Service application.
 
-## Folder structure
-```
-apps/document-service/policies/
-├── README.md
-├── bundles/
-│   └── default-policy-bundle.yaml
-└── schema/
-    └── policy-bundle.schema.json
-```
+## What's inside
 
-## Conventions
-- Use `doc-###` policy IDs for document-specific rules.
-- `metadata.scope` should be `document-service`.
-- Bundle `metadata.version` must follow semantic versioning.
+- `apps/document-service/policies/bundles`: Subdirectory containing bundles assets for this area.
+- `apps/document-service/policies/schema`: Schemas or validation rules for component assets.
 
-## How to add a new policy bundle
-1. Duplicate `bundles/default-policy-bundle.yaml` and edit the metadata.
-2. Add rules under `policies:` for new document constraints.
-3. Run the validation script to ensure schema compliance.
-4. Update `apps/document-service/document_policy_config.py` if the default bundle changes.
+## How it's used
 
-## How to validate/test
+These assets are consumed by the parent app during build, runtime, or deployment.
+
+## How to run / develop / test
+
+Validate assets by listing files or running the parent app locally.
+
 ```bash
-python scripts/validate-policies.py apps/document-service/policies/bundles/default-policy-bundle.yaml
+ls apps/document-service/policies
 ```
 
-## Example
-```yaml
-apiVersion: ppm.policies/v1
-kind: PolicyBundle
-metadata:
-  name: document-default
-  version: "1.0.0"
-  owner: document-platform
-  scope: document-service
-policies:
-  - id: doc-001
-    name: Block uploads without classification
-    description: Require classification for every document upload.
-    severity: high
-    enforcement: blocking
-    rules:
-      - field: document.classification
-        operator: equals
-        value: ""
-```
+## Configuration
+
+No direct configuration in this subfolder; use the parent app's `.env` settings.
+
+## Troubleshooting
+
+- Missing asset errors: confirm files referenced by the app exist in this folder.
+- Packaging issues: ensure paths match those referenced in the parent app configuration.

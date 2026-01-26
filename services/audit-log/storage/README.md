@@ -1,6 +1,28 @@
-# Audit Log Storage
+# Audit Log: Storage
 
-Audit events are stored as JSONL records in `audit-events.jsonl` during local development.
-Use `AUDIT_LOG_STORAGE_PATH` to override the default location.
+## Purpose
 
-Each line in the file corresponds to a single validated audit event payload.
+Document the storage assets owned by the Audit Log service.
+
+## What's inside
+
+- `README.md`: Documentation for this directory.
+
+## How it's used
+
+These assets are consumed by the service runtime or deployment tooling.
+
+## How to run / develop / test
+
+```bash
+ls services/audit-log/storage
+```
+
+## Configuration
+
+Configuration is inherited from the parent service and `.env` settings.
+
+## Troubleshooting
+
+- Missing asset files: ensure the parent service references valid paths.
+- Validation failures: confirm schema compatibility with the parent service.

@@ -1,43 +1,30 @@
 # Observability Package
 
-Shared observability helpers intended for logs, metrics, and tracing.
+## Purpose
 
-## Current state
+Describe the Observability shared package and how it supports platform services.
 
-- Tracing and metrics helpers live in `packages/observability/src/observability`.
-- Observability architecture is documented in `docs/architecture/observability-architecture.md`.
+## What's inside
 
-## Quickstart
+- `packages/observability/src`: Implementation source for this component.
 
-Review the observability architecture:
+## How it's used
 
-```bash
-sed -n '1,40p' docs/architecture/observability-architecture.md
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-rg -n "TraceMiddleware|RequestMetricsMiddleware" services apps
-```
-
-Expected output shows service wiring for distributed tracing + metrics.
-
-## Key files
-
-- `docs/architecture/observability-architecture.md`: design reference.
-- `packages/observability/src/observability/tracing.py`: trace propagation and middleware.
-- `packages/observability/src/observability/metrics.py`: metric exporter + HTTP/KPI helpers.
-
-## Example
-
-Search for pipeline names:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "configure_tracing" services apps
+pytest packages/observability
 ```
 
-## Next steps
+## Configuration
 
-- Implement shared logging helpers in `packages/observability/src/`.
-- Expand metric coverage as SLOs mature.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

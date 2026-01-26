@@ -1,38 +1,33 @@
-# Methodology Library
+# Methodology Documentation
 
 ## Purpose
 
-Provide the canonical methodology maps, gate definitions, and templates used by agents to enforce governance across Agile, Waterfall, and Hybrid delivery.
+Describe the methodology documentation set and link the narrative to the repo assets that implement it.
 
-## Architecture-level context
+## What's inside
 
-Methodology maps encode delivery stages as YAML (`map.yaml`) and define gate criteria in `gates.yaml`. The Approval Workflow agent (Agent 03) and Lifecycle & Governance agent (Agent 09) reference these definitions to enforce stage progression.
+- `docs/methodology/agile`: Subdirectory containing agile assets for this area.
+- `docs/methodology/hybrid`: Subdirectory containing hybrid assets for this area.
+- `docs/methodology/waterfall`: Subdirectory containing waterfall assets for this area.
+- `docs/methodology/overview.md`: Markdown documentation for this area.
 
-## Key folders
+## How it's used
 
-- `docs/methodology/agile/`
-- `docs/methodology/waterfall/`
-- `docs/methodology/hybrid/`
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
 
-## Usage example
+## How to run / develop / test
 
-Inspect the Agile map:
-
-```bash
-sed -n '1,120p' docs/methodology/agile/map.yaml
-```
-
-## How to verify
-
-List the templates for the Agile methodology:
+Validate internal links across docs:
 
 ```bash
-ls docs/methodology/agile/templates
+python scripts/check-links.py
 ```
 
-Expected output includes `sprint-plan.md`, `release-plan.md`, and `retro-notes.md`.
+## Configuration
 
-## Related docs
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
 
-- [Methodology Overview](overview.md)
-- [Agent Orchestration](../architecture/agent-orchestration.md)
+## Troubleshooting
+
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

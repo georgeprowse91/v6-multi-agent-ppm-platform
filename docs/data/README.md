@@ -1,38 +1,32 @@
-# Data Model, Quality & Lineage
+# Data Documentation
 
 ## Purpose
 
-Describe the canonical data model, quality scoring approach, and lineage artifacts that underpin the Multi-Agent PPM Platform.
+Describe the data documentation set and link the narrative to the repo assets that implement it.
 
-## Architecture-level context
+## What's inside
 
-The data layer provides a shared schema for agents and connectors. Canonical schemas live in `data/schemas/`, quality rules in `data/quality/`, and lineage artifacts in `data/lineage/`. Together they ensure consistent, auditable data across portfolios, programs, projects, and work items.
+- `docs/data/data-model.md`: Markdown documentation for this area.
+- `docs/data/data-quality.md`: Markdown documentation for this area.
+- `docs/data/lineage.md`: Markdown documentation for this area.
 
-## Key docs
+## How it's used
 
-- **Canonical data model** → [data-model.md](data-model.md)
-- **Data quality rules** → [data-quality.md](data-quality.md)
-- **Lineage capture** → [lineage.md](lineage.md)
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
 
-## Usage example
+## How to run / develop / test
 
-Open the project schema:
-
-```bash
-sed -n '1,80p' data/schemas/project.schema.json
-```
-
-## How to verify
-
-List available schemas:
+Validate internal links across docs:
 
 ```bash
-ls data/schemas
+python scripts/check-links.py
 ```
 
-Expected output: schema files for portfolio, program, project, and work items.
+## Configuration
 
-## Related docs
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
 
-- [Data Architecture](../architecture/data-architecture.md)
-- [Connector Overview](../connectors/overview.md)
+## Troubleshooting
+
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

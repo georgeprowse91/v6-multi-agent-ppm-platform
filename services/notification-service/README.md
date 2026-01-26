@@ -1,47 +1,35 @@
 # Notification Service
 
-The notification service renders templates and delivers notifications through a dev adapter. It is
-structured so production adapters (email/Slack/etc.) can be added via environment configuration.
+## Purpose
 
-## Contracts
+Define the Notification Service service responsibilities and how it integrates with the platform.
 
-- OpenAPI: `services/notification-service/contracts/openapi.yaml`
-- Templates: `services/notification-service/templates/*.txt`
+## What's inside
 
-## Run locally
+- `services/notification-service/contracts`: Service contracts and schema artifacts.
+- `services/notification-service/helm`: Helm chart packaging for Kubernetes deployments.
+- `services/notification-service/src`: Implementation source for this component.
+- `services/notification-service/templates`: Templates used by the component (deployment or message content).
+- `services/notification-service/tests`: Test suites and fixtures.
+- `services/notification-service/Dockerfile`: Container build recipe for local or CI use.
 
-```bash
-python -m tools.component_runner run --type service --name notification-service
-```
+## How it's used
 
-## Environment variables
+Services are run via `tools/component_runner` or Docker and are referenced by API and orchestration layers.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `NOTIFICATION_TEMPLATES_DIR` | `services/notification-service/templates` | Template directory |
-| `NOTIFICATION_OUTBOX_DIR` | `services/notification-service/outbox` | File delivery directory for non-stdout channels |
-| `LOG_LEVEL` | `info` | Logging verbosity |
-| `PORT` | `8080` | HTTP port for the service |
+## How to run / develop / test
 
-## Example request
+Run the service locally (dry run to inspect the command):
 
 ```bash
-curl -X POST http://localhost:8080/notifications/send \
-  -H "Content-Type: application/json" \
-  -d '{
-    "template": "welcome",
-    "variables": {
-      "recipient_name": "Morgan",
-      "event_name": "Stage Gate Approved",
-      "event_time": "2025-01-01T00:00:00Z"
-    },
-    "channel": "stdout",
-    "recipient": "morgan@ppm.georgeprowse91.com"
-  }'
+python -m tools.component_runner run --type service --name notification-service --dry-run
 ```
 
-## Tests
+## Configuration
 
-```bash
-pytest services/notification-service/tests
-```
+Service-specific environment variables should be defined in `.env` and, for production, in secrets managers.
+
+## Troubleshooting
+
+- Missing env vars: review the service README or source code for required settings.
+- Port conflicts: adjust `PORT` or Docker/Helm values.

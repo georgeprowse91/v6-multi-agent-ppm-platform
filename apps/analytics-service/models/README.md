@@ -1,9 +1,30 @@
-# Data Models
+# Analytics Service: Models
 
-This directory will hold analytics and ML model definitions for **analytics service**. Include data schemas,
-feature definitions, and training metadata.
+## Purpose
 
-## What to add
-- Model metadata (version, owner, training data)
-- Evaluation metrics and validation notes
-- Export artifacts for inference
+Document the models assets for the Analytics Service application.
+
+## What's inside
+
+- `README.md`: Documentation for this directory.
+
+## How it's used
+
+These assets are consumed by the parent app during build, runtime, or deployment.
+
+## How to run / develop / test
+
+Validate assets by listing files or running the parent app locally.
+
+```bash
+ls apps/analytics-service/models
+```
+
+## Configuration
+
+No direct configuration in this subfolder; use the parent app's `.env` settings.
+
+## Troubleshooting
+
+- Missing asset errors: confirm files referenced by the app exist in this folder.
+- Packaging issues: ensure paths match those referenced in the parent app configuration.

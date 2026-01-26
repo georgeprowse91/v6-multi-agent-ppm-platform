@@ -1,42 +1,30 @@
 # Methodology Engine Package
 
-Shared helpers for translating Agile/Waterfall/Hybrid templates into executable workflows.
+## Purpose
 
-## Current state
+Describe the Methodology Engine shared package and how it supports platform services.
 
-- No implementation code yet in `packages/methodology-engine/`.
-- Methodology templates live under `docs/methodology/`.
+## What's inside
 
-## Quickstart
+- `README.md`: Documentation for this directory.
 
-List methodology templates:
+## How it's used
 
-```bash
-ls docs/methodology
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls docs/methodology/agile/templates
-```
-
-Expected output includes `sprint-plan.md` and other templates.
-
-## Key files
-
-- `docs/methodology/`: methodology templates.
-- `packages/methodology-engine/README.md`: scope and next steps.
-
-## Example
-
-Search for the sprint goal section in the agile template:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "Sprint Goal" docs/methodology/agile/templates/sprint-plan.md
+pytest packages/methodology-engine
 ```
 
-## Next steps
+## Configuration
 
-- Implement template parsing in `packages/methodology-engine/src/`.
-- Map templates into workflow definitions under `apps/workflow-engine/workflows/`.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

@@ -1,52 +1,35 @@
-# Audit Log Service
+# Audit Log
 
-The audit log service captures and stores audit events for compliance, traceability, and security
-reviews across the platform. It validates incoming events against the canonical audit-event schema
-and persists them to an encrypted, append-only WORM store (Azure Blob or local encrypted storage).
+## Purpose
 
-## Contracts
+Define the Audit Log service responsibilities and how it integrates with the platform.
 
-- OpenAPI: `services/audit-log/contracts/openapi.yaml`
+## What's inside
 
-## Run locally
+- `services/audit-log/contracts`: Service contracts and schema artifacts.
+- `services/audit-log/helm`: Helm chart packaging for Kubernetes deployments.
+- `services/audit-log/src`: Implementation source for this component.
+- `services/audit-log/storage`: Storage backends and retention structures.
+- `services/audit-log/tests`: Test suites and fixtures.
+- `services/audit-log/Dockerfile`: Container build recipe for local or CI use.
 
-```bash
-python -m tools.component_runner run --type service --name audit-log
-```
+## How it's used
 
-## Environment variables
+Services are run via `tools/component_runner` or Docker and are referenced by API and orchestration layers.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `AUDIT_WORM_CONNECTION_STRING` | unset | Azure Blob connection string for WORM storage |
-| `AUDIT_WORM_CONTAINER` | `audit-events` | Azure Blob container name |
-| `AUDIT_WORM_LOCAL_PATH` | `services/audit-log/storage/immutable` | Local encrypted WORM path |
-| `AUDIT_LOG_ENCRYPTION_KEY` | generated | Base64 Fernet key for local encryption |
-| `LOG_LEVEL` | `info` | Logging verbosity |
-| `PORT` | `8080` | HTTP port for the service |
+## How to run / develop / test
 
-In AKS, supply `AUDIT_WORM_CONNECTION_STRING` and `AUDIT_LOG_ENCRYPTION_KEY` via Azure Key Vault and the
-Secrets Store CSI driver rather than plaintext environment variables.
-
-## Example request
+Run the service locally (dry run to inspect the command):
 
 ```bash
-curl -X POST http://localhost:8080/audit/events \
-  -H "Content-Type: application/json" \
-  -d '{
-    "id": "evt-001",
-    "timestamp": "2025-01-01T00:00:00Z",
-    "tenant_id": "tenant-alpha",
-    "actor": {"id": "user-1", "type": "user", "roles": ["auditor"]},
-    "action": "portfolio.create",
-    "resource": {"id": "port-9", "type": "portfolio"},
-    "outcome": "success",
-    "classification": "internal"
-  }'
+python -m tools.component_runner run --type service --name audit-log --dry-run
 ```
 
-## Tests
+## Configuration
 
-```bash
-pytest services/audit-log/tests
-```
+Service-specific environment variables should be defined in `.env` and, for production, in secrets managers.
+
+## Troubleshooting
+
+- Missing env vars: review the service README or source code for required settings.
+- Port conflicts: adjust `PORT` or Docker/Helm values.

@@ -1,48 +1,33 @@
 # Api Gateway Helm Chart
 
 ## Purpose
-This chart packages the **api-gateway** deployment for the Multi-Agent PPM platform when deploying to
-Kubernetes. It defines the Deployment, Service, and ConfigMap used by the api-gateway runtime.
 
-## Responsibilities
-- Package the api-gateway container image and runtime settings.
-- Provide a stable Service for inter-service communication on port 8080.
-- Externalize runtime configuration via `values.yaml` and `templates/configmap.yaml`.
+Package Kubernetes deployment manifests for this component.
 
-## Folder structure
-```
-apps/api-gateway/helm/
-├── Chart.yaml
-├── values.yaml
-├── templates/
-│   ├── _helpers.tpl
-│   ├── configmap.yaml
-│   ├── deployment.yaml
-│   └── service.yaml
-```
+## What's inside
 
-## Conventions
-- `Chart.yaml` **name** must match the parent directory name (`api-gateway`).
-- `values.yaml` defines `image.repository`, `image.tag`, and `service.port`.
-- All templates use the `name` helper from `_helpers.tpl` for consistent naming.
+- `apps/api-gateway/helm/templates`: Templates used by the component (deployment or message content).
+- `apps/api-gateway/helm/Chart.yaml`: Helm chart metadata and versioning.
+- `apps/api-gateway/helm/values.yaml`: Helm values for environment-specific overrides.
 
-## How to add a new template
-1. Add a new manifest under `apps/api-gateway/helm/templates/` (e.g. `ingress.yaml`).
-2. Reference new values under `values.yaml` and keep defaults minimal.
-3. Update this README with the new path and a short usage note.
-4. Validate the chart with the command below.
+## How it's used
 
-## How to validate/test
+Used by deployment pipelines and `helm` to render Kubernetes manifests.
+
+## How to run / develop / test
+
+Lint and render the chart locally:
+
 ```bash
-python scripts/validate-helm-charts.py apps/api-gateway/helm
+helm lint apps/api-gateway/helm
+helm template api-gateway apps/api-gateway/helm
 ```
 
-## Example
-`values.yaml` excerpt:
-```yaml
-image:
-  repository: ghcr.io/georgeprowse91/api-gateway
-  tag: "0.1.0"
-service:
-  port: 8080
-```
+## Configuration
+
+Edit `values.yaml` for environment-specific overrides.
+
+## Troubleshooting
+
+- Helm lint errors: validate YAML formatting and required values.
+- Rendered manifests missing resources: check `templates/` for missing files.

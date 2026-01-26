@@ -1,17 +1,30 @@
-# E2E tests
+# E2E Tests
 
-This directory contains e2e tests for the platform.
+## Purpose
 
-## Scope
-- Test modules that exercise the platform's cross-cutting behavior.
-- Fixtures, helpers, and sample payloads needed for these tests.
-- Any contract or environment notes required to run them locally.
+Document the e2e test scope and how these checks validate the platform.
 
-## Coverage
-The suite currently covers 18 end-to-end scenarios across the API gateway, identity, workflow engine,
-core services, and key app surfaces.
+## What's inside
 
-## Running locally
+- `tests/e2e/test_acceptance_scenarios.py`: Python module used by this component.
+- `tests/e2e/test_user_journey.py`: Python module used by this component.
+- `tests/e2e/test_web_login.py`: Python module used by this component.
+
+## How it's used
+
+These tests run under `pytest` and are included when executing `make test`.
+
+## How to run / develop / test
+
 ```bash
 pytest tests/e2e
 ```
+
+## Configuration
+
+Tests use repo-wide fixtures in `tests/conftest.py` and environment variables from `.env`.
+
+## Troubleshooting
+
+- Import errors: install dev dependencies with `make install-dev`.
+- Failing network calls: ensure dependent services are running or use mocks as defined in tests.

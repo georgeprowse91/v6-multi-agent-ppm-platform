@@ -1,50 +1,31 @@
-# Analytics Job Manifests
+# Analytics Service: Jobs
 
 ## Purpose
-This folder stores batch job manifests executed by the analytics service. Manifests describe
-schedules, inputs, outputs, and transformation steps that the orchestration service can trigger.
-The manifest directory is referenced by `apps/analytics-service/job_registry.py`.
 
-## Responsibilities
-- Define repeatable analytics jobs and their schedules.
-- Capture input/output datasets and transformation steps.
-- Provide validated job manifests for pipeline execution.
+Document the jobs assets for the Analytics Service application.
 
-## Folder structure
-```
-apps/analytics-service/jobs/
-├── README.md
-├── manifests/
-│   └── daily-portfolio-rollup.yaml
-└── schema/
-    └── job-manifest.schema.json
-```
+## What's inside
 
-## Conventions
-- Manifests use `apiVersion: ppm.jobs/v1` and `kind: AnalyticsJob`.
-- `metadata.name` should be kebab-case and unique.
-- `schedule.cron` uses UTC unless specified otherwise.
+- `apps/analytics-service/jobs/manifests`: Kubernetes or job manifests stored here.
+- `apps/analytics-service/jobs/schema`: Schemas or validation rules for component assets.
 
-## How to add a new job
-1. Copy `manifests/daily-portfolio-rollup.yaml` and update `metadata` and `schedule`.
-2. Add or update `inputs`, `outputs`, and `steps` for the new pipeline.
-3. Validate the manifest with the script below.
-4. Confirm the new file is picked up by `apps/analytics-service/job_registry.py`.
+## How it's used
 
-## How to validate/test
+These assets are consumed by the parent app during build, runtime, or deployment.
+
+## How to run / develop / test
+
+Validate assets by listing files or running the parent app locally.
+
 ```bash
-python scripts/validate-analytics-jobs.py apps/analytics-service/jobs/manifests/daily-portfolio-rollup.yaml
+ls apps/analytics-service/jobs
 ```
 
-## Example
-```yaml
-apiVersion: ppm.jobs/v1
-kind: AnalyticsJob
-metadata:
-  name: daily-portfolio-rollup
-  owner: analytics-service
-  version: "1.0.0"
-schedule:
-  cron: "0 2 * * *"
-  timezone: "UTC"
-```
+## Configuration
+
+No direct configuration in this subfolder; use the parent app's `.env` settings.
+
+## Troubleshooting
+
+- Missing asset errors: confirm files referenced by the app exist in this folder.
+- Packaging issues: ensure paths match those referenced in the parent app configuration.

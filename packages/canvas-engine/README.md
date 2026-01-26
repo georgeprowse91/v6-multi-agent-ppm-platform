@@ -1,13 +1,30 @@
-# Canvas Engine
+# Canvas Engine Package
 
-Shared UI rendering helpers for the PPM platform.
+## Purpose
 
-## Current State
+Describe the Canvas Engine shared package and how it supports platform services.
 
-- Production web console renders UI assets from `apps/web/static/`.
-- Canvas engine components can be embedded in the new FastAPI-served UI.
+## What's inside
 
-## Roadmap
+- `README.md`: Documentation for this directory.
 
-- Provide reusable components for workflow and portfolio visualizations.
-- Add shared hooks for authentication and tenant-aware API calls.
+## How it's used
+
+Packages are imported by apps, services, and agents across the repository.
+
+## How to run / develop / test
+
+Run unit tests (if present) or import modules in a Python shell:
+
+```bash
+pytest packages/canvas-engine
+```
+
+## Configuration
+
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

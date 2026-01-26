@@ -1,13 +1,28 @@
-# Salesforce connector tests
+# Salesforce Connector Test Assets
 
-This directory contains connector-level tests for the salesforce connector.
+## Purpose
 
-## Scope
-- Test modules that exercise connector integration contracts and data shape mapping.
-- Fixtures, helpers, and sample payloads needed for these tests.
-- Any contract or environment notes required to run them locally.
+Store fixtures and connector-level test scaffolding for the Salesforce integration.
 
-## Running locally
+## What's inside
+
+- `connectors/salesforce/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+
+## How it's used
+
+Fixtures in this folder are used by integration tests under `tests/integration/` or by connector-specific test modules as they are added.
+
+## How to run / develop / test
+
 ```bash
 pytest connectors/salesforce/tests
 ```
+
+## Configuration
+
+No component-specific configuration; fixture files are loaded from disk by tests.
+
+## Troubleshooting
+
+- Pytest reports zero tests: this folder may contain fixtures only.
+- File not found errors: verify fixture paths in the integration tests.

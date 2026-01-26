@@ -1,48 +1,33 @@
 # Audit Log Helm Chart
 
 ## Purpose
-This chart packages the **audit-log** deployment for the Multi-Agent PPM platform when deploying to
-Kubernetes. It defines the Deployment, Service, and ConfigMap used by the audit-log runtime.
 
-## Responsibilities
-- Package the audit-log container image and runtime settings.
-- Provide a stable Service for inter-service communication on port 8080.
-- Externalize runtime configuration via `values.yaml` and `templates/configmap.yaml`.
+Package Kubernetes deployment manifests for this component.
 
-## Folder structure
-```
-services/audit-log/helm/
-├── Chart.yaml
-├── values.yaml
-├── templates/
-│   ├── _helpers.tpl
-│   ├── configmap.yaml
-│   ├── deployment.yaml
-│   └── service.yaml
-```
+## What's inside
 
-## Conventions
-- `Chart.yaml` **name** must match the parent directory name (`audit-log`).
-- `values.yaml` defines `image.repository`, `image.tag`, and `service.port`.
-- All templates use the `name` helper from `_helpers.tpl` for consistent naming.
+- `services/audit-log/helm/templates`: Templates used by the component (deployment or message content).
+- `services/audit-log/helm/Chart.yaml`: Helm chart metadata and versioning.
+- `services/audit-log/helm/values.yaml`: Helm values for environment-specific overrides.
 
-## How to add a new template
-1. Add a new manifest under `services/audit-log/helm/templates/` (e.g. `ingress.yaml`).
-2. Reference new values under `values.yaml` and keep defaults minimal.
-3. Update this README with the new path and a short usage note.
-4. Validate the chart with the command below.
+## How it's used
 
-## How to validate/test
+Used by deployment pipelines and `helm` to render Kubernetes manifests.
+
+## How to run / develop / test
+
+Lint and render the chart locally:
+
 ```bash
-python scripts/validate-helm-charts.py services/audit-log/helm
+helm lint services/audit-log/helm
+helm template audit-log services/audit-log/helm
 ```
 
-## Example
-`values.yaml` excerpt:
-```yaml
-image:
-  repository: ghcr.io/georgeprowse91/audit-log
-  tag: "0.1.0"
-service:
-  port: 8080
-```
+## Configuration
+
+Edit `values.yaml` for environment-specific overrides.
+
+## Troubleshooting
+
+- Helm lint errors: validate YAML formatting and required values.
+- Rendered manifests missing resources: check `templates/` for missing files.

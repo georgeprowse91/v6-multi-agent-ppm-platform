@@ -1,40 +1,35 @@
-# Identity & Access Service
+# Identity Access
 
-The identity-access service validates JWTs and returns normalized identity claims for downstream
-services. It supports dev-mode HS256 secrets and production-mode JWKS validation.
+## Purpose
 
-## Contracts
+Define the Identity Access service responsibilities and how it integrates with the platform.
 
-- OpenAPI: `services/identity-access/contracts/openapi.yaml`
+## What's inside
 
-## Run locally
+- `services/identity-access/contracts`: Service contracts and schema artifacts.
+- `services/identity-access/helm`: Helm chart packaging for Kubernetes deployments.
+- `services/identity-access/src`: Implementation source for this component.
+- `services/identity-access/tests`: Test suites and fixtures.
+- `services/identity-access/Dockerfile`: Container build recipe for local or CI use.
+- `services/identity-access/main.py`: Primary runtime entrypoint for this component.
 
-```bash
-IDENTITY_JWT_SECRET=dev-secret \
-python -m tools.component_runner run --type service --name identity-access
-```
+## How it's used
 
-## Environment variables
+Services are run via `tools/component_runner` or Docker and are referenced by API and orchestration layers.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `IDENTITY_JWT_SECRET` | _none_ | HS256 secret for dev validation |
-| `IDENTITY_JWKS_URL` | _none_ | JWKS endpoint for RS256 validation |
-| `IDENTITY_AUDIENCE` | _none_ | Expected JWT audience |
-| `IDENTITY_ISSUER` | _none_ | Expected JWT issuer |
-| `LOG_LEVEL` | `info` | Logging verbosity |
-| `PORT` | `8080` | HTTP port for the service |
+## How to run / develop / test
 
-## Example request
+Run the service locally (dry run to inspect the command):
 
 ```bash
-curl -X POST http://localhost:8080/auth/validate \
-  -H "Content-Type: application/json" \
-  -d '{"token": "<jwt>"}'
+python -m tools.component_runner run --type service --name identity-access --dry-run
 ```
 
-## Tests
+## Configuration
 
-```bash
-pytest services/identity-access/tests
-```
+Service-specific environment variables should be defined in `.env` and, for production, in secrets managers.
+
+## Troubleshooting
+
+- Missing env vars: review the service README or source code for required settings.
+- Port conflicts: adjust `PORT` or Docker/Helm values.

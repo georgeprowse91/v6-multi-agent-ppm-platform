@@ -1,65 +1,29 @@
-# Infrastructure Policy Bundles
+# Policies Infrastructure
 
 ## Purpose
-The `infra/policies` tree stores platform infrastructure policy bundles used by compliance tooling
-and platform reviews. Each domain folder (DLP, network, security) owns its own bundle and shares a
-common schema.
 
-## Responsibilities
-- Maintain baseline infra policy bundles by domain.
-- Keep schema definitions aligned with the policy engine format.
-- Provide validated bundles for deployment and audit evidence.
+Document infrastructure resources under infra/policies.
 
-## Folder structure
-```
-infra/policies/
-├── schema/
-│   └── policy-bundle.schema.json
-├── dlp/
-│   ├── README.md
-│   └── bundles/default-dlp-policy-bundle.yaml
-├── network/
-│   ├── README.md
-│   └── bundles/default-network-policy-bundle.yaml
-└── security/
-    ├── README.md
-    └── bundles/default-security-policy-bundle.yaml
-```
+## What's inside
 
-## Conventions
-- Use `infra/<domain>` in `metadata.scope`.
-- Bundle file names follow `default-<domain>-policy-bundle.yaml`.
-- Policy IDs should be prefixed per domain (`dlp-`, `net-`, `sec-`).
+- `infra/policies/dlp`: Subdirectory containing dlp assets for this area.
+- `infra/policies/network`: Subdirectory containing network assets for this area.
+- `infra/policies/schema`: Schemas or validation rules for component assets.
+- `infra/policies/security`: Subdirectory containing security assets for this area.
 
-## How to add a new policy domain
-1. Create a new folder under `infra/policies/<domain>` with a `README.md`.
-2. Add a bundle under `infra/policies/<domain>/bundles/` following the schema.
-3. Validate with the script below and commit the new domain docs.
+## How it's used
 
-## How to validate/test
-```bash
-python scripts/validate-policies.py infra/policies/dlp/bundles/default-dlp-policy-bundle.yaml \
-  infra/policies/network/bundles/default-network-policy-bundle.yaml \
-  infra/policies/security/bundles/default-security-policy-bundle.yaml
-```
+These assets are referenced during deployment and operational runbooks.
 
-## Example
-```yaml
-apiVersion: ppm.policies/v1
-kind: PolicyBundle
-metadata:
-  name: infra-security-default
-  version: "1.0.0"
-  owner: infra-security
-  scope: infra/security
-policies:
-  - id: sec-001
-    name: Enforce MFA
-    description: Users must have MFA enabled for admin roles.
-    severity: critical
-    enforcement: blocking
-    rules:
-      - field: identity.mfa_enabled
-        operator: equals
-        value: false
-```
+## How to run / develop / test
+
+Use Terraform/Helm/Kubernetes tooling referenced in this directory to apply changes.
+
+## Configuration
+
+Infrastructure configuration lives in the files within this folder and `.env` for local tooling.
+
+## Troubleshooting
+
+- Terraform errors: ensure the correct workspace/env variables are set.
+- Kubernetes apply failures: verify cluster access and namespace settings.

@@ -1,50 +1,32 @@
-# Waterfall Methodology
+# Waterfall Documentation
 
 ## Purpose
 
-Describe the Waterfall methodology map, stage gates, and templates used for sequential delivery.
+Describe the waterfall documentation set and link the narrative to the repo assets that implement it.
 
-## Architecture-level context
+## What's inside
 
-Waterfall stages (Initiation → Planning → Execution → Monitoring → Closing) are encoded in `map.yaml`. Gate checks in `gates.yaml` ensure governance artifacts (charter, budget approval, QA plan) are complete before advancing.
+- `docs/methodology/waterfall/templates`: Templates used by the component (deployment or message content).
+- `docs/methodology/waterfall/gates.yaml`: YAML definition or configuration used by this component.
+- `docs/methodology/waterfall/map.yaml`: YAML definition or configuration used by this component.
 
-## What the YAML means
+## How it's used
 
-- `map.yaml`: sequential phases and required deliverables.
-- `gates.yaml`: approval criteria and evidence requirements.
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
 
-## Example workflow
+## How to run / develop / test
 
-1. **Initiation**: demand intake, charter creation, sponsor approval.
-2. **Planning**: baseline schedule, budget, and resourcing.
-3. **Execution**: deliverables tracked and risks managed.
-4. **Monitoring**: status reports and variance reviews.
-5. **Closing**: post-implementation review and archive.
-
-## Usage example
-
-Inspect the Waterfall gates:
+Validate internal links across docs:
 
 ```bash
-sed -n '1,160p' docs/methodology/waterfall/gates.yaml
+python scripts/check-links.py
 ```
 
-## How to verify
+## Configuration
 
-List Waterfall templates:
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
 
-```bash
-ls docs/methodology/waterfall/templates
-```
+## Troubleshooting
 
-Expected output includes `project-charter.md`, `schedule-baseline.xlsx`, and `wbs.yaml`.
-
-## Implementation status
-
-- **Implemented**: Waterfall map, gates, templates.
-- **Planned**: gate automation with approvals and audit evidence.
-
-## Related docs
-
-- [Methodology Overview](../overview.md)
-- [Project Definition Agent](../../agents/agent-catalog.md)
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

@@ -1,35 +1,30 @@
-# OpenAPI Artifacts
+# Api Gateway: Openapi
 
-This folder stores generated OpenAPI summaries produced by the repo tooling. The source
-specification lives in `docs/api/openapi.yaml`.
+## Purpose
 
-## Generate the summaries
+Document the openapi assets for the Api Gateway application.
+
+## What's inside
+
+- `README.md`: Documentation for this directory.
+
+## How it's used
+
+These assets are consumed by the parent app during build, runtime, or deployment.
+
+## How to run / develop / test
+
+Validate assets by listing files or running the parent app locally.
 
 ```bash
-python -m tools.codegen.run
+ls apps/api-gateway/openapi
 ```
 
-Expected output:
+## Configuration
 
-```text
-Generated OpenAPI summary at apps/api-gateway/openapi.
-```
+No direct configuration in this subfolder; use the parent app's `.env` settings.
 
-## What gets generated
+## Troubleshooting
 
-After running the command, you should see:
-
-- `openapi_summary.json` with API version metadata and counts
-- `openapi_paths.txt` with one path per line
-
-Example `openapi_summary.json` (truncated):
-
-```json
-{
-  "openapi": "3.0.3",
-  "title": "Multi-Agent PPM Platform API",
-  "version": "0.1.0",
-  "path_count": 8,
-  "operation_count": 12
-}
-```
+- Missing asset errors: confirm files referenced by the app exist in this folder.
+- Packaging issues: ensure paths match those referenced in the parent app configuration.

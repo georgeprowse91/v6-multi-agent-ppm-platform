@@ -1,35 +1,30 @@
 # Data Quality Package
 
-Shared validation and data quality helpers used across analytics and integration workflows.
+## Purpose
 
-## What this provides
+Describe the Data Quality shared package and how it supports platform services.
 
-- JSON Schema validation helpers (Draft 2020-12).
-- Deterministic data quality rules for core domain records (projects, budgets, risks, issues, work items).
-- Typed reports that list rule violations for each record.
+## What's inside
 
-## Usage
+- `packages/data-quality/src`: Implementation source for this component.
 
-Validate a record with schema + business rules:
+## How it's used
 
-```python
-from data_quality.rules import evaluate_quality_rules
+Packages are imported by apps, services, and agents across the repository.
 
-report = evaluate_quality_rules("project", project_payload)
-if not report.is_valid:
-    for issue in report.issues:
-        print(issue.rule_id, issue.message)
-```
+## How to run / develop / test
 
-## Key files
-
-- `packages/data-quality/src/data_quality/schema_validation.py`: JSON Schema validation helpers.
-- `packages/data-quality/src/data_quality/rules.py`: executable data quality rules.
-
-## Verification
-
-Run tests to confirm data quality rules and schema validation behavior:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-pytest tests/test_data_quality_rules.py -v
+pytest packages/data-quality
 ```
+
+## Configuration
+
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

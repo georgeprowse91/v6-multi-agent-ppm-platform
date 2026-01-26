@@ -1,51 +1,41 @@
 # GitHub Actions Workflows
 
 ## Purpose
-This folder contains the CI/CD automation for the Multi-Agent PPM platform, including build,
-release, security scanning, and contract testing workflows.
 
-## Responsibilities
-- Define CI jobs for linting, testing, and security checks.
-- Orchestrate release and deployment pipelines.
-- Provide clear workflow ownership for platform automation.
+Define the CI/CD, security, and compliance pipelines that validate and release the Multi-Agent PPM Platform. The workflows here mirror the checks invoked by `make check` and the release pipeline described in `docs/architecture/`.
 
-## Folder structure
-```
-.github/workflows/
-├── ci.yml
-├── cd.yml
-├── pr.yml
-├── security-scan.yml
-├── contract-tests.yml
-└── README.md
-```
+## What's inside
 
-## Conventions
-- Workflow files are named by intent (`ci.yml`, `cd.yml`, `release.yml`).
-- Each workflow must include `name`, `on`, and `jobs` keys.
-- Workflow changes should include an update to this README when new pipelines are added.
+- `.github/workflows/ci.yml`: Core CI pipeline (lint, tests, docs checks).
+- `.github/workflows/pr.yml`: Pull request validation and gating checks.
+- `.github/workflows/cd.yml`: Release/promotion flow for tagged builds.
+- `.github/workflows/contract-tests.yml`: Contract test runs for shared schemas.
+- `.github/workflows/e2e-tests.yml`: End-to-end workflow validations.
+- `.github/workflows/security-scan.yml`: Security scanning and policy enforcement.
+- `.github/workflows/secret-scan.yml`: Secret scanning checks.
+- `.github/workflows/iac-scan.yml`: Infrastructure-as-code scan (when enabled).
 
-## How to add a new workflow
-1. Create a new `.yml` file in `.github/workflows/`.
-2. Define the `name`, `on`, and `jobs` sections.
-3. Update this README with the new workflow file.
-4. Validate with the script below.
+## How it's used
 
-## How to validate/test
+These workflows run automatically on pull requests, pushes to protected branches, or release tags. They are the authoritative record of required checks before deployment.
+
+## How to run / develop / test
+
+Most checks can be run locally before opening a PR:
+
 ```bash
-python scripts/validate-github-workflows.py
+make lint
+make test
+make check-links
+make check-placeholders
 ```
 
-## Example
-```yaml
-name: ci
-on:
-  pull_request:
-  push:
-    branches: [main]
-jobs:
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-```
+## Configuration
+
+Workflow secrets and tokens are configured in GitHub repository settings (Actions → Secrets and variables). Environment-specific values should match the settings in `.env.example` and the infra configuration.
+
+## Troubleshooting
+
+- A workflow fails due to missing secrets: verify the GitHub Actions secrets and environment variables are set.
+- CI steps fail locally but pass in CI: ensure you are using Python 3.11+ and have installed dev dependencies.
+- Job timeouts: check workflow job time limits and reduce any long-running steps.

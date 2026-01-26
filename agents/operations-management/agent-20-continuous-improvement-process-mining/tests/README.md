@@ -1,13 +1,28 @@
-# Agent 20 Continuous Improvement Process Mining tests
+# Agent 20: Continuous Improvement Process Mining Tests
 
-This directory contains agent-level tests for the agent 20 continuous improvement process mining agent.
+## Purpose
 
-## Scope
-- Test modules that exercise agent input validation, routing, and output formatting.
-- Fixtures, helpers, and sample payloads needed for these tests.
-- Any contract or environment notes required to run them locally.
+Hold test assets for Agent 20: Continuous Improvement Process Mining to validate prompts, policies, and orchestration behavior.
 
-## Running locally
+## What's inside
+
+- `README.md`: Documentation for this directory.
+
+## How it's used
+
+These tests are collected by `pytest` when running `make test` and help validate agent-specific behavior alongside shared agent runtime checks.
+
+## How to run / develop / test
+
 ```bash
 pytest agents/operations-management/agent-20-continuous-improvement-process-mining/tests
 ```
+
+## Configuration
+
+No component-specific configuration; tests rely on shared repo fixtures in `tests/` and `.env`.
+
+## Troubleshooting
+
+- No tests collected: add `test_*.py` modules alongside this README.
+- Import errors: ensure the repo root is on `PYTHONPATH` (run from repo root).

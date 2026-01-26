@@ -1,52 +1,30 @@
-# Runtime Prompt Definitions
+# Agent Runtime Prompts
 
 ## Purpose
-Prompt definitions describe the system and user prompt scaffolding used by runtime agents. They
-provide an auditable source of truth for prompt versions used by the orchestration service. Prompt
-files are enumerated by `agents/runtime/prompts/prompt_registry.py`.
 
-## Responsibilities
-- Store versioned prompt YAML used by agents.
-- Capture ownership and descriptions for each prompt.
-- Validate prompt files against the prompt schema.
+Store prompt templates used by the agent runtime during orchestration and tool execution.
 
-## Folder structure
-```
-agents/runtime/prompts/
-├── README.md
-├── examples/
-│   └── intent-router.prompt.yaml
-└── schema/
-    └── prompt.schema.json
-```
+## What's inside
 
-## Conventions
-- Use `apiVersion: ppm.prompts/v1` and `kind: Prompt`.
-- Prompt files end in `.prompt.yaml`.
-- Increment `metadata.version` when prompt text changes.
+- `agents/runtime/prompts/examples`: Example configurations and demo scenarios.
+- `agents/runtime/prompts/schema`: Schemas or validation rules for component assets.
+- `agents/runtime/prompts/prompt_registry.py`: Python module used by this component.
 
-## How to add a new prompt
-1. Copy `examples/intent-router.prompt.yaml` and update `metadata` and prompt text.
-2. Keep tool names in `prompt.tools` aligned with registered agent tools.
-3. Validate with the script below.
-4. Confirm the new file is listed by `agents/runtime/prompts/prompt_registry.py`.
+## How it's used
 
-## How to validate/test
+Prompts are loaded by runtime components under `agents/runtime/` and referenced in agent specs.
+
+## How to run / develop / test
+
 ```bash
-python scripts/validate-prompts.py agents/runtime/prompts/examples/intent-router.prompt.yaml
+ls agents/runtime/prompts
 ```
 
-## Example
-```yaml
-apiVersion: ppm.prompts/v1
-kind: Prompt
-metadata:
-  name: intent-router-v1
-  owner: core-orchestration
-  version: "1.0.0"
-prompt:
-  system: |
-    You are the intent router for the Multi-Agent PPM Platform.
-  user: |
-    Classify the request: {{ request.text }}
-```
+## Configuration
+
+No additional configuration; prompt selection is handled in runtime code.
+
+## Troubleshooting
+
+- Missing prompt errors: ensure referenced prompt files exist in this folder.
+- Formatting issues: validate prompt templates are valid YAML or Markdown, depending on usage.

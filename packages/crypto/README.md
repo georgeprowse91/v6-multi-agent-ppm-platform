@@ -1,42 +1,30 @@
 # Crypto Package
 
-Cryptography utilities intended for secure token handling and encryption helpers.
+## Purpose
 
-## Current state
+Describe the Crypto shared package and how it supports platform services.
 
-- No implementation code yet in `packages/crypto/`.
-- Security design is documented in `docs/architecture/security-architecture.md`.
+## What's inside
 
-## Quickstart
+- `README.md`: Documentation for this directory.
 
-Review the security architecture:
+## How it's used
 
-```bash
-sed -n '1,40p' docs/architecture/security-architecture.md
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-rg -n "encryption" docs/architecture/security-architecture.md
-```
-
-Expected output highlights encryption-related guidance.
-
-## Key files
-
-- `docs/architecture/security-architecture.md`: security reference.
-- `packages/crypto/README.md`: scope and next steps.
-
-## Example
-
-Search for key management references:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "key vault|kms" docs/architecture/security-architecture.md
+pytest packages/crypto
 ```
 
-## Next steps
+## Configuration
 
-- Implement crypto helpers under `packages/crypto/src/`.
-- Integrate with `services/identity-access/` for key rotation workflows.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

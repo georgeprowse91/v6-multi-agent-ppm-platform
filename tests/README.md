@@ -1,88 +1,34 @@
 # Tests
 
-Comprehensive test suite for the Multi-Agent PPM Platform.
+## Purpose
 
-## Running Tests
+Document the full test suite and how these checks validate the platform.
 
-```bash
-# Run all tests
-pytest
+## What's inside
 
-# Run with coverage
-pytest --cov=src --cov-report=html
+- `tests/agents`: Subdirectory containing agent test assets for this area.
+- `tests/contract`: Subdirectory containing contract assets for this area.
+- `tests/e2e`: End-to-end test specs or tooling.
+- `tests/integration`: Subdirectory containing integration assets for this area.
+- `tests/load`: Subdirectory containing load assets for this area.
+- `tests/policies`: Subdirectory containing policy assets for this area.
+- `tests/security`: Subdirectory containing security assets for this area.
 
-# Run specific test file
-pytest tests/test_base_agent.py
+## How it's used
 
-# Run specific test
-pytest tests/test_intent_router.py::test_portfolio_query_classification
+These tests run under `pytest` and are included when executing `make test`.
 
-# Run tests in parallel
-pytest -n auto
-```
-
-## Test Structure
-
-```
-tests/
-├── conftest.py              # Pytest configuration and fixtures
-├── test_base_agent.py       # Base agent tests
-├── test_intent_router.py    # Intent Router agent tests
-├── test_api.py              # API endpoint tests
-├── unit/                    # Unit tests
-├── integration/             # Integration tests
-└── e2e/                     # End-to-end tests
-```
-
-## Test Coverage
-
-We aim for >80% code coverage. Current coverage can be viewed in the CI/CD pipeline.
-
-## Writing Tests
-
-### Unit Tests
-
-Test individual components in isolation:
-
-```python
-@pytest.mark.asyncio
-async def test_agent_function():
-    agent = MyAgent()
-    result = await agent.process({"data": "test"})
-    assert result["success"] is True
-```
-
-### Integration Tests
-
-Test interactions between components:
-
-```python
-@pytest.mark.asyncio
-async def test_agent_integration(orchestrator):
-    result = await orchestrator.process_query("test query")
-    assert result["success"] is True
-```
-
-### Fixtures
-
-Common fixtures are defined in `conftest.py`:
-
-- `orchestrator`: Initialized AgentOrchestrator instance
-- `mock_azure_openai`: Mock Azure OpenAI client
-- `mock_database`: Mock database connection
-- `mock_redis`: Mock Redis connection
-
-## Test Requirements
-
-Install test dependencies:
+## How to run / develop / test
 
 ```bash
-pip install -e .[dev]
+pytest tests
 ```
 
-This includes:
-- pytest
-- pytest-asyncio
-- pytest-cov
-- pytest-mock
-- httpx (for API testing)
+## Configuration
+
+Tests use repo-wide fixtures in `tests/conftest.py` and environment variables from `.env`.
+
+## Troubleshooting
+
+- Import errors: install dev dependencies with `make install-dev`.
+- Failing network calls: ensure dependent services are running or use mocks as defined in tests.

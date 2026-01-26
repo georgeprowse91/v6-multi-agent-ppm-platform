@@ -1,32 +1,26 @@
-# Data Quality Rules
+# Quality Data Assets
 
 ## Purpose
 
-Store canonical data quality rules used by the Data Synchronization & Quality agent to score and remediate incoming data.
+Describe the quality assets that support the canonical data model.
 
-## Architecture-level context
+## What's inside
 
-Rules are applied during connector sync and API writes to enforce schema completeness, validity, and consistency. Scores are emitted into lineage artifacts for auditability.
+- `data/quality/rules.yaml`: YAML definition or configuration used by this component.
 
-## Usage example
+## How it's used
 
-View the rules file:
+These assets are referenced by connectors, services, and analytics pipelines.
 
-```bash
-sed -n '1,200p' data/quality/rules.yaml
-```
+## How to run / develop / test
 
-## How to verify
+Inspect YAML/JSON definitions and validate with relevant tooling as needed.
 
-Confirm the rules file exists:
+## Configuration
 
-```bash
-ls data/quality/rules.yaml
-```
+No runtime configuration; data assets are stored as versioned files.
 
-Expected output: the YAML rules file path.
+## Troubleshooting
 
-## Related docs
-
-- [Data Quality](../../docs/data/data-quality.md)
-- [Data Lineage](../../docs/data/lineage.md)
+- Validation errors: ensure schema compatibility with `data/schemas/`.
+- Missing assets: confirm the referenced file paths exist.

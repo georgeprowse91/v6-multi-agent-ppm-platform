@@ -1,32 +1,26 @@
-# Data Lineage Artifacts
+# Lineage Data Assets
 
 ## Purpose
 
-Capture lineage evidence for every connector sync and agent-driven data transformation.
+Describe the lineage assets that support the canonical data model.
 
-## Architecture-level context
+## What's inside
 
-Lineage artifacts provide traceability from external systems into canonical schemas. They are produced by the connector runtime and consumed by analytics, audit, and compliance workflows.
+- `data/lineage/example-lineage.json`: JSON data asset or configuration.
 
-## Usage example
+## How it's used
 
-View the sample lineage artifact:
+These assets are referenced by connectors, services, and analytics pipelines.
 
-```bash
-sed -n '1,200p' data/lineage/example-lineage.json
-```
+## How to run / develop / test
 
-## How to verify
+Inspect YAML/JSON definitions and validate with relevant tooling as needed.
 
-Confirm the lineage example exists:
+## Configuration
 
-```bash
-ls data/lineage/example-lineage.json
-```
+No runtime configuration; data assets are stored as versioned files.
 
-Expected output: the JSON file path.
+## Troubleshooting
 
-## Related docs
-
-- [Lineage Overview](../../docs/data/lineage.md)
-- [Data Quality Rules](../quality/README.md)
+- Validation errors: ensure schema compatibility with `data/schemas/`.
+- Missing assets: confirm the referenced file paths exist.

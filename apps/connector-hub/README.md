@@ -1,44 +1,35 @@
 # Connector Hub
 
-Registry and sandbox assets for external connectors (Jira, SAP, etc.) in the PPM platform.
+## Purpose
 
-## Current state
+Describe the Connector Hub application and its role in the platform experience layer.
 
-- Connector manifests and metadata live under `apps/connector-hub/registry/`.
-- Sandbox rules are validated via `scripts/validate-connector-sandbox.py`.
-- No standalone service is wired yet; the hub is a source-of-truth registry.
+## What's inside
 
-## Quickstart
+- `apps/connector-hub/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/connector-hub/registry`: Registry assets and indexes.
+- `apps/connector-hub/sandbox`: Sandbox assets for local or demo use.
+- `apps/connector-hub/src`: Implementation source for this component.
+- `apps/connector-hub/tests`: Test suites and fixtures.
+- `apps/connector-hub/Dockerfile`: Container build recipe for local or CI use.
 
-Validate the connector sandbox rules:
+## How it's used
 
-```bash
-python scripts/validate-connector-sandbox.py
-```
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls apps/connector-hub/registry
-```
-
-Expected output includes connector manifests and registry metadata.
-
-## Key files
-
-- `apps/connector-hub/registry/`: connector manifests and metadata.
-- `apps/connector-hub/sandbox/`: sandbox definitions.
-- `scripts/validate-connector-sandbox.py`: validation entrypoint.
-
-## Example
-
-List connector manifest IDs:
+Run the app locally (dry run to see the command):
 
 ```bash
-rg -n "id:" apps/connector-hub/registry
+python -m tools.component_runner run --type app --name connector-hub --dry-run
 ```
 
-## Next steps
+## Configuration
 
-- Implement registry APIs under `apps/connector-hub/src/`.
-- Add auth and audit logging via `services/identity-access/` and `services/audit-log/`.
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
+
+## Troubleshooting
+
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

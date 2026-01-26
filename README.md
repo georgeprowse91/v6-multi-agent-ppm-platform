@@ -8,109 +8,108 @@ AI-native Project Portfolio Management (PPM) platform blueprint with 25 speciali
 
 ## Purpose
 
-Provide an enterprise-grade solution blueprint (docs-first, code-light) for a multi-agent PPM platform. The repository defines how agents, integrations, data, and security fit together and supplies concrete artifacts (schemas, manifests, maps) that a delivery team can implement and extend.
+The repository provides a docs-first, code-light blueprint for an enterprise-grade, multi-agent PPM platform. It includes real schemas, manifests, policies, and orchestration scaffolding so delivery teams can evaluate or extend the design without guessing how components fit together.
 
-## Architecture-level overview
+## What's inside
 
-The platform is structured into five layers:
+- `apps/`: user-facing apps (API gateway, web console, admin console) and Helm packaging.
+- `agents/`: 25 domain agents plus runtime scaffolding, prompts, and tests.
+- `connectors/`: integration manifests, mappings, SDK, and registry assets.
+- `services/`: backend services (audit log, data sync, identity, notification, telemetry).
+- `data/`: canonical schemas, lineage, quality rules, and migration specs.
+- `docs/`: architecture, methodology, agent catalog, and solution overview.
+- `infra/`: Terraform, Kubernetes, observability, and policy assets.
+- `packages/`: shared Python packages used by apps/services.
+- `tools/` + `scripts/`: local tooling, lint/format, codegen, and CI checks.
+- `tests/`: contract, integration, load, security, and E2E test suites.
+- `examples/`: scenario and configuration examples.
+- `config/`: tenant and environment configuration assets.
 
-1. **Experience layer**: web prototype and API gateway in `apps/`.
-2. **Agent orchestration layer**: intent routing, response planning, and tool calls in `agents/`.
-3. **Integration layer**: connector runtime and manifests in `connectors/`.
-4. **Data layer**: canonical schemas, lineage, and quality rules in `data/`.
-5. **Operations layer**: infrastructure and runbooks in `infra/` and `docs/runbooks/`.
+## How it's used
 
-```mermaid
-flowchart LR
-  user[Portfolio stakeholders] --> ui[Apps: API + Web]
-  ui --> orchestrator[Agent Orchestration]
-  orchestrator --> agents[25 Domain Agents]
-  orchestrator --> connectors[Connectors + Registry]
-  agents --> data[(Canonical Data + Lineage)]
-  connectors --> data
-  data --> analytics[Insights + Reporting]
-  analytics --> ui
-```
+- **Non-coders** start with the solution overview and architecture docs in `docs/`.
+- **Developers** run the API gateway and web console locally, then extend agents, connectors, and services.
+- **Integrators** use connector manifests and mappings to align external systems with the canonical data model.
+- **Ops teams** use `infra/` plus `services/` Helm charts to deploy in Kubernetes environments.
 
-See the full architecture narrative in [docs/architecture/system-context.md](docs/architecture/system-context.md).
+## Quickstart (local development)
 
-## Implementation status (truthful)
-
-| Capability | Status | Evidence |
-| --- | --- | --- |
-| API gateway scaffold | Partially implemented | `apps/api-gateway/` |
-| Agent runtime scaffolding | Partially implemented | `agents/runtime/` |
-| Agent business logic | Planned | `agents/` contains stubs/specs |
-| Connector manifests + mappings | Partially implemented | `connectors/*/manifest.yaml`, `connectors/*/mappings/` |
-| Canonical data schemas | Implemented | `data/schemas/` |
-| Methodology maps | Implemented | `docs/methodology/*/map.yaml` |
-| Observability, resilience targets | Planned | `docs/architecture/*` |
-
-## What this platform solves
-
-- **Portfolio chaos**: orchestrates multiple systems of record and methodologies into one AI-assisted workflow.
-- **Governance gaps**: enforces stage gates and approvals across Agile, Waterfall, and Hybrid delivery.
-- **Manual reporting**: automates roll-ups with data lineage and quality controls.
-- **Disconnected teams**: uses specialized agents for each PPM domain with clear handoffs.
-
-## Solution blueprint highlights
-
-- **25-agent ecosystem** with defined roles, inputs/outputs, and example invocations.
-- **Methodology maps** that encode stage gates and deliverables as YAML.
-- **Connector model** with manifest, mapping, sync, and certification flow.
-- **Canonical data model** with schemas for portfolio, program, project, work items, risk, issue, and vendor.
-- **Security & compliance posture** aligned to RBAC/ABAC, audit logging, retention, and privacy.
-
-## Quick links
-
-- [Docs hub](docs/README.md)
-- [Solution index (Phase 1)](docs/solution-index.md)
-- [Agent catalog](docs/agents/agent-catalog.md)
-- [Methodology overview](docs/methodology/overview.md)
-- [Connector overview](docs/connectors/overview.md)
-- [Data model & lineage](docs/data/README.md)
-
-## Minimal demo (alpha)
-
-The alpha build focuses on scaffolding. You can run the API gateway and web prototype locally, but most agent logic is stubbed.
+> Requires Python 3.11+ and Docker Compose.
 
 ```bash
 make quick-start
 ```
 
+This will:
+- Copy `.env.example` to `.env`.
+- Install dependencies.
+- Start the local Docker Compose stack.
+
 **Expected services**
 - API: http://localhost:8000
 - API Docs: http://localhost:8000/api/docs
-- Web Prototype: http://localhost:8501
+- Web Console: http://localhost:8501
 
-## Usage examples
-
-Query the health endpoint:
+Run individual components when you need them:
 
 ```bash
-curl http://localhost:8000/healthz
+make run-api
+make run-web
 ```
 
-Inspect the Agile methodology map:
+## Testing
 
 ```bash
-rg -n "stage" docs/methodology/agile/map.yaml
+make test
+make test-cov
 ```
 
-## How to verify
+Other useful checks:
 
-Run documentation checks locally:
+```bash
+make lint
+make check-links
+make check-placeholders
+```
+
+## Deployment (high level)
+
+- **Terraform**: infrastructure definitions live under `infra/terraform/`.
+  ```bash
+  make tf-init
+  make tf-plan
+  make tf-apply
+  ```
+- **Kubernetes manifests**: see `infra/kubernetes/manifests/`.
+- **Helm charts**: each app/service has a `helm/` folder for packaging.
+
+For deeper operational guidance, start with `infra/README.md` and `docs/architecture/`.
+
+## Security & compliance
+
+- Security posture and architecture: `docs/architecture/security-architecture.md`.
+- Responsible disclosure: `SECURITY.md`.
+- Data policy scaffolding: `infra/policies/` and `services/policy-engine/`.
+
+## Where to find things
+
+- **Agents** → `agents/` and `docs/agents/`.
+- **Services** → `services/`.
+- **Connectors** → `connectors/` and `docs/connectors/`.
+- **Data model** → `data/schemas/` and `docs/data/`.
+
+## How to verify documentation links
 
 ```bash
 python scripts/check-links.py
 python scripts/check-placeholders.py
 ```
 
-Expected output: no link errors, and “Forbidden phrase scan passed with no matches.”
-
 ## Related docs
 
+- [Docs hub](docs/README.md)
+- [Solution overview](docs/product/solution-overview/README.md)
 - [Architecture documentation](docs/architecture/README.md)
-- [Connector registry](connectors/registry/connectors.json)
-- [Data schemas](data/schemas/)
-- [Security posture](docs/architecture/security-architecture.md)
+- [Agent catalog](docs/agents/README.md)
+- [Connector overview](docs/connectors/overview.md)
+- [Data model & lineage](docs/data/README.md)

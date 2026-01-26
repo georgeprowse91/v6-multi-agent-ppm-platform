@@ -1,38 +1,35 @@
 # Packages
 
-Shared libraries intended to be consumed by apps and services once implementations are in place.
+## Purpose
 
-## Quickstart
+Describe shared packages and how they support platform services.
 
-List the available packages:
+## What's inside
 
-```bash
-ls packages
-```
+- `packages/canvas-engine`: Subdirectory containing canvas engine assets for this area.
+- `packages/contracts`: Service contracts and schema artifacts.
+- `packages/crypto`: Subdirectory containing crypto assets for this area.
+- `packages/data-quality`: Subdirectory containing data quality assets for this area.
+- `packages/llm`: Subdirectory containing LLM assets for this area.
+- `packages/methodology-engine`: Subdirectory containing methodology engine assets for this area.
 
-## How to verify
+## How it's used
 
-```bash
-ls packages/contracts
-```
+Packages are imported by apps, services, and agents across the repository.
 
-Expected output includes a `src/` directory for the contracts package.
+## How to run / develop / test
 
-## Key files
-
-- `packages/contracts/src/`: shared API/contract definitions.
-- `packages/policy/`: policy helper scaffolding.
-- `packages/observability/`: observability helpers scaffolding.
-
-## Example
-
-Search for contract schemas:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "schema" packages/contracts/src
+pytest packages
 ```
 
-## Next steps
+## Configuration
 
-- Add implementation code under each `packages/<name>/src/` directory.
-- Wire package usage into `apps/` and `services/` as those components stabilize.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

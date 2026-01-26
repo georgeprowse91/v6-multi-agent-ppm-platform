@@ -1,48 +1,33 @@
 # Connector Hub Helm Chart
 
 ## Purpose
-This chart packages the **connector-hub** deployment for the Multi-Agent PPM platform when deploying to
-Kubernetes. It defines the Deployment, Service, and ConfigMap used by the connector-hub runtime.
 
-## Responsibilities
-- Package the connector-hub container image and runtime settings.
-- Provide a stable Service for inter-service communication on port 8080.
-- Externalize runtime configuration via `values.yaml` and `templates/configmap.yaml`.
+Package Kubernetes deployment manifests for this component.
 
-## Folder structure
-```
-apps/connector-hub/helm/
-├── Chart.yaml
-├── values.yaml
-├── templates/
-│   ├── _helpers.tpl
-│   ├── configmap.yaml
-│   ├── deployment.yaml
-│   └── service.yaml
-```
+## What's inside
 
-## Conventions
-- `Chart.yaml` **name** must match the parent directory name (`connector-hub`).
-- `values.yaml` defines `image.repository`, `image.tag`, and `service.port`.
-- All templates use the `name` helper from `_helpers.tpl` for consistent naming.
+- `apps/connector-hub/helm/templates`: Templates used by the component (deployment or message content).
+- `apps/connector-hub/helm/Chart.yaml`: Helm chart metadata and versioning.
+- `apps/connector-hub/helm/values.yaml`: Helm values for environment-specific overrides.
 
-## How to add a new template
-1. Add a new manifest under `apps/connector-hub/helm/templates/` (e.g. `ingress.yaml`).
-2. Reference new values under `values.yaml` and keep defaults minimal.
-3. Update this README with the new path and a short usage note.
-4. Validate the chart with the command below.
+## How it's used
 
-## How to validate/test
+Used by deployment pipelines and `helm` to render Kubernetes manifests.
+
+## How to run / develop / test
+
+Lint and render the chart locally:
+
 ```bash
-python scripts/validate-helm-charts.py apps/connector-hub/helm
+helm lint apps/connector-hub/helm
+helm template connector-hub apps/connector-hub/helm
 ```
 
-## Example
-`values.yaml` excerpt:
-```yaml
-image:
-  repository: ghcr.io/georgeprowse91/connector-hub
-  tag: "0.1.0"
-service:
-  port: 8080
-```
+## Configuration
+
+Edit `values.yaml` for environment-specific overrides.
+
+## Troubleshooting
+
+- Helm lint errors: validate YAML formatting and required values.
+- Rendered manifests missing resources: check `templates/` for missing files.

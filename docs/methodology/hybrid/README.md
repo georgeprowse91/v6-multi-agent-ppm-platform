@@ -1,49 +1,32 @@
-# Hybrid Methodology
+# Hybrid Documentation
 
 ## Purpose
 
-Describe the hybrid methodology that blends Waterfall gates with Agile execution cycles.
+Describe the hybrid documentation set and link the narrative to the repo assets that implement it.
 
-## Architecture-level context
+## What's inside
 
-Hybrid maps combine phase-based governance with iterative delivery. Gate checks ensure formal approvals while iterative cycles deliver incremental value. This is common for regulated programs requiring formal sign-offs.
+- `docs/methodology/hybrid/templates`: Templates used by the component (deployment or message content).
+- `docs/methodology/hybrid/gates.yaml`: YAML definition or configuration used by this component.
+- `docs/methodology/hybrid/map.yaml`: YAML definition or configuration used by this component.
 
-## What the YAML means
+## How it's used
 
-- `map.yaml`: phase gates with embedded iteration loops.
-- `gates.yaml`: approvals for phase transitions and iteration readiness.
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
 
-## Example workflow
+## How to run / develop / test
 
-1. **Initiation gate**: approve charter and funding.
-2. **Iterative delivery**: execute increments within Planning/Execution phases.
-3. **Phase gate**: review outcomes and approve next phase.
-4. **Closing**: post-implementation review and benefits tracking.
-
-## Usage example
-
-Inspect the hybrid map:
+Validate internal links across docs:
 
 ```bash
-sed -n '1,120p' docs/methodology/hybrid/map.yaml
+python scripts/check-links.py
 ```
 
-## How to verify
+## Configuration
 
-List hybrid templates:
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
 
-```bash
-ls docs/methodology/hybrid/templates
-```
+## Troubleshooting
 
-Expected output includes `governance-pack.md` and `hybrid-charter.md`.
-
-## Implementation status
-
-- **Implemented**: Hybrid map and templates.
-- **Planned**: automated gate logic via workflow engine.
-
-## Related docs
-
-- [Methodology Overview](../overview.md)
-- [Approval Workflow Agent](../../architecture/agent-orchestration.md)
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

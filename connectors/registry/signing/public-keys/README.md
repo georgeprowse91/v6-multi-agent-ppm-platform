@@ -1,9 +1,27 @@
-# Connector Registry
+# Public Keys
 
-This directory stores registry assets for **connectors**. The registry defines available connectors,
-versions, and signature metadata.
+## Purpose
 
-## Expected artifacts
-- Connector manifests
-- Signature metadata
-- Compatibility notes and release history
+Document the assets stored under connectors/registry/signing/public-keys.
+
+## What's inside
+
+- `README.md`: Documentation for this directory.
+
+## How it's used
+
+Used by the platform build and documentation workflows.
+
+## How to run / develop / test
+
+```bash
+ls connectors/registry/signing/public-keys
+```
+
+## Configuration
+
+No additional configuration.
+
+## Troubleshooting
+
+- Missing files: verify the expected assets are committed.

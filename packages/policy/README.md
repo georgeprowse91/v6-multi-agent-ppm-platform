@@ -1,42 +1,30 @@
 # Policy Package
 
-Helpers intended for policy evaluation and policy bundle management.
+## Purpose
 
-## Current state
+Describe the Policy shared package and how it supports platform services.
 
-- No implementation code is present yet in `packages/policy/`.
-- Policy bundles live under `services/policy-engine/policies/`.
+## What's inside
 
-## Quickstart
+- `README.md`: Documentation for this directory.
 
-Inspect policy bundles used today:
+## How it's used
 
-```bash
-ls services/policy-engine/policies/bundles
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-python scripts/validate-policies.py services/policy-engine/policies/bundles/default-policy-bundle.yaml
-```
-
-Expected output reports the bundle as valid.
-
-## Key files
-
-- `services/policy-engine/policies/`: current policy bundles.
-- `packages/policy/README.md`: scope and next steps.
-
-## Example
-
-Search for policy IDs:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "id:" services/policy-engine/policies/bundles
+pytest packages/policy
 ```
 
-## Next steps
+## Configuration
 
-- Add package sources under `packages/policy/src/`.
-- Extract shared policy parsing utilities from `services/policy-engine/`.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

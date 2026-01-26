@@ -1,45 +1,35 @@
-# Production Web Console
+# Web
 
-Production-grade web console for the Multi-Agent PPM platform. The UI authenticates via OIDC, stores
-server-side sessions, and calls downstream services with tenant-aware headers.
+## Purpose
 
-## Quickstart
+Describe the Web application and its role in the platform experience layer.
+
+## What's inside
+
+- `apps/web/data`: Data assets and fixtures for this component.
+- `apps/web/e2e`: End-to-end test specs or tooling.
+- `apps/web/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/web/public`: Static assets served by the app.
+- `apps/web/scripts`: Scripts that support this component or workflow.
+- `apps/web/src`: Implementation source for this component.
+
+## How it's used
+
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
+
+## How to run / develop / test
+
+Run the app locally (dry run to see the command):
 
 ```bash
-cd apps/web
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn src.main:app --reload --port 8501
+python -m tools.component_runner run --type app --name web --dry-run
 ```
-
-Open the UI at `http://localhost:8501`.
-
-## Features
-
-- OIDC login + server-side session management.
-- Tenant-aware calls to `api-gateway` and `workflow-engine`.
-- Workflow start action via `workflow-engine`.
 
 ## Configuration
 
-Environment variables:
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
 
-- `API_GATEWAY_URL` (default: `http://localhost:8000`)
-- `WORKFLOW_ENGINE_URL` (default: `http://localhost:8082`)
-- `OIDC_CLIENT_ID` (required)
-- `OIDC_CLIENT_SECRET` (required for confidential clients)
-- `OIDC_AUTH_URL` (required)
-- `OIDC_TOKEN_URL` (required)
-- `OIDC_REDIRECT_URI` (required)
-- `OIDC_JWKS_URL` (required)
-- `OIDC_ISSUER` (optional)
-- `OIDC_AUDIENCE` (optional)
-- `OIDC_LOGOUT_URL` (optional)
-- `OIDC_SCOPE` (default: `openid profile email`)
-- `OIDC_TENANT_CLAIM` (default: `tenant_id`)
+## Troubleshooting
 
-## Key files
-
-- `apps/web/src/main.py`: FastAPI app serving static UI.
-- `apps/web/static/`: HTML/CSS/JS assets.
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

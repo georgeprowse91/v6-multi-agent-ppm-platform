@@ -1,42 +1,30 @@
 # Testing Package
 
-Shared testing helpers intended for app and service test suites.
+## Purpose
 
-## Current state
+Describe the Testing shared package and how it supports platform services.
 
-- No implementation code yet in `packages/testing/`.
-- Tests live under `tests/` and cover API, agent, and tooling behavior.
+## What's inside
 
-## Quickstart
+- `README.md`: Documentation for this directory.
 
-Run the test suite:
+## How it's used
 
-```bash
-make test
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls tests
-```
-
-Expected output includes unit tests and validation tests.
-
-## Key files
-
-- `tests/`: current test suite.
-- `packages/testing/README.md`: scope and next steps.
-
-## Example
-
-Run a single test file:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-pytest tests/test_api.py -v
+pytest packages/testing
 ```
 
-## Next steps
+## Configuration
 
-- Add shared fixtures under `packages/testing/src/`.
-- Consolidate common test helpers from `tests/conftest.py`.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

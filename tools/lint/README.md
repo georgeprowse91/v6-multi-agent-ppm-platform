@@ -1,30 +1,28 @@
-# Linting
+# Lint Tools
 
-Lint wrapper for Ruff, Black (check mode), and Mypy with the same paths used in CI.
+## Purpose
 
-## Quickstart
+Document the lint tooling used to automate development and CI workflows.
 
-```bash
-python -m tools.lint.run
-```
+## What's inside
 
-## How to verify
+- `tools/lint/__init__.py`: Python module used by this component.
+- `tools/lint/lint_config.yaml`: YAML definition or configuration used by this component.
+- `tools/lint/run.py`: Python module used by this component.
 
-When everything is clean, the command exits with code 0 and prints:
+## How it's used
 
-```text
-All checks passed!
-```
+These tools are invoked by Make targets and CI pipelines.
 
-## Key files
+## How to run / develop / test
 
-- `tools/lint/run.py`: entrypoint wiring Ruff/Black/Mypy.
-- `tools/lint/lint_config.yaml`: default path list for linting.
+Refer to the Makefile targets or run the module directly as needed.
 
-## Example
+## Configuration
 
-Lint just the tests and tools directories:
+Tooling configuration lives in repo-level config files and `.env` where applicable.
 
-```bash
-python -m tools.lint.run --paths tests tools
-```
+## Troubleshooting
+
+- Command not found: ensure dev dependencies are installed (`make install-dev`).
+- Tool errors: inspect logs and verify referenced paths exist.

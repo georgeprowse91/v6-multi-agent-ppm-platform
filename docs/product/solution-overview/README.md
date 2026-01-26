@@ -1,17 +1,35 @@
-# Solution Overview
+# Solution Overview Documentation
 
-This hub breaks the solution overview into focused documents so readers can navigate the platform narrative, market context, competitive positioning, and go‑to‑market execution without scrolling through a single long file. Each section preserves the original content with improved structure and GitHub‑friendly formatting.
+## Purpose
 
-Use the table of contents below to jump to the area you need, from the platform’s core concepts to the research whitepaper and change‑management plan.
+Describe the solution overview documentation set and link the narrative to the repo assets that implement it.
 
-## Table of Contents
+## What's inside
 
-- [Platform Overview](platform-overview.md)
-- [Market Analysis](market-analysis.md)
-- [Competitive Battlecards](competitive-battlecards.md)
-- [Go-to-Market Strategy](go-to-market-strategy.md)
-- [Marketing & Sales Collateral](marketing-sales-collateral.md)
-- [Pricing & Packaging](pricing-packaging.md)
-- [Sales Enablement](sales-enablement.md)
-- [Change Management & Training Plan](change-management-training.md)
-- [Research Whitepaper](research-whitepaper.md)
+- `docs/product/solution-overview/change-management-training.md`: Markdown documentation for this area.
+- `docs/product/solution-overview/competitive-battlecards.md`: Markdown documentation for this area.
+- `docs/product/solution-overview/go-to-market-strategy.md`: Markdown documentation for this area.
+- `docs/product/solution-overview/market-analysis.md`: Markdown documentation for this area.
+- `docs/product/solution-overview/marketing-sales-collateral.md`: Markdown documentation for this area.
+- `docs/product/solution-overview/platform-overview.md`: Markdown documentation for this area.
+
+## How it's used
+
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
+
+## How to run / develop / test
+
+Validate internal links across docs:
+
+```bash
+python scripts/check-links.py
+```
+
+## Configuration
+
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
+
+## Troubleshooting
+
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

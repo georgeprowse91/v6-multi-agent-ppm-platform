@@ -1,48 +1,26 @@
-# Network Policy Bundles
+# Network Infrastructure
 
 ## Purpose
-Network policy bundles define ingress and service-mesh rules for the platform infrastructure.
-They ensure services deploy with approved connectivity constraints.
 
-## Responsibilities
-- Capture baseline ingress and east-west traffic policies.
-- Maintain versioned bundles owned by the networking team.
-- Provide validated YAML bundles for enforcement.
+Document infrastructure resources under infra/policies/network.
 
-## Folder structure
-```
-infra/policies/network/
-├── README.md
-├── bundles/
-│   └── default-network-policy-bundle.yaml
-├── ../schema/policy-bundle.schema.json
-└── ../README.md
-```
+## What's inside
 
-## Conventions
-- Bundle scope must be `infra/network`.
-- Use `net-###` policy IDs.
-- Policies with `enforcement: blocking` should include explicit remediation guidance in descriptions.
+- `infra/policies/network/bundles`: Subdirectory containing bundles assets for this area.
 
-## How to add a new policy
-1. Add a new entry to `bundles/default-network-policy-bundle.yaml`.
-2. Validate with `scripts/validate-policies.py`.
-3. Document changes in the policy bundle metadata description.
+## How it's used
 
-## How to validate/test
-```bash
-python scripts/validate-policies.py infra/policies/network/bundles/default-network-policy-bundle.yaml
-```
+These assets are referenced during deployment and operational runbooks.
 
-## Example
-```yaml
-- id: net-001
-  name: Restrict public ingress
-  description: Public ingress requires an approved service tag.
-  severity: high
-  enforcement: blocking
-  rules:
-    - field: ingress.is_public
-      operator: equals
-      value: true
-```
+## How to run / develop / test
+
+Use Terraform/Helm/Kubernetes tooling referenced in this directory to apply changes.
+
+## Configuration
+
+Infrastructure configuration lives in the files within this folder and `.env` for local tooling.
+
+## Troubleshooting
+
+- Terraform errors: ensure the correct workspace/env variables are set.
+- Kubernetes apply failures: verify cluster access and namespace settings.

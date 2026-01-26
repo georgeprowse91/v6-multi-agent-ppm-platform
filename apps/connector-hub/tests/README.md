@@ -1,13 +1,30 @@
-# Connector Hub tests
+# Connector Hub: Tests
 
-This directory contains application tests for the connector hub app.
+## Purpose
 
-## Scope
-- Test modules that exercise API endpoints, service wiring, and edge cases.
-- Fixtures, helpers, and sample payloads needed for these tests.
-- Any contract or environment notes required to run them locally.
+Document the tests assets for the Connector Hub application.
 
-## Running locally
+## What's inside
+
+- `README.md`: Documentation for this directory.
+
+## How it's used
+
+These assets are consumed by the parent app during build, runtime, or deployment.
+
+## How to run / develop / test
+
+Validate assets by listing files or running the parent app locally.
+
 ```bash
-pytest apps/connector-hub/tests
+ls apps/connector-hub/tests
 ```
+
+## Configuration
+
+No direct configuration in this subfolder; use the parent app's `.env` settings.
+
+## Troubleshooting
+
+- Missing asset errors: confirm files referenced by the app exist in this folder.
+- Packaging issues: ensure paths match those referenced in the parent app configuration.

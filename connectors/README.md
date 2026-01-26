@@ -2,47 +2,35 @@
 
 ## Purpose
 
-Provide the integration layer that synchronizes external systems (PPM, ERP, HR, collaboration) with the platform’s canonical data model.
+Provide the integration layer for synchronizing external systems with the platform's canonical data model.
 
-## Architecture-level context
+## What's inside
 
-Connectors translate external payloads into the canonical schemas stored in `data/schemas/`, emit lineage events to `data/lineage/`, and enforce authentication and rate-limit policies described in `docs/connectors/overview.md`.
+- `connectors/azure_devops`: Subdirectory containing azure devops assets for this area.
+- `connectors/jira`: Subdirectory containing jira assets for this area.
+- `connectors/planview`: Subdirectory containing planview assets for this area.
+- `connectors/registry`: Registry assets and indexes.
+- `connectors/salesforce`: Subdirectory containing salesforce assets for this area.
+- `connectors/sap`: Subdirectory containing sap assets for this area.
 
-## Quickstart
+## How it's used
 
-Run a connector in dry-run mode to validate its manifest and mappings:
+Connectors are discovered by `tools.connector_runner` and referenced by the registry metadata in `connectors/registry/`. Each connector includes a manifest and mapping files.
+
+## How to run / develop / test
+
+List available connectors and validate a dry-run execution:
 
 ```bash
+python -m tools.connector_runner list-connectors
 python -m tools.connector_runner run-connector --name jira --dry-run
 ```
 
-## How to verify
+## Configuration
 
-List the Jira connector assets:
+Connector credentials are supplied via `.env` (see `.env.example`) or secret managers, and connector-specific settings are stored in each `manifest.yaml`.
 
-```bash
-ls connectors/jira
-```
+## Troubleshooting
 
-Expected output includes `manifest.yaml`, `mappings/`, and `src/`.
-
-## Key files
-
-- `connectors/<name>/manifest.yaml`: connector identity, auth, and sync policies.
-- `connectors/<name>/mappings/`: canonical field mappings.
-- `connectors/<name>/src/`: connector implementation.
-- `connectors/registry/connectors.json`: registry of available connectors.
-
-## Usage example
-
-Inspect the Jira project mapping:
-
-```bash
-sed -n '1,160p' connectors/jira/mappings/project.yaml
-```
-
-## Related docs
-
-- [Connector Overview](../docs/connectors/overview.md)
-- [Connector Certification](../docs/connectors/certification.md)
-- [Data Schemas](../data/schemas/)
+- Connector not listed: ensure `manifest.yaml` exists in the connector folder.
+- Authentication errors: verify connector-specific environment variables.

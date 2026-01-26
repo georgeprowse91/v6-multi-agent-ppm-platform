@@ -1,49 +1,26 @@
-# Workflow Examples
+# Workflows Examples
 
 ## Purpose
-These workflow examples demonstrate how to model orchestration steps for demos and documentation.
-They reuse the workflow engine schema to stay consistent with production definitions.
 
-## Responsibilities
-- Provide sample workflow YAML for documentation walkthroughs.
-- Keep example workflows validated against the workflow schema.
-- Illustrate best practices for naming and step ordering.
+Provide workflows examples that demonstrate how to use the platform assets.
 
-## Folder structure
-```
-examples/workflows/
-├── README.md
-├── portfolio-intake.workflow.yaml
-├── ../../apps/workflow-engine/workflows/definitions/intake-triage.workflow.yaml
-├── ../../apps/workflow-engine/workflows/schema/workflow.schema.json
-└── ../../apps/workflow-engine/workflows/README.md
-```
+## What's inside
 
-## Conventions
-- Use `.workflow.yaml` suffix.
-- Keep `metadata.owner` as `examples` for sample definitions.
-- Ensure all `steps` include a `next` pointer or `null` termination.
+- `examples/workflows/portfolio-intake.workflow.yaml`: YAML definition or configuration used by this component.
 
-## How to add a new workflow example
-1. Copy `portfolio-intake.workflow.yaml` and update metadata and steps.
-2. Run the workflow validation script.
-3. Reference the example in docs that describe workflow behavior.
+## How it's used
 
-## How to validate/test
-```bash
-python scripts/validate-workflows.py examples/workflows/portfolio-intake.workflow.yaml
-```
+Examples are referenced from docs and can be copied into local experiments or demos.
 
-## Example
-```yaml
-apiVersion: ppm.workflows/v1
-kind: Workflow
-metadata:
-  name: portfolio-intake
-  version: "1.0.0"
-  owner: examples
-steps:
-  - id: record-request
-    type: task
-    next: notify-pmo
-```
+## How to run / develop / test
+
+Review example files directly and adapt them for your environment.
+
+## Configuration
+
+Examples are static artifacts and do not require runtime configuration.
+
+## Troubleshooting
+
+- Example format mismatch: ensure the referenced schema or manifest matches the current repo version.
+- Missing files: confirm example assets are committed to this folder.

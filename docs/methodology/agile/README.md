@@ -1,49 +1,32 @@
-# Agile Methodology
+# Agile Documentation
 
 ## Purpose
 
-Describe the Agile methodology map, stage gates, and templates used by agents to support sprint-based delivery.
+Describe the agile documentation set and link the narrative to the repo assets that implement it.
 
-## Architecture-level context
+## What's inside
 
-Agile maps define sprint cycles (Plan → Execute → Review → Retro). Gate checks ensure that Definition of Ready and Definition of Done criteria are met before advancing. YAML definitions are consumed by the workflow engine and approval agent.
+- `docs/methodology/agile/templates`: Templates used by the component (deployment or message content).
+- `docs/methodology/agile/gates.yaml`: YAML definition or configuration used by this component.
+- `docs/methodology/agile/map.yaml`: YAML definition or configuration used by this component.
 
-## What the YAML means
+## How it's used
 
-- `map.yaml` defines the sprint stages, owners, and required artefacts.
-- `gates.yaml` defines the criteria checked at sprint boundaries.
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
 
-## Example workflow
+## How to run / develop / test
 
-1. **Sprint Planning**: validate backlog readiness and capacity.
-2. **Execution**: track work item completion and quality checks.
-3. **Review**: capture stakeholder feedback and accept stories.
-4. **Retrospective**: record improvements and update process backlog.
-
-## Usage example
-
-Inspect the Agile map:
+Validate internal links across docs:
 
 ```bash
-sed -n '1,120p' docs/methodology/agile/map.yaml
+python scripts/check-links.py
 ```
 
-## How to verify
+## Configuration
 
-Check that sprint templates are available:
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
 
-```bash
-ls docs/methodology/agile/templates
-```
+## Troubleshooting
 
-Expected output includes `sprint-plan.md`, `release-plan.md`, and `retro-notes.md`.
-
-## Implementation status
-
-- **Implemented**: Agile map and templates.
-- **Planned**: automated gate enforcement in the workflow engine.
-
-## Related docs
-
-- [Methodology Overview](../overview.md)
-- [Approval Workflow Agent](../../architecture/agent-orchestration.md)
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

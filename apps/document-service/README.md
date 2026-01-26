@@ -1,44 +1,35 @@
 # Document Service
 
-Document ingestion, storage, and retrieval workflows for the platform.
+## Purpose
 
-## Current state
+Describe the Document Service application and its role in the platform experience layer.
 
-- Migrations live under `apps/document-service/migrations/`.
-- Policy templates for document handling live under `apps/document-service/policies/`.
-- There is no standalone service binary yet; the assets are used by other services.
+## What's inside
 
-## Quickstart
+- `apps/document-service/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/document-service/migrations`: Database migration scripts and notes.
+- `apps/document-service/policies`: Policy definitions enforced by the platform.
+- `apps/document-service/src`: Implementation source for this component.
+- `apps/document-service/tests`: Test suites and fixtures.
+- `apps/document-service/Dockerfile`: Container build recipe for local or CI use.
 
-Inspect the document policy templates:
+## How it's used
 
-```bash
-rg -n "policy" apps/document-service/policies
-```
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls apps/document-service/migrations
-```
-
-Expected output lists migration files for the document service schema.
-
-## Key files
-
-- `apps/document-service/migrations/`: database migrations.
-- `apps/document-service/policies/`: document handling policies.
-- `apps/document-service/README.md`: current state and usage notes.
-
-## Example
-
-Open the first migration file:
+Run the app locally (dry run to see the command):
 
 ```bash
-ls apps/document-service/migrations | head -n 1
+python -m tools.component_runner run --type app --name document-service --dry-run
 ```
 
-## Next steps
+## Configuration
 
-- Implement API handlers under `apps/document-service/src/`.
-- Integrate storage backends (see `services/audit-log/storage/`).
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
+
+## Troubleshooting
+
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

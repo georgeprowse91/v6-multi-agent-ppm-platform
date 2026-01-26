@@ -1,54 +1,31 @@
 # Scripts
 
-Automation scripts for local development, CI, and operational workflows. Prefer running them
-via Makefile targets so CI and local behavior stay aligned.
+## Purpose
 
-## Key files
+Catalog repository maintenance scripts used by CI and local development workflows.
 
-- `scripts/check-links.py`: internal markdown link and anchor validation.
-- `scripts/check-placeholders.py`: forbidden phrase scanner used in CI.
-- `scripts/validate-github-workflows.py`: YAML workflow structure validation.
+## What's inside
 
-## Markdown link checks
+- `scripts/check-links.py`: Python module used by this component.
+- `scripts/check-migrations.py`: Python module used by this component.
+- `scripts/check-placeholders.py`: Python module used by this component.
+- `scripts/fix_docs_formatting.py`: Python module used by this component.
+- `scripts/generate-sbom.py`: Python module used by this component.
+- `scripts/init-db.sql`: Database migration or schema definition.
 
-Validate internal markdown links and anchors:
+## How it's used
 
-```bash
-python scripts/check-links.py
-```
+Scripts are called from the Makefile and CI workflows to validate docs and assets.
 
-Expected output when everything is valid:
+## How to run / develop / test
 
-```text
-# (no output, exit code 0)
-```
+Run scripts directly with Python as needed.
 
-If a link is broken, the script prints the file, destination, and reason.
+## Configuration
 
-## Forbidden phrase scan
+Scripts rely on repository structure; no additional configuration required.
 
-Scan the repo for forbidden filler phrases:
+## Troubleshooting
 
-```bash
-python scripts/check-placeholders.py
-```
-
-Expected output when everything is clean:
-
-```text
-Forbidden phrase scan passed with no matches.
-```
-
-## Workflow validation
-
-Validate GitHub workflow files for common issues:
-
-```bash
-python scripts/validate-github-workflows.py
-```
-
-Expected output:
-
-```text
-Validated <N> GitHub workflow file(s) successfully.
-```
+- Script fails: ensure the required dependencies are installed.
+- Path errors: run scripts from the repository root.

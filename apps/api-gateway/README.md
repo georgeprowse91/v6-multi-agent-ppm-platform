@@ -1,47 +1,34 @@
-# API Gateway
+# Api Gateway
 
-FastAPI entrypoint for the platform. It exposes health probes, agent query routing, and the
-OpenAPI contract used by downstream clients.
+## Purpose
 
-## Quickstart
+Describe the Api Gateway application and its role in the platform experience layer.
 
-```bash
-make run-api
-```
+## What's inside
 
-## How to verify
+- `apps/api-gateway/helm`: Helm chart packaging for Kubernetes deployments.
+- `apps/api-gateway/openapi`: OpenAPI artifacts and generated summaries.
+- `apps/api-gateway/src`: Implementation source for this component.
+- `apps/api-gateway/tests`: Test suites and fixtures.
+- `apps/api-gateway/Dockerfile`: Container build recipe for local or CI use.
 
-```bash
-curl http://localhost:8000/healthz
-```
+## How it's used
 
-Expected response:
+Apps are started via `tools/component_runner` or the Makefile targets that wrap common workflows.
 
-```json
-{"status":"ok","timestamp":"2024-01-01T12:00:00","version":"0.1.0"}
-```
+## How to run / develop / test
 
-```bash
-curl http://localhost:8000/version
-```
-
-Expected response:
-
-```json
-{"service":"multi-agent-ppm-api","version":"0.1.0","build_sha":"unknown"}
-```
-
-## Key files
-
-- `apps/api-gateway/src/api/main.py`: FastAPI app and startup wiring.
-- `apps/api-gateway/src/api/routes/`: HTTP route modules.
-- `docs/api/openapi.yaml`: source OpenAPI spec.
-- `apps/api-gateway/openapi/`: generated OpenAPI summaries.
-
-## Example request
+Run the app locally (dry run to see the command):
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/query \\
-  -H "Content-Type: application/json" \\
-  -d '{"query":"Show me the portfolio overview","context":{"user_id":"demo"}}'
+python -m tools.component_runner run --type app --name api-gateway --dry-run
 ```
+
+## Configuration
+
+Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
+
+## Troubleshooting
+
+- Missing dependencies: install dev dependencies with `make install-dev`.
+- Startup errors: verify required env vars are present in `.env`.

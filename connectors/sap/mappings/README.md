@@ -1,21 +1,30 @@
-# Sap field mappings
+# Sap Field Mappings
 
-This folder defines how external Sap fields map to the platform's canonical
-portfolio, program, project, and work-item schemas.
+## Purpose
 
-## File expectations
-- Keep mappings in YAML files named after the entity (for example, `project.yaml`).
-- Use `source_field` for the upstream field name and `target_field` for the platform field.
-- Include `transform` when the source format needs normalization.
+Define how Sap payloads map into the platform's canonical schemas under `data/schemas/`.
 
-## Example
-```yaml
-entity: project
-fields:
-  - source_field: System.Title
-    target_field: title
-    transform: string
-  - source_field: System.State
-    target_field: status
-    transform: enum
+## What's inside
+
+- `connectors/sap/mappings/project.yaml`: Project mapping definition for connector data.
+
+## How it's used
+
+Referenced by `connectors/sap/manifest.yaml` and loaded by `tools.connector_runner` when synchronizing data.
+
+## How to run / develop / test
+
+Validate mappings via a dry-run connector execution:
+
+```bash
+python -m tools.connector_runner run-connector --name sap --dry-run
 ```
+
+## Configuration
+
+No direct configuration. Connector authentication and sync options live in `connectors/sap/manifest.yaml` and environment variables referenced by `src/`.
+
+## Troubleshooting
+
+- Dry-run fails on missing mappings: ensure the files listed in the manifest exist.
+- Schema mismatch errors: compare mapping targets with `data/schemas/`.

@@ -1,40 +1,35 @@
 # Data Sync Service
 
-The data sync service plans connector reconciliation jobs, enqueues them on Azure Service Bus, and
-tracks job status for downstream workers. In dev mode it can run with an in-memory queue.
+## Purpose
 
-## Contracts
+Define the Data Sync Service service responsibilities and how it integrates with the platform.
 
-- OpenAPI: `services/data-sync-service/contracts/openapi.yaml`
-- Rule format: `services/data-sync-service/rules/*.yaml`
+## What's inside
 
-## Run locally
+- `services/data-sync-service/contracts`: Service contracts and schema artifacts.
+- `services/data-sync-service/helm`: Helm chart packaging for Kubernetes deployments.
+- `services/data-sync-service/rules`: Rules and constraints used by sync/validation.
+- `services/data-sync-service/src`: Implementation source for this component.
+- `services/data-sync-service/tests`: Test suites and fixtures.
+- `services/data-sync-service/Dockerfile`: Container build recipe for local or CI use.
 
-```bash
-python -m tools.component_runner run --type service --name data-sync-service
-```
+## How it's used
 
-## Environment variables
+Services are run via `tools/component_runner` or Docker and are referenced by API and orchestration layers.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DATA_SYNC_RULES_DIR` | `services/data-sync-service/rules` | Directory containing sync rule YAML files |
-| `DATA_SYNC_STATUS_PATH` | `services/data-sync-service/storage/status.json` | Status store for sync jobs |
-| `SERVICE_BUS_CONNECTION_STRING` | unset | Service Bus connection string |
-| `SERVICE_BUS_QUEUE` | `data-sync` | Queue name |
-| `LOG_LEVEL` | `info` | Logging verbosity |
-| `PORT` | `8080` | HTTP port for the service |
+## How to run / develop / test
 
-## Example request
+Run the service locally (dry run to inspect the command):
 
 ```bash
-curl -X POST http://localhost:8080/sync/run \
-  -H "Content-Type: application/json" \
-  -d '{"connector": "jira", "dry_run": true}'
+python -m tools.component_runner run --type service --name data-sync-service --dry-run
 ```
 
-## Tests
+## Configuration
 
-```bash
-pytest services/data-sync-service/tests
-```
+Service-specific environment variables should be defined in `.env` and, for production, in secrets managers.
+
+## Troubleshooting
+
+- Missing env vars: review the service README or source code for required settings.
+- Port conflicts: adjust `PORT` or Docker/Helm values.

@@ -1,52 +1,32 @@
-# Connector Hub Sandbox
+# Connector Hub: Sandbox
 
 ## Purpose
-Sandbox configurations allow connector developers to test integrations locally using fixture
-responses. The connector hub can read these configs to emulate upstream systems without making
-live API calls. The sandbox registry lives in `apps/connector-hub/sandbox_registry.py`.
 
-## Responsibilities
-- Provide sandbox connector configurations for local testing.
-- Store fixture responses used by simulated connector runs.
-- Keep configs validated against the sandbox schema.
+Document the sandbox assets for the Connector Hub application.
 
-## Folder structure
-```
-apps/connector-hub/sandbox/
-├── README.md
-├── examples/
-│   └── github-sandbox-connector.yaml
-├── fixtures/
-│   ├── issues.json
-│   └── repo.json
-└── schema/
-    └── sandbox-connector.schema.json
-```
+## What's inside
 
-## Conventions
-- Use `apiVersion: ppm.connectors/v1` and `kind: ConnectorSandbox`.
-- Keep fixture files under `fixtures/` and reference them in `sandbox.fixtures`.
-- Store secrets in env vars referenced by `connector.auth.token_env`.
+- `apps/connector-hub/sandbox/examples`: Example configurations and demo scenarios.
+- `apps/connector-hub/sandbox/fixtures`: Subdirectory containing fixtures assets for this area.
+- `apps/connector-hub/sandbox/schema`: Schemas or validation rules for component assets.
 
-## How to add a new sandbox config
-1. Copy `examples/github-sandbox-connector.yaml` and update connector metadata.
-2. Add fixture JSON files under `fixtures/`.
-3. Validate the config with the script below.
-4. Confirm the new file is picked up by `apps/connector-hub/sandbox_registry.py`.
+## How it's used
 
-## How to validate/test
+These assets are consumed by the parent app during build, runtime, or deployment.
+
+## How to run / develop / test
+
+Validate assets by listing files or running the parent app locally.
+
 ```bash
-python scripts/validate-connector-sandbox.py apps/connector-hub/sandbox/examples/github-sandbox-connector.yaml
+ls apps/connector-hub/sandbox
 ```
 
-## Example
-```yaml
-apiVersion: ppm.connectors/v1
-kind: ConnectorSandbox
-metadata:
-  name: github-sandbox
-  owner: connector-hub
-connector:
-  type: github
-  base_url: https://api.github.com
-```
+## Configuration
+
+No direct configuration in this subfolder; use the parent app's `.env` settings.
+
+## Troubleshooting
+
+- Missing asset errors: confirm files referenced by the app exist in this folder.
+- Packaging issues: ensure paths match those referenced in the parent app configuration.

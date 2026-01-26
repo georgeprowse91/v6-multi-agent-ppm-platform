@@ -1,38 +1,30 @@
-# Agent Documentation
+# Agents Documentation
 
 ## Purpose
 
-Provide a single entry point to the 25-agent ecosystem, including the canonical catalog, orchestration narrative, and links to the agent spec files in `agents/`.
+Describe the agents documentation set and link the narrative to the repo assets that implement it.
 
-## Architecture-level context
+## What's inside
 
-Agents are the decision-making layer of the platform. They are orchestrated by the Intent Router and Response Orchestrator, and they communicate with connectors and data services to deliver end-to-end PPM workflows. The orchestration flow is documented in `docs/architecture/agent-orchestration.md`.
+- `docs/agents/agent-catalog.md`: Markdown documentation for this area.
 
-## Key docs
+## How it's used
 
-- **Agent Catalog** → [agent-catalog.md](agent-catalog.md)
-- **Orchestration** → [../architecture/agent-orchestration.md](../architecture/agent-orchestration.md)
-- **Agent specs (implementation stubs)** → [../../agents/README.md](../../agents/README.md)
+These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
 
-## Usage example
+## How to run / develop / test
 
-List all agent IDs in the catalog:
+Validate internal links across docs:
 
 ```bash
-rg -n "Agent 0" docs/agents/agent-catalog.md
+python scripts/check-links.py
 ```
 
-## How to verify
+## Configuration
 
-Confirm the catalog file exists:
+No configuration. Documentation content lives in Markdown and YAML files under this folder.
 
-```bash
-ls docs/agents/agent-catalog.md
-```
+## Troubleshooting
 
-Expected output: the catalog file path.
-
-## Related docs
-
-- [Logical Architecture](../architecture/logical-architecture.md)
-- [Connector Overview](../connectors/overview.md)
+- Broken links: run the link checker and fix any relative path mismatches.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.

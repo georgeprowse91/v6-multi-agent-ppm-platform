@@ -1,41 +1,30 @@
 # Contracts Package
 
-Shared contract definitions for APIs, events, and data models.
+## Purpose
 
-## Current state
+Describe the Contracts shared package and how it supports platform services.
 
-- Source code lives under `packages/contracts/src/`.
-- The package is referenced by validation scripts but not yet published.
+## What's inside
 
-## Quickstart
+- `packages/contracts/src`: Implementation source for this component.
 
-List contract sources:
+## How it's used
 
-```bash
-ls packages/contracts/src
-```
+Packages are imported by apps, services, and agents across the repository.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-rg -n "schema" packages/contracts/src
-```
-
-Expected output shows contract schema definitions.
-
-## Key files
-
-- `packages/contracts/src/`: contract definitions.
-
-## Example
-
-Search for OpenAPI references:
+Run unit tests (if present) or import modules in a Python shell:
 
 ```bash
-rg -n "openapi" packages/contracts/src
+pytest packages/contracts
 ```
 
-## Next steps
+## Configuration
 
-- Add explicit versioning metadata in `packages/contracts/src/`.
-- Publish a package entrypoint when API contracts stabilize.
+Shared packages rely on repository-wide configuration in `.env` when needed.
+
+## Troubleshooting
+
+- Import errors: ensure the package is installed in editable mode (`make install-dev`).
+- Missing dependencies: check `pyproject.toml` for required extras.

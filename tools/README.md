@@ -1,60 +1,31 @@
-# Developer Tooling
+# Tools
 
-Repo-aware tooling for formatting, linting, code generation, and local dev helpers used by
-the Makefile and CI pipelines.
+## Purpose
 
-## Quickstart
+Document the tooling used to automate development and CI workflows.
 
-```bash
-make lint
-make format
-make codegen
-```
+## What's inside
 
-For the local dev stack:
+- `tools/codegen`: Subdirectory containing codegen assets for this area.
+- `tools/format`: Subdirectory containing format assets for this area.
+- `tools/lint`: Subdirectory containing lint assets for this area.
+- `tools/load_testing`: Subdirectory containing load testing assets for this area.
+- `tools/local-dev`: Subdirectory containing local dev assets for this area.
+- `tools/__init__.py`: Python module used by this component.
 
-```bash
-bash tools/local-dev/dev_up.sh
-```
+## How it's used
 
-## How to verify
+These tools are invoked by Make targets and CI pipelines.
 
-```bash
-python -m tools.lint.run
-```
+## How to run / develop / test
 
-Expected output (when lint is clean):
+Refer to the Makefile targets or run the module directly as needed.
 
-```text
-All checks passed!
-```
+## Configuration
 
-```bash
-python -m tools.codegen.run
-```
+Tooling configuration lives in repo-level config files and `.env` where applicable.
 
-Expected output:
+## Troubleshooting
 
-```text
-Generated OpenAPI summary at apps/api-gateway/openapi.
-```
-
-## Key files
-
-- `tools/lint/run.py`: Ruff + Black + Mypy entrypoint.
-- `tools/format/run.py`: Ruff + Black formatter wrapper.
-- `tools/codegen/run.py`: OpenAPI validation + summary outputs.
-- `tools/local-dev/dev_up.sh`: Docker Compose wrapper for local stack.
-
-## Example
-
-Lint only the API gateway sources:
-
-```bash
-python -m tools.lint.run --paths apps/api-gateway/src
-```
-
-## Notes
-
-CI invokes the same commands via `make lint`, `make format`, and `make codegen` so local
-results match pipeline behavior.
+- Command not found: ensure dev dependencies are installed (`make install-dev`).
+- Tool errors: inspect logs and verify referenced paths exist.

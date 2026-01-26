@@ -2,35 +2,29 @@
 
 ## Purpose
 
-Describe how Jira fields map to the platform’s canonical PPM schemas in `data/schemas/`.
+Define how Jira payloads map into the platform's canonical schemas under `data/schemas/`.
 
-## Architecture-level context
+## What's inside
 
-Mappings are consumed by the connector runtime to transform Jira payloads into canonical entities and to emit data quality scores during sync.
+- `connectors/jira/mappings/project.yaml`: Project mapping definition for connector data.
 
-## Key files
+## How it's used
 
-- `project.yaml`: Jira project metadata → canonical project schema.
+Referenced by `connectors/jira/manifest.yaml` and loaded by `tools.connector_runner` when synchronizing data.
 
-## Usage example
+## How to run / develop / test
 
-View the Jira project mapping:
-
-```bash
-sed -n '1,160p' connectors/jira/mappings/project.yaml
-```
-
-## How to verify
-
-Check that the mapping file exists:
+Validate mappings via a dry-run connector execution:
 
 ```bash
-ls connectors/jira/mappings/project.yaml
+python -m tools.connector_runner run-connector --name jira --dry-run
 ```
 
-Expected output: the YAML mapping file path.
+## Configuration
 
-## Related docs
+No direct configuration. Connector authentication and sync options live in `connectors/jira/manifest.yaml` and environment variables referenced by `src/`.
 
-- [Connector Overview](../../../docs/connectors/overview.md)
-- [Data Schemas](../../../data/schemas/)
+## Troubleshooting
+
+- Dry-run fails on missing mappings: ensure the files listed in the manifest exist.
+- Schema mismatch errors: compare mapping targets with `data/schemas/`.

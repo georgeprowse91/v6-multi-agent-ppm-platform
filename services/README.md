@@ -1,57 +1,36 @@
 # Services
 
-Supporting services that provide cross-cutting platform capabilities (audit logging, telemetry,
-policy evaluation, identity access, data sync, and notifications). Each service ships its own Helm
-chart, OpenAPI contract, and runnable MVP implementation.
+## Purpose
 
-## Quickstart
+Catalog backend services that power data sync, policy enforcement, and telemetry.
 
-Validate all Helm charts:
+## What's inside
 
-```bash
-python scripts/validate-helm-charts.py services
-```
+- `services/audit-log`: Subdirectory containing audit log assets for this area.
+- `services/data-sync-service`: Subdirectory containing data sync service assets for this area.
+- `services/identity-access`: Subdirectory containing identity access assets for this area.
+- `services/notification-service`: Subdirectory containing notification service assets for this area.
+- `services/policy-engine`: Subdirectory containing policy engine assets for this area.
+- `services/telemetry-service`: Subdirectory containing telemetry service assets for this area.
 
-Validate the default policy bundle:
+## How it's used
 
-```bash
-python scripts/validate-policies.py services/policy-engine/policies/bundles/default-policy-bundle.yaml
-```
+Services are discovered by `tools/component_runner` and deployed via Helm and Terraform resources under `infra/`.
 
-## How to verify
+## How to run / develop / test
 
-```bash
-ls services
-```
-
-Expected output includes:
-
-```text
-audit-log
-data-sync-service
-identity-access
-notification-service
-policy-engine
-telemetry-service
-```
-
-## Key files
-
-- `services/*/contracts/`: OpenAPI contracts per service.
-- `services/*/src/`: service runtime code.
-- `services/*/tests/`: service smoke tests.
-- `services/*/helm/`: Helm charts per service.
-- `services/policy-engine/policies/`: policy bundles and rules.
-
-## Example
-
-Run the audit log service:
+List services and run one locally:
 
 ```bash
-python -m tools.component_runner run --type service --name audit-log
+python -m tools.component_runner list --type service
+python -m tools.component_runner run --type service --name audit-log --dry-run
 ```
 
-## Next steps
+## Configuration
 
-- Extend service handlers with production integrations.
-- Wire shared contracts via `packages/` as service APIs evolve.
+Services use shared `.env` settings plus service-specific env vars documented in each service README.
+
+## Troubleshooting
+
+- Service not listed: ensure the service folder exists under `services/`.
+- Startup errors: confirm database and external service endpoints are reachable.
