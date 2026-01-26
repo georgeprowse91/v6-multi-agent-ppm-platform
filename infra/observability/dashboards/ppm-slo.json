@@ -1,0 +1,55 @@
+{
+  "title": "PPM Platform SLO Tracking",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "API Gateway Availability",
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(http_requests_total{service=\"api-gateway\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{service=\"api-gateway\"}[5m])))",
+          "legendFormat": "availability"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Workflow Orchestration Error Budget Burn",
+      "targets": [
+        {
+          "expr": "sum(rate(orchestration_workflows_started_total[5m]))",
+          "legendFormat": "workflows"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Job Completion Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(analytics_jobs_completed_total[5m])) / (sum(rate(analytics_jobs_completed_total[5m])) + sum(rate(analytics_jobs_failed_total[5m])))",
+          "legendFormat": "completion_rate"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Connector Health Success Rate",
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(connector_health_checks_total{status=~\"unhealthy|degraded\"}[5m])) / sum(rate(connector_health_checks_total[5m])))",
+          "legendFormat": "health_success"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Document Ingest Success Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(documents_stored_total[5m])) / (sum(rate(documents_stored_total[5m])) + sum(rate(business_errors_total{operation=\"store_document\"}[5m])))",
+          "legendFormat": "success_rate"
+        }
+      ]
+    }
+  ]
+}

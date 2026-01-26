@@ -1,0 +1,36 @@
+slos:
+  - name: api-gateway-availability
+    description: "API Gateway availability SLO"
+    objective: 99.9
+    indicator:
+      ratio_metric: http_requests_total
+      error_metric: http_requests_total{status=~"5..",service="api-gateway"}
+    window: 30d
+  - name: orchestration-workflow-latency
+    description: "Workflow orchestration p95 latency"
+    objective: 95
+    indicator:
+      latency_metric: orchestration_workflows_started_total
+      threshold_seconds: 2.0
+    window: 7d
+  - name: connector-success-rate
+    description: "Connector health success rate"
+    objective: 99
+    indicator:
+      ratio_metric: connector_health_checks_total
+      error_metric: connector_health_checks_total{status=~"unhealthy|degraded"}
+    window: 30d
+  - name: analytics-job-completion
+    description: "Analytics job completion rate"
+    objective: 98
+    indicator:
+      ratio_metric: analytics_jobs_completed_total
+      error_metric: analytics_jobs_failed_total
+    window: 7d
+  - name: document-ingest-success
+    description: "Document ingest success"
+    objective: 99
+    indicator:
+      ratio_metric: documents_stored_total
+      error_metric: business_errors_total{operation="store_document"}
+    window: 30d

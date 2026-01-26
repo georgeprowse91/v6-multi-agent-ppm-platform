@@ -25,3 +25,115 @@ groups:
         annotations:
           summary: "No audit events ingested"
           description: "Audit log ingestion stalled for 15 minutes."
+      - alert: ApiGatewayHighErrorRate
+        expr: sum(rate(http_requests_total{service="api-gateway",status=~"5.."}[5m])) / sum(rate(http_requests_total{service="api-gateway"}[5m])) > 0.02
+        for: 10m
+        labels:
+          severity: page
+        annotations:
+          summary: "API Gateway error rate above SLO"
+          description: "5xx rate exceeds 2% for 10 minutes."
+      - alert: ApiGatewayAvailabilityBurn
+        expr: (1 - (sum(rate(http_requests_total{service="api-gateway",status=~"5.."}[5m])) / sum(rate(http_requests_total{service="api-gateway"}[5m])))) < 0.999
+        for: 30m
+        labels:
+          severity: page
+        annotations:
+          summary: "API Gateway availability budget burn"
+          description: "Availability below 99.9% for 30 minutes."
+      - alert: WorkflowEngineHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="workflow-engine"}[5m])) by (le)) > 0.75
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Workflow engine latency above SLO"
+          description: "p95 latency exceeds 750ms for 10 minutes."
+      - alert: WorkflowEngineFailureRate
+        expr: sum(rate(workflow_completed_total{status="failure"}[5m])) / sum(rate(workflow_completed_total[5m])) > 0.03
+        for: 15m
+        labels:
+          severity: page
+        annotations:
+          summary: "Workflow failure rate above SLO"
+          description: "Workflow failures above 3% for 15 minutes."
+      - alert: OrchestrationWorkflowStall
+        expr: sum(rate(orchestration_workflows_started_total[15m])) == 0
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No orchestration workflows started"
+          description: "Workflow orchestration not starting new runs."
+      - alert: AnalyticsSchedulerLag
+        expr: max(time() - analytics_scheduler_last_run_timestamp) > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Analytics scheduler lagging"
+          description: "Scheduler last run exceeds 5 minutes."
+      - alert: AnalyticsJobFailures
+        expr: sum(rate(analytics_jobs_failed_total[10m])) / (sum(rate(analytics_jobs_failed_total[10m])) + sum(rate(analytics_jobs_completed_total[10m]))) > 0.05
+        for: 15m
+        labels:
+          severity: page
+        annotations:
+          summary: "Analytics job failure rate above SLO"
+          description: "Analytics job failures exceed 5%."
+      - alert: DocumentIngestFailures
+        expr: sum(rate(business_errors_total{operation="store_document"}[10m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Document ingestion errors detected"
+          description: "Document storage errors have been recorded."
+      - alert: ConnectorHealthDegraded
+        expr: sum(rate(connector_health_checks_total{status=~"degraded|unhealthy"}[10m])) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connector health degraded"
+          description: "Connector health checks reporting degraded/unhealthy."
+      - alert: ConnectorDisabledSpike
+        expr: sum(rate(connectors_disabled_total[10m])) > 5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connector disable spike"
+          description: "Multiple connectors disabled in short window."
+      - alert: DataSyncFailureRate
+        expr: sum(rate(data_sync_jobs_total{status="failed"}[10m])) / sum(rate(data_sync_jobs_total[10m])) > 0.05
+        for: 15m
+        labels:
+          severity: page
+        annotations:
+          summary: "Data sync failure rate above SLO"
+          description: "Data sync failures exceed 5%."
+      - alert: PolicyEngineHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="policy-engine"}[5m])) by (le)) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Policy engine latency above SLO"
+          description: "p95 latency exceeds 500ms for 10 minutes."
+      - alert: IdentityTokenFailures
+        expr: sum(rate(identity_token_validation_failures_total[10m])) > 3
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Identity token validation failures"
+          description: "Token validation failures detected."
+      - alert: TelemetryIngestStall
+        expr: sum(rate(telemetry_ingest_total[10m])) == 0
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Telemetry ingest stalled"
+          description: "No telemetry ingested for 20 minutes."

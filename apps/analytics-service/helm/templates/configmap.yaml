@@ -7,3 +7,5 @@ metadata:
 data:
   LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}
   PORT: {{ .Values.env.PORT | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}

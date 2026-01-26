@@ -264,6 +264,14 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = "${var.resource_prefix}-${var.environment}-logs"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_virtual_network" "main" {
   name                = "${var.resource_prefix}-${var.environment}-vnet"
   resource_group_name = azurerm_resource_group.main.name
@@ -1007,6 +1015,91 @@ resource "azurerm_private_endpoint" "cosmos" {
   private_dns_zone_group {
     name                 = "cosmos-dns"
     private_dns_zone_ids = [azurerm_private_dns_zone.cosmos.id]
+  }
+}
+
+# Azure Monitor Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "key_vault" {
+  name                       = "${var.resource_prefix}-${var.environment}-kv-diag"
+  target_resource_id         = azurerm_key_vault.main.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "storage_main" {
+  name                       = "${var.resource_prefix}-${var.environment}-storage-diag"
+  target_resource_id         = azurerm_storage_account.main.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "storage_redis" {
+  name                       = "${var.resource_prefix}-${var.environment}-redis-storage-diag"
+  target_resource_id         = azurerm_storage_account.redis_backup.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "service_bus" {
+  name                       = "${var.resource_prefix}-${var.environment}-servicebus-diag"
+  target_resource_id         = azurerm_servicebus_namespace.main.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "container_registry" {
+  name                       = "${var.resource_prefix}-${var.environment}-acr-diag"
+  target_resource_id         = azurerm_container_registry.acr.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "container_apps" {
+  name                       = "${var.resource_prefix}-${var.environment}-containerapps-diag"
+  target_resource_id         = azurerm_container_app_environment.main.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
   }
 }
 

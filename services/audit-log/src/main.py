@@ -18,13 +18,17 @@ logging.basicConfig(level=logging.INFO)
 APP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-if str(SECURITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(SECURITY_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 SCHEMA_PATH = REPO_ROOT / "data" / "schemas" / "audit-event.schema.json"
 RETENTION_CONFIG_PATH = REPO_ROOT / "config" / "retention" / "policies.yaml"
 CLASSIFICATION_CONFIG_PATH = REPO_ROOT / "config" / "data-classification" / "levels.yaml"
 
 from audit_storage import AuditRetentionPolicy, get_worm_storage  # noqa: E402
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 
 
@@ -78,6 +82,10 @@ class HealthResponse(BaseModel):
 
 app = FastAPI(title="Audit Log Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+configure_tracing("audit-log")
+configure_metrics("audit-log")
+app.add_middleware(TraceMiddleware, service_name="audit-log")
+app.add_middleware(RequestMetricsMiddleware, service_name="audit-log")
 
 
 @app.get("/healthz", response_model=HealthResponse)

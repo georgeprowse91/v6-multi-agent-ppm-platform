@@ -31,6 +31,10 @@ spec:
               value: {{ .Values.env.IDENTITY_ACCESS_URL | quote }}
             - name: POLICY_ENGINE_URL
               value: {{ .Values.env.POLICY_ENGINE_URL | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
+            - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+              value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
             {{- if .Values.keyVault.enabled }}
             - name: IDENTITY_JWT_SECRET
               valueFrom:

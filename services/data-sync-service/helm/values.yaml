@@ -13,6 +13,8 @@ env:
   LOG_LEVEL: info
   SERVICE_BUS_QUEUE: "data-sync"
   SERVICE_BUS_CONNECTION_STRING: ""
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
 
 livenessProbe:
   path: /healthz

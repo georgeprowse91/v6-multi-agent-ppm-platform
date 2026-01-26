@@ -1,0 +1,23 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+
+exporters:
+  azuremonitor:
+    connection_string: "${AZURE_MONITOR_CONNECTION_STRING}"
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [azuremonitor, logging]
+    metrics:
+      receivers: [otlp]
+      exporters: [azuremonitor, logging]
+    logs:
+      receivers: [otlp]
+      exporters: [azuremonitor, logging]

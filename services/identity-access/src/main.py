@@ -16,9 +16,13 @@ from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-if str(SECURITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(SECURITY_ROOT))
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("identity-access")
@@ -59,6 +63,16 @@ JWKS_CACHE = JwksCache()
 
 app = FastAPI(title="Identity Access Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/auth/validate"})
+configure_tracing("identity-access")
+configure_metrics("identity-access")
+app.add_middleware(TraceMiddleware, service_name="identity-access")
+app.add_middleware(RequestMetricsMiddleware, service_name="identity-access")
+
+token_validation_failures = configure_metrics("identity-access").create_counter(
+    name="identity_token_validation_failures_total",
+    description="Token validation failures",
+    unit="1",
+)
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -93,6 +107,7 @@ async def validate_token(request: AuthValidateRequest) -> AuthValidateResponse:
             raise HTTPException(status_code=500, detail="JWT configuration missing")
     except InvalidTokenError as exc:
         logger.warning("token_validation_failed", extra={"error": str(exc)})
+        token_validation_failures.add(1, {})
         return AuthValidateResponse(active=False)
 
     return AuthValidateResponse(active=True, subject=claims.get("sub"), claims=claims)

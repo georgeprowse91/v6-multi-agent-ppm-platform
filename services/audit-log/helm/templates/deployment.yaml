@@ -30,6 +30,10 @@ spec:
               value: {{ .Values.env.AUDIT_WORM_CONNECTION_STRING | quote }}
             - name: AUDIT_LOG_ENCRYPTION_KEY
               value: {{ .Values.env.AUDIT_LOG_ENCRYPTION_KEY | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
+            - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+              value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
           readinessProbe:
             httpGet:
               path: /healthz

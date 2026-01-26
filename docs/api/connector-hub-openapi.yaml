@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Connector Hub API
+  version: 0.1.0
+  description: Connector lifecycle management APIs.
+servers:
+  - url: http://connector-hub:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /connectors:
+    get:
+      summary: List connectors
+      responses:
+        "200":
+          description: Connector list
+    post:
+      summary: Register connector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: string
+                enabled:
+                  type: boolean
+                metadata:
+                  type: object
+      responses:
+        "200":
+          description: Connector created
+  /connectors/{connector_id}:
+    patch:
+      summary: Update connector
+      parameters:
+        - name: connector_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                enabled:
+                  type: boolean
+                health_status:
+                  type: string
+      responses:
+        "200":
+          description: Connector updated
+  /connectors/{connector_id}/health:
+    get:
+      summary: Read connector health
+      parameters:
+        - name: connector_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connector health
