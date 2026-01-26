@@ -9,10 +9,15 @@ with organizational policies and supports vendor performance monitoring.
 Specification: agents/delivery-management/agent-13-vendor-procurement/README.md
 """
 
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from approval_workflow_agent import ApprovalWorkflowAgent
+from data_quality.helpers import validate_against_schema
 
 
 class VendorProcurementAgent(BaseAgent):
@@ -39,6 +44,30 @@ class VendorProcurementAgent(BaseAgent):
         self.procurement_threshold = config.get("procurement_threshold", 10000) if config else 10000
         self.min_vendor_proposals = config.get("min_vendor_proposals", 3) if config else 3
         self.invoice_tolerance_pct = config.get("invoice_tolerance_pct", 0.05) if config else 0.05
+        self.vendor_schema_path = (
+            Path(config.get("vendor_schema_path", "data/schemas/vendor.schema.json"))
+            if config
+            else Path("data/schemas/vendor.schema.json")
+        )
+
+        vendor_store_path = (
+            Path(config.get("vendor_store_path", "data/vendors.json"))
+            if config
+            else Path("data/vendors.json")
+        )
+        contract_store_path = (
+            Path(config.get("contract_store_path", "data/vendor_contracts.json"))
+            if config
+            else Path("data/vendor_contracts.json")
+        )
+        invoice_store_path = (
+            Path(config.get("invoice_store_path", "data/vendor_invoices.json"))
+            if config
+            else Path("data/vendor_invoices.json")
+        )
+        self.vendor_store = TenantStateStore(vendor_store_path)
+        self.contract_store = TenantStateStore(contract_store_path)
+        self.invoice_store = TenantStateStore(invoice_store_path)
 
         # Vendor categories
         self.vendor_categories = (
@@ -59,6 +88,10 @@ class VendorProcurementAgent(BaseAgent):
         self.purchase_orders: dict[str, Any] = {}
         self.invoices: dict[str, Any] = {}
         self.vendor_performance: dict[str, Any] = {}
+        self.approval_agent = config.get("approval_agent") if config else None
+        if self.approval_agent is None:
+            approval_config = config.get("approval_agent_config", {}) if config else {}
+            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
 
     async def initialize(self) -> None:
         """Initialize database connections, ERP integrations, and AI models."""
@@ -167,12 +200,28 @@ class VendorProcurementAgent(BaseAgent):
             - get_procurement_status: Procurement request status details
         """
         action = input_data.get("action", "search_vendors")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+        actor_id = context.get("user_id") or input_data.get("actor_id") or "system"
 
         if action == "onboard_vendor":
-            return await self._onboard_vendor(input_data.get("vendor", {}))
+            return await self._onboard_vendor(
+                input_data.get("vendor", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "create_procurement_request":
-            return await self._create_procurement_request(input_data.get("request", {}))
+            return await self._create_procurement_request(
+                input_data.get("request", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "generate_rfp":
             return await self._generate_rfp(input_data.get("request_id"), input_data.get("rfp", {}))  # type: ignore
@@ -193,13 +242,25 @@ class VendorProcurementAgent(BaseAgent):
             return await self._select_vendor(input_data.get("rfp_id"), input_data.get("vendor_id"))  # type: ignore
 
         elif action == "create_contract":
-            return await self._create_contract(input_data.get("contract", {}))
+            return await self._create_contract(
+                input_data.get("contract", {}),
+                tenant_id=tenant_id,
+                actor_id=actor_id,
+            )
 
         elif action == "create_purchase_order":
-            return await self._create_purchase_order(input_data.get("purchase_order", {}))
+            return await self._create_purchase_order(
+                input_data.get("purchase_order", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "submit_invoice":
-            return await self._submit_invoice(input_data.get("invoice", {}))
+            return await self._submit_invoice(
+                input_data.get("invoice", {}),
+                tenant_id=tenant_id,
+            )
 
         elif action == "reconcile_invoice":
             return await self._reconcile_invoice(input_data.get("invoice_id"))  # type: ignore
@@ -219,7 +280,14 @@ class VendorProcurementAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _onboard_vendor(self, vendor_data: dict[str, Any]) -> dict[str, Any]:
+    async def _onboard_vendor(
+        self,
+        vendor_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Onboard a new vendor with compliance checks.
 
@@ -236,6 +304,7 @@ class VendorProcurementAgent(BaseAgent):
         # Calculate initial risk score
         risk_score = await self._calculate_vendor_risk(vendor_data, compliance_checks)
 
+        created_at = datetime.utcnow().isoformat()
         # Create vendor profile
         vendor = {
             "vendor_id": vendor_id,
@@ -247,11 +316,12 @@ class VendorProcurementAgent(BaseAgent):
             "category": vendor_data.get("category"),
             "certifications": vendor_data.get("certifications", []),
             "diversity_classification": vendor_data.get("diversity_classification"),
+            "classification": vendor_data.get("classification", "internal"),
             "risk_score": risk_score,
             "compliance_checks": compliance_checks,
-            "status": "Pending Approval",
-            "created_at": datetime.utcnow().isoformat(),
-            "created_by": vendor_data.get("requester", "unknown"),
+            "status": "pending",
+            "created_at": created_at,
+            "created_by": vendor_data.get("requester", actor_id),
             "performance_metrics": {
                 "total_contracts": 0,
                 "total_spend": 0,
@@ -261,23 +331,38 @@ class VendorProcurementAgent(BaseAgent):
             },
         }
 
+        validation = await self._validate_vendor_record(
+            vendor=vendor,
+            tenant_id=tenant_id,
+        )
+        if not validation["is_valid"]:
+            raise ValueError("Vendor schema validation failed")
+
         # Store vendor
         self.vendors[vendor_id] = vendor
+        self.vendor_store.upsert(tenant_id, vendor_id, vendor)
 
         # Future work: Store in database
-        # Future work: Submit for approval via Approval Workflow Agent
         # Future work: Publish vendor.onboarded event
 
         return {
             "vendor_id": vendor_id,
-            "status": "Pending Approval",
+            "status": "pending",
             "legal_name": vendor["legal_name"],
             "risk_score": risk_score,
             "compliance_checks": compliance_checks,
+            "data_quality": validation,
             "next_steps": "Vendor pending approval. Submit required documentation.",
         }
 
-    async def _create_procurement_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_procurement_request(
+        self,
+        request_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Create a new procurement request.
 
@@ -300,6 +385,25 @@ class VendorProcurementAgent(BaseAgent):
         # Determine approval path
         approval_path = await self._determine_approval_path(request_data.get("estimated_cost", 0))
 
+        approval_required = request_data.get("estimated_cost", 0) > self.procurement_threshold
+        approval_payload = None
+        if approval_required:
+            approval_payload = await self.approval_agent.process(
+                {
+                    "request_type": "procurement",
+                    "request_id": request_id,
+                    "requester": request_data.get("requester", actor_id),
+                    "details": {
+                        "amount": request_data.get("estimated_cost", 0),
+                        "description": request_data.get("description"),
+                        "justification": request_data.get("justification"),
+                        "urgency": request_data.get("urgency", "medium"),
+                    },
+                    "tenant_id": tenant_id,
+                    "correlation_id": correlation_id,
+                }
+            )
+
         # Create procurement request
         request = {
             "request_id": request_id,
@@ -316,7 +420,8 @@ class VendorProcurementAgent(BaseAgent):
             "suggested_vendors": suggested_vendors,
             "budget_available": budget_check.get("available", False),
             "approval_path": approval_path,
-            "status": "Draft",
+            "status": "Pending Approval" if approval_required else "Draft",
+            "approval": approval_payload,
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -324,17 +429,21 @@ class VendorProcurementAgent(BaseAgent):
         self.procurement_requests[request_id] = request
 
         # Future work: Store in database
-        # Future work: Route to approval workflow if estimated_cost > threshold
 
         return {
             "request_id": request_id,
-            "status": "Draft",
+            "status": request["status"],
             "category": category,
             "estimated_cost": request["estimated_cost"],
             "budget_available": budget_check.get("available", False),
             "suggested_vendors": suggested_vendors,
-            "approval_required": request_data.get("estimated_cost", 0) > self.procurement_threshold,
-            "next_steps": "Review suggested vendors or generate RFP",
+            "approval_required": approval_required,
+            "approval": approval_payload,
+            "next_steps": (
+                "Await approvals before generating RFP"
+                if approval_required
+                else "Review suggested vendors or generate RFP"
+            ),
         }
 
     async def _generate_rfp(self, request_id: str, rfp_data: dict[str, Any]) -> dict[str, Any]:
@@ -565,7 +674,13 @@ class VendorProcurementAgent(BaseAgent):
             "next_steps": "Generate contract from approved templates",
         }
 
-    async def _create_contract(self, contract_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_contract(
+        self,
+        contract_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Create contract from template.
 
@@ -601,10 +716,12 @@ class VendorProcurementAgent(BaseAgent):
             "attachments": contract_data.get("attachments", []),
             "status": "Draft",
             "created_at": datetime.utcnow().isoformat(),
+            "created_by": contract_data.get("created_by", actor_id),
         }
 
         # Store contract
         self.contracts[contract_id] = contract
+        self.contract_store.upsert(tenant_id, contract_id, contract)
 
         # Future work: Store in database and document repository
         # Future work: Route for e-signature via DocuSign/Adobe Sign
@@ -621,7 +738,14 @@ class VendorProcurementAgent(BaseAgent):
             "next_steps": "Review contract and submit for approval and signatures",
         }
 
-    async def _create_purchase_order(self, po_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_purchase_order(
+        self,
+        po_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Create purchase order from approved procurement.
 
@@ -632,6 +756,26 @@ class VendorProcurementAgent(BaseAgent):
         # Generate PO number
         po_number = await self._generate_po_number()
 
+        total_value = await self._calculate_po_total(po_data.get("items", []))
+        approval_required = total_value > self.procurement_threshold
+        approval_payload = None
+        if approval_required:
+            approval_payload = await self.approval_agent.process(
+                {
+                    "request_type": "procurement",
+                    "request_id": po_number,
+                    "requester": po_data.get("requester", actor_id),
+                    "details": {
+                        "amount": total_value,
+                        "description": "Purchase order approval",
+                        "justification": po_data.get("justification"),
+                        "urgency": po_data.get("urgency", "medium"),
+                    },
+                    "tenant_id": tenant_id,
+                    "correlation_id": correlation_id,
+                }
+            )
+
         # Create PO
         purchase_order = {
             "po_number": po_number,
@@ -639,13 +783,14 @@ class VendorProcurementAgent(BaseAgent):
             "contract_id": po_data.get("contract_id"),
             "project_id": po_data.get("project_id"),
             "items": po_data.get("items", []),
-            "total_value": await self._calculate_po_total(po_data.get("items", [])),
+            "total_value": total_value,
             "currency": po_data.get("currency", self.default_currency),
             "delivery_schedule": po_data.get("delivery_schedule"),
             "delivery_address": po_data.get("delivery_address"),
             "payment_terms": po_data.get("payment_terms"),
             "approval_history": [],
-            "status": "Pending Approval",
+            "approval": approval_payload,
+            "status": "Pending Approval" if approval_required else "Approved",
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -653,19 +798,28 @@ class VendorProcurementAgent(BaseAgent):
         self.purchase_orders[po_number] = purchase_order
 
         # Future work: Store in database
-        # Future work: Route for approval via Approval Workflow Agent
         # Future work: Release to vendor upon approval
 
         return {
             "po_number": po_number,
             "vendor_id": purchase_order["vendor_id"],
             "total_value": purchase_order["total_value"],
-            "status": "Pending Approval",
+            "status": purchase_order["status"],
             "items_count": len(purchase_order["items"]),
-            "next_steps": "Submit for approval. Will be released to vendor upon approval.",
+            "approval": approval_payload,
+            "next_steps": (
+                "Await approval before release to vendor."
+                if approval_required
+                else "Release to vendor."
+            ),
         }
 
-    async def _submit_invoice(self, invoice_data: dict[str, Any]) -> dict[str, Any]:
+    async def _submit_invoice(
+        self,
+        invoice_data: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
         """
         Submit vendor invoice.
 
@@ -698,6 +852,7 @@ class VendorProcurementAgent(BaseAgent):
 
         # Store invoice
         self.invoices[invoice_id] = invoice
+        self.invoice_store.upsert(tenant_id, invoice_id, invoice)
 
         # Future work: Store in database
         # Future work: Initiate automatic reconciliation
@@ -1234,6 +1389,27 @@ class VendorProcurementAgent(BaseAgent):
             return False
 
         return True
+
+    async def _validate_vendor_record(
+        self, *, vendor: dict[str, Any], tenant_id: str
+    ) -> dict[str, Any]:
+        record = {
+            "id": vendor.get("vendor_id"),
+            "tenant_id": tenant_id,
+            "name": vendor.get("legal_name"),
+            "category": vendor.get("category"),
+            "status": vendor.get("status"),
+            "owner": vendor.get("created_by"),
+            "classification": vendor.get("classification", "internal"),
+            "created_at": vendor.get("created_at"),
+        }
+        if vendor.get("updated_at"):
+            record["updated_at"] = vendor.get("updated_at")
+        errors = validate_against_schema(self.vendor_schema_path, record)
+        if errors:
+            for error in errors:
+                self.logger.warning(f"Vendor schema error {error.path}: {error.message}")
+        return {"is_valid": len(errors) == 0, "issues": [error.message for error in errors]}
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
