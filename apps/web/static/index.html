@@ -13,17 +13,12 @@
         <p>Secure, tenant-aware access to workflows and portfolio services.</p>
       </header>
       <section class="card">
-        <h2>Authenticate</h2>
-        <label>
-          Tenant ID
-          <input id="tenant" type="text" placeholder="tenant-alpha" />
-        </label>
-        <label>
-          JWT Token
-          <textarea id="token" rows="3" placeholder="Paste a JWT"></textarea>
-        </label>
-        <button id="validate">Validate with Identity Access</button>
-        <div id="auth-status" class="status"></div>
+        <h2>Session</h2>
+        <p id="session-info" class="status">Checking session...</p>
+        <div class="actions">
+          <button id="login">Sign in with OIDC</button>
+          <button id="logout" class="secondary">Sign out</button>
+        </div>
       </section>
 
       <section class="card">

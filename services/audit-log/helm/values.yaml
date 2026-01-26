@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/your-org/audit-log
+  repository: ghcr.io/georgeprowse91/audit-log
   tag: "1.0.0"
   pullPolicy: IfNotPresent
 

@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py services/data-sync-service/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/data-sync-service
+  repository: ghcr.io/georgeprowse91/data-sync-service
   tag: "0.1.0"
 service:
   port: 8080

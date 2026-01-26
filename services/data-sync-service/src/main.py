@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -9,15 +10,20 @@ from uuid import uuid4
 
 import yaml
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from queue import get_queue_client
-from status import get_status_store
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+if str(SECURITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(SECURITY_ROOT))
+
+from data_sync_queue import get_queue_client  # noqa: E402
+from data_sync_status import get_status_store  # noqa: E402
+from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("data-sync-service")
 logging.basicConfig(level=logging.INFO)
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_RULES_DIR = REPO_ROOT / "services" / "data-sync-service" / "rules"
 
 
@@ -57,6 +63,7 @@ class SyncStatusResponse(BaseModel):
 
 
 app = FastAPI(title="Data Sync Service", version="0.1.0")
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 
 
 @app.get("/healthz", response_model=HealthResponse)

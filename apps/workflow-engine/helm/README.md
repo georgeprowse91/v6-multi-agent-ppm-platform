@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py apps/workflow-engine/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/workflow-engine
+  repository: ghcr.io/georgeprowse91/workflow-engine
   tag: "0.1.0"
 service:
   port: 8080

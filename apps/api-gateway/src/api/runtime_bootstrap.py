@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib
 import sys
 from pathlib import Path
+from typing import cast
 
 
 def bootstrap_runtime_paths() -> list[Path]:
@@ -14,4 +15,4 @@ def bootstrap_runtime_paths() -> list[Path]:
         sys.path.insert(0, str(repo_root))
 
     runtime_module = importlib.import_module("tools.runtime_paths")
-    return runtime_module.bootstrap_runtime_paths()
+    return cast(list[Path], runtime_module.bootstrap_runtime_paths())

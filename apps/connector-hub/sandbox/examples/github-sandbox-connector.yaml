@@ -12,8 +12,8 @@ connector:
     token_env: GITHUB_TOKEN
 sandbox:
   fixtures:
-    - path: /repos/your-org/ppm-platform
+    - path: /repos/georgeprowse91/multi-agent-ppm-platform
       response_file: fixtures/repo.json
-    - path: /repos/your-org/ppm-platform/issues
+    - path: /repos/georgeprowse91/multi-agent-ppm-platform/issues
       response_file: fixtures/issues.json
   rate_limit_per_minute: 120

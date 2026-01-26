@@ -2,10 +2,16 @@ name: Release
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      SIGNING_PRIVATE_KEY_B64: ${{ secrets.SIGNING_PRIVATE_KEY_B64 }}
+      SIGNING_PUBLIC_KEY_B64: ${{ secrets.SIGNING_PUBLIC_KEY_B64 }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,6 +32,11 @@ jobs:
         run: |
           pip install -e .
           python scripts/generate-sbom.py
+
+      - name: Verify signing material is available
+        run: |
+          test -n "$SIGNING_PRIVATE_KEY_B64"
+          test -n "$SIGNING_PUBLIC_KEY_B64"
 
       - name: Sign SBOM
         run: python scripts/sign-artifact.py

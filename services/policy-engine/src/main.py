@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -9,7 +10,13 @@ import yaml
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from policy_config import DEFAULT_POLICY_BUNDLE_PATH
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+if str(SECURITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(SECURITY_ROOT))
+
+from policy_config import DEFAULT_POLICY_BUNDLE_PATH  # noqa: E402
+from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("policy-engine")
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +50,7 @@ class RBACEvaluationResponse(BaseModel):
 
 
 app = FastAPI(title="Policy Engine", version="0.1.0")
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -74,8 +82,12 @@ def _build_role_permissions(roles_cfg: dict[str, Any]) -> dict[str, set[str]]:
     return role_permissions
 
 
-def _classification_allowed(field_cfg: dict[str, Any], classification: str, roles: list[str]) -> bool:
-    allowed = field_cfg.get("classification_access", {}).get(classification, {}).get("allowed_roles", [])
+def _classification_allowed(
+    field_cfg: dict[str, Any], classification: str, roles: list[str]
+) -> bool:
+    allowed = (
+        field_cfg.get("classification_access", {}).get(classification, {}).get("allowed_roles", [])
+    )
     return any(role in allowed for role in roles)
 
 
@@ -141,14 +153,16 @@ async def evaluate_rbac(request: RBACEvaluationRequest) -> RBACEvaluationRespons
         if request.permission in permissions:
             allowed = True
             break
-        reasons.append(f\"role:{role} lacks {request.permission}\")
+        reasons.append(f"role:{role} lacks {request.permission}")
 
-    if request.classification and not _classification_allowed(field_cfg, request.classification, request.roles):
+    if request.classification and not _classification_allowed(
+        field_cfg, request.classification, request.roles
+    ):
         allowed = False
-        reasons.append(f\"classification {request.classification} denied for roles {request.roles}\")
+        reasons.append(f"classification {request.classification} denied for roles {request.roles}")
 
-    decision = \"allow\" if allowed else \"deny\"
-    logger.info(\"rbac_evaluated\", extra={\"decision\": decision, \"permission\": request.permission})
+    decision = "allow" if allowed else "deny"
+    logger.info("rbac_evaluated", extra={"decision": decision, "permission": request.permission})
     return RBACEvaluationResponse(decision=decision, reasons=reasons)
 
 

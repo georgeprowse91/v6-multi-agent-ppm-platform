@@ -10,10 +10,7 @@ def main() -> int:
         print("No migrations directory found.")
         return 0
 
-    migration_files = [
-        path for path in migrations_dir.iterdir()
-        if path.is_file()
-    ]
+    migration_files = [path for path in migrations_dir.iterdir() if path.is_file()]
 
     if not migration_files:
         print("No migration files to validate.")
@@ -26,7 +23,9 @@ def main() -> int:
         if not prefix.isdigit():
             raise SystemExit(f"Migration {path.name} must start with a numeric prefix.")
         if prefix in prefixes:
-            raise SystemExit(f"Duplicate migration prefix {prefix} in {path.name} and {prefixes[prefix]}.")
+            raise SystemExit(
+                f"Duplicate migration prefix {prefix} in {path.name} and {prefixes[prefix]}."
+            )
         prefixes[prefix] = path.name
 
     print(f"Validated {len(migration_files)} migration file(s).")

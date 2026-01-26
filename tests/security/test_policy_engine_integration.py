@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
-
 import jwt
 from fastapi.testclient import TestClient
 
@@ -36,6 +34,7 @@ class DummyAsyncClient:
 def test_policy_engine_denies(monkeypatch) -> None:
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
     monkeypatch.setenv("POLICY_ENGINE_URL", "http://policy")
+    monkeypatch.setenv("POLICY_ENGINE_SERVICE_TOKEN", "service-token")
     monkeypatch.setattr("api.middleware.security.httpx.AsyncClient", DummyAsyncClient)
 
     token = jwt.encode(
@@ -44,6 +43,7 @@ def test_policy_engine_denies(monkeypatch) -> None:
             "roles": ["portfolio_admin"],
             "aud": "ppm-platform",
             "iss": "https://issuer.example.com",
+            "tenant_id": "tenant-alpha",
         },
         "test-secret",
         algorithm="HS256",

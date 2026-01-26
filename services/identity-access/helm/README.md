@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py services/identity-access/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/identity-access
+  repository: ghcr.io/georgeprowse91/identity-access
   tag: "0.1.0"
 service:
   port: 8080

@@ -26,6 +26,9 @@ __pycache__/
 .env
 .env.*
 
+# Signing keys
+config/signing/*_private.pem
+
 # Python virtual environments
 .venv/
 apps/prototype/.venv/

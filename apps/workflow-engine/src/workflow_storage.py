@@ -44,7 +44,9 @@ class WorkflowStore:
                 """
             )
 
-    def create(self, run_id: str, workflow_id: str, tenant_id: str, payload: dict[str, Any]) -> WorkflowInstance:
+    def create(
+        self, run_id: str, workflow_id: str, tenant_id: str, payload: dict[str, Any]
+    ) -> WorkflowInstance:
         now = datetime.now(timezone.utc).isoformat()
         instance = WorkflowInstance(
             run_id=run_id,

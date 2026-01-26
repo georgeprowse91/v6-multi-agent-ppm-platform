@@ -68,6 +68,7 @@ dev = [
     "ruff>=0.1.9",
     "mypy>=1.8.0",
     "pre-commit>=3.6.0",
+    "bandit>=1.7.6",
     "httpx>=0.26.0",  # For testing API
     "jsonschema>=4.21.1",
 ]
@@ -79,10 +80,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/multi-agent-ppm-platform"
-Documentation = "https://github.com/your-org/multi-agent-ppm-platform/tree/main/docs"
-Repository = "https://github.com/your-org/multi-agent-ppm-platform"
-Issues = "https://github.com/your-org/multi-agent-ppm-platform/issues"
+Homepage = "https://github.com/georgeprowse91/multi-agent-ppm-platform"
+Documentation = "https://github.com/georgeprowse91/multi-agent-ppm-platform/tree/main/docs"
+Repository = "https://github.com/georgeprowse91/multi-agent-ppm-platform"
+Issues = "https://github.com/georgeprowse91/multi-agent-ppm-platform/issues"
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
@@ -117,7 +118,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
-ignore = ["E501"]  # Line too long (handled by black)
+ignore = ["E501", "UP017"]  # Line too long (handled by black); UTC alias not in Py3.10
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused imports
@@ -126,13 +127,23 @@ ignore = ["E501"]  # Line too long (handled by black)
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
+ignore_missing_imports = true
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = true
 no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+exclude = '(apps|services)/.*/src/main.py|(apps|services)/.*/main.py'
 
 [[tool.mypy.overrides]]
 module = ["fastapi.*", "pydantic.*", "uvicorn.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["yaml", "yaml.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["opentelemetry.*"]
 ignore_missing_imports = true

@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py services/policy-engine/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/policy-engine
+  repository: ghcr.io/georgeprowse91/policy-engine
   tag: "0.1.0"
 service:
   port: 8080

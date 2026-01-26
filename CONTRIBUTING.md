@@ -35,7 +35,7 @@ This project adheres to a code of conduct that all contributors are expected to 
 
 ### Find an Issue
 
-1. Check the [Issues](https://github.com/your-org/multi-agent-ppm-platform/issues) page
+1. Check the [Issues](https://github.com/georgeprowse91/multi-agent-ppm-platform/issues) page
 2. Look for issues labeled:
    - `good first issue` - Great for newcomers
    - `help wanted` - We need help with these
@@ -53,7 +53,7 @@ git clone https://github.com/YOUR_USERNAME/multi-agent-ppm-platform.git
 cd multi-agent-ppm-platform
 
 # Add upstream remote
-git remote add upstream https://github.com/your-org/multi-agent-ppm-platform.git
+git remote add upstream https://github.com/georgeprowse91/multi-agent-ppm-platform.git
 ```
 
 ### 2. Install Dependencies
@@ -487,8 +487,8 @@ See [Connector Specifications](docs/connectors/overview.md) for detailed require
 
 ## Getting Help
 
-- **Questions**: Open a [Discussion](https://github.com/your-org/multi-agent-ppm-platform/discussions)
-- **Bugs**: Open an [Issue](https://github.com/your-org/multi-agent-ppm-platform/issues)
+- **Questions**: Open a [Discussion](https://github.com/georgeprowse91/multi-agent-ppm-platform/discussions)
+- **Bugs**: Open an [Issue](https://github.com/georgeprowse91/multi-agent-ppm-platform/issues)
 - **Documentation**: Check [docs/](docs/)
 
 ## Recognition

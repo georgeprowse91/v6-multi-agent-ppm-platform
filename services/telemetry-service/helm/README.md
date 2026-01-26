@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py services/telemetry-service/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/telemetry-service
+  repository: ghcr.io/georgeprowse91/telemetry-service
   tag: "0.1.0"
 service:
   port: 8080

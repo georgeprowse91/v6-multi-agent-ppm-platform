@@ -5,19 +5,36 @@ from datetime import datetime, timezone
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
+import jwt
 from fastapi.testclient import TestClient
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = SERVICE_ROOT / "src" / "main.py"
 
 spec = spec_from_file_location("audit_log_main", MODULE_PATH)
-module = module_from_spec(spec)
 assert spec and spec.loader
+module = module_from_spec(spec)
 sys.path.insert(0, str(SERVICE_ROOT / "src"))
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 
 client = TestClient(module.app)
+
+
+def _auth_headers(monkeypatch, tenant_id: str = "tenant-alpha") -> dict[str, str]:
+    monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
+    token = jwt.encode(
+        {
+            "sub": "user-123",
+            "roles": ["auditor"],
+            "aud": "ppm-platform",
+            "iss": "https://issuer.example.com",
+            "tenant_id": tenant_id,
+        },
+        "test-secret",
+        algorithm="HS256",
+    )
+    return {"Authorization": f"Bearer {token}", "X-Tenant-ID": tenant_id}
 
 
 def test_healthz() -> None:
@@ -28,16 +45,14 @@ def test_healthz() -> None:
 
 def test_ingest_and_fetch_event(monkeypatch) -> None:
     storage_path = (
-        Path(__file__).resolve().parents[3]
-        / "services"
-        / "audit-log"
-        / "storage"
-        / "immutable"
+        Path(__file__).resolve().parents[3] / "services" / "audit-log" / "storage" / "immutable"
     )
     if storage_path.exists():
         for path in storage_path.glob("*.enc"):
             path.unlink()
-    monkeypatch.setenv("AUDIT_LOG_ENCRYPTION_KEY", "Y2hhbmdlLW1lLW5vdC1wcm9kLWsxMjM0NTY3ODkwMTIzNDU2Nzg5MA==")
+    monkeypatch.setenv(
+        "AUDIT_LOG_ENCRYPTION_KEY", "Y2hhbmdlLW1lLW5vdC1wcm9kLWsxMjM0NTY3ODkwMTIzNDU2Nzg5MA=="
+    )
     monkeypatch.setenv("AUDIT_WORM_LOCAL_PATH", str(storage_path))
 
     payload = {
@@ -54,11 +69,11 @@ def test_ingest_and_fetch_event(monkeypatch) -> None:
         "correlation_id": "corr-1",
     }
 
-    response = client.post("/audit/events", json=payload)
+    response = client.post("/audit/events", json=payload, headers=_auth_headers(monkeypatch))
     assert response.status_code == 200
     assert response.json()["event"]["id"] == "evt-123"
 
-    fetch = client.get("/audit/events/evt-123")
+    fetch = client.get("/audit/events/evt-123", headers=_auth_headers(monkeypatch))
     assert fetch.status_code == 200
     assert fetch.json()["action"] == "project.create"
 

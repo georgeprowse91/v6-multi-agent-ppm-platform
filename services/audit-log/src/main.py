@@ -1,27 +1,31 @@
 from __future__ import annotations
 
 import logging
-import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import yaml
 from fastapi import FastAPI, HTTPException
 from jsonschema import Draft202012Validator
-from pydantic import BaseModel, Field
-import yaml
+from pydantic import BaseModel
 
 logger = logging.getLogger("audit-log")
 logging.basicConfig(level=logging.INFO)
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+if str(SECURITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(SECURITY_ROOT))
 SCHEMA_PATH = REPO_ROOT / "data" / "schemas" / "audit-event.schema.json"
 RETENTION_CONFIG_PATH = REPO_ROOT / "config" / "retention" / "policies.yaml"
 CLASSIFICATION_CONFIG_PATH = REPO_ROOT / "config" / "data-classification" / "levels.yaml"
 
-from storage import AuditRetentionPolicy, get_worm_storage
+from audit_storage import AuditRetentionPolicy, get_worm_storage  # noqa: E402
+from security.auth import AuthTenantMiddleware  # noqa: E402
 
 
 def _load_schema() -> dict[str, Any]:
@@ -73,6 +77,7 @@ class HealthResponse(BaseModel):
 
 
 app = FastAPI(title="Audit Log Service", version="0.1.0")
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -90,7 +95,11 @@ def _load_retention_policy(classification: str) -> AuditRetentionPolicy:
     retention_cfg = yaml.safe_load(RETENTION_CONFIG_PATH.read_text())
     classification_cfg = yaml.safe_load(CLASSIFICATION_CONFIG_PATH.read_text())
     policy_id = next(
-        (level.get("retention_policy") for level in classification_cfg.get("levels", []) if level["id"] == classification),
+        (
+            level.get("retention_policy")
+            for level in classification_cfg.get("levels", [])
+            if level["id"] == classification
+        ),
         None,
     )
     if not policy_id:

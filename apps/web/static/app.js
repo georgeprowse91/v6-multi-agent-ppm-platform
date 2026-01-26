@@ -1,71 +1,68 @@
-const authStatus = document.getElementById("auth-status");
+const sessionInfo = document.getElementById("session-info");
 const statusOutput = document.getElementById("status-output");
 const workflowOutput = document.getElementById("workflow-output");
-
-const tenantInput = document.getElementById("tenant");
-const tokenInput = document.getElementById("token");
-
-const loadConfig = async () => {
-  const response = await fetch("/config");
-  return response.json();
-};
-
-const getHeaders = () => {
-  const token = tokenInput.value.trim();
-  const tenant = tenantInput.value.trim();
-  return {
-    Authorization: `Bearer ${token}`,
-    "X-Tenant-ID": tenant,
-    "Content-Type": "application/json",
-  };
-};
 
 const setStatus = (element, message, ok = true) => {
   element.textContent = message;
   element.className = ok ? "status ok" : "status error";
 };
 
-const validateToken = async () => {
-  const config = await loadConfig();
-  const response = await fetch(`${config.identity_access_url}/auth/validate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: tokenInput.value.trim() }),
-  });
+const loadSession = async () => {
+  const response = await fetch("/session");
   const payload = await response.json();
-  if (payload.active) {
-    setStatus(authStatus, "Token validated. Tenant context locked.");
-  } else {
-    setStatus(authStatus, "Token invalid or expired.", false);
+  if (!payload.authenticated) {
+    setStatus(sessionInfo, "Not signed in.", false);
+    return payload;
   }
+  setStatus(
+    sessionInfo,
+    `Signed in as ${payload.subject || "user"} (tenant: ${payload.tenant_id})`,
+  );
+  return payload;
+};
+
+const login = async () => {
+  window.location.href = "/login";
+};
+
+const logout = async () => {
+  await fetch("/logout", { method: "POST" });
+  await loadSession();
+  statusOutput.textContent = "";
+  workflowOutput.textContent = "";
 };
 
 const loadStatus = async () => {
-  const config = await loadConfig();
-  const response = await fetch(`${config.api_gateway_url}/api/v1/status`, {
-    headers: getHeaders(),
-  });
+  const response = await fetch("/api/status");
+  if (!response.ok) {
+    const error = await response.json();
+    setStatus(sessionInfo, error.detail || "Authentication required.", false);
+    return;
+  }
   const payload = await response.json();
   statusOutput.textContent = JSON.stringify(payload, null, 2);
 };
 
 const startWorkflow = async () => {
-  const config = await loadConfig();
-  const response = await fetch(`${config.workflow_engine_url}/workflows/start`, {
+  const response = await fetch("/api/workflows/start", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       workflow_id: document.getElementById("workflow-id").value,
-      tenant_id: tenantInput.value.trim(),
-      classification: "internal",
-      payload: { request: "run" },
-      actor: { id: "ui-user", type: "user", roles: ["portfolio_admin"] },
     }),
   });
+  if (!response.ok) {
+    const error = await response.json();
+    workflowOutput.textContent = JSON.stringify(error, null, 2);
+    return;
+  }
   const payload = await response.json();
   workflowOutput.textContent = JSON.stringify(payload, null, 2);
 };
 
-document.getElementById("validate").addEventListener("click", validateToken);
+document.getElementById("login").addEventListener("click", login);
+document.getElementById("logout").addEventListener("click", logout);
 document.getElementById("load-status").addEventListener("click", loadStatus);
 document.getElementById("start-workflow").addEventListener("click", startWorkflow);
+
+loadSession();

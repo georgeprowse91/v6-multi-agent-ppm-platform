@@ -10,8 +10,8 @@ SERVICE_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = SERVICE_ROOT / "src" / "main.py"
 
 spec = spec_from_file_location("telemetry_main", MODULE_PATH)
-module = module_from_spec(spec)
 assert spec and spec.loader
+module = module_from_spec(spec)
 sys.path.insert(0, str(SERVICE_ROOT / "src"))
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)

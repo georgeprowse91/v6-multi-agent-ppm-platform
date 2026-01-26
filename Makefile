@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test lint format codegen check-links check-placeholders dev-up dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
+.PHONY: help install install-dev test lint format codegen check-links check-placeholders secret-scan dev-up dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
 
 # Default target
 .DEFAULT_GOAL := help
@@ -52,6 +52,9 @@ check-links: ## Validate internal markdown links
 
 check-placeholders: ## Scan for placeholder phrases in docs and configs
 	$(PYTHON) scripts/check-placeholders.py
+
+secret-scan: ## Scan repository for secrets (requires gitleaks)
+	gitleaks detect --source . --redact
 
 dev-up: ## Start the local development stack (docker-compose)
 	bash tools/local-dev/dev_up.sh

@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py apps/api-gateway/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/api-gateway
+  repository: ghcr.io/georgeprowse91/api-gateway
   tag: "0.1.0"
 service:
   port: 8080

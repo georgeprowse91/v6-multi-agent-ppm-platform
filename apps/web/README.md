@@ -1,7 +1,7 @@
 # Production Web Console
 
-Production-grade web console for the Multi-Agent PPM platform. The UI authenticates via the identity-access
-service, stores tenant context, and calls the API gateway with tenant-aware headers.
+Production-grade web console for the Multi-Agent PPM platform. The UI authenticates via OIDC, stores
+server-side sessions, and calls downstream services with tenant-aware headers.
 
 ## Quickstart
 
@@ -17,8 +17,8 @@ Open the UI at `http://localhost:8501`.
 
 ## Features
 
-- Token validation via `identity-access`.
-- Tenant-aware calls to `api-gateway`.
+- OIDC login + server-side session management.
+- Tenant-aware calls to `api-gateway` and `workflow-engine`.
 - Workflow start action via `workflow-engine`.
 
 ## Configuration
@@ -26,8 +26,18 @@ Open the UI at `http://localhost:8501`.
 Environment variables:
 
 - `API_GATEWAY_URL` (default: `http://localhost:8000`)
-- `IDENTITY_ACCESS_URL` (default: `http://localhost:8081`)
 - `WORKFLOW_ENGINE_URL` (default: `http://localhost:8082`)
+- `OIDC_CLIENT_ID` (required)
+- `OIDC_CLIENT_SECRET` (required for confidential clients)
+- `OIDC_AUTH_URL` (required)
+- `OIDC_TOKEN_URL` (required)
+- `OIDC_REDIRECT_URI` (required)
+- `OIDC_JWKS_URL` (required unless `OIDC_INSECURE_SKIP_VERIFY=true`)
+- `OIDC_ISSUER` (optional)
+- `OIDC_AUDIENCE` (optional)
+- `OIDC_LOGOUT_URL` (optional)
+- `OIDC_SCOPE` (default: `openid profile email`)
+- `OIDC_TENANT_CLAIM` (default: `tenant_id`)
 
 ## Key files
 

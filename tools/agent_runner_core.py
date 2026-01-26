@@ -10,7 +10,7 @@ import inspect
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from agents.runtime import BaseAgent
 
@@ -72,7 +72,7 @@ def _load_config() -> dict[str, Any]:
     raw = os.getenv("AGENT_CONFIG_JSON", "").strip()
     if not raw:
         return {}
-    return json.loads(raw)
+    return cast(dict[str, Any], json.loads(raw))
 
 
 def main() -> None:
@@ -89,6 +89,7 @@ def main() -> None:
     if agent_path:
         module = _load_module_from_path(Path(agent_path))
     else:
+        assert agent_module
         module = importlib.import_module(agent_module)
 
     agent_cls = _resolve_agent_class(module, agent_class)
