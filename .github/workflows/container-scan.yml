@@ -3,23 +3,32 @@ name: Container Scan
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   container-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@9ad3d4edb5c7d8a1cf3f5ebd2a55e6c9dc0d0f9c
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-container-scan.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          ignore-unfixed: true
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@c2b0e3387a8d6d0b8d1ac85e8c1f1a6c1c5d2b12
         if: always()
         with:
           sarif_file: 'trivy-container-scan.sarif'

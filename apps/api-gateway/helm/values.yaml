@@ -13,3 +13,13 @@ env:
   LOG_LEVEL: info
   IDENTITY_ACCESS_URL: "http://identity-access:8080"
   POLICY_ENGINE_URL: "http://policy-engine:8080"
+
+keyVault:
+  enabled: false
+  name: ""
+  tenantId: ""
+  clientId: ""
+  secretName: "ppm-secrets"
+  secrets:
+    identityJwtSecret: "identity-jwt-secret"
+    policyEngineServiceToken: "policy-engine-service-token"

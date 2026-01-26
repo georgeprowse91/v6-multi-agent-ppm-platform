@@ -3,14 +3,17 @@ name: IaC Scan
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   iac-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Run Checkov scan
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@8c8d7b3d1f5f9971d9ab57d1b0b6f7d2d9b9e01d
         with:
           directory: infra

@@ -15,6 +15,9 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "name" . }}
     spec:
+      {{- if .Values.keyVault.enabled }}
+      serviceAccountName: {{ include "name" . }}-kv
+      {{- end }}
       containers:
         - name: {{ include "name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -28,9 +31,36 @@ spec:
               value: {{ .Values.env.IDENTITY_ACCESS_URL | quote }}
             - name: POLICY_ENGINE_URL
               value: {{ .Values.env.POLICY_ENGINE_URL | quote }}
+            {{- if .Values.keyVault.enabled }}
+            - name: IDENTITY_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keyVault.secretName | quote }}
+                  key: {{ .Values.keyVault.secrets.identityJwtSecret | quote }}
+            - name: POLICY_ENGINE_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keyVault.secretName | quote }}
+                  key: {{ .Values.keyVault.secrets.policyEngineServiceToken | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /healthz
               port: {{ .Values.service.port }}
             initialDelaySeconds: 5
             periodSeconds: 10
+          {{- if .Values.keyVault.enabled }}
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          {{- end }}
+      {{- if .Values.keyVault.enabled }}
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "name" . }}-kv
+      {{- end }}

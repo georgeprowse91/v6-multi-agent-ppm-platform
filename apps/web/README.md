@@ -32,7 +32,7 @@ Environment variables:
 - `OIDC_AUTH_URL` (required)
 - `OIDC_TOKEN_URL` (required)
 - `OIDC_REDIRECT_URI` (required)
-- `OIDC_JWKS_URL` (required unless `OIDC_INSECURE_SKIP_VERIFY=true`)
+- `OIDC_JWKS_URL` (required)
 - `OIDC_ISSUER` (optional)
 - `OIDC_AUDIENCE` (optional)
 - `OIDC_LOGOUT_URL` (optional)

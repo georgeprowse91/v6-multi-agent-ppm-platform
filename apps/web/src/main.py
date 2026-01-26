@@ -115,17 +115,9 @@ async def _exchange_code_for_token(code: str) -> dict[str, Any]:
 
 
 async def _decode_id_token(id_token: str) -> dict[str, Any]:
-    jwks_url = _oidc_optional("OIDC_JWKS_URL")
+    jwks_url = _oidc_required("OIDC_JWKS_URL")
     audience = _oidc_optional("OIDC_AUDIENCE")
     issuer = _oidc_optional("OIDC_ISSUER")
-    insecure = os.getenv("OIDC_INSECURE_SKIP_VERIFY", "false").lower() == "true"
-
-    if not jwks_url:
-        if insecure:
-            return jwt.decode(id_token, options={"verify_signature": False})
-        raise HTTPException(
-            status_code=500, detail="OIDC_JWKS_URL is required for token verification"
-        )
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(jwks_url)

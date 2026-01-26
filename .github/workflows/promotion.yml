@@ -8,18 +8,30 @@ on:
         required: true
         default: "latest"
 
+permissions:
+  contents: read
+
 jobs:
   deploy-staging:
     name: Promote to Staging
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     environment:
       name: staging
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@b7243f2f9f8e1a3d4c5e6f7a8b9c0d1e2f3a4b5c
+
+      - name: Validate image tag input
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "${{ inputs.image_tag }}" | grep -Eq '^[A-Za-z0-9._-]{1,128}$'; then
+            echo "::error::Invalid image tag format"
+            exit 1
+          fi
 
       - name: Configure kubeconfig
         run: |
@@ -51,14 +63,23 @@ jobs:
     name: Promote to Production
     runs-on: ubuntu-latest
     needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
     environment:
       name: production
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@b7243f2f9f8e1a3d4c5e6f7a8b9c0d1e2f3a4b5c
+
+      - name: Validate image tag input
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "${{ inputs.image_tag }}" | grep -Eq '^[A-Za-z0-9._-]{1,128}$'; then
+            echo "::error::Invalid image tag format"
+            exit 1
+          fi
 
       - name: Configure kubeconfig
         run: |

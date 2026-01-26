@@ -20,6 +20,7 @@ if str(SECURITY_ROOT) not in sys.path:
 from data_sync_queue import get_queue_client  # noqa: E402
 from data_sync_status import get_status_store  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.lineage import mask_lineage_payload  # noqa: E402
 
 logger = logging.getLogger("data-sync-service")
 logging.basicConfig(level=logging.INFO)
@@ -83,6 +84,14 @@ def _load_rules() -> list[SyncRule]:
     return rules
 
 
+def _mask_lineage(details: dict[str, Any]) -> dict[str, Any]:
+    if "lineage" not in details:
+        return details
+    masked = dict(details)
+    masked["lineage"] = mask_lineage_payload(details["lineage"])
+    return masked
+
+
 @app.post("/sync/run", response_model=SyncRunResponse)
 async def run_sync(request: SyncRunRequest) -> SyncRunResponse:
     rules = _load_rules()
@@ -126,7 +135,9 @@ async def get_sync_status(job_id: str) -> SyncStatusResponse:
     job = status_store.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return SyncStatusResponse(**job.__dict__)
+    payload = job.__dict__.copy()
+    payload["details"] = _mask_lineage(payload.get("details", {}))
+    return SyncStatusResponse(**payload)
 
 
 if __name__ == "__main__":
