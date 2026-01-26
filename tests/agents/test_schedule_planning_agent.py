@@ -2,6 +2,23 @@ import pytest
 from schedule_planning_agent import SchedulePlanningAgent
 
 
+class EventCollector:
+    def __init__(self) -> None:
+        self.events: list[tuple[str, dict]] = []
+
+    async def publish(self, topic: str, payload: dict) -> None:
+        self.events.append((topic, payload))
+
+
+class ChangeStub:
+    def __init__(self) -> None:
+        self.requests: list[dict] = []
+
+    async def process(self, input_data: dict) -> dict:
+        self.requests.append(input_data)
+        return {"change_id": "chg-1", "status": "submitted"}
+
+
 @pytest.mark.asyncio
 async def test_schedule_planning_cpm_and_monte_carlo():
     agent = SchedulePlanningAgent(config={"simulation_seed": 7})
@@ -33,3 +50,47 @@ async def test_schedule_planning_cpm_and_monte_carlo():
     results = await agent._run_monte_carlo(schedule_id, iterations=50)
     assert results["iterations"] == 50
     assert results["risk_drivers"]
+
+
+@pytest.mark.asyncio
+async def test_schedule_baseline_and_variance_events(tmp_path):
+    event_bus = EventCollector()
+    change_stub = ChangeStub()
+    agent = SchedulePlanningAgent(
+        config={
+            "event_bus": event_bus,
+            "change_agent": change_stub,
+            "schedule_store_path": tmp_path / "schedules.json",
+            "schedule_baseline_store_path": tmp_path / "baselines.json",
+        }
+    )
+    await agent.initialize()
+
+    schedule_id = "sched-1"
+    agent.schedules[schedule_id] = {
+        "schedule_id": schedule_id,
+        "project_id": "proj-1",
+        "tasks": [],
+        "dependencies": [],
+        "milestones": [],
+        "project_duration_days": 10,
+        "start_date": "2024-01-01T00:00:00",
+        "end_date": "2024-01-11T00:00:00",
+    }
+    agent.schedule_store.upsert("tenant-a", schedule_id, agent.schedules[schedule_id])
+
+    baseline = await agent._manage_baseline(
+        schedule_id, tenant_id="tenant-a", correlation_id="corr-1"
+    )
+    assert baseline["baseline_id"]
+    assert any(topic == "schedule.baseline.locked" for topic, _ in event_bus.events)
+
+    agent.schedules[schedule_id]["project_duration_days"] = 15
+    agent.schedule_store.upsert("tenant-a", schedule_id, agent.schedules[schedule_id])
+
+    variance = await agent._track_variance(
+        schedule_id, tenant_id="tenant-a", correlation_id="corr-2"
+    )
+    assert variance["schedule_variance_days"] < 0
+    assert any(topic == "schedule.delay" for topic, _ in event_bus.events)
+    assert change_stub.requests

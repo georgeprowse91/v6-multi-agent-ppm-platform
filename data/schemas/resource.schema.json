@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Resource",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "name": {"type": "string"},
+    "role": {"type": "string"},
+    "location": {"type": "string"},
+    "status": {"type": "string", "enum": ["Active", "Inactive", "On Leave"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "metadata": {"type": "object"}
+  },
+  "required": ["id", "tenant_id", "name", "role", "status", "created_at"]
+}

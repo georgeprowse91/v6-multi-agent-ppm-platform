@@ -8,10 +8,16 @@ and programs. Provides real-time insights into availability, utilization and ski
 Specification: agents/delivery-management/agent-11-resource-capacity/README.md
 """
 
+import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, cast
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
+from data_quality.rules import evaluate_quality_rules
+from events import ResourceAllocationCreatedEvent
+from observability.tracing import get_trace_id
 
 
 class ResourceCapacityAgent(BaseAgent):
@@ -47,12 +53,28 @@ class ResourceCapacityAgent(BaseAgent):
         self.forecast_horizon_months = config.get("forecast_horizon_months", 12) if config else 12
         self.utilization_target = config.get("utilization_target", 0.85) if config else 0.85
 
+        resource_store_path = (
+            Path(config.get("resource_store_path", "data/resource_pool.json"))
+            if config
+            else Path("data/resource_pool.json")
+        )
+        allocation_store_path = (
+            Path(config.get("allocation_store_path", "data/resource_allocations.json"))
+            if config
+            else Path("data/resource_allocations.json")
+        )
+        self.resource_store = TenantStateStore(resource_store_path)
+        self.allocation_store = TenantStateStore(allocation_store_path)
+
         # Data stores (will be replaced with database connections)
         self.resource_pool: dict[str, Any] = {}
         self.capacity_calendar: dict[str, Any] = {}
         self.allocations: dict[str, Any] = {}
         self.demand_requests: dict[str, Any] = {}
         self.utilization_metrics: dict[str, Any] = {}
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -157,17 +179,28 @@ class ResourceCapacityAgent(BaseAgent):
             - get_resource_pool: Complete resource pool data
         """
         action = input_data.get("action", "add_resource")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         if action == "add_resource":
-            return await self._add_resource(input_data.get("resource", {}))
+            return await self._add_resource(
+                input_data.get("resource", {}), tenant_id=tenant_id
+            )
 
         elif action == "request_resource":
-            return await self._request_resource(input_data.get("request", {}))
+            return await self._request_resource(
+                input_data.get("request", {}), tenant_id=tenant_id
+            )
 
         elif action == "approve_request":
             request_id = input_data.get("request_id")
             assert isinstance(request_id, str), "request_id must be a string"
-            return await self._approve_request(request_id, input_data.get("approval_decision", {}))
+            return await self._approve_request(
+                request_id, input_data.get("approval_decision", {}), tenant_id=tenant_id
+            )
 
         elif action == "search_resources":
             return await self._search_resources(input_data.get("search_criteria", {}))
@@ -187,12 +220,18 @@ class ResourceCapacityAgent(BaseAgent):
             return await self._scenario_analysis(input_data.get("scenario_params", {}))
 
         elif action == "allocate_resource":
-            return await self._allocate_resource(input_data.get("allocation", {}))
+            return await self._allocate_resource(
+                input_data.get("allocation", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "get_availability":
             resource_id = input_data.get("resource_id")
             assert isinstance(resource_id, str), "resource_id must be a string"
-            return await self._get_availability(resource_id, input_data.get("date_range", {}))
+            return await self._get_availability(
+                resource_id, input_data.get("date_range", {}), tenant_id=tenant_id
+            )
 
         elif action == "get_utilization":
             return await self._get_utilization(input_data.get("filters", {}))
@@ -201,12 +240,14 @@ class ResourceCapacityAgent(BaseAgent):
             return await self._identify_conflicts(input_data.get("filters", {}))
 
         elif action == "get_resource_pool":
-            return await self._get_resource_pool(input_data.get("filters", {}))
+            return await self._get_resource_pool(input_data.get("filters", {}), tenant_id=tenant_id)
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _add_resource(self, resource_data: dict[str, Any]) -> dict[str, Any]:
+    async def _add_resource(
+        self, resource_data: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Add a resource to the pool.
 
@@ -247,8 +288,11 @@ class ResourceCapacityAgent(BaseAgent):
             "holidays": [],
         }
 
+        validation = await self._validate_resource_record(resource_profile, tenant_id=tenant_id)
+
         # Store resource
         self.resource_pool[resource_id] = resource_profile
+        self.resource_store.upsert(tenant_id, resource_id, resource_profile)
 
         # Future work: Store in Azure SQL Database
         # Future work: Sync with Azure AD
@@ -256,9 +300,16 @@ class ResourceCapacityAgent(BaseAgent):
 
         self.logger.info(f"Added resource: {resource_id}")
 
-        return {"resource_id": resource_id, "profile": resource_profile, "status": "Active"}
+        return {
+            "resource_id": resource_id,
+            "profile": resource_profile,
+            "status": "Active",
+            "data_quality": validation,
+        }
 
-    async def _request_resource(self, request_data: dict[str, Any]) -> dict[str, Any]:
+    async def _request_resource(
+        self, request_data: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Submit a resource request.
 
@@ -327,7 +378,7 @@ class ResourceCapacityAgent(BaseAgent):
         }
 
     async def _approve_request(
-        self, request_id: str, approval_decision: dict[str, Any]
+        self, request_id: str, approval_decision: dict[str, Any], *, tenant_id: str
     ) -> dict[str, Any]:
         """
         Approve or reject a resource request.
@@ -578,7 +629,9 @@ class ResourceCapacityAgent(BaseAgent):
             "recommendation": await self._generate_scenario_recommendation(comparison),
         }
 
-    async def _allocate_resource(self, allocation_data: dict[str, Any]) -> dict[str, Any]:
+    async def _allocate_resource(
+        self, allocation_data: dict[str, Any], *, tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
         """
         Allocate a resource to a project/task.
 
@@ -623,12 +676,14 @@ class ResourceCapacityAgent(BaseAgent):
         if resource_id not in self.allocations:
             self.allocations[resource_id] = []
         self.allocations[resource_id].append(allocation)
+        self.allocation_store.upsert(tenant_id, allocation_id, allocation)
 
         # Update resource availability
         await self._update_resource_availability(resource_id)
 
-        # Future work: Store in database
-        # Future work: Publish allocation.created event
+        await self._publish_allocation_event(
+            allocation, tenant_id=tenant_id, correlation_id=correlation_id
+        )
         # Future work: Send notification to resource and project manager
 
         self.logger.info(f"Created allocation: {allocation_id}")
@@ -636,7 +691,7 @@ class ResourceCapacityAgent(BaseAgent):
         return allocation
 
     async def _get_availability(
-        self, resource_id: str, date_range: dict[str, Any]
+        self, resource_id: str, date_range: dict[str, Any], *, tenant_id: str
     ) -> dict[str, Any]:
         """
         Get resource availability for a date range.
@@ -646,6 +701,10 @@ class ResourceCapacityAgent(BaseAgent):
         self.logger.info(f"Getting availability for resource: {resource_id}")
 
         resource = self.resource_pool.get(resource_id)
+        if not resource:
+            resource = self.resource_store.get(tenant_id, resource_id)
+            if resource:
+                self.resource_pool[resource_id] = resource
         if not resource:
             raise ValueError(f"Resource not found: {resource_id}")
 
@@ -775,7 +834,9 @@ class ResourceCapacityAgent(BaseAgent):
             "recommendations": recommendations,
         }
 
-    async def _get_resource_pool(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _get_resource_pool(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """Retrieve resource pool data."""
         role_filter = filters.get("role")
         location_filter = filters.get("location")
@@ -783,7 +844,15 @@ class ResourceCapacityAgent(BaseAgent):
 
         filtered_resources = []
 
-        for resource_id, resource in self.resource_pool.items():
+        resources = list(self.resource_pool.values())
+        if not resources:
+            resources = self.resource_store.list(tenant_id)
+            for resource in resources:
+                resource_id = resource.get("resource_id")
+                if resource_id:
+                    self.resource_pool[resource_id] = resource
+
+        for resource in resources:
             if role_filter and resource.get("role") != role_filter:
                 continue
             if location_filter and resource.get("location") != location_filter:
@@ -809,7 +878,52 @@ class ResourceCapacityAgent(BaseAgent):
     async def _generate_allocation_id(self) -> str:
         """Generate unique allocation ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        return f"ALLOC-{timestamp}"
+        return f"ALLOC-{timestamp}-{uuid.uuid4().hex[:6]}"
+
+    async def _validate_resource_record(
+        self, resource_profile: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
+        record = {
+            "id": resource_profile.get("resource_id"),
+            "tenant_id": tenant_id,
+            "name": resource_profile.get("name"),
+            "role": resource_profile.get("role"),
+            "location": resource_profile.get("location"),
+            "status": resource_profile.get("status"),
+            "created_at": resource_profile.get("created_at"),
+            "metadata": {
+                "skills": resource_profile.get("skills"),
+                "certifications": resource_profile.get("certifications"),
+                "availability": resource_profile.get("availability"),
+                "cost_rate": resource_profile.get("cost_rate"),
+            },
+        }
+        report = evaluate_quality_rules("resource", record)
+        return {
+            "is_valid": report.is_valid,
+            "issues": [issue.__dict__ for issue in report.issues],
+        }
+
+    async def _publish_allocation_event(
+        self, allocation: dict[str, Any], *, tenant_id: str, correlation_id: str
+    ) -> None:
+        event = ResourceAllocationCreatedEvent(
+            event_name="resource.allocation.created",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload={
+                "allocation_id": allocation.get("allocation_id", ""),
+                "resource_id": allocation.get("resource_id", ""),
+                "project_id": allocation.get("project_id", ""),
+                "start_date": allocation.get("start_date", ""),
+                "end_date": allocation.get("end_date", ""),
+                "allocation_percentage": allocation.get("allocation_percentage", 0),
+            },
+        )
+        await self.event_bus.publish("resource.allocation.created", event.model_dump())
 
     async def _check_availability(
         self, resource_id: str, start_date: str, end_date: str, effort: float

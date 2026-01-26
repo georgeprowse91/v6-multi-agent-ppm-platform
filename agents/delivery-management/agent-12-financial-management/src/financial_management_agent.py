@@ -9,6 +9,7 @@ Specification: agents/delivery-management/agent-12-financial-management/README.m
 """
 
 import json
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,11 @@ from typing import Any
 import httpx
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.state_store import TenantStateStore
+from approval_workflow_agent import ApprovalWorkflowAgent
+from data_quality.rules import evaluate_quality_rules
+from observability.tracing import get_trace_id
 
 
 class FinancialManagementAgent(BaseAgent):
@@ -57,11 +63,34 @@ class FinancialManagementAgent(BaseAgent):
             else ["labor", "overhead", "materials", "contracts", "travel", "software", "other"]
         )
 
+        budget_store_path = (
+            Path(config.get("budget_store_path", "data/financial_budgets.json"))
+            if config
+            else Path("data/financial_budgets.json")
+        )
+        actuals_store_path = (
+            Path(config.get("actuals_store_path", "data/financial_actuals.json"))
+            if config
+            else Path("data/financial_actuals.json")
+        )
+        forecast_store_path = (
+            Path(config.get("forecast_store_path", "data/financial_forecasts.json"))
+            if config
+            else Path("data/financial_forecasts.json")
+        )
+        self.budget_store = TenantStateStore(budget_store_path)
+        self.actuals_store = TenantStateStore(actuals_store_path)
+        self.forecast_store = TenantStateStore(forecast_store_path)
+
         # Data stores (will be replaced with database)
         self.budgets = {}  # type: ignore
         self.actuals = {}  # type: ignore
         self.forecasts = {}  # type: ignore
         self.variances = {}  # type: ignore
+        self.approval_agent = config.get("approval_agent") if config else None
+        if self.approval_agent is None:
+            approval_config = config.get("approval_agent_config", {}) if config else {}
+            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
         self.exchange_rate_provider = ExchangeRateProvider(
             fixture_path=Path(
                 config.get("exchange_rate_fixture", "data/fixtures/exchange_rates.json")
@@ -158,43 +187,69 @@ class FinancialManagementAgent(BaseAgent):
             - calculate_profitability: ROI, NPV, IRR metrics
         """
         action = input_data.get("action", "get_financial_summary")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+        actor_id = context.get("user_id") or input_data.get("actor_id") or "system"
 
         if action == "create_budget":
-            return await self._create_budget(input_data.get("budget", {}))
+            return await self._create_budget(
+                input_data.get("budget", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "track_costs":
-            return await self._track_costs(input_data.get("costs", {}))
+            return await self._track_costs(
+                input_data.get("costs", {}), tenant_id=tenant_id, actor_id=actor_id
+            )
 
         elif action == "generate_forecast":
             return await self._generate_forecast(
-                input_data.get("project_id"), input_data.get("time_period", {})  # type: ignore
+                input_data.get("project_id"),  # type: ignore
+                input_data.get("time_period", {}),
+                tenant_id=tenant_id,
             )
 
         elif action == "analyze_variance":
             return await self._analyze_variance(
-                input_data.get("project_id"), input_data.get("time_period", {})  # type: ignore
+                input_data.get("project_id"), input_data.get("time_period", {}), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "calculate_evm":
-            return await self._calculate_evm(input_data.get("project_id"))  # type: ignore
+            return await self._calculate_evm(input_data.get("project_id"), tenant_id=tenant_id)  # type: ignore
 
         elif action == "get_financial_summary":
             return await self._get_financial_summary(
-                input_data.get("project_id"), input_data.get("portfolio_id")
+                input_data.get("project_id"), input_data.get("portfolio_id"), tenant_id=tenant_id
             )
 
         elif action == "generate_report":
             return await self._generate_report(
-                input_data.get("report_type", "summary"), input_data.get("filters", {})
+                input_data.get("report_type", "summary"),
+                input_data.get("filters", {}),
+                tenant_id=tenant_id,
             )
 
         elif action == "update_budget":
             return await self._update_budget(
-                input_data.get("budget_id"), input_data.get("updates", {})  # type: ignore
+                input_data.get("budget_id"),  # type: ignore
+                input_data.get("updates", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
             )
 
         elif action == "approve_budget":
-            return await self._approve_budget(input_data.get("budget_id"))  # type: ignore
+            return await self._approve_budget(
+                input_data.get("budget_id"),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "convert_currency":
             return await self._convert_currency(
@@ -204,12 +259,21 @@ class FinancialManagementAgent(BaseAgent):
             )
 
         elif action == "calculate_profitability":
-            return await self._calculate_profitability(input_data.get("project_id"))  # type: ignore
+            return await self._calculate_profitability(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _create_budget(self, budget_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_budget(
+        self,
+        budget_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Create a new budget baseline.
 
@@ -247,8 +311,29 @@ class FinancialManagementAgent(BaseAgent):
             "wbs_allocation": budget_data.get("wbs_allocation", {}),
         }
 
+        validation = await self._validate_budget_record(
+            budget, tenant_id=tenant_id, portfolio_id=budget_data.get("portfolio_id")
+        )
+
         # Store budget
         self.budgets[budget_id] = budget
+        self.budget_store.upsert(tenant_id, budget_id, budget)
+
+        approval = await self._request_budget_approval(
+            budget_id=budget_id,
+            budget=budget,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            requester=actor_id,
+        )
+
+        self._emit_budget_audit(
+            action="budget.created",
+            budget=budget,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=actor_id,
+        )
 
         # Future work: Store in database
         # Future work: Validate funding availability with ERP
@@ -261,9 +346,13 @@ class FinancialManagementAgent(BaseAgent):
             "cost_breakdown": cost_breakdown,
             "next_steps": "Submit budget for approval via Approval Workflow Agent",
             "created_at": budget["created_at"],
+            "data_quality": validation,
+            "approval": approval,
         }
 
-    async def _track_costs(self, cost_data: dict[str, Any]) -> dict[str, Any]:
+    async def _track_costs(
+        self, cost_data: dict[str, Any], *, tenant_id: str, actor_id: str
+    ) -> dict[str, Any]:
         """
         Track actual costs and accruals.
 
@@ -299,7 +388,21 @@ class FinancialManagementAgent(BaseAgent):
 
         self.actuals[project_id]["by_category"] = by_category
 
-        # Future work: Store in database
+        if project_id:
+            self.actuals_store.upsert(tenant_id, project_id, self.actuals[project_id])
+
+        self._emit_budget_audit(
+            action="budget.costs.tracked",
+            budget={
+                "project_id": project_id,
+                "amount": total_actual,
+                "currency": self.default_currency,
+            },
+            tenant_id=tenant_id,
+            correlation_id=None,
+            actor_id=actor_id,
+        )
+
         # Future work: Trigger variance alerts if thresholds exceeded
 
         return {
@@ -312,7 +415,7 @@ class FinancialManagementAgent(BaseAgent):
         }
 
     async def _generate_forecast(
-        self, project_id: str, time_period: dict[str, Any]
+        self, project_id: str, time_period: dict[str, Any], *, tenant_id: str
     ) -> dict[str, Any]:
         """
         Generate rolling forecast using AI-driven models.
@@ -346,6 +449,7 @@ class FinancialManagementAgent(BaseAgent):
             "generated_at": datetime.utcnow().isoformat(),
             "time_period": time_period,
         }
+        self.forecast_store.upsert(tenant_id, project_id, self.forecasts[project_id])
 
         # Future work: Store in database
         # Future work: Publish forecast.updated event
@@ -354,13 +458,15 @@ class FinancialManagementAgent(BaseAgent):
             "project_id": project_id,
             "forecast": forecast,
             "eac": eac,
-            "variance_from_baseline": await self._calculate_forecast_variance(project_id, eac),
+            "variance_from_baseline": await self._calculate_forecast_variance(
+                project_id, eac, tenant_id=tenant_id
+            ),
             "confidence_interval": await self._calculate_confidence_interval(forecast),
             "generated_at": datetime.utcnow().isoformat(),
         }
 
     async def _analyze_variance(
-        self, project_id: str, time_period: dict[str, Any]
+        self, project_id: str, time_period: dict[str, Any], *, tenant_id: str
     ) -> dict[str, Any]:
         """
         Analyze cost and schedule variances.
@@ -370,16 +476,16 @@ class FinancialManagementAgent(BaseAgent):
         self.logger.info(f"Analyzing variance for project: {project_id}")
 
         # Get budget baseline
-        budget = await self._get_budget_for_project(project_id)
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
         if not budget:
             raise ValueError(f"No budget found for project: {project_id}")
 
         # Get actual costs
-        actuals = self.actuals.get(project_id, {})
+        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
         total_actual = actuals.get("total_actual", 0)
 
         # Get forecast/EAC
-        forecast = self.forecasts.get(project_id, {})
+        forecast = self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
         eac = forecast.get("eac", budget.get("total_amount", 0))
 
         # Calculate variances
@@ -390,7 +496,9 @@ class FinancialManagementAgent(BaseAgent):
         forecast_variance_pct = forecast_variance / budget.get("total_amount", 1)
 
         # Analyze variance by category
-        variance_by_category = await self._analyze_variance_by_category(project_id, budget)
+        variance_by_category = await self._analyze_variance_by_category(
+            project_id, budget, tenant_id=tenant_id
+        )
 
         # Identify variance drivers
         drivers = await self._identify_variance_drivers(project_id, variance_by_category)
@@ -433,7 +541,7 @@ class FinancialManagementAgent(BaseAgent):
             "analyzed_at": datetime.utcnow().isoformat(),
         }
 
-    async def _calculate_evm(self, project_id: str) -> dict[str, Any]:
+    async def _calculate_evm(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """
         Calculate Earned Value Management metrics.
 
@@ -442,8 +550,8 @@ class FinancialManagementAgent(BaseAgent):
         self.logger.info(f"Calculating EVM metrics for project: {project_id}")
 
         # Get budget and actuals
-        budget = await self._get_budget_for_project(project_id)
-        actuals = self.actuals.get(project_id, {})
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
+        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
 
         # Get schedule progress from Schedule Agent
         schedule_progress = await self._get_schedule_progress(project_id)
@@ -509,7 +617,11 @@ class FinancialManagementAgent(BaseAgent):
         }
 
     async def _get_financial_summary(
-        self, project_id: str | None = None, portfolio_id: str | None = None
+        self,
+        project_id: str | None = None,
+        portfolio_id: str | None = None,
+        *,
+        tenant_id: str,
     ) -> dict[str, Any]:
         """
         Get financial summary for a project or portfolio.
@@ -521,13 +633,15 @@ class FinancialManagementAgent(BaseAgent):
         )
 
         if project_id:
-            return await self._get_project_financial_summary(project_id)
+            return await self._get_project_financial_summary(project_id, tenant_id=tenant_id)
         elif portfolio_id:
-            return await self._get_portfolio_financial_summary(portfolio_id)
+            return await self._get_portfolio_financial_summary(portfolio_id, tenant_id=tenant_id)
         else:
             raise ValueError("Either project_id or portfolio_id must be provided")
 
-    async def _generate_report(self, report_type: str, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_report(
+        self, report_type: str, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Generate financial reports.
 
@@ -536,39 +650,47 @@ class FinancialManagementAgent(BaseAgent):
         self.logger.info(f"Generating {report_type} report")
 
         if report_type == "summary":
-            return await self._generate_summary_report(filters)
+            return await self._generate_summary_report(filters, tenant_id=tenant_id)
         elif report_type == "variance":
-            return await self._generate_variance_report(filters)
+            return await self._generate_variance_report(filters, tenant_id=tenant_id)
         elif report_type == "forecast":
-            return await self._generate_forecast_report(filters)
+            return await self._generate_forecast_report(filters, tenant_id=tenant_id)
         elif report_type == "cash_flow":
-            return await self._generate_cash_flow_report(filters)
+            return await self._generate_cash_flow_report(filters, tenant_id=tenant_id)
         elif report_type == "profitability":
-            return await self._generate_profitability_report(filters)
+            return await self._generate_profitability_report(filters, tenant_id=tenant_id)
         else:
             raise ValueError(f"Unknown report type: {report_type}")
 
-    async def _update_budget(self, budget_id: str, updates: dict[str, Any]) -> dict[str, Any]:
+    async def _update_budget(
+        self,
+        budget_id: str,
+        updates: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """Update an existing budget (requires approval for baseline changes)."""
         self.logger.info(f"Updating budget: {budget_id}")
 
-        budget = self.budgets.get(budget_id)
+        budget = self.budgets.get(budget_id) or self.budget_store.get(tenant_id, budget_id)
         if not budget:
             raise ValueError(f"Budget not found: {budget_id}")
 
         # Check if this is a baseline change
-        is_baseline_change = budget.get("status") == "Approved" and "total_amount" in updates
-
+        is_baseline_change = "total_amount" in updates or "cost_breakdown" in updates
+        approval = None
         if is_baseline_change:
-            # Requires approval workflow
-            # Future work: Integrate with Approval Workflow Agent
-            self.logger.info(f"Baseline change requires approval for budget: {budget_id}")
-            return {
-                "budget_id": budget_id,
-                "status": "Pending Approval",
-                "updates": updates,
-                "requires_approval": True,
-            }
+            self.logger.info(f"Budget change requires approval for budget: {budget_id}")
+            approval = await self._request_budget_approval(
+                budget_id=budget_id,
+                budget={**budget, **updates},
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                requester=actor_id,
+            )
+            budget["status"] = "Pending Approval"
 
         # Apply updates
         for key, value in updates.items():
@@ -577,27 +699,57 @@ class FinancialManagementAgent(BaseAgent):
 
         budget["last_updated"] = datetime.utcnow().isoformat()
 
-        # Future work: Store in database
+        validation = await self._validate_budget_record(
+            budget, tenant_id=tenant_id, portfolio_id=budget.get("portfolio_id")
+        )
+
+        self.budgets[budget_id] = budget
+        self.budget_store.upsert(tenant_id, budget_id, budget)
+
+        self._emit_budget_audit(
+            action="budget.updated",
+            budget=budget,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=actor_id,
+        )
 
         return {
             "budget_id": budget_id,
             "status": budget["status"],
             "updated_at": budget["last_updated"],
+            "approval": approval,
+            "data_quality": validation,
         }
 
-    async def _approve_budget(self, budget_id: str) -> dict[str, Any]:
+    async def _approve_budget(
+        self,
+        budget_id: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """Approve a budget and lock it as baseline."""
         self.logger.info(f"Approving budget: {budget_id}")
 
-        budget = self.budgets.get(budget_id)
+        budget = self.budgets.get(budget_id) or self.budget_store.get(tenant_id, budget_id)
         if not budget:
             raise ValueError(f"Budget not found: {budget_id}")
 
         budget["status"] = "Approved"
         budget["baseline_date"] = datetime.utcnow().isoformat()
 
-        # Future work: Store in database
-        # Future work: Publish budget.approved event
+        self.budgets[budget_id] = budget
+        self.budget_store.upsert(tenant_id, budget_id, budget)
+
+        self._emit_budget_audit(
+            action="budget.approved",
+            budget=budget,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=actor_id,
+        )
 
         return {
             "budget_id": budget_id,
@@ -631,14 +783,14 @@ class FinancialManagementAgent(BaseAgent):
             "rate_as_of": exchange_rates["as_of"],
         }
 
-    async def _calculate_profitability(self, project_id: str) -> dict[str, Any]:
+    async def _calculate_profitability(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Calculate profitability metrics including ROI, NPV, and IRR."""
         self.logger.info(f"Calculating profitability for project: {project_id}")
 
         # Get budget and actuals
-        budget = await self._get_budget_for_project(project_id)
-        self.actuals.get(project_id, {})
-        forecast = self.forecasts.get(project_id, {})
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
+        self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        forecast = self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
 
         # Get benefit cash flows
         # Future work: Get from Business Case Agent
@@ -683,7 +835,87 @@ class FinancialManagementAgent(BaseAgent):
     async def _generate_budget_id(self) -> str:
         """Generate unique budget ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        return f"BDG-{timestamp}"
+        return f"BDG-{timestamp}-{uuid.uuid4().hex[:6]}"
+
+    async def _validate_budget_record(
+        self, budget: dict[str, Any], *, tenant_id: str, portfolio_id: str | None
+    ) -> dict[str, Any]:
+        record = {
+            "id": budget.get("budget_id"),
+            "tenant_id": tenant_id,
+            "portfolio_id": portfolio_id or "unknown",
+            "name": budget.get("name") or f"Budget {budget.get('project_id', '')}",
+            "currency": budget.get("currency", self.default_currency),
+            "amount": budget.get("total_amount", 0),
+            "fiscal_year": budget.get("fiscal_year", datetime.utcnow().year),
+            "status": budget.get("status", "Draft").lower(),
+            "owner": budget.get("created_by", "unknown"),
+            "classification": budget.get("classification", "internal"),
+            "created_at": budget.get("created_at"),
+            "metadata": {
+                "project_id": budget.get("project_id"),
+                "cost_type": budget.get("cost_type"),
+            },
+        }
+        if budget.get("last_updated"):
+            record["updated_at"] = budget.get("last_updated")
+        report = evaluate_quality_rules("budget", record)
+        return {
+            "record": record,
+            "is_valid": report.is_valid,
+            "issues": [issue.__dict__ for issue in report.issues],
+        }
+
+    async def _request_budget_approval(
+        self,
+        *,
+        budget_id: str,
+        budget: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+        requester: str,
+    ) -> dict[str, Any]:
+        if not self.approval_agent:
+            return {"status": "skipped", "reason": "approval_agent_not_configured"}
+        return await self.approval_agent.process(
+            {
+                "request_type": "budget_change",
+                "request_id": budget_id,
+                "requester": requester,
+                "details": {
+                    "amount": budget.get("total_amount", 0),
+                    "description": "Budget approval request",
+                    "project_id": budget.get("project_id"),
+                },
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
+
+    def _emit_budget_audit(
+        self,
+        *,
+        action: str,
+        budget: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str | None,
+        actor_id: str,
+    ) -> None:
+        event = build_audit_event(
+            tenant_id=tenant_id,
+            action=action,
+            outcome="success",
+            actor_id=actor_id,
+            actor_type="user" if actor_id != "system" else "service",
+            actor_roles=[],
+            resource_id=budget.get("budget_id") or budget.get("project_id", "unknown"),
+            resource_type="budget",
+            metadata={"amount": budget.get("total_amount") or budget.get("amount")},
+            trace_id=get_trace_id(),
+            correlation_id=correlation_id,
+        )
+        emit_audit_event(event)
 
     async def _import_cost_transactions(self, project_id: str) -> list[dict[str, Any]]:
         """Import cost transactions from ERP."""
@@ -753,9 +985,11 @@ class FinancialManagementAgent(BaseAgent):
         # Future work: More sophisticated EAC calculation
         return forecast.get("total_forecast", 0)  # type: ignore
 
-    async def _calculate_forecast_variance(self, project_id: str, eac: float) -> dict[str, Any]:
+    async def _calculate_forecast_variance(
+        self, project_id: str, eac: float, *, tenant_id: str
+    ) -> dict[str, Any]:
         """Calculate variance between forecast and baseline."""
-        budget = await self._get_budget_for_project(project_id)
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
         baseline = budget.get("total_amount", 0) if budget else 0
 
         variance = eac - baseline
@@ -777,18 +1011,23 @@ class FinancialManagementAgent(BaseAgent):
             "confidence_level": 0.8,
         }
 
-    async def _get_budget_for_project(self, project_id: str) -> dict[str, Any] | None:
+    async def _get_budget_for_project(
+        self, project_id: str, *, tenant_id: str
+    ) -> dict[str, Any] | None:
         """Get budget for a specific project."""
         for budget in self.budgets.values():
             if budget.get("project_id") == project_id:
                 return budget  # type: ignore
+        for budget in self.budget_store.list(tenant_id):
+            if budget.get("project_id") == project_id:
+                return budget
         return None
 
     async def _analyze_variance_by_category(
-        self, project_id: str, budget: dict[str, Any]
+        self, project_id: str, budget: dict[str, Any], *, tenant_id: str
     ) -> dict[str, dict[str, Any]]:
         """Analyze variance broken down by cost category."""
-        actuals = self.actuals.get(project_id, {})
+        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
         budget_breakdown = budget.get("cost_breakdown", {})
         actual_breakdown = actuals.get("by_category", {})
 
@@ -879,13 +1118,15 @@ class FinancialManagementAgent(BaseAgent):
         else:
             return "Off Track"
 
-    async def _get_project_financial_summary(self, project_id: str) -> dict[str, Any]:
+    async def _get_project_financial_summary(
+        self, project_id: str, *, tenant_id: str
+    ) -> dict[str, Any]:
         """Get financial summary for a project."""
-        budget = await self._get_budget_for_project(project_id)
-        actuals = self.actuals.get(project_id, {})
-        forecast = self.forecasts.get(project_id, {})
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
+        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        forecast = self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
 
-        evm = await self._calculate_evm(project_id)
+        evm = await self._calculate_evm(project_id, tenant_id=tenant_id)
 
         return {
             "project_id": project_id,
@@ -898,52 +1139,95 @@ class FinancialManagementAgent(BaseAgent):
             "performance_status": evm.get("performance_status", "Unknown"),
         }
 
-    async def _get_portfolio_financial_summary(self, portfolio_id: str) -> dict[str, Any]:
+    async def _get_portfolio_financial_summary(
+        self, portfolio_id: str, *, tenant_id: str
+    ) -> dict[str, Any]:
         """Get financial summary for a portfolio."""
-        # Future work: Aggregate across all projects in portfolio
+        budgets = list(self.budgets.values())
+        if not budgets:
+            budgets = self.budget_store.list(tenant_id)
+        total_budget = sum(
+            budget.get("total_amount", 0)
+            for budget in budgets
+            if budget.get("portfolio_id") == portfolio_id
+        )
+        total_actual = sum(
+            actuals.get("total_actual", 0)
+            for actuals in (
+                self.actuals.values()
+                if self.actuals
+                else self.actuals_store.list(tenant_id)
+            )
+        )
+        total_forecast = sum(
+            forecast.get("eac", 0)
+            for forecast in (
+                self.forecasts.values()
+                if self.forecasts
+                else self.forecast_store.list(tenant_id)
+            )
+        )
 
         return {
             "portfolio_id": portfolio_id,
-            "total_budget": 0,
-            "total_actual": 0,
-            "total_forecast": 0,
+            "total_budget": total_budget,
+            "total_actual": total_actual,
+            "total_forecast": total_forecast,
             "average_cpi": 1.0,
-            "project_count": 0,
+            "project_count": len(budgets),
         }
 
-    async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_summary_report(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """Generate summary financial report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+        return {
+            "report_type": "summary",
+            "data": {
+                "budget_count": len(self.budgets) or len(self.budget_store.list(tenant_id)),
+                "forecast_count": len(self.forecasts)
+                or len(self.forecast_store.list(tenant_id)),
+            },
+            "generated_at": datetime.utcnow().isoformat(),
+        }
 
-    async def _generate_variance_report(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_variance_report(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """Generate variance analysis report."""
         return {
             "report_type": "variance",
-            "data": {},
+            "data": {"portfolio_id": filters.get("portfolio_id")},
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-    async def _generate_forecast_report(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_forecast_report(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """Generate forecast report."""
         return {
             "report_type": "forecast",
-            "data": {},
+            "data": {"forecast_count": len(self.forecasts) or len(self.forecast_store.list(tenant_id))},
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-    async def _generate_cash_flow_report(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_cash_flow_report(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """Generate cash flow report."""
         return {
             "report_type": "cash_flow",
-            "data": {},
+            "data": {"currency": self.default_currency},
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-    async def _generate_profitability_report(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_profitability_report(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """Generate profitability analysis report."""
         return {
             "report_type": "profitability",
-            "data": {},
+            "data": {"currency": self.default_currency},
             "generated_at": datetime.utcnow().isoformat(),
         }
 

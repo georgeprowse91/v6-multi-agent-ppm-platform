@@ -34,5 +34,66 @@ async def test_financial_forecast_normalizes_currency(monkeypatch):
 
     monkeypatch.setattr(agent, "_get_historical_spending", _mock_history)
 
-    forecast = await agent._generate_forecast("proj-1", {})
+    forecast = await agent._generate_forecast("proj-1", {}, tenant_id="tenant-a")
     assert forecast["forecast"]["currency"] == "USD"
+
+
+class ApprovalStub:
+    def __init__(self) -> None:
+        self.requests: list[dict] = []
+
+    async def process(self, input_data: dict) -> dict:
+        self.requests.append(input_data)
+        return {"approval_id": "appr-1", "status": "pending"}
+
+
+@pytest.mark.asyncio
+async def test_financial_budget_persistence_and_approvals(tmp_path):
+    approval_stub = ApprovalStub()
+    agent = FinancialManagementAgent(
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "budget_store_path": tmp_path / "budgets.json",
+            "approval_agent": approval_stub,
+        }
+    )
+    await agent.initialize()
+
+    create_response = await agent.process(
+        {
+            "action": "create_budget",
+            "tenant_id": "tenant-a",
+            "budget": {
+                "project_id": "proj-1",
+                "portfolio_id": "port-1",
+                "total_amount": 1000,
+                "cost_breakdown": {"labor": 1000},
+                "owner": "finance-1",
+                "currency": "USD",
+                "name": "Budget FY25",
+            },
+        }
+    )
+
+    budget_id = create_response["budget_id"]
+    assert create_response["data_quality"]["is_valid"] is True
+    assert approval_stub.requests
+
+    update_response = await agent.process(
+        {
+            "action": "update_budget",
+            "tenant_id": "tenant-a",
+            "budget_id": budget_id,
+            "updates": {"total_amount": 1200},
+        }
+    )
+    assert update_response["approval"]["status"] == "pending"
+
+    approve_response = await agent.process(
+        {
+            "action": "approve_budget",
+            "tenant_id": "tenant-a",
+            "budget_id": budget_id,
+        }
+    )
+    assert approve_response["status"] == "Approved"

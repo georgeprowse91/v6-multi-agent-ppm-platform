@@ -9,10 +9,16 @@ Specification: agents/delivery-management/agent-10-schedule-planning/README.md
 """
 
 import random
+import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
+from change_configuration_agent import ChangeConfigurationAgent
+from events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
+from observability.tracing import get_trace_id
 
 
 class SchedulePlanningAgent(BaseAgent):
@@ -44,12 +50,32 @@ class SchedulePlanningAgent(BaseAgent):
         )
         self.simulation_seed = config.get("simulation_seed", 42) if config else 42
 
+        schedule_store_path = (
+            Path(config.get("schedule_store_path", "data/project_schedules.json"))
+            if config
+            else Path("data/project_schedules.json")
+        )
+        baseline_store_path = (
+            Path(config.get("schedule_baseline_store_path", "data/schedule_baselines.json"))
+            if config
+            else Path("data/schedule_baselines.json")
+        )
+        self.schedule_store = TenantStateStore(schedule_store_path)
+        self.baseline_store = TenantStateStore(baseline_store_path)
+
         # Data stores (will be replaced with database connections)
         self.schedules = {}  # type: ignore
         self.baselines = {}  # type: ignore
         self.dependencies = {}  # type: ignore
         self.milestones = {}  # type: ignore
         self.task_actuals = {}  # type: ignore
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
+        self.change_agent = config.get("change_agent") if config else None
+        if self.change_agent is None:
+            change_config = config.get("change_agent_config", {}) if config else {}
+            self.change_agent = ChangeConfigurationAgent(config=change_config)
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -147,12 +173,18 @@ class SchedulePlanningAgent(BaseAgent):
             - get_schedule: Complete schedule details
         """
         action = input_data.get("action", "create_schedule")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         if action == "create_schedule":
             return await self._create_schedule(
                 input_data.get("project_id"),  # type: ignore
                 input_data.get("wbs", {}),
                 input_data.get("methodology", "waterfall"),
+                tenant_id=tenant_id,
             )
 
         elif action == "estimate_duration":
@@ -190,10 +222,18 @@ class SchedulePlanningAgent(BaseAgent):
             )
 
         elif action == "manage_baseline":
-            return await self._manage_baseline(input_data.get("schedule_id"))  # type: ignore
+            return await self._manage_baseline(
+                input_data.get("schedule_id"),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "track_variance":
-            return await self._track_variance(input_data.get("schedule_id"))  # type: ignore
+            return await self._track_variance(
+                input_data.get("schedule_id"),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "sprint_planning":
             return await self._sprint_planning(
@@ -201,13 +241,18 @@ class SchedulePlanningAgent(BaseAgent):
             )
 
         elif action == "get_schedule":
-            return await self._get_schedule(input_data.get("schedule_id"))  # type: ignore
+            return await self._get_schedule(input_data.get("schedule_id"), tenant_id=tenant_id)  # type: ignore
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
     async def _create_schedule(
-        self, project_id: str, wbs: dict[str, Any], methodology: str = "waterfall"
+        self,
+        project_id: str,
+        wbs: dict[str, Any],
+        methodology: str = "waterfall",
+        *,
+        tenant_id: str,
     ) -> dict[str, Any]:
         """
         Create project schedule from WBS.
@@ -267,6 +312,7 @@ class SchedulePlanningAgent(BaseAgent):
         # Store schedule
         self.schedules[schedule_id] = schedule
         self.milestones[schedule_id] = milestones
+        self.schedule_store.upsert(tenant_id, schedule_id, schedule)
 
         # Future work: Store in Azure SQL Database
         # Future work: Sync with Microsoft Project
@@ -627,7 +673,9 @@ class SchedulePlanningAgent(BaseAgent):
             "recommendation": await self._generate_scenario_recommendation(comparison),
         }
 
-    async def _manage_baseline(self, schedule_id: str) -> dict[str, Any]:
+    async def _manage_baseline(
+        self, schedule_id: str, *, tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
         """
         Lock schedule as baseline.
 
@@ -635,7 +683,7 @@ class SchedulePlanningAgent(BaseAgent):
         """
         self.logger.info(f"Creating baseline for schedule: {schedule_id}")
 
-        schedule = self.schedules.get(schedule_id)
+        schedule = await self._get_schedule_state(tenant_id, schedule_id)
         if not schedule:
             raise ValueError(f"Schedule not found: {schedule_id}")
 
@@ -659,13 +707,19 @@ class SchedulePlanningAgent(BaseAgent):
 
         # Store baseline
         self.baselines[baseline_id] = baseline
+        self.baseline_store.upsert(tenant_id, baseline_id, baseline)
 
         # Update schedule status
         schedule["status"] = "Baselined"
         schedule["baseline_id"] = baseline_id
+        self.schedule_store.upsert(tenant_id, schedule_id, schedule)
 
-        # Future work: Store in database
-        # Future work: Publish baseline.locked event
+        await self._publish_baseline_locked(
+            schedule,
+            baseline,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         return {
             "baseline_id": baseline_id,
@@ -675,7 +729,9 @@ class SchedulePlanningAgent(BaseAgent):
             "milestone_count": len(baseline["milestones"]),
         }
 
-    async def _track_variance(self, schedule_id: str) -> dict[str, Any]:
+    async def _track_variance(
+        self, schedule_id: str, *, tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
         """
         Track schedule variance against baseline.
 
@@ -683,7 +739,7 @@ class SchedulePlanningAgent(BaseAgent):
         """
         self.logger.info(f"Tracking variance for schedule: {schedule_id}")
 
-        schedule = self.schedules.get(schedule_id)
+        schedule = await self._get_schedule_state(tenant_id, schedule_id)
         if not schedule:
             raise ValueError(f"Schedule not found: {schedule_id}")
 
@@ -694,7 +750,9 @@ class SchedulePlanningAgent(BaseAgent):
                 "recommendation": "Create a baseline first",
             }
 
-        baseline = self.baselines.get(baseline_id)
+        baseline = self.baselines.get(baseline_id) or self.baseline_store.get(
+            tenant_id, baseline_id
+        )
         if not baseline:
             raise ValueError(f"Baseline not found: {baseline_id}")
 
@@ -710,6 +768,27 @@ class SchedulePlanningAgent(BaseAgent):
         # Identify critical path changes
         critical_path_changes = await self._identify_critical_path_changes(schedule, baseline)
 
+        change_request = None
+        delay_event = None
+        if sv < 0:
+            delay_event = await self._publish_schedule_delay(
+                schedule,
+                delay_days=abs(int(sv)),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+
+        if abs(sv) >= self.baseline_approval_threshold * max(
+            baseline.get("project_duration_days", 1), 1
+        ):
+            change_request = await self._submit_change_request(
+                schedule,
+                baseline,
+                variance_days=sv,
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+
         return {
             "schedule_id": schedule_id,
             "baseline_id": baseline_id,
@@ -719,6 +798,8 @@ class SchedulePlanningAgent(BaseAgent):
             "delayed_tasks": delayed_tasks,
             "critical_path_changes": critical_path_changes,
             "forecast_completion": await self._forecast_completion_date(schedule, spi),
+            "change_request": change_request,
+            "delay_event": delay_event,
         }
 
     async def _sprint_planning(
@@ -759,12 +840,22 @@ class SchedulePlanningAgent(BaseAgent):
             "burndown_forecast": burndown_forecast,
         }
 
-    async def _get_schedule(self, schedule_id: str) -> dict[str, Any]:
+    async def _get_schedule(self, schedule_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Retrieve schedule by ID."""
-        schedule = self.schedules.get(schedule_id)
+        schedule = await self._get_schedule_state(tenant_id, schedule_id)
         if not schedule:
             raise ValueError(f"Schedule not found: {schedule_id}")
         return schedule  # type: ignore
+
+    async def _get_schedule_state(
+        self, tenant_id: str, schedule_id: str
+    ) -> dict[str, Any] | None:
+        schedule = self.schedules.get(schedule_id)
+        if not schedule:
+            schedule = self.schedule_store.get(tenant_id, schedule_id)
+            if schedule:
+                self.schedules[schedule_id] = schedule
+        return schedule
 
     # Helper methods
 
@@ -777,6 +868,88 @@ class SchedulePlanningAgent(BaseAgent):
         """Generate unique baseline ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"{schedule_id}-BASELINE-{timestamp}"
+
+    async def _publish_baseline_locked(
+        self,
+        schedule: dict[str, Any],
+        baseline: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> None:
+        event = ScheduleBaselineLockedEvent(
+            event_name="schedule.baseline.locked",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload={
+                "project_id": schedule.get("project_id", ""),
+                "schedule_id": schedule.get("schedule_id", ""),
+                "locked_at": datetime.fromisoformat(baseline.get("locked_at")),
+                "baseline_version": baseline.get("baseline_id", ""),
+            },
+        )
+        await self.event_bus.publish("schedule.baseline.locked", event.model_dump())
+
+    async def _publish_schedule_delay(
+        self,
+        schedule: dict[str, Any],
+        *,
+        delay_days: int,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        event = ScheduleDelayEvent(
+            event_name="schedule.delay",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload={
+                "project_id": schedule.get("project_id", ""),
+                "schedule_id": schedule.get("schedule_id", ""),
+                "delay_days": delay_days,
+                "reason": "Baseline variance detected",
+                "detected_at": datetime.utcnow(),
+            },
+        )
+        payload = event.model_dump()
+        await self.event_bus.publish("schedule.delay", payload)
+        return payload
+
+    async def _submit_change_request(
+        self,
+        schedule: dict[str, Any],
+        baseline: dict[str, Any],
+        *,
+        variance_days: float,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        if not self.change_agent:
+            return {"status": "skipped", "reason": "change_agent_not_configured"}
+        return await self.change_agent.process(
+            {
+                "action": "submit_change_request",
+                "change": {
+                    "title": "Schedule variance exceeds threshold",
+                    "description": "Baseline variance exceeded threshold; review schedule baseline.",
+                    "requester": "schedule-planning-agent",
+                    "project_id": schedule.get("project_id"),
+                    "priority": "medium",
+                    "impact_summary": {
+                        "variance_days": variance_days,
+                        "baseline_id": baseline.get("baseline_id"),
+                    },
+                },
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
 
     async def _wbs_to_tasks(self, wbs: dict[str, Any]) -> list[dict[str, Any]]:
         """Convert WBS to flat task list."""

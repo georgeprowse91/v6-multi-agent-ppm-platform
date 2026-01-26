@@ -8,10 +8,16 @@ governance gates and continuously monitors project health.
 Specification: agents/delivery-management/agent-09-lifecycle-governance/README.md
 """
 
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
+from approval_workflow_agent import ApprovalWorkflowAgent
+from events import ProjectTransitionedEvent
+from observability.tracing import get_trace_id
 
 
 class ProjectLifecycleAgent(BaseAgent):
@@ -50,11 +56,25 @@ class ProjectLifecycleAgent(BaseAgent):
         )
         self.methodology_rules = config.get("methodology_rules", {}) if config else {}
 
+        lifecycle_store_path = (
+            Path(config.get("lifecycle_store_path", "data/project_lifecycle.json"))
+            if config
+            else Path("data/project_lifecycle.json")
+        )
+        self.lifecycle_store = TenantStateStore(lifecycle_store_path)
+
         # Data stores (will be replaced with database connections)
         self.projects = {}  # type: ignore
         self.lifecycle_states = {}  # type: ignore
         self.health_scores = {}  # type: ignore
         self.gate_evaluations = {}  # type: ignore
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
+        self.approval_agent = config.get("approval_agent") if config else None
+        if self.approval_agent is None:
+            approval_config = config.get("approval_agent_config", {}) if config else {}
+            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -140,22 +160,37 @@ class ProjectLifecycleAgent(BaseAgent):
             - override_gate: Override confirmation, audit record
         """
         action = input_data.get("action", "initiate_project")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+        actor_id = context.get("user_id") or input_data.get("actor_id") or "system"
 
         if action == "initiate_project":
-            return await self._initiate_project(input_data.get("project_data", {}))
+            return await self._initiate_project(
+                input_data.get("project_data", {}),
+                tenant_id=tenant_id,
+            )
 
         elif action == "transition_phase":
             return await self._transition_phase(
-                input_data.get("project_id"), input_data.get("target_phase")  # type: ignore
+                input_data.get("project_id"),  # type: ignore
+                input_data.get("target_phase"),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
             )
 
         elif action == "evaluate_gate":
             return await self._evaluate_gate(
-                input_data.get("project_id"), input_data.get("gate_name")  # type: ignore
+                input_data.get("project_id"), input_data.get("gate_name"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "monitor_health":
-            return await self._monitor_health(input_data.get("project_id"))  # type: ignore
+            return await self._monitor_health(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
 
         elif action == "recommend_methodology":
             return await self._recommend_methodology(input_data.get("project_data", {}))
@@ -166,22 +201,31 @@ class ProjectLifecycleAgent(BaseAgent):
             )
 
         elif action == "get_project_status":
-            return await self._get_project_status(input_data.get("project_id"))  # type: ignore
+            return await self._get_project_status(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
 
         elif action == "get_health_dashboard":
-            return await self._get_health_dashboard(input_data.get("project_id"))  # type: ignore
+            return await self._get_health_dashboard(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
 
         elif action == "override_gate":
             return await self._override_gate(
                 input_data.get("project_id"),  # type: ignore
                 input_data.get("gate_name"),  # type: ignore
                 input_data.get("override_reason", ""),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                requester=actor_id,
             )
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _initiate_project(self, project_data: dict[str, Any]) -> dict[str, Any]:
+    async def _initiate_project(
+        self, project_data: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Initiate a new project and set initial lifecycle state.
 
@@ -228,6 +272,7 @@ class ProjectLifecycleAgent(BaseAgent):
         # Store project and state
         self.projects[project_id] = project
         self.lifecycle_states[project_id] = lifecycle_state
+        self.lifecycle_store.upsert(tenant_id, project_id, lifecycle_state)
 
         # Trigger charter generation
         # Future work: Integrate with Project Definition Agent (Agent 8)
@@ -245,7 +290,15 @@ class ProjectLifecycleAgent(BaseAgent):
             "next_steps": "Generate project charter and complete initiation activities",
         }
 
-    async def _transition_phase(self, project_id: str, target_phase: str) -> dict[str, Any]:
+    async def _transition_phase(
+        self,
+        project_id: str,
+        target_phase: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Transition project to a new phase.
 
@@ -253,7 +306,7 @@ class ProjectLifecycleAgent(BaseAgent):
         """
         self.logger.info(f"Attempting phase transition for project: {project_id}")
 
-        lifecycle_state = self.lifecycle_states.get(project_id)
+        lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
         if not lifecycle_state:
             raise ValueError(f"Lifecycle state not found for project: {project_id}")
 
@@ -275,7 +328,7 @@ class ProjectLifecycleAgent(BaseAgent):
         gate_name = await self._get_gate_name(current_phase, target_phase)
 
         # Evaluate gate criteria
-        gate_evaluation = await self._evaluate_gate(project_id, gate_name)
+        gate_evaluation = await self._evaluate_gate(project_id, gate_name, tenant_id=tenant_id)
 
         # Check if gate criteria are met
         if not gate_evaluation.get("criteria_met"):
@@ -293,7 +346,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "to_phase": target_phase,
             "gate_name": gate_name,
             "transitioned_at": datetime.utcnow().isoformat(),
-            "transitioned_by": "system",  # Future work: Get from user context
+            "transitioned_by": actor_id,
         }
 
         lifecycle_state["current_phase"] = target_phase
@@ -305,8 +358,16 @@ class ProjectLifecycleAgent(BaseAgent):
         self.projects[project_id]["current_phase"] = target_phase
         self.projects[project_id]["phase_history"].append(transition_record)
 
-        # Future work: Update in Azure Cosmos DB
-        # Future work: Publish project.transitioned event
+        self.lifecycle_store.upsert(tenant_id, project_id, lifecycle_state)
+
+        await self._publish_project_transitioned(
+            project_id,
+            current_phase,
+            target_phase,
+            actor_id,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         self.logger.info(
             f"Transitioned project {project_id} from {current_phase} to {target_phase}"
@@ -321,7 +382,9 @@ class ProjectLifecycleAgent(BaseAgent):
             "transition_record": transition_record,
         }
 
-    async def _evaluate_gate(self, project_id: str, gate_name: str) -> dict[str, Any]:
+    async def _evaluate_gate(
+        self, project_id: str, gate_name: str, *, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Evaluate phase gate criteria.
 
@@ -329,7 +392,7 @@ class ProjectLifecycleAgent(BaseAgent):
         """
         self.logger.info(f"Evaluating gate '{gate_name}' for project: {project_id}")
 
-        lifecycle_state = self.lifecycle_states.get(project_id)
+        lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
         if not lifecycle_state:
             raise ValueError(f"Lifecycle state not found for project: {project_id}")
 
@@ -383,7 +446,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
         return evaluation
 
-    async def _monitor_health(self, project_id: str) -> dict[str, Any]:
+    async def _monitor_health(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """
         Monitor project health continuously.
 
@@ -549,10 +612,10 @@ class ProjectLifecycleAgent(BaseAgent):
             "methodology_map": new_methodology_map,
         }
 
-    async def _get_project_status(self, project_id: str) -> dict[str, Any]:
+    async def _get_project_status(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Get current project status."""
         project = self.projects.get(project_id)
-        lifecycle_state = self.lifecycle_states.get(project_id)
+        lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
 
         if not project or not lifecycle_state:
             raise ValueError(f"Project not found: {project_id}")
@@ -576,10 +639,10 @@ class ProjectLifecycleAgent(BaseAgent):
             "transitions_count": len(lifecycle_state.get("transitions", [])),
         }
 
-    async def _get_health_dashboard(self, project_id: str) -> dict[str, Any]:
+    async def _get_health_dashboard(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Generate comprehensive health dashboard."""
-        health_data = await self._monitor_health(project_id)
-        project_status = await self._get_project_status(project_id)
+        health_data = await self._monitor_health(project_id, tenant_id=tenant_id)
+        project_status = await self._get_project_status(project_id, tenant_id=tenant_id)
 
         # Generate trend data
         # Future work: Query historical health scores
@@ -598,7 +661,14 @@ class ProjectLifecycleAgent(BaseAgent):
         }
 
     async def _override_gate(
-        self, project_id: str, gate_name: str, override_reason: str
+        self,
+        project_id: str,
+        gate_name: str,
+        override_reason: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        requester: str,
     ) -> dict[str, Any]:
         """
         Override a gate that doesn't meet criteria.
@@ -608,7 +678,17 @@ class ProjectLifecycleAgent(BaseAgent):
         self.logger.info(f"Overriding gate '{gate_name}' for project: {project_id}")
 
         # Evaluate gate first to document what's being overridden
-        gate_evaluation = await self._evaluate_gate(project_id, gate_name)
+        gate_evaluation = await self._evaluate_gate(project_id, gate_name, tenant_id=tenant_id)
+
+        approval_response = await self._request_override_approval(
+            project_id=project_id,
+            gate_name=gate_name,
+            override_reason=override_reason,
+            gate_evaluation=gate_evaluation,
+            requester=requester,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         # Create override record
         override_record = {
@@ -616,14 +696,17 @@ class ProjectLifecycleAgent(BaseAgent):
             "gate_name": gate_name,
             "gate_evaluation": gate_evaluation,
             "override_reason": override_reason,
-            "overridden_by": "system",  # Future work: Get from user context
+            "overridden_by": requester,
             "overridden_at": datetime.utcnow().isoformat(),
+            "approval_id": approval_response.get("approval_id"),
+            "approval_status": approval_response.get("status"),
         }
 
         # Mark gate as passed despite not meeting criteria
-        lifecycle_state = self.lifecycle_states.get(project_id)
-        if lifecycle_state:
+        lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
+        if lifecycle_state and approval_response.get("status") == "approved":
             lifecycle_state["gates_passed"].append(f"{gate_name} (OVERRIDDEN)")
+            self.lifecycle_store.upsert(tenant_id, project_id, lifecycle_state)
 
         # Future work: Store override record in database
         # Future work: Publish gate.overridden event
@@ -632,9 +715,10 @@ class ProjectLifecycleAgent(BaseAgent):
         self.logger.warning(f"Gate override recorded for {project_id}: {gate_name}")
 
         return {
-            "success": True,
+            "success": approval_response.get("status") == "approved",
             "override_record": override_record,
             "warning": "Gate criteria were not met. Override has been recorded for audit.",
+            "approval": approval_response,
         }
 
     # Helper methods
@@ -966,6 +1050,74 @@ class ProjectLifecycleAgent(BaseAgent):
                 }
             )
         return alerts
+
+    async def _get_lifecycle_state(
+        self, tenant_id: str, project_id: str
+    ) -> dict[str, Any] | None:
+        lifecycle_state = self.lifecycle_states.get(project_id)
+        if not lifecycle_state:
+            lifecycle_state = self.lifecycle_store.get(tenant_id, project_id)
+            if lifecycle_state:
+                self.lifecycle_states[project_id] = lifecycle_state
+        return lifecycle_state
+
+    async def _publish_project_transitioned(
+        self,
+        project_id: str,
+        from_stage: str,
+        to_stage: str,
+        actor_id: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> None:
+        event = ProjectTransitionedEvent(
+            event_name="project.transitioned",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload={
+                "project_id": project_id,
+                "from_stage": from_stage,
+                "to_stage": to_stage,
+                "transitioned_at": datetime.utcnow(),
+                "actor_id": actor_id,
+            },
+        )
+        await self.event_bus.publish("project.transitioned", event.model_dump())
+
+    async def _request_override_approval(
+        self,
+        *,
+        project_id: str,
+        gate_name: str,
+        override_reason: str,
+        gate_evaluation: dict[str, Any],
+        requester: str,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        if not self.approval_agent:
+            return {"status": "skipped", "reason": "approval_agent_not_configured"}
+        response = await self.approval_agent.process(
+            {
+                "request_type": "phase_gate",
+                "request_id": f"{project_id}:{gate_name}:override",
+                "requester": requester,
+                "details": {
+                    "project_id": project_id,
+                    "gate_name": gate_name,
+                    "override_reason": override_reason,
+                    "gate_evaluation": gate_evaluation,
+                },
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
+        return response
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

@@ -154,6 +154,20 @@ class ScheduleDelayEvent(EventEnvelope):
     payload: ScheduleDelayPayload
 
 
+class ResourceAllocationCreatedPayload(BaseModel):
+    allocation_id: str
+    resource_id: str
+    project_id: str
+    start_date: str
+    end_date: str
+    allocation_percentage: int
+
+
+class ResourceAllocationCreatedEvent(EventEnvelope):
+    event_name: Literal["resource.allocation.created"]
+    payload: ResourceAllocationCreatedPayload
+
+
 class ApprovalCreatedPayload(BaseModel):
     approval_id: str
     resource_type: str

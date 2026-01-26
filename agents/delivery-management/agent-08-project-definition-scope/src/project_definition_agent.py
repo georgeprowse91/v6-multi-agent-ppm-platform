@@ -8,10 +8,16 @@ work breakdown structure (WBS) and requirements. Guides teams through initiation
 Specification: agents/delivery-management/agent-08-project-definition-scope/README.md
 """
 
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
+from approval_workflow_agent import ApprovalWorkflowAgent
+from events import CharterCreatedEvent, WbsCreatedEvent
+from observability.tracing import get_trace_id
 
 
 class ProjectDefinitionAgent(BaseAgent):
@@ -42,12 +48,32 @@ class ProjectDefinitionAgent(BaseAgent):
         self.traceability_threshold = config.get("traceability_threshold", 0.90) if config else 0.90
         self.scope_change_threshold = config.get("scope_change_threshold", 0.10) if config else 0.10
 
+        charter_store_path = (
+            Path(config.get("charter_store_path", "data/project_charters.json"))
+            if config
+            else Path("data/project_charters.json")
+        )
+        wbs_store_path = (
+            Path(config.get("wbs_store_path", "data/project_wbs.json"))
+            if config
+            else Path("data/project_wbs.json")
+        )
+        self.charter_store = TenantStateStore(charter_store_path)
+        self.wbs_store = TenantStateStore(wbs_store_path)
+
         # Data stores (will be replaced with database connections)
         self.charters = {}  # type: ignore
         self.wbs_structures = {}  # type: ignore
         self.requirements = {}  # type: ignore
         self.traceability_matrices = {}  # type: ignore
         self.stakeholder_registers = {}  # type: ignore
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
+        self.approval_agent = config.get("approval_agent") if config else None
+        if self.approval_agent is None:
+            approval_config = config.get("approval_agent_config", {}) if config else {}
+            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -140,13 +166,26 @@ class ProjectDefinitionAgent(BaseAgent):
             - get_requirements: Requirements repository
         """
         action = input_data.get("action", "generate_charter")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         if action == "generate_charter":
-            return await self._generate_charter(input_data.get("charter_data", {}))
+            return await self._generate_charter(
+                input_data.get("charter_data", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "generate_wbs":
             return await self._generate_wbs(
-                input_data.get("project_id"), input_data.get("scope_statement", {})  # type: ignore
+                input_data.get("project_id"),
+                input_data.get("scope_statement", {}),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                requester=input_data.get("requester", "unknown"),
             )
 
         elif action == "manage_requirements":
@@ -178,10 +217,10 @@ class ProjectDefinitionAgent(BaseAgent):
             )
 
         elif action == "get_charter":
-            return await self._get_charter(input_data.get("project_id"))  # type: ignore
+            return await self._get_charter(input_data.get("project_id"), tenant_id=tenant_id)  # type: ignore
 
         elif action == "get_wbs":
-            return await self._get_wbs(input_data.get("project_id"))  # type: ignore
+            return await self._get_wbs(input_data.get("project_id"), tenant_id=tenant_id)  # type: ignore
 
         elif action == "get_requirements":
             return await self._get_requirements(input_data.get("project_id"))  # type: ignore
@@ -189,7 +228,9 @@ class ProjectDefinitionAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _generate_charter(self, charter_data: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_charter(
+        self, charter_data: dict[str, Any], *, tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
         """
         Generate comprehensive project charter.
 
@@ -227,8 +268,11 @@ class ProjectDefinitionAgent(BaseAgent):
         assumptions = await self._generate_assumptions(charter_data)
         constraints = await self._generate_constraints(charter_data)
 
+        charter_id = await self._generate_charter_id(project_id)
+
         # Create charter document
         charter = {
+            "charter_id": charter_id,
             "project_id": project_id,
             "title": title,
             "project_type": project_type,
@@ -253,6 +297,27 @@ class ProjectDefinitionAgent(BaseAgent):
 
         # Store charter
         self.charters[project_id] = charter
+        self.charter_store.upsert(tenant_id, project_id, charter)
+
+        approval = await self._request_signoff(
+            request_type="scope_change",
+            request_id=charter_id,
+            requester=charter.get("created_by", "unknown"),
+            details={
+                "description": "Project charter sign-off",
+                "project_id": project_id,
+                "title": title,
+                "methodology": methodology,
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
+
+        await self._publish_charter_created(
+            charter,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         # Future work: Store in Azure Cosmos DB
         # Future work: Store document in Azure Blob Storage
@@ -262,13 +327,21 @@ class ProjectDefinitionAgent(BaseAgent):
 
         return {
             "project_id": project_id,
+            "charter_id": charter_id,
             "status": "Draft",
             "document": charter["document"],
             "next_steps": "Review and refine charter, then submit for approval",
+            "approval": approval,
         }
 
     async def _generate_wbs(
-        self, project_id: str, scope_statement: dict[str, Any]
+        self,
+        project_id: str,
+        scope_statement: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        requester: str,
     ) -> dict[str, Any]:
         """
         Generate Work Breakdown Structure.
@@ -308,6 +381,22 @@ class ProjectDefinitionAgent(BaseAgent):
 
         # Store WBS
         self.wbs_structures[project_id] = wbs
+        self.wbs_store.upsert(tenant_id, project_id, wbs)
+
+        approval = await self._request_signoff(
+            request_type="scope_change",
+            request_id=wbs_id,
+            requester=requester,
+            details={
+                "description": "WBS sign-off",
+                "project_id": project_id,
+                "wbs_id": wbs_id,
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
+
+        await self._publish_wbs_created(wbs, tenant_id=tenant_id, correlation_id=correlation_id)
 
         # Future work: Store in Azure Cosmos DB (hierarchical format)
         # Future work: Publish wbs.created event
@@ -318,6 +407,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "structure": wbs_with_details,
             "total_work_packages": await self._count_work_packages(wbs_with_details),
             "next_steps": "Review and refine WBS, then pass to Schedule & Planning Agent",
+            "approval": approval,
         }
 
     async def _manage_requirements(
@@ -563,16 +653,20 @@ class ProjectDefinitionAgent(BaseAgent):
             ),
         }
 
-    async def _get_charter(self, project_id: str) -> dict[str, Any]:
+    async def _get_charter(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Retrieve project charter by ID."""
         charter = self.charters.get(project_id)
+        if not charter:
+            charter = self.charter_store.get(tenant_id, project_id)
         if not charter:
             raise ValueError(f"Charter not found for project: {project_id}")
         return charter  # type: ignore
 
-    async def _get_wbs(self, project_id: str) -> dict[str, Any]:
+    async def _get_wbs(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Retrieve WBS by project ID."""
         wbs = self.wbs_structures.get(project_id)
+        if not wbs:
+            wbs = self.wbs_store.get(tenant_id, project_id)
         if not wbs:
             raise ValueError(f"WBS not found for project: {project_id}")
         return wbs  # type: ignore
@@ -589,11 +683,78 @@ class ProjectDefinitionAgent(BaseAgent):
     async def _generate_project_id(self) -> str:
         """Generate unique project ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        return f"PRJ-{timestamp}"
+        return f"PRJ-{timestamp}-{uuid.uuid4().hex[:6]}"
+
+    async def _generate_charter_id(self, project_id: str) -> str:
+        """Generate unique charter ID."""
+        return f"CHAR-{project_id}-{uuid.uuid4().hex[:6]}"
 
     async def _generate_wbs_id(self, project_id: str) -> str:
         """Generate unique WBS ID."""
         return f"{project_id}-WBS-001"
+
+    async def _request_signoff(
+        self,
+        *,
+        request_type: str,
+        request_id: str,
+        requester: str,
+        details: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        if not self.approval_agent:
+            return {"status": "skipped", "reason": "approval_agent_not_configured"}
+        response = await self.approval_agent.process(
+            {
+                "request_type": request_type,
+                "request_id": request_id,
+                "requester": requester,
+                "details": details,
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
+        return response
+
+    async def _publish_charter_created(
+        self, charter: dict[str, Any], *, tenant_id: str, correlation_id: str
+    ) -> None:
+        event = CharterCreatedEvent(
+            event_name="charter.created",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload={
+                "charter_id": charter.get("charter_id", ""),
+                "project_id": charter.get("project_id", ""),
+                "created_at": datetime.fromisoformat(charter.get("created_at")),
+                "owner": charter.get("created_by", "unknown"),
+            },
+        )
+        await self.event_bus.publish("charter.created", event.model_dump())
+
+    async def _publish_wbs_created(
+        self, wbs: dict[str, Any], *, tenant_id: str, correlation_id: str
+    ) -> None:
+        event = WbsCreatedEvent(
+            event_name="wbs.created",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload={
+                "wbs_id": wbs.get("wbs_id", ""),
+                "project_id": wbs.get("project_id", ""),
+                "created_at": datetime.fromisoformat(wbs.get("created_at")),
+                "baseline_date": None,
+            },
+        )
+        await self.event_bus.publish("wbs.created", event.model_dump())
 
     async def _generate_baseline_id(self, project_id: str) -> str:
         """Generate unique baseline ID."""

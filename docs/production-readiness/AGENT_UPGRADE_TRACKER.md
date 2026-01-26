@@ -11,11 +11,11 @@ Tracking required updates for each of the 25 agents based on the cross-agent fou
 | Agent 05 – Business Case & Investment | Done | Tenant-scoped business case store, ROI validation, business_case.created + investment.recommendation events, and new tests. |
 | Agent 06 – Portfolio Strategy & Optimization | Done | Portfolio prioritizations persisted, portfolio.prioritized events emitted, and policy guardrails with audit emission on approvals. |
 | Agent 07 – Program Management | Done | Program/roadmap/dependency persistence with program.created + program.roadmap.updated events and new tests. |
-| Agent 08 – Project Definition & Scope | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 09 – Project Lifecycle & Governance | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 10 – Schedule & Planning | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 11 – Resource & Capacity | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 12 – Financial Management | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
+| Agent 08 – Project Definition & Scope | Done | Charter/WBS persistence, approval workflow sign-off, and charter.created + wbs.created events with new tests. |
+| Agent 09 – Project Lifecycle & Governance | Done | Lifecycle state persistence, project.transitioned events, and approval workflow enforcement on gate overrides with updated tests. |
+| Agent 10 – Schedule & Planning | Done | Schedule/baseline persistence, schedule.baseline.locked + schedule.delay events, and change-control integration with tests. |
+| Agent 11 – Resource & Capacity | Done | Resource/allocations persistence, resource allocation event publishing, schema validation, and new tests. |
+| Agent 12 – Financial Management | Done | Tenant-scoped budget/actual/forecast persistence, budget audit events + approvals, schema validation, and expanded tests. |
 | Agent 13 – Vendor & Procurement | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
 | Agent 14 – Quality Assurance | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
 | Agent 15 – Risk & Issue Management | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
