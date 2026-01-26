@@ -3,12 +3,15 @@ name: License Compliance
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   license:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Verify license metadata
         run: |

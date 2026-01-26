@@ -6,6 +6,9 @@ on:
     branches: [main]
     tags: ["v*"]
 
+permissions:
+  contents: read
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -14,10 +17,10 @@ jobs:
       SIGNING_PUBLIC_KEY_B64: ${{ secrets.SIGNING_PUBLIC_KEY_B64 }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -45,7 +48,7 @@ jobs:
         run: python scripts/verify-signature.py
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@0b7f8abb1508181956e9eac5b10f0eefd7c5f3f0
         with:
           name: python-release
           path: dist/*

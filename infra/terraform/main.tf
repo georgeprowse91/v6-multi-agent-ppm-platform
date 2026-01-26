@@ -42,6 +42,48 @@ variable "resource_prefix" {
   default     = "ppm"
 }
 
+variable "postgres_database_name" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "ppm"
+}
+
+variable "identity_client_secret" {
+  description = "OIDC identity client secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "service_bus_connection_string" {
+  description = "Azure Service Bus connection string"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_openai_api_key" {
+  description = "Azure OpenAI API key"
+  type        = string
+  sensitive   = true
+}
+
+variable "workload_identity_issuer_url" {
+  description = "OIDC issuer URL for AKS workload identity"
+  type        = string
+  default     = ""
+}
+
+variable "workload_identity_subject" {
+  description = "Workload identity subject (service account) for Key Vault access"
+  type        = string
+  default     = ""
+}
+
+variable "workload_identity_audience" {
+  description = "Workload identity audience"
+  type        = string
+  default     = "api://AzureADTokenExchange"
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_prefix}-${var.environment}-rg"
@@ -59,7 +101,7 @@ resource "azurerm_container_registry" "acr" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   sku                 = "Standard"
-  admin_enabled       = true
+  admin_enabled       = false
 
   tags = {
     Environment = var.environment
@@ -171,6 +213,39 @@ resource "azurerm_key_vault" "main" {
 
 data "azurerm_client_config" "current" {}
 
+locals {
+  database_url = "postgresql://${azurerm_postgresql_flexible_server.main.administrator_login}:${random_password.db_password.result}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.postgres_database_name}"
+  redis_url    = "rediss://:${azurerm_redis_cache.main.primary_access_key}@${azurerm_redis_cache.main.hostname}:${azurerm_redis_cache.main.ssl_port}/0"
+}
+
+resource "azurerm_user_assigned_identity" "key_vault_workload" {
+  name                = "${var.resource_prefix}-${var.environment}-kv-identity"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+resource "azurerm_role_assignment" "key_vault_admin" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "key_vault_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.key_vault_workload.principal_id
+}
+
+resource "azurerm_federated_identity_credential" "key_vault" {
+  count               = var.workload_identity_issuer_url != "" && var.workload_identity_subject != "" ? 1 : 0
+  name                = "${var.resource_prefix}-${var.environment}-kv-fic"
+  resource_group_name = azurerm_resource_group.main.name
+  parent_id           = azurerm_user_assigned_identity.key_vault_workload.id
+  issuer              = var.workload_identity_issuer_url
+  subject             = var.workload_identity_subject
+  audience            = [var.workload_identity_audience]
+}
+
 # Storage Account for Data Lake
 resource "azurerm_storage_account" "main" {
   name                     = "${var.resource_prefix}${var.environment}storage"
@@ -273,6 +348,48 @@ resource "azurerm_servicebus_queue" "data_sync" {
   max_delivery_count  = 10
 }
 
+resource "azurerm_key_vault_secret" "database_url" {
+  name         = "database-url"
+  value        = local.database_url
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+resource "azurerm_key_vault_secret" "redis_url" {
+  name         = "redis-url"
+  value        = local.redis_url
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+resource "azurerm_key_vault_secret" "azure_openai_endpoint" {
+  name         = "azure-openai-endpoint"
+  value        = azurerm_cognitive_account.openai.endpoint
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+resource "azurerm_key_vault_secret" "azure_openai_api_key" {
+  name         = "azure-openai-api-key"
+  value        = var.azure_openai_api_key
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+resource "azurerm_key_vault_secret" "identity_client_secret" {
+  name         = "identity-client-secret"
+  value        = var.identity_client_secret
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+resource "azurerm_key_vault_secret" "service_bus_connection" {
+  name         = "servicebus-connection"
+  value        = var.service_bus_connection_string
+  key_vault_id = azurerm_key_vault.main.id
+}
+
+resource "azurerm_key_vault_secret" "storage_account_key" {
+  name         = "storage-account-key"
+  value        = azurerm_storage_account.main.primary_access_key
+  key_vault_id = azurerm_key_vault.main.id
+}
+
 # Outputs
 output "resource_group_name" {
   value = azurerm_resource_group.main.name
@@ -304,4 +421,9 @@ output "openai_endpoint" {
 
 output "key_vault_uri" {
   value = azurerm_key_vault.main.vault_uri
+}
+
+output "key_vault_workload_identity_client_id" {
+  value     = azurerm_user_assigned_identity.key_vault_workload.client_id
+  sensitive = true
 }

@@ -15,6 +15,7 @@ spec:
       labels:
         app: ppm-api
     spec:
+      serviceAccountName: ppm-keyvault-sa
       containers:
         - name: api
           image: ${CONTAINER_REGISTRY}/multi-agent-ppm:latest
@@ -43,10 +44,24 @@ spec:
                 secretKeyRef:
                   name: ppm-secrets
                   key: azure-openai-api-key
+            - name: IDENTITY_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ppm-secrets
+                  key: identity-jwt-secret
+            - name: POLICY_ENGINE_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ppm-secrets
+                  key: policy-engine-service-token
             - name: ENVIRONMENT
               value: "production"
             - name: LOG_LEVEL
               value: "INFO"
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: /mnt/secrets-store
+              readOnly: true
           resources:
             requests:
               memory: "512Mi"
@@ -78,6 +93,13 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 30
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: ppm-keyvault-secrets
       imagePullSecrets:
         - name: acr-secret
 ---

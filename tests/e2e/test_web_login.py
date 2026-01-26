@@ -77,7 +77,7 @@ def test_web_oidc_session_flow(monkeypatch) -> None:
     monkeypatch.setenv("OIDC_AUTH_URL", "https://login.test/authorize")
     monkeypatch.setenv("OIDC_TOKEN_URL", "https://login.test/token")
     monkeypatch.setenv("OIDC_REDIRECT_URI", "https://app.test/callback")
-    monkeypatch.setenv("OIDC_INSECURE_SKIP_VERIFY", "true")
+    monkeypatch.setenv("OIDC_JWKS_URL", "https://login.test/.well-known/jwks.json")
     monkeypatch.setenv("SESSION_COOKIE_SECURE", "false")
     monkeypatch.setenv("API_GATEWAY_URL", "https://api.test")
     monkeypatch.setenv("WORKFLOW_ENGINE_URL", "https://workflow.test")
@@ -105,6 +105,15 @@ def test_web_oidc_session_flow(monkeypatch) -> None:
         return {"access_token": "access-token", "id_token": token}
 
     monkeypatch.setattr(web, "_exchange_code_for_token", _mock_exchange)
+
+    async def _mock_decode(id_token: str):
+        return {
+            "sub": "user-123",
+            "tenant_id": "tenant-alpha",
+            "roles": ["portfolio_admin"],
+        }
+
+    monkeypatch.setattr(web, "_decode_id_token", _mock_decode)
 
     callback_response = client.get(f"/callback?code=abc&state={state}", follow_redirects=False)
     assert callback_response.status_code == 307

@@ -7,4 +7,9 @@ COPY . /app
 
 ENV AGENT_PATH=/app/agents/portfolio-management/agent-07-program-management/src/program_management_agent.py
 
+
+RUN useradd -m -u 10001 appuser && chown -R appuser:appuser /app
+
+USER appuser
+
 CMD ["python", "-m", "tools.agent_runner", "--agent-path", "/app/agents/portfolio-management/agent-07-program-management/src/program_management_agent.py"]
