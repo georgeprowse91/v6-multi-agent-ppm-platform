@@ -4,9 +4,9 @@ Tracking required updates for each of the 25 agents based on the cross-agent fou
 
 | Agent | Required updates status | Evidence |
 | --- | --- | --- |
-| Agent 01 – Intent Router | Done | Inherits `BaseAgent` with canonical ID mapping, policy hook, tracing, and structured logging. |
-| Agent 02 – Response Orchestration | Done | Inherits `BaseAgent` and propagates correlation/trace headers to downstream agents. |
-| Agent 03 – Approval Workflow | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
+| Agent 01 – Intent Router | Done | Loads prompt registry intent routing prompt and uses shared LLM client wrapper, emitting `intent.classified` audit events. |
+| Agent 02 – Response Orchestration | Done | Builds dependency-aware DAG execution with retries/circuit breaker, injects trace headers, and emits orchestration audit events. |
+| Agent 03 – Approval Workflow | Done | Uses role lookup + delegation records with tenant-scoped durable store, emitting approval audit events. |
 | Agent 04 – Demand & Intake | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
 | Agent 05 – Business Case & Investment | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
 | Agent 06 – Portfolio Strategy & Optimization | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |

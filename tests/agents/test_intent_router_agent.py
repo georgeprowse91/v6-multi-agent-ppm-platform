@@ -4,7 +4,21 @@ from intent_router_agent import IntentRouterAgent
 
 @pytest.mark.asyncio
 async def test_intent_router_classifies_multi_intent():
-    agent = IntentRouterAgent()
+    agent = IntentRouterAgent(
+        config={
+            "llm_provider": "mock",
+            "llm_config": {
+                "mock_response": {
+                    "intents": [
+                        {"intent": "portfolio_query", "confidence": 0.9},
+                        {"intent": "financial_query", "confidence": 0.8},
+                        {"intent": "risk_query", "confidence": 0.7},
+                    ],
+                    "parameters": {"project_id": "APOLLO"},
+                }
+            },
+        }
+    )
     await agent.initialize()
 
     result = await agent.process({"query": "Show portfolio budget and risk for Project Apollo"})

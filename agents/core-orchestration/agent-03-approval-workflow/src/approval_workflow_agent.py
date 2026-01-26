@@ -5,12 +5,66 @@ Orchestrates human-in-the-loop approval processes across the PPM platform.
 Handles routing, escalation, delegation, and audit trail for governance compliance.
 """
 
-import json
+import sys
+import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+
+DATA_SYNC_ROOT = Path(__file__).resolve().parents[5] / "services" / "data-sync-service" / "src"
+if str(DATA_SYNC_ROOT) not in sys.path:
+    sys.path.insert(0, str(DATA_SYNC_ROOT))
+
+from data_sync_status import StatusStore  # noqa: E402
+
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from observability.tracing import get_trace_id  # noqa: E402
+
+
+class ApprovalStore:
+    def __init__(self, path: Path) -> None:
+        self.store = StatusStore(path)
+
+    def _key(self, tenant_id: str, approval_id: str) -> str:
+        return f"{tenant_id}:{approval_id}"
+
+    def create(self, tenant_id: str, approval_id: str, details: dict[str, Any]) -> None:
+        key = self._key(tenant_id, approval_id)
+        self.store.create(key, tenant_id, "pending")
+        self.store.update(key, "pending", details)
+
+    def update(self, tenant_id: str, approval_id: str, status: str, details: dict[str, Any]) -> None:
+        key = self._key(tenant_id, approval_id)
+        self.store.update(key, status, details)
+
+    def get(self, tenant_id: str, approval_id: str) -> dict[str, Any] | None:
+        key = self._key(tenant_id, approval_id)
+        record = self.store.get(key)
+        if not record:
+            return None
+        return {
+            "approval_id": approval_id,
+            "status": record.status,
+            "created_at": record.created_at,
+            "updated_at": record.updated_at,
+            "tenant_id": tenant_id,
+            "details": record.details,
+        }
+
+
+class RoleLookupClient:
+    def __init__(self, config: dict[str, Any] | None) -> None:
+        self.config = config or {}
+        self.role_directory = self.config.get("role_directory", {})
+
+    async def get_users_for_roles(self, tenant_id: str, roles: list[str]) -> dict[str, list[str]]:
+        resolved: dict[str, list[str]] = {}
+        for role in roles:
+            users = self.role_directory.get(role, [])
+            resolved[role] = list(users)
+        return resolved
 
 
 class ApprovalWorkflowAgent(BaseAgent):
@@ -29,14 +83,16 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.approval_policies: dict[str, Any] = {}
         self.delegation_records: dict[str, Any] = {}
         self.notifications: list[dict[str, Any]] = []
-        self.storage_path = Path(
-            config.get("storage_path", "data/approval_chains.json") if config else "data/approval_chains.json"
+        self.approval_store = ApprovalStore(
+            Path(
+                config.get("approval_store_path", "data/approval_store.json")
+                if config
+                else "data/approval_store.json"
+            )
         )
-        self.notification_store_path = Path(
-            config.get("notification_store_path", "data/approval_notifications.json")
-            if config
-            else "data/approval_notifications.json"
-        )
+        self.role_lookup = config.get("role_lookup") if config else None
+        if self.role_lookup is None:
+            self.role_lookup = RoleLookupClient(config)
 
     async def initialize(self) -> None:
         """Initialize approval workflow configurations and connections."""
@@ -45,7 +101,6 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         # Load approval policies and routing rules
         self.approval_policies = await self._load_approval_policies()
-        await self._load_persisted_state()
 
         # Future work: Initialize Azure Service Bus subscriptions for approval events
         # Future work: Connect to Microsoft Graph API for user/role lookups
@@ -54,6 +109,8 @@ class ApprovalWorkflowAgent(BaseAgent):
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate approval request input data."""
+        if input_data.get("decision") and input_data.get("approval_id"):
+            return True
         required_fields = ["request_type", "request_id", "requester", "details"]
 
         for field in required_fields:
@@ -102,27 +159,68 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "notifications_sent": true
             }
         """
+        if input_data.get("decision") and input_data.get("approval_id"):
+            context = input_data.get("context", {})
+            tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+            correlation_id = (
+                context.get("correlation_id")
+                or input_data.get("correlation_id")
+                or str(uuid.uuid4())
+            )
+            return await self._record_decision(
+                approval_id=input_data["approval_id"],
+                decision=input_data["decision"],
+                approver_id=input_data.get("approver_id", "unknown"),
+                comments=input_data.get("comments"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+
         request_type = input_data["request_type"]
         request_id = input_data["request_id"]
         details = input_data["details"]
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         self.logger.info(f"Processing {request_type} approval request: {request_id}")
 
         # Determine approvers based on routing rules
-        approvers = await self._determine_approvers(request_type, details)
+        approvers, delegation_records = await self._determine_approvers(
+            tenant_id, request_type, details
+        )
 
         # Create approval chain
         approval_chain = await self._create_approval_chain(
-            request_id=request_id, request_type=request_type, approvers=approvers, details=details
+            tenant_id=tenant_id,
+            request_id=request_id,
+            request_type=request_type,
+            approvers=approvers,
+            details=details,
+            delegation_records=delegation_records,
         )
 
         # Send notifications
         notifications_sent = await self._send_approval_notifications(
-            approval_chain=approval_chain, approvers=approvers, details=details
+            tenant_id=tenant_id,
+            approval_chain=approval_chain,
+            approvers=approvers,
+            details=details,
         )
 
         # Set escalation timers
         await self._schedule_escalations(approval_chain)
+
+        self._emit_audit_event(
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            action="approval.created",
+            outcome="success",
+            resource_id=approval_chain["id"],
+            metadata={"request_type": request_type, "approvers": approvers},
+        )
 
         return {
             "approval_id": approval_chain["id"],
@@ -138,46 +236,59 @@ class ApprovalWorkflowAgent(BaseAgent):
             },
         }
 
-    async def _determine_approvers(self, request_type: str, details: dict[str, Any]) -> list[str]:
+    async def _determine_approvers(
+        self, tenant_id: str, request_type: str, details: dict[str, Any]
+    ) -> tuple[list[str], list[dict[str, Any]]]:
         """Determine required approvers based on request type and thresholds."""
-        approvers = []
+        roles = []
 
         if request_type == "budget_change":
             amount = details.get("amount", 0)
 
             # Threshold-based routing
             if amount < 10000:
-                approvers = ["project_manager"]
+                roles = ["project_manager"]
             elif amount < 50000:
-                approvers = ["project_manager", "sponsor"]
+                roles = ["project_manager", "sponsor"]
             elif amount < 100000:
-                approvers = ["project_manager", "sponsor", "finance_director"]
+                roles = ["project_manager", "sponsor", "finance_director"]
             else:
-                approvers = ["project_manager", "sponsor", "finance_director", "cfo"]
+                roles = ["project_manager", "sponsor", "finance_director", "cfo"]
 
         elif request_type == "scope_change":
-            approvers = ["project_manager", "sponsor", "change_control_board"]
+            roles = ["project_manager", "sponsor", "change_control_board"]
 
         elif request_type == "procurement":
             amount = details.get("amount", 0)
             if amount < 25000:
-                approvers = ["project_manager"]
+                roles = ["project_manager"]
             else:
-                approvers = ["project_manager", "procurement_manager", "finance_director"]
+                roles = ["project_manager", "procurement_manager", "finance_director"]
 
         elif request_type == "phase_gate":
-            approvers = ["project_manager", "sponsor", "steering_committee"]
+            roles = ["project_manager", "sponsor", "steering_committee"]
 
         elif request_type == "resource_change":
-            approvers = ["project_manager", "resource_manager"]
+            roles = ["project_manager", "resource_manager"]
 
-        # Future work: Check for delegation and substitute approvers
-        # Future work: Query Azure AD for actual user IDs
+        resolved = await self.role_lookup.get_users_for_roles(tenant_id, roles)
+        approvers = []
+        for role in roles:
+            approvers.extend(resolved.get(role, []))
+        approvers = list(dict.fromkeys(approvers))
 
-        return approvers
+        approvers, delegation_records = self._apply_delegations(approvers)
+        return approvers, delegation_records
 
     async def _create_approval_chain(
-        self, request_id: str, request_type: str, approvers: list[str], details: dict[str, Any]
+        self,
+        *,
+        tenant_id: str,
+        request_id: str,
+        request_type: str,
+        approvers: list[str],
+        details: dict[str, Any],
+        delegation_records: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Create approval chain configuration."""
         approval_id = f"approval_{request_id}_{datetime.utcnow().timestamp()}"
@@ -199,16 +310,31 @@ class ApprovalWorkflowAgent(BaseAgent):
             "current_step": 0,
             "responses": {},
             "created_at": datetime.utcnow().isoformat(),
+            "delegations": delegation_records,
         }
 
-        # Store in memory (Future work: persist to database)
         self.approval_chains[approval_id] = chain
-        await self._persist_state()
+        self.approval_store.create(
+            tenant_id,
+            approval_id,
+            {
+                "request_type": request_type,
+                "request_id": request_id,
+                "approvers": approvers,
+                "chain": chain,
+                "notifications": [],
+            },
+        )
 
         return chain
 
     async def _send_approval_notifications(
-        self, approval_chain: dict[str, Any], approvers: list[str], details: dict[str, Any]
+        self,
+        *,
+        tenant_id: str,
+        approval_chain: dict[str, Any],
+        approvers: list[str],
+        details: dict[str, Any],
     ) -> bool:
         """Send approval notifications to approvers via multiple channels."""
         try:
@@ -229,7 +355,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                     "sent_at": datetime.utcnow().isoformat(),
                 }
                 self.notifications.append(notification)
-                await self._persist_notifications()
+                self._persist_notification(tenant_id, approval_chain["id"], notification)
 
                 # Future work: Actual send implementation
 
@@ -256,26 +382,100 @@ class ApprovalWorkflowAgent(BaseAgent):
             "default_chain_type": "sequential",
         }
 
-    async def _load_persisted_state(self) -> None:
-        """Load persisted approval chains and notifications."""
-        if self.storage_path.exists():
-            self.approval_chains.update(json.loads(self.storage_path.read_text()))
-        if self.notification_store_path.exists():
-            self.notifications = json.loads(self.notification_store_path.read_text())
+    def _persist_notification(
+        self, tenant_id: str, approval_id: str, notification: dict[str, Any]
+    ) -> None:
+        existing = self.approval_store.get(tenant_id, approval_id)
+        notifications = []
+        if existing and isinstance(existing.get("details", {}).get("notifications"), list):
+            notifications = list(existing["details"]["notifications"])
+        notifications.append(notification)
+        details = existing["details"] if existing else {}
+        details["notifications"] = notifications
+        self.approval_store.update(tenant_id, approval_id, "pending", details)
 
-    async def _persist_state(self) -> None:
-        """Persist approval chains to storage."""
-        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-        temp_path = self.storage_path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(self.approval_chains, indent=2))
-        temp_path.replace(self.storage_path)
+    def _apply_delegations(self, approvers: list[str]) -> tuple[list[str], list[dict[str, Any]]]:
+        delegations = self.config.get("delegations", {}) if self.config else {}
+        records: list[dict[str, Any]] = []
+        resolved: list[str] = []
+        for approver in approvers:
+            delegate = delegations.get(approver)
+            if delegate:
+                records.append(
+                    {
+                        "delegator": approver,
+                        "delegate": delegate,
+                        "recorded_at": datetime.utcnow().isoformat(),
+                    }
+                )
+                resolved.append(delegate)
+            else:
+                resolved.append(approver)
+        return list(dict.fromkeys(resolved)), records
 
-    async def _persist_notifications(self) -> None:
-        """Persist notification log to storage."""
-        self.notification_store_path.parent.mkdir(parents=True, exist_ok=True)
-        temp_path = self.notification_store_path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(self.notifications, indent=2))
-        temp_path.replace(self.notification_store_path)
+    async def _record_decision(
+        self,
+        *,
+        approval_id: str,
+        decision: str,
+        approver_id: str,
+        comments: str | None,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        self.approval_store.update(
+            tenant_id,
+            approval_id,
+            decision,
+            {
+                "decision": decision,
+                "decided_by": approver_id,
+                "decided_at": datetime.utcnow().isoformat(),
+                "comments": comments,
+            },
+        )
+        self._emit_audit_event(
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            action="approval.decision",
+            outcome="success",
+            resource_id=approval_id,
+            metadata={
+                "decision": decision,
+                "approver_id": approver_id,
+                "comments": comments,
+            },
+        )
+        return {
+            "approval_id": approval_id,
+            "decision": decision,
+            "status": decision,
+        }
+
+    def _emit_audit_event(
+        self,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        action: str,
+        outcome: str,
+        resource_id: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        event = build_audit_event(
+            tenant_id=tenant_id,
+            action=action,
+            outcome=outcome,
+            actor_id=self.agent_id,
+            actor_type="service",
+            actor_roles=[],
+            resource_id=resource_id,
+            resource_type="approval_workflow",
+            metadata=metadata or {},
+            trace_id=get_trace_id(),
+            correlation_id=correlation_id,
+        )
+        emit_audit_event(event)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

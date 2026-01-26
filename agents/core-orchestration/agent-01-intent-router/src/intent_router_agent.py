@@ -8,11 +8,29 @@ should handle the request.
 Specification: agents/core-orchestration/agent-01-intent-router/README.md
 """
 
+import json
 import re
+import sys
+import uuid
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+
+LLM_ROOT = Path(__file__).resolve().parents[5] / "packages" / "llm" / "src"
+if str(LLM_ROOT) not in sys.path:
+    sys.path.insert(0, str(LLM_ROOT))
+
+PROMPT_ROOT = Path(__file__).resolve().parents[3] / "runtime" / "prompts"
+if str(PROMPT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROMPT_ROOT))
+
+from llm import LLMClient  # noqa: E402
+from prompt_registry import enforce_redaction, load_prompt_by_agent  # noqa: E402
+
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from observability.tracing import get_trace_id  # noqa: E402
 
 
 class IntentRouterAgent(BaseAgent):
@@ -38,6 +56,7 @@ class IntentRouterAgent(BaseAgent):
             "demand_intake",
             "compliance_query",
             "analytics_query",
+            "general_query",
         ]
         self.intent_signals = {
             "portfolio_query": ["portfolio", "program", "initiative", "portfolio health"],
@@ -67,13 +86,18 @@ class IntentRouterAgent(BaseAgent):
             "get",
             "please",
         }
+        self.intent_confidence_threshold = self.config.get("intent_confidence_threshold", 0.6)
+        self.llm_client = self.config.get("llm_client") or LLMClient(
+            provider=self.config.get("llm_provider"),
+            config=self.config.get("llm_config"),
+        )
+        self.prompt: dict[str, Any] | None = None
 
     async def initialize(self) -> None:
         """Initialize NLP models and routing configuration."""
         await super().initialize()
-        self.logger.info("Loading intent classification models...")
-        # Future work: Load Azure OpenAI or other NLP models
-        # Future work: Load routing configuration
+        self.logger.info("Loading intent classification prompt registry...")
+        self.prompt = load_prompt_by_agent("intent-router", "intent-routing")
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate that query is present and valid."""
@@ -104,22 +128,109 @@ class IntentRouterAgent(BaseAgent):
         """
         query = input_data["query"]
         context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         self.logger.info(f"Classifying query: {query}")
 
-        # Future work: Implement actual NLP classification using Azure OpenAI
-        # For now, return a mock response
-        intent = await self._classify_intent(query)
-        agents = await self._determine_agents(intent)
-        parameters = await self._extract_parameters(query, intent)
+        llm_payload = {
+            "request": {"text": query, "context": context},
+        }
+        if not self.prompt:
+            raise ValueError("Prompt registry not initialized")
+        redacted_payload = enforce_redaction(self.prompt, llm_payload)
+        system_prompt = self._render_prompt(self.prompt["prompt"]["system"], redacted_payload)
+        user_prompt = self._render_prompt(self.prompt["prompt"]["user"], redacted_payload)
+
+        llm_response = await self.llm_client.complete(system_prompt, user_prompt)
+        llm_data = self._parse_llm_response(llm_response.content)
+        intents = self._normalize_intents(llm_data.get("intents", []))
+        parameters = llm_data.get("parameters") or {}
+        agents = await self._determine_agents(intents, llm_data.get("dependencies"))
+
+        audit_event = build_audit_event(
+            tenant_id=tenant_id,
+            action="intent.classified",
+            outcome="success",
+            actor_id=self.agent_id,
+            actor_type="service",
+            actor_roles=[],
+            resource_id=query[:64] or "query",
+            resource_type="intent_classification",
+            metadata={
+                "intents": intents,
+                "routing": agents,
+                "parameters": parameters,
+            },
+            trace_id=get_trace_id(),
+            correlation_id=correlation_id,
+        )
+        emit_audit_event(audit_event)
 
         return {
-            "intents": intent,
+            "intents": intents,
             "routing": agents,
             "parameters": parameters,
             "query": query,
             "context": context,
         }
+
+    def _render_prompt(self, template: str, payload: dict[str, Any]) -> str:
+        def _resolve(path: str) -> Any:
+            current: Any = payload
+            for part in path.split("."):
+                if isinstance(current, dict):
+                    current = current.get(part)
+                else:
+                    return ""
+            return current
+
+        def _replace(match: re.Match[str]) -> str:
+            value = _resolve(match.group(1).strip())
+            if value is None:
+                return ""
+            if isinstance(value, (dict, list)):
+                return json.dumps(value)
+            return str(value)
+
+        return re.sub(r"{{\\s*([\\w\\.]+)\\s*}}", _replace, template)
+
+    def _parse_llm_response(self, content: str) -> dict[str, Any]:
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as exc:
+            self.logger.error("Failed to parse LLM response", extra={"content": content})
+            raise ValueError("Invalid LLM response payload") from exc
+        if not isinstance(data, dict):
+            raise ValueError("LLM response must be a JSON object")
+        return data
+
+    def _normalize_intents(self, intents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        normalized: list[dict[str, Any]] = []
+        for entry in intents:
+            intent = str(entry.get("intent", "general_query"))
+            confidence = entry.get("confidence", 0.0)
+            if intent not in self.supported_intents:
+                intent = "general_query"
+            try:
+                confidence_value = float(confidence)
+            except (TypeError, ValueError):
+                confidence_value = 0.0
+            if confidence_value < self.intent_confidence_threshold:
+                continue
+            normalized.append(
+                {
+                    "intent": intent,
+                    "confidence": round(min(max(confidence_value, 0.0), 1.0), 2),
+                }
+            )
+        if not normalized:
+            normalized = [{"intent": "general_query", "confidence": 0.5}]
+
+        normalized.sort(key=lambda item: float(item.get("confidence", 0.0)), reverse=True)
+        return normalized
 
     async def _classify_intent(self, query: str) -> list[dict[str, Any]]:
         """
@@ -169,7 +280,9 @@ class IntentRouterAgent(BaseAgent):
         normalized_intents.sort(key=_confidence_key, reverse=True)
         return normalized_intents
 
-    async def _determine_agents(self, intents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    async def _determine_agents(
+        self, intents: list[dict[str, Any]], dependencies: dict[str, list[str]] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Map intents to specific agents that should handle the request.
 
@@ -189,11 +302,15 @@ class IntentRouterAgent(BaseAgent):
             intent_type = intent["intent"]
             if intent_type in agent_mapping:
                 for agent_id in agent_mapping[intent_type]:
+                    depends_on = []
+                    if dependencies and agent_id in dependencies:
+                        depends_on = list(dependencies.get(agent_id, []))
                     agents.append(
                         {
                             "agent_id": agent_id,
                             "priority": intent["confidence"],
                             "intent": intent_type,
+                            "depends_on": depends_on,
                         }
                     )
 
