@@ -9,9 +9,12 @@ Specification: agents/operations-management/agent-22-analytics-insights/README.m
 """
 
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from security.lineage import mask_lineage_payload
 
 
 class AnalyticsInsightsAgent(BaseAgent):
@@ -38,6 +41,19 @@ class AnalyticsInsightsAgent(BaseAgent):
             config.get("prediction_confidence_threshold", 0.75) if config else 0.75
         )
         self.max_dashboard_widgets = config.get("max_dashboard_widgets", 20) if config else 20
+
+        output_store_path = (
+            Path(config.get("analytics_output_store_path", "data/analytics_outputs.json"))
+            if config
+            else Path("data/analytics_outputs.json")
+        )
+        lineage_store_path = (
+            Path(config.get("analytics_lineage_store_path", "data/analytics_lineage.json"))
+            if config
+            else Path("data/analytics_lineage.json")
+        )
+        self.analytics_output_store = TenantStateStore(output_store_path)
+        self.analytics_lineage_store = TenantStateStore(lineage_store_path)
 
         # Data stores (will be replaced with database)
         self.dashboards = {}  # type: ignore
@@ -141,29 +157,36 @@ class AnalyticsInsightsAgent(BaseAgent):
             - update_data_lineage: Lineage tracking information
         """
         action = input_data.get("action", "get_insights")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
 
         if action == "aggregate_data":
-            return await self._aggregate_data(input_data.get("data_sources", []))
+            return await self._aggregate_data(tenant_id, input_data.get("data_sources", []))
 
         elif action == "create_dashboard":
-            return await self._create_dashboard(input_data.get("dashboard", {}))
+            return await self._create_dashboard(tenant_id, input_data.get("dashboard", {}))
 
         elif action == "generate_report":
-            return await self._generate_report(input_data.get("report", {}))
+            return await self._generate_report(tenant_id, input_data.get("report", {}))
 
         elif action == "run_prediction":
             return await self._run_prediction(
-                input_data.get("model_type"), input_data.get("input_data", {})  # type: ignore
+                tenant_id,
+                input_data.get("model_type"),
+                input_data.get("input_data", {}),  # type: ignore
             )
 
         elif action == "scenario_analysis":
-            return await self._scenario_analysis(input_data.get("scenario", {}))
+            return await self._scenario_analysis(tenant_id, input_data.get("scenario", {}))
 
         elif action == "generate_narrative":
-            return await self._generate_narrative(input_data.get("data", {}))  # type: ignore
+            return await self._generate_narrative(tenant_id, input_data.get("data", {}))  # type: ignore
 
         elif action == "track_kpi":
-            return await self._track_kpi(input_data.get("kpi", {}))
+            return await self._track_kpi(tenant_id, input_data.get("kpi", {}))
 
         elif action == "query_data":
             return await self._query_data(input_data.get("query"), input_data.get("filters", {}))  # type: ignore
@@ -175,12 +198,12 @@ class AnalyticsInsightsAgent(BaseAgent):
             return await self._get_insights(input_data.get("filters", {}))
 
         elif action == "update_data_lineage":
-            return await self._update_data_lineage(input_data.get("lineage", {}))
+            return await self._update_data_lineage(tenant_id, input_data.get("lineage", {}))
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _aggregate_data(self, data_sources: list[str]) -> dict[str, Any]:
+    async def _aggregate_data(self, tenant_id: str, data_sources: list[str]) -> dict[str, Any]:
         """
         Aggregate data from multiple sources.
 
@@ -199,7 +222,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         statistics = await self._calculate_statistics(harmonized_data)
 
         # Track lineage
-        lineage_id = await self._record_data_lineage(data_sources, harmonized_data)
+        lineage_id = await self._record_data_lineage(tenant_id, data_sources, harmonized_data)
 
         return {
             "record_count": len(harmonized_data),
@@ -209,7 +232,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "aggregated_at": datetime.utcnow().isoformat(),
         }
 
-    async def _create_dashboard(self, dashboard_config: dict[str, Any]) -> dict[str, Any]:
+    async def _create_dashboard(
+        self, tenant_id: str, dashboard_config: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create interactive dashboard.
 
@@ -248,6 +273,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         # Store dashboard
         self.dashboards[dashboard_id] = dashboard
+        self.analytics_output_store.upsert(tenant_id, dashboard_id, dashboard.copy())
 
         # Future work: Store in database
         # Future work: Create in Power BI
@@ -261,7 +287,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "url": f"/dashboards/{dashboard_id}",
         }
 
-    async def _generate_report(self, report_spec: dict[str, Any]) -> dict[str, Any]:
+    async def _generate_report(self, tenant_id: str, report_spec: dict[str, Any]) -> dict[str, Any]:
         """
         Generate analytical report.
 
@@ -279,7 +305,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         visualizations = await self._generate_visualizations(data, report_spec)
 
         # Generate narrative summary
-        narrative = await self._generate_narrative(data)
+        narrative = await self._generate_narrative(tenant_id, data)
 
         # Create report record
         report = {
@@ -295,6 +321,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         # Store report
         self.reports[report_id] = report
+        self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
 
         # Future work: Store in database
         # Future work: Export to PDF/Word if requested
@@ -307,7 +334,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "download_url": f"/reports/{report_id}/download",
         }
 
-    async def _run_prediction(self, model_type: str, input_data: dict[str, Any]) -> dict[str, Any]:
+    async def _run_prediction(
+        self, tenant_id: str, model_type: str, input_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Run predictive analytics model.
 
@@ -330,7 +359,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         # Store prediction
         prediction_id = await self._generate_prediction_id()
-        self.predictions[prediction_id] = {
+        prediction_record = {
             "prediction_id": prediction_id,
             "model_type": model_type,
             "input_data": input_data,
@@ -339,6 +368,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             "confidence": prediction.get("confidence", 0.0),
             "predicted_at": datetime.utcnow().isoformat(),
         }
+        self.predictions[prediction_id] = prediction_record
+        self.analytics_output_store.upsert(tenant_id, prediction_id, prediction_record.copy())
 
         # Future work: Store in database
         # Future work: Publish prediction.made event
@@ -352,7 +383,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "recommendations": await self._generate_prediction_recommendations(prediction),
         }
 
-    async def _scenario_analysis(self, scenario: dict[str, Any]) -> dict[str, Any]:
+    async def _scenario_analysis(
+        self, tenant_id: str, scenario: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Perform what-if scenario analysis.
 
@@ -378,7 +411,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         impact = await self._calculate_scenario_impact(comparison)
 
         # Store scenario
-        self.scenarios[scenario_id] = {
+        scenario_record = {
             "scenario_id": scenario_id,
             "name": scenario.get("name"),
             "parameters": scenario.get("parameters"),
@@ -388,6 +421,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             "impact": impact,
             "created_at": datetime.utcnow().isoformat(),
         }
+        self.scenarios[scenario_id] = scenario_record
+        self.analytics_output_store.upsert(tenant_id, scenario_id, scenario_record.copy())
 
         return {
             "scenario_id": scenario_id,
@@ -399,7 +434,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "recommendations": await self._generate_scenario_recommendations(impact),
         }
 
-    async def _generate_narrative(self, data: dict[str, Any]) -> str:
+    async def _generate_narrative(self, tenant_id: str, data: dict[str, Any]) -> dict[str, Any]:
         """
         Generate narrative summary using NLG.
 
@@ -415,11 +450,21 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         # Generate narrative using AI
         # Future work: Use Azure OpenAI for NLG
-        narrative = await self._generate_narrative_text(key_insights, trends, data)
+        narrative_text = await self._generate_narrative_text(key_insights, trends, data)
+        narrative = {
+            "content": narrative_text,
+            "data_summary": data,
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+        self.analytics_output_store.upsert(
+            tenant_id,
+            f"narrative-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            narrative.copy(),
+        )
 
         return narrative
 
-    async def _track_kpi(self, kpi_config: dict[str, Any]) -> dict[str, Any]:
+    async def _track_kpi(self, tenant_id: str, kpi_config: dict[str, Any]) -> dict[str, Any]:
         """
         Track KPI metrics.
 
@@ -445,7 +490,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         )
 
         # Update KPI record
-        self.kpis[kpi_id] = {
+        kpi_record = {
             "kpi_id": kpi_id,
             "name": kpi_config.get("name"),
             "current_value": current_value,
@@ -455,6 +500,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             "historical_values": historical_values,
             "updated_at": datetime.utcnow().isoformat(),
         }
+        self.kpis[kpi_id] = kpi_record
+        self.analytics_output_store.upsert(tenant_id, kpi_id, kpi_record.copy())
 
         # Trigger alerts if threshold breached
         if threshold_status.get("breached"):
@@ -555,7 +602,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-    async def _update_data_lineage(self, lineage_data: dict[str, Any]) -> dict[str, Any]:
+    async def _update_data_lineage(
+        self, tenant_id: str, lineage_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Update data lineage tracking.
 
@@ -575,7 +624,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        self.data_lineage[lineage_id] = lineage
+        masked_lineage = mask_lineage_payload(lineage)
+        self.data_lineage[lineage_id] = masked_lineage
+        self.analytics_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
 
         # Future work: Store in lineage database
 
@@ -631,9 +682,21 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Calculate summary statistics."""
         return {"mean": 0, "median": 0, "std_dev": 0, "min": 0, "max": 0}
 
-    async def _record_data_lineage(self, sources: list[str], data: list[dict[str, Any]]) -> str:
+    async def _record_data_lineage(
+        self, tenant_id: str, sources: list[str], data: list[dict[str, Any]]
+    ) -> str:
         """Record data lineage."""
-        return await self._generate_lineage_id()
+        lineage_id = await self._generate_lineage_id()
+        lineage_record = {
+            "lineage_id": lineage_id,
+            "sources": sources,
+            "record_count": len(data),
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        masked_lineage = mask_lineage_payload(lineage_record)
+        self.data_lineage[lineage_id] = masked_lineage
+        self.analytics_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
+        return lineage_id
 
     async def _configure_widgets(self, widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Configure dashboard widgets."""

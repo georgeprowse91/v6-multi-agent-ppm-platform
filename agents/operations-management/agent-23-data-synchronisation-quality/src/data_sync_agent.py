@@ -9,9 +9,14 @@ Specification: agents/operations-management/agent-23-data-synchronisation-qualit
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.state_store import TenantStateStore
+from observability.tracing import get_trace_id
+from security.lineage import mask_lineage_payload
 
 
 class DataSyncAgent(BaseAgent):
@@ -43,12 +48,38 @@ class DataSyncAgent(BaseAgent):
             else "last_write_wins"
         )
 
+        master_store_path = (
+            Path(config.get("master_record_store_path", "data/master_records.json"))
+            if config
+            else Path("data/master_records.json")
+        )
+        sync_event_store_path = (
+            Path(config.get("sync_event_store_path", "data/sync_events.json"))
+            if config
+            else Path("data/sync_events.json")
+        )
+        lineage_store_path = (
+            Path(config.get("sync_lineage_store_path", "data/lineage/sync_lineage.json"))
+            if config
+            else Path("data/lineage/sync_lineage.json")
+        )
+        audit_store_path = (
+            Path(config.get("sync_audit_store_path", "data/sync_audit_events.json"))
+            if config
+            else Path("data/sync_audit_events.json")
+        )
+        self.master_record_store = TenantStateStore(master_store_path)
+        self.sync_event_store = TenantStateStore(sync_event_store_path)
+        self.sync_lineage_store = TenantStateStore(lineage_store_path)
+        self.sync_audit_store = TenantStateStore(audit_store_path)
+
         # Data stores (will be replaced with database)
         self.master_records = {}  # type: ignore
         self.mapping_rules = {}  # type: ignore
         self.sync_events = {}  # type: ignore
         self.conflicts = {}  # type: ignore
         self.duplicates = {}  # type: ignore
+        self.audit_records = {}  # type: ignore
 
     async def initialize(self) -> None:
         """Initialize data sync infrastructure and integrations."""
@@ -136,9 +167,15 @@ class DataSyncAgent(BaseAgent):
             - get_master_record: Master record data
         """
         action = input_data.get("action", "get_sync_status")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
 
         if action == "sync_data":
             return await self._sync_data(
+                tenant_id,
                 input_data.get("entity_type"),  # type: ignore
                 input_data.get("data"),  # type: ignore
                 input_data.get("source_system"),  # type: ignore
@@ -146,12 +183,15 @@ class DataSyncAgent(BaseAgent):
 
         elif action == "create_master_record":
             return await self._create_master_record(
-                input_data.get("entity_type"), input_data.get("data")  # type: ignore
+                tenant_id, input_data.get("entity_type"), input_data.get("data")  # type: ignore
             )
 
         elif action == "update_master_record":
             return await self._update_master_record(
-                input_data.get("master_id"), input_data.get("data"), input_data.get("source_system")  # type: ignore
+                tenant_id,
+                input_data.get("master_id"),
+                input_data.get("data"),
+                input_data.get("source_system"),  # type: ignore
             )
 
         elif action == "detect_conflicts":
@@ -180,13 +220,15 @@ class DataSyncAgent(BaseAgent):
             return await self._get_sync_status(input_data.get("filters", {}))
 
         elif action == "get_master_record":
-            return await self._get_master_record(input_data.get("master_id"))  # type: ignore
+            return await self._get_master_record(
+                tenant_id, input_data.get("master_id")  # type: ignore
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
     async def _sync_data(
-        self, entity_type: str, data: dict[str, Any], source_system: str
+        self, tenant_id: str, entity_type: str, data: dict[str, Any], source_system: str
     ) -> dict[str, Any]:
         """
         Synchronize data from source system.
@@ -213,17 +255,24 @@ class DataSyncAgent(BaseAgent):
         if existing_master:
             # Update existing record
             result = await self._update_master_record(
-                existing_master.get("master_id"), transformed_data, source_system  # type: ignore
+                tenant_id,
+                existing_master.get("master_id"),  # type: ignore
+                transformed_data,
+                source_system,
             )
             master_id = existing_master.get("master_id")
         else:
             # Create new master record
-            result = await self._create_master_record(entity_type, transformed_data)
+            result = await self._create_master_record(tenant_id, entity_type, transformed_data)
             master_id = result.get("master_id")
 
         # Record sync event
         sync_event_id = await self._record_sync_event(
-            entity_type, master_id, source_system, "success"  # type: ignore
+            tenant_id, entity_type, master_id, source_system, "success"  # type: ignore
+        )
+
+        await self._record_sync_lineage(
+            tenant_id, entity_type, master_id, source_system, transformed_data
         )
 
         # Publish sync event
@@ -237,7 +286,9 @@ class DataSyncAgent(BaseAgent):
             "latency_seconds": 0.5,  # Future work: Calculate actual latency
         }
 
-    async def _create_master_record(self, entity_type: str, data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_master_record(
+        self, tenant_id: str, entity_type: str, data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create new master record.
 
@@ -261,6 +312,15 @@ class DataSyncAgent(BaseAgent):
 
         # Store master record
         self.master_records[master_id] = master_record
+        self.master_record_store.upsert(tenant_id, master_id, master_record.copy())
+
+        await self._emit_audit_event(
+            tenant_id,
+            action="master_record.created",
+            resource_id=master_id,
+            resource_type=entity_type,
+            metadata={"version": 1},
+        )
 
         # Future work: Store in database
         # Future work: Publish master_record.created event
@@ -268,7 +328,7 @@ class DataSyncAgent(BaseAgent):
         return {"master_id": master_id, "entity_type": entity_type, "version": 1}
 
     async def _update_master_record(
-        self, master_id: str, data: dict[str, Any], source_system: str
+        self, tenant_id: str, master_id: str, data: dict[str, Any], source_system: str
     ) -> dict[str, Any]:
         """
         Update existing master record.
@@ -298,6 +358,15 @@ class DataSyncAgent(BaseAgent):
         master_record["source_systems"][source_system] = datetime.utcnow().isoformat()
         master_record["version"] += 1
         master_record["updated_at"] = datetime.utcnow().isoformat()
+        self.master_record_store.upsert(tenant_id, master_id, master_record.copy())
+
+        await self._emit_audit_event(
+            tenant_id,
+            action="master_record.updated",
+            resource_id=master_id,
+            resource_type=master_record.get("entity_type", "unknown"),
+            metadata={"version": master_record["version"], "source_system": source_system},
+        )
 
         # Future work: Store in database
         # Future work: Publish master_record.updated event
@@ -536,7 +605,7 @@ class DataSyncAgent(BaseAgent):
             "avg_latency_seconds": 0.8,  # Future work: Calculate actual average
         }
 
-    async def _get_master_record(self, master_id: str) -> dict[str, Any]:
+    async def _get_master_record(self, tenant_id: str, master_id: str) -> dict[str, Any]:
         """
         Get master record with lineage.
 
@@ -545,6 +614,10 @@ class DataSyncAgent(BaseAgent):
         self.logger.info(f"Retrieving master record: {master_id}")
 
         master_record = self.master_records.get(master_id)
+        if not master_record:
+            master_record = self.master_record_store.get(tenant_id, master_id)
+            if master_record:
+                self.master_records[master_id] = master_record
         if not master_record:
             raise ValueError(f"Master record not found: {master_id}")
 
@@ -590,11 +663,16 @@ class DataSyncAgent(BaseAgent):
         return None
 
     async def _record_sync_event(
-        self, entity_type: str, master_id: str, source_system: str, status: str
+        self,
+        tenant_id: str,
+        entity_type: str,
+        master_id: str,
+        source_system: str,
+        status: str,
     ) -> str:
         """Record sync event."""
         event_id = f"EVENT-{len(self.sync_events) + 1}"
-        self.sync_events[event_id] = {
+        event_record = {
             "event_id": event_id,
             "entity_type": entity_type,
             "master_id": master_id,
@@ -602,7 +680,54 @@ class DataSyncAgent(BaseAgent):
             "status": status,
             "timestamp": datetime.utcnow().isoformat(),
         }
+        self.sync_events[event_id] = event_record
+        self.sync_event_store.upsert(tenant_id, event_id, event_record)
         return event_id
+
+    async def _record_sync_lineage(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        master_id: str,
+        source_system: str,
+        payload: dict[str, Any],
+    ) -> None:
+        """Record sync lineage with masking."""
+        lineage_id = f"LINEAGE-{len(self.sync_events) + 1}"
+        lineage_record = {
+            "lineage_id": lineage_id,
+            "entity_type": entity_type,
+            "master_id": master_id,
+            "source_system": source_system,
+            "payload": payload,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        masked_lineage = mask_lineage_payload(lineage_record)
+        self.sync_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
+
+    async def _emit_audit_event(
+        self,
+        tenant_id: str,
+        action: str,
+        resource_id: str,
+        resource_type: str,
+        metadata: dict[str, Any],
+    ) -> None:
+        audit_event = build_audit_event(
+            tenant_id=tenant_id,
+            action=action,
+            outcome="success",
+            actor_id=self.agent_id,
+            actor_type="service",
+            actor_roles=[],
+            resource_id=resource_id,
+            resource_type=resource_type,
+            metadata=metadata,
+            trace_id=get_trace_id(),
+        )
+        self.audit_records[audit_event["id"]] = audit_event
+        self.sync_audit_store.upsert(tenant_id, audit_event["id"], audit_event)
+        emit_audit_event(audit_event)
 
     async def _detect_update_conflicts(
         self, master_record: dict[str, Any], new_data: dict[str, Any], source_system: str

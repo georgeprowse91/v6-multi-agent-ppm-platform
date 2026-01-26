@@ -10,9 +10,11 @@ Specification: agents/operations-management/agent-21-stakeholder-comms/README.md
 """
 
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class StakeholderCommunicationsAgent(BaseAgent):
@@ -47,6 +49,13 @@ class StakeholderCommunicationsAgent(BaseAgent):
         )
 
         self.sentiment_threshold = config.get("sentiment_threshold", -0.3) if config else -0.3
+
+        stakeholder_store_path = (
+            Path(config.get("stakeholder_store_path", "data/stakeholders.json"))
+            if config
+            else Path("data/stakeholders.json")
+        )
+        self.stakeholder_store = TenantStateStore(stakeholder_store_path)
 
         # Data stores (will be replaced with database)
         self.stakeholder_register: dict[str, Any] = {}
@@ -137,12 +146,19 @@ class StakeholderCommunicationsAgent(BaseAgent):
             Response based on action
         """
         action = input_data.get("action", "get_stakeholder_dashboard")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
 
         if action == "register_stakeholder":
-            return await self._register_stakeholder(input_data.get("stakeholder", {}))
+            return await self._register_stakeholder(tenant_id, input_data.get("stakeholder", {}))
 
         elif action == "classify_stakeholder":
-            return await self._classify_stakeholder(input_data.get("stakeholder_id"))  # type: ignore
+            return await self._classify_stakeholder(
+                tenant_id, input_data.get("stakeholder_id")  # type: ignore
+            )
 
         elif action == "create_communication_plan":
             return await self._create_communication_plan(input_data.get("plan", {}))
@@ -151,7 +167,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return await self._generate_message(input_data.get("message", {}))
 
         elif action == "send_message":
-            return await self._send_message(input_data.get("message_id"))  # type: ignore
+            return await self._send_message(
+                tenant_id, input_data.get("message_id")  # type: ignore
+            )
 
         elif action == "collect_feedback":
             return await self._collect_feedback(input_data.get("feedback", {}))
@@ -178,7 +196,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _register_stakeholder(self, stakeholder_data: dict[str, Any]) -> dict[str, Any]:
+    async def _register_stakeholder(
+        self, tenant_id: str, stakeholder_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Register new stakeholder."""
         self.logger.info(f"Registering stakeholder: {stakeholder_data.get('name')}")
 
@@ -207,6 +227,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "preferred_channels": stakeholder_data.get("preferred_channels", ["email"]),
             "time_zone": stakeholder_data.get("time_zone", "UTC"),
             "communication_preferences": stakeholder_data.get("communication_preferences", {}),
+            "consent": stakeholder_data.get("consent", True),
+            "opt_out": stakeholder_data.get("opt_out", False),
             "projects": stakeholder_data.get("projects", []),
             "engagement_score": 0,
             "sentiment_score": 0,
@@ -215,6 +237,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         # Store stakeholder
         self.stakeholder_register[stakeholder_id] = stakeholder
+        self.stakeholder_store.upsert(tenant_id, stakeholder_id, stakeholder.copy())
 
         # Initialize engagement metrics
         self.engagement_metrics[stakeholder_id] = {
@@ -235,11 +258,13 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "next_steps": "Classify stakeholder and add to communication plans",
         }
 
-    async def _classify_stakeholder(self, stakeholder_id: str) -> dict[str, Any]:
+    async def _classify_stakeholder(
+        self, tenant_id: str, stakeholder_id: str
+    ) -> dict[str, Any]:
         """Classify stakeholder using power-interest matrix."""
         self.logger.info(f"Classifying stakeholder: {stakeholder_id}")
 
-        stakeholder = self.stakeholder_register.get(stakeholder_id)
+        stakeholder = self._load_stakeholder(tenant_id, stakeholder_id)
         if not stakeholder:
             raise ValueError(f"Stakeholder not found: {stakeholder_id}")
 
@@ -252,6 +277,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         # Update stakeholder
         stakeholder["engagement_strategy"] = engagement_strategy
+        self.stakeholder_store.upsert(tenant_id, stakeholder_id, stakeholder.copy())
 
         # Future work: Store in database
 
@@ -357,7 +383,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "preview": content[:200],
         }
 
-    async def _send_message(self, message_id: str) -> dict[str, Any]:
+    async def _send_message(self, tenant_id: str, message_id: str) -> dict[str, Any]:
         """Send message to stakeholders."""
         self.logger.info(f"Sending message: {message_id}")
 
@@ -371,9 +397,18 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         for personalized in message.get("personalized_messages", []):
             stakeholder_id = personalized.get("stakeholder_id")
-            stakeholder = self.stakeholder_register.get(stakeholder_id)
+            stakeholder = self._load_stakeholder(tenant_id, stakeholder_id)
 
             if not stakeholder:
+                continue
+            if not await self._has_consent(stakeholder, channel):
+                delivery_results.append(
+                    {
+                        "stakeholder_id": stakeholder_id,
+                        "status": "skipped_no_consent",
+                        "sent_at": None,
+                    }
+                )
                 continue
 
             # Send message
@@ -684,6 +719,28 @@ class StakeholderCommunicationsAgent(BaseAgent):
         """Generate message content using NLG."""
         # Future work: Use Azure OpenAI for content generation
         return template.format(**data) if template else "Sample message content"
+
+    async def _has_consent(self, stakeholder: dict[str, Any], channel: str) -> bool:
+        """Check consent and opt-out flags for stakeholder."""
+        if stakeholder.get("opt_out"):
+            return False
+        if not stakeholder.get("consent", True):
+            return False
+        preferences = stakeholder.get("communication_preferences", {})
+        if channel in preferences.get("opt_out_channels", []):
+            return False
+        return True
+
+    def _load_stakeholder(
+        self, tenant_id: str, stakeholder_id: str
+    ) -> dict[str, Any] | None:
+        stakeholder = self.stakeholder_register.get(stakeholder_id)
+        if stakeholder:
+            return stakeholder
+        stored = self.stakeholder_store.get(tenant_id, stakeholder_id)
+        if stored:
+            self.stakeholder_register[stakeholder_id] = stored
+        return stored
 
     async def _personalize_content(self, content: str, stakeholder: dict[str, Any]) -> str:
         """Personalize content for stakeholder."""

@@ -8,10 +8,15 @@ documents, decisions and lessons learned across the project portfolio.
 Specification: agents/operations-management/agent-19-knowledge-document-management/README.md
 """
 
+import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+from jsonschema import ValidationError, validate as jsonschema_validate
+
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class KnowledgeManagementAgent(BaseAgent):
@@ -36,6 +41,20 @@ class KnowledgeManagementAgent(BaseAgent):
         self.max_summary_length = config.get("max_summary_length", 500) if config else 500
         self.search_result_limit = config.get("search_result_limit", 50) if config else 50
         self.similarity_threshold = config.get("similarity_threshold", 0.75) if config else 0.75
+
+        document_store_path = (
+            Path(config.get("document_store_path", "data/knowledge_documents.json"))
+            if config
+            else Path("data/knowledge_documents.json")
+        )
+        schema_path = (
+            Path(config.get("document_schema_path", "data/schemas/document.schema.json"))
+            if config
+            else Path("data/schemas/document.schema.json")
+        )
+
+        self.document_store = TenantStateStore(document_store_path)
+        self.document_schema = json.loads(schema_path.read_text())
 
         # Document categories
         self.document_types = (
@@ -175,37 +194,58 @@ class KnowledgeManagementAgent(BaseAgent):
             - get_document_version_history: Version history
         """
         action = input_data.get("action", "search_documents")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
+        access_context = input_data.get("access_context") or input_data.get("user_context") or {}
 
         if action == "upload_document":
-            return await self._upload_document(input_data.get("document", {}))
+            return await self._upload_document(tenant_id, input_data.get("document", {}))
 
         elif action == "search_documents":
             return await self._search_documents(
-                input_data.get("query"), input_data.get("filters", {})  # type: ignore
+                input_data.get("query"),
+                input_data.get("filters", {}),  # type: ignore
+                access_context,
+                tenant_id,
             )
 
         elif action == "get_document":
-            return await self._get_document(input_data.get("document_id"))  # type: ignore
+            return await self._get_document(
+                input_data.get("document_id"), access_context, tenant_id  # type: ignore
+            )
 
         elif action == "update_document":
             return await self._update_document(
-                input_data.get("document_id"), input_data.get("document", {})  # type: ignore
+                input_data.get("document_id"),  # type: ignore
+                input_data.get("document", {}),
+                tenant_id,
             )
 
         elif action == "delete_document":
-            return await self._delete_document(input_data.get("document_id"))  # type: ignore
+            return await self._delete_document(input_data.get("document_id"), tenant_id)  # type: ignore
 
         elif action == "classify_document":
-            return await self._classify_document(input_data.get("document_id"))  # type: ignore
+            return await self._classify_document(
+                input_data.get("document_id"), tenant_id  # type: ignore
+            )
 
         elif action == "summarize_document":
-            return await self._summarize_document(input_data.get("document_id"))  # type: ignore
+            return await self._summarize_document(
+                input_data.get("document_id"), tenant_id  # type: ignore
+            )
 
         elif action == "extract_entities":
-            return await self._extract_entities(input_data.get("document_id"))  # type: ignore
+            return await self._extract_entities(
+                input_data.get("document_id"), tenant_id  # type: ignore
+            )
 
         elif action == "build_knowledge_graph":
-            return await self._build_knowledge_graph(input_data.get("document_id"))  # type: ignore
+            return await self._build_knowledge_graph(
+                input_data.get("document_id"), tenant_id  # type: ignore
+            )
 
         elif action == "capture_lesson_learned":
             return await self._capture_lesson_learned(input_data.get("lesson", {}))
@@ -217,15 +257,21 @@ class KnowledgeManagementAgent(BaseAgent):
             return await self._manage_taxonomy(input_data.get("taxonomy", {}))
 
         elif action == "track_document_access":
-            return await self._track_document_access(input_data.get("document_id"))  # type: ignore
+            return await self._track_document_access(
+                input_data.get("document_id"), tenant_id  # type: ignore
+            )
 
         elif action == "get_document_version_history":
-            return await self._get_document_version_history(input_data.get("document_id"))  # type: ignore
+            return await self._get_document_version_history(
+                input_data.get("document_id"), tenant_id  # type: ignore
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _upload_document(self, document_data: dict[str, Any]) -> dict[str, Any]:
+    async def _upload_document(
+        self, tenant_id: str, document_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Upload and classify document.
 
@@ -245,12 +291,19 @@ class KnowledgeManagementAgent(BaseAgent):
         # Generate initial tags
         tags = await self._generate_tags(document_data, classification)
 
+        classification_label = document_data.get("classification", "internal")
+        doc_type = await self._map_doc_type_for_schema(classification.get("type"))
+        owner = document_data.get("owner") or document_data.get("author") or "unknown"
+        status = document_data.get("status", "draft")
+
         # Create document record
         document = {
             "document_id": document_id,
+            "tenant_id": tenant_id,
             "title": document_data.get("title"),
             "content": document_data.get("content"),
             "type": classification.get("type"),
+            "doc_type": doc_type,
             "tags": tags,
             "author": document_data.get("author"),
             "project_id": document_data.get("project_id"),
@@ -259,23 +312,42 @@ class KnowledgeManagementAgent(BaseAgent):
             "metadata": metadata,
             "version": 1,
             "permissions": document_data.get("permissions", {"public": False}),
+            "classification": classification_label,
+            "status": status,
+            "owner": owner,
             "created_at": datetime.utcnow().isoformat(),
             "modified_at": datetime.utcnow().isoformat(),
             "accessed_count": 0,
         }
 
+        await self._validate_document_schema(
+            {
+                "id": document_id,
+                "tenant_id": tenant_id,
+                "title": document.get("title"),
+                "doc_type": doc_type,
+                "status": status,
+                "classification": classification_label,
+                "owner": owner,
+                "created_at": document.get("created_at"),
+                "updated_at": document.get("modified_at"),
+                "metadata": metadata,
+            }
+        )
+
         # Store document
         self.documents[document_id] = document
+        self.document_store.upsert(tenant_id, document_id, document.copy())
 
         # Store version
         self.document_versions[document_id] = [document.copy()]
 
         # Generate summary asynchronously
         # Future work: Queue for async processing
-        await self._summarize_document(document_id)
+        await self._summarize_document(document_id, tenant_id)
 
         # Extract entities for knowledge graph
-        await self._extract_entities(document_id)
+        await self._extract_entities(document_id, tenant_id)
 
         # Future work: Store in Azure Blob Storage
         # Future work: Index in Azure Cognitive Search
@@ -292,7 +364,13 @@ class KnowledgeManagementAgent(BaseAgent):
             "next_steps": "Document indexed and ready for search",
         }
 
-    async def _search_documents(self, query: str, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _search_documents(
+        self,
+        query: str,
+        filters: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
         """
         Search documents using semantic search.
 
@@ -302,7 +380,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         # Perform semantic search
         # Future work: Use Azure Cognitive Search with semantic ranking
-        search_results = await self._semantic_search(query, filters)
+        search_results = await self._semantic_search(query, filters, access_context, tenant_id)
 
         # Rank results
         ranked_results = await self._rank_search_results(search_results, query)
@@ -317,7 +395,9 @@ class KnowledgeManagementAgent(BaseAgent):
             "filters": filters,
         }
 
-    async def _get_document(self, document_id: str) -> dict[str, Any]:
+    async def _get_document(
+        self, document_id: str, access_context: dict[str, Any], tenant_id: str
+    ) -> dict[str, Any]:
         """
         Retrieve document with metadata.
 
@@ -325,13 +405,17 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Retrieving document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
+
+        if not await self._is_access_allowed(document, access_context):
+            raise PermissionError("Access denied for requested document")
 
         # Update access count
         document["accessed_count"] = document.get("accessed_count", 0) + 1
         document["last_accessed_at"] = datetime.utcnow().isoformat()
+        self.document_store.upsert(tenant_id, document_id, document.copy())
 
         # Get summary if available
         summary = self.summaries.get(document_id, {}).get("content")
@@ -358,7 +442,9 @@ class KnowledgeManagementAgent(BaseAgent):
             "related_documents": related_documents,
         }
 
-    async def _update_document(self, document_id: str, updates: dict[str, Any]) -> dict[str, Any]:
+    async def _update_document(
+        self, document_id: str, updates: dict[str, Any], tenant_id: str
+    ) -> dict[str, Any]:
         """
         Update document and create new version.
 
@@ -366,7 +452,7 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Updating document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
@@ -390,7 +476,24 @@ class KnowledgeManagementAgent(BaseAgent):
             document["type"] = classification.get("type")
 
             # Regenerate summary
-            await self._summarize_document(document_id)
+            await self._summarize_document(document_id, tenant_id)
+
+        await self._validate_document_schema(
+            {
+                "id": document_id,
+                "tenant_id": tenant_id,
+                "title": document.get("title"),
+                "doc_type": await self._map_doc_type_for_schema(document.get("type")),
+                "status": document.get("status", "draft"),
+                "classification": document.get("classification", "internal"),
+                "owner": document.get("owner") or document.get("author") or "unknown",
+                "created_at": document.get("created_at"),
+                "updated_at": document.get("modified_at"),
+                "metadata": document.get("metadata", {}),
+            }
+        )
+
+        self.document_store.upsert(tenant_id, document_id, document.copy())
 
         # Future work: Store in database
         # Future work: Update search index
@@ -403,7 +506,7 @@ class KnowledgeManagementAgent(BaseAgent):
             "changes": list(updates.keys()),
         }
 
-    async def _delete_document(self, document_id: str) -> dict[str, Any]:
+    async def _delete_document(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Delete document (soft delete).
 
@@ -411,13 +514,14 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Deleting document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
         # Soft delete
         document["deleted"] = True
         document["deleted_at"] = datetime.utcnow().isoformat()
+        self.document_store.upsert(tenant_id, document_id, document.copy())
 
         # Future work: Mark as deleted in database
         # Future work: Remove from search index
@@ -425,7 +529,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         return {"document_id": document_id, "deleted": True, "deleted_at": document["deleted_at"]}
 
-    async def _classify_document(self, document_id: str) -> dict[str, Any]:
+    async def _classify_document(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Classify document using AI.
 
@@ -433,7 +537,7 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Classifying document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
@@ -447,6 +551,8 @@ class KnowledgeManagementAgent(BaseAgent):
         document["type"] = classification.get("type")
         document["tags"] = tags
         document["classification_confidence"] = classification.get("confidence")
+        document["doc_type"] = await self._map_doc_type_for_schema(classification.get("type"))
+        self.document_store.upsert(tenant_id, document_id, document.copy())
 
         # Future work: Store in database
         # Future work: Update search index
@@ -459,7 +565,7 @@ class KnowledgeManagementAgent(BaseAgent):
             "suggested_category": classification.get("category"),
         }
 
-    async def _summarize_document(self, document_id: str) -> dict[str, Any]:
+    async def _summarize_document(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Generate document summary using NLG.
 
@@ -467,7 +573,7 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Summarizing document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
@@ -493,7 +599,7 @@ class KnowledgeManagementAgent(BaseAgent):
             "length": len(summary_content),
         }
 
-    async def _extract_entities(self, document_id: str) -> dict[str, Any]:
+    async def _extract_entities(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Extract entities from document using NLP.
 
@@ -501,7 +607,7 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Extracting entities from document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
@@ -519,7 +625,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         return {"document_id": document_id, "entities": entities, "entity_count": len(entities)}
 
-    async def _build_knowledge_graph(self, document_id: str) -> dict[str, Any]:
+    async def _build_knowledge_graph(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Build knowledge graph relationships.
 
@@ -527,7 +633,7 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Building knowledge graph for document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
@@ -655,7 +761,7 @@ class KnowledgeManagementAgent(BaseAgent):
         else:  # get
             return {"taxonomy": self.taxonomy, "total_categories": len(self.taxonomy)}
 
-    async def _track_document_access(self, document_id: str) -> dict[str, Any]:
+    async def _track_document_access(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Track document access patterns.
 
@@ -663,7 +769,7 @@ class KnowledgeManagementAgent(BaseAgent):
         """
         self.logger.info(f"Tracking access for document: {document_id}")
 
-        document = self.documents.get(document_id)
+        document = self._load_document(tenant_id, document_id)
         if not document:
             raise ValueError(f"Document not found: {document_id}")
 
@@ -678,7 +784,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         return {"document_id": document_id, "access_stats": access_stats}
 
-    async def _get_document_version_history(self, document_id: str) -> dict[str, Any]:
+    async def _get_document_version_history(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         """
         Get document version history.
 
@@ -756,7 +862,9 @@ class KnowledgeManagementAgent(BaseAgent):
 
         return tags  # type: ignore
 
-    async def _semantic_search(self, query: str, filters: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _semantic_search(
+        self, query: str, filters: dict[str, Any], access_context: dict[str, Any], tenant_id: str
+    ) -> list[dict[str, Any]]:
         """Perform semantic search."""
         # Future work: Use Azure Cognitive Search
         results: list[dict[str, Any]] = []
@@ -768,6 +876,8 @@ class KnowledgeManagementAgent(BaseAgent):
 
             # Simple text matching (replace with semantic search)
             if query_lower in document.get("content", "").lower():
+                if not await self._is_access_allowed(document, access_context):
+                    continue
                 # Apply filters
                 if await self._matches_search_filters(document, filters):
                     results.append(
@@ -937,6 +1047,72 @@ class KnowledgeManagementAgent(BaseAgent):
                 return False
 
         return True
+
+    async def _validate_document_schema(self, record: dict[str, Any]) -> None:
+        """Validate document record against schema."""
+        try:
+            jsonschema_validate(instance=record, schema=self.document_schema)
+        except ValidationError as exc:
+            raise ValueError(f"Document schema validation failed: {exc.message}") from exc
+
+    async def _map_doc_type_for_schema(self, doc_type: str | None) -> str:
+        """Map internal document type to schema doc_type."""
+        if not doc_type:
+            return "report"
+        mapping = {
+            "requirements": "requirement",
+            "design": "specification",
+            "test_plan": "specification",
+            "charter": "report",
+            "policy": "policy",
+            "procedure": "policy",
+            "report": "report",
+            "lessons_learned": "report",
+            "meeting_minutes": "report",
+        }
+        return mapping.get(doc_type, "report")
+
+    async def _is_access_allowed(
+        self, document: dict[str, Any], access_context: dict[str, Any]
+    ) -> bool:
+        """Evaluate RBAC/ABAC rules for document access."""
+        if document.get("classification") == "public":
+            return True
+
+        permissions = document.get("permissions", {})
+        if permissions.get("public"):
+            return True
+
+        if not access_context:
+            return False
+
+        user_id = access_context.get("user_id")
+        if user_id and user_id in permissions.get("users", []):
+            return True
+
+        roles = set(access_context.get("roles", []))
+        if roles and roles.intersection(set(permissions.get("roles", []))):
+            return True
+
+        required_attrs = permissions.get("attributes", {})
+        if required_attrs:
+            user_attrs = access_context.get("attributes", {})
+            for key, value in required_attrs.items():
+                if user_attrs.get(key) != value:
+                    return False
+            return True
+
+        return False
+
+    def _load_document(self, tenant_id: str, document_id: str) -> dict[str, Any] | None:
+        """Load document from memory or persistent store."""
+        document = self.documents.get(document_id)
+        if document:
+            return document
+        stored = self.document_store.get(tenant_id, document_id)
+        if stored:
+            self.documents[document_id] = stored
+        return stored
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

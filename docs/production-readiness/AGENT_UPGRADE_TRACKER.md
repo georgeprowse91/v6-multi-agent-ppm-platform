@@ -22,10 +22,10 @@ Tracking required updates for each of the 25 agents based on the cross-agent fou
 | Agent 16 – Compliance & Security | Done | Control mapping policy checks, evidence persistence, and new tests. |
 | Agent 17 – Change & Configuration | Done | Change/CMDB persistence with approval workflow integration and new tests. |
 | Agent 18 – Release & Deployment | Done | Release calendar persistence with approval gating prior to deployment and new tests. |
-| Agent 19 – Knowledge & Document | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 20 – Continuous Improvement | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 21 – Stakeholder & Comms | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 22 – Analytics & Insights | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 23 – Data Synchronization & Quality | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 24 – Workflow & Process Engine | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 25 – System Health & Monitoring | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
+| Agent 19 – Knowledge & Document | Done | Documents persisted with schema validation; RBAC/ABAC access checks enforced on retrieval. |
+| Agent 20 – Continuous Improvement | Done | Event logs persisted and improvement recommendations emitted to workflow engine integration. |
+| Agent 21 – Stakeholder & Comms | Done | Stakeholder register persisted with consent/opt-out enforcement on message sends. |
+| Agent 22 – Analytics & Insights | Done | Analytics outputs persisted; lineage stored with PII masking. |
+| Agent 23 – Data Synchronization & Quality | Done | Master records, sync logs, and lineage persisted; audit events emitted for create/update. |
+| Agent 24 – Workflow & Process Engine | Done | Workflow definitions/instances persisted with event triggers and workflow event emission. |
+| Agent 25 – System Health & Monitoring | Done | OpenTelemetry metrics/tracing integrated; alerts/incidents persisted with PII redaction. |
