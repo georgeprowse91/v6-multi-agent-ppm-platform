@@ -9,9 +9,11 @@ Specification: agents/operations-management/agent-20-continuous-improvement-proc
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class ProcessMiningAgent(BaseAgent):
@@ -43,12 +45,23 @@ class ProcessMiningAgent(BaseAgent):
             else ["alpha_miner", "heuristic_miner", "fuzzy_miner"]
         )
 
+        event_log_store_path = (
+            Path(config.get("event_log_store_path", "data/process_event_logs.json"))
+            if config
+            else Path("data/process_event_logs.json")
+        )
+        self.event_log_store = TenantStateStore(event_log_store_path)
+
         # Data stores (will be replaced with database)
         self.event_logs = {}  # type: ignore
         self.process_models = {}  # type: ignore
         self.improvement_backlog = {}  # type: ignore
         self.benefit_tracking = {}  # type: ignore
         self.benchmarks = {}  # type: ignore
+        self.workflow_engine_agent = config.get("workflow_engine_agent") if config else None
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
 
     async def initialize(self) -> None:
         """Initialize process mining tools, analytics, and data sources."""
@@ -142,9 +155,14 @@ class ProcessMiningAgent(BaseAgent):
             - get_improvement_backlog: Improvement backlog list
         """
         action = input_data.get("action", "get_process_insights")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
 
         if action == "ingest_event_log":
-            return await self._ingest_event_log(input_data.get("events", []))
+            return await self._ingest_event_log(tenant_id, input_data.get("events", []))
 
         elif action == "discover_process":
             process_id = input_data.get("process_id")
@@ -171,7 +189,7 @@ class ProcessMiningAgent(BaseAgent):
             return await self._analyze_root_cause(process_id, issue_id)
 
         elif action == "create_improvement":
-            return await self._create_improvement(input_data.get("improvement", {}))
+            return await self._create_improvement(tenant_id, input_data.get("improvement", {}))
 
         elif action == "prioritize_improvements":
             return await self._prioritize_improvements()
@@ -202,7 +220,7 @@ class ProcessMiningAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _ingest_event_log(self, events: list[dict[str, Any]]) -> dict[str, Any]:
+    async def _ingest_event_log(self, tenant_id: str, events: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Ingest event log data for process mining.
 
@@ -218,13 +236,15 @@ class ProcessMiningAgent(BaseAgent):
 
         # Store events
         log_id = await self._generate_log_id()
-        self.event_logs[log_id] = {
+        log_record = {
             "log_id": log_id,
             "events": mapped_events,
             "event_count": len(mapped_events),
             "case_count": len(set(e.get("case_id") for e in mapped_events)),
             "ingested_at": datetime.utcnow().isoformat(),
         }
+        self.event_logs[log_id] = log_record
+        self.event_log_store.upsert(tenant_id, log_id, log_record)
 
         # Future work: Store in Azure Data Lake Storage
         # Future work: Index for querying
@@ -409,7 +429,9 @@ class ProcessMiningAgent(BaseAgent):
             "recommendations": await self._generate_remediation_recommendations(factors),
         }
 
-    async def _create_improvement(self, improvement_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_improvement(
+        self, tenant_id: str, improvement_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create improvement initiative.
 
@@ -448,6 +470,17 @@ class ProcessMiningAgent(BaseAgent):
 
         # Store improvement
         self.improvement_backlog[improvement_id] = improvement
+        self.event_log_store.upsert(
+            tenant_id,
+            f"improvement-{improvement_id}",
+            {
+                "improvement_id": improvement_id,
+                "process_id": improvement_data.get("process_id"),
+                "created_at": improvement.get("created_at"),
+            },
+        )
+
+        await self._emit_improvement_recommendation(tenant_id, improvement)
 
         # Future work: Store in database
         # Future work: Sync with Jira/Azure DevOps
@@ -461,6 +494,26 @@ class ProcessMiningAgent(BaseAgent):
             "feasibility": feasibility,
             "next_steps": "Review and prioritize in improvement backlog",
         }
+
+    async def _emit_improvement_recommendation(
+        self, tenant_id: str, improvement: dict[str, Any]
+    ) -> None:
+        """Emit improvement recommendation to workflow engine."""
+        event_payload = {
+            "event_type": "workflow.improvement.recommendation",
+            "data": {
+                "tenant_id": tenant_id,
+                "improvement_id": improvement.get("improvement_id"),
+                "process_id": improvement.get("process_id"),
+                "priority_score": improvement.get("priority_score"),
+                "expected_benefits": improvement.get("expected_benefits"),
+            },
+        }
+        if self.workflow_engine_agent:
+            await self.workflow_engine_agent.process({"action": "handle_event", "event": event_payload})
+            return
+        if self.event_bus:
+            await self.event_bus.publish("workflow.improvement.recommendation", event_payload)
 
     async def _prioritize_improvements(self) -> dict[str, Any]:
         """

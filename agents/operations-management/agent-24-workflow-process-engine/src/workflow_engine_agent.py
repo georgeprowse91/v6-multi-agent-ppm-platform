@@ -9,9 +9,13 @@ Specification: agents/operations-management/agent-24-workflow-process-engine/REA
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.state_store import TenantStateStore
+from observability.tracing import get_trace_id
 
 
 class WorkflowEngineAgent(BaseAgent):
@@ -37,11 +41,39 @@ class WorkflowEngineAgent(BaseAgent):
         self.max_retry_attempts = config.get("max_retry_attempts", 3) if config else 3
         self.max_parallel_tasks = config.get("max_parallel_tasks", 10) if config else 10
 
+        definition_store_path = (
+            Path(config.get("workflow_definition_store_path", "data/workflows.json"))
+            if config
+            else Path("data/workflows.json")
+        )
+        instance_store_path = (
+            Path(config.get("workflow_instance_store_path", "data/workflow_instances.json"))
+            if config
+            else Path("data/workflow_instances.json")
+        )
+        event_store_path = (
+            Path(config.get("workflow_event_store_path", "data/workflow_events.json"))
+            if config
+            else Path("data/workflow_events.json")
+        )
+        subscription_store_path = (
+            Path(config.get("workflow_subscription_store_path", "data/workflow_subscriptions.json"))
+            if config
+            else Path("data/workflow_subscriptions.json")
+        )
+        self.workflow_definition_store = TenantStateStore(definition_store_path)
+        self.workflow_instance_store = TenantStateStore(instance_store_path)
+        self.workflow_event_store = TenantStateStore(event_store_path)
+        self.workflow_subscription_store = TenantStateStore(subscription_store_path)
+
         # Data stores (will be replaced with database)
         self.workflow_definitions = {}  # type: ignore
         self.workflow_instances = {}  # type: ignore
         self.task_assignments = {}  # type: ignore
         self.event_subscriptions = {}  # type: ignore
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
 
     async def initialize(self) -> None:
         """Initialize workflow engine, orchestration services, and integrations."""
@@ -138,37 +170,46 @@ class WorkflowEngineAgent(BaseAgent):
             - get_task_inbox: User's pending tasks
         """
         action = input_data.get("action", "get_workflow_instances")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
 
         if action == "define_workflow":
-            return await self._define_workflow(input_data.get("workflow", {}))
+            return await self._define_workflow(tenant_id, input_data.get("workflow", {}))
 
         elif action == "start_workflow":
             return await self._start_workflow(
-                input_data.get("workflow_id"), input_data.get("input_variables", {})  # type: ignore
+                tenant_id,
+                input_data.get("workflow_id"),
+                input_data.get("input_variables", {}),  # type: ignore
             )
 
         elif action == "get_workflow_status":
-            return await self._get_workflow_status(input_data.get("instance_id"))  # type: ignore
+            return await self._get_workflow_status(
+                tenant_id, input_data.get("instance_id")  # type: ignore
+            )
 
         elif action == "assign_task":
             return await self._assign_task(input_data.get("task_id"), input_data.get("assignee"))  # type: ignore
 
         elif action == "complete_task":
             return await self._complete_task(
-                input_data.get("task_id"), input_data.get("task_result", {})  # type: ignore
+                tenant_id, input_data.get("task_id"), input_data.get("task_result", {})  # type: ignore
             )
 
         elif action == "cancel_workflow":
-            return await self._cancel_workflow(input_data.get("instance_id"))  # type: ignore
+            return await self._cancel_workflow(tenant_id, input_data.get("instance_id"))  # type: ignore
 
         elif action == "pause_workflow":
-            return await self._pause_workflow(input_data.get("instance_id"))  # type: ignore
+            return await self._pause_workflow(tenant_id, input_data.get("instance_id"))  # type: ignore
 
         elif action == "resume_workflow":
-            return await self._resume_workflow(input_data.get("instance_id"))  # type: ignore
+            return await self._resume_workflow(tenant_id, input_data.get("instance_id"))  # type: ignore
 
         elif action == "handle_event":
-            return await self._handle_event(input_data.get("event", {}))
+            return await self._handle_event(tenant_id, input_data.get("event", {}))
 
         elif action == "retry_failed_task":
             return await self._retry_failed_task(input_data.get("task_id"))  # type: ignore
@@ -182,7 +223,9 @@ class WorkflowEngineAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _define_workflow(self, workflow_config: dict[str, Any]) -> dict[str, Any]:
+    async def _define_workflow(
+        self, tenant_id: str, workflow_config: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Define new workflow process.
 
@@ -219,6 +262,16 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Store workflow definition
         self.workflow_definitions[workflow_id] = workflow
+        self.workflow_definition_store.upsert(tenant_id, workflow_id, workflow.copy())
+
+        await self._register_event_triggers(
+            tenant_id, workflow_id, workflow_config.get("event_triggers", [])
+        )
+        await self._emit_workflow_event(
+            tenant_id,
+            "workflow.defined",
+            {"workflow_id": workflow_id, "name": workflow.get("name")},
+        )
 
         # Future work: Store in database
         # Future work: Import/export BPMN XML if provided
@@ -233,7 +286,7 @@ class WorkflowEngineAgent(BaseAgent):
         }
 
     async def _start_workflow(
-        self, workflow_id: str, input_variables: dict[str, Any]
+        self, tenant_id: str, workflow_id: str, input_variables: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Start workflow instance.
@@ -244,6 +297,10 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Get workflow definition
         workflow = self.workflow_definitions.get(workflow_id)
+        if not workflow:
+            workflow = self.workflow_definition_store.get(tenant_id, workflow_id)
+            if workflow:
+                self.workflow_definitions[workflow_id] = workflow
         if not workflow:
             raise ValueError(f"Workflow not found: {workflow_id}")
 
@@ -267,6 +324,13 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Store instance
         self.workflow_instances[instance_id] = instance
+        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+
+        await self._emit_workflow_event(
+            tenant_id,
+            "workflow.started",
+            {"workflow_id": workflow_id, "instance_id": instance_id},
+        )
 
         # Execute first tasks
         initial_tasks = await self._get_initial_tasks(workflow)
@@ -284,7 +348,7 @@ class WorkflowEngineAgent(BaseAgent):
             "started_at": instance["started_at"],
         }
 
-    async def _get_workflow_status(self, instance_id: str) -> dict[str, Any]:
+    async def _get_workflow_status(self, tenant_id: str, instance_id: str) -> dict[str, Any]:
         """
         Get workflow instance status.
 
@@ -293,6 +357,10 @@ class WorkflowEngineAgent(BaseAgent):
         self.logger.info(f"Getting workflow status: {instance_id}")
 
         instance = self.workflow_instances.get(instance_id)
+        if not instance:
+            instance = self.workflow_instance_store.get(tenant_id, instance_id)
+            if instance:
+                self.workflow_instances[instance_id] = instance
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
@@ -345,7 +413,9 @@ class WorkflowEngineAgent(BaseAgent):
 
         return {"task_id": task_id, "assignee": assignee, "assigned_at": assignment["assigned_at"]}
 
-    async def _complete_task(self, task_id: str, task_result: dict[str, Any]) -> dict[str, Any]:
+    async def _complete_task(
+        self, tenant_id: str, task_id: str, task_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Complete workflow task.
 
@@ -387,6 +457,14 @@ class WorkflowEngineAgent(BaseAgent):
                 instance["status"] = "completed"
                 instance["completed_at"] = datetime.utcnow().isoformat()
 
+        if instance_id and instance:
+            self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+            await self._emit_workflow_event(
+                tenant_id,
+                "workflow.task.completed",
+                {"instance_id": instance_id, "task_id": task_id},
+            )
+
         # Future work: Store in database
         # Future work: Publish task.completed event
 
@@ -397,7 +475,7 @@ class WorkflowEngineAgent(BaseAgent):
             "workflow_status": instance.get("status") if instance else "unknown",
         }
 
-    async def _cancel_workflow(self, instance_id: str) -> dict[str, Any]:
+    async def _cancel_workflow(self, tenant_id: str, instance_id: str) -> dict[str, Any]:
         """
         Cancel workflow instance.
 
@@ -405,7 +483,7 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Canceling workflow: {instance_id}")
 
-        instance = self.workflow_instances.get(instance_id)
+        instance = self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
@@ -415,6 +493,10 @@ class WorkflowEngineAgent(BaseAgent):
         # Update instance status
         instance["status"] = "cancelled"
         instance["cancelled_at"] = datetime.utcnow().isoformat()
+        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self._emit_workflow_event(
+            tenant_id, "workflow.cancelled", {"instance_id": instance_id}
+        )
 
         # Cancel pending tasks
         for task_id in instance.get("current_tasks", []):
@@ -430,7 +512,7 @@ class WorkflowEngineAgent(BaseAgent):
             "cancelled_at": instance["cancelled_at"],
         }
 
-    async def _pause_workflow(self, instance_id: str) -> dict[str, Any]:
+    async def _pause_workflow(self, tenant_id: str, instance_id: str) -> dict[str, Any]:
         """
         Pause workflow execution.
 
@@ -438,19 +520,21 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Pausing workflow: {instance_id}")
 
-        instance = self.workflow_instances.get(instance_id)
+        instance = self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
         instance["status"] = "paused"
         instance["paused_at"] = datetime.utcnow().isoformat()
+        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self._emit_workflow_event(tenant_id, "workflow.paused", {"instance_id": instance_id})
 
         # Future work: Store in database
         # Future work: Publish workflow.paused event
 
         return {"instance_id": instance_id, "status": "paused", "paused_at": instance["paused_at"]}
 
-    async def _resume_workflow(self, instance_id: str) -> dict[str, Any]:
+    async def _resume_workflow(self, tenant_id: str, instance_id: str) -> dict[str, Any]:
         """
         Resume paused workflow.
 
@@ -458,7 +542,7 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Resuming workflow: {instance_id}")
 
-        instance = self.workflow_instances.get(instance_id)
+        instance = self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
@@ -467,6 +551,10 @@ class WorkflowEngineAgent(BaseAgent):
 
         instance["status"] = "running"
         instance["resumed_at"] = datetime.utcnow().isoformat()
+        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self._emit_workflow_event(
+            tenant_id, "workflow.resumed", {"instance_id": instance_id}
+        )
 
         # Future work: Store in database
         # Future work: Publish workflow.resumed event
@@ -478,7 +566,7 @@ class WorkflowEngineAgent(BaseAgent):
             "resumed_at": instance["resumed_at"],
         }
 
-    async def _handle_event(self, event: dict[str, Any]) -> dict[str, Any]:
+    async def _handle_event(self, tenant_id: str, event: dict[str, Any]) -> dict[str, Any]:
         """
         Handle workflow event.
 
@@ -498,12 +586,20 @@ class WorkflowEngineAgent(BaseAgent):
             if await self._event_matches_criteria(event_data, subscription.get("criteria", {})):
                 # Start or advance workflow
                 if subscription.get("action") == "start":
-                    result = await self._start_workflow(subscription.get("workflow_id"), event_data)  # type: ignore
+                    result = await self._start_workflow(
+                        tenant_id, subscription.get("workflow_id"), event_data  # type: ignore
+                    )
                     triggered_instances.append(result.get("instance_id"))
                 elif subscription.get("action") == "trigger_task":
                     # Trigger specific task in running instance
                     # Future work: Implement task triggering
                     pass
+
+        await self._emit_workflow_event(
+            tenant_id,
+            "workflow.event.handled",
+            {"event_type": event_type, "instances_triggered": triggered_instances},
+        )
 
         return {
             "event_type": event_type,
@@ -680,6 +776,51 @@ class WorkflowEngineAgent(BaseAgent):
                 subscriptions.append(subscription)
         return subscriptions
 
+    async def _register_event_triggers(
+        self, tenant_id: str, workflow_id: str, triggers: list[dict[str, Any]]
+    ) -> None:
+        """Register event triggers for a workflow definition."""
+        for trigger in triggers:
+            subscription_id = f"SUB-{len(self.event_subscriptions) + 1}"
+            subscription = {
+                "subscription_id": subscription_id,
+                "workflow_id": workflow_id,
+                "event_type": trigger.get("event_type"),
+                "criteria": trigger.get("criteria", {}),
+                "action": trigger.get("action", "start"),
+                "created_at": datetime.utcnow().isoformat(),
+            }
+            self.event_subscriptions[subscription_id] = subscription
+            self.workflow_subscription_store.upsert(tenant_id, subscription_id, subscription.copy())
+
+    async def _emit_workflow_event(
+        self, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        """Emit workflow events for audit/analytics."""
+        event_id = f"WF-EVT-{len(self.workflow_instances) + 1}"
+        event_record = {
+            "event_id": event_id,
+            "event_type": event_type,
+            "payload": payload,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.workflow_event_store.upsert(tenant_id, event_id, event_record)
+        audit_event = build_audit_event(
+            tenant_id=tenant_id,
+            action=event_type,
+            outcome="success",
+            actor_id=self.agent_id,
+            actor_type="service",
+            actor_roles=[],
+            resource_id=payload.get("instance_id") or payload.get("workflow_id") or event_id,
+            resource_type="workflow_event",
+            metadata={"event_id": event_id},
+            trace_id=get_trace_id(),
+        )
+        emit_audit_event(audit_event)
+        if self.event_bus:
+            await self.event_bus.publish("workflow.events", event_record)
+
     async def _event_matches_criteria(
         self, event_data: dict[str, Any], criteria: dict[str, Any]
     ) -> bool:
@@ -698,6 +839,15 @@ class WorkflowEngineAgent(BaseAgent):
             return False
 
         return True
+
+    def _load_instance(self, tenant_id: str, instance_id: str) -> dict[str, Any] | None:
+        instance = self.workflow_instances.get(instance_id)
+        if instance:
+            return instance
+        stored = self.workflow_instance_store.get(tenant_id, instance_id)
+        if stored:
+            self.workflow_instances[instance_id] = stored
+        return stored
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

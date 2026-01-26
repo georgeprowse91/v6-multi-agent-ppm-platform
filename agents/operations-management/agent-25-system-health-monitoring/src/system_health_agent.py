@@ -8,10 +8,15 @@ comprehensive monitoring, alerting, and proactive maintenance.
 Specification: agents/operations-management/agent-25-system-health-monitoring/README.md
 """
 
+import re
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from observability.metrics import build_kpi_handles, configure_metrics
+from observability.tracing import configure_tracing, start_agent_span
 
 
 class SystemHealthAgent(BaseAgent):
@@ -41,17 +46,40 @@ class SystemHealthAgent(BaseAgent):
         )
         self.metrics_retention_days = config.get("metrics_retention_days", 90) if config else 90
 
+        alert_store_path = (
+            Path(config.get("alert_store_path", "data/alerts.json"))
+            if config
+            else Path("data/alerts.json")
+        )
+        incident_store_path = (
+            Path(config.get("incident_store_path", "data/incidents.json"))
+            if config
+            else Path("data/incidents.json")
+        )
+        self.alert_store = TenantStateStore(alert_store_path)
+        self.incident_store = TenantStateStore(incident_store_path)
+
         # Data stores (will be replaced with database)
         self.metrics = {}  # type: ignore
         self.alerts = {}  # type: ignore
         self.incidents = {}  # type: ignore
         self.health_checks = {}  # type: ignore
         self.anomalies = {}  # type: ignore
+        self._kpi_handles = None
+        self._pii_patterns = {
+            "email": re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE),
+            "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+            "phone": re.compile(r"\+?\d[\d\s().-]{7,}\d"),
+        }
 
     async def initialize(self) -> None:
         """Initialize monitoring infrastructure and integrations."""
         await super().initialize()
         self.logger.info("Initializing System Health & Monitoring Agent...")
+
+        configure_tracing(self.agent_id)
+        configure_metrics(self.agent_id)
+        self._kpi_handles = build_kpi_handles(self.agent_id)
 
         # Future work: Initialize Azure Monitor for infrastructure monitoring
         # Future work: Set up Application Insights for application telemetry
@@ -133,17 +161,24 @@ class SystemHealthAgent(BaseAgent):
             - resolve_incident: Resolution confirmation
         """
         action = input_data.get("action", "get_system_status")
+        tenant_id = (
+            input_data.get("tenant_id")
+            or input_data.get("context", {}).get("tenant_id")
+            or "default"
+        )
 
         if action == "collect_metrics":
             return await self._collect_metrics(
-                input_data.get("service_name"), input_data.get("metrics", {})  # type: ignore
+                tenant_id,
+                input_data.get("service_name"),  # type: ignore
+                input_data.get("metrics", {}),
             )
 
         elif action == "check_health":
             return await self._check_health(input_data.get("service_name"))
 
         elif action == "create_alert":
-            return await self._create_alert(input_data.get("alert", {}))
+            return await self._create_alert(tenant_id, input_data.get("alert", {}))
 
         elif action == "detect_anomalies":
             return await self._detect_anomalies(
@@ -151,7 +186,7 @@ class SystemHealthAgent(BaseAgent):
             )
 
         elif action == "create_incident":
-            return await self._create_incident(input_data.get("incident", {}))
+            return await self._create_incident(tenant_id, input_data.get("incident", {}))
 
         elif action == "analyze_root_cause":
             return await self._analyze_root_cause(input_data.get("incident_id"))  # type: ignore
@@ -174,19 +209,23 @@ class SystemHealthAgent(BaseAgent):
 
         elif action == "acknowledge_alert":
             return await self._acknowledge_alert(
-                input_data.get("alert_id"), input_data.get("acknowledged_by")  # type: ignore
+                tenant_id,
+                input_data.get("alert_id"),
+                input_data.get("acknowledged_by"),  # type: ignore
             )
 
         elif action == "resolve_incident":
             return await self._resolve_incident(
-                input_data.get("incident_id"), input_data.get("resolution", {})  # type: ignore
+                tenant_id,
+                input_data.get("incident_id"),
+                input_data.get("resolution", {}),  # type: ignore
             )
 
         else:
             raise ValueError(f"Unknown action: {action}")
 
     async def _collect_metrics(
-        self, service_name: str, metrics_data: dict[str, Any]
+        self, tenant_id: str, service_name: str, metrics_data: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Collect metrics from service.
@@ -194,23 +233,28 @@ class SystemHealthAgent(BaseAgent):
         Returns collection confirmation.
         """
         self.logger.info(f"Collecting metrics for service: {service_name}")
+        if self._kpi_handles:
+            self._kpi_handles.requests.add(1, {"service": service_name, "tenant": tenant_id})
 
-        # Store metrics
-        timestamp = datetime.utcnow().isoformat()
-        metric_id = await self._generate_metric_id()
+        with start_agent_span(
+            self.agent_id, attributes={"service.name": service_name, "tenant.id": tenant_id}
+        ):
+            # Store metrics
+            timestamp = datetime.utcnow().isoformat()
+            metric_id = await self._generate_metric_id()
 
-        metric_record = {
-            "metric_id": metric_id,
-            "service_name": service_name,
-            "timestamp": timestamp,
-            "metrics": metrics_data,
-            "collected_at": timestamp,
-        }
+            metric_record = {
+                "metric_id": metric_id,
+                "service_name": service_name,
+                "timestamp": timestamp,
+                "metrics": metrics_data,
+                "collected_at": timestamp,
+            }
 
-        self.metrics[metric_id] = metric_record
+            self.metrics[metric_id] = metric_record
 
-        # Check thresholds and trigger alerts if needed
-        await self._check_metric_thresholds(service_name, metrics_data)
+            # Check thresholds and trigger alerts if needed
+            await self._check_metric_thresholds(service_name, metrics_data)
 
         # Future work: Store in Azure Monitor
         # Future work: Emit to Application Insights
@@ -248,13 +292,14 @@ class SystemHealthAgent(BaseAgent):
             "checked_at": datetime.utcnow().isoformat(),
         }
 
-    async def _create_alert(self, alert_config: dict[str, Any]) -> dict[str, Any]:
+    async def _create_alert(self, tenant_id: str, alert_config: dict[str, Any]) -> dict[str, Any]:
         """
         Create monitoring alert.
 
         Returns alert ID and configuration.
         """
-        self.logger.info(f"Creating alert: {alert_config.get('name')}")
+        alert_name = self._sanitize_text(alert_config.get("name", ""))
+        self.logger.info(f"Creating alert: {alert_name}")
 
         # Generate alert ID
         alert_id = await self._generate_alert_id()
@@ -262,8 +307,8 @@ class SystemHealthAgent(BaseAgent):
         # Create alert
         alert = {
             "alert_id": alert_id,
-            "name": alert_config.get("name"),
-            "description": alert_config.get("description"),
+            "name": alert_name,
+            "description": self._sanitize_text(alert_config.get("description", "")),
             "severity": alert_config.get("severity", "warning"),
             "service_name": alert_config.get("service_name"),
             "condition": alert_config.get("condition"),
@@ -275,6 +320,7 @@ class SystemHealthAgent(BaseAgent):
 
         # Store alert
         self.alerts[alert_id] = alert
+        self.alert_store.upsert(tenant_id, alert_id, alert.copy())
 
         # Future work: Create in Azure Monitor Alerts
         # Future work: Configure action group
@@ -323,13 +369,16 @@ class SystemHealthAgent(BaseAgent):
             "time_range": time_range,
         }
 
-    async def _create_incident(self, incident_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_incident(
+        self, tenant_id: str, incident_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create system incident.
 
         Returns incident ID.
         """
-        self.logger.info(f"Creating incident: {incident_data.get('title')}")
+        incident_title = self._sanitize_text(incident_data.get("title", ""))
+        self.logger.info(f"Creating incident: {incident_title}")
 
         # Generate incident ID
         incident_id = await self._generate_incident_id()
@@ -337,18 +386,19 @@ class SystemHealthAgent(BaseAgent):
         # Create incident
         incident = {
             "incident_id": incident_id,
-            "title": incident_data.get("title"),
-            "description": incident_data.get("description"),
+            "title": incident_title,
+            "description": self._sanitize_text(incident_data.get("description", "")),
             "severity": incident_data.get("severity", "medium"),
             "affected_services": incident_data.get("affected_services", []),
             "status": "open",
-            "assignee": incident_data.get("assignee"),
+            "assignee": self._sanitize_text(incident_data.get("assignee", "")),
             "created_at": datetime.utcnow().isoformat(),
-            "created_by": incident_data.get("reporter"),
+            "created_by": self._sanitize_text(incident_data.get("reporter", "")),
         }
 
         # Store incident
         self.incidents[incident_id] = incident
+        self.incident_store.upsert(tenant_id, incident_id, incident.copy())
 
         # Future work: Create in PagerDuty/ServiceNow
         # Future work: Notify on-call team
@@ -529,7 +579,9 @@ class SystemHealthAgent(BaseAgent):
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-    async def _acknowledge_alert(self, alert_id: str, acknowledged_by: str) -> dict[str, Any]:
+    async def _acknowledge_alert(
+        self, tenant_id: str, alert_id: str, acknowledged_by: str
+    ) -> dict[str, Any]:
         """
         Acknowledge alert.
 
@@ -542,8 +594,9 @@ class SystemHealthAgent(BaseAgent):
             raise ValueError(f"Alert not found: {alert_id}")
 
         alert["acknowledged"] = True
-        alert["acknowledged_by"] = acknowledged_by
+        alert["acknowledged_by"] = self._sanitize_text(acknowledged_by)
         alert["acknowledged_at"] = datetime.utcnow().isoformat()
+        self.alert_store.upsert(tenant_id, alert_id, alert.copy())
 
         # Future work: Update in monitoring system
         # Future work: Publish alert.acknowledged event
@@ -556,7 +609,7 @@ class SystemHealthAgent(BaseAgent):
         }
 
     async def _resolve_incident(
-        self, incident_id: str, resolution: dict[str, Any]
+        self, tenant_id: str, incident_id: str, resolution: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Resolve incident.
@@ -570,8 +623,8 @@ class SystemHealthAgent(BaseAgent):
             raise ValueError(f"Incident not found: {incident_id}")
 
         incident["status"] = "resolved"
-        incident["resolution"] = resolution.get("description")
-        incident["resolved_by"] = resolution.get("resolved_by")
+        incident["resolution"] = self._sanitize_text(resolution.get("description", ""))
+        incident["resolved_by"] = self._sanitize_text(resolution.get("resolved_by", ""))
         incident["resolved_at"] = datetime.utcnow().isoformat()
 
         # Calculate resolution time
@@ -580,6 +633,7 @@ class SystemHealthAgent(BaseAgent):
         resolution_time = (resolved_at - created_at).total_seconds() / 60  # minutes
 
         incident["resolution_time_minutes"] = resolution_time
+        self.incident_store.upsert(tenant_id, incident_id, incident.copy())
 
         # Future work: Update in incident management system
         # Future work: Publish incident.resolved event
@@ -727,6 +781,15 @@ class SystemHealthAgent(BaseAgent):
             recommendations.append("Current capacity is adequate for forecasted needs")
 
         return recommendations
+
+    def _sanitize_text(self, value: str) -> str:
+        """Redact PII-like patterns from loggable strings."""
+        if not value:
+            return value
+        sanitized = value
+        for pattern in self._pii_patterns.values():
+            sanitized = pattern.sub("[redacted]", sanitized)
+        return sanitized
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
