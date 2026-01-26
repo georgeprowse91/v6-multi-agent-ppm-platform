@@ -66,6 +66,9 @@ class PortfolioStrategyAgent(BaseAgent):
         self.rebalancing_frequency = (
             config.get("rebalancing_frequency", "quarterly") if config else "quarterly"
         )
+        self.budget_granularity = (
+            config.get("budget_granularity", 1000) if config else 1000
+        )
 
         # Data stores (will be replaced with database)
         self.portfolio_compositions = {}  # type: ignore
@@ -298,43 +301,44 @@ class PortfolioStrategyAgent(BaseAgent):
 
         # Extract constraints
         budget_ceiling = constraints.get("budget_ceiling", float("inf"))
-        constraints.get("resource_capacity", {})
-        constraints.get("min_compliance_spend", 0)
+        resource_capacity = constraints.get("resource_capacity", {})
+        min_compliance_spend = constraints.get("min_compliance_spend", 0)
 
         # Future work: Implement multi-objective optimization using Azure ML
         # Future work: Use evolutionary algorithms (NSGA-II, MOGA) for Pareto optimization
         # Future work: Apply constraint satisfaction programming
 
-        # Score and rank projects
         prioritization = await self._prioritize_portfolio(projects, self.default_weights)
         ranked_projects = prioritization["ranked_projects"]
 
-        # Select projects within constraints (greedy approach - baseline)
-        selected_projects = []
-        total_cost = 0
-        total_value = 0
-
+        scored_projects = []
         for project_data in ranked_projects:
             project = next(
                 (p for p in projects if p.get("project_id") == project_data["project_id"]), None
             )
             if not project:
                 continue
+            project_cost = float(project.get("estimated_cost", 0))
+            expected_value = float(project.get("expected_value", 0))
+            value = expected_value * project_data["overall_score"]
+            scored_projects.append(
+                {
+                    "project_id": project["project_id"],
+                    "project_name": project.get("name"),
+                    "score": project_data["overall_score"],
+                    "cost": project_cost,
+                    "expected_value": expected_value,
+                    "value": value,
+                    "category": project.get("category", "operations"),
+                    "resource_requirements": project.get("resource_requirements", {}),
+                }
+            )
 
-            project_cost = project.get("estimated_cost", 0)
-
-            if total_cost + project_cost <= budget_ceiling:
-                selected_projects.append(
-                    {
-                        "project_id": project["project_id"],
-                        "project_name": project.get("name"),
-                        "score": project_data["overall_score"],
-                        "cost": project_cost,
-                        "expected_value": project.get("expected_value", 0),
-                    }
-                )
-                total_cost += project_cost
-                total_value += project.get("expected_value", 0)
+        selected_projects = await self._optimize_knapsack(
+            scored_projects, budget_ceiling, min_compliance_spend, resource_capacity
+        )
+        total_cost = sum(item["cost"] for item in selected_projects)
+        total_value = sum(item["expected_value"] for item in selected_projects)
 
         # Calculate portfolio metrics
         portfolio_metrics = await self._calculate_portfolio_metrics(selected_projects)
@@ -523,6 +527,90 @@ class PortfolioStrategyAgent(BaseAgent):
             return 1.0
         else:
             return min(roi, 1.0)  # type: ignore
+
+    async def _optimize_knapsack(
+        self,
+        projects: list[dict[str, Any]],
+        budget_ceiling: float,
+        min_compliance_spend: float,
+        resource_capacity: dict[str, float],
+    ) -> list[dict[str, Any]]:
+        if not projects or budget_ceiling <= 0:
+            return []
+
+        scale = self.budget_granularity
+        max_budget = int(budget_ceiling // scale)
+
+        def is_compliance(project: dict[str, Any]) -> bool:
+            return project.get("category") == "compliance"
+
+        compliance_projects = [p for p in projects if is_compliance(p)]
+        other_projects = [p for p in projects if not is_compliance(p)]
+
+        compliance_selected = self._knapsack_select(
+            compliance_projects, max_budget, scale
+        )
+        compliance_spend = sum(p["cost"] for p in compliance_selected)
+
+        remaining_budget = budget_ceiling - compliance_spend
+        if compliance_spend < min_compliance_spend:
+            return compliance_selected
+
+        remaining_selected = self._knapsack_select(
+            other_projects, int(remaining_budget // scale), scale
+        )
+
+        selected = compliance_selected + remaining_selected
+        return self._apply_resource_capacity(selected, resource_capacity)
+
+    def _knapsack_select(
+        self, projects: list[dict[str, Any]], max_budget: int, scale: int
+    ) -> list[dict[str, Any]]:
+        if max_budget <= 0:
+            return []
+
+        dp = [0.0] * (max_budget + 1)
+        keep: list[list[bool]] = [[False] * (max_budget + 1) for _ in projects]
+
+        for i, project in enumerate(projects):
+            weight = int(project["cost"] // scale)
+            value = project["value"]
+            for budget in range(max_budget, weight - 1, -1):
+                candidate = dp[budget - weight] + value
+                if candidate > dp[budget]:
+                    dp[budget] = candidate
+                    keep[i][budget] = True
+
+        selected = []
+        remaining = max_budget
+        for i in range(len(projects) - 1, -1, -1):
+            if keep[i][remaining]:
+                selected.append(projects[i])
+                remaining -= int(projects[i]["cost"] // scale)
+        return selected[::-1]
+
+    def _apply_resource_capacity(
+        self, projects: list[dict[str, Any]], resource_capacity: dict[str, float]
+    ) -> list[dict[str, Any]]:
+        if not resource_capacity:
+            return projects
+
+        usage: dict[str, float] = {}
+        selected: list[dict[str, Any]] = []
+
+        for project in sorted(projects, key=lambda x: x["value"], reverse=True):
+            feasible = True
+            for resource, needed in project.get("resource_requirements", {}).items():
+                capacity = resource_capacity.get(resource, float("inf"))
+                if usage.get(resource, 0.0) + needed > capacity:
+                    feasible = False
+                    break
+            if feasible:
+                selected.append(project)
+                for resource, needed in project.get("resource_requirements", {}).items():
+                    usage[resource] = usage.get(resource, 0.0) + needed
+
+        return selected
 
     async def _score_risk(self, project: dict[str, Any]) -> float:
         """Score project risk (0-1, higher is lower risk)."""

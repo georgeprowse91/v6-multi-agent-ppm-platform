@@ -9,6 +9,7 @@ Specification: agents/delivery-management/agent-10-schedule-planning/README.md
 """
 
 from datetime import datetime, timedelta
+import random
 from typing import Any
 
 from agents.runtime import BaseAgent
@@ -41,6 +42,7 @@ class SchedulePlanningAgent(BaseAgent):
         self.baseline_approval_threshold = (
             config.get("baseline_approval_threshold", 0.10) if config else 0.10
         )
+        self.simulation_seed = config.get("simulation_seed", 42) if config else 42
 
         # Data stores (will be replaced with database connections)
         self.schedules = {}  # type: ignore
@@ -477,15 +479,15 @@ class SchedulePlanningAgent(BaseAgent):
         # Future work: Use Azure Databricks for Monte Carlo simulation
         # Run simulation with random sampling of task durations
         simulation_results = []
+        task_samples: dict[str, list[float]] = {task["task_id"]: [] for task in tasks}
+        rng = random.Random(self.simulation_seed)
 
-        for i in range(iterations):
-            # Sample durations from distributions
-            sampled_tasks = await self._sample_task_durations(tasks)
-
-            # Calculate project duration for this iteration
+        for _ in range(iterations):
+            sampled_tasks = await self._sample_task_durations(tasks, rng=rng)
             duration = await self._calculate_simulated_duration(sampled_tasks, dependencies)
-
             simulation_results.append(duration)
+            for task in sampled_tasks:
+                task_samples[task["task_id"]].append(float(task.get("duration", 0)))
 
         # Calculate statistics
         p50 = await self._calculate_percentile(simulation_results, 50)
@@ -498,6 +500,8 @@ class SchedulePlanningAgent(BaseAgent):
             simulation_results, schedule.get("project_duration_days", 0)
         )
 
+        risk_drivers = await self._extract_risk_drivers(task_samples, simulation_results)
+
         return {
             "schedule_id": schedule_id,
             "iterations": iterations,
@@ -507,6 +511,7 @@ class SchedulePlanningAgent(BaseAgent):
             "p90_duration": p90,
             "p95_duration": p95,
             "risk_score": risk_score,
+            "risk_drivers": risk_drivers,
             "distribution": {
                 "min": min(simulation_results) if simulation_results else 0,
                 "max": max(simulation_results) if simulation_results else 0,
@@ -920,8 +925,34 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _detect_circular_dependencies(self, dependencies: list[dict[str, Any]]) -> list[str]:
         """Detect circular dependencies."""
-        # Future work: Implement cycle detection algorithm
-        return []  # Baseline
+        graph: dict[str, list[str]] = {}
+        for dep in dependencies:
+            pred = dep.get("predecessor")
+            succ = dep.get("successor")
+            if not pred or not succ:
+                continue
+            graph.setdefault(pred, []).append(succ)
+
+        visiting: set[str] = set()
+        visited: set[str] = set()
+        cycles = []
+
+        def visit(node: str, path: list[str]) -> None:
+            if node in visiting:
+                cycles.append(" -> ".join(path + [node]))
+                return
+            if node in visited:
+                return
+            visiting.add(node)
+            for neighbor in graph.get(node, []):
+                visit(neighbor, path + [node])
+            visiting.remove(node)
+            visited.add(node)
+
+        for node in graph:
+            visit(node, [])
+
+        return cycles
 
     async def _generate_network_diagram(
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
@@ -933,15 +964,88 @@ class SchedulePlanningAgent(BaseAgent):
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Perform CPM forward pass."""
-        # Future work: Implement forward pass algorithm
-        return tasks
+        task_map = {task["task_id"]: task for task in tasks}
+        predecessors: dict[str, list[str]] = {task["task_id"]: [] for task in tasks}
+        for dep in dependencies:
+            pred = dep.get("predecessor")
+            succ = dep.get("successor")
+            if pred in task_map and succ in task_map:
+                predecessors[succ].append(pred)
+
+        in_degree = {task_id: len(preds) for task_id, preds in predecessors.items()}
+        queue = [task_id for task_id, count in in_degree.items() if count == 0]
+
+        ordered = []
+        while queue:
+            current = queue.pop(0)
+            ordered.append(current)
+            for dep in dependencies:
+                if dep.get("predecessor") == current:
+                    succ = dep.get("successor")
+                    if succ in in_degree:
+                        in_degree[succ] -= 1
+                        if in_degree[succ] == 0:
+                            queue.append(succ)
+
+        if len(ordered) != len(task_map):
+            ordered = list(task_map.keys())
+
+        for task_id in ordered:
+            task = task_map[task_id]
+            duration = float(task.get("duration", 0))
+            if predecessors[task_id]:
+                task["early_start"] = max(
+                    task_map[pred].get("early_finish", 0) for pred in predecessors[task_id]
+                )
+            else:
+                task["early_start"] = 0
+            task["early_finish"] = task["early_start"] + duration
+
+        return list(task_map.values())
 
     async def _backward_pass(
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Perform CPM backward pass."""
-        # Future work: Implement backward pass algorithm
-        return tasks
+        task_map = {task["task_id"]: task for task in tasks}
+        successors: dict[str, list[str]] = {task["task_id"]: [] for task in tasks}
+        for dep in dependencies:
+            pred = dep.get("predecessor")
+            succ = dep.get("successor")
+            if pred in task_map and succ in task_map:
+                successors[pred].append(succ)
+
+        project_duration = max((t.get("early_finish", 0) for t in tasks), default=0)
+        out_degree = {task_id: len(succs) for task_id, succs in successors.items()}
+        queue = [task_id for task_id, count in out_degree.items() if count == 0]
+        ordered = []
+        while queue:
+            current = queue.pop(0)
+            ordered.append(current)
+            for dep in dependencies:
+                if dep.get("successor") == current:
+                    pred = dep.get("predecessor")
+                    if pred in out_degree:
+                        out_degree[pred] -= 1
+                        if out_degree[pred] == 0:
+                            queue.append(pred)
+
+        if len(ordered) != len(task_map):
+            ordered = list(task_map.keys())
+
+        for task_id in ordered:
+            task = task_map[task_id]
+            duration = float(task.get("duration", 0))
+            if successors[task_id]:
+                task["late_finish"] = min(
+                    task_map[succ].get("late_start", project_duration)
+                    for succ in successors[task_id]
+                )
+            else:
+                task["late_finish"] = project_duration
+            task["late_start"] = task["late_finish"] - duration
+
+        return list(task_map.values())
 
     async def _calculate_slack(self, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Calculate slack/float for tasks."""
@@ -978,16 +1082,29 @@ class SchedulePlanningAgent(BaseAgent):
         new_duration = await self._calculate_project_duration(leveled_schedule)
         return new_duration - original_duration
 
-    async def _sample_task_durations(self, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    async def _sample_task_durations(
+        self, tasks: list[dict[str, Any]], rng: random.Random | None = None
+    ) -> list[dict[str, Any]]:
         """Sample task durations from probability distributions."""
-        # Future work: Implement proper sampling
-        return tasks
+        rng = rng or random.Random(self.simulation_seed)
+        sampled_tasks = []
+        for task in tasks:
+            optimistic = task.get("optimistic_duration", task.get("duration", 0))
+            most_likely = task.get("most_likely_duration", task.get("duration", 0))
+            pessimistic = task.get("pessimistic_duration", task.get("duration", 0))
+            duration = rng.triangular(float(optimistic), float(pessimistic), float(most_likely))
+            sampled = dict(task)
+            sampled["duration"] = duration
+            sampled_tasks.append(sampled)
+        return sampled_tasks
 
     async def _calculate_simulated_duration(
         self, tasks: list[dict[str, Any]], dependencies: list[dict[str, Any]]
     ) -> float:
         """Calculate project duration for simulated iteration."""
-        return await self._calculate_project_duration(tasks)
+        forward = await self._forward_pass(tasks, dependencies)
+        duration = max((task.get("early_finish", 0) for task in forward), default=0)
+        return float(duration)
 
     async def _calculate_percentile(self, data: list[float], percentile: int) -> float:
         """Calculate percentile value."""
@@ -1015,6 +1132,37 @@ class SchedulePlanningAgent(BaseAgent):
         mean = sum(data) / len(data)
         variance = sum((x - mean) ** 2 for x in data) / len(data)
         return variance**0.5  # type: ignore
+
+    async def _extract_risk_drivers(
+        self, task_samples: dict[str, list[float]], totals: list[float]
+    ) -> list[dict[str, Any]]:
+        """Identify tasks contributing most to schedule risk."""
+        if not totals:
+            return []
+
+        total_mean = sum(totals) / len(totals)
+        total_variance = sum((t - total_mean) ** 2 for t in totals)
+        drivers = []
+
+        for task_id, samples in task_samples.items():
+            if not samples:
+                continue
+            sample_mean = sum(samples) / len(samples)
+            covariance = sum(
+                (s - sample_mean) * (t - total_mean) for s, t in zip(samples, totals)
+            )
+            correlation = covariance / (total_variance or 1)
+            spread = max(samples) - min(samples)
+            drivers.append(
+                {
+                    "task_id": task_id,
+                    "correlation": round(correlation, 3),
+                    "spread": round(spread, 2),
+                }
+            )
+
+        drivers.sort(key=lambda x: (abs(x["correlation"]), x["spread"]), reverse=True)
+        return drivers[:5]
 
     async def _identify_optimization_opportunities(
         self, schedule: dict[str, Any]

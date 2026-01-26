@@ -9,6 +9,8 @@ Specification: agents/portfolio-management/agent-04-demand-intake/README.md
 """
 
 from datetime import datetime
+import math
+import re
 from typing import Any
 
 from agents.runtime import BaseAgent
@@ -34,6 +36,24 @@ class DemandIntakeAgent(BaseAgent):
             if config
             else ["title", "description", "business_objective"]
         )
+        self.demands: list[dict[str, Any]] = []
+        self.stopwords = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "to",
+            "for",
+            "of",
+            "in",
+            "on",
+            "with",
+            "via",
+            "from",
+            "is",
+            "are",
+        }
 
     async def initialize(self) -> None:
         """Initialize NLP models and database connections."""
@@ -102,7 +122,7 @@ class DemandIntakeAgent(BaseAgent):
         demand_id = await self._generate_demand_id()
 
         # Store the request
-        {
+        demand_item = {
             "demand_id": demand_id,
             "title": request_data.get("title"),
             "description": request_data.get("description"),
@@ -114,6 +134,7 @@ class DemandIntakeAgent(BaseAgent):
             "business_unit": request_data.get("business_unit", ""),
             "urgency": request_data.get("urgency", "Medium"),
         }
+        self.demands.append(demand_item)
 
         # Future work: Store in database
         self.logger.info(f"Created demand request: {demand_id}")
@@ -157,9 +178,27 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns list of similar requests with similarity scores.
         """
-        # Future work: Implement vector search using Azure Cognitive Search
-        # For now, return empty list
-        return []
+        if not self.demands:
+            return []
+
+        candidate_text = self._combine_text(request_data)
+        corpus = [self._combine_text(item) for item in self.demands]
+        similarities = self._semantic_similarity(candidate_text, corpus)
+
+        results = []
+        for item, score in zip(self.demands, similarities):
+            if score >= self.similarity_threshold:
+                results.append(
+                    {
+                        "demand_id": item.get("demand_id"),
+                        "title": item.get("title"),
+                        "category": item.get("category"),
+                        "similarity": round(score, 3),
+                    }
+                )
+
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        return results
 
     async def _check_duplicates(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -180,25 +219,86 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns pipeline statistics and items by stage.
         """
-        # Future work: Query database for pipeline data
-        # Baseline response
+        query = filters.get("query", "")
+        status_filter = filters.get("status")
+        items = self.demands
+
+        if status_filter:
+            items = [item for item in items if item.get("status") == status_filter]
+
+        if query:
+            corpus = [self._combine_text(item) for item in items]
+            scores = self._semantic_similarity(query, corpus)
+            scored_items = [
+                (item, score) for item, score in zip(items, scores) if score > 0.05
+            ]
+            scored_items.sort(key=lambda x: x[1], reverse=True)
+            items = [item for item, _ in scored_items]
+
+        by_status: dict[str, int] = {}
+        by_category: dict[str, int] = {}
+        for item in self.demands:
+            by_status[item.get("status", "Unknown")] = by_status.get(
+                item.get("status", "Unknown"), 0
+            ) + 1
+            by_category[item.get("category", "unknown")] = by_category.get(
+                item.get("category", "unknown"), 0
+            ) + 1
+
         return {
-            "total_requests": 0,
-            "by_status": {
-                "Received": 0,
-                "Screening": 0,
-                "Analysis": 0,
-                "Approved": 0,
-                "Rejected": 0,
-            },
-            "by_category": {
-                "project": 0,
-                "change_request": 0,
-                "issue": 0,
-                "idea": 0,
-            },
-            "items": [],
+            "total_requests": len(self.demands),
+            "by_status": by_status,
+            "by_category": by_category,
+            "items": items,
         }
+
+    def _combine_text(self, request_data: dict[str, Any]) -> str:
+        title = request_data.get("title", "")
+        description = request_data.get("description", "")
+        objective = request_data.get("business_objective", "")
+        return f"{title} {description} {objective}".strip().lower()
+
+    def _semantic_similarity(self, query: str, corpus: list[str]) -> list[float]:
+        tokens_list = [self._tokenize(text) for text in corpus + [query]]
+        vocabulary = sorted({token for tokens in tokens_list for token in tokens})
+
+        if not vocabulary:
+            return [0.0 for _ in corpus]
+
+        doc_freq = {term: 0 for term in vocabulary}
+        for tokens in tokens_list:
+            for term in set(tokens):
+                doc_freq[term] += 1
+
+        total_docs = len(tokens_list)
+        idf = {term: math.log((total_docs + 1) / (doc_freq[term] + 1)) + 1 for term in vocabulary}
+
+        vectors = []
+        for tokens in tokens_list:
+            term_counts: dict[str, int] = {}
+            for token in tokens:
+                term_counts[token] = term_counts.get(token, 0) + 1
+            vector = [term_counts.get(term, 0) * idf[term] for term in vocabulary]
+            vectors.append(vector)
+
+        query_vector = vectors[-1]
+        results = []
+        for vector in vectors[:-1]:
+            similarity = self._cosine_similarity(query_vector, vector)
+            results.append(similarity)
+        return results
+
+    def _tokenize(self, text: str) -> list[str]:
+        tokens = re.findall(r"[a-z0-9']+", text.lower())
+        return [token for token in tokens if token and token not in self.stopwords]
+
+    def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
+        dot_product = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(y * y for y in b))
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        return dot_product / (norm_a * norm_b)
 
     async def _generate_demand_id(self) -> str:
         """Generate unique demand ID."""

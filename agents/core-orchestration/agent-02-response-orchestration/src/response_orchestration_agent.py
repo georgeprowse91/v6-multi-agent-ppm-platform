@@ -11,6 +11,10 @@ Specification: agents/core-orchestration/agent-02-response-orchestration/README.
 import asyncio
 from typing import Any, cast
 
+import httpx
+
+from agents.runtime import InMemoryEventBus
+
 from agents.runtime import BaseAgent
 
 
@@ -33,6 +37,11 @@ class ResponseOrchestrationAgent(BaseAgent):
         self.max_concurrency = config.get("max_concurrency", 5) if config else 5
         self.agent_timeout = config.get("agent_timeout", 30) if config else 30
         self.cache_ttl = config.get("cache_ttl", 900) if config else 900  # 15 minutes
+        self.agent_endpoints = config.get("agent_endpoints", {}) if config else {}
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
+        self.http_client = config.get("http_client") if config else None
 
     async def initialize(self) -> None:
         """Initialize orchestration engine and cache."""
@@ -40,6 +49,8 @@ class ResponseOrchestrationAgent(BaseAgent):
         self.logger.info("Initializing orchestration engine...")
         # Future work: Initialize cache (Redis)
         # Future work: Load agent registry
+        if self.http_client is None:
+            self.http_client = httpx.AsyncClient(timeout=self.agent_timeout)
 
     async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -160,37 +171,40 @@ class ResponseOrchestrationAgent(BaseAgent):
         """
         agent_id = agent_info["agent_id"]
 
+        endpoint = agent_info.get("endpoint") or self.agent_endpoints.get(agent_id)
+        payload = {"agent_id": agent_id, "parameters": parameters}
+
         try:
-            # Future work: Implement actual agent invocation
-            # For now, return mock response
-            self.logger.info(f"Invoking agent: {agent_id}")
-
-            # Simulate agent call with timeout
-            await asyncio.sleep(0.1)  # Simulate processing
-
-            return {
-                "success": True,
-                "agent_id": agent_id,
-                "data": {
-                    "message": f"Response from {agent_id}",
+            if endpoint:
+                self.logger.info(f"Invoking agent via HTTP: {agent_id} -> {endpoint}")
+                response = await self.http_client.post(endpoint, json=payload)
+                response.raise_for_status()
+                data = response.json()
+            else:
+                self.logger.info(f"Invoking agent via event bus: {agent_id}")
+                data = {
+                    "message": f"Event published for {agent_id}",
                     "parameters": parameters,
-                },
-            }
+                }
+                await self.event_bus.publish(
+                    "agent.requested",
+                    {"agent_id": agent_id, "payload": payload},
+                )
 
-        except TimeoutError:
+            result = {"success": True, "agent_id": agent_id, "data": data}
+            await self.event_bus.publish("agent.completed", result)
+            return result
+
+        except (httpx.TimeoutException, TimeoutError):
             self.logger.warning(f"Agent {agent_id} timed out")
-            return {
-                "success": False,
-                "agent_id": agent_id,
-                "error": "Agent timeout",
-            }
+            error_result = {"success": False, "agent_id": agent_id, "error": "Agent timeout"}
+            await self.event_bus.publish("agent.failed", error_result)
+            return error_result
         except Exception as e:
             self.logger.error(f"Error invoking agent {agent_id}: {str(e)}")
-            return {
-                "success": False,
-                "agent_id": agent_id,
-                "error": str(e),
-            }
+            error_result = {"success": False, "agent_id": agent_id, "error": str(e)}
+            await self.event_bus.publish("agent.failed", error_result)
+            return error_result
 
     async def _aggregate_responses(self, results: list[dict[str, Any]]) -> str:
         """
@@ -213,6 +227,12 @@ class ResponseOrchestrationAgent(BaseAgent):
             responses.append(f"[{agent_id}]: {message}")
 
         return "\n".join(responses)
+
+    async def cleanup(self) -> None:
+        """Cleanup resources."""
+        self.logger.info("Cleaning up Response Orchestration Agent...")
+        if self.http_client is not None:
+            await self.http_client.aclose()
 
     def get_capabilities(self) -> list[str]:
         """Return list of capabilities."""

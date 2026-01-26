@@ -6,6 +6,8 @@ Handles routing, escalation, delegation, and audit trail for governance complian
 """
 
 from datetime import datetime, timedelta
+import json
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
@@ -24,7 +26,17 @@ class ApprovalWorkflowAgent(BaseAgent):
     ):
         super().__init__(agent_id, config)
         self.approval_chains: dict[str, Any] = {}
+        self.approval_policies: dict[str, Any] = {}
         self.delegation_records: dict[str, Any] = {}
+        self.notifications: list[dict[str, Any]] = []
+        self.storage_path = Path(
+            config.get("storage_path", "data/approval_chains.json") if config else "data/approval_chains.json"
+        )
+        self.notification_store_path = Path(
+            config.get("notification_store_path", "data/approval_notifications.json")
+            if config
+            else "data/approval_notifications.json"
+        )
 
     async def initialize(self) -> None:
         """Initialize approval workflow configurations and connections."""
@@ -32,7 +44,8 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.logger.info("Initializing Approval Workflow Agent...")
 
         # Load approval policies and routing rules
-        self.approval_chains = await self._load_approval_policies()
+        self.approval_policies = await self._load_approval_policies()
+        await self._load_persisted_state()
 
         # Future work: Initialize Azure Service Bus subscriptions for approval events
         # Future work: Connect to Microsoft Graph API for user/role lookups
@@ -190,6 +203,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         # Store in memory (Future work: persist to database)
         self.approval_chains[approval_id] = chain
+        await self._persist_state()
 
         return chain
 
@@ -207,12 +221,15 @@ class ApprovalWorkflowAgent(BaseAgent):
                 self.logger.info(f"Sending approval notification to {approver}")
 
                 # Baseline for actual notification
-                {
+                notification = {
                     "to": approver,
                     "subject": f"Approval Required: {details.get('description', 'N/A')}",
                     "deadline": approval_chain["deadline"],
                     "approval_id": approval_chain["id"],
+                    "sent_at": datetime.utcnow().isoformat(),
                 }
+                self.notifications.append(notification)
+                await self._persist_notifications()
 
                 # Future work: Actual send implementation
 
@@ -238,6 +255,27 @@ class ApprovalWorkflowAgent(BaseAgent):
             "reminder_before_deadline_hours": 24,
             "default_chain_type": "sequential",
         }
+
+    async def _load_persisted_state(self) -> None:
+        """Load persisted approval chains and notifications."""
+        if self.storage_path.exists():
+            self.approval_chains.update(json.loads(self.storage_path.read_text()))
+        if self.notification_store_path.exists():
+            self.notifications = json.loads(self.notification_store_path.read_text())
+
+    async def _persist_state(self) -> None:
+        """Persist approval chains to storage."""
+        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = self.storage_path.with_suffix(".tmp")
+        temp_path.write_text(json.dumps(self.approval_chains, indent=2))
+        temp_path.replace(self.storage_path)
+
+    async def _persist_notifications(self) -> None:
+        """Persist notification log to storage."""
+        self.notification_store_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = self.notification_store_path.with_suffix(".tmp")
+        temp_path.write_text(json.dumps(self.notifications, indent=2))
+        temp_path.replace(self.notification_store_path)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

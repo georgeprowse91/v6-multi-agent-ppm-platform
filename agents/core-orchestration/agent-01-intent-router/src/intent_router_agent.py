@@ -8,6 +8,8 @@ should handle the request.
 Specification: agents/core-orchestration/agent-01-intent-router/README.md
 """
 
+import re
+from collections import Counter
 from typing import Any
 
 from agents.runtime import BaseAgent
@@ -37,6 +39,34 @@ class IntentRouterAgent(BaseAgent):
             "compliance_query",
             "analytics_query",
         ]
+        self.intent_signals = {
+            "portfolio_query": ["portfolio", "program", "initiative", "portfolio health"],
+            "project_create": ["create project", "start project", "new project", "project charter"],
+            "schedule_query": ["schedule", "timeline", "deadline", "critical path", "milestone"],
+            "financial_query": ["budget", "cost", "financial", "npv", "irr", "roi", "forecast"],
+            "risk_query": ["risk", "issue", "mitigation", "risk register"],
+            "resource_query": ["resource", "capacity", "staffing", "utilization", "allocation"],
+            "demand_intake": ["demand", "intake", "request", "idea", "proposal"],
+            "compliance_query": ["compliance", "regulatory", "audit", "policy"],
+            "analytics_query": ["analytics", "insights", "report", "dashboard", "kpi"],
+        }
+        self.stopwords = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "to",
+            "for",
+            "of",
+            "in",
+            "on",
+            "with",
+            "me",
+            "show",
+            "get",
+            "please",
+        }
 
     async def initialize(self) -> None:
         """Initialize NLP models and routing configuration."""
@@ -97,28 +127,42 @@ class IntentRouterAgent(BaseAgent):
 
         Returns list of intents with confidence scores.
         """
-        # Future work: Implement Azure OpenAI classification
-        # Baseline implementation
         query_lower = query.lower()
+        tokens = [token for token in re.findall(r"[a-z0-9']+", query_lower) if token]
+        filtered_tokens = [token for token in tokens if token not in self.stopwords]
+        token_counts = Counter(filtered_tokens)
 
-        intents = []
+        intents: list[dict[str, Any]] = []
+        max_score = 0.0
 
-        if any(word in query_lower for word in ["portfolio", "program", "initiative"]):
-            intents.append({"intent": "portfolio_query", "confidence": 0.9})
+        for intent, signals in self.intent_signals.items():
+            score = 0.0
+            for signal in signals:
+                if " " in signal:
+                    if signal in query_lower:
+                        score += 1.5
+                else:
+                    score += min(1.0, token_counts.get(signal, 0))
 
-        if any(word in query_lower for word in ["schedule", "timeline", "deadline"]):
-            intents.append({"intent": "schedule_query", "confidence": 0.85})
-
-        if any(word in query_lower for word in ["budget", "cost", "financial"]):
-            intents.append({"intent": "financial_query", "confidence": 0.88})
-
-        if any(word in query_lower for word in ["risk", "issue", "problem"]):
-            intents.append({"intent": "risk_query", "confidence": 0.87})
+            if score > 0:
+                max_score = max(max_score, score)
+                intents.append({"intent": intent, "raw_score": score})
 
         if not intents:
-            intents.append({"intent": "general_query", "confidence": 0.5})
+            return [{"intent": "general_query", "confidence": 0.5}]
 
-        return intents
+        normalized_intents = []
+        for intent in intents:
+            confidence = 0.55 + (intent["raw_score"] / max_score) * 0.4
+            normalized_intents.append(
+                {
+                    "intent": intent["intent"],
+                    "confidence": round(min(confidence, 0.98), 2),
+                }
+            )
+
+        normalized_intents.sort(key=lambda x: x["confidence"], reverse=True)
+        return normalized_intents
 
     async def _determine_agents(self, intents: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
@@ -161,20 +205,38 @@ class IntentRouterAgent(BaseAgent):
 
         Returns dictionary of extracted parameters.
         """
-        # Future work: Implement NER (Named Entity Recognition) using Azure OpenAI
-        # Baseline implementation
-        parameters = {}
-
-        # Simple keyword extraction
+        parameters: dict[str, Any] = {}
         query_lower = query.lower()
 
-        if "project" in query_lower:
-            # Extract project name/ID if present
-            # Future work: Implement actual entity extraction
+        project_match = re.search(r"project\s+([a-z0-9_-]+)", query_lower)
+        if project_match:
+            parameters["project_id"] = project_match.group(1).upper()
             parameters["entity_type"] = "project"
 
-        if "portfolio" in query_lower:
+        portfolio_match = re.search(r"portfolio\s+([a-z0-9_-]+)", query_lower)
+        if portfolio_match:
+            parameters["portfolio_id"] = portfolio_match.group(1).upper()
             parameters["entity_type"] = "portfolio"
+
+        currency_match = re.search(r"\b(usd|eur|gbp|jpy)\b", query_lower)
+        if currency_match:
+            parameters["currency"] = currency_match.group(1).upper()
+
+        amount_match = re.search(r"\$?\s*([0-9]+(?:\.[0-9]+)?)\s?(k|m)?", query_lower)
+        if amount_match:
+            amount = float(amount_match.group(1))
+            suffix = amount_match.group(2)
+            if suffix == "k":
+                amount *= 1_000
+            elif suffix == "m":
+                amount *= 1_000_000
+            parameters["amount"] = amount
+
+        if any(intent["intent"] == "schedule_query" for intent in intents):
+            if "critical path" in query_lower:
+                parameters["schedule_focus"] = "critical_path"
+            if "milestone" in query_lower:
+                parameters["schedule_focus"] = "milestones"
 
         return parameters
 

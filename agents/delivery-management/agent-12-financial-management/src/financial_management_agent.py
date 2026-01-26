@@ -9,7 +9,11 @@ Specification: agents/delivery-management/agent-12-financial-management/README.m
 """
 
 from datetime import datetime
+import json
+from pathlib import Path
 from typing import Any
+
+import httpx
 
 from agents.runtime import BaseAgent
 
@@ -58,6 +62,15 @@ class FinancialManagementAgent(BaseAgent):
         self.actuals = {}  # type: ignore
         self.forecasts = {}  # type: ignore
         self.variances = {}  # type: ignore
+        self.exchange_rate_provider = ExchangeRateProvider(
+            fixture_path=Path(
+                config.get("exchange_rate_fixture", "data/fixtures/exchange_rates.json")
+                if config
+                else "data/fixtures/exchange_rates.json"
+            ),
+            ttl_seconds=config.get("exchange_rate_ttl", 3600) if config else 3600,
+            api_url=config.get("exchange_rate_api_url") if config else None,
+        )
 
     async def initialize(self) -> None:
         """Initialize database connections, ERP integrations, and ML models."""
@@ -598,24 +611,24 @@ class FinancialManagementAgent(BaseAgent):
         """Convert amount between currencies."""
         self.logger.info(f"Converting {amount} {from_currency} to {to_currency}")
 
-        # Future work: Fetch real-time exchange rates from API
-        # Baseline exchange rates
-        exchange_rates = {"USD": 1.0, "EUR": 0.85, "GBP": 0.73, "JPY": 110.0}
+        exchange_rates = await self.exchange_rate_provider.get_rates()
 
-        if from_currency not in exchange_rates or to_currency not in exchange_rates:
+        if from_currency not in exchange_rates["rates"] or to_currency not in exchange_rates["rates"]:
             raise ValueError(f"Unsupported currency: {from_currency} or {to_currency}")
 
         # Convert to USD first, then to target currency
-        usd_amount = amount / exchange_rates[from_currency]
-        converted_amount = usd_amount * exchange_rates[to_currency]
+        usd_amount = amount / exchange_rates["rates"][from_currency]
+        converted_amount = usd_amount * exchange_rates["rates"][to_currency]
 
         return {
             "original_amount": amount,
             "from_currency": from_currency,
             "to_currency": to_currency,
             "converted_amount": converted_amount,
-            "exchange_rate": exchange_rates[to_currency] / exchange_rates[from_currency],
+            "exchange_rate": exchange_rates["rates"][to_currency]
+            / exchange_rates["rates"][from_currency],
             "conversion_date": datetime.utcnow().isoformat(),
+            "rate_as_of": exchange_rates["as_of"],
         }
 
     async def _calculate_profitability(self, project_id: str) -> dict[str, Any]:
@@ -709,8 +722,31 @@ class FinancialManagementAgent(BaseAgent):
         schedule_progress: dict[str, Any],
     ) -> dict[str, Any]:
         """Run AI forecasting model."""
-        # Future work: Use Azure ML (Prophet, ARIMA, LSTM)
-        return {"monthly_forecast": [], "total_forecast": 0}
+        exchange_rates = await self.exchange_rate_provider.get_rates()
+
+        normalized_costs = []
+        for entry in historical_data:
+            amount = float(entry.get("amount", 0))
+            currency = entry.get("currency", self.default_currency)
+            if currency != self.default_currency:
+                amount = amount / exchange_rates["rates"][currency]
+            normalized_costs.append(amount)
+
+        if not normalized_costs:
+            normalized_costs = [0.0]
+
+        rolling_avg = sum(normalized_costs[-3:]) / min(len(normalized_costs), 3)
+        progress = schedule_progress.get("percent_complete", 0.0)
+        remaining_factor = max(0.0, 1.0 - progress)
+        monthly_forecast = [rolling_avg * remaining_factor for _ in range(3)]
+        total_forecast = sum(normalized_costs) + sum(monthly_forecast)
+
+        return {
+            "monthly_forecast": monthly_forecast,
+            "total_forecast": total_forecast,
+            "currency": self.default_currency,
+            "rate_as_of": exchange_rates["as_of"],
+        }
 
     async def _calculate_eac(self, project_id: str, forecast: dict[str, Any]) -> float:
         """Calculate Estimate at Completion."""
@@ -729,8 +765,17 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _calculate_confidence_interval(self, forecast: dict[str, Any]) -> dict[str, Any]:
         """Calculate forecast confidence interval."""
-        # Future work: Statistical confidence interval calculation
-        return {"lower_bound": 0, "upper_bound": 0, "confidence_level": 0.95}
+        monthly = forecast.get("monthly_forecast", [])
+        if not monthly:
+            return {"lower_bound": 0, "upper_bound": 0, "confidence_level": 0.95}
+        mean = sum(monthly) / len(monthly)
+        variance = sum((x - mean) ** 2 for x in monthly) / len(monthly)
+        std_dev = variance**0.5
+        return {
+            "lower_bound": max(0.0, mean - 1.28 * std_dev),
+            "upper_bound": mean + 1.28 * std_dev,
+            "confidence_level": 0.8,
+        }
 
     async def _get_budget_for_project(self, project_id: str) -> dict[str, Any] | None:
         """Get budget for a specific project."""
@@ -909,19 +954,31 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _calculate_npv(self, total_cost: float, cash_flows: list[float]) -> float:
         """Calculate Net Present Value."""
-        # Future work: Implement proper NPV calculation with discount rate
-        discount_rate = 0.10
+        discount_rate = self.config.get("discount_rate", 0.10)
         npv = -total_cost
-
         for i, cash_flow in enumerate(cash_flows, start=1):
             npv += cash_flow / ((1 + discount_rate) ** i)
-
         return npv
 
     async def _calculate_irr(self, total_cost: float, cash_flows: list[float]) -> float:
         """Calculate Internal Rate of Return."""
-        # Future work: Implement proper IRR calculation
-        return 0.15  # Baseline
+        cash_series = [-total_cost] + cash_flows
+
+        def npv_for_rate(rate: float) -> float:
+            return sum(value / ((1 + rate) ** idx) for idx, value in enumerate(cash_series))
+
+        lower, upper = -0.9, 1.5
+        for _ in range(50):
+            mid = (lower + upper) / 2
+            value = npv_for_rate(mid)
+            if abs(value) < 1e-6:
+                return mid
+            if value > 0:
+                lower = mid
+            else:
+                upper = mid
+        return (lower + upper) / 2
+
 
     async def _calculate_payback_period(self, total_cost: float, cash_flows: list[float]) -> int:
         """Calculate payback period in months."""
@@ -968,3 +1025,36 @@ class FinancialManagementAgent(BaseAgent):
             "financial_compliance",
             "audit_trail_management",
         ]
+
+
+class ExchangeRateProvider:
+    """Exchange rate provider with caching and optional API fetch."""
+
+    def __init__(self, fixture_path: Path, ttl_seconds: int, api_url: str | None = None):
+        self.fixture_path = fixture_path
+        self.ttl_seconds = ttl_seconds
+        self.api_url = api_url
+        self._cache: dict[str, Any] | None = None
+        self._last_loaded: datetime | None = None
+
+    async def get_rates(self) -> dict[str, Any]:
+        if self._cache and self._last_loaded:
+            age = (datetime.utcnow() - self._last_loaded).total_seconds()
+            if age < self.ttl_seconds:
+                return self._cache
+
+        if self.api_url:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(self.api_url)
+                response.raise_for_status()
+                data = response.json()
+        else:
+            data = json.loads(self.fixture_path.read_text())
+
+        self._cache = {
+            "base": data.get("base", "USD"),
+            "rates": data.get("rates", {}),
+            "as_of": data.get("as_of", datetime.utcnow().isoformat()),
+        }
+        self._last_loaded = datetime.utcnow()
+        return self._cache

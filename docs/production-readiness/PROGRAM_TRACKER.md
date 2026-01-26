@@ -48,3 +48,15 @@
 | 32 | Add connector integration tests (mock server/recorded fixtures; deterministic CI) | Done | `tests/integration/connectors/test_jira_connector.py`, `tests/integration/connectors/test_servicenow_connector.py`, `tests/integration/connectors/test_azure_devops_connector.py`, `tests/integration/connectors/test_sync_job.py`. |
 | 33 | Implement OAuth 2.0 token refresh logic | Done | `connectors/sdk/src/auth.py`, `connectors/servicenow/src/main.py`. |
 | 76 | Enable multiple connectors syncing live data (Key Vault wiring, gated smoke workflow) | Done | `config/environments/prod.yaml`, `.github/workflows/connectors-live-smoke.yml`. |
+| 17 | Enhanced NLP for Intent Router (real classification; measurable behavior) | Done | `agents/core-orchestration/agent-01-intent-router/src/intent_router_agent.py`, `tests/agents/test_intent_router_agent.py`. |
+| 18 | Real agent-to-agent communication for response orchestration (HTTP/event bus per repo architecture) | Done | `agents/core-orchestration/agent-02-response-orchestration/src/response_orchestration_agent.py`, `agents/runtime/src/event_bus.py`, `tests/agents/test_response_orchestration_agent.py`. |
+| 19 | Persistent storage + notifications for approval workflows | Done | `agents/core-orchestration/agent-03-approval-workflow/src/approval_workflow_agent.py`, `tests/agents/test_approval_workflow_agent.py`. |
+| 20 | Semantic search + duplicate detection for demand intake | Done | `agents/portfolio-management/agent-04-demand-intake/src/demand_intake_agent.py`, `tests/agents/test_demand_intake_agent.py`. |
+| 21 | Real NPV and IRR models | Done | `agents/delivery-management/agent-12-financial-management/src/financial_management_agent.py`, `tests/agents/test_financial_management_agent.py`. |
+| 22 | Portfolio optimization algorithms | Done | `agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py`, `tests/agents/test_portfolio_strategy_agent.py`. |
+| 23 | Project lifecycle health checks + criteria validation | Done | `agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py`, `tests/agents/test_project_lifecycle_agent.py`. |
+| 24 | Critical Path Method scheduling | Done | `agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py`, `tests/agents/test_schedule_planning_agent.py`. |
+| 25 | Financial forecasting with real exchange rates (adapter + caching; CI fixtures) | Done | `agents/delivery-management/agent-12-financial-management/src/financial_management_agent.py`, `data/fixtures/exchange_rates.json`, `tests/agents/test_financial_management_agent.py`. |
+| 26 | Monte Carlo simulation + automated risk extraction (deterministic tests with seeded RNG) | Done | `agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py`, `tests/agents/test_schedule_planning_agent.py`. |
+| 27 | Comprehensive unit tests for all agents | Done | `tests/agents/`. |
+| 75 | Ensure top agents operate with real business logic (prove via tests) | Done | `tests/agents/`, agent implementations above. |

@@ -736,9 +736,23 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _check_criterion(self, project_id: str, criterion: str) -> bool:
         """Check if a specific criterion is met."""
-        # Future work: Implement actual criterion checking
-        # Baseline: randomly return True/False
-        return True
+        project = self.projects.get(project_id, {})
+        artifacts = project.get("artifacts", {})
+        approvals = project.get("approvals", {})
+        metrics = project.get("metrics", {})
+
+        criteria_map = {
+            "charter_document_complete": artifacts.get("charter", {}).get("complete", False),
+            "charter_approved": approvals.get("charter", False),
+            "sponsor_assigned": bool(project.get("sponsor")),
+            "scope_baseline_approved": approvals.get("scope_baseline", False),
+            "schedule_baseline_approved": approvals.get("schedule_baseline", False),
+            "budget_approved": approvals.get("budget", False),
+            "deliverables_complete": artifacts.get("deliverables", {}).get("complete", False),
+            "quality_criteria_met": metrics.get("quality_score", 0) >= 0.85,
+        }
+
+        return bool(criteria_map.get(criterion, False))
 
     async def _get_criterion_description(self, criterion: str) -> str:
         """Get description for a criterion."""
@@ -756,28 +770,59 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _get_schedule_health(self, project_id: str) -> float:
         """Get schedule health metric."""
-        # Future work: Query Schedule & Planning Agent (Agent 10)
-        return 0.85  # Baseline
+        project = self.projects.get(project_id, {})
+        schedule = project.get("schedule", {})
+        spi = schedule.get("spi")
+        if spi is None:
+            variance_pct = schedule.get("variance_pct", 0)
+            spi = max(0.0, 1.0 - abs(variance_pct))
+        return max(0.0, min(float(spi), 1.0))
 
     async def _get_cost_health(self, project_id: str) -> float:
         """Get cost health metric."""
-        # Future work: Query Financial Management Agent (Agent 12)
-        return 0.90  # Baseline
+        project = self.projects.get(project_id, {})
+        cost = project.get("cost", {})
+        cpi = cost.get("cpi")
+        if cpi is None:
+            variance_pct = cost.get("variance_pct", 0)
+            cpi = max(0.0, 1.0 - abs(variance_pct))
+        return max(0.0, min(float(cpi), 1.0))
 
     async def _get_risk_health(self, project_id: str) -> float:
         """Get risk health metric."""
-        # Future work: Query Risk Management Agent (Agent 15)
-        return 0.75  # Baseline
+        project = self.projects.get(project_id, {})
+        risk = project.get("risk", {})
+        risk_score = risk.get("risk_score")
+        if risk_score is None:
+            open_risks = risk.get("open_risks", 0)
+            risk_score = max(0.0, 1.0 - (open_risks / 10))
+        return max(0.0, min(float(risk_score), 1.0))
 
     async def _get_quality_health(self, project_id: str) -> float:
         """Get quality health metric."""
-        # Future work: Query Quality Assurance Agent (Agent 14)
-        return 0.88  # Baseline
+        project = self.projects.get(project_id, {})
+        quality = project.get("quality", {})
+        test_pass_rate = quality.get("test_pass_rate")
+        if test_pass_rate is None:
+            defects = quality.get("defects", 0)
+            test_pass_rate = max(0.0, 1.0 - (defects / 20))
+        return max(0.0, min(float(test_pass_rate), 1.0))
 
     async def _get_resource_health(self, project_id: str) -> float:
         """Get resource health metric."""
-        # Future work: Query Resource & Capacity Management Agent (Agent 11)
-        return 0.80  # Baseline
+        project = self.projects.get(project_id, {})
+        resource = project.get("resource", {})
+        utilization = resource.get("utilization")
+        if utilization is None:
+            utilization = resource.get("utilization_pct", 0) / 100
+        # Ideal utilization 0.75-0.9
+        if utilization < 0.75:
+            score = utilization / 0.75
+        elif utilization > 0.9:
+            score = max(0.0, 1 - ((utilization - 0.9) / 0.2))
+        else:
+            score = 1.0
+        return max(0.0, min(score, 1.0))
 
     async def _determine_health_status(self, composite_score: float) -> str:
         """Determine health status from composite score."""
@@ -816,8 +861,37 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _detect_warnings(self, project_id: str) -> list[dict[str, Any]]:
         """Detect early warning signals."""
-        # Future work: Implement pattern recognition for warnings
-        return []
+        project = self.projects.get(project_id, {})
+        warnings = []
+
+        schedule = project.get("schedule", {})
+        if schedule.get("variance_pct", 0) < -0.1:
+            warnings.append(
+                {
+                    "type": "schedule_slip",
+                    "message": "Schedule slipping beyond 10% threshold",
+                }
+            )
+
+        cost = project.get("cost", {})
+        if cost.get("variance_pct", 0) > 0.1:
+            warnings.append(
+                {
+                    "type": "cost_overrun",
+                    "message": "Cost variance exceeds 10% threshold",
+                }
+            )
+
+        risk = project.get("risk", {})
+        if risk.get("open_risks", 0) >= 5:
+            warnings.append(
+                {
+                    "type": "risk_backlog",
+                    "message": "Risk backlog exceeds 5 open items",
+                }
+            )
+
+        return warnings
 
     async def _generate_health_recommendations(
         self, composite_score: float, concerns: list[str], warnings: list[dict[str, Any]]
