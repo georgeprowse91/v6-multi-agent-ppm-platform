@@ -1,1 +1,158 @@
-stages: []
+methodology: hybrid
+version: "1.0"
+stages:
+  - id: initiation
+    name: Initiation & Governance Setup
+    purpose: Confirm the business case and establish hybrid governance.
+    owner_roles:
+      - Program Sponsor
+      - Program Manager
+    tasks:
+      - id: business-case
+        description: Validate investment case and funding.
+        owner_roles:
+          - Business Analyst
+        artefacts:
+          - name: Business case
+            template: docs/templates/shared/business-case.md
+            required: true
+          - name: ROI/NPV worksheet
+            template: docs/templates/shared/roi-npv-worksheet.xlsx
+            required: true
+      - id: hybrid-charter
+        description: Document hybrid charter, roles, and cadence.
+        owner_roles:
+          - Program Manager
+        artefacts:
+          - name: Hybrid charter
+            template: docs/methodology/hybrid/templates/hybrid-charter.md
+            required: true
+      - id: governance-pack
+        description: Define stage gate and decision governance.
+        owner_roles:
+          - PMO Lead
+        artefacts:
+          - name: Governance pack
+            template: docs/methodology/hybrid/templates/governance-pack.md
+            required: true
+    exit_criteria:
+      - Charter and governance pack approved.
+    next_stage: planning
+  - id: planning
+    name: Planning & Mobilization
+    purpose: Align milestones, risks, and delivery cadence.
+    owner_roles:
+      - Program Manager
+      - Release Train Engineer
+    tasks:
+      - id: milestone-plan
+        description: Establish milestones and stage gates with sprint ranges.
+        owner_roles:
+          - Program Scheduler
+        artefacts:
+          - name: Milestone plan
+            template: docs/methodology/hybrid/templates/milestone-plan.xlsx
+            required: true
+      - id: integrated-risk
+        description: Identify risks across sequential and iterative workstreams.
+        owner_roles:
+          - Risk Manager
+        artefacts:
+          - name: Integrated risk register
+            template: docs/methodology/hybrid/templates/integrated-risk-register.xlsx
+            required: true
+      - id: communications-plan
+        description: Align stakeholder communication cadences.
+        owner_roles:
+          - Communications Lead
+        artefacts:
+          - name: Communications plan
+            template: docs/templates/shared/communications-plan.md
+            required: true
+          - name: Stakeholder register
+            template: docs/templates/shared/stakeholder-register.xlsx
+            required: true
+    exit_criteria:
+      - Milestones and risks reviewed by governance forum.
+    next_stage: delivery
+  - id: delivery
+    name: Iterative Delivery
+    purpose: Deliver increments while maintaining stage-gate control.
+    owner_roles:
+      - Delivery Lead
+      - Scrum Master
+    tasks:
+      - id: sprint-plan
+        description: Plan each iteration and confirm sprint commitments.
+        owner_roles:
+          - Scrum Master
+        artefacts:
+          - name: Sprint plan
+            template: docs/methodology/agile/templates/sprint-plan.md
+            required: true
+      - id: change-control
+        description: Manage scope changes and decision log updates.
+        owner_roles:
+          - Change Manager
+        artefacts:
+          - name: Change log
+            template: docs/templates/shared/change-log.md
+            required: true
+          - name: Change impact assessment
+            template: docs/templates/shared/change-impact-assessment.md
+            required: true
+    exit_criteria:
+      - Increment accepted for integration.
+    next_stage: integration
+  - id: integration
+    name: Integration & Release Readiness
+    purpose: Validate integrated solution and readiness.
+    owner_roles:
+      - QA Lead
+      - Release Manager
+    tasks:
+      - id: release-plan
+        description: Validate release readiness and go-live criteria.
+        owner_roles:
+          - Release Manager
+        artefacts:
+          - name: Release plan
+            template: docs/methodology/agile/templates/release-plan.md
+            required: true
+      - id: variance-report
+        description: Summarize performance against milestones.
+        owner_roles:
+          - Program Manager
+        artefacts:
+          - name: Variance report
+            template: docs/templates/shared/variance-report.md
+            required: true
+    exit_criteria:
+      - Release readiness checklist completed.
+    next_stage: closure
+  - id: closure
+    name: Transition & Closure
+    purpose: Formalize handover, lessons learned, and benefits tracking.
+    owner_roles:
+      - Program Manager
+      - Operations Lead
+    tasks:
+      - id: closure-report
+        description: Summarize outcomes, benefits, and transition plan.
+        owner_roles:
+          - Program Manager
+        artefacts:
+          - name: Closure report
+            template: docs/methodology/waterfall/templates/closure-report.md
+            required: true
+      - id: privacy-review
+        description: Complete privacy and compliance documentation.
+        owner_roles:
+          - Compliance Officer
+        artefacts:
+          - name: DPIA report
+            template: docs/compliance/privacy-dpia-template.md
+            required: true
+    exit_criteria:
+      - Sponsor and operations sign-off.
+    next_stage: null

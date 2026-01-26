@@ -7,6 +7,8 @@ Document the templates assets owned by the Notification Service service.
 ## What's inside
 
 - `services/notification-service/templates/welcome.txt`: Text asset used by this component.
+- `services/notification-service/templates/portfolio-intake.txt`: Portfolio intake notification message.
+- `services/notification-service/templates/intake-triage-summary.txt`: Intake triage summary message.
 
 ## How it's used
 

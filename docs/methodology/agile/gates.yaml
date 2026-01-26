@@ -1,1 +1,103 @@
-gates: []
+methodology: agile
+version: "1.0"
+gates:
+  - id: gate-intake
+    name: Intake Approval Gate
+    stage: intake
+    required_artefacts:
+      - name: Demand intake request
+        template: docs/templates/shared/demand-intake-request.md
+        evidence: Demand record ID or ticket link.
+      - name: Business case
+        template: docs/templates/shared/business-case.md
+        evidence: Approved business case document.
+      - name: Product backlog
+        template: docs/methodology/agile/templates/backlog.csv
+        evidence: Backlog populated with prioritized items.
+    criteria:
+      - id: intake-1
+        description: Demand is scoped with objectives, constraints, and owner.
+        evidence: Intake form fields completed.
+        check: "Agent 03 confirms sponsor and owner assignment."
+      - id: intake-2
+        description: Business case shows positive value or justified strategic need.
+        evidence: ROI/NPV worksheet completed.
+        check: "Finance partner validation logged."
+    approvals:
+      - role: Executive Sponsor
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Proceed to sprint planning.
+      reject: Return to intake for refinement.
+  - id: gate-planning
+    name: Sprint Planning Gate
+    stage: planning
+    required_artefacts:
+      - name: Sprint plan
+        template: docs/methodology/agile/templates/sprint-plan.md
+        evidence: Signed plan with capacity.
+      - name: Release plan
+        template: docs/methodology/agile/templates/release-plan.md
+        evidence: Stakeholder-reviewed release plan.
+    criteria:
+      - id: planning-1
+        description: Sprint goal and scope align with backlog priorities.
+        evidence: Prioritization recorded in backlog.
+        check: "Product owner confirms scope and capacity fit."
+      - id: planning-2
+        description: Dependencies and risks are documented.
+        evidence: Dependencies listed in sprint plan.
+        check: "Delivery lead confirms mitigation ownership."
+    approvals:
+      - role: Product Owner
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Start sprint execution.
+      reject: Re-plan and re-submit.
+  - id: gate-review
+    name: Sprint Review Gate
+    stage: review
+    required_artefacts:
+      - name: Release plan
+        template: docs/methodology/agile/templates/release-plan.md
+        evidence: Updated readiness checklist.
+      - name: Variance report
+        template: docs/templates/shared/variance-report.md
+        evidence: Variance summary shared with stakeholders.
+    criteria:
+      - id: review-1
+        description: Delivered work meets acceptance criteria.
+        evidence: Demo notes and acceptance confirmations.
+        check: "QA lead signs off on acceptance criteria."
+      - id: review-2
+        description: Release readiness checklist is complete.
+        evidence: Release plan checklist updated.
+        check: "Release manager confirms readiness."
+    approvals:
+      - role: Release Manager
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Proceed to retrospective and/or release.
+      reject: Address defects and re-review.
+  - id: gate-retro
+    name: Retrospective Close Gate
+    stage: retrospective
+    required_artefacts:
+      - name: Retrospective notes
+        template: docs/methodology/agile/templates/retro-notes.md
+        evidence: Action items logged with owners.
+    criteria:
+      - id: retro-1
+        description: Improvement actions assigned and tracked.
+        evidence: Actions have owners and due dates.
+        check: "Scrum master confirms follow-up plan."
+    approvals:
+      - role: Scrum Master
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Start next sprint cycle.
+      reject: Update action items and resubmit.

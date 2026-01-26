@@ -1,0 +1,83 @@
+schema_version: "1.0"
+object: demand_intake
+required_fields:
+  - request_id
+  - title
+  - requestor
+  - business_unit
+  - problem_statement
+  - desired_outcomes
+  - scope
+  - constraints
+  - estimated_cost_range
+  - expected_benefit_range
+  - privacy_impact
+fields:
+  request_id:
+    type: string
+    description: Unique identifier for the demand request.
+  title:
+    type: string
+    description: Short descriptive title.
+  requestor:
+    type: object
+    required_fields:
+      - name
+      - role
+      - email
+    fields:
+      name:
+        type: string
+      role:
+        type: string
+      email:
+        type: string
+  business_unit:
+    type: string
+  problem_statement:
+    type: string
+  desired_outcomes:
+    type: array
+    items:
+      type: string
+  scope:
+    type: object
+    fields:
+      in_scope:
+        type: array
+        items:
+          type: string
+      out_of_scope:
+        type: array
+        items:
+          type: string
+  constraints:
+    type: array
+    items:
+      type: string
+  estimated_cost_range:
+    type: string
+    description: Expected cost range (for example, $250k-$500k).
+  expected_benefit_range:
+    type: string
+    description: Expected benefit range or qualitative impact.
+  privacy_impact:
+    type: object
+    required_fields:
+      - involves_personal_data
+      - data_categories
+    fields:
+      involves_personal_data:
+        type: boolean
+      data_categories:
+        type: array
+        items:
+          type: string
+  compliance_requirements:
+    type: array
+    items:
+      type: string
+  attachments:
+    type: array
+    items:
+      type: string

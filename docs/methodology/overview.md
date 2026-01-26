@@ -14,6 +14,61 @@ Methodology YAML files define stages and deliverables. The Approval Workflow age
 - `gates.yaml`: gate criteria, approvals, and evidence requirements.
 - `templates/`: document templates for stage deliverables.
 
+## YAML schema (v1)
+
+All methodology YAML files follow the same minimal structure so the workflow engine and approval
+agent can evaluate them consistently.
+
+### `map.yaml`
+
+```yaml
+methodology: agile|waterfall|hybrid
+version: "1.0"
+stages:
+  - id: discovery
+    name: Discovery & Intake
+    purpose: Why the stage exists and what success looks like.
+    owner_roles: ["Role A", "Role B"]
+    tasks:
+      - id: capture-demand
+        description: What must be done in this task.
+        owner_roles: ["Role A"]
+        artefacts:
+          - name: Demand intake request
+            template: docs/templates/shared/demand-intake-request.md
+            required: true
+    exit_criteria:
+      - Objective checks required to move to the next stage.
+    next_stage: planning
+```
+
+### `gates.yaml`
+
+```yaml
+methodology: agile|waterfall|hybrid
+version: "1.0"
+gates:
+  - id: gate-initiation
+    name: Initiation Gate
+    stage: discovery
+    required_artefacts:
+      - name: Business case
+        template: docs/templates/shared/business-case.md
+        evidence: Signed approval or ticket reference.
+    criteria:
+      - id: criteria-1
+        description: Objective check that must pass.
+        evidence: Link to evidence or report.
+        check: "Approval workflow confirms sponsor sign-off."
+    approvals:
+      - role: Executive Sponsor
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Proceed to planning.
+      reject: Rework and resubmit.
+```
+
 ## Diagram
 
 ```text

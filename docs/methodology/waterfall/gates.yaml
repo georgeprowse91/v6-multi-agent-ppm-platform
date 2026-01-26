@@ -1,1 +1,143 @@
-gates: []
+methodology: waterfall
+version: "1.0"
+gates:
+  - id: gate-initiation
+    name: Initiation Gate
+    stage: initiation
+    required_artefacts:
+      - name: Business case
+        template: docs/templates/shared/business-case.md
+        evidence: Approved business case.
+      - name: Project charter
+        template: docs/methodology/waterfall/templates/project-charter.md
+        evidence: Signed charter.
+    criteria:
+      - id: init-1
+        description: Project scope, objectives, and sponsor are documented.
+        evidence: Charter sections completed.
+        check: "Approval workflow confirms sponsor sign-off."
+      - id: init-2
+        description: Financial assumptions and benefits are validated.
+        evidence: ROI/NPV worksheet reviewed.
+        check: "Finance partner validation logged."
+    approvals:
+      - role: Executive Sponsor
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Proceed to planning.
+      reject: Revise charter or business case.
+  - id: gate-planning
+    name: Planning Gate
+    stage: planning
+    required_artefacts:
+      - name: Work breakdown structure
+        template: docs/methodology/waterfall/templates/wbs.yaml
+        evidence: WBS signed off.
+      - name: Schedule baseline
+        template: docs/methodology/waterfall/templates/schedule-baseline.xlsx
+        evidence: Baseline schedule approved.
+      - name: Risk register
+        template: docs/methodology/waterfall/templates/risk-register.xlsx
+        evidence: Initial risk register completed.
+      - name: QA checklist
+        template: docs/methodology/waterfall/templates/qa-checklist.xlsx
+        evidence: Quality plan reviewed.
+    criteria:
+      - id: plan-1
+        description: Scope baseline aligned with charter.
+        evidence: WBS reviewed against charter deliverables.
+        check: "Project manager confirms scope baseline."
+      - id: plan-2
+        description: Schedule critical path and milestones identified.
+        evidence: Schedule baseline includes milestones.
+        check: "Scheduler confirms baseline is approved."
+      - id: plan-3
+        description: Risks have mitigation owners.
+        evidence: Risk register owners assigned.
+        check: "Risk manager confirms review meeting held."
+    approvals:
+      - role: PMO Lead
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Begin execution.
+      reject: Rework planning artefacts.
+  - id: gate-execution
+    name: Execution Readiness Gate
+    stage: execution
+    required_artefacts:
+      - name: Change request log
+        template: docs/templates/shared/change-request.md
+        evidence: Change control process documented.
+      - name: Variance report
+        template: docs/templates/shared/variance-report.md
+        evidence: Baseline variance report issued.
+    criteria:
+      - id: exec-1
+        description: Change control process is in place.
+        evidence: Change request workflow agreed.
+        check: "Change manager confirms change board cadence."
+      - id: exec-2
+        description: Delivery resources are assigned.
+        evidence: Resource plan referenced in schedule baseline.
+        check: "Project manager confirms staffing."
+    approvals:
+      - role: Project Sponsor
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Continue execution.
+      reject: Resolve resource or change control gaps.
+  - id: gate-monitoring
+    name: Performance Review Gate
+    stage: monitoring
+    required_artefacts:
+      - name: Variance report
+        template: docs/templates/shared/variance-report.md
+        evidence: Latest performance report.
+      - name: Risk register
+        template: docs/methodology/waterfall/templates/risk-register.xlsx
+        evidence: Updated risk register.
+    criteria:
+      - id: monitor-1
+        description: Schedule and cost variances are within tolerance or have actions.
+        evidence: Variance report includes corrective actions.
+        check: "PMO confirms variance thresholds."
+      - id: monitor-2
+        description: Critical risks are actively managed.
+        evidence: Risk register shows mitigation progress.
+        check: "Risk manager confirms review."
+    approvals:
+      - role: PMO Lead
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Continue or close.
+      reject: Escalate to steering committee.
+  - id: gate-closure
+    name: Closure Gate
+    stage: closure
+    required_artefacts:
+      - name: Closure report
+        template: docs/methodology/waterfall/templates/closure-report.md
+        evidence: Signed closure report.
+      - name: DPIA report
+        template: docs/compliance/privacy-dpia-template.md
+        evidence: Completed DPIA if applicable.
+    criteria:
+      - id: close-1
+        description: Deliverables accepted and handover completed.
+        evidence: Acceptance signatures or handover checklist.
+        check: "Operations lead confirms acceptance."
+      - id: close-2
+        description: Benefits tracking plan established.
+        evidence: Benefits owner documented.
+        check: "Sponsor confirms benefits tracking."
+    approvals:
+      - role: Executive Sponsor
+        approver: Agent 03 Approval Workflow
+        required: true
+    decision:
+      approve: Archive and transition to operations.
+      reject: Complete outstanding closure tasks.

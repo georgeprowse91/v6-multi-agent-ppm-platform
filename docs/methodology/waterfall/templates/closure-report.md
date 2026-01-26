@@ -1,5 +1,36 @@
 # Project Closure Report
 
+## Purpose
+Provide a formal record of project outcomes, performance, and handover status. This document
+supports final approvals and transition to operations.
+
+## Audience
+Executive Sponsor, Project Manager, PMO Lead, Operations Lead, Finance Partner.
+
+## Inputs
+- Project charter (`docs/methodology/waterfall/templates/project-charter.md`).
+- Schedule baseline and variance reports.
+- Risk register and quality reports.
+
+## Definitions
+- **Benefits realization:** Measurement of outcomes delivered versus planned.
+- **Handover:** Transfer of ownership to operations or product teams.
+
+## Methodology Gate Alignment
+- Waterfall Closure Gate (`docs/methodology/waterfall/gates.yaml`).
+- Hybrid Closure Gate (`docs/methodology/hybrid/gates.yaml`).
+
+## Required Sections
+- Executive summary
+- Objectives vs. outcomes
+- Scope delivered
+- Schedule & budget performance
+- Quality & benefits realization
+- Risks & issues closure
+- Lessons learned
+- Handover & support
+- Approvals
+
 ## 1. Executive Summary
 Provide a concise summary of the project outcomes, including whether objectives were met.
 
@@ -46,3 +77,19 @@ Describe transition to operations, support plans, and knowledge transfer complet
 | Approver | Role | Signature | Date |
 | --- | --- | --- | --- |
 |  |  |  |  |
+
+## Completion Checklist
+- [ ] Outcomes compared against charter objectives.
+- [ ] Schedule and budget variance explained.
+- [ ] Open risks and issues assigned for follow-up.
+- [ ] Operations handover confirmed.
+- [ ] Sponsor sign-off captured.
+
+## Acceptance Criteria
+- Report summarizes outcomes with measurable comparisons.
+- Handover and benefits tracking responsibilities are documented.
+- Approvals recorded according to governance requirements.
+
+## References
+- Waterfall methodology map (`docs/methodology/waterfall/map.yaml`).
+- Closure gate criteria (`docs/methodology/waterfall/gates.yaml`).

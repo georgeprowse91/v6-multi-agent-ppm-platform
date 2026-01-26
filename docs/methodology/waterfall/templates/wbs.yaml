@@ -1,1 +1,129 @@
-wbs: []
+wbs:
+  - id: 1
+    name: Initiation
+    owner_role: Project Manager
+    duration_days: 10
+    milestones:
+      - id: M1
+        name: Charter Approved
+        target_day: 10
+    tasks:
+      - id: 1.1
+        name: Capture demand request
+        owner_role: Demand Manager
+        duration_days: 2
+        dependencies: []
+      - id: 1.2
+        name: Develop business case
+        owner_role: Business Analyst
+        duration_days: 5
+        dependencies:
+          - 1.1
+      - id: 1.3
+        name: Draft project charter
+        owner_role: Project Manager
+        duration_days: 3
+        dependencies:
+          - 1.2
+  - id: 2
+    name: Planning
+    owner_role: Planning Lead
+    duration_days: 20
+    milestones:
+      - id: M2
+        name: Baselines Approved
+        target_day: 30
+    tasks:
+      - id: 2.1
+        name: Build work breakdown structure
+        owner_role: Planning Lead
+        duration_days: 5
+        dependencies:
+          - 1.3
+      - id: 2.2
+        name: Develop schedule baseline
+        owner_role: Scheduler
+        duration_days: 7
+        dependencies:
+          - 2.1
+      - id: 2.3
+        name: Risk identification workshop
+        owner_role: Risk Manager
+        duration_days: 3
+        dependencies:
+          - 2.1
+      - id: 2.4
+        name: Quality planning and checklist
+        owner_role: Quality Lead
+        duration_days: 5
+        dependencies:
+          - 2.1
+  - id: 3
+    name: Execution
+    owner_role: Delivery Lead
+    duration_days: 60
+    milestones:
+      - id: M3
+        name: Core Deliverables Complete
+        target_day: 90
+    tasks:
+      - id: 3.1
+        name: Build solution components
+        owner_role: Delivery Team
+        duration_days: 35
+        dependencies:
+          - 2.2
+      - id: 3.2
+        name: System integration testing
+        owner_role: QA Lead
+        duration_days: 15
+        dependencies:
+          - 3.1
+      - id: 3.3
+        name: Change control reviews
+        owner_role: Change Manager
+        duration_days: 10
+        dependencies:
+          - 3.1
+  - id: 4
+    name: Monitoring & Control
+    owner_role: PMO Analyst
+    duration_days: 60
+    milestones:
+      - id: M4
+        name: Performance Review Complete
+        target_day: 95
+    tasks:
+      - id: 4.1
+        name: Weekly status reporting
+        owner_role: PMO Analyst
+        duration_days: 60
+        dependencies:
+          - 3.1
+      - id: 4.2
+        name: Risk review cadence
+        owner_role: Risk Manager
+        duration_days: 60
+        dependencies:
+          - 3.1
+  - id: 5
+    name: Closure
+    owner_role: Project Manager
+    duration_days: 10
+    milestones:
+      - id: M5
+        name: Project Closed
+        target_day: 100
+    tasks:
+      - id: 5.1
+        name: Complete closure report
+        owner_role: Project Manager
+        duration_days: 5
+        dependencies:
+          - 3.2
+      - id: 5.2
+        name: Transition to operations
+        owner_role: Operations Lead
+        duration_days: 5
+        dependencies:
+          - 5.1

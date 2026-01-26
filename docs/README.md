@@ -12,6 +12,9 @@ Describe the docs documentation set and link the narrative to the repo assets th
 - `docs/compliance`: Compliance guidance and requirements.
 - `docs/connectors`: Connector documentation and integration guidance.
 - `docs/data`: Data assets and fixtures for this component.
+- `docs/methodology`: Methodology maps, stage gates, and templates.
+- `docs/product`: Product documentation, including template catalog.
+- `docs/templates`: Shared template library for agent artefacts.
 
 ## How it's used
 

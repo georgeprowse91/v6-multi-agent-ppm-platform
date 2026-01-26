@@ -1,0 +1,22 @@
+Subject: Intake Triage Summary - {request_id}
+
+Hello {recipient_name},
+
+The intake triage has been completed for request {request_id}. Below is the summary for your review.
+
+Summary
+- Request Title: {request_title}
+- Intake Owner: {intake_owner}
+- Priority: {priority}
+- Recommended Methodology: {methodology}
+- Estimated Effort: {estimated_effort}
+- Required Artefacts: {required_artefacts}
+- Decision Needed By: {decision_due_date}
+
+Notes
+{triage_notes}
+
+Please review and confirm the next steps in the governance workflow.
+
+Thank you,
+Intake Triage Automation

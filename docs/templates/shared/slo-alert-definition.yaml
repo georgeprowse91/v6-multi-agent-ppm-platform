@@ -1,0 +1,32 @@
+version: "1.0"
+service: service-name
+owner: team-name
+slo_targets:
+  - id: availability
+    description: Availability of the service over a rolling 30-day window.
+    objective: "99.9%"
+    measurement:
+      sli: successful_requests / total_requests
+      window: 30d
+    alerting:
+      warning_threshold: "99.95%"
+      critical_threshold: "99.9%"
+      notification_channels:
+        - email
+        - pager
+  - id: latency
+    description: 95th percentile response time for critical endpoints.
+    objective: "< 750ms"
+    measurement:
+      sli: p95_latency_ms
+      window: 7d
+    alerting:
+      warning_threshold: "> 700ms"
+      critical_threshold: "> 750ms"
+      notification_channels:
+        - slack
+        - pager
+alert_routing:
+  primary_on_call: oncall-team
+  escalation_policy: escalation-policy-id
+  runbook_link: https://example.com/runbooks/service-name

@@ -1,1 +1,168 @@
-stages: []
+methodology: waterfall
+version: "1.0"
+stages:
+  - id: initiation
+    name: Initiation
+    purpose: Establish the business need, scope, and sponsorship.
+    owner_roles:
+      - Project Sponsor
+      - Project Manager
+    tasks:
+      - id: demand-intake
+        description: Capture and approve the initial demand request.
+        owner_roles:
+          - Demand Manager
+        artefacts:
+          - name: Demand intake request
+            template: docs/templates/shared/demand-intake-request.md
+            required: true
+      - id: business-case
+        description: Build the business case and financial analysis.
+        owner_roles:
+          - Business Analyst
+          - Finance Partner
+        artefacts:
+          - name: Business case
+            template: docs/templates/shared/business-case.md
+            required: true
+          - name: ROI/NPV worksheet
+            template: docs/templates/shared/roi-npv-worksheet.xlsx
+            required: true
+      - id: charter
+        description: Document the project charter and governance model.
+        owner_roles:
+          - Project Manager
+        artefacts:
+          - name: Project charter
+            template: docs/methodology/waterfall/templates/project-charter.md
+            required: true
+    exit_criteria:
+      - Sponsor signs off on charter and business case.
+      - Funding and governance confirmed.
+    next_stage: planning
+  - id: planning
+    name: Planning
+    purpose: Define scope, schedule, resources, and quality plan.
+    owner_roles:
+      - Project Manager
+      - Planning Lead
+    tasks:
+      - id: wbs
+        description: Build the work breakdown structure and scope baseline.
+        owner_roles:
+          - Planning Lead
+        artefacts:
+          - name: Work breakdown structure
+            template: docs/methodology/waterfall/templates/wbs.yaml
+            required: true
+      - id: schedule-baseline
+        description: Build the baseline schedule and critical path.
+        owner_roles:
+          - Scheduler
+        artefacts:
+          - name: Schedule baseline
+            template: docs/methodology/waterfall/templates/schedule-baseline.xlsx
+            required: true
+      - id: risk-register
+        description: Identify and quantify project risks.
+        owner_roles:
+          - Risk Manager
+        artefacts:
+          - name: Risk register
+            template: docs/methodology/waterfall/templates/risk-register.xlsx
+            required: true
+      - id: quality-plan
+        description: Define quality criteria and QA checks.
+        owner_roles:
+          - Quality Lead
+        artefacts:
+          - name: QA checklist
+            template: docs/methodology/waterfall/templates/qa-checklist.xlsx
+            required: true
+    exit_criteria:
+      - Scope baseline and schedule approved.
+      - Risk and quality plans reviewed.
+    next_stage: execution
+  - id: execution
+    name: Execution
+    purpose: Deliver project work and manage changes.
+    owner_roles:
+      - Project Manager
+      - Delivery Team
+    tasks:
+      - id: execute-work
+        description: Deliver scope per baseline and record progress.
+        owner_roles:
+          - Delivery Team
+        artefacts:
+          - name: Variance report
+            template: docs/templates/shared/variance-report.md
+            required: true
+      - id: change-control
+        description: Capture change requests and assess impacts.
+        owner_roles:
+          - Change Manager
+        artefacts:
+          - name: Change request
+            template: docs/templates/shared/change-request.md
+            required: true
+          - name: Change impact assessment
+            template: docs/templates/shared/change-impact-assessment.md
+            required: true
+    exit_criteria:
+      - Major deliverables completed and accepted.
+      - Change requests addressed or logged for closure.
+    next_stage: monitoring
+  - id: monitoring
+    name: Monitoring & Control
+    purpose: Track performance, risks, and quality metrics.
+    owner_roles:
+      - Project Manager
+      - PMO Analyst
+    tasks:
+      - id: status-reporting
+        description: Report schedule, cost, and quality variance.
+        owner_roles:
+          - PMO Analyst
+        artefacts:
+          - name: Variance report
+            template: docs/templates/shared/variance-report.md
+            required: true
+      - id: risk-review
+        description: Review and update the risk register.
+        owner_roles:
+          - Risk Manager
+        artefacts:
+          - name: Risk register
+            template: docs/methodology/waterfall/templates/risk-register.xlsx
+            required: true
+    exit_criteria:
+      - Performance metrics reviewed by governance forum.
+    next_stage: closure
+  - id: closure
+    name: Closure
+    purpose: Formalize acceptance, capture lessons learned, and transition.
+    owner_roles:
+      - Project Manager
+      - Operations Lead
+    tasks:
+      - id: closure-report
+        description: Summarize outcomes, benefits, and handover.
+        owner_roles:
+          - Project Manager
+        artefacts:
+          - name: Closure report
+            template: docs/methodology/waterfall/templates/closure-report.md
+            required: true
+      - id: compliance-review
+        description: Ensure privacy and compliance artefacts are complete.
+        owner_roles:
+          - Compliance Officer
+        artefacts:
+          - name: DPIA report
+            template: docs/compliance/privacy-dpia-template.md
+            required: true
+    exit_criteria:
+      - Sponsor signs off on closure report.
+      - Operations accepts handover.
+    next_stage: null

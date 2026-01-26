@@ -1,0 +1,23 @@
+Subject: New Portfolio Intake Request - {request_id}
+
+Hello {recipient_name},
+
+A new portfolio intake request has been submitted and requires PMO triage.
+
+Request Summary
+- Request ID: {request_id}
+- Title: {request_title}
+- Business Unit: {business_unit}
+- Requestor: {requestor_name}
+- Strategic Theme: {strategic_theme}
+- Requested Start Date: {requested_start_date}
+
+Next Steps
+1. Review the demand intake record for completeness.
+2. Assign an intake owner and schedule the initial review.
+3. Confirm whether a business case or DPIA is required.
+
+Access the request here: {request_link}
+
+Thank you,
+Portfolio Intake Automation

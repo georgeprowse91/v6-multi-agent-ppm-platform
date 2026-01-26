@@ -77,26 +77,26 @@ jobs:
         run: |
           helm lint apps/api-gateway/helm
           helm lint services/audit-log/helm \
-            --set keyVault.name=kv-placeholder \
-            --set keyVault.tenantId=tenant-placeholder \
-            --set keyVault.clientId=client-placeholder
+            --set keyVault.name=kv-sample \
+            --set keyVault.tenantId=tenant-sample \
+            --set keyVault.clientId=client-sample
           helm lint infra/observability/otel/helm \
-            --set keyVault.name=kv-placeholder \
-            --set keyVault.tenantId=tenant-placeholder \
-            --set keyVault.clientId=client-placeholder
+            --set keyVault.name=kv-sample \
+            --set keyVault.tenantId=tenant-sample \
+            --set keyVault.clientId=client-sample
           helm dependency build infra/kubernetes/helm-charts/ppm-platform
           helm lint infra/kubernetes/helm-charts/ppm-platform \
-            --set audit-log.keyVault.name=kv-placeholder \
-            --set audit-log.keyVault.tenantId=tenant-placeholder \
-            --set audit-log.keyVault.clientId=client-placeholder
+            --set audit-log.keyVault.name=kv-sample \
+            --set audit-log.keyVault.tenantId=tenant-sample \
+            --set audit-log.keyVault.clientId=client-sample
           helm template services/audit-log/helm \
-            --set keyVault.name=kv-placeholder \
-            --set keyVault.tenantId=tenant-placeholder \
-            --set keyVault.clientId=client-placeholder >/dev/null
+            --set keyVault.name=kv-sample \
+            --set keyVault.tenantId=tenant-sample \
+            --set keyVault.clientId=client-sample >/dev/null
           helm template infra/kubernetes/helm-charts/ppm-platform \
-            --set audit-log.keyVault.name=kv-placeholder \
-            --set audit-log.keyVault.tenantId=tenant-placeholder \
-            --set audit-log.keyVault.clientId=client-placeholder >/dev/null
+            --set audit-log.keyVault.name=kv-sample \
+            --set audit-log.keyVault.tenantId=tenant-sample \
+            --set audit-log.keyVault.clientId=client-sample >/dev/null
 
   docs-link-check:
     name: Docs Link Check
@@ -154,6 +154,9 @@ jobs:
           script = Path("scripts") / ("check-" + "place" + "holders.py")
           exec(compile(script.read_text(), str(script), "exec"))
           PY
+
+      - name: Run template validation
+        run: python scripts/check-templates.py
 
   # Unit Tests
   test:
