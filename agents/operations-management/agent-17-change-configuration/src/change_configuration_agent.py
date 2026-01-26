@@ -9,10 +9,14 @@ and preserve integrity. Maintains CMDB for project artifacts and infrastructure.
 Specification: agents/operations-management/agent-17-change-configuration/README.md
 """
 
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from approval_workflow_agent import ApprovalWorkflowAgent
 
 
 class ChangeConfigurationAgent(BaseAgent):
@@ -47,6 +51,29 @@ class ChangeConfigurationAgent(BaseAgent):
         )
 
         self.baseline_threshold = config.get("baseline_threshold", 0.10) if config else 0.10
+        self.approval_priority_thresholds = (
+            config.get("approval_priority_thresholds", ["critical", "high"])
+            if config
+            else ["critical", "high"]
+        )
+        self.approval_change_types = (
+            config.get("approval_change_types", ["normal", "emergency"])
+            if config
+            else ["normal", "emergency"]
+        )
+
+        change_store_path = (
+            Path(config.get("change_store_path", "data/change_requests.json"))
+            if config
+            else Path("data/change_requests.json")
+        )
+        cmdb_store_path = (
+            Path(config.get("cmdb_store_path", "data/cmdb.json"))
+            if config
+            else Path("data/cmdb.json")
+        )
+        self.change_store = TenantStateStore(change_store_path)
+        self.cmdb_store = TenantStateStore(cmdb_store_path)
 
         # Data stores (will be replaced with database)
         self.change_requests: dict[str, Any] = {}
@@ -54,6 +81,10 @@ class ChangeConfigurationAgent(BaseAgent):
         self.baselines: dict[str, Any] = {}
         self.change_history: dict[str, Any] = {}
         self.cab_meetings: dict[str, Any] = {}
+        self.approval_agent = config.get("approval_agent") if config else None
+        if self.approval_agent is None:
+            approval_config = config.get("approval_agent_config", {}) if config else {}
+            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
 
     async def initialize(self) -> None:
         """Initialize database connections, ITSM integrations, and AI models."""
@@ -132,9 +163,20 @@ class ChangeConfigurationAgent(BaseAgent):
             Response based on action
         """
         action = input_data.get("action", "get_change_dashboard")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+        actor_id = context.get("user_id") or input_data.get("actor_id") or "system"
 
         if action == "submit_change_request":
-            return await self._submit_change_request(input_data.get("change", {}))
+            return await self._submit_change_request(
+                input_data.get("change", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "classify_change":
             return await self._classify_change(input_data.get("change_id"))  # type: ignore
@@ -148,7 +190,10 @@ class ChangeConfigurationAgent(BaseAgent):
             )
 
         elif action == "register_ci":
-            return await self._register_ci(input_data.get("ci", {}))
+            return await self._register_ci(
+                input_data.get("ci", {}),
+                tenant_id=tenant_id,
+            )
 
         elif action == "create_baseline":
             return await self._create_baseline(input_data.get("baseline", {}))
@@ -173,7 +218,14 @@ class ChangeConfigurationAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _submit_change_request(self, change_data: dict[str, Any]) -> dict[str, Any]:
+    async def _submit_change_request(
+        self,
+        change_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """Submit change request."""
         self.logger.info(f"Submitting change request: {change_data.get('title')}")
 
@@ -185,6 +237,24 @@ class ChangeConfigurationAgent(BaseAgent):
 
         # Identify impacted CIs
         impacted_cis = await self._identify_impacted_cis(change_data)
+
+        approval_required = await self._requires_approval(change_type, change_data)
+        approval_payload = None
+        if approval_required:
+            approval_payload = await self.approval_agent.process(
+                {
+                    "request_type": "scope_change",
+                    "request_id": change_id,
+                    "requester": change_data.get("requester", actor_id),
+                    "details": {
+                        "description": change_data.get("description"),
+                        "urgency": change_data.get("priority", "medium"),
+                        "impact": change_data.get("impact", "medium"),
+                    },
+                    "tenant_id": tenant_id,
+                    "correlation_id": correlation_id,
+                }
+            )
 
         # Create change request
         change = {
@@ -198,22 +268,25 @@ class ChangeConfigurationAgent(BaseAgent):
             "impacted_cis": impacted_cis,
             "impact_assessment": None,
             "risk_assessment": None,
-            "approval_status": "Pending",
+            "approval_status": "Pending" if approval_required else "Approved",
+            "approval": approval_payload,
             "status": "Submitted",
             "created_at": datetime.utcnow().isoformat(),
         }
 
         # Store change
         self.change_requests[change_id] = change
+        self.change_store.upsert(tenant_id, change_id, change)
 
         # Future work: Store in database
-        # Future work: Route to appropriate approval workflow
 
         return {
             "change_id": change_id,
             "type": change_type,
             "status": "Submitted",
             "impacted_cis": len(impacted_cis),
+            "approval_required": approval_required,
+            "approval": approval_payload,
             "next_steps": "Impact assessment will be performed",
         }
 
@@ -320,7 +393,12 @@ class ChangeConfigurationAgent(BaseAgent):
             ),
         }
 
-    async def _register_ci(self, ci_data: dict[str, Any]) -> dict[str, Any]:
+    async def _register_ci(
+        self,
+        ci_data: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
         """Register configuration item in CMDB."""
         self.logger.info(f"Registering CI: {ci_data.get('name')}")
 
@@ -344,6 +422,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
         # Store CI
         self.cmdb[ci_id] = ci
+        self.cmdb_store.upsert(tenant_id, ci_id, ci)
 
         # Future work: Store in database with graph features
 
@@ -551,6 +630,10 @@ class ChangeConfigurationAgent(BaseAgent):
             "normal": "CAB Review",
         }
         return routing_map.get(change_type, "CAB Review")
+
+    async def _requires_approval(self, change_type: str, change_data: dict[str, Any]) -> bool:
+        priority = change_data.get("priority", "medium")
+        return change_type in self.approval_change_types or priority in self.approval_priority_thresholds
 
     async def _assess_schedule_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess schedule impact of change."""

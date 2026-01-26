@@ -9,10 +9,15 @@ performing reviews and audits, and continuously improving processes.
 Specification: agents/delivery-management/agent-14-quality-management/README.md
 """
 
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
+from events import EventEnvelope
+from observability.tracing import get_trace_id
 
 
 class QualityManagementAgent(BaseAgent):
@@ -50,6 +55,31 @@ class QualityManagementAgent(BaseAgent):
             config.get("defect_density_threshold", 0.05) if config else 0.05
         )
 
+        quality_plan_store_path = (
+            Path(config.get("quality_plan_store_path", "data/quality_plans.json"))
+            if config
+            else Path("data/quality_plans.json")
+        )
+        test_case_store_path = (
+            Path(config.get("test_case_store_path", "data/quality_test_cases.json"))
+            if config
+            else Path("data/quality_test_cases.json")
+        )
+        defect_store_path = (
+            Path(config.get("defect_store_path", "data/quality_defects.json"))
+            if config
+            else Path("data/quality_defects.json")
+        )
+        audit_store_path = (
+            Path(config.get("audit_store_path", "data/quality_audits.json"))
+            if config
+            else Path("data/quality_audits.json")
+        )
+        self.quality_plan_store = TenantStateStore(quality_plan_store_path)
+        self.test_case_store = TenantStateStore(test_case_store_path)
+        self.defect_store = TenantStateStore(defect_store_path)
+        self.audit_store = TenantStateStore(audit_store_path)
+
         # Data stores (will be replaced with database)
         self.quality_plans: dict[str, Any] = {}
         self.test_cases: dict[str, Any] = {}
@@ -59,6 +89,9 @@ class QualityManagementAgent(BaseAgent):
         self.reviews: dict[str, Any] = {}
         self.audits: dict[str, Any] = {}
         self.quality_metrics: dict[str, Any] = {}
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
 
     async def initialize(self) -> None:
         """Initialize database connections, test tool integrations, and AI models."""
@@ -168,9 +201,18 @@ class QualityManagementAgent(BaseAgent):
             - generate_quality_report: Report data
         """
         action = input_data.get("action", "get_quality_dashboard")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         if action == "create_quality_plan":
-            return await self._create_quality_plan(input_data.get("plan", {}))
+            return await self._create_quality_plan(
+                input_data.get("plan", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "define_metrics":
             return await self._define_metrics(
@@ -178,16 +220,28 @@ class QualityManagementAgent(BaseAgent):
             )
 
         elif action == "create_test_case":
-            return await self._create_test_case(input_data.get("test_case", {}))
+            return await self._create_test_case(
+                input_data.get("test_case", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "create_test_suite":
             return await self._create_test_suite(input_data.get("test_suite", {}))
 
         elif action == "execute_tests":
-            return await self._execute_tests(input_data.get("test_execution", {}))
+            return await self._execute_tests(
+                input_data.get("test_execution", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "log_defect":
-            return await self._log_defect(input_data.get("defect", {}))
+            return await self._log_defect(
+                input_data.get("defect", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "update_defect":
             return await self._update_defect(
@@ -198,7 +252,11 @@ class QualityManagementAgent(BaseAgent):
             return await self._schedule_review(input_data.get("review", {}))
 
         elif action == "conduct_audit":
-            return await self._conduct_audit(input_data.get("audit", {}))
+            return await self._conduct_audit(
+                input_data.get("audit", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "calculate_metrics":
             return await self._calculate_metrics(input_data.get("project_id"))  # type: ignore
@@ -222,7 +280,13 @@ class QualityManagementAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _create_quality_plan(self, plan_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_quality_plan(
+        self,
+        plan_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Create quality plan with objectives and metrics.
 
@@ -255,6 +319,17 @@ class QualityManagementAgent(BaseAgent):
 
         # Store plan
         self.quality_plans[plan_id] = quality_plan
+        self.quality_plan_store.upsert(tenant_id, plan_id, quality_plan)
+        await self._publish_quality_event(
+            "quality.plan.created",
+            payload={
+                "plan_id": plan_id,
+                "project_id": quality_plan.get("project_id"),
+                "created_at": quality_plan.get("created_at"),
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         # Future work: Store in database
         # Future work: Submit for approval via Approval Workflow Agent
@@ -312,7 +387,13 @@ class QualityManagementAgent(BaseAgent):
             "metrics": defined_metrics,
         }
 
-    async def _create_test_case(self, test_case_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_test_case(
+        self,
+        test_case_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Create test case.
 
@@ -345,6 +426,17 @@ class QualityManagementAgent(BaseAgent):
 
         # Store test case
         self.test_cases[test_case_id] = test_case
+        self.test_case_store.upsert(tenant_id, test_case_id, test_case)
+        await self._publish_quality_event(
+            "quality.test_case.created",
+            payload={
+                "test_case_id": test_case_id,
+                "name": test_case.get("name"),
+                "created_at": test_case.get("created_at"),
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         # Future work: Store in database
         # Future work: Sync with Azure DevOps Test Plans
@@ -396,7 +488,13 @@ class QualityManagementAgent(BaseAgent):
             "test_environment": test_suite["test_environment"],
         }
 
-    async def _execute_tests(self, execution_data: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_tests(
+        self,
+        execution_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Execute tests and record results.
 
@@ -453,7 +551,11 @@ class QualityManagementAgent(BaseAgent):
         if execution_data.get("auto_log_defects", True):
             for result in test_results:
                 if result.get("result") == "fail":
-                    defect = await self._auto_log_defect_from_test(result)
+                    defect = await self._auto_log_defect_from_test(
+                        result,
+                        tenant_id=tenant_id,
+                        correlation_id=correlation_id,
+                    )
                     defects_logged.append(defect.get("defect_id"))
 
         # Future work: Store in database
@@ -472,7 +574,13 @@ class QualityManagementAgent(BaseAgent):
             "defect_ids": defects_logged,
         }
 
-    async def _log_defect(self, defect_data: dict[str, Any]) -> dict[str, Any]:
+    async def _log_defect(
+        self,
+        defect_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Log a defect.
 
@@ -513,6 +621,17 @@ class QualityManagementAgent(BaseAgent):
 
         # Store defect
         self.defects[defect_id] = defect
+        self.defect_store.upsert(tenant_id, defect_id, defect)
+        await self._publish_quality_event(
+            "quality.defect.logged",
+            payload={
+                "defect_id": defect_id,
+                "severity": defect.get("severity"),
+                "status": defect.get("status"),
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         # Assign owner based on component
         # Future work: Integrate with Resource Management Agent
@@ -624,7 +743,13 @@ class QualityManagementAgent(BaseAgent):
             "participant_count": len(review["participants"]),
         }
 
-    async def _conduct_audit(self, audit_data: dict[str, Any]) -> dict[str, Any]:
+    async def _conduct_audit(
+        self,
+        audit_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Conduct quality audit.
 
@@ -662,6 +787,17 @@ class QualityManagementAgent(BaseAgent):
 
         # Store audit
         self.audits[audit_id] = audit
+        self.audit_store.upsert(tenant_id, audit_id, audit)
+        await self._publish_quality_event(
+            "quality.audit.completed",
+            payload={
+                "audit_id": audit_id,
+                "project_id": audit.get("project_id"),
+                "score": audit.get("audit_score"),
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         # Future work: Store in database and document repository
         # Future work: Publish audit.completed event
@@ -928,7 +1064,13 @@ class QualityManagementAgent(BaseAgent):
         # Future work: Integrate with code coverage tools
         return 85.0  # Baseline
 
-    async def _auto_log_defect_from_test(self, test_result: dict[str, Any]) -> dict[str, Any]:
+    async def _auto_log_defect_from_test(
+        self,
+        test_result: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """Automatically log defect from failed test."""
         defect_data = {
             "project_id": test_result.get("project_id"),
@@ -939,7 +1081,11 @@ class QualityManagementAgent(BaseAgent):
             "test_case_id": test_result.get("test_case_id"),
             "logged_by": "system",
         }
-        return await self._log_defect(defect_data)
+        return await self._log_defect(
+            defect_data,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
     async def _auto_classify_defect(self, defect_data: dict[str, Any]) -> dict[str, Any]:
         """Auto-classify defect severity and root cause using AI."""
@@ -1167,6 +1313,25 @@ class QualityManagementAgent(BaseAgent):
             "data": {},
             "generated_at": datetime.utcnow().isoformat(),
         }
+
+    async def _publish_quality_event(
+        self,
+        event_name: str,
+        *,
+        payload: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> None:
+        event = EventEnvelope(
+            event_name=event_name,
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            trace_id=get_trace_id(),
+            payload=payload,
+        )
+        await self.event_bus.publish(event_name, event.model_dump())
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

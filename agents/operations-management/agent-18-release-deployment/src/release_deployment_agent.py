@@ -8,10 +8,14 @@ across environments. Ensures controlled deployments with minimal risk and downti
 Specification: agents/operations-management/agent-18-release-deployment/README.md
 """
 
+import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, cast
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from approval_workflow_agent import ApprovalWorkflowAgent
 
 
 class ReleaseDeploymentAgent(BaseAgent):
@@ -43,6 +47,22 @@ class ReleaseDeploymentAgent(BaseAgent):
             config.get("auto_rollback_threshold", 0.05) if config else 0.05
         )
         self.deployment_window_hours = config.get("deployment_window_hours", 4) if config else 4
+        self.approval_environments = (
+            config.get("approval_environments", ["production"]) if config else ["production"]
+        )
+
+        release_store_path = (
+            Path(config.get("release_store_path", "data/release_calendar.json"))
+            if config
+            else Path("data/release_calendar.json")
+        )
+        deployment_plan_store_path = (
+            Path(config.get("deployment_plan_store_path", "data/deployment_plans.json"))
+            if config
+            else Path("data/deployment_plans.json")
+        )
+        self.release_store = TenantStateStore(release_store_path)
+        self.deployment_plan_store = TenantStateStore(deployment_plan_store_path)
 
         # Data stores (will be replaced with database)
         self.releases: dict[str, Any] = {}
@@ -50,6 +70,10 @@ class ReleaseDeploymentAgent(BaseAgent):
         self.environments_inventory: dict[str, Any] = {}
         self.release_notes: dict[str, Any] = {}
         self.deployment_metrics: dict[str, Any] = {}
+        self.approval_agent = config.get("approval_agent") if config else None
+        if self.approval_agent is None:
+            approval_config = config.get("approval_agent_config", {}) if config else {}
+            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
 
     async def initialize(self) -> None:
         """Initialize deployment orchestration, CI/CD integrations, and monitoring."""
@@ -150,9 +174,20 @@ class ReleaseDeploymentAgent(BaseAgent):
             - get_release_status: Detailed release status
         """
         action = input_data.get("action", "get_release_calendar")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+        actor_id = context.get("user_id") or input_data.get("actor_id") or "system"
 
         if action == "plan_release":
-            return await self._plan_release(input_data.get("release", {}))
+            return await self._plan_release(
+                input_data.get("release", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
 
         elif action == "assess_readiness":
             release_id = input_data.get("release_id")
@@ -163,13 +198,19 @@ class ReleaseDeploymentAgent(BaseAgent):
             release_id = input_data.get("release_id")
             assert isinstance(release_id, str), "release_id must be a string"
             return await self._create_deployment_plan(
-                release_id, input_data.get("deployment_plan", {})
+                release_id,
+                input_data.get("deployment_plan", {}),
+                tenant_id=tenant_id,
             )
 
         elif action == "execute_deployment":
             deployment_plan_id = input_data.get("deployment_plan_id")
             assert isinstance(deployment_plan_id, str), "deployment_plan_id must be a string"
-            return await self._execute_deployment(deployment_plan_id)
+            return await self._execute_deployment(
+                deployment_plan_id,
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "rollback_deployment":
             deployment_plan_id = input_data.get("deployment_plan_id")
@@ -219,7 +260,14 @@ class ReleaseDeploymentAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _plan_release(self, release_data: dict[str, Any]) -> dict[str, Any]:
+    async def _plan_release(
+        self,
+        release_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
         """
         Plan a new release and add to calendar.
 
@@ -250,6 +298,25 @@ class ReleaseDeploymentAgent(BaseAgent):
                 planned_date, target_environment
             )
 
+        approval_required = target_environment in self.approval_environments
+        approval_payload = None
+        if approval_required:
+            approval_payload = await self.approval_agent.process(
+                {
+                    "request_type": "phase_gate",
+                    "request_id": release_id,
+                    "requester": release_data.get("requester", actor_id),
+                    "details": {
+                        "description": release_data.get("description"),
+                        "environment": target_environment,
+                        "planned_date": planned_date,
+                        "urgency": release_data.get("urgency", "medium"),
+                    },
+                    "tenant_id": tenant_id,
+                    "correlation_id": correlation_id,
+                }
+            )
+
         # Create release record
         release = {
             "release_id": release_id,
@@ -261,6 +328,9 @@ class ReleaseDeploymentAgent(BaseAgent):
             "project_ids": release_data.get("project_ids", []),
             "change_requests": release_data.get("change_requests", []),
             "status": "Planned",
+            "approval_required": approval_required,
+            "approval": approval_payload,
+            "approval_status": approval_payload.get("status") if approval_payload else "not_required",
             "environment_available": env_availability,
             "conflicts": conflicts,
             "alternative_windows": alternative_windows,
@@ -270,6 +340,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         # Store release
         self.releases[release_id] = release
+        self.release_store.upsert(tenant_id, release_id, release)
 
         # Future work: Store in database
         # Future work: Add to release calendar
@@ -283,6 +354,8 @@ class ReleaseDeploymentAgent(BaseAgent):
             "environment_available": env_availability,
             "conflicts": conflicts,
             "alternative_windows": alternative_windows,
+            "approval_required": approval_required,
+            "approval": approval_payload,
             "next_steps": "Create deployment plan and assess readiness",
         }
 
@@ -349,7 +422,11 @@ class ReleaseDeploymentAgent(BaseAgent):
         }
 
     async def _create_deployment_plan(
-        self, release_id: str, plan_data: dict[str, Any]
+        self,
+        release_id: str,
+        plan_data: dict[str, Any],
+        *,
+        tenant_id: str,
     ) -> dict[str, Any]:
         """
         Create detailed deployment plan with workflow steps.
@@ -398,6 +475,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         # Store deployment plan
         self.deployment_plans[plan_id] = deployment_plan
+        self.deployment_plan_store.upsert(tenant_id, plan_id, deployment_plan)
 
         # Future work: Store in database and blob storage
         # Future work: Publish deployment_plan.created event
@@ -413,7 +491,13 @@ class ReleaseDeploymentAgent(BaseAgent):
             "next_steps": "Review and execute deployment plan",
         }
 
-    async def _execute_deployment(self, deployment_plan_id: str) -> dict[str, Any]:
+    async def _execute_deployment(
+        self,
+        deployment_plan_id: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Execute deployment workflow.
 
@@ -430,6 +514,37 @@ class ReleaseDeploymentAgent(BaseAgent):
         release_id = deployment_plan.get("release_id")
         release = self.releases.get(release_id)
         assert release is not None and isinstance(release, dict), "Release not found"
+
+        if release.get("approval_required"):
+            approval = release.get("approval")
+            if approval is None:
+                approval = await self.approval_agent.process(
+                    {
+                        "request_type": "phase_gate",
+                        "request_id": release_id,
+                        "requester": release.get("created_by", "unknown"),
+                        "details": {
+                            "description": release.get("description"),
+                            "environment": release.get("target_environment"),
+                            "planned_date": release.get("planned_date"),
+                            "urgency": "medium",
+                        },
+                        "tenant_id": tenant_id,
+                        "correlation_id": correlation_id,
+                    }
+                )
+                release["approval"] = approval
+                release["approval_status"] = approval.get("status")
+                self.release_store.upsert(tenant_id, release_id, release)
+
+            if release.get("approval_status") != "approved":
+                return {
+                    "deployment_plan_id": deployment_plan_id,
+                    "release_id": release_id,
+                    "status": "Pending Approval",
+                    "approval": release.get("approval"),
+                    "next_steps": "Await release approval before deployment.",
+                }
 
         # Update status
         deployment_plan["status"] = "In Progress"

@@ -9,10 +9,15 @@ strategies and continuously tracks risk status.
 Specification: agents/delivery-management/agent-15-risk-issue-management/README.md
 """
 
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from data_quality.helpers import validate_against_schema
+from data_quality.rules import evaluate_quality_rules
 
 
 class RiskManagementAgent(BaseAgent):
@@ -50,6 +55,18 @@ class RiskManagementAgent(BaseAgent):
             config.get("impact_scale", [1, 2, 3, 4, 5]) if config else [1, 2, 3, 4, 5]
         )
         self.high_risk_threshold = config.get("high_risk_threshold", 15) if config else 15
+        self.risk_schema_path = (
+            Path(config.get("risk_schema_path", "data/schemas/risk.schema.json"))
+            if config
+            else Path("data/schemas/risk.schema.json")
+        )
+
+        risk_store_path = (
+            Path(config.get("risk_store_path", "data/risk_register.json"))
+            if config
+            else Path("data/risk_register.json")
+        )
+        self.risk_store = TenantStateStore(risk_store_path)
 
         # Data stores (will be replaced with database)
         self.risk_register: dict[str, Any] = {}
@@ -148,9 +165,18 @@ class RiskManagementAgent(BaseAgent):
             - get_top_risks: Top ranked risks
         """
         action = input_data.get("action", "get_risk_dashboard")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         if action == "identify_risk":
-            return await self._identify_risk(input_data.get("risk", {}))
+            return await self._identify_risk(
+                input_data.get("risk", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "assess_risk":
             return await self._assess_risk(input_data.get("risk_id"))  # type: ignore
@@ -204,7 +230,13 @@ class RiskManagementAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _identify_risk(self, risk_data: dict[str, Any]) -> dict[str, Any]:
+    async def _identify_risk(
+        self,
+        risk_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Identify and capture a new risk.
 
@@ -222,6 +254,7 @@ class RiskManagementAgent(BaseAgent):
         # Perform initial classification and scoring
         initial_assessment = await self._initial_risk_assessment(risk_data)
 
+        created_at = datetime.utcnow().isoformat()
         # Create risk entry
         risk = {
             "risk_id": risk_id,
@@ -237,16 +270,22 @@ class RiskManagementAgent(BaseAgent):
             "proximity": risk_data.get("proximity", "medium_term"),
             "detectability": risk_data.get("detectability", "medium"),
             "owner": risk_data.get("owner"),
-            "status": "Open",
-            "created_at": datetime.utcnow().isoformat(),
+            "status": "open",
+            "created_at": created_at,
             "created_by": risk_data.get("created_by", "unknown"),
             "triggers": risk_data.get("triggers", []),
             "mitigation_plan_id": None,
             "residual_risk": None,
+            "classification": risk_data.get("classification", "internal"),
         }
+
+        validation = await self._validate_risk_record(risk=risk, tenant_id=tenant_id)
+        if not validation["is_valid"]:
+            raise ValueError("Risk schema validation failed")
 
         # Store risk
         self.risk_register[risk_id] = risk
+        self.risk_store.upsert(tenant_id, risk_id, risk)
 
         # Future work: Store in database
         # Future work: Publish risk.identified event
@@ -260,6 +299,7 @@ class RiskManagementAgent(BaseAgent):
             "impact": risk["impact"],
             "risk_level": await self._classify_risk_level(risk["score"]),
             "extracted_risks": extracted_risks,
+            "data_quality": validation,
             "next_steps": "Create mitigation plan for high-priority risks",
         }
 
@@ -841,6 +881,42 @@ class RiskManagementAgent(BaseAgent):
             "data": {},
             "generated_at": datetime.utcnow().isoformat(),
         }
+
+    async def _validate_risk_record(
+        self, *, risk: dict[str, Any], tenant_id: str
+    ) -> dict[str, Any]:
+        impact_value = risk.get("impact")
+        likelihood_value = risk.get("likelihood", risk.get("probability"))
+        impact_map = {1: "low", 2: "low", 3: "medium", 4: "high", 5: "critical"}
+        likelihood_map = {1: "rare", 2: "unlikely", 3: "possible", 4: "likely", 5: "likely"}
+        mapped_impact = impact_map.get(impact_value, impact_value)
+        mapped_likelihood = likelihood_map.get(likelihood_value, likelihood_value)
+        record = {
+            "id": risk.get("risk_id"),
+            "tenant_id": tenant_id,
+            "title": risk.get("title"),
+            "description": risk.get("description"),
+            "impact": mapped_impact or "medium",
+            "likelihood": mapped_likelihood or "possible",
+            "status": risk.get("status", "open"),
+            "owner": risk.get("owner"),
+            "classification": risk.get("classification", "internal"),
+            "created_at": risk.get("created_at"),
+        }
+        if risk.get("last_updated"):
+            record["updated_at"] = risk.get("last_updated")
+        errors = validate_against_schema(self.risk_schema_path, record)
+        if errors:
+            for error in errors:
+                self.logger.warning(f"Risk schema error {error.path}: {error.message}")
+        report = evaluate_quality_rules("risk", record)
+        issues = [issue.__dict__ for issue in report.issues]
+        if issues:
+            for issue in issues:
+                self.logger.warning(
+                    f"Risk data quality issue {issue['rule_id']}: {issue['message']}"
+                )
+        return {"is_valid": len(errors) == 0 and report.is_valid, "issues": issues}
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

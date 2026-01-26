@@ -9,10 +9,16 @@ audits and evidence collection.
 Specification: agents/delivery-management/agent-16-compliance-regulatory/README.md
 """
 
+import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from agents.runtime import BaseAgent
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
+from agents.runtime.src.state_store import TenantStateStore
+from observability.tracing import get_trace_id
 
 
 class ComplianceRegulatoryAgent(BaseAgent):
@@ -58,6 +64,13 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "low": "annually",
             }
         )
+
+        evidence_store_path = (
+            Path(config.get("evidence_store_path", "data/compliance_evidence.json"))
+            if config
+            else Path("data/compliance_evidence.json")
+        )
+        self.evidence_store = TenantStateStore(evidence_store_path)
 
         # Data stores (will be replaced with database)
         self.regulation_library: dict[str, Any] = {}
@@ -162,6 +175,11 @@ class ComplianceRegulatoryAgent(BaseAgent):
             - generate_compliance_report: Report data
         """
         action = input_data.get("action", "get_compliance_dashboard")
+        context = input_data.get("context", {})
+        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        correlation_id = (
+            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
 
         if action == "add_regulation":
             return await self._add_regulation(input_data.get("regulation", {}))
@@ -171,7 +189,10 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         elif action == "map_controls_to_project":
             return await self._map_controls_to_project(
-                input_data.get("project_id"), input_data.get("mapping", {})  # type: ignore
+                input_data.get("project_id"),  # type: ignore
+                input_data.get("mapping", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "assess_compliance":
@@ -195,7 +216,10 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         elif action == "upload_evidence":
             return await self._upload_evidence(
-                input_data.get("control_id"), input_data.get("evidence", {})  # type: ignore
+                input_data.get("control_id"),  # type: ignore
+                input_data.get("evidence", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "monitor_regulatory_changes":
@@ -309,7 +333,12 @@ class ComplianceRegulatoryAgent(BaseAgent):
         }
 
     async def _map_controls_to_project(
-        self, project_id: str, mapping_data: dict[str, Any]
+        self,
+        project_id: str,
+        mapping_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
     ) -> dict[str, Any]:
         """
         Map controls to project.
@@ -349,6 +378,14 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "test_result": None,
             }
 
+        policy_decision = await self._evaluate_control_mapping_policy(
+            project_id=project_id,
+            mapping=mapping,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
+        mapping["policy_decision"] = policy_decision
+
         # Store mapping
         self.compliance_mappings[project_id] = mapping
 
@@ -359,6 +396,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "project_id": project_id,
             "applicable_regulations": len(applicable_regulations),
             "applicable_controls": len(applicable_controls),
+            "policy_decision": policy_decision,
             "compliance_checklist": [
                 {
                     "control_id": c_id,
@@ -658,7 +696,12 @@ class ComplianceRegulatoryAgent(BaseAgent):
         }
 
     async def _upload_evidence(
-        self, control_id: str, evidence_data: dict[str, Any]
+        self,
+        control_id: str,
+        evidence_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
     ) -> dict[str, Any]:
         """
         Upload evidence for control.
@@ -691,6 +734,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         if control_id not in self.evidence:
             self.evidence[control_id] = []
         self.evidence[control_id].append(evidence_record)
+        self.evidence_store.upsert(tenant_id, evidence_id, evidence_record)
 
         # Update project mapping
         for project_id, mapping in self.compliance_mappings.items():
@@ -995,6 +1039,42 @@ class ComplianceRegulatoryAgent(BaseAgent):
     async def _generate_audit_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate audit report."""
         return {"report_type": "audit", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+
+    async def _evaluate_control_mapping_policy(
+        self,
+        *,
+        project_id: str,
+        mapping: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        policy_bundle = {
+            "metadata": {
+                "version": self.get_config("policy_version", "1.0.0"),
+                "owner": self.get_config("policy_owner", self.agent_id),
+                "name": mapping.get("mapping_id", project_id),
+            },
+            "project_id": project_id,
+            "control_count": len(mapping.get("applicable_controls", [])),
+            "regulation_count": len(mapping.get("applicable_regulations", [])),
+        }
+        decision = evaluate_policy_bundle(policy_bundle, load_default_policy_bundle())
+        outcome = "denied" if decision.decision == "deny" else "success"
+        audit_event = build_audit_event(
+            tenant_id=tenant_id,
+            action="compliance.control_mapping.policy.checked",
+            outcome=outcome,
+            actor_id=self.agent_id,
+            actor_type="service",
+            actor_roles=[],
+            resource_id=project_id,
+            resource_type="compliance_mapping",
+            metadata={"decision": decision.decision, "reasons": decision.reasons},
+            trace_id=get_trace_id(),
+            correlation_id=correlation_id,
+        )
+        emit_audit_event(audit_event)
+        return {"decision": decision.decision, "reasons": decision.reasons}
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

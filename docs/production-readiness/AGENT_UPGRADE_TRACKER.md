@@ -16,12 +16,12 @@ Tracking required updates for each of the 25 agents based on the cross-agent fou
 | Agent 10 – Schedule & Planning | Done | Schedule/baseline persistence, schedule.baseline.locked + schedule.delay events, and change-control integration with tests. |
 | Agent 11 – Resource & Capacity | Done | Resource/allocations persistence, resource allocation event publishing, schema validation, and new tests. |
 | Agent 12 – Financial Management | Done | Tenant-scoped budget/actual/forecast persistence, budget audit events + approvals, schema validation, and expanded tests. |
-| Agent 13 – Vendor & Procurement | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 14 – Quality Assurance | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 15 – Risk & Issue Management | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 16 – Compliance & Security | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 17 – Change & Configuration | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
-| Agent 18 – Release & Deployment | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
+| Agent 13 – Vendor & Procurement | Done | Vendor/contract/invoice persistence with schema validation and approval workflow integration, plus new tests. |
+| Agent 14 – Quality Assurance | Done | Quality artifacts persisted with quality event emission and new tests. |
+| Agent 15 – Risk & Issue Management | Done | Risk register persistence with schema/data-quality validation and new tests. |
+| Agent 16 – Compliance & Security | Done | Control mapping policy checks, evidence persistence, and new tests. |
+| Agent 17 – Change & Configuration | Done | Change/CMDB persistence with approval workflow integration and new tests. |
+| Agent 18 – Release & Deployment | Done | Release calendar persistence with approval gating prior to deployment and new tests. |
 | Agent 19 – Knowledge & Document | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
 | Agent 20 – Continuous Improvement | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
 | Agent 21 – Stakeholder & Comms | Done | Inherits shared runtime upgrades (IDs, policy checks, audit logging). |
