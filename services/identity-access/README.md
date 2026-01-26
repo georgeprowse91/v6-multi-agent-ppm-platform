@@ -1,43 +1,40 @@
 # Identity & Access Service
 
-IAM, RBAC enforcement, and tenant identity integration.
+The identity-access service validates JWTs and returns normalized identity claims for downstream
+services. It supports dev-mode HS256 secrets and production-mode JWKS validation.
 
-## Current state
+## Contracts
 
-- Helm chart under `services/identity-access/helm/`.
-- Source scaffolding under `services/identity-access/src/`.
-- No runtime service implementation yet.
+- OpenAPI: `services/identity-access/contracts/openapi.yaml`
 
-## Quickstart
-
-Validate the Helm chart:
+## Run locally
 
 ```bash
-python scripts/validate-helm-charts.py services/identity-access/helm
+IDENTITY_JWT_SECRET=dev-secret \
+python -m tools.component_runner run --type service --name identity-access
 ```
 
-## How to verify
+## Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `IDENTITY_JWT_SECRET` | _none_ | HS256 secret for dev validation |
+| `IDENTITY_JWKS_URL` | _none_ | JWKS endpoint for RS256 validation |
+| `IDENTITY_AUDIENCE` | _none_ | Expected JWT audience |
+| `IDENTITY_ISSUER` | _none_ | Expected JWT issuer |
+| `LOG_LEVEL` | `info` | Logging verbosity |
+| `PORT` | `8080` | HTTP port for the service |
+
+## Example request
 
 ```bash
-ls services/identity-access/src
+curl -X POST http://localhost:8080/auth/validate \
+  -H "Content-Type: application/json" \
+  -d '{"token": "<jwt>"}'
 ```
 
-Expected output lists source scaffolding files.
-
-## Key files
-
-- `services/identity-access/helm/`: deployment assets.
-- `services/identity-access/src/`: IAM service scaffolding.
-
-## Example
-
-Search for RBAC references:
+## Tests
 
 ```bash
-rg -n "rbac|role" services/identity-access
+pytest services/identity-access/tests
 ```
-
-## Next steps
-
-- Implement OAuth/OIDC flows in `services/identity-access/src/`.
-- Integrate tenant configuration from `config/tenants/`.

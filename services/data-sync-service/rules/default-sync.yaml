@@ -1,0 +1,7 @@
+id: ds-001
+description: Default merge of connector work items into canonical model
+source: connector-hub
+target: canonical-work-items
+mode: merge
+filters:
+  status: active

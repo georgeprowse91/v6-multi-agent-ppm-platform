@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  title: Telemetry Service
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /telemetry/ingest:
+    post:
+      summary: Ingest telemetry payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelemetryEnvelope"
+      responses:
+        "200":
+          description: Telemetry ingested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+      required: [status, service]
+    TelemetryEnvelope:
+      type: object
+      properties:
+        source:
+          type: string
+        type:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        correlation_id:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+      required: [source, type, payload]
+    TelemetryResponse:
+      type: object
+      properties:
+        ingested:
+          type: boolean
+        correlation_id:
+          type: string
+        stored_at:
+          type: string
+          format: date-time
+      required: [ingested, correlation_id, stored_at]

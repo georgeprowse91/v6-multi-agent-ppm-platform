@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Data Sync Service
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /sync/run:
+    post:
+      summary: Trigger a sync run
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncRunRequest"
+      responses:
+        "200":
+          description: Sync run planned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncRunResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+      required: [status, service]
+    SyncRunRequest:
+      type: object
+      properties:
+        connector:
+          type: string
+        dry_run:
+          type: boolean
+    SyncRunResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        planned_rules:
+          type: array
+          items:
+            type: string
+      required: [job_id, status, started_at, planned_rules]

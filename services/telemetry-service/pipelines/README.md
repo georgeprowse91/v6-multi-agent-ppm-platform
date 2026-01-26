@@ -1,8 +1,4 @@
 # Telemetry Pipelines
 
-This directory stores pipeline configuration for **telemetry service** telemetry ingestion and processing.
-
-## Typical contents
-- Collector configuration (OpenTelemetry)
-- Enrichment or sampling rules
-- Export targets (logs, traces, metrics)
+Local development stores ingested telemetry in `telemetry.jsonl` within this folder. In production,
+this directory should house OpenTelemetry collector configurations or export pipeline definitions.

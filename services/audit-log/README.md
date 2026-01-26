@@ -1,44 +1,44 @@
 # Audit Log Service
 
-Captures and stores audit events for compliance and traceability.
+The audit log service captures and stores audit events for compliance, traceability, and security
+reviews across the platform. It validates incoming events against the canonical audit-event schema
+and persists them to a local JSONL store in dev mode.
 
-## Current state
+## Contracts
 
-- Helm chart is available under `services/audit-log/helm/`.
-- Storage backends are described under `services/audit-log/storage/`.
-- No standalone API implementation yet.
+- OpenAPI: `services/audit-log/contracts/openapi.yaml`
 
-## Quickstart
-
-Validate the Helm chart:
+## Run locally
 
 ```bash
-python scripts/validate-helm-charts.py services/audit-log/helm
+python -m tools.component_runner run --type service --name audit-log
 ```
 
-## How to verify
+## Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `AUDIT_LOG_STORAGE_PATH` | `services/audit-log/storage/audit-events.jsonl` | JSONL storage file for audit events |
+| `LOG_LEVEL` | `info` | Logging verbosity |
+| `PORT` | `8080` | HTTP port for the service |
+
+## Example request
 
 ```bash
-ls services/audit-log/storage
+curl -X POST http://localhost:8080/audit/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "evt-001",
+    "timestamp": "2025-01-01T00:00:00Z",
+    "actor": {"id": "user-1", "type": "user"},
+    "action": "portfolio.create",
+    "resource": {"id": "port-9", "type": "portfolio"},
+    "outcome": "success"
+  }'
 ```
 
-Expected output lists storage configuration assets.
-
-## Key files
-
-- `services/audit-log/helm/`: deployment manifests.
-- `services/audit-log/storage/`: storage layout notes.
-- `services/audit-log/src/`: code scaffolding for the service.
-
-## Example
-
-Search for the audit log service name in the Helm chart:
+## Tests
 
 ```bash
-rg -n "audit" services/audit-log/helm
+pytest services/audit-log/tests
 ```
-
-## Next steps
-
-- Implement ingestion APIs under `services/audit-log/src/`.
-- Add retention configuration in `services/audit-log/storage/`.
