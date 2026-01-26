@@ -17,6 +17,7 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from document_storage import DocumentStore  # noqa: E402
 from observability.metrics import (  # noqa: E402
     RequestMetricsMiddleware,
     build_kpi_handles,
@@ -25,7 +26,6 @@ from observability.metrics import (  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from policy import evaluate_document_policy  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from storage import DocumentStore  # noqa: E402
 
 logger = logging.getLogger("document-service")
 logging.basicConfig(level=logging.INFO)
@@ -79,6 +79,15 @@ async def startup() -> None:
     logger.info("document_store_ready", extra={"db_path": str(db_path)})
 
 
+def _get_store() -> DocumentStore:
+    global store
+    if store is None:
+        db_path = Path(os.getenv("DOCUMENT_DB_PATH", "apps/document-service/storage/documents.db"))
+        store = DocumentStore(db_path)
+        logger.info("document_store_initialized", extra={"db_path": str(db_path)})
+    return store
+
+
 @app.get("/health", response_model=HealthResponse)
 @app.get("/healthz", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -100,7 +109,7 @@ def _build_response(record, advisories: list[str]) -> DocumentResponse:
 
 @app.post("/documents", response_model=DocumentResponse)
 async def create_document(request: Request, payload: DocumentRequest) -> DocumentResponse:
-    assert store is not None
+    store = _get_store()
     tenant_id = request.state.auth.tenant_id
     policy_payload = {
         "document": {
@@ -131,7 +140,7 @@ async def create_document(request: Request, payload: DocumentRequest) -> Documen
 
 @app.get("/documents", response_model=list[DocumentResponse])
 async def list_documents(request: Request) -> list[DocumentResponse]:
-    assert store is not None
+    store = _get_store()
     tenant_id = request.state.auth.tenant_id
     records = store.list_documents(tenant_id)
     return [_build_response(record, []) for record in records]
@@ -139,7 +148,7 @@ async def list_documents(request: Request) -> list[DocumentResponse]:
 
 @app.get("/documents/{document_id}", response_model=DocumentResponse)
 async def get_document(document_id: str, request: Request) -> DocumentResponse:
-    assert store is not None
+    store = _get_store()
     tenant_id = request.state.auth.tenant_id
     record = store.get_document(tenant_id, document_id)
     if not record:

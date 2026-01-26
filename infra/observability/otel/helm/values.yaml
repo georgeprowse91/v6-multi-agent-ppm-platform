@@ -1,0 +1,41 @@
+replicaCount: 1
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: "0.95.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 4318
+
+keyVault:
+  enabled: true
+  name: ""
+  tenantId: ""
+  clientId: ""
+  secretName: "otel-collector-secrets"
+  secrets:
+    azureMonitorConnectionString: "azure-monitor-connection-string"
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        http:
+        grpc:
+  processors:
+    batch:
+  exporters:
+    azuremonitor:
+      connection_string: ${AZURE_MONITOR_CONNECTION_STRING}
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor]
+      metrics:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor]

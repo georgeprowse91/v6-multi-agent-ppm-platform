@@ -29,6 +29,7 @@ pdb:
 ingress:
   enabled: false
   className: ""
+  clusterIssuer: "letsencrypt-prod"
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
@@ -39,3 +40,10 @@ ingress:
   tls:
     enabled: true
     secretName: ""
+
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75

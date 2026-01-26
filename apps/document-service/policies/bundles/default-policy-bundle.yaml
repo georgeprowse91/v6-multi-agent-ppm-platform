@@ -14,7 +14,7 @@ policies:
     enforcement: blocking
     rules:
       - field: document.classification
-        operator: equals
+        operator: not_equals
         value: ""
   - id: doc-002
     name: Enforce retention window

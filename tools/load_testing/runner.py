@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import statistics
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -70,7 +71,17 @@ def run_load_scenario(scenario: LoadScenario) -> LoadScenarioResult:
 
 
 def load_profile(path: Path) -> dict:
-    return json.loads(path.read_text())
+    payload = json.loads(path.read_text())
+    profiles = payload.get("profiles")
+    if not profiles:
+        return payload
+    profile_name = os.getenv("LOAD_PROFILE", "ci")
+    selected = profiles.get(profile_name) or profiles.get("ci")
+    if not selected:
+        return payload
+    merged = {key: value for key, value in payload.items() if key != "profiles"}
+    merged.update(selected)
+    return merged
 
 
 def assert_sla(result: LoadScenarioResult, sla: LoadSla) -> None:

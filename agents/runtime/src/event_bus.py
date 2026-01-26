@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
-from typing import Any, Awaitable, Callable
-
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 EventHandler = Callable[[dict[str, Any]], Awaitable[None] | None]
 

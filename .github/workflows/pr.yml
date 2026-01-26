@@ -87,5 +87,6 @@ jobs:
 
       - name: Build documentation
         run: |
-          echo "Documentation build check passed"
-          # Add actual documentation build command when using mkdocs or similar
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          mkdocs build --strict

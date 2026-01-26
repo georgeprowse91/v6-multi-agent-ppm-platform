@@ -18,9 +18,9 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from policy_config import DEFAULT_POLICY_BUNDLE_PATH  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from policy_config import DEFAULT_POLICY_BUNDLE_PATH  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("policy-engine")

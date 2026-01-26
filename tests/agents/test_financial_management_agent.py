@@ -1,5 +1,4 @@
 import pytest
-
 from financial_management_agent import FinancialManagementAgent
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -15,7 +15,7 @@ class SchemaValidationError:
 
 
 def _load_schema(schema_path: Path) -> dict[str, Any]:
-    return json.loads(schema_path.read_text())
+    return cast(dict[str, Any], json.loads(schema_path.read_text()))
 
 
 def validate_instance(instance: Any, schema_path: Path) -> list[SchemaValidationError]:

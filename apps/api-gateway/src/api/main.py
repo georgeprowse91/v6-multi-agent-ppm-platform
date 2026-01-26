@@ -13,6 +13,10 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import agents, health
@@ -20,9 +24,9 @@ from api.runtime_bootstrap import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (REPO_ROOT, OBSERVABILITY_ROOT):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+for path_root in (REPO_ROOT, OBSERVABILITY_ROOT):
+    if str(path_root) not in sys.path:
+        sys.path.insert(0, str(path_root))
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
@@ -52,6 +56,8 @@ def _version_payload() -> dict[str, str]:
     }
 
 
+environment = os.getenv("ENVIRONMENT", "development").lower()
+
 # Configure CORS
 allowed_origins_env = os.getenv(
     "ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8501,http://localhost:8000"
@@ -61,6 +67,18 @@ allowed_origins = (
     if allowed_origins_env.strip() == "*"
     else [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
 )
+if "*" in allowed_origins and environment not in {"dev", "development", "local", "test"}:
+    raise RuntimeError("Wildcard CORS origins are not permitted outside development environments.")
+
+rate_limit_default = os.getenv("RATE_LIMIT_DEFAULT", "100/minute")
+rate_limit_storage = os.getenv("RATE_LIMIT_STORAGE", "memory://")
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[rate_limit_default],
+    storage_uri=rate_limit_storage,
+)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -68,6 +86,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(AuthTenantMiddleware)
 app.add_middleware(FieldMaskingMiddleware)
 configure_tracing("api-gateway")

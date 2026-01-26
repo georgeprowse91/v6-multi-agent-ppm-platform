@@ -1,8 +1,12 @@
-# OpenTelemetry Configuration
+# OpenTelemetry Collector
 
-OpenTelemetry collector configuration and exporters for **observability**. Keep separate configs for
-local development and production.
+This chart deploys the OpenTelemetry Collector with Azure Monitor export enabled. Configure the Key
+Vault CSI integration to provide `AZURE_MONITOR_CONNECTION_STRING`.
 
-The Helm chart for `telemetry-service` ships a synchronized copy of this collector configuration
-to mount in cluster deployments. Update `services/telemetry-service/helm/files/collector.yaml`
-alongside changes here. 
+## Deploy
+```bash
+helm upgrade --install otel-collector infra/observability/otel/helm \
+  --set keyVault.name=<kv> \
+  --set keyVault.tenantId=<tenant> \
+  --set keyVault.clientId=<client>
+```

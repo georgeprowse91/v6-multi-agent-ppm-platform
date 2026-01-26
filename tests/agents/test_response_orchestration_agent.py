@@ -1,8 +1,8 @@
 import httpx
 import pytest
+from response_orchestration_agent import ResponseOrchestrationAgent
 
 from agents.runtime import InMemoryEventBus
-from response_orchestration_agent import ResponseOrchestrationAgent
 
 
 @pytest.mark.asyncio

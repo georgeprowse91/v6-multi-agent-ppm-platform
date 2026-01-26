@@ -1,9 +1,20 @@
 {
   "name": "api-healthz",
   "target_url": "http://localhost:8000/healthz",
-  "total_requests": 50,
-  "concurrency": 5,
-  "max_avg_latency_s": 0.5,
-  "max_p95_latency_s": 0.9,
-  "max_error_rate": 0.01
+  "profiles": {
+    "ci": {
+      "total_requests": 200,
+      "concurrency": 10,
+      "max_avg_latency_s": 0.5,
+      "max_p95_latency_s": 0.9,
+      "max_error_rate": 0.01
+    },
+    "production": {
+      "total_requests": 5000,
+      "concurrency": 100,
+      "max_avg_latency_s": 0.4,
+      "max_p95_latency_s": 0.8,
+      "max_error_rate": 0.005
+    }
+  }
 }

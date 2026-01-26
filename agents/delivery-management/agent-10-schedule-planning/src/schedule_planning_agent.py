@@ -8,8 +8,8 @@ and performs critical path analysis. Supports both predictive and adaptive plann
 Specification: agents/delivery-management/agent-10-schedule-planning/README.md
 """
 
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
 from typing import Any
 
 from agents.runtime import BaseAgent
@@ -969,7 +969,7 @@ class SchedulePlanningAgent(BaseAgent):
         for dep in dependencies:
             pred = dep.get("predecessor")
             succ = dep.get("successor")
-            if pred in task_map and succ in task_map:
+            if isinstance(pred, str) and isinstance(succ, str) and pred in task_map and succ in task_map:
                 predecessors[succ].append(pred)
 
         in_degree = {task_id: len(preds) for task_id, preds in predecessors.items()}
@@ -1012,7 +1012,7 @@ class SchedulePlanningAgent(BaseAgent):
         for dep in dependencies:
             pred = dep.get("predecessor")
             succ = dep.get("successor")
-            if pred in task_map and succ in task_map:
+            if isinstance(pred, str) and isinstance(succ, str) and pred in task_map and succ in task_map:
                 successors[pred].append(succ)
 
         project_duration = max((t.get("early_finish", 0) for t in tasks), default=0)
@@ -1161,7 +1161,14 @@ class SchedulePlanningAgent(BaseAgent):
                 }
             )
 
-        drivers.sort(key=lambda x: (abs(x["correlation"]), x["spread"]), reverse=True)
+        def _driver_key(item: dict[str, Any]) -> tuple[float, float]:
+            correlation = item.get("correlation")
+            spread = item.get("spread")
+            correlation_value = float(correlation) if correlation is not None else 0.0
+            spread_value = float(spread) if spread is not None else 0.0
+            return abs(correlation_value), spread_value
+
+        drivers.sort(key=_driver_key, reverse=True)
         return drivers[:5]
 
     async def _identify_optimization_opportunities(

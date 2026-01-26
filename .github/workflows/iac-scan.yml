@@ -1,6 +1,21 @@
 name: IaC Scan
 
 on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "infra/kubernetes/**"
+      - "**/helm/**"
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "infra/kubernetes/**"
+      - "**/helm/**"
   workflow_dispatch:
 
 permissions:

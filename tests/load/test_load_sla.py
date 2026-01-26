@@ -4,7 +4,13 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from tools.load_testing.runner import LoadScenario, LoadSla, assert_sla, load_profile, run_load_scenario
+from tools.load_testing.runner import (
+    LoadScenario,
+    LoadSla,
+    assert_sla,
+    load_profile,
+    run_load_scenario,
+)
 
 
 def test_healthz_latency_sla() -> None:

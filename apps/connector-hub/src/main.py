@@ -17,6 +17,7 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from connector_storage import ConnectorStore  # noqa: E402
 from observability.metrics import (  # noqa: E402
     RequestMetricsMiddleware,
     build_kpi_handles,
@@ -24,7 +25,6 @@ from observability.metrics import (  # noqa: E402
 )
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from storage import ConnectorStore  # noqa: E402
 
 logger = logging.getLogger("connector-hub")
 logging.basicConfig(level=logging.INFO)

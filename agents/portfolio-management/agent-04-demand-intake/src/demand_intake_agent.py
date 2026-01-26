@@ -8,9 +8,9 @@ Manages the demand pipeline with automatic categorization and deduplication.
 Specification: agents/portfolio-management/agent-04-demand-intake/README.md
 """
 
-from datetime import datetime
 import math
 import re
+from datetime import datetime
 from typing import Any
 
 from agents.runtime import BaseAgent
@@ -197,7 +197,13 @@ class DemandIntakeAgent(BaseAgent):
                     }
                 )
 
-        results.sort(key=lambda x: x["similarity"], reverse=True)
+        def _similarity_key(item: dict[str, Any]) -> float:
+            similarity = item.get("similarity")
+            if similarity is None:
+                return 0.0
+            return float(similarity)
+
+        results.sort(key=_similarity_key, reverse=True)
         return results
 
     async def _check_duplicates(self, request_data: dict[str, Any]) -> dict[str, Any]:

@@ -7,6 +7,9 @@ metadata:
     app.kubernetes.io/name: {{ include "name" . }}
     app.kubernetes.io/component: service
   annotations:
+    {{- if .Values.ingress.clusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+    {{- end }}
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -31,7 +34,7 @@ spec:
   {{- end }}
   {{- if .Values.ingress.tls.enabled }}
   tls:
-    - secretName: {{ required "ingress.tls.secretName is required" .Values.ingress.tls.secretName }}
+    - secretName: {{ default (printf "%s-tls" (include "name" .)) .Values.ingress.tls.secretName }}
       hosts:
       {{- range $host := .Values.ingress.hosts }}
         - {{ required "ingress.hosts[].host is required" $host.host }}

@@ -1,10 +1,13 @@
 name: SBOM Generation
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   sbom:
@@ -46,3 +49,9 @@ jobs:
         with:
           name: sbom
           path: dist/sbom.json
+
+      - name: Attach SBOM to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@de2c0d1e2f42f351e70f4ab66a8298d5f28f4b0d
+        with:
+          files: dist/sbom.json

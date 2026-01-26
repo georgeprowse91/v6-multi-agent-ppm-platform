@@ -44,7 +44,7 @@ class IntentRouterAgent(BaseAgent):
             "project_create": ["create project", "start project", "new project", "project charter"],
             "schedule_query": ["schedule", "timeline", "deadline", "critical path", "milestone"],
             "financial_query": ["budget", "cost", "financial", "npv", "irr", "roi", "forecast"],
-            "risk_query": ["risk", "issue", "mitigation", "risk register"],
+            "risk_query": ["risk", "risks", "issue", "mitigation", "risk register"],
             "resource_query": ["resource", "capacity", "staffing", "utilization", "allocation"],
             "demand_intake": ["demand", "intake", "request", "idea", "proposal"],
             "compliance_query": ["compliance", "regulatory", "audit", "policy"],
@@ -152,16 +152,21 @@ class IntentRouterAgent(BaseAgent):
             return [{"intent": "general_query", "confidence": 0.5}]
 
         normalized_intents = []
-        for intent in intents:
-            confidence = 0.55 + (intent["raw_score"] / max_score) * 0.4
+        for intent_entry in intents:
+            raw_score = float(intent_entry.get("raw_score", 0))
+            confidence = 0.55 + (raw_score / max_score) * 0.4
             normalized_intents.append(
                 {
-                    "intent": intent["intent"],
+                    "intent": str(intent_entry.get("intent", "general_query")),
                     "confidence": round(min(confidence, 0.98), 2),
                 }
             )
 
-        normalized_intents.sort(key=lambda x: x["confidence"], reverse=True)
+        def _confidence_key(item: dict[str, Any]) -> float:
+            confidence = item.get("confidence")
+            return float(confidence) if confidence is not None else 0.0
+
+        normalized_intents.sort(key=_confidence_key, reverse=True)
         return normalized_intents
 
     async def _determine_agents(self, intents: list[dict[str, Any]]) -> list[dict[str, Any]]:

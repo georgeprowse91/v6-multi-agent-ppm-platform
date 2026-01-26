@@ -1,5 +1,4 @@
 import pytest
-
 from intent_router_agent import IntentRouterAgent
 
 

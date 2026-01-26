@@ -25,6 +25,9 @@ python -m tools.component_runner run --type service --name audit-log
 | `LOG_LEVEL` | `info` | Logging verbosity |
 | `PORT` | `8080` | HTTP port for the service |
 
+In AKS, supply `AUDIT_WORM_CONNECTION_STRING` and `AUDIT_LOG_ENCRYPTION_KEY` via Azure Key Vault and the
+Secrets Store CSI driver rather than plaintext environment variables.
+
 ## Example request
 
 ```bash

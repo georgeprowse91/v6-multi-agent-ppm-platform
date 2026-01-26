@@ -1,5 +1,4 @@
 import pytest
-
 from schedule_planning_agent import SchedulePlanningAgent
 
 
