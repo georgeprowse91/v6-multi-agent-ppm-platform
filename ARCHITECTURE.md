@@ -396,4 +396,4 @@ See [Observability & Monitoring](docs/architecture/observability-architecture.md
 
 ---
 
-For questions or clarifications, see [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/your-org/multi-agent-ppm-platform/issues).
+For questions or clarifications, see [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/georgeprowse91/multi-agent-ppm-platform/issues).

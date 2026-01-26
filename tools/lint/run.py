@@ -53,7 +53,17 @@ def main() -> None:
     if not args.skip_mypy:
         mypy_paths = config.get("mypy_paths", lint_paths)
         resolved_mypy_paths = _resolve_paths(root, mypy_paths)
-        subprocess.run(["python", "-m", "mypy", *resolved_mypy_paths], check=True)
+        subprocess.run(
+            [
+                "python",
+                "-m",
+                "mypy",
+                "--explicit-package-bases",
+                "--namespace-packages",
+                *resolved_mypy_paths,
+            ],
+            check=True,
+        )
 
 
 if __name__ == "__main__":

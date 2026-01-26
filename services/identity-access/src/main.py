@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import time
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -11,6 +13,13 @@ import jwt
 from fastapi import FastAPI, HTTPException
 from jwt import InvalidTokenError
 from pydantic import BaseModel
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+if str(SECURITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(SECURITY_ROOT))
+
+from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("identity-access")
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +58,7 @@ class JwksCache:
 JWKS_CACHE = JwksCache()
 
 app = FastAPI(title="Identity Access Service", version="0.1.0")
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/auth/validate"})
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -88,7 +98,9 @@ async def validate_token(request: AuthValidateRequest) -> AuthValidateResponse:
     return AuthValidateResponse(active=True, subject=claims.get("sub"), claims=claims)
 
 
-def _verify_with_jwks(token: str, jwks_url: str, audience: str | None, issuer: str | None) -> dict[str, Any]:
+def _verify_with_jwks(
+    token: str, jwks_url: str, audience: str | None, issuer: str | None
+) -> dict[str, Any]:
     cached = JWKS_CACHE.get()
     if cached is None:
         response = httpx.get(jwks_url, timeout=5.0)

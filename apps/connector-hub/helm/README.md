@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py apps/connector-hub/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/connector-hub
+  repository: ghcr.io/georgeprowse91/connector-hub
   tag: "0.1.0"
 service:
   port: 8080

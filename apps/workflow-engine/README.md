@@ -25,7 +25,7 @@ curl http://localhost:8082/healthz
 ## Key files
 
 - `apps/workflow-engine/src/main.py`: workflow API service.
-- `apps/workflow-engine/src/storage.py`: workflow persistence.
+- `apps/workflow-engine/src/workflow_storage.py`: workflow persistence.
 - `apps/workflow-engine/workflows/`: workflow definition YAMLs.
 
 ## Tests

@@ -14,10 +14,12 @@ def main() -> int:
 
     packages = []
     for dist in metadata.distributions():
-        packages.append({
-            "name": dist.metadata["Name"],
-            "version": dist.version,
-        })
+        packages.append(
+            {
+                "name": dist.metadata["Name"],
+                "version": dist.version,
+            }
+        )
 
     sbom = {
         "spdxVersion": "SPDX-2.3",

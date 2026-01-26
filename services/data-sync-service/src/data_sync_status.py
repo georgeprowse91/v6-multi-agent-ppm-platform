@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 @dataclass
@@ -26,7 +26,7 @@ class StatusStore:
             self.path.write_text(json.dumps({}))
 
     def _load(self) -> dict[str, Any]:
-        return json.loads(self.path.read_text())
+        return cast(dict[str, Any], json.loads(self.path.read_text()))
 
     def _save(self, data: dict[str, Any]) -> None:
         self.path.write_text(json.dumps(data, indent=2))
@@ -45,7 +45,9 @@ class StatusStore:
         self._save(data)
         return SyncJobStatus(**data[job_id])
 
-    def update(self, job_id: str, status: str, details: dict[str, Any] | None = None) -> SyncJobStatus:
+    def update(
+        self, job_id: str, status: str, details: dict[str, Any] | None = None
+    ) -> SyncJobStatus:
         data = self._load()
         job = data.get(job_id)
         if not job:
@@ -67,5 +69,7 @@ class StatusStore:
 
 
 def get_status_store() -> StatusStore:
-    path = Path(os.getenv("DATA_SYNC_STATUS_PATH", "services/data-sync-service/storage/status.json"))
+    path = Path(
+        os.getenv("DATA_SYNC_STATUS_PATH", "services/data-sync-service/storage/status.json")
+    )
     return StatusStore(path)

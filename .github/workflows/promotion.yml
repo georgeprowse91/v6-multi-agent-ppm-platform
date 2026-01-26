@@ -1,0 +1,87 @@
+name: Environment Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to promote"
+        required: true
+        default: "latest"
+
+jobs:
+  deploy-staging:
+    name: Promote to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" > ~/.kube/config
+
+      - name: Deploy via Helm
+        env:
+          HELM_RELEASE: ${{ secrets.HELM_RELEASE_STAGING }}
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_STAGING }}
+          IMAGE_REGISTRY: ${{ secrets.IMAGE_REGISTRY }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+        run: |
+          helm upgrade --install "$HELM_RELEASE" apps/api-gateway/helm \
+            --namespace "$K8S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository="$IMAGE_REGISTRY/$IMAGE_REPOSITORY" \
+            --set image.tag="${{ inputs.image_tag }}"
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          HELM_RELEASE: ${{ secrets.HELM_RELEASE_STAGING }}
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_STAGING }}
+        run: |
+          helm rollback "$HELM_RELEASE" --namespace "$K8S_NAMESPACE"
+
+  deploy-production:
+    name: Promote to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" > ~/.kube/config
+
+      - name: Deploy via Helm
+        env:
+          HELM_RELEASE: ${{ secrets.HELM_RELEASE_PROD }}
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_PROD }}
+          IMAGE_REGISTRY: ${{ secrets.IMAGE_REGISTRY }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+        run: |
+          helm upgrade --install "$HELM_RELEASE" apps/api-gateway/helm \
+            --namespace "$K8S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository="$IMAGE_REGISTRY/$IMAGE_REPOSITORY" \
+            --set image.tag="${{ inputs.image_tag }}"
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          HELM_RELEASE: ${{ secrets.HELM_RELEASE_PROD }}
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_PROD }}
+        run: |
+          helm rollback "$HELM_RELEASE" --namespace "$K8S_NAMESPACE"

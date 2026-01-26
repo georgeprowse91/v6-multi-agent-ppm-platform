@@ -3,7 +3,7 @@
 ## Purpose
 Policy bundles in this folder define access controls, retention requirements, and validation rules
 for the document service. The default bundle path is captured in
-`apps/document-service/policy_config.py` for downstream services to consume.
+`apps/document-service/document_policy_config.py` for downstream services to consume.
 
 ## Responsibilities
 - Capture document ingestion and retention rules for the document service.
@@ -29,7 +29,7 @@ apps/document-service/policies/
 1. Duplicate `bundles/default-policy-bundle.yaml` and edit the metadata.
 2. Add rules under `policies:` for new document constraints.
 3. Run the validation script to ensure schema compliance.
-4. Update `apps/document-service/policy_config.py` if the default bundle changes.
+4. Update `apps/document-service/document_policy_config.py` if the default bundle changes.
 
 ## How to validate/test
 ```bash

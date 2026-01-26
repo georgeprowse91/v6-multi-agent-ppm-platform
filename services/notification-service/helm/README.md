@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py services/notification-service/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/notification-service
+  repository: ghcr.io/georgeprowse91/notification-service
   tag: "0.1.0"
 service:
   port: 8080

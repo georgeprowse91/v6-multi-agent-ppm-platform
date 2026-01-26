@@ -3,70 +3,70 @@
     {
       "id": "u_admin",
       "name": "Admin",
-      "email": "admin@example.com",
+      "email": "admin@ppm.georgeprowse91.com",
       "role": "Admin",
       "clearance": "Restricted"
     },
     {
       "id": "u_exec",
       "name": "Executive",
-      "email": "exec@example.com",
+      "email": "exec@ppm.georgeprowse91.com",
       "role": "Executive",
       "clearance": "Confidential"
     },
     {
       "id": "u_pmo",
       "name": "PMO Lead",
-      "email": "pmo@example.com",
+      "email": "pmo@ppm.georgeprowse91.com",
       "role": "PMO",
       "clearance": "Confidential"
     },
     {
       "id": "u_portfolio",
       "name": "Portfolio Manager",
-      "email": "portfolio@example.com",
+      "email": "portfolio@ppm.georgeprowse91.com",
       "role": "PortfolioManager",
       "clearance": "Confidential"
     },
     {
       "id": "u_program",
       "name": "Program Manager",
-      "email": "program@example.com",
+      "email": "program@ppm.georgeprowse91.com",
       "role": "ProgramManager",
       "clearance": "Internal"
     },
     {
       "id": "u_project",
       "name": "Project Manager",
-      "email": "pm@example.com",
+      "email": "pm@ppm.georgeprowse91.com",
       "role": "ProjectManager",
       "clearance": "Internal"
     },
     {
       "id": "u_resource",
       "name": "Resource Manager",
-      "email": "rm@example.com",
+      "email": "rm@ppm.georgeprowse91.com",
       "role": "ResourceManager",
       "clearance": "Internal"
     },
     {
       "id": "u_finance",
       "name": "Finance Analyst",
-      "email": "fin@example.com",
+      "email": "fin@ppm.georgeprowse91.com",
       "role": "Finance",
       "clearance": "Confidential"
     },
     {
       "id": "u_compliance",
       "name": "Compliance Officer",
-      "email": "compliance@example.com",
+      "email": "compliance@ppm.georgeprowse91.com",
       "role": "Compliance",
       "clearance": "Restricted"
     },
     {
       "id": "u_vendor",
       "name": "Vendor Manager",
-      "email": "vendor@example.com",
+      "email": "vendor@ppm.georgeprowse91.com",
       "role": "VendorManager",
       "clearance": "Internal"
     }

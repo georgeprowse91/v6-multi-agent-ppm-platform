@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from azure.storage.blob import BlobServiceClient
 from cryptography.fernet import Fernet
@@ -23,7 +23,9 @@ class AuditRetentionPolicy:
 
 
 class WORMStorage:
-    def persist_event(self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy) -> None:
+    def persist_event(
+        self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy
+    ) -> None:
         raise NotImplementedError
 
     def fetch_event(self, event_id: str) -> dict[str, Any] | None:
@@ -39,7 +41,9 @@ class LocalEncryptedWORMStorage(WORMStorage):
     def _event_path(self, event_id: str) -> Path:
         return self.root / f"{event_id}.json.enc"
 
-    def persist_event(self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy) -> None:
+    def persist_event(
+        self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy
+    ) -> None:
         path = self._event_path(event_id)
         if path.exists():
             raise WORMStorageError("Immutable store already contains event")
@@ -47,7 +51,9 @@ class LocalEncryptedWORMStorage(WORMStorage):
         payload = {
             **payload,
             "retention_policy": retention.policy_id,
-            "retention_until": (datetime.utcnow() + timedelta(days=retention.duration_days)).isoformat(),
+            "retention_until": (
+                datetime.utcnow() + timedelta(days=retention.duration_days)
+            ).isoformat(),
         }
         encrypted = self.fernet.encrypt(json.dumps(payload).encode("utf-8"))
         with open(path, "xb") as handle:
@@ -58,7 +64,7 @@ class LocalEncryptedWORMStorage(WORMStorage):
         if not path.exists():
             return None
         decrypted = self.fernet.decrypt(path.read_bytes())
-        return json.loads(decrypted)
+        return cast(dict[str, Any], json.loads(decrypted))
 
 
 class AzureBlobWORMStorage(WORMStorage):
@@ -71,9 +77,11 @@ class AzureBlobWORMStorage(WORMStorage):
         container_client = self.client.get_container_client(self.container)
         if not container_client.exists():
             container_client.create_container()
-            container_client.set_container_access_policy()
+            container_client.set_container_access_policy(signed_identifiers={})
 
-    def persist_event(self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy) -> None:
+    def persist_event(
+        self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy
+    ) -> None:
         container_client = self.client.get_container_client(self.container)
         blob_client = container_client.get_blob_client(f"{event_id}.json")
         if blob_client.exists():
@@ -89,7 +97,7 @@ class AzureBlobWORMStorage(WORMStorage):
         if not blob_client.exists():
             return None
         data = blob_client.download_blob().readall()
-        return json.loads(data)
+        return cast(dict[str, Any], json.loads(data))
 
 
 def get_worm_storage() -> WORMStorage:

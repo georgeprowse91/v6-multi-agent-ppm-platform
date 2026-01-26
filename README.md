@@ -2,8 +2,8 @@
 
 AI-native Project Portfolio Management (PPM) platform blueprint with 25 specialized agents orchestrating portfolio, program, and project delivery.
 
-[![CI/CD](https://github.com/your-org/multi-agent-ppm-platform/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/your-org/multi-agent-ppm-platform/actions)
-[![codecov](https://codecov.io/gh/your-org/multi-agent-ppm-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/multi-agent-ppm-platform)
+[![CI/CD](https://github.com/georgeprowse91/multi-agent-ppm-platform/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/georgeprowse91/multi-agent-ppm-platform/actions)
+[![codecov](https://codecov.io/gh/georgeprowse91/multi-agent-ppm-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/georgeprowse91/multi-agent-ppm-platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Purpose

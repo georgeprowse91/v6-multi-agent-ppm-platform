@@ -5,6 +5,7 @@ import re
 import sys
 from pathlib import Path
 
+
 def _join(*parts: str) -> str:
     return "".join(parts)
 
@@ -25,11 +26,9 @@ FILLER_PATTERNS = [
     _join("fix", "me"),
 ]
 
-ALLOWED_TASK_MARKER = re.compile(r"\b(?:"
-                          + _join("TO", "DO")
-                          + r"|"
-                          + _join("FI", "XME")
-                          + r")\(#\d+\):")
+ALLOWED_TASK_MARKER = re.compile(
+    r"\b(?:" + _join("TO", "DO") + r"|" + _join("FI", "XME") + r")\(#\d+\):"
+)
 ALLOWED_CONTEXT_PATTERNS = [
     re.compile(r"\bcheck-placeholders(?:\.py)?\b", re.IGNORECASE),
 ]
@@ -83,6 +82,8 @@ def _scan_file(
     lines = path.read_text(errors="ignore").splitlines()
     for idx, line in enumerate(lines, start=1):
         if pattern.search(line):
+            if path.name.endswith(".schema.json") and '"enum"' in line:
+                continue
             if allowlist and any(allowed.search(line) for allowed in allowlist):
                 continue
             matches.append((idx, line.strip()))
@@ -94,11 +95,9 @@ def main() -> int:
     violations: list[str] = []
 
     filler_regex = re.compile("|".join(FILLER_PATTERNS), re.IGNORECASE)
-    task_marker_regex = re.compile(r"\b(?:"
-                                   + _join("TO", "DO")
-                                   + r"|"
-                                   + _join("FI", "XME")
-                                   + r")\b")
+    task_marker_regex = re.compile(
+        r"\b(?:" + _join("TO", "DO") + r"|" + _join("FI", "XME") + r")\b"
+    )
 
     for path in _iter_files(root):
         filler_hits = _scan_file(path, filler_regex, ALLOWED_CONTEXT_PATTERNS)
@@ -109,7 +108,9 @@ def main() -> int:
         for line_no, line in task_marker_hits:
             if ALLOWED_TASK_MARKER.search(line):
                 continue
-            violations.append(f"{path}:{line_no}: task markers must include issue reference: {line}")
+            violations.append(
+                f"{path}:{line_no}: task markers must include issue reference: {line}"
+            )
 
     if violations:
         print("Forbidden phrase scan failed:")

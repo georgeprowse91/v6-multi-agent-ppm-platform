@@ -14,7 +14,7 @@ be included in the next tagged release.
 Please report security issues **privately** so we can coordinate a fix before public disclosure.
 
 **Preferred channel**
-- Email: `security@your-org.com`
+- Report via GitHub Security Advisories: https://github.com/georgeprowse91/multi-agent-ppm-platform/security/advisories/new
 
 **What to include**
 - A detailed description of the vulnerability and impact
@@ -29,4 +29,3 @@ We aim to acknowledge reports within **2 business days** and provide a remediati
 
 We follow coordinated disclosure. Please do not publicly disclose vulnerabilities until we have
 released a fix and confirmed it with you.
-

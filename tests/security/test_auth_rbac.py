@@ -41,6 +41,26 @@ def test_missing_tenant_header(monkeypatch) -> None:
     assert response.status_code == 401
 
 
+def test_missing_tenant_claim(monkeypatch) -> None:
+    monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
+    client = _client()
+    token = jwt.encode(
+        {
+            "sub": "user-123",
+            "roles": ["portfolio_admin"],
+            "aud": "ppm-platform",
+            "iss": "https://issuer.example.com",
+        },
+        "test-secret",
+        algorithm="HS256",
+    )
+    response = client.get(
+        "/api/v1/status",
+        headers={"Authorization": f"Bearer {token}", "X-Tenant-ID": "tenant-alpha"},
+    )
+    assert response.status_code == 403
+
+
 def test_rbac_blocks_insufficient_role(monkeypatch) -> None:
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
     client = _client()

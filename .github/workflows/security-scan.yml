@@ -19,7 +19,7 @@ jobs:
       - name: Install Bandit
         run: |
           python -m pip install --upgrade pip
-          pip install bandit
+          pip install -r requirements-dev.txt
 
       - name: Run Bandit scan
         run: bandit -r agents apps packages tools -ll

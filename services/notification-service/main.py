@@ -8,7 +8,7 @@ import uvicorn
 SRC_DIR = Path(__file__).resolve().parent / "src"
 sys.path.insert(0, str(SRC_DIR))
 
-import main as service_main
+import main as service_main  # noqa: E402
 
 app = service_main.app
 

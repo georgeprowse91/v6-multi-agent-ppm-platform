@@ -1,18 +1,25 @@
 from __future__ import annotations
 
 import logging
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from fastapi import FastAPI
+from otel import PIPELINE
 from pydantic import BaseModel, Field
 
-from otel import PIPELINE
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+if str(SECURITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(SECURITY_ROOT))
+
+from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("telemetry-service")
 logging.basicConfig(level=logging.INFO)
-
 
 
 class HealthResponse(BaseModel):
@@ -35,6 +42,7 @@ class TelemetryResponse(BaseModel):
 
 
 app = FastAPI(title="Telemetry Service", version="0.1.0")
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 
 
 @app.get("/healthz", response_model=HealthResponse)

@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py apps/admin-console/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/admin-console
+  repository: ghcr.io/georgeprowse91/admin-console
   tag: "0.1.0"
 service:
   port: 8080

@@ -14,9 +14,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import agents, health
 from api.runtime_bootstrap import bootstrap_runtime_paths
-from api.middleware.security import AuthTenantMiddleware
+
 REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -63,6 +64,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(AuthTenantMiddleware)
+app.add_middleware(FieldMaskingMiddleware)
 
 # Global orchestrator instance
 orchestrator = None

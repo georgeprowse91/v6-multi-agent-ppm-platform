@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py services/audit-log/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/audit-log
+  repository: ghcr.io/georgeprowse91/audit-log
   tag: "0.1.0"
 service:
   port: 8080

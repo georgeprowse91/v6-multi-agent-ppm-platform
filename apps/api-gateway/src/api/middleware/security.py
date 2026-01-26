@@ -5,11 +5,12 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import httpx
 import jwt
 import yaml
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
@@ -27,7 +28,7 @@ class AuthContext:
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
-    return yaml.safe_load(path.read_text())
+    return cast(dict[str, Any], yaml.safe_load(path.read_text()))
 
 
 def _load_rbac() -> tuple[dict[str, Any], dict[str, Any]]:
@@ -65,11 +66,37 @@ def _classification_from_body(body: bytes) -> str | None:
     return None
 
 
-def _is_classification_allowed(field_cfg: dict[str, Any], classification: str, roles: list[str]) -> bool:
+def _is_classification_allowed(
+    field_cfg: dict[str, Any], classification: str, roles: list[str]
+) -> bool:
     allowed_roles = (
         field_cfg.get("classification_access", {}).get(classification, {}).get("allowed_roles", [])
     )
     return any(role in allowed_roles for role in roles)
+
+
+def _mask_fields(
+    payload: Any, field_cfg: dict[str, Any], roles: list[str], mask: str = "REDACTED"
+) -> Any:
+    if isinstance(payload, list):
+        return [_mask_fields(item, field_cfg, roles, mask) for item in payload]
+    if not isinstance(payload, dict):
+        return payload
+
+    fields_cfg = field_cfg.get("fields", {})
+    for resource, resource_fields in fields_cfg.items():
+        resource_data = payload.get(resource)
+        if isinstance(resource_data, dict):
+            for field_name, rule in resource_fields.items():
+                allowed_roles = set(rule.get("allowed_roles", []))
+                if field_name in resource_data and not allowed_roles.intersection(roles):
+                    resource_data[field_name] = mask
+
+    for key, value in payload.items():
+        if isinstance(value, (dict, list)):
+            payload[key] = _mask_fields(value, field_cfg, roles, mask)
+
+    return payload
 
 
 async def _validate_jwt(token: str) -> dict[str, Any]:
@@ -98,24 +125,30 @@ async def _validate_jwt(token: str) -> dict[str, Any]:
             key = next((k for k in jwks.get("keys", []) if k.get("kid") == kid), None)
             if not key:
                 raise HTTPException(status_code=401, detail="Invalid token key")
-            public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
-            return jwt.decode(
-                token,
-                public_key,
-                algorithms=[unverified_header.get("alg", "RS256")],
-                audience=audience,
-                issuer=issuer,
-                options={"verify_aud": bool(audience), "verify_iss": bool(issuer)},
+            public_key = cast(RSAPublicKey, jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key)))
+            return cast(
+                dict[str, Any],
+                jwt.decode(
+                    token,
+                    public_key,
+                    algorithms=[unverified_header.get("alg", "RS256")],
+                    audience=audience,
+                    issuer=issuer,
+                    options={"verify_aud": bool(audience), "verify_iss": bool(issuer)},
+                ),
             )
         if not jwt_secret:
             raise HTTPException(status_code=500, detail="JWT validation configuration missing")
-        return jwt.decode(
-            token,
-            jwt_secret,
-            algorithms=["HS256"],
-            audience=audience,
-            issuer=issuer,
-            options={"verify_aud": bool(audience), "verify_iss": bool(issuer)},
+        return cast(
+            dict[str, Any],
+            jwt.decode(
+                token,
+                jwt_secret,
+                algorithms=["HS256"],
+                audience=audience,
+                issuer=issuer,
+                options={"verify_aud": bool(audience), "verify_iss": bool(issuer)},
+            ),
         )
     except InvalidTokenError as exc:
         logger.warning("token_validation_failed", extra={"error": str(exc)})
@@ -125,6 +158,9 @@ async def _validate_jwt(token: str) -> dict[str, Any]:
 async def _evaluate_rbac(auth: AuthContext, permission: str, classification: str | None) -> None:
     policy_engine = os.getenv("POLICY_ENGINE_URL")
     if policy_engine:
+        service_token = os.getenv("POLICY_ENGINE_SERVICE_TOKEN")
+        if not service_token:
+            raise HTTPException(status_code=500, detail="Policy engine token missing")
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.post(
                 f"{policy_engine}/rbac/evaluate",
@@ -133,6 +169,10 @@ async def _evaluate_rbac(auth: AuthContext, permission: str, classification: str
                     "roles": auth.roles,
                     "permission": permission,
                     "classification": classification,
+                },
+                headers={
+                    "Authorization": f"Bearer {service_token}",
+                    "X-Tenant-ID": auth.tenant_id,
                 },
             )
             response.raise_for_status()
@@ -170,8 +210,11 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         if isinstance(roles, str):
             roles = [roles]
 
-        claim_tenant = claims.get("tenant_id")
-        if claim_tenant and claim_tenant != tenant_id:
+        tenant_claim = os.getenv("IDENTITY_TENANT_CLAIM", "tenant_id")
+        claim_tenant = claims.get(tenant_claim)
+        if not claim_tenant:
+            return JSONResponse(status_code=403, content={"detail": "Tenant claim missing"})
+        if claim_tenant != tenant_id:
             return JSONResponse(status_code=403, content={"detail": "Tenant mismatch"})
 
         auth_context = AuthContext(
@@ -194,3 +237,32 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         return response
+
+
+class FieldMaskingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if not hasattr(request.state, "auth"):
+            return response
+
+        content_type = response.headers.get("content-type", "")
+        if "application/json" not in content_type.lower():
+            return response
+
+        body = b"".join([chunk async for chunk in response.body_iterator])
+        if not body:
+            return response
+
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return response
+
+        _, field_cfg = _load_rbac()
+        masked = _mask_fields(payload, field_cfg, request.state.auth.roles)
+
+        new_response = JSONResponse(content=masked, status_code=response.status_code)
+        for key, value in response.headers.items():
+            if key.lower() != "content-length":
+                new_response.headers[key] = value
+        return new_response

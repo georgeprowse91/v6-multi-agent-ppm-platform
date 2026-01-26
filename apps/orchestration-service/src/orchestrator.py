@@ -7,8 +7,9 @@ import os
 from pathlib import Path
 from typing import Any, cast
 
-from tools.runtime_paths import bootstrap_runtime_paths
 from persistence import OrchestrationStateStore, WorkflowState
+
+from tools.runtime_paths import bootstrap_runtime_paths
 
 logger = logging.getLogger(__name__)
 DEFAULT_POLICY_BUNDLE_PATH = (
@@ -69,7 +70,9 @@ class AgentOrchestrator:
         self.initialized = True
         logger.info(f"Orchestrator initialized with {len(self.agents)} agents")
 
-    def persist_workflow_state(self, run_id: str, status: str, checkpoint: str, payload: dict[str, Any]) -> None:
+    def persist_workflow_state(
+        self, run_id: str, status: str, checkpoint: str, payload: dict[str, Any]
+    ) -> None:
         self.workflow_states[run_id] = WorkflowState(
             run_id=run_id,
             status=status,

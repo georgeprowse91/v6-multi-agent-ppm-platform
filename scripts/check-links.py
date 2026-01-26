@@ -158,9 +158,7 @@ def main() -> int:
         if broken:
             print("Broken markdown links detected:\n")
         for item in broken:
-            print(
-                f"{item['source']}: {item['destination']} ({item['reason']}) | {item['link']}"
-            )
+            print(f"{item['source']}: {item['destination']} ({item['reason']}) | {item['link']}")
     return 1 if broken else 0
 
 

@@ -36,7 +36,7 @@ curl -X POST http://localhost:8080/notifications/send \
       "event_time": "2025-01-01T00:00:00Z"
     },
     "channel": "stdout",
-    "recipient": "morgan@example.com"
+    "recipient": "morgan@ppm.georgeprowse91.com"
   }'
 ```
 

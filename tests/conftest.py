@@ -3,11 +3,12 @@ Pytest configuration and fixtures for Multi-Agent PPM Platform tests.
 """
 
 import asyncio
+import inspect
 import sys
 from pathlib import Path
 
-import pytest
 import jwt
+import pytest
 
 
 def _bootstrap_paths() -> None:
@@ -49,7 +50,9 @@ def pytest_pyfunc_call(pyfuncitem):
     if asyncio.iscoroutinefunction(pyfuncitem.obj):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(pyfuncitem.obj(**pyfuncitem.funcargs))
+        sig = inspect.signature(pyfuncitem.obj)
+        kwargs = {name: pyfuncitem.funcargs[name] for name in sig.parameters}
+        loop.run_until_complete(pyfuncitem.obj(**kwargs))
         loop.close()
         return True
     return None
@@ -124,6 +127,7 @@ def auth_headers(monkeypatch):
             "roles": ["portfolio_admin"],
             "aud": "ppm-platform",
             "iss": "https://issuer.example.com",
+            "tenant_id": "tenant-alpha",
         },
         "test-secret",
         algorithm="HS256",

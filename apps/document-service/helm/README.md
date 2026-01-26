@@ -41,7 +41,7 @@ python scripts/validate-helm-charts.py apps/document-service/helm
 `values.yaml` excerpt:
 ```yaml
 image:
-  repository: ghcr.io/your-org/document-service
+  repository: ghcr.io/georgeprowse91/document-service
   tag: "0.1.0"
 service:
   port: 8080

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import jwt
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import jwt
 from fastapi.testclient import TestClient
 
 
@@ -56,7 +55,9 @@ def test_end_to_end_workflow(monkeypatch) -> None:
 
     mock_orchestrator = MagicMock()
     mock_orchestrator.initialized = True
-    mock_orchestrator.process_query = AsyncMock(return_value={"success": True, "data": {"ok": True}})
+    mock_orchestrator.process_query = AsyncMock(
+        return_value={"success": True, "data": {"ok": True}}
+    )
 
     gateway = _gateway_client()
     with patch("api.main.orchestrator", mock_orchestrator):
@@ -77,6 +78,7 @@ def test_end_to_end_workflow(monkeypatch) -> None:
             "payload": {"request": "upgrade"},
             "actor": {"id": "user-123", "type": "user", "roles": ["portfolio_admin"]},
         },
+        headers={"Authorization": f"Bearer {token}", "X-Tenant-ID": "tenant-alpha"},
     )
     assert workflow_response.status_code == 200
     assert workflow_response.json()["status"] == "running"

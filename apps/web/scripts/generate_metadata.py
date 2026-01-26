@@ -27,8 +27,8 @@ def data_dir() -> Path:
 
 def parse_prd(prd_path: Path) -> dict[str, Any]:
     content = prd_path.read_text(encoding="utf-8")
-    functional_sections = []
-    current = None
+    functional_sections: list[dict[str, Any]] = []
+    current: dict[str, Any] | None = None
 
     for line in content.splitlines():
         txt = line.strip()

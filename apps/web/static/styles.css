@@ -50,6 +50,21 @@ button:hover {
   background: #163fb2;
 }
 
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+button.secondary {
+  background: #e2e8f0;
+  color: #1f2a44;
+}
+
+button.secondary:hover {
+  background: #cbd5e1;
+}
+
 .status {
   margin-top: 12px;
   font-weight: 600;
