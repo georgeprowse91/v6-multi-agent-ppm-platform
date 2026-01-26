@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import yaml
 from fastapi import FastAPI, HTTPException, Request
+from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -26,6 +27,7 @@ logging.basicConfig(level=logging.INFO)
 WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workflows.db"))
+SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 
 app = FastAPI(title="Workflow Engine", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
@@ -62,7 +64,14 @@ def _load_definition(workflow_id: str) -> dict[str, Any]:
     path = DEFINITIONS_DIR / f"{workflow_id}.workflow.yaml"
     if not path.exists():
         raise HTTPException(status_code=404, detail="Workflow definition not found")
-    return yaml.safe_load(path.read_text())
+    definition = yaml.safe_load(path.read_text())
+    schema = yaml.safe_load(SCHEMA_PATH.read_text())
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    errors = sorted(validator.iter_errors(definition), key=lambda err: err.path)
+    if errors:
+        formatted = "; ".join(error.message for error in errors)
+        raise HTTPException(status_code=422, detail=f"Workflow definition invalid: {formatted}")
+    return definition
 
 
 @app.get("/healthz", response_model=HealthResponse)

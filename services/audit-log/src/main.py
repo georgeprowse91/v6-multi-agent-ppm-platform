@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import yaml
 from fastapi import FastAPI, HTTPException
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
 logger = logging.getLogger("audit-log")
@@ -35,7 +35,7 @@ def _load_schema() -> dict[str, Any]:
 
 
 def _validator() -> Draft202012Validator:
-    return Draft202012Validator(_load_schema())
+    return Draft202012Validator(_load_schema(), format_checker=FormatChecker())
 
 
 class AuditEventIn(BaseModel):

@@ -70,22 +70,46 @@ def event_loop():
 @pytest.fixture
 def mock_azure_openai():
     """Mock Azure OpenAI client for testing."""
-    # Future work: Implement Azure OpenAI mock
-    pass
+    class MockAzureOpenAI:
+        def __init__(self):
+            self.calls = []
+
+        def chat_completions(self, prompt: str) -> dict:
+            self.calls.append(prompt)
+            return {"id": "mock-response", "choices": [{"message": {"content": "ok"}}]}
+
+    return MockAzureOpenAI()
 
 
 @pytest.fixture
 def mock_database():
     """Mock database connection for testing."""
-    # Future work: Implement database mock
-    pass
+    class MockDatabase:
+        def __init__(self):
+            self.queries = []
+
+        def execute(self, query: str, params: dict | None = None) -> list[dict]:
+            self.queries.append({"query": query, "params": params or {}})
+            return []
+
+    return MockDatabase()
 
 
 @pytest.fixture
 def mock_redis():
     """Mock Redis connection for testing."""
-    # Future work: Implement Redis mock
-    pass
+    class MockRedis:
+        def __init__(self):
+            self.store = {}
+
+        def get(self, key: str):
+            return self.store.get(key)
+
+        def set(self, key: str, value: str):
+            self.store[key] = value
+            return True
+
+    return MockRedis()
 
 
 @pytest.fixture

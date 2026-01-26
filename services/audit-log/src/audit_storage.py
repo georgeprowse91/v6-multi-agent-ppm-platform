@@ -4,7 +4,7 @@ import base64
 import json
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
@@ -29,6 +29,9 @@ class WORMStorage:
         raise NotImplementedError
 
     def fetch_event(self, event_id: str) -> dict[str, Any] | None:
+        raise NotImplementedError
+
+    def prune_expired(self, now: datetime | None = None) -> int:
         raise NotImplementedError
 
 
@@ -66,6 +69,26 @@ class LocalEncryptedWORMStorage(WORMStorage):
         decrypted = self.fernet.decrypt(path.read_bytes())
         return cast(dict[str, Any], json.loads(decrypted))
 
+    def prune_expired(self, now: datetime | None = None) -> int:
+        now = now or datetime.now(timezone.utc)
+        deleted = 0
+        for path in self.root.glob("*.json.enc"):
+            try:
+                decrypted = self.fernet.decrypt(path.read_bytes())
+                payload = cast(dict[str, Any], json.loads(decrypted))
+                retention_until = payload.get("retention_until")
+                if not retention_until:
+                    continue
+                cutoff = datetime.fromisoformat(retention_until)
+                if cutoff.tzinfo is None:
+                    cutoff = cutoff.replace(tzinfo=timezone.utc)
+                if cutoff <= now:
+                    path.unlink()
+                    deleted += 1
+            except Exception:
+                continue
+        return deleted
+
 
 class AzureBlobWORMStorage(WORMStorage):
     def __init__(self, connection_string: str, container: str) -> None:
@@ -98,6 +121,24 @@ class AzureBlobWORMStorage(WORMStorage):
             return None
         data = blob_client.download_blob().readall()
         return cast(dict[str, Any], json.loads(data))
+
+    def prune_expired(self, now: datetime | None = None) -> int:
+        now = now or datetime.now(timezone.utc)
+        deleted = 0
+        container_client = self.client.get_container_client(self.container)
+        for blob in container_client.list_blobs():
+            blob_client = container_client.get_blob_client(blob.name)
+            payload = json.loads(blob_client.download_blob().readall())
+            retention_until = payload.get("retention_until")
+            if not retention_until:
+                continue
+            cutoff = datetime.fromisoformat(retention_until)
+            if cutoff.tzinfo is None:
+                cutoff = cutoff.replace(tzinfo=timezone.utc)
+            if cutoff <= now:
+                blob_client.delete_blob()
+                deleted += 1
+        return deleted
 
 
 def get_worm_storage() -> WORMStorage:

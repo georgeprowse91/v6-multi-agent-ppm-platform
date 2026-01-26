@@ -26,6 +26,7 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint("tenant_id", "name", name="uq_portfolios_tenant_name"),
     )
     op.create_table(
         "programs",
@@ -43,6 +44,9 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint(
+            "tenant_id", "portfolio_id", "name", name="uq_programs_portfolio_name"
+        ),
     )
     op.create_table(
         "projects",
@@ -62,6 +66,9 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint(
+            "tenant_id", "program_id", "name", name="uq_projects_program_name"
+        ),
     )
     op.create_table(
         "budgets",
@@ -82,6 +89,13 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint(
+            "tenant_id",
+            "portfolio_id",
+            "name",
+            "fiscal_year",
+            name="uq_budgets_portfolio_name_year",
+        ),
     )
     op.create_table(
         "work_items",
@@ -101,6 +115,9 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint(
+            "tenant_id", "project_id", "title", name="uq_work_items_project_title"
+        ),
     )
     op.create_table(
         "risks",
@@ -115,6 +132,7 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint("tenant_id", "title", name="uq_risks_tenant_title"),
     )
     op.create_table(
         "issues",
@@ -134,6 +152,9 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint(
+            "tenant_id", "project_id", "title", name="uq_issues_project_title"
+        ),
     )
     op.create_table(
         "vendors",
@@ -146,6 +167,7 @@ def upgrade() -> None:
         sa.Column("classification", sa.String(length=32), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint("tenant_id", "name", name="uq_vendors_tenant_name"),
     )
     op.create_table(
         "documents",
@@ -158,6 +180,9 @@ def upgrade() -> None:
         sa.Column("owner", sa.String(length=255), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.UniqueConstraint(
+            "tenant_id", "title", "doc_type", name="uq_documents_tenant_title_type"
+        ),
     )
     op.create_table(
         "audit_events",

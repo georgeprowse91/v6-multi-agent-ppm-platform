@@ -3,9 +3,9 @@
     "source": "project",
     "id": "proj-100",
     "name": "Migration Wave 1",
-    "status": "execution",
-    "start_date": "2024-02-01",
+    "status": "active",
+    "start_date": "2024-01-01",
     "end_date": "2024-06-30",
-    "owner": "pm@ppm.example"
+    "owner": "program-manager"
   }
 ]

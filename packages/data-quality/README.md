@@ -1,42 +1,35 @@
 # Data Quality Package
 
-Shared validation and data quality helpers intended for analytics pipelines.
+Shared validation and data quality helpers used across analytics and integration workflows.
 
-## Current state
+## What this provides
 
-- No implementation code yet in `packages/data-quality/`.
-- Analytics job definitions live under `apps/analytics-service/jobs/`.
+- JSON Schema validation helpers (Draft 2020-12).
+- Deterministic data quality rules for core domain records (projects, budgets, risks, issues, work items).
+- Typed reports that list rule violations for each record.
 
-## Quickstart
+## Usage
 
-Validate analytics job specs:
+Validate a record with schema + business rules:
 
-```bash
-python scripts/validate-analytics-jobs.py
+```python
+from data_quality.rules import evaluate_quality_rules
+
+report = evaluate_quality_rules("project", project_payload)
+if not report.is_valid:
+    for issue in report.issues:
+        print(issue.rule_id, issue.message)
 ```
-
-## How to verify
-
-```bash
-ls apps/analytics-service/jobs
-```
-
-Expected output lists analytics job YAML files.
 
 ## Key files
 
-- `apps/analytics-service/jobs/`: analytics job definitions.
-- `packages/data-quality/README.md`: scope and next steps.
+- `packages/data-quality/src/data_quality/schema_validation.py`: JSON Schema validation helpers.
+- `packages/data-quality/src/data_quality/rules.py`: executable data quality rules.
 
-## Example
+## Verification
 
-Search for quality checks in analytics jobs:
+Run tests to confirm data quality rules and schema validation behavior:
 
 ```bash
-rg -n "quality|validation" apps/analytics-service/jobs
+pytest tests/test_data_quality_rules.py -v
 ```
-
-## Next steps
-
-- Implement data quality rules under `packages/data-quality/src/`.
-- Integrate checks into analytics runners.

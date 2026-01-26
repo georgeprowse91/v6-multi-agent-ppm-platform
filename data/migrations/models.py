@@ -153,6 +153,6 @@ class AuditEvent(Base):
     classification = Column(String(32), nullable=False)
     actor = Column(Text, nullable=False)
     resource = Column(Text, nullable=False)
-    metadata = Column(Text, nullable=True)
+    metadata_payload = Column("metadata", Text, nullable=True)
     trace_id = Column(String(64), nullable=True)
     correlation_id = Column(String(64), nullable=True)

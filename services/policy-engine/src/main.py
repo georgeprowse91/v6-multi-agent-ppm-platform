@@ -8,6 +8,7 @@ from typing import Any
 
 import yaml
 from fastapi import FastAPI, HTTPException
+from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -20,6 +21,9 @@ from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("policy-engine")
 logging.basicConfig(level=logging.INFO)
+SCHEMA_PATH = (
+    Path(__file__).resolve().parents[1] / "policies" / "schema" / "policy-bundle.schema.json"
+)
 
 
 class HealthResponse(BaseModel):
@@ -60,7 +64,18 @@ async def healthz() -> HealthResponse:
 
 def _load_default_policies() -> dict[str, Any]:
     bundle_path = Path(os.getenv("POLICY_BUNDLE_PATH", str(DEFAULT_POLICY_BUNDLE_PATH)))
-    return yaml.safe_load(bundle_path.read_text())
+    data = yaml.safe_load(bundle_path.read_text())
+    _validate_bundle(data)
+    return data
+
+
+def _validate_bundle(bundle: dict[str, Any]) -> None:
+    schema = yaml.safe_load(SCHEMA_PATH.read_text())
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    errors = sorted(validator.iter_errors(bundle), key=lambda err: err.path)
+    if errors:
+        formatted = "; ".join(error.message for error in errors)
+        raise HTTPException(status_code=422, detail=f"Policy bundle validation failed: {formatted}")
 
 
 def _load_rbac_config() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -134,6 +149,7 @@ async def evaluate_policies(request: PolicyEvaluationRequest) -> PolicyEvaluatio
     if not request.bundle.get("metadata"):
         raise HTTPException(status_code=422, detail="Bundle metadata is required")
 
+    _validate_bundle(request.bundle)
     policy_bundle = _load_default_policies()
     response = _evaluate(request.bundle, policy_bundle)
     logger.info("policy_evaluated", extra={"decision": response.decision})

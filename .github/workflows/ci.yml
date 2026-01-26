@@ -139,7 +139,7 @@ jobs:
           DATABASE_URL: postgresql://ppm:ppm_password@localhost:5432/ppm_test
           REDIS_URL: redis://localhost:6379/0
         run: |
-          pytest tests/ -v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=xml --cov-report=term-missing
+          pytest tests/ -v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=xml --cov-report=term-missing --cov-fail-under=80
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@3e0b0c4b3f1a3da48b6b0b9a1f401d4d2f1d8d3e

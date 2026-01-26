@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from jsonschema import Draft202012Validator, FormatChecker
 
 
 @dataclass
@@ -35,6 +36,19 @@ class ConnectorRuntime:
 
     def _load_manifest(self, path: Path) -> ConnectorManifest:
         data = yaml.safe_load(path.read_text())
+        schema_path = (
+            Path(__file__).resolve().parents[3]
+            / "connectors"
+            / "registry"
+            / "schemas"
+            / "connector-manifest.schema.json"
+        )
+        schema = yaml.safe_load(schema_path.read_text())
+        validator = Draft202012Validator(schema, format_checker=FormatChecker())
+        errors = sorted(validator.iter_errors(data), key=lambda err: err.path)
+        if errors:
+            formatted = "; ".join(error.message for error in errors)
+            raise ValueError(f"Connector manifest validation failed: {formatted}")
         return ConnectorManifest(**data)
 
     def _load_mapping(self, path: Path) -> MappingSpec:
