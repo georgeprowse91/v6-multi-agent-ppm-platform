@@ -41,3 +41,10 @@
 | 42 | Configure Azure Monitor diagnostic settings in IaC | Done | `infra/terraform/main.tf`. |
 | 77 | Ensure HTTP interfaces exist for all services | Done | `apps/orchestration-service/src/main.py`, `apps/analytics-service/src/main.py`, `apps/document-service/src/main.py`, `apps/connector-hub/src/main.py`. |
 | 79 | Define and actively monitor SLOs | Done | `infra/observability/slo/ppm-slo.yaml`, `infra/observability/dashboards/ppm-slo.json`, `infra/observability/alerts/ppm-alerts.yaml`. |
+| 28 | Implement HTTP client in connector SDK (retries, paging, rate limits, timeouts) | Done | `connectors/sdk/src/http_client.py`, `connectors/sdk/tests/test_http_client.py`. |
+| 29 | Implement Jira connector with real API calls (auth via Key Vault in prod, fixtures in CI) | Done | `connectors/jira/src/main.py`, `config/environments/prod.yaml`, `tests/integration/connectors/test_jira_connector.py`. |
+| 30 | Implement ServiceNow connector | Done | `connectors/servicenow/src/main.py`, `tests/integration/connectors/test_servicenow_connector.py`. |
+| 31 | Implement Azure DevOps connector | Done | `connectors/azure_devops/src/main.py`, `tests/integration/connectors/test_azure_devops_connector.py`. |
+| 32 | Add connector integration tests (mock server/recorded fixtures; deterministic CI) | Done | `tests/integration/connectors/test_jira_connector.py`, `tests/integration/connectors/test_servicenow_connector.py`, `tests/integration/connectors/test_azure_devops_connector.py`, `tests/integration/connectors/test_sync_job.py`. |
+| 33 | Implement OAuth 2.0 token refresh logic | Done | `connectors/sdk/src/auth.py`, `connectors/servicenow/src/main.py`. |
+| 76 | Enable multiple connectors syncing live data (Key Vault wiring, gated smoke workflow) | Done | `config/environments/prod.yaml`, `.github/workflows/connectors-live-smoke.yml`. |

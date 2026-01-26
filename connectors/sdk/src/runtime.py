@@ -68,18 +68,21 @@ class ConnectorRuntime:
                 mapped[target_field] = record.get(source_field)
         return mapped
 
-    def run_sync(self, fixture_path: Path, tenant_id: str) -> list[dict[str, Any]]:
-        raw = json.loads(fixture_path.read_text())
-        if not isinstance(raw, list):
-            raise ValueError("Fixture must be a list of records")
+    def apply_mappings(self, records: list[dict[str, Any]], tenant_id: str) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
         mapping_specs = [
             self._load_mapping(self.connector_root / mapping["mapping_file"])
             for mapping in self.manifest.mappings
         ]
-        for record in raw:
+        for record in records:
             for spec in mapping_specs:
                 if record.get("source") and record.get("source") != spec.source:
                     continue
                 results.append(self._apply_mapping(record, spec, tenant_id))
         return results
+
+    def run_sync(self, fixture_path: Path, tenant_id: str) -> list[dict[str, Any]]:
+        raw = json.loads(fixture_path.read_text())
+        if not isinstance(raw, list):
+            raise ValueError("Fixture must be a list of records")
+        return self.apply_mappings(raw, tenant_id)

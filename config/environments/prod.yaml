@@ -28,3 +28,17 @@ observability:
   otel_collector_endpoint: "keyvault://ppm-prod/observability/otel-collector"
   azure_monitor_connection: "keyvault://ppm-prod/observability/azure-monitor-connection"
   log_level: "INFO"
+connectors:
+  jira:
+    instance_url: "keyvault://ppm-prod/connectors/jira/instance-url"
+    email: "keyvault://ppm-prod/connectors/jira/email"
+    api_token: "keyvault://ppm-prod/connectors/jira/api-token"
+  servicenow:
+    instance_url: "keyvault://ppm-prod/connectors/servicenow/instance-url"
+    token_url: "keyvault://ppm-prod/connectors/servicenow/token-url"
+    client_id: "keyvault://ppm-prod/connectors/servicenow/client-id"
+    client_secret: "keyvault://ppm-prod/connectors/servicenow/client-secret"
+    refresh_token: "keyvault://ppm-prod/connectors/servicenow/refresh-token"
+  azure_devops:
+    organization_url: "keyvault://ppm-prod/connectors/azure-devops/org-url"
+    pat: "keyvault://ppm-prod/connectors/azure-devops/pat"
