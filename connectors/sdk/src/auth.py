@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from connectors.sdk.src.http_client import HttpClient
+from connectors.sdk.src.http_client import HttpClient, HttpClientError
 
 
 @dataclass
@@ -52,7 +52,11 @@ class OAuth2TokenManager:
         data = response.json()
         access_token = data.get("access_token")
         if not access_token:
-            raise ValueError("OAuth token refresh failed: access_token missing")
+            raise HttpClientError(
+                "OAuth token refresh failed: access_token missing",
+                status_code=response.status_code,
+                response_json=data,
+            )
         refresh_token = data.get("refresh_token", self._refresh_token)
         expires_in = data.get("expires_in")
         expires_at = None
@@ -72,4 +76,3 @@ class OAuth2TokenManager:
         if self._token.expires_at and time.time() >= self._token.expires_at:
             return self.refresh().access_token
         return self._token.access_token
-

@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from connectors.sdk.src.http_client import HttpClient, RetryConfig
+from connectors.sdk.src.http_client import HttpClient, HttpClientError, RetryConfig
 
 
 def test_http_client_retries_transient_errors() -> None:
@@ -67,3 +67,21 @@ def test_http_client_offset_pagination() -> None:
     )
 
     assert [item["id"] for page in pages for item in page] == [1, 2]
+
+
+def test_http_client_raises_structured_error() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, json={"error": "bad request"})
+
+    transport = httpx.MockTransport(handler)
+    client = HttpClient(base_url="https://example.com", transport=transport)
+
+    try:
+        client.get("/bad")
+    except HttpClientError as exc:
+        assert exc.status_code == 400
+        assert exc.response_json == {"error": "bad request"}
+        assert exc.request_method == "GET"
+        assert "https://example.com/bad" in (exc.request_url or "")
+    else:
+        raise AssertionError("Expected HttpClientError")

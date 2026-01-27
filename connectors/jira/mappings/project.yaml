@@ -4,6 +4,8 @@ target: project
 fields:
   - source: id
     target: id
+  - source: program_id
+    target: program_id
   - source: name
     target: name
   - source: status
@@ -14,3 +16,7 @@ fields:
     target: end_date
   - source: owner
     target: owner
+  - source: classification
+    target: classification
+  - source: created_at
+    target: created_at

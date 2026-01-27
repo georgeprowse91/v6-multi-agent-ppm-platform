@@ -3,8 +3,15 @@
     "id": "jira",
     "name": "Atlassian Jira Cloud",
     "manifest_path": "connectors/jira/manifest.yaml",
-    "status": "alpha",
-    "certification": "pending"
+    "status": "production",
+    "certification": "certified"
+  },
+  {
+    "id": "planview",
+    "name": "Planview",
+    "manifest_path": "connectors/planview/manifest.yaml",
+    "status": "beta",
+    "certification": "automated"
   },
   {
     "id": "servicenow",

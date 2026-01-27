@@ -37,6 +37,7 @@ Example file: `connectors/jira/mappings/project.yaml`.
 
 - Ensure mapping targets exist in `data/schemas/*.schema.json`.
 - Run mapping validation using connector fixtures.
+  - For registry-listed connectors, run `python scripts/connector-certification.py` to validate required target fields.
 
 Example dry-run with Jira fixtures:
 
@@ -46,7 +47,7 @@ python -m connectors.jira.src.main connectors/jira/tests/fixtures/projects.json 
 
 ## Implementation status
 
-- **Implemented:** Connector SDK runtime, manifest validation, mapping application.
+- **Implemented:** Connector SDK runtime, manifest validation, mapping application, and automated mapping coverage checks.
 - **Planned:** Advanced transformations (lookups, enums, date conversions) and quality scoring integration.
 
 ## Related docs

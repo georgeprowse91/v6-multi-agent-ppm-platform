@@ -37,10 +37,20 @@ ls connectors/jira/mappings
 
 Expected output: mapping files such as `project.yaml`.
 
+## Certification automation
+
+Run the automated certification harness to validate manifests, mapping coverage, and contract tests. The command emits a report artifact used by CI:
+
+```bash
+python scripts/connector-certification.py --output artifacts/connector-certification-report.json --run-tests
+```
+
+The report includes per-connector results plus a summary status.
+
 ## Implementation status
 
-- **Planned**: automated certification evidence collection.
-- **Partially implemented**: manual checklist and registry metadata.
+- **Implemented**: automated certification evidence collection and report generation.
+- **Maintained**: manual checklist and registry metadata for audit context.
 
 ## Related docs
 

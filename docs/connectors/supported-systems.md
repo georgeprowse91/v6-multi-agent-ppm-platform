@@ -10,7 +10,8 @@ The authoritative list of connectors lives in `connectors/registry/connectors.js
 
 | Connector ID | Name | Status | Certification |
 | --- | --- | --- | --- |
-| jira | Atlassian Jira Cloud | alpha | pending |
+| jira | Atlassian Jira Cloud | production | certified |
+| planview | Planview | beta | automated |
 | servicenow | ServiceNow | planned | not-started |
 | sap | SAP S/4HANA | planned | not-started |
 
@@ -19,7 +20,6 @@ The authoritative list of connectors lives in `connectors/registry/connectors.js
 Connector folders exist for additional systems with manifests, mappings, and tests but are not yet registered in the connector registry:
 
 - Azure DevOps (`connectors/azure_devops`)
-- Planview (`connectors/planview`)
 - Salesforce (`connectors/salesforce`)
 - SharePoint (`connectors/sharepoint`)
 - Slack (`connectors/slack`)
@@ -41,7 +41,7 @@ To enable these connectors, add registry entries and complete certification evid
 
 ## Implementation status
 
-- **Implemented:** Jira connector registry entry and mapping files.
+- **Implemented:** Jira production connector with certification automation evidence; Planview connector in beta with OAuth2 runtime support.
 - **Planned:** Add remaining connector registry entries and certification evidence.
 
 ## Related docs

@@ -73,8 +73,8 @@ Expected output: a JSON entry for Jira with a manifest path.
 
 ## Implementation status
 
-- **Partially implemented**: connector manifests and mapping templates.
-- **Planned**: connector runtime logic and certification automation.
+- **Implemented**: connector runtime logic, OAuth2 refresh handling, and certification automation baseline.
+- **In progress**: expand connector coverage beyond Jira and Planview with additional contract tests.
 
 ## Related docs
 

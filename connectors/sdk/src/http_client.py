@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Any, Callable, Iterable
 
 import httpx
@@ -12,6 +14,27 @@ class RetryConfig:
     max_retries: int = 3
     backoff_factor: float = 0.5
     retry_statuses: tuple[int, ...] = (429, 500, 502, 503, 504)
+    max_backoff: float = 8.0
+    jitter: float = 0.1
+
+
+@dataclass
+class HttpClientError(Exception):
+    message: str
+    status_code: int | None = None
+    response_text: str | None = None
+    response_json: Any | None = None
+    request_url: str | None = None
+    request_method: str | None = None
+    retryable: bool = False
+
+    def __str__(self) -> str:
+        parts = [self.message]
+        if self.status_code is not None:
+            parts.append(f"status_code={self.status_code}")
+        if self.request_method and self.request_url:
+            parts.append(f"request={self.request_method} {self.request_url}")
+        return " | ".join(parts)
 
 
 class RateLimiter:
@@ -31,6 +54,41 @@ class RateLimiter:
         if elapsed < min_interval:
             time.sleep(min_interval - elapsed)
         self._last_request_at = time.monotonic()
+
+
+def _retry_after_seconds(response: httpx.Response) -> float | None:
+    retry_after = response.headers.get("Retry-After")
+    if not retry_after:
+        return None
+    if retry_after.isdigit():
+        return float(retry_after)
+    try:
+        dt = parsedate_to_datetime(retry_after)
+    except (TypeError, ValueError):
+        return None
+    if not dt.tzinfo:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return max(0.0, (dt - datetime.now(timezone.utc)).total_seconds())
+
+
+def _rate_limit_reset_seconds(response: httpx.Response) -> float | None:
+    remaining = response.headers.get("X-RateLimit-Remaining")
+    reset = response.headers.get("X-RateLimit-Reset")
+    if remaining is None or reset is None:
+        return None
+    try:
+        if int(remaining) > 0:
+            return None
+        reset_epoch = float(reset)
+    except ValueError:
+        return None
+    now_epoch = datetime.now(timezone.utc).timestamp()
+    return max(0.0, reset_epoch - now_epoch)
+
+
+def _sleep_with_backoff(backoff: float, jitter: float) -> None:
+    jitter_amount = backoff * jitter
+    time.sleep(max(0.0, backoff - jitter_amount))
 
 
 def _extract_items(data: dict[str, Any], path: str | list[str]) -> list[dict[str, Any]]:
@@ -75,29 +133,58 @@ class HttpClient:
     def close(self) -> None:
         self._client.close()
 
+    def set_header(self, key: str, value: str) -> None:
+        self._client.headers[key] = value
+
     def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         attempt = 0
         while True:
             self._rate_limiter.wait()
             try:
                 response = self._client.request(method, url, **kwargs)
-            except httpx.RequestError:
+            except httpx.RequestError as exc:
                 if attempt >= self._retry.max_retries:
-                    raise
+                    raise HttpClientError(
+                        "HTTP request failed",
+                        request_url=str(exc.request.url) if exc.request else url,
+                        request_method=method,
+                        retryable=False,
+                    ) from exc
                 attempt += 1
-                time.sleep(self._retry.backoff_factor * (2**(attempt - 1)))
+                backoff = min(self._retry.max_backoff, self._retry.backoff_factor * (2**(attempt - 1)))
+                _sleep_with_backoff(backoff, self._retry.jitter)
                 continue
 
             if response.status_code in self._retry.retry_statuses and attempt < self._retry.max_retries:
-                retry_after = response.headers.get("Retry-After")
-                if retry_after and retry_after.isdigit():
-                    time.sleep(float(retry_after))
+                retry_after = _retry_after_seconds(response)
+                rate_limit_reset = _rate_limit_reset_seconds(response)
+                if retry_after is not None:
+                    time.sleep(retry_after)
+                elif rate_limit_reset is not None:
+                    time.sleep(rate_limit_reset)
                 else:
-                    time.sleep(self._retry.backoff_factor * (2**attempt))
+                    backoff = min(self._retry.max_backoff, self._retry.backoff_factor * (2**attempt))
+                    _sleep_with_backoff(backoff, self._retry.jitter)
                 attempt += 1
                 continue
 
-            response.raise_for_status()
+            if response.is_error:
+                content_type = response.headers.get("Content-Type", "")
+                response_json = None
+                if "application/json" in content_type:
+                    try:
+                        response_json = response.json()
+                    except ValueError:
+                        response_json = None
+                raise HttpClientError(
+                    "HTTP response error",
+                    status_code=response.status_code,
+                    response_text=response.text,
+                    response_json=response_json,
+                    request_url=str(response.request.url),
+                    request_method=response.request.method,
+                    retryable=response.status_code in self._retry.retry_statuses,
+                )
             return response
 
     def get(self, url: str, **kwargs: Any) -> httpx.Response:
@@ -163,4 +250,3 @@ class HttpClient:
             continuation = response.headers.get(continuation_header)
             if not continuation:
                 return
-
