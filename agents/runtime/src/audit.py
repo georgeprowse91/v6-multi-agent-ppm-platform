@@ -63,4 +63,3 @@ def emit_audit_event(event: dict[str, Any]) -> None:
     )
     with request.urlopen(req, timeout=5) as response:
         response.read()
-

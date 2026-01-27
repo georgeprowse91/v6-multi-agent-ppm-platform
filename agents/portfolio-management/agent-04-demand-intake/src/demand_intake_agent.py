@@ -15,11 +15,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from data_quality.helpers import apply_rule_set, validate_against_schema
 from events import DemandCreatedEvent
 from observability.tracing import get_trace_id
+
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class DemandIntakeAgent(BaseAgent):
@@ -301,9 +302,7 @@ class DemandIntakeAgent(BaseAgent):
             "similar_requests": duplicates,
         }
 
-    async def _get_pipeline(
-        self, filters: dict[str, Any], *, tenant_id: str
-    ) -> dict[str, Any]:
+    async def _get_pipeline(self, filters: dict[str, Any], *, tenant_id: str) -> dict[str, Any]:
         """
         Get current demand pipeline status.
 
@@ -319,21 +318,19 @@ class DemandIntakeAgent(BaseAgent):
         if query:
             corpus = [self._combine_text(item) for item in items]
             scores = self._semantic_similarity(query, corpus)
-            scored_items = [
-                (item, score) for item, score in zip(items, scores) if score > 0.05
-            ]
+            scored_items = [(item, score) for item, score in zip(items, scores) if score > 0.05]
             scored_items.sort(key=lambda x: x[1], reverse=True)
             items = [item for item, _ in scored_items]
 
         by_status: dict[str, int] = {}
         by_category: dict[str, int] = {}
         for item in items:
-            by_status[item.get("status", "Unknown")] = by_status.get(
-                item.get("status", "Unknown"), 0
-            ) + 1
-            by_category[item.get("category", "unknown")] = by_category.get(
-                item.get("category", "unknown"), 0
-            ) + 1
+            by_status[item.get("status", "Unknown")] = (
+                by_status.get(item.get("status", "Unknown"), 0) + 1
+            )
+            by_category[item.get("category", "unknown")] = (
+                by_category.get(item.get("category", "unknown"), 0) + 1
+            )
 
         return {
             "total_requests": len(items),

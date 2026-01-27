@@ -6,6 +6,15 @@ import pytest
 from intent_router_agent import IntentRouterAgent
 
 
+def _agent_with_intents(intents: list[dict[str, float]]) -> IntentRouterAgent:
+    return IntentRouterAgent(
+        config={
+            "llm_provider": "mock",
+            "llm_config": {"mock_response": {"intents": intents}},
+        }
+    )
+
+
 @pytest.mark.asyncio
 async def test_intent_router_initialization():
     """Test intent router initialization."""
@@ -21,7 +30,7 @@ async def test_intent_router_initialization():
 @pytest.mark.asyncio
 async def test_portfolio_query_classification():
     """Test classification of portfolio-related queries."""
-    agent = IntentRouterAgent()
+    agent = _agent_with_intents([{"intent": "portfolio_query", "confidence": 0.8}])
     await agent.initialize()
 
     result = await agent.execute({"query": "Show me the portfolio overview", "context": {}})
@@ -35,7 +44,7 @@ async def test_portfolio_query_classification():
 @pytest.mark.asyncio
 async def test_financial_query_classification():
     """Test classification of financial queries."""
-    agent = IntentRouterAgent()
+    agent = _agent_with_intents([{"intent": "financial_query", "confidence": 0.8}])
     await agent.initialize()
 
     result = await agent.execute({"query": "What is the budget variance for Q1?", "context": {}})
@@ -49,7 +58,7 @@ async def test_financial_query_classification():
 @pytest.mark.asyncio
 async def test_schedule_query_classification():
     """Test classification of schedule-related queries."""
-    agent = IntentRouterAgent()
+    agent = _agent_with_intents([{"intent": "schedule_query", "confidence": 0.8}])
     await agent.initialize()
 
     result = await agent.execute(
@@ -65,7 +74,7 @@ async def test_schedule_query_classification():
 @pytest.mark.asyncio
 async def test_risk_query_classification():
     """Test classification of risk-related queries."""
-    agent = IntentRouterAgent()
+    agent = _agent_with_intents([{"intent": "risk_query", "confidence": 0.8}])
     await agent.initialize()
 
     result = await agent.execute(
@@ -81,7 +90,7 @@ async def test_risk_query_classification():
 @pytest.mark.asyncio
 async def test_agent_routing():
     """Test that intents are mapped to correct agents."""
-    agent = IntentRouterAgent()
+    agent = _agent_with_intents([{"intent": "financial_query", "confidence": 0.8}])
     await agent.initialize()
 
     result = await agent.execute({"query": "Show me the budget for Project Alpha", "context": {}})
@@ -89,13 +98,18 @@ async def test_agent_routing():
     assert result["success"] is True
     routing = result["data"]["routing"]
     assert len(routing) > 0
-    assert any("financial" in r["agent_id"] for r in routing)
+    assert any("financial-management" == r["agent_id"] for r in routing)
 
 
 @pytest.mark.asyncio
 async def test_invalid_query():
     """Test handling of invalid queries."""
-    agent = IntentRouterAgent()
+    agent = _agent_with_intents(
+        [
+            {"intent": "financial_query", "confidence": 0.8},
+            {"intent": "schedule_query", "confidence": 0.7},
+        ]
+    )
     await agent.initialize()
 
     # Empty query

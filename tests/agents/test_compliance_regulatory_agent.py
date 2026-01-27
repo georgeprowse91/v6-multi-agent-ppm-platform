@@ -1,5 +1,4 @@
 import pytest
-
 from compliance_regulatory_agent import ComplianceRegulatoryAgent
 
 
@@ -50,3 +49,47 @@ async def test_compliance_regulatory_persists_evidence_and_policy_check(tmp_path
         }
     )
     assert agent.evidence_store.get("tenant-c", evidence["evidence_id"])
+
+
+@pytest.mark.asyncio
+async def test_compliance_dashboard_success(tmp_path):
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_compliance_dashboard", "tenant_id": "tenant-c"})
+
+    assert "dashboard_generated_at" in response
+
+
+@pytest.mark.asyncio
+async def test_compliance_validation_rejects_invalid_action(tmp_path):
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_compliance_validation_rejects_missing_control_fields(tmp_path):
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {"action": "define_control", "control": {"description": "X"}}
+    )
+
+    assert valid is False

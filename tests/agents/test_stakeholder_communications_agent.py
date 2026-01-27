@@ -1,5 +1,4 @@
 import pytest
-
 from stakeholder_communications_agent import StakeholderCommunicationsAgent
 
 
@@ -47,4 +46,47 @@ async def test_stakeholder_persisted_and_consent_enforced(tmp_path):
     )
 
     assert send["recipients"] == 1
-    assert agent.messages[message["message_id"]]["delivery_results"][0]["status"] == "skipped_no_consent"
+    assert (
+        agent.messages[message["message_id"]]["delivery_results"][0]["status"]
+        == "skipped_no_consent"
+    )
+
+
+@pytest.mark.asyncio
+async def test_stakeholder_dashboard_success(tmp_path):
+    agent = StakeholderCommunicationsAgent(
+        config={"stakeholder_store_path": tmp_path / "stakeholders.json"}
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {"action": "get_stakeholder_dashboard", "tenant_id": "tenant-comms"}
+    )
+
+    assert "stakeholder_summary" in response
+
+
+@pytest.mark.asyncio
+async def test_stakeholder_validation_rejects_invalid_action(tmp_path):
+    agent = StakeholderCommunicationsAgent(
+        config={"stakeholder_store_path": tmp_path / "stakeholders.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_stakeholder_validation_rejects_missing_fields(tmp_path):
+    agent = StakeholderCommunicationsAgent(
+        config={"stakeholder_store_path": tmp_path / "stakeholders.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {"action": "register_stakeholder", "stakeholder": {"name": "X"}}
+    )
+
+    assert valid is False

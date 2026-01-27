@@ -1,7 +1,6 @@
 import json
 
 import pytest
-
 from analytics_insights_agent import AnalyticsInsightsAgent
 
 
@@ -40,3 +39,39 @@ async def test_analytics_persists_outputs_and_masks_lineage(tmp_path, monkeypatc
     stored_lineage = agent.analytics_lineage_store.get("tenant-analytics", lineage["lineage_id"])
     assert stored_lineage is not None
     assert "jane.doe@example.com" not in json.dumps(stored_lineage)
+
+
+@pytest.mark.asyncio
+async def test_analytics_get_insights_success(tmp_path):
+    agent = AnalyticsInsightsAgent(
+        config={"analytics_output_store_path": tmp_path / "outputs.json"}
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_insights", "tenant_id": "tenant-analytics"})
+
+    assert "insights" in response
+
+
+@pytest.mark.asyncio
+async def test_analytics_rejects_invalid_action(tmp_path):
+    agent = AnalyticsInsightsAgent(
+        config={"analytics_output_store_path": tmp_path / "outputs.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "unknown"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_analytics_rejects_missing_dashboard(tmp_path):
+    agent = AnalyticsInsightsAgent(
+        config={"analytics_output_store_path": tmp_path / "outputs.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "create_dashboard"})
+
+    assert valid is False

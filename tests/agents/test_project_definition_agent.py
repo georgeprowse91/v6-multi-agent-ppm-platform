@@ -1,5 +1,4 @@
 import pytest
-
 from project_definition_agent import ProjectDefinitionAgent
 
 
@@ -67,3 +66,69 @@ async def test_project_definition_persists_charter_and_wbs(tmp_path):
     assert agent.wbs_store.get("tenant-a", project_id)
     assert any(topic == "wbs.created" for topic, _ in event_bus.events)
     assert len(approval_stub.requests) >= 2
+
+
+@pytest.mark.asyncio
+async def test_project_definition_get_charter(tmp_path):
+    agent = ProjectDefinitionAgent(
+        config={
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "generate_charter",
+            "tenant_id": "tenant-a",
+            "charter_data": {
+                "title": "Project Borealis",
+                "description": "Define scope",
+                "project_type": "delivery",
+                "methodology": "agile",
+            },
+        }
+    )
+
+    charter = await agent.process(
+        {
+            "action": "get_charter",
+            "tenant_id": "tenant-a",
+            "project_id": created["project_id"],
+        }
+    )
+
+    assert charter["project_id"] == created["project_id"]
+
+
+@pytest.mark.asyncio
+async def test_project_definition_validation_rejects_invalid_action(tmp_path):
+    agent = ProjectDefinitionAgent(
+        config={
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_project_definition_validation_rejects_missing_fields(tmp_path):
+    agent = ProjectDefinitionAgent(
+        config={
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {"action": "generate_charter", "charter_data": {"title": "X"}}
+    )
+
+    assert valid is False

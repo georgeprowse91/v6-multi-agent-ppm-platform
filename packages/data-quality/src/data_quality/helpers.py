@@ -100,4 +100,3 @@ def apply_rule_set(rule_set: dict[str, Any] | str | Path, payload: dict[str, Any
                     )
 
     return RuleSetResult(issues=tuple(issues))
-

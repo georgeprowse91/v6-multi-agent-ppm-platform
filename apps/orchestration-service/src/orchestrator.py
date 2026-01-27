@@ -68,6 +68,9 @@ class AgentOrchestrator:
         await self._load_operations_agents()  # Agents 13, 14, 15, 17, 21
         await self._load_platform_agents()  # Agents 18, 19, 20, 22, 23, 24, 25
 
+        if self.response_orchestrator:
+            self.response_orchestrator.agent_registry = self.agents
+
         self.initialized = True
         logger.info(f"Orchestrator initialized with {len(self.agents)} agents")
 

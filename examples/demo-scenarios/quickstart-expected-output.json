@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "data": {
+    "aggregated_response": "[portfolio-strategy-optimization]: ...\n[financial-management]: ...\n[risk-management]: ...",
+    "agent_results": [
+      {
+        "success": true,
+        "agent_id": "portfolio-strategy-optimization",
+        "data": {
+          "success": true,
+          "data": {
+            "portfolio_id": "PORT-APOLLO"
+          }
+        }
+      },
+      {
+        "success": true,
+        "agent_id": "financial-management",
+        "data": {
+          "success": true,
+          "data": {
+            "project_id": "APOLLO"
+          }
+        }
+      },
+      {
+        "success": true,
+        "agent_id": "risk-management",
+        "data": {
+          "success": true,
+          "data": {
+            "project_id": "APOLLO"
+          }
+        }
+      }
+    ],
+    "execution_summary": {
+      "total_agents": 3,
+      "successful": 3,
+      "failed": 0
+    }
+  }
+}

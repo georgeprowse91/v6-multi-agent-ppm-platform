@@ -9,12 +9,15 @@ Specification: agents/core-orchestration/agent-01-intent-router/README.md
 """
 
 import json
+import os
 import re
 import sys
 import uuid
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from agents.runtime import BaseAgent
 
@@ -27,10 +30,86 @@ if str(PROMPT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROMPT_ROOT))
 
 from llm import LLMClient  # noqa: E402
+from observability.tracing import get_trace_id  # noqa: E402
 from prompt_registry import enforce_redaction, load_prompt_by_agent  # noqa: E402
 
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
-from observability.tracing import get_trace_id  # noqa: E402
+
+
+class IntentRouterContext(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    tenant_id: str | None = None
+    correlation_id: str | None = None
+
+
+class IntentRouterRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    query: str = Field(..., min_length=1)
+    context: dict[str, Any] | None = None
+
+    @field_validator("query")
+    @classmethod
+    def normalize_query(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("query must not be empty")
+        return cleaned
+
+
+class IntentPrediction(BaseModel):
+    intent: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+
+
+class IntentRouterLLMResponse(BaseModel):
+    intents: list[IntentPrediction] = Field(default_factory=list)
+    parameters: dict[str, Any] | None = None
+    dependencies: dict[str, list[str]] | None = None
+
+
+class ExtractedParameters(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    project_id: str | None = None
+    portfolio_id: str | None = None
+    currency: str | None = None
+    amount: float | None = Field(default=None, ge=0.0)
+    entity_type: str | None = None
+    schedule_focus: str | None = None
+
+    @field_validator("currency")
+    @classmethod
+    def normalize_currency(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        currency = value.upper()
+        allowed = {"USD", "EUR", "GBP", "JPY"}
+        if currency not in allowed:
+            raise ValueError("Unsupported currency")
+        return currency
+
+
+class RoutingDecision(BaseModel):
+    agent_id: str
+    priority: float = Field(..., ge=0.0, le=1.0)
+    intent: str
+    depends_on: list[str] = Field(default_factory=list)
+    action: str | None = None
+
+
+class IntentRouterResponse(BaseModel):
+    intents: list[IntentPrediction]
+    routing: list[RoutingDecision]
+    parameters: dict[str, Any]
+    query: str
+    context: dict[str, Any]
+
+
+class ValidationErrorPayload(BaseModel):
+    error: str
+    details: list[dict[str, Any]]
 
 
 class IntentRouterAgent(BaseAgent):
@@ -87,11 +166,21 @@ class IntentRouterAgent(BaseAgent):
             "please",
         }
         self.intent_confidence_threshold = self.config.get("intent_confidence_threshold", 0.6)
+        llm_config = self.config.get("llm_config") or {}
+        if (
+            not llm_config
+            and (self.config.get("llm_provider") or os.getenv("LLM_PROVIDER")) == "mock"
+        ):
+            mock_response = self._load_mock_response()
+            if mock_response is not None:
+                llm_config = {"mock_response": mock_response}
+
         self.llm_client = self.config.get("llm_client") or LLMClient(
             provider=self.config.get("llm_provider"),
-            config=self.config.get("llm_config"),
+            config=llm_config,
         )
         self.prompt: dict[str, Any] | None = None
+        self._last_validation_error: dict[str, Any] | None = None
 
     async def initialize(self) -> None:
         """Initialize NLP models and routing configuration."""
@@ -101,12 +190,14 @@ class IntentRouterAgent(BaseAgent):
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate that query is present and valid."""
-        if "query" not in input_data:
+        try:
+            IntentRouterRequest.model_validate(input_data)
+        except ValidationError as exc:
+            self._last_validation_error = ValidationErrorPayload(
+                error="validation_error", details=exc.errors()
+            ).model_dump()
             return False
-        if not isinstance(input_data["query"], str):
-            return False
-        if len(input_data["query"].strip()) == 0:
-            return False
+        self._last_validation_error = None
         return True
 
     async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
@@ -126,8 +217,9 @@ class IntentRouterAgent(BaseAgent):
                 "parameters": Extracted parameters for downstream agents
             }
         """
-        query = input_data["query"]
-        context = input_data.get("context", {})
+        request = IntentRouterRequest.model_validate(input_data)
+        query = request.query
+        context = request.context or {}
         tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
         correlation_id = (
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
@@ -146,9 +238,11 @@ class IntentRouterAgent(BaseAgent):
 
         llm_response = await self.llm_client.complete(system_prompt, user_prompt)
         llm_data = self._parse_llm_response(llm_response.content)
-        intents = self._normalize_intents(llm_data.get("intents", []))
-        parameters = llm_data.get("parameters") or {}
-        agents = await self._determine_agents(intents, llm_data.get("dependencies"))
+        intents = self._normalize_intents(llm_data.intents)
+        parameters = llm_data.parameters or {}
+        if not parameters:
+            parameters = await self._extract_parameters(query, intents)
+        agents = await self._determine_agents(intents, llm_data.dependencies)
 
         audit_event = build_audit_event(
             tenant_id=tenant_id,
@@ -169,13 +263,29 @@ class IntentRouterAgent(BaseAgent):
         )
         emit_audit_event(audit_event)
 
-        return {
-            "intents": intents,
-            "routing": agents,
-            "parameters": parameters,
-            "query": query,
-            "context": context,
-        }
+        response = IntentRouterResponse(
+            intents=[IntentPrediction(**intent) for intent in intents],
+            routing=[RoutingDecision(**agent) for agent in agents],
+            parameters=parameters,
+            query=query,
+            context=context,
+        )
+        return response.model_dump()
+
+    def _load_mock_response(self) -> dict[str, Any] | None:
+        mock_path = os.getenv("LLM_MOCK_RESPONSE_PATH")
+        if mock_path:
+            try:
+                return json.loads(Path(mock_path).read_text())
+            except (OSError, json.JSONDecodeError) as exc:
+                self.logger.warning("Failed to load LLM mock response", extra={"error": str(exc)})
+        mock_raw = os.getenv("LLM_MOCK_RESPONSE")
+        if mock_raw:
+            try:
+                return json.loads(mock_raw)
+            except json.JSONDecodeError as exc:
+                self.logger.warning("Failed to parse LLM mock response", extra={"error": str(exc)})
+        return None
 
     def _render_prompt(self, template: str, payload: dict[str, Any]) -> str:
         def _resolve(path: str) -> Any:
@@ -197,7 +307,7 @@ class IntentRouterAgent(BaseAgent):
 
         return re.sub(r"{{\\s*([\\w\\.]+)\\s*}}", _replace, template)
 
-    def _parse_llm_response(self, content: str) -> dict[str, Any]:
+    def _parse_llm_response(self, content: str) -> IntentRouterLLMResponse:
         try:
             data = json.loads(content)
         except json.JSONDecodeError as exc:
@@ -205,19 +315,19 @@ class IntentRouterAgent(BaseAgent):
             raise ValueError("Invalid LLM response payload") from exc
         if not isinstance(data, dict):
             raise ValueError("LLM response must be a JSON object")
-        return data
+        try:
+            return IntentRouterLLMResponse.model_validate(data)
+        except ValidationError as exc:
+            raise ValueError("LLM response schema invalid") from exc
 
-    def _normalize_intents(self, intents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _normalize_intents(self, intents: list[IntentPrediction]) -> list[dict[str, Any]]:
         normalized: list[dict[str, Any]] = []
         for entry in intents:
-            intent = str(entry.get("intent", "general_query"))
-            confidence = entry.get("confidence", 0.0)
+            intent = str(entry.intent or "general_query")
+            confidence = entry.confidence
             if intent not in self.supported_intents:
                 intent = "general_query"
-            try:
-                confidence_value = float(confidence)
-            except (TypeError, ValueError):
-                confidence_value = 0.0
+            confidence_value = float(confidence)
             if confidence_value < self.intent_confidence_threshold:
                 continue
             normalized.append(
@@ -289,30 +399,31 @@ class IntentRouterAgent(BaseAgent):
         Returns list of agents with execution order.
         """
         agent_mapping = {
-            "portfolio_query": ["portfolio-strategy-agent"],
-            "schedule_query": ["schedule-planning-agent"],
-            "financial_query": ["financial-management-agent"],
-            "risk_query": ["risk-management-agent"],
-            "resource_query": ["resource-capacity-agent"],
-            "analytics_query": ["analytics-insights-agent"],
+            "portfolio_query": ("portfolio-strategy-optimization", "get_portfolio_status"),
+            "schedule_query": ("schedule-planning", "get_schedule"),
+            "financial_query": ("financial-management", "get_financial_summary"),
+            "risk_query": ("risk-management", "get_risk_dashboard"),
+            "resource_query": ("resource-capacity-management", "get_resource_pool"),
+            "analytics_query": ("analytics-insights", "get_insights"),
         }
 
         agents = []
         for intent in intents:
             intent_type = intent["intent"]
             if intent_type in agent_mapping:
-                for agent_id in agent_mapping[intent_type]:
-                    depends_on = []
-                    if dependencies and agent_id in dependencies:
-                        depends_on = list(dependencies.get(agent_id, []))
-                    agents.append(
-                        {
-                            "agent_id": agent_id,
-                            "priority": intent["confidence"],
-                            "intent": intent_type,
-                            "depends_on": depends_on,
-                        }
-                    )
+                agent_id, action = agent_mapping[intent_type]
+                depends_on = []
+                if dependencies and agent_id in dependencies:
+                    depends_on = list(dependencies.get(agent_id, []))
+                agents.append(
+                    {
+                        "agent_id": agent_id,
+                        "priority": intent["confidence"],
+                        "intent": intent_type,
+                        "depends_on": depends_on,
+                        "action": action,
+                    }
+                )
 
         # Sort by priority (confidence)
         agents.sort(key=lambda x: x["priority"], reverse=True)
@@ -360,7 +471,10 @@ class IntentRouterAgent(BaseAgent):
             if "milestone" in query_lower:
                 parameters["schedule_focus"] = "milestones"
 
-        return parameters
+        try:
+            return ExtractedParameters.model_validate(parameters).model_dump(exclude_none=True)
+        except ValidationError:
+            return parameters
 
     def get_capabilities(self) -> list[str]:
         """Return list of capabilities."""

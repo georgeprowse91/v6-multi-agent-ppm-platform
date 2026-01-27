@@ -1,7 +1,6 @@
 import json
 
 import pytest
-
 from system_health_agent import SystemHealthAgent
 
 
@@ -46,3 +45,48 @@ async def test_system_health_persists_alerts_and_redacts_pii(tmp_path):
     stored_incident = agent.incident_store.get("tenant-health", incident["incident_id"])
     assert stored_incident is not None
     assert "555-0101" not in json.dumps(stored_incident)
+
+
+@pytest.mark.asyncio
+async def test_system_health_status_success(tmp_path):
+    agent = SystemHealthAgent(
+        config={
+            "alert_store_path": tmp_path / "alerts.json",
+            "incident_store_path": tmp_path / "incidents.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_system_status", "tenant_id": "tenant-health"})
+
+    assert response["overall_status"] in {"healthy", "degraded", "critical"}
+
+
+@pytest.mark.asyncio
+async def test_system_health_validation_rejects_invalid_action(tmp_path):
+    agent = SystemHealthAgent(
+        config={
+            "alert_store_path": tmp_path / "alerts.json",
+            "incident_store_path": tmp_path / "incidents.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_system_health_validation_rejects_missing_action(tmp_path):
+    agent = SystemHealthAgent(
+        config={
+            "alert_store_path": tmp_path / "alerts.json",
+            "incident_store_path": tmp_path / "incidents.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({})
+
+    assert valid is False

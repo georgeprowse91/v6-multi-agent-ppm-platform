@@ -13,11 +13,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from approval_workflow_agent import ApprovalWorkflowAgent
 from events import ProjectTransitionedEvent
 from observability.tracing import get_trace_id
+
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class ProjectLifecycleAgent(BaseAgent):
@@ -1051,9 +1052,7 @@ class ProjectLifecycleAgent(BaseAgent):
             )
         return alerts
 
-    async def _get_lifecycle_state(
-        self, tenant_id: str, project_id: str
-    ) -> dict[str, Any] | None:
+    async def _get_lifecycle_state(self, tenant_id: str, project_id: str) -> dict[str, Any] | None:
         lifecycle_state = self.lifecycle_states.get(project_id)
         if not lifecycle_state:
             lifecycle_state = self.lifecycle_store.get(tenant_id, project_id)

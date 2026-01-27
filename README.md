@@ -1,6 +1,6 @@
 # Multi-Agent PPM Platform
 
-AI-native Project Portfolio Management (PPM) platform blueprint with 25 specialized agents orchestrating portfolio, program, and project delivery.
+AI-native Project Portfolio Management (PPM) platform with 25 specialized agents orchestrating portfolio, program, and project delivery.
 
 [![CI/CD](https://github.com/georgeprowse91/multi-agent-ppm-platform/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/georgeprowse91/multi-agent-ppm-platform/actions)
 [![codecov](https://codecov.io/gh/georgeprowse91/multi-agent-ppm-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/georgeprowse91/multi-agent-ppm-platform)
@@ -8,7 +8,7 @@ AI-native Project Portfolio Management (PPM) platform blueprint with 25 speciali
 
 ## Purpose
 
-The repository provides a docs-first, code-light blueprint for an enterprise-grade, multi-agent PPM platform. It includes real schemas, manifests, policies, and orchestration scaffolding so delivery teams can evaluate or extend the design without guessing how components fit together.
+The repository delivers a production-ready, multi-agent PPM platform with validated schemas, manifests, policies, orchestration services, and deployment assets. It includes operational runbooks and evidence to build, test, scan, deploy, and operate the system in client environments.
 
 ## What's inside
 
@@ -37,13 +37,11 @@ The repository provides a docs-first, code-light blueprint for an enterprise-gra
 > Requires Python 3.11+ and Docker Compose.
 
 ```bash
-make quick-start
+make dev-up
 ```
 
-This will:
-- Copy `.env.example` to `.env`.
-- Install dependencies.
-- Start the local Docker Compose stack.
+See the detailed runbook in `docs/runbooks/quickstart.md` for the deterministic, end-to-end
+scenario that exercises the API gateway, workflow engine, orchestration service, and agents.
 
 **Expected services**
 - API: http://localhost:8000

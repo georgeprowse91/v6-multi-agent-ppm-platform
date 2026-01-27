@@ -52,3 +52,33 @@ async def test_portfolio_optimization_knapsack_with_constraints():
     selected_ids = {item["project_id"] for item in result["selected_projects"]}
     assert "P1" in selected_ids
     assert result["total_cost"] <= 900
+
+
+@pytest.mark.asyncio
+async def test_portfolio_get_status_success(tmp_path):
+    agent = PortfolioStrategyAgent(config={"portfolio_store_path": tmp_path / "portfolio.json"})
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_portfolio_status", "tenant_id": "tenant-a"})
+
+    assert "total_projects" in response
+
+
+@pytest.mark.asyncio
+async def test_portfolio_validation_rejects_invalid_action():
+    agent = PortfolioStrategyAgent()
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_portfolio_validation_rejects_missing_constraints():
+    agent = PortfolioStrategyAgent()
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "optimize_portfolio", "constraints": {}})
+
+    assert valid is False

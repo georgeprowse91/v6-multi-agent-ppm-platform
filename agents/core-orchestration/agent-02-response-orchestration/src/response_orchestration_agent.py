@@ -9,22 +9,66 @@ Specification: agents/core-orchestration/agent-02-response-orchestration/README.
 """
 
 import asyncio
+import json
 import sys
+import time
 import uuid
+from pathlib import Path
 from typing import Any, cast
 
 import httpx
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from agents.runtime import BaseAgent, InMemoryEventBus
-from pathlib import Path
 
 OBSERVABILITY_ROOT = Path(__file__).resolve().parents[5] / "packages" / "observability" / "src"
 if str(OBSERVABILITY_ROOT) not in sys.path:
     sys.path.insert(0, str(OBSERVABILITY_ROOT))
 
+from observability.metrics import configure_metrics  # noqa: E402
 from observability.tracing import get_trace_id, inject_trace_headers  # noqa: E402
 
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+
+
+class RoutingEntry(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    agent_id: str
+    priority: float | None = Field(default=None, ge=0.0, le=1.0)
+    intent: str | None = None
+    depends_on: list[str] = Field(default_factory=list)
+    action: str | None = None
+
+
+class OrchestrationRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    routing: list[RoutingEntry]
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    query: str | None = None
+    context: dict[str, Any] | None = None
+    correlation_id: str | None = None
+    tenant_id: str | None = None
+
+
+class AgentInvocationResult(BaseModel):
+    success: bool
+    agent_id: str
+    data: dict[str, Any] | None = None
+    error: str | None = None
+    cached: bool = False
+
+
+class OrchestrationResponse(BaseModel):
+    aggregated_response: str
+    agent_results: list[AgentInvocationResult]
+    execution_summary: dict[str, Any]
+
+
+class ValidationErrorPayload(BaseModel):
+    error: str
+    details: list[dict[str, Any]]
 
 
 class ResponseOrchestrationAgent(BaseAgent):
@@ -46,18 +90,43 @@ class ResponseOrchestrationAgent(BaseAgent):
         self.max_concurrency = config.get("max_concurrency", 5) if config else 5
         self.agent_timeout = config.get("agent_timeout", 30) if config else 30
         self.cache_ttl = config.get("cache_ttl", 900) if config else 900  # 15 minutes
+        self.cache_max_entries = config.get("cache_max_entries", 256) if config else 256
         self.agent_endpoints = config.get("agent_endpoints", {}) if config else {}
         self.max_retries = config.get("max_retries", 2) if config else 2
         self.retry_backoff_base = config.get("retry_backoff_base", 0.5) if config else 0.5
         self.retry_backoff_max = config.get("retry_backoff_max", 5.0) if config else 5.0
-        self.circuit_breaker_threshold = (
-            config.get("circuit_breaker_threshold", 3) if config else 3
-        )
+        self.circuit_breaker_threshold = config.get("circuit_breaker_threshold", 3) if config else 3
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
         self.http_client = config.get("http_client") if config else None
+        self.agent_registry: dict[str, BaseAgent] = (
+            config.get("agent_registry", {}) if config else {}
+        )
         self._failure_counts: dict[str, int] = {}
+        self._cache: dict[str, tuple[float, dict[str, Any]]] = {}
+        self._last_validation_error: dict[str, Any] | None = None
+        meter = configure_metrics("response-orchestration")
+        self._cache_hits = meter.create_counter(
+            name="orchestration_cache_hits_total",
+            description="Number of orchestration cache hits",
+            unit="1",
+        )
+        self._cache_misses = meter.create_counter(
+            name="orchestration_cache_misses_total",
+            description="Number of orchestration cache misses",
+            unit="1",
+        )
+        self._agent_latency = meter.create_histogram(
+            name="orchestration_agent_latency_seconds",
+            description="Latency per agent invocation",
+            unit="s",
+        )
+        self._agent_failures = meter.create_counter(
+            name="orchestration_agent_failures_total",
+            description="Number of agent invocation failures",
+            unit="1",
+        )
 
     async def initialize(self) -> None:
         """Initialize orchestration engine and cache."""
@@ -67,6 +136,17 @@ class ResponseOrchestrationAgent(BaseAgent):
         # Future work: Load agent registry
         if self.http_client is None:
             self.http_client = httpx.AsyncClient(timeout=self.agent_timeout)
+
+    async def validate_input(self, input_data: dict[str, Any]) -> bool:
+        try:
+            OrchestrationRequest.model_validate(input_data)
+        except ValidationError as exc:
+            self._last_validation_error = ValidationErrorPayload(
+                error="validation_error", details=exc.errors()
+            ).model_dump()
+            return False
+        self._last_validation_error = None
+        return True
 
     async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -86,13 +166,14 @@ class ResponseOrchestrationAgent(BaseAgent):
                 "execution_summary": Timing and status info
             }
         """
-        routing = input_data.get("routing", [])
-        parameters = input_data.get("parameters", {})
-        context = input_data.get("context", {})
+        request = OrchestrationRequest.model_validate(input_data)
+        routing = [entry.model_dump() for entry in request.routing]
+        parameters = request.parameters
+        context = request.context or {}
         correlation_id = (
-            context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+            context.get("correlation_id") or request.correlation_id or str(uuid.uuid4())
         )
-        tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
+        tenant_id = context.get("tenant_id") or request.tenant_id or "unknown"
 
         if not routing:
             return {
@@ -126,15 +207,16 @@ class ResponseOrchestrationAgent(BaseAgent):
             },
         )
 
-        return {
-            "aggregated_response": aggregated,
-            "agent_results": results,
-            "execution_summary": {
+        response = OrchestrationResponse(
+            aggregated_response=aggregated,
+            agent_results=[AgentInvocationResult(**result) for result in results],
+            execution_summary={
                 "total_agents": len(routing),
                 "successful": len([r for r in results if r.get("success")]),
                 "failed": len([r for r in results if not r.get("success")]),
             },
-        }
+        )
+        return response.model_dump()
 
     async def _build_execution_plan(self, routing: list[dict[str, Any]]) -> dict[str, Any]:
         """
@@ -144,8 +226,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         """
         nodes = {item["agent_id"]: dict(item) for item in routing}
         dependencies = {
-            agent_id: set(item.get("depends_on") or [])
-            for agent_id, item in nodes.items()
+            agent_id: set(item.get("depends_on") or []) for agent_id, item in nodes.items()
         }
         for agent_id, deps in dependencies.items():
             dependencies[agent_id] = {dep for dep in deps if dep in nodes and dep != agent_id}
@@ -206,16 +287,18 @@ class ResponseOrchestrationAgent(BaseAgent):
 
         Returns list of results from all agents.
         """
-        tasks = []
-        for agent_info in agents[: self.max_concurrency]:
-            task = self._invoke_agent(
-                agent_info,
-                parameters,
-                correlation_id=correlation_id,
-                tenant_id=tenant_id,
-            )
-            tasks.append(task)
+        semaphore = asyncio.Semaphore(self.max_concurrency)
 
+        async def _bounded_invoke(agent_info: dict[str, Any]) -> dict[str, Any]:
+            async with semaphore:
+                return await self._invoke_agent(
+                    agent_info,
+                    parameters,
+                    correlation_id=correlation_id,
+                    tenant_id=tenant_id,
+                )
+
+        tasks = [_bounded_invoke(agent_info) for agent_info in agents]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Convert exceptions to error results
@@ -251,6 +334,14 @@ class ResponseOrchestrationAgent(BaseAgent):
         assert self.http_client is not None
         assert self.event_bus is not None
         agent_id = agent_info["agent_id"]
+        action = agent_info.get("action")
+        cache_key = self._cache_key(agent_id, action, parameters, tenant_id)
+        cached = self._get_cached_result(cache_key)
+        if cached:
+            self._cache_hits.add(1, {"agent_id": agent_id})
+            self.logger.info("cache_hit", extra={"agent_id": agent_id})
+            return {**cached, "cached": True}
+        self._cache_misses.add(1, {"agent_id": agent_id})
         if self._is_circuit_open(agent_id):
             result = {
                 "success": False,
@@ -272,15 +363,35 @@ class ResponseOrchestrationAgent(BaseAgent):
             "agent_id": agent_id,
             "parameters": parameters,
             "correlation_id": correlation_id,
+            "action": action,
         }
-        result = await self._invoke_with_retries(
-            agent_id=agent_id,
-            endpoint=endpoint,
-            payload=payload,
-            correlation_id=correlation_id,
-            parameters=parameters,
-            tenant_id=tenant_id,
-        )
+        start = time.perf_counter()
+        try:
+            result = await asyncio.wait_for(
+                self._invoke_with_retries(
+                    agent_id=agent_id,
+                    endpoint=endpoint,
+                    payload=payload,
+                    correlation_id=correlation_id,
+                    parameters=parameters,
+                    tenant_id=tenant_id,
+                    action=action,
+                ),
+                timeout=self.agent_timeout,
+            )
+        except TimeoutError:
+            self._agent_failures.add(1, {"agent_id": agent_id, "reason": "timeout"})
+            return {"success": False, "agent_id": agent_id, "error": "Agent timeout"}
+        finally:
+            elapsed = time.perf_counter() - start
+            self._agent_latency.record(elapsed, {"agent_id": agent_id})
+
+        if result.get("success"):
+            self._set_cached_result(cache_key, result)
+        else:
+            self._agent_failures.add(
+                1, {"agent_id": agent_id, "reason": result.get("error", "unknown")}
+            )
         return result
 
     async def _invoke_with_retries(
@@ -292,6 +403,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         correlation_id: str,
         parameters: dict[str, Any],
         tenant_id: str,
+        action: str | None,
     ) -> dict[str, Any]:
         attempt = 0
         last_error: str | None = None
@@ -311,6 +423,19 @@ class ResponseOrchestrationAgent(BaseAgent):
                     response = await self.http_client.post(endpoint, json=payload, headers=headers)
                     response.raise_for_status()
                     data = response.json()
+                elif agent_id in self.agent_registry:
+                    agent_payload = {
+                        "action": action,
+                        **parameters,
+                        "context": {
+                            "tenant_id": tenant_id,
+                            "correlation_id": correlation_id,
+                        },
+                    }
+                    self.logger.info("Invoking agent locally", extra={"agent_id": agent_id})
+                    data = await self.agent_registry[agent_id].execute(agent_payload)
+                    if isinstance(data, dict) and data.get("success") is False:
+                        raise RuntimeError(data.get("error") or "Local agent execution failed")
                 else:
                     self.logger.info(f"Invoking agent via event bus: {agent_id}")
                     data = {
@@ -320,7 +445,11 @@ class ResponseOrchestrationAgent(BaseAgent):
                     }
                     await self.event_bus.publish(
                         "agent.requested",
-                        {"agent_id": agent_id, "payload": payload, "correlation_id": correlation_id},
+                        {
+                            "agent_id": agent_id,
+                            "payload": payload,
+                            "correlation_id": correlation_id,
+                        },
                     )
 
                 result = {"success": True, "agent_id": agent_id, "data": data}
@@ -336,7 +465,9 @@ class ResponseOrchestrationAgent(BaseAgent):
 
             attempt += 1
             if attempt <= self.max_retries:
-                backoff = min(self.retry_backoff_base * (2 ** (attempt - 1)), self.retry_backoff_max)
+                backoff = min(
+                    self.retry_backoff_base * (2 ** (attempt - 1)), self.retry_backoff_max
+                )
                 if backoff > 0:
                     await asyncio.sleep(backoff)
 
@@ -398,10 +529,43 @@ class ResponseOrchestrationAgent(BaseAgent):
         for result in successful_results:
             agent_id = result.get("agent_id", "unknown")
             data = result.get("data", {})
-            message = data.get("message", "No response")
+            if isinstance(data, dict):
+                message = data.get("message")
+                if message is None and "data" in data:
+                    message = json.dumps(data.get("data"), default=str)
+            else:
+                message = str(data)
+            if not message:
+                message = "No response"
             responses.append(f"[{agent_id}]: {message}")
 
         return "\n".join(responses)
+
+    def _cache_key(
+        self, agent_id: str, action: str | None, parameters: dict[str, Any], tenant_id: str
+    ) -> str:
+        payload = {
+            "agent_id": agent_id,
+            "action": action,
+            "parameters": parameters,
+            "tenant_id": tenant_id,
+        }
+        return json.dumps(payload, sort_keys=True, default=str)
+
+    def _get_cached_result(self, cache_key: str) -> dict[str, Any] | None:
+        cached = self._cache.get(cache_key)
+        if not cached:
+            return None
+        expires_at, result = cached
+        if time.time() > expires_at:
+            self._cache.pop(cache_key, None)
+            return None
+        return result
+
+    def _set_cached_result(self, cache_key: str, result: dict[str, Any]) -> None:
+        if self.cache_max_entries and len(self._cache) >= self.cache_max_entries:
+            self._cache.pop(next(iter(self._cache)), None)
+        self._cache[cache_key] = (time.time() + self.cache_ttl, result)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

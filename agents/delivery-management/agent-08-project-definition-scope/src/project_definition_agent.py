@@ -13,11 +13,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from approval_workflow_agent import ApprovalWorkflowAgent
 from events import CharterCreatedEvent, WbsCreatedEvent
 from observability.tracing import get_trace_id
+
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class ProjectDefinitionAgent(BaseAgent):

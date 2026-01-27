@@ -13,9 +13,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
+from approval_workflow_agent import ApprovalWorkflowAgent
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from approval_workflow_agent import ApprovalWorkflowAgent
 
 
 class ReleaseDeploymentAgent(BaseAgent):
@@ -330,7 +331,9 @@ class ReleaseDeploymentAgent(BaseAgent):
             "status": "Planned",
             "approval_required": approval_required,
             "approval": approval_payload,
-            "approval_status": approval_payload.get("status") if approval_payload else "not_required",
+            "approval_status": (
+                approval_payload.get("status") if approval_payload else "not_required"
+            ),
             "environment_available": env_availability,
             "conflicts": conflicts,
             "alternative_windows": alternative_windows,

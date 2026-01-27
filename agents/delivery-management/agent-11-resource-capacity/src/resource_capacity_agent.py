@@ -13,11 +13,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from data_quality.rules import evaluate_quality_rules
 from events import ResourceAllocationCreatedEvent
 from observability.tracing import get_trace_id
+
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class ResourceCapacityAgent(BaseAgent):
@@ -186,14 +187,10 @@ class ResourceCapacityAgent(BaseAgent):
         )
 
         if action == "add_resource":
-            return await self._add_resource(
-                input_data.get("resource", {}), tenant_id=tenant_id
-            )
+            return await self._add_resource(input_data.get("resource", {}), tenant_id=tenant_id)
 
         elif action == "request_resource":
-            return await self._request_resource(
-                input_data.get("request", {}), tenant_id=tenant_id
-            )
+            return await self._request_resource(input_data.get("request", {}), tenant_id=tenant_id)
 
         elif action == "approve_request":
             request_id = input_data.get("request_id")

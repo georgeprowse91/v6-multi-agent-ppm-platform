@@ -8,16 +8,17 @@ Performs financial analysis and ROI modelling to support investment decisions.
 Specification: agents/portfolio-management/agent-05-business-case-investment/README.md
 """
 
+import uuid
 from datetime import datetime
 from pathlib import Path
-import uuid
 from typing import Any
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from data_quality.helpers import apply_rule_set, validate_against_schema
 from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
 from observability.tracing import get_trace_id
+
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class BusinessCaseInvestmentAgent(BaseAgent):

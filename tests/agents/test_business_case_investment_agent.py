@@ -1,5 +1,4 @@
 import pytest
-
 from business_case_investment_agent import BusinessCaseInvestmentAgent
 
 
@@ -68,5 +67,49 @@ async def test_roi_validation_blocks_negative_values(tmp_path):
             "benefits": {"total_benefits": 100},
         }
     )
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_business_case_get_business_case(tmp_path):
+    agent = BusinessCaseInvestmentAgent(
+        config={"business_case_store_path": tmp_path / "business_cases.json"}
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "generate_business_case",
+            "tenant_id": "tenant-a",
+            "request": {
+                "title": "Cloud refresh",
+                "description": "Refresh cloud tooling",
+                "project_type": "technology",
+                "estimated_cost": 100000,
+                "estimated_benefits": 250000,
+            },
+        }
+    )
+
+    response = await agent.process(
+        {
+            "action": "get_business_case",
+            "tenant_id": "tenant-a",
+            "business_case_id": created["business_case_id"],
+        }
+    )
+
+    assert response["business_case_id"] == created["business_case_id"]
+
+
+@pytest.mark.asyncio
+async def test_business_case_invalid_action_rejected(tmp_path):
+    agent = BusinessCaseInvestmentAgent(
+        config={"business_case_store_path": tmp_path / "business_cases.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
 
     assert valid is False

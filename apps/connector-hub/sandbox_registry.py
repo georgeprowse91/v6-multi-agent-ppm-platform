@@ -5,7 +5,9 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 SANDBOX_CONFIG_DIR = Path(__file__).resolve().parent / "sandbox" / "examples"
-SCHEMA_PATH = Path(__file__).resolve().parent / "sandbox" / "schema" / "sandbox-connector.schema.json"
+SCHEMA_PATH = (
+    Path(__file__).resolve().parent / "sandbox" / "schema" / "sandbox-connector.schema.json"
+)
 
 
 def list_sandbox_configs() -> list[Path]:

@@ -167,9 +167,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return await self._generate_message(input_data.get("message", {}))
 
         elif action == "send_message":
-            return await self._send_message(
-                tenant_id, input_data.get("message_id")  # type: ignore
-            )
+            return await self._send_message(tenant_id, input_data.get("message_id"))  # type: ignore
 
         elif action == "collect_feedback":
             return await self._collect_feedback(input_data.get("feedback", {}))
@@ -258,9 +256,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "next_steps": "Classify stakeholder and add to communication plans",
         }
 
-    async def _classify_stakeholder(
-        self, tenant_id: str, stakeholder_id: str
-    ) -> dict[str, Any]:
+    async def _classify_stakeholder(self, tenant_id: str, stakeholder_id: str) -> dict[str, Any]:
         """Classify stakeholder using power-interest matrix."""
         self.logger.info(f"Classifying stakeholder: {stakeholder_id}")
 
@@ -731,9 +727,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return False
         return True
 
-    def _load_stakeholder(
-        self, tenant_id: str, stakeholder_id: str
-    ) -> dict[str, Any] | None:
+    def _load_stakeholder(self, tenant_id: str, stakeholder_id: str) -> dict[str, Any] | None:
         stakeholder = self.stakeholder_register.get(stakeholder_id)
         if stakeholder:
             return stakeholder

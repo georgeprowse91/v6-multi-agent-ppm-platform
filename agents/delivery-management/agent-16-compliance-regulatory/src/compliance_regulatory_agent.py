@@ -14,11 +14,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from observability.tracing import get_trace_id
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
 from agents.runtime.src.state_store import TenantStateStore
-from observability.tracing import get_trace_id
 
 
 class ComplianceRegulatoryAgent(BaseAgent):

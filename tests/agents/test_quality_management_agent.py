@@ -1,5 +1,4 @@
 import pytest
-
 from quality_management_agent import QualityManagementAgent
 
 
@@ -54,3 +53,40 @@ async def test_quality_management_persists_and_emits_events(tmp_path):
     assert any(topic == "quality.plan.created" for topic, _ in event_bus.events)
     assert any(topic == "quality.defect.logged" for topic, _ in event_bus.events)
     assert any(topic == "quality.audit.completed" for topic, _ in event_bus.events)
+
+
+@pytest.mark.asyncio
+async def test_quality_management_dashboard_success(tmp_path):
+    agent = QualityManagementAgent(
+        config={
+            "quality_plan_store_path": tmp_path / "plans.json",
+            "defect_store_path": tmp_path / "defects.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_quality_dashboard", "tenant_id": "tenant-q"})
+
+    assert "defect_statistics" in response
+
+
+@pytest.mark.asyncio
+async def test_quality_management_validation_rejects_invalid_action(tmp_path):
+    agent = QualityManagementAgent(config={"quality_plan_store_path": tmp_path / "plans.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_quality_management_validation_rejects_missing_fields(tmp_path):
+    agent = QualityManagementAgent(config={"quality_plan_store_path": tmp_path / "plans.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {"action": "create_quality_plan", "plan": {"project_id": "X"}}
+    )
+
+    assert valid is False

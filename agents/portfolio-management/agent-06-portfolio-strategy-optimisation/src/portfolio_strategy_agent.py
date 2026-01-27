@@ -8,17 +8,18 @@ Maximizes strategic value and business outcomes while respecting resource and bu
 Specification: agents/portfolio-management/agent-06-portfolio-strategy-optimisation/README.md
 """
 
+import uuid
 from datetime import datetime
 from pathlib import Path
-import uuid
 from typing import Any
+
+from events import PortfolioPrioritizedEvent
+from observability.tracing import get_trace_id
 
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
 from agents.runtime.src.state_store import TenantStateStore
-from events import PortfolioPrioritizedEvent
-from observability.tracing import get_trace_id
 
 
 class PortfolioStrategyAgent(BaseAgent):
@@ -73,9 +74,7 @@ class PortfolioStrategyAgent(BaseAgent):
         self.rebalancing_frequency = (
             config.get("rebalancing_frequency", "quarterly") if config else "quarterly"
         )
-        self.budget_granularity = (
-            config.get("budget_granularity", 1000) if config else 1000
-        )
+        self.budget_granularity = config.get("budget_granularity", 1000) if config else 1000
 
         store_path = (
             Path(config.get("portfolio_store_path", "data/portfolio_strategy_store.json"))
@@ -248,9 +247,7 @@ class PortfolioStrategyAgent(BaseAgent):
             )
 
             recommendation = (
-                "approve"
-                if overall_score >= 0.7
-                else "defer" if overall_score >= 0.5 else "reject"
+                "approve" if overall_score >= 0.7 else "defer" if overall_score >= 0.5 else "reject"
             )
             policy_outcome = await self._apply_policy_guardrails(
                 project_id=str(project.get("project_id")),
@@ -723,9 +720,7 @@ class PortfolioStrategyAgent(BaseAgent):
         compliance_projects = [p for p in projects if is_compliance(p)]
         other_projects = [p for p in projects if not is_compliance(p)]
 
-        compliance_selected = self._knapsack_select(
-            compliance_projects, max_budget, scale
-        )
+        compliance_selected = self._knapsack_select(compliance_projects, max_budget, scale)
         compliance_spend = sum(p["cost"] for p in compliance_selected)
 
         remaining_budget = budget_ceiling - compliance_spend

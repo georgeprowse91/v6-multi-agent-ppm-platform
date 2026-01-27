@@ -1,5 +1,4 @@
 import pytest
-
 from release_deployment_agent import ReleaseDeploymentAgent
 
 
@@ -58,3 +57,38 @@ async def test_release_deployment_requires_approval_before_execute(tmp_path):
     )
     assert execute_response["status"] == "Pending Approval"
     assert approval_stub.requests
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_calendar_success(tmp_path):
+    agent = ReleaseDeploymentAgent(
+        config={
+            "release_store_path": tmp_path / "releases.json",
+            "deployment_plan_store_path": tmp_path / "plans.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_release_calendar", "tenant_id": "tenant-rel"})
+
+    assert "releases" in response
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_validation_rejects_invalid_action(tmp_path):
+    agent = ReleaseDeploymentAgent(config={"release_store_path": tmp_path / "releases.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_validation_rejects_missing_fields(tmp_path):
+    agent = ReleaseDeploymentAgent(config={"release_store_path": tmp_path / "releases.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "plan_release", "release": {"name": "X"}})
+
+    assert valid is False

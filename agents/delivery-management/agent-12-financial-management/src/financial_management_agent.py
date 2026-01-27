@@ -15,13 +15,13 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from approval_workflow_agent import ApprovalWorkflowAgent
+from data_quality.rules import evaluate_quality_rules
+from observability.tracing import get_trace_id
 
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
-from approval_workflow_agent import ApprovalWorkflowAgent
-from data_quality.rules import evaluate_quality_rules
-from observability.tracing import get_trace_id
 
 
 class FinancialManagementAgent(BaseAgent):
@@ -481,11 +481,15 @@ class FinancialManagementAgent(BaseAgent):
             raise ValueError(f"No budget found for project: {project_id}")
 
         # Get actual costs
-        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        actuals = (
+            self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        )
         total_actual = actuals.get("total_actual", 0)
 
         # Get forecast/EAC
-        forecast = self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
+        forecast = (
+            self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
+        )
         eac = forecast.get("eac", budget.get("total_amount", 0))
 
         # Calculate variances
@@ -551,7 +555,9 @@ class FinancialManagementAgent(BaseAgent):
 
         # Get budget and actuals
         budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
-        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        actuals = (
+            self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        )
 
         # Get schedule progress from Schedule Agent
         schedule_progress = await self._get_schedule_progress(project_id)
@@ -765,7 +771,10 @@ class FinancialManagementAgent(BaseAgent):
 
         exchange_rates = await self.exchange_rate_provider.get_rates()
 
-        if from_currency not in exchange_rates["rates"] or to_currency not in exchange_rates["rates"]:
+        if (
+            from_currency not in exchange_rates["rates"]
+            or to_currency not in exchange_rates["rates"]
+        ):
             raise ValueError(f"Unsupported currency: {from_currency} or {to_currency}")
 
         # Convert to USD first, then to target currency
@@ -790,7 +799,9 @@ class FinancialManagementAgent(BaseAgent):
         # Get budget and actuals
         budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
         self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
-        forecast = self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
+        forecast = (
+            self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
+        )
 
         # Get benefit cash flows
         # Future work: Get from Business Case Agent
@@ -1027,7 +1038,9 @@ class FinancialManagementAgent(BaseAgent):
         self, project_id: str, budget: dict[str, Any], *, tenant_id: str
     ) -> dict[str, dict[str, Any]]:
         """Analyze variance broken down by cost category."""
-        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        actuals = (
+            self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        )
         budget_breakdown = budget.get("cost_breakdown", {})
         actual_breakdown = actuals.get("by_category", {})
 
@@ -1123,8 +1136,12 @@ class FinancialManagementAgent(BaseAgent):
     ) -> dict[str, Any]:
         """Get financial summary for a project."""
         budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
-        actuals = self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
-        forecast = self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
+        actuals = (
+            self.actuals.get(project_id) or self.actuals_store.get(tenant_id, project_id) or {}
+        )
+        forecast = (
+            self.forecasts.get(project_id) or self.forecast_store.get(tenant_id, project_id) or {}
+        )
 
         evm = await self._calculate_evm(project_id, tenant_id=tenant_id)
 
@@ -1154,17 +1171,13 @@ class FinancialManagementAgent(BaseAgent):
         total_actual = sum(
             actuals.get("total_actual", 0)
             for actuals in (
-                self.actuals.values()
-                if self.actuals
-                else self.actuals_store.list(tenant_id)
+                self.actuals.values() if self.actuals else self.actuals_store.list(tenant_id)
             )
         )
         total_forecast = sum(
             forecast.get("eac", 0)
             for forecast in (
-                self.forecasts.values()
-                if self.forecasts
-                else self.forecast_store.list(tenant_id)
+                self.forecasts.values() if self.forecasts else self.forecast_store.list(tenant_id)
             )
         )
 
@@ -1185,8 +1198,7 @@ class FinancialManagementAgent(BaseAgent):
             "report_type": "summary",
             "data": {
                 "budget_count": len(self.budgets) or len(self.budget_store.list(tenant_id)),
-                "forecast_count": len(self.forecasts)
-                or len(self.forecast_store.list(tenant_id)),
+                "forecast_count": len(self.forecasts) or len(self.forecast_store.list(tenant_id)),
             },
             "generated_at": datetime.utcnow().isoformat(),
         }
@@ -1207,7 +1219,9 @@ class FinancialManagementAgent(BaseAgent):
         """Generate forecast report."""
         return {
             "report_type": "forecast",
-            "data": {"forecast_count": len(self.forecasts) or len(self.forecast_store.list(tenant_id))},
+            "data": {
+                "forecast_count": len(self.forecasts) or len(self.forecast_store.list(tenant_id))
+            },
             "generated_at": datetime.utcnow().isoformat(),
         }
 
@@ -1262,7 +1276,6 @@ class FinancialManagementAgent(BaseAgent):
             else:
                 upper = mid
         return (lower + upper) / 2
-
 
     async def _calculate_payback_period(self, total_cost: float, cash_flows: list[float]) -> int:
         """Calculate payback period in months."""

@@ -1,0 +1,15 @@
+{
+  "workflow_id": "portfolio-intake",
+  "tenant_id": "dev-tenant",
+  "classification": "internal",
+  "payload": {
+    "project_id": "APOLLO",
+    "requester": "quickstart-demo",
+    "summary": "Portfolio review and risk snapshot"
+  },
+  "actor": {
+    "id": "quickstart-demo",
+    "type": "user",
+    "roles": ["tenant_owner"]
+  }
+}

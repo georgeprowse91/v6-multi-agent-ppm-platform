@@ -91,3 +91,57 @@ async def test_project_lifecycle_gate_and_health(tmp_path):
     )
     assert override["approval"]["status"] == "pending"
     assert approval_stub.requests
+
+
+@pytest.mark.asyncio
+async def test_project_lifecycle_dashboard_success(tmp_path):
+    agent = ProjectLifecycleAgent(config={"lifecycle_store_path": tmp_path / "lifecycle.json"})
+    await agent.initialize()
+
+    project_id = "proj-200"
+    agent.projects[project_id] = {
+        "project_id": project_id,
+        "name": "Project Vega",
+        "methodology": "waterfall",
+        "current_phase": "Initiate",
+        "status": "On Track",
+    }
+    state = {
+        "current_phase": "Initiate",
+        "methodology_map": await agent._load_methodology_map("waterfall"),
+        "phase_start_date": "2024-01-01T00:00:00",
+        "transitions": [],
+        "gates_passed": [],
+        "gates_pending": [],
+        "project_id": project_id,
+    }
+    agent.lifecycle_states[project_id] = state
+    agent.lifecycle_store.upsert("tenant-a", project_id, state)
+
+    response = await agent.process(
+        {"action": "get_health_dashboard", "tenant_id": "tenant-a", "project_id": project_id}
+    )
+
+    assert response["project_id"] == project_id
+
+
+@pytest.mark.asyncio
+async def test_project_lifecycle_validation_rejects_invalid_action(tmp_path):
+    agent = ProjectLifecycleAgent(config={"lifecycle_store_path": tmp_path / "lifecycle.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_project_lifecycle_validation_rejects_missing_fields(tmp_path):
+    agent = ProjectLifecycleAgent(config={"lifecycle_store_path": tmp_path / "lifecycle.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {"action": "initiate_project", "project_data": {"name": "X"}}
+    )
+
+    assert valid is False

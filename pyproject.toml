@@ -1,6 +1,6 @@
 [project]
 name = "multi-agent-ppm-platform"
-version = "0.1.0"
+version = "1.0.0"
 description = "AI-native Multi-Agent Project Portfolio Management Platform"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -10,7 +10,7 @@ authors = [
 ]
 keywords = ["ppm", "project-management", "portfolio-management", "ai", "agents", "azure"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "License :: OSI Approved :: MIT License",

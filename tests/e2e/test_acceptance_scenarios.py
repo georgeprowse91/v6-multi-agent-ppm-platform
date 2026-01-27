@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import jwt
 from fastapi.testclient import TestClient
@@ -56,12 +56,19 @@ def test_api_version_metadata(monkeypatch) -> None:
 
 def test_api_status_with_orchestrator(monkeypatch) -> None:
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
-    client = _client_for(["apps", "api-gateway", "src", "api", "main.py"], "api_main_status")
+    path = Path(__file__).resolve().parents[2] / "apps" / "api-gateway" / "src" / "api" / "main.py"
+    spec = spec_from_file_location("api_main_status", path)
+    module = module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+
     orchestrator = MagicMock(initialized=True)
     orchestrator.get_agent_count.return_value = 12
+    module.orchestrator = orchestrator
 
-    with patch("api.main.orchestrator", orchestrator):
-        response = client.get("/api/v1/status", headers=_auth_headers())
+    client = TestClient(module.app)
+    response = client.get("/api/v1/status", headers=_auth_headers())
 
     assert response.status_code == 200
     payload = response.json()
@@ -91,7 +98,9 @@ def test_identity_token_validation(monkeypatch) -> None:
         "test-secret",
         algorithm="HS256",
     )
-    client = _client_for(["services", "identity-access", "src", "main.py"], "identity_main_validate")
+    client = _client_for(
+        ["services", "identity-access", "src", "main.py"], "identity_main_validate"
+    )
     response = client.post("/auth/validate", json={"token": token})
     assert response.status_code == 200
     assert response.json()["active"] is True

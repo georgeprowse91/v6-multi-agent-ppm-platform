@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 import pytest
 from response_orchestration_agent import ResponseOrchestrationAgent
@@ -25,8 +27,8 @@ async def test_response_orchestration_dependency_dag():
         agent = ResponseOrchestrationAgent(
             config={
                 "agent_endpoints": {
-                    "financial-management-agent": "http://test/financial",
-                    "risk-management-agent": "http://test/risk",
+                    "financial-management": "http://test/financial",
+                    "risk-management": "http://test/risk",
                 },
                 "http_client": client,
                 "event_bus": event_bus,
@@ -37,10 +39,10 @@ async def test_response_orchestration_dependency_dag():
         result = await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management-agent"},
+                    {"agent_id": "financial-management"},
                     {
-                        "agent_id": "risk-management-agent",
-                        "depends_on": ["financial-management-agent"],
+                        "agent_id": "risk-management",
+                        "depends_on": ["financial-management"],
                     },
                 ],
                 "parameters": {"project_id": "APOLLO"},
@@ -50,8 +52,8 @@ async def test_response_orchestration_dependency_dag():
 
     assert result["execution_summary"]["total_agents"] == 2
     assert invocation_order == ["/financial", "/risk"]
-    assert any(event["agent_id"] == "financial-management-agent" for event in events)
-    assert "financial-management-agent" in result["aggregated_response"]
+    assert any(event["agent_id"] == "financial-management" for event in events)
+    assert "financial-management" in result["aggregated_response"]
 
 
 @pytest.mark.asyncio
@@ -69,7 +71,7 @@ async def test_response_orchestration_retries():
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"risk-management-agent": "http://test/risk"},
+                "agent_endpoints": {"risk-management": "http://test/risk"},
                 "http_client": client,
                 "max_retries": 1,
                 "retry_backoff_base": 0,
@@ -78,7 +80,7 @@ async def test_response_orchestration_retries():
         await agent.initialize()
         result = await agent.process(
             {
-                "routing": [{"agent_id": "risk-management-agent"}],
+                "routing": [{"agent_id": "risk-management"}],
                 "parameters": {"project_id": "APOLLO"},
                 "query": "test",
             }
@@ -86,3 +88,76 @@ async def test_response_orchestration_retries():
 
     assert attempts["risk"] == 2
     assert result["agent_results"][0]["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_response_orchestration_cache_hits():
+    calls = {"count": 0}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        calls["count"] += 1
+        return httpx.Response(200, json={"message": "ok"})
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        agent = ResponseOrchestrationAgent(
+            config={
+                "agent_endpoints": {"financial-management": "http://test/financial"},
+                "http_client": client,
+                "cache_ttl": 60,
+            }
+        )
+        await agent.initialize()
+
+        payload = {
+            "routing": [{"agent_id": "financial-management"}],
+            "parameters": {"project_id": "APOLLO"},
+            "query": "test",
+        }
+        first = await agent.process(payload)
+        second = await agent.process(payload)
+
+    assert calls["count"] == 1
+    assert first["agent_results"][0]["success"] is True
+    assert second["agent_results"][0]["cached"] is True
+
+
+@pytest.mark.asyncio
+async def test_response_orchestration_timeout_failure():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(0.01)
+        return httpx.Response(200, json={"message": "late"})
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        agent = ResponseOrchestrationAgent(
+            config={
+                "agent_endpoints": {"risk-management": "http://test/risk"},
+                "http_client": client,
+                "agent_timeout": 0.001,
+            }
+        )
+        await agent.initialize()
+        result = await agent.process(
+            {"routing": [{"agent_id": "risk-management"}], "parameters": {}, "query": "test"}
+        )
+
+    assert result["agent_results"][0]["success"] is False
+
+
+@pytest.mark.asyncio
+async def test_response_orchestration_detects_dependency_cycle():
+    agent = ResponseOrchestrationAgent()
+    await agent.initialize()
+
+    with pytest.raises(ValueError):
+        await agent.process(
+            {
+                "routing": [
+                    {"agent_id": "financial-management", "depends_on": ["risk-management"]},
+                    {"agent_id": "risk-management", "depends_on": ["financial-management"]},
+                ],
+                "parameters": {},
+                "query": "test",
+            }
+        )

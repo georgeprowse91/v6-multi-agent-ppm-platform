@@ -1,7 +1,6 @@
 import json
 
 import pytest
-
 from data_sync_agent import DataSyncAgent
 
 
@@ -56,3 +55,49 @@ async def test_data_sync_persists_and_emits_audit(tmp_path, monkeypatch):
     lineage_records = agent.sync_lineage_store.list("tenant-sync")
     assert lineage_records
     assert "owner@example.com" not in json.dumps(lineage_records)
+
+
+@pytest.mark.asyncio
+async def test_data_sync_get_status_success(tmp_path):
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_sync_status", "tenant_id": "tenant-sync"})
+
+    assert "total_sync_events" in response
+    assert "success_rate" in response
+
+
+@pytest.mark.asyncio
+async def test_data_sync_validation_rejects_invalid_action(tmp_path):
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_data_sync_validation_rejects_missing_fields(tmp_path):
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "sync_data", "entity_type": "project"})
+
+    assert valid is False

@@ -92,11 +92,9 @@ def assert_sla(result: LoadScenarioResult, sla: LoadSla) -> None:
         )
     if result.p95_latency_s > sla.max_p95_latency_s:
         raise AssertionError(
-            f"P95 latency {result.p95_latency_s:.3f}s exceeds SLA "
-            f"{sla.max_p95_latency_s:.3f}s"
+            f"P95 latency {result.p95_latency_s:.3f}s exceeds SLA " f"{sla.max_p95_latency_s:.3f}s"
         )
     if result.error_rate > sla.max_error_rate:
         raise AssertionError(
-            f"Error rate {result.error_rate:.2%} exceeds SLA "
-            f"{sla.max_error_rate:.2%}"
+            f"Error rate {result.error_rate:.2%} exceeds SLA " f"{sla.max_error_rate:.2%}"
         )

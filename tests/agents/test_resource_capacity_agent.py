@@ -1,5 +1,4 @@
 import pytest
-
 from resource_capacity_agent import ResourceCapacityAgent
 
 
@@ -55,3 +54,50 @@ async def test_resource_allocation_persistence_and_events(tmp_path):
 
     assert allocation_response["allocation_id"]
     assert any(topic == "resource.allocation.created" for topic, _ in event_bus.events)
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_resource_pool(tmp_path):
+    agent = ResourceCapacityAgent(
+        config={
+            "resource_store_path": tmp_path / "resources.json",
+            "allocation_store_path": tmp_path / "allocations.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "get_resource_pool", "tenant_id": "tenant-a"})
+
+    assert "resources" in response
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_validation_rejects_invalid_action(tmp_path):
+    agent = ResourceCapacityAgent(
+        config={
+            "resource_store_path": tmp_path / "resources.json",
+            "allocation_store_path": tmp_path / "allocations.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_validation_rejects_missing_fields(tmp_path):
+    agent = ResourceCapacityAgent(
+        config={
+            "resource_store_path": tmp_path / "resources.json",
+            "allocation_store_path": tmp_path / "allocations.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {"action": "add_resource", "resource": {"resource_id": "res-1"}}
+    )
+
+    assert valid is False

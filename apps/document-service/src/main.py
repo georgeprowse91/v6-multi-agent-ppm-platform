@@ -11,12 +11,14 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+DOCUMENT_ROOT = Path(__file__).resolve().parent
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+for root in (DOCUMENT_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from document_policy import evaluate_document_policy  # noqa: E402
 from document_storage import DocumentStore  # noqa: E402
 from observability.metrics import (  # noqa: E402
     RequestMetricsMiddleware,
@@ -24,7 +26,6 @@ from observability.metrics import (  # noqa: E402
     configure_metrics,
 )
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from policy import evaluate_document_policy  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 
 logger = logging.getLogger("document-service")

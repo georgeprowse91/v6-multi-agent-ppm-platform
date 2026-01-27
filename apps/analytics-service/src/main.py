@@ -59,6 +59,7 @@ jobs_failed = configure_metrics("analytics-service").create_counter(
     unit="1",
 )
 
+
 def _scheduler_last_run_callback(options):  # pragma: no cover - OTel callback signature
     if _last_scheduler_run_ts is None:
         return []
@@ -127,7 +128,9 @@ async def _run_scheduler_loop() -> None:
                 scheduler.record_run(job, "completed")
                 jobs_completed.add(1, {"job_name": job.name, "tenant_id": job.tenant_id})
             except Exception as exc:  # pragma: no cover - defensive
-                logger.exception("analytics_job_failed", extra={"job_id": job.job_id, "error": str(exc)})
+                logger.exception(
+                    "analytics_job_failed", extra={"job_id": job.job_id, "error": str(exc)}
+                )
                 scheduler.record_run(job, "failed")
                 jobs_failed.add(1, {"job_name": job.name, "tenant_id": job.tenant_id})
         await asyncio.sleep(5)
@@ -136,7 +139,9 @@ async def _run_scheduler_loop() -> None:
 @app.on_event("startup")
 async def startup() -> None:
     global scheduler, run_loop_task
-    db_path = Path(os.getenv("ANALYTICS_SCHEDULER_DB", "apps/analytics-service/storage/scheduler.db"))
+    db_path = Path(
+        os.getenv("ANALYTICS_SCHEDULER_DB", "apps/analytics-service/storage/scheduler.db")
+    )
     scheduler = AnalyticsScheduler(db_path)
     run_loop_task = asyncio.create_task(_run_scheduler_loop())
     logger.info("analytics_scheduler_started", extra={"db_path": str(db_path)})

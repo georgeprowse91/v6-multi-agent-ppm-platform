@@ -9,15 +9,16 @@ and monitors program health.
 Specification: agents/portfolio-management/agent-07-program-management/README.md
 """
 
+import uuid
 from datetime import datetime
 from pathlib import Path
-import uuid
 from typing import Any
+
+from events import ProgramCreatedEvent, ProgramRoadmapUpdatedEvent
+from observability.tracing import get_trace_id
 
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
-from events import ProgramCreatedEvent, ProgramRoadmapUpdatedEvent
-from observability.tracing import get_trace_id
 
 
 class ProgramManagementAgent(BaseAgent):

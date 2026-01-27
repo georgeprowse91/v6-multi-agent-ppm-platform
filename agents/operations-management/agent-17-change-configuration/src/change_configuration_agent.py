@@ -14,9 +14,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from approval_workflow_agent import ApprovalWorkflowAgent
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from approval_workflow_agent import ApprovalWorkflowAgent
 
 
 class ChangeConfigurationAgent(BaseAgent):
@@ -633,7 +634,10 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _requires_approval(self, change_type: str, change_data: dict[str, Any]) -> bool:
         priority = change_data.get("priority", "medium")
-        return change_type in self.approval_change_types or priority in self.approval_priority_thresholds
+        return (
+            change_type in self.approval_change_types
+            or priority in self.approval_priority_thresholds
+        )
 
     async def _assess_schedule_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess schedule impact of change."""

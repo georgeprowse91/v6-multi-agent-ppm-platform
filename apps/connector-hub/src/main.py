@@ -71,7 +71,9 @@ class ConnectorRequest(BaseModel):
 class ConnectorUpdateRequest(BaseModel):
     version: str | None = None
     enabled: bool | None = None
-    health_status: str | None = Field(default=None, pattern="^(healthy|degraded|unhealthy|unknown)$")
+    health_status: str | None = Field(
+        default=None, pattern="^(healthy|degraded|unhealthy|unknown)$"
+    )
 
 
 class ConnectorResponse(BaseModel):

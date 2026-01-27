@@ -1,5 +1,4 @@
 import pytest
-
 from vendor_procurement_agent import VendorProcurementAgent
 
 
@@ -85,3 +84,57 @@ async def test_vendor_procurement_persists_and_requests_approval(tmp_path):
         }
     )
     assert agent.invoice_store.get("tenant-x", invoice_response["invoice_id"])
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_status_success(tmp_path):
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+            "contract_store_path": tmp_path / "contracts.json",
+            "invoice_store_path": tmp_path / "invoices.json",
+        }
+    )
+    await agent.initialize()
+
+    request = await agent.process(
+        {
+            "action": "create_procurement_request",
+            "tenant_id": "tenant-x",
+            "request": {
+                "requester": "procurement",
+                "description": "Licenses",
+                "estimated_cost": 1000,
+            },
+        }
+    )
+
+    response = await agent.process(
+        {
+            "action": "get_procurement_status",
+            "tenant_id": "tenant-x",
+            "request_id": request["request_id"],
+        }
+    )
+
+    assert response["request_id"] == request["request_id"]
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_validation_rejects_invalid_action(tmp_path):
+    agent = VendorProcurementAgent(config={"vendor_store_path": tmp_path / "vendors.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_validation_rejects_missing_vendor_fields(tmp_path):
+    agent = VendorProcurementAgent(config={"vendor_store_path": tmp_path / "vendors.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "onboard_vendor", "vendor": {"legal_name": "X"}})
+
+    assert valid is False

@@ -30,7 +30,7 @@ test: ## Run tests
 	$(PYTEST) tests/ -v
 
 test-cov: ## Run tests with coverage reports
-	$(PYTEST) tests/ -v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=html --cov-report=term-missing
+	$(PYTEST) tests/ -v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=html --cov-report=term-missing --cov-fail-under=80
 
 test-quick: ## Run tests without coverage (faster)
 	$(PYTEST) tests/ -v

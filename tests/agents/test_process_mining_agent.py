@@ -1,5 +1,4 @@
 import pytest
-
 from process_mining_agent import ProcessMiningAgent
 
 
@@ -54,3 +53,53 @@ async def test_process_mining_persists_logs_and_emits_recommendations(tmp_path):
     assert improvement["improvement_id"]
     assert workflow_stub.events
     assert workflow_stub.events[0]["action"] == "handle_event"
+
+
+@pytest.mark.asyncio
+async def test_process_mining_get_insights_success(tmp_path):
+    agent = ProcessMiningAgent(config={"event_log_store_path": tmp_path / "event_logs.json"})
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "ingest_event_log",
+            "tenant_id": "tenant-process",
+            "events": [
+                {
+                    "timestamp": "2024-01-01T00:00:00",
+                    "activity": "start",
+                    "process_id": "proc-1",
+                }
+            ],
+        }
+    )
+
+    response = await agent.process(
+        {
+            "action": "get_process_insights",
+            "tenant_id": "tenant-process",
+            "process_id": "proc-1",
+        }
+    )
+
+    assert response["process_id"] == "proc-1"
+
+
+@pytest.mark.asyncio
+async def test_process_mining_validation_rejects_invalid_action(tmp_path):
+    agent = ProcessMiningAgent(config={"event_log_store_path": tmp_path / "event_logs.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_process_mining_validation_rejects_missing_events(tmp_path):
+    agent = ProcessMiningAgent(config={"event_log_store_path": tmp_path / "event_logs.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "ingest_event_log"})
+
+    assert valid is False

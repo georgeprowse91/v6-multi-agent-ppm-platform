@@ -70,6 +70,7 @@ def event_loop():
 @pytest.fixture
 def mock_azure_openai():
     """Mock Azure OpenAI client for testing."""
+
     class MockAzureOpenAI:
         def __init__(self):
             self.calls = []
@@ -84,6 +85,7 @@ def mock_azure_openai():
 @pytest.fixture
 def mock_database():
     """Mock database connection for testing."""
+
     class MockDatabase:
         def __init__(self):
             self.queries = []
@@ -98,6 +100,7 @@ def mock_database():
 @pytest.fixture
 def mock_redis():
     """Mock Redis connection for testing."""
+
     class MockRedis:
         def __init__(self):
             self.store = {}

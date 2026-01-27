@@ -12,9 +12,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from security.lineage import mask_lineage_payload
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from security.lineage import mask_lineage_payload
 
 
 class AnalyticsInsightsAgent(BaseAgent):
@@ -383,9 +384,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "recommendations": await self._generate_prediction_recommendations(prediction),
         }
 
-    async def _scenario_analysis(
-        self, tenant_id: str, scenario: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _scenario_analysis(self, tenant_id: str, scenario: dict[str, Any]) -> dict[str, Any]:
         """
         Perform what-if scenario analysis.
 

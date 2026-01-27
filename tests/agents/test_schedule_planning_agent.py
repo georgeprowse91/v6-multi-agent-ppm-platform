@@ -94,3 +94,63 @@ async def test_schedule_baseline_and_variance_events(tmp_path):
     assert variance["schedule_variance_days"] < 0
     assert any(topic == "schedule.delay" for topic, _ in event_bus.events)
     assert change_stub.requests
+
+
+@pytest.mark.asyncio
+async def test_schedule_planning_get_schedule(tmp_path):
+    agent = SchedulePlanningAgent(
+        config={
+            "schedule_store_path": tmp_path / "schedules.json",
+            "schedule_baseline_store_path": tmp_path / "baselines.json",
+        }
+    )
+    await agent.initialize()
+
+    schedule_id = "sched-2"
+    agent.schedules[schedule_id] = {
+        "schedule_id": schedule_id,
+        "project_id": "proj-2",
+        "tasks": [],
+        "dependencies": [],
+        "milestones": [],
+        "project_duration_days": 5,
+        "start_date": "2024-01-01T00:00:00",
+        "end_date": "2024-01-06T00:00:00",
+    }
+    agent.schedule_store.upsert("tenant-a", schedule_id, agent.schedules[schedule_id])
+
+    response = await agent.process(
+        {"action": "get_schedule", "tenant_id": "tenant-a", "schedule_id": schedule_id}
+    )
+
+    assert response["schedule_id"] == schedule_id
+
+
+@pytest.mark.asyncio
+async def test_schedule_planning_validation_rejects_invalid_action(tmp_path):
+    agent = SchedulePlanningAgent(
+        config={
+            "schedule_store_path": tmp_path / "schedules.json",
+            "schedule_baseline_store_path": tmp_path / "baselines.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_schedule_planning_validation_rejects_missing_fields(tmp_path):
+    agent = SchedulePlanningAgent(
+        config={
+            "schedule_store_path": tmp_path / "schedules.json",
+            "schedule_baseline_store_path": tmp_path / "baselines.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "create_schedule", "project_id": "proj-1"})
+
+    assert valid is False

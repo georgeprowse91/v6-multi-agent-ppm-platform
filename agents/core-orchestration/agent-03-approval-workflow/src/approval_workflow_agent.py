@@ -18,9 +18,9 @@ if str(DATA_SYNC_ROOT) not in sys.path:
     sys.path.insert(0, str(DATA_SYNC_ROOT))
 
 from data_sync_status import StatusStore  # noqa: E402
+from observability.tracing import get_trace_id  # noqa: E402
 
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
-from observability.tracing import get_trace_id  # noqa: E402
 
 
 class ApprovalStore:
@@ -35,7 +35,9 @@ class ApprovalStore:
         self.store.create(key, tenant_id, "pending")
         self.store.update(key, "pending", details)
 
-    def update(self, tenant_id: str, approval_id: str, status: str, details: dict[str, Any]) -> None:
+    def update(
+        self, tenant_id: str, approval_id: str, status: str, details: dict[str, Any]
+    ) -> None:
         key = self._key(tenant_id, approval_id)
         self.store.update(key, status, details)
 

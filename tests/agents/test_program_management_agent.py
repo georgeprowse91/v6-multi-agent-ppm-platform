@@ -1,5 +1,4 @@
 import pytest
-
 from program_management_agent import ProgramManagementAgent
 
 
@@ -62,3 +61,70 @@ async def test_program_creation_and_roadmap_events(tmp_path):
         }
     )
     assert stored["program_id"] == program_id
+
+
+@pytest.mark.asyncio
+async def test_program_health_summary(tmp_path):
+    agent = ProgramManagementAgent(
+        config={
+            "program_store_path": tmp_path / "programs.json",
+            "program_roadmap_store_path": tmp_path / "roadmaps.json",
+            "program_dependency_store_path": tmp_path / "dependencies.json",
+        }
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "create_program",
+            "tenant_id": "tenant-a",
+            "program": {
+                "name": "Modernization",
+                "description": "Upgrade systems",
+                "strategic_objectives": ["Efficiency"],
+                "constituent_projects": ["PROJ-1"],
+            },
+        }
+    )
+
+    response = await agent.process(
+        {
+            "action": "get_program_health",
+            "tenant_id": "tenant-a",
+            "program_id": created["program_id"],
+        }
+    )
+
+    assert response["program_id"] == created["program_id"]
+
+
+@pytest.mark.asyncio
+async def test_program_validation_rejects_invalid_action(tmp_path):
+    agent = ProgramManagementAgent(
+        config={
+            "program_store_path": tmp_path / "programs.json",
+            "program_roadmap_store_path": tmp_path / "roadmaps.json",
+            "program_dependency_store_path": tmp_path / "dependencies.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_program_validation_rejects_missing_fields(tmp_path):
+    agent = ProgramManagementAgent(
+        config={
+            "program_store_path": tmp_path / "programs.json",
+            "program_roadmap_store_path": tmp_path / "roadmaps.json",
+            "program_dependency_store_path": tmp_path / "dependencies.json",
+        }
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "create_program", "program": {"name": "X"}})
+
+    assert valid is False

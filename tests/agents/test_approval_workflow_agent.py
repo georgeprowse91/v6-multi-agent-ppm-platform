@@ -54,3 +54,56 @@ async def test_approval_workflow_persistence_and_delegation(tmp_path, monkeypatc
 
     assert decision_result["status"] == "approved"
     assert any(event["action"] == "approval.decision" for event in audit_events)
+
+
+@pytest.mark.asyncio
+async def test_approval_workflow_validation_rejects_invalid_type(tmp_path):
+    agent = ApprovalWorkflowAgent(config={"approval_store_path": tmp_path / "approvals.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input(
+        {
+            "request_type": "invalid",
+            "request_id": "REQ-200",
+            "requester": "user-1",
+            "details": {"amount": 10, "description": "bad"},
+        }
+    )
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_approval_workflow_validation_rejects_missing_fields(tmp_path):
+    agent = ApprovalWorkflowAgent(config={"approval_store_path": tmp_path / "approvals.json"})
+    await agent.initialize()
+
+    valid = await agent.validate_input({"request_type": "budget_change"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_approval_workflow_decision_flow(tmp_path):
+    agent = ApprovalWorkflowAgent(config={"approval_store_path": tmp_path / "approvals.json"})
+    await agent.initialize()
+
+    initial = await agent.process(
+        {
+            "request_type": "scope_change",
+            "request_id": "REQ-201",
+            "requester": "user-1",
+            "details": {"description": "Scope update", "urgency": "low"},
+        }
+    )
+
+    result = await agent.process(
+        {
+            "decision": "rejected",
+            "approval_id": initial["approval_id"],
+            "approver_id": "approver-1",
+            "comments": "deny",
+        }
+    )
+
+    assert result["status"] == "rejected"

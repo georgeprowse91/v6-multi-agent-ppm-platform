@@ -13,7 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from jsonschema import ValidationError, validate as jsonschema_validate
+from jsonschema import ValidationError
+from jsonschema import validate as jsonschema_validate
 
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
@@ -784,7 +785,9 @@ class KnowledgeManagementAgent(BaseAgent):
 
         return {"document_id": document_id, "access_stats": access_stats}
 
-    async def _get_document_version_history(self, document_id: str, tenant_id: str) -> dict[str, Any]:
+    async def _get_document_version_history(
+        self, document_id: str, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Get document version history.
 

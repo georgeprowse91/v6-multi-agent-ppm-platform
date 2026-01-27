@@ -20,7 +20,6 @@
           "context": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -46,7 +45,6 @@
           "data": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -69,7 +67,6 @@
           "metadata": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -127,7 +124,7 @@
   "info": {
     "description": "AI-native Project Portfolio Management platform with 25 specialized agents",
     "title": "Multi-Agent PPM Platform",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "openapi": "3.1.0",
   "paths": {

@@ -1,0 +1,12 @@
+{
+  "intents": [
+    {"intent": "portfolio_query", "confidence": 0.92},
+    {"intent": "financial_query", "confidence": 0.88},
+    {"intent": "risk_query", "confidence": 0.85}
+  ],
+  "parameters": {
+    "project_id": "APOLLO",
+    "portfolio_id": "PORT-APOLLO",
+    "currency": "USD"
+  }
+}

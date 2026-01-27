@@ -57,7 +57,9 @@ class ConnectorStore:
             version=row["version"],
             enabled=bool(row["enabled"]),
             health_status=row["health_status"],
-            last_checked=datetime.fromisoformat(row["last_checked"]) if row["last_checked"] else None,
+            last_checked=(
+                datetime.fromisoformat(row["last_checked"]) if row["last_checked"] else None
+            ),
             metadata=json.loads(row["metadata"]),
         )
 
@@ -130,7 +132,9 @@ class ConnectorStore:
         enabled_value = record.enabled if enabled is None else enabled
         health_status_value = health_status or record.health_status
         last_checked = (
-            datetime.now(timezone.utc).isoformat() if health_status is not None else record.last_checked
+            datetime.now(timezone.utc).isoformat()
+            if health_status is not None
+            else record.last_checked
         )
         with self._connect() as conn:
             conn.execute(

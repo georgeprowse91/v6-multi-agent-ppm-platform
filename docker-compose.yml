@@ -15,6 +15,12 @@ services:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT}
       - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
+      - AUTH_DEV_MODE=${AUTH_DEV_MODE:-true}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-tenant_owner}
+      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID:-dev-tenant}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - LLM_MOCK_RESPONSE_PATH=${LLM_MOCK_RESPONSE_PATH:-/app/examples/demo-scenarios/quickstart-llm-response.json}
     depends_on:
       db:
         condition: service_healthy
@@ -26,6 +32,25 @@ services:
       - ./agents:/app/agents
       - ./tools:/app/tools
       - ./config:/app/config
+      - ./examples:/app/examples
+    networks:
+      - ppm-network
+    restart: unless-stopped
+
+  workflow-engine:
+    build:
+      context: .
+      dockerfile: apps/workflow-engine/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=development
+      - AUTH_DEV_MODE=${AUTH_DEV_MODE:-true}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-tenant_owner}
+      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID:-dev-tenant}
+      - WORKFLOW_DB_PATH=/app/apps/workflow-engine/storage/workflows.db
+    volumes:
+      - ./apps/workflow-engine:/app/apps/workflow-engine
     networks:
       - ppm-network
     restart: unless-stopped

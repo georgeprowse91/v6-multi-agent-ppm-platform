@@ -192,6 +192,43 @@ async def _evaluate_rbac(auth: AuthContext, permission: str, classification: str
 
 class AuthTenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        exempt_paths = {
+            "/",
+            "/healthz",
+            "/version",
+            "/api/v1/health",
+            "/api/v1/health/ready",
+            "/api/v1/health/live",
+        }
+        if request.url.path in exempt_paths:
+            return await call_next(request)
+
+        auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        if auth_dev_mode and environment in {"dev", "development", "local", "test"}:
+            tenant_id = request.headers.get("X-Tenant-ID") or os.getenv(
+                "AUTH_DEV_TENANT_ID", "dev-tenant"
+            )
+            roles_raw = os.getenv("AUTH_DEV_ROLES", "tenant_owner")
+            roles = [role.strip() for role in roles_raw.split(",") if role.strip()]
+            auth_context = AuthContext(
+                tenant_id=tenant_id,
+                subject=request.headers.get("X-Dev-User", "dev-user"),
+                roles=roles,
+                claims={"roles": roles, "sub": "dev-user"},
+            )
+            request.state.auth = auth_context
+            body = await request.body()
+            request._body = body
+            classification = _classification_from_body(body)
+            permission = _required_permission(request)
+            try:
+                await _evaluate_rbac(auth_context, permission, classification)
+            except HTTPException as exc:
+                return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+            response = await call_next(request)
+            return response
+
         token = None
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):

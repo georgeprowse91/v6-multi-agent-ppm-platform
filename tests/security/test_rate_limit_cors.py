@@ -10,6 +10,7 @@ def _fresh_app(monkeypatch, env: dict[str, str]):
     for key, value in env.items():
         monkeypatch.setenv(key, value)
     sys.modules.pop("api.main", None)
+    sys.modules.pop("api.limiter", None)
     from api.main import app
 
     return app

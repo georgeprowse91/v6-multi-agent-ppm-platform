@@ -220,7 +220,9 @@ class ProcessMiningAgent(BaseAgent):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-    async def _ingest_event_log(self, tenant_id: str, events: list[dict[str, Any]]) -> dict[str, Any]:
+    async def _ingest_event_log(
+        self, tenant_id: str, events: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """
         Ingest event log data for process mining.
 
@@ -510,7 +512,9 @@ class ProcessMiningAgent(BaseAgent):
             },
         }
         if self.workflow_engine_agent:
-            await self.workflow_engine_agent.process({"action": "handle_event", "event": event_payload})
+            await self.workflow_engine_agent.process(
+                {"action": "handle_event", "event": event_payload}
+            )
             return
         if self.event_bus:
             await self.event_bus.publish("workflow.improvement.recommendation", event_payload)

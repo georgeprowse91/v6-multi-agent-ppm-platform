@@ -13,11 +13,11 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 
+from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import agents, health
 from api.runtime_bootstrap import bootstrap_runtime_paths
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Multi-Agent PPM Platform",
     description="AI-native Project Portfolio Management platform with 25 specialized agents",
-    version="0.1.0",
+    version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
 )
@@ -70,13 +70,6 @@ allowed_origins = (
 if "*" in allowed_origins and environment not in {"dev", "development", "local", "test"}:
     raise RuntimeError("Wildcard CORS origins are not permitted outside development environments.")
 
-rate_limit_default = os.getenv("RATE_LIMIT_DEFAULT", "100/minute")
-rate_limit_storage = os.getenv("RATE_LIMIT_STORAGE", "memory://")
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=[rate_limit_default],
-    storage_uri=rate_limit_storage,
-)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
@@ -126,6 +119,7 @@ async def shutdown_event():
     logger.info("Application shut down successfully")
 
 
+@limiter.exempt
 @app.get("/healthz")
 async def healthz():
     """Lightweight health check for local dev and probes."""
@@ -136,18 +130,20 @@ async def healthz():
     }
 
 
+@limiter.exempt
 @app.get("/version")
 async def version():
     """Return API version metadata."""
     return _version_payload()
 
 
+@limiter.exempt
 @app.get("/")
 async def root():
     """Root endpoint - API information."""
     return {
         "name": "Multi-Agent PPM Platform API",
-        "version": "0.1.0",
+        "version": "1.0.0",
         "status": "operational",
         "documentation": "/api/docs",
     }

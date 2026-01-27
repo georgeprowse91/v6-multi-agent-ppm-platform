@@ -14,11 +14,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from change_configuration_agent import ChangeConfigurationAgent
 from events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
 from observability.tracing import get_trace_id
+
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class SchedulePlanningAgent(BaseAgent):
@@ -847,9 +848,7 @@ class SchedulePlanningAgent(BaseAgent):
             raise ValueError(f"Schedule not found: {schedule_id}")
         return schedule  # type: ignore
 
-    async def _get_schedule_state(
-        self, tenant_id: str, schedule_id: str
-    ) -> dict[str, Any] | None:
+    async def _get_schedule_state(self, tenant_id: str, schedule_id: str) -> dict[str, Any] | None:
         schedule = self.schedules.get(schedule_id)
         if not schedule:
             schedule = self.schedule_store.get(tenant_id, schedule_id)
@@ -1142,7 +1141,12 @@ class SchedulePlanningAgent(BaseAgent):
         for dep in dependencies:
             pred = dep.get("predecessor")
             succ = dep.get("successor")
-            if isinstance(pred, str) and isinstance(succ, str) and pred in task_map and succ in task_map:
+            if (
+                isinstance(pred, str)
+                and isinstance(succ, str)
+                and pred in task_map
+                and succ in task_map
+            ):
                 predecessors[succ].append(pred)
 
         in_degree = {task_id: len(preds) for task_id, preds in predecessors.items()}
@@ -1185,7 +1189,12 @@ class SchedulePlanningAgent(BaseAgent):
         for dep in dependencies:
             pred = dep.get("predecessor")
             succ = dep.get("successor")
-            if isinstance(pred, str) and isinstance(succ, str) and pred in task_map and succ in task_map:
+            if (
+                isinstance(pred, str)
+                and isinstance(succ, str)
+                and pred in task_map
+                and succ in task_map
+            ):
                 successors[pred].append(succ)
 
         project_duration = max((t.get("early_finish", 0) for t in tasks), default=0)
@@ -1321,9 +1330,7 @@ class SchedulePlanningAgent(BaseAgent):
             if not samples:
                 continue
             sample_mean = sum(samples) / len(samples)
-            covariance = sum(
-                (s - sample_mean) * (t - total_mean) for s, t in zip(samples, totals)
-            )
+            covariance = sum((s - sample_mean) * (t - total_mean) for s, t in zip(samples, totals))
             correlation = covariance / (total_variance or 1)
             spread = max(samples) - min(samples)
             drivers.append(

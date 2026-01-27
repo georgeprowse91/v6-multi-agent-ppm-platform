@@ -13,16 +13,17 @@ from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+WORKFLOW_ROOT = Path(__file__).resolve().parent
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+for root in (WORKFLOW_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from audit import emit_audit_event  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from workflow_audit import emit_audit_event  # noqa: E402
 from workflow_storage import WorkflowStore  # noqa: E402
 
 logger = logging.getLogger("workflow-engine")
@@ -33,7 +34,7 @@ DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workflows.db"))
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 
-app = FastAPI(title="Workflow Engine", version="0.1.0")
+app = FastAPI(title="Workflow Engine", version="1.0.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 configure_tracing("workflow-engine")
 configure_metrics("workflow-engine")

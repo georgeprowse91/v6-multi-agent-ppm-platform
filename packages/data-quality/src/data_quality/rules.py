@@ -76,7 +76,9 @@ def _validate_project(record: dict[str, Any]) -> list[DataQualityIssue]:
     if start and end and end < start:
         issues.append(_rule_issue("project_dates", "end_date must be after start_date", record))
     if record.get("status") == "closed" and not end:
-        issues.append(_rule_issue("project_closed_end_date", "closed projects require end_date", record))
+        issues.append(
+            _rule_issue("project_closed_end_date", "closed projects require end_date", record)
+        )
     return issues
 
 
@@ -87,7 +89,9 @@ def _validate_budget(record: dict[str, Any]) -> list[DataQualityIssue]:
         issues.append(_rule_issue("budget_amount", "amount must be greater than zero", record))
     fiscal_year = record.get("fiscal_year")
     if fiscal_year is not None and not (2020 <= fiscal_year <= 2100):
-        issues.append(_rule_issue("budget_fiscal_year", "fiscal_year must be between 2020 and 2100", record))
+        issues.append(
+            _rule_issue("budget_fiscal_year", "fiscal_year must be between 2020 and 2100", record)
+        )
     return issues
 
 
@@ -100,9 +104,7 @@ def _validate_work_item(record: dict[str, Any]) -> list[DataQualityIssue]:
             _rule_issue("work_item_due", "due_date must be on or after created_at", record)
         )
     if record.get("status") == "done" and not record.get("updated_at"):
-        issues.append(
-            _rule_issue("work_item_done", "done work items require updated_at", record)
-        )
+        issues.append(_rule_issue("work_item_done", "done work items require updated_at", record))
     return issues
 
 
@@ -120,9 +122,7 @@ def _validate_risk(record: dict[str, Any]) -> list[DataQualityIssue]:
     return issues
 
 
-def evaluate_quality_rules(
-    record_type: str, record: dict[str, Any]
-) -> DataQualityReport:
+def evaluate_quality_rules(record_type: str, record: dict[str, Any]) -> DataQualityReport:
     issues: list[DataQualityIssue] = []
     issues.extend(_schema_issues(record_type, record))
 
@@ -137,7 +137,9 @@ def evaluate_quality_rules(
     elif record_type == "risk":
         issues.extend(_validate_risk(record))
 
-    return DataQualityReport(record_type=record_type, record_id=record.get("id"), issues=tuple(issues))
+    return DataQualityReport(
+        record_type=record_type, record_id=record.get("id"), issues=tuple(issues)
+    )
 
 
 def evaluate_records(

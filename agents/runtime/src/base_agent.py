@@ -18,9 +18,9 @@ if str(OBSERVABILITY_ROOT) not in sys.path:
 
 from observability.tracing import get_trace_id, start_agent_span  # noqa: E402
 
-from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from agents.runtime.src.agent_catalog import get_catalog_id  # noqa: E402
-from agents.runtime.src.policy import (
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from agents.runtime.src.policy import (  # noqa: E402
     evaluate_policy_bundle,
     load_default_policy_bundle,
 )
@@ -139,9 +139,7 @@ class BaseAgent(ABC):
                 }
             },
         )
-        policy_decision = evaluate_policy_bundle(
-            policy_bundle, load_default_policy_bundle()
-        )
+        policy_decision = evaluate_policy_bundle(policy_bundle, load_default_policy_bundle())
         audit_event = build_audit_event(
             tenant_id=tenant_id,
             action=f"{catalog_id}.policy.evaluated",
@@ -298,9 +296,7 @@ class BaseAgent(ABC):
         """
         return self.config.get(key, default)
 
-    def _log_event(
-        self, *, action: str, outcome: str, tenant_id: str, correlation_id: str
-    ) -> None:
+    def _log_event(self, *, action: str, outcome: str, tenant_id: str, correlation_id: str) -> None:
         self.logger.info(
             "agent_event",
             extra={

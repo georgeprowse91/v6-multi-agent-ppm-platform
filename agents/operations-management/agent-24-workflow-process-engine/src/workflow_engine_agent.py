@@ -12,10 +12,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from observability.tracing import get_trace_id
+
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
-from observability.tracing import get_trace_id
 
 
 class WorkflowEngineAgent(BaseAgent):
@@ -552,9 +553,7 @@ class WorkflowEngineAgent(BaseAgent):
         instance["status"] = "running"
         instance["resumed_at"] = datetime.utcnow().isoformat()
         self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
-        await self._emit_workflow_event(
-            tenant_id, "workflow.resumed", {"instance_id": instance_id}
-        )
+        await self._emit_workflow_event(tenant_id, "workflow.resumed", {"instance_id": instance_id})
 
         # Future work: Store in database
         # Future work: Publish workflow.resumed event

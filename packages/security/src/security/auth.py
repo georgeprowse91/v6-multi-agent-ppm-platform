@@ -112,6 +112,21 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
 
 
 async def authenticate_request(request: Request, config: AuthConfig | None = None) -> AuthContext:
+    auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    if auth_dev_mode and environment in {"dev", "development", "local", "test"}:
+        tenant_id = request.headers.get("X-Tenant-ID") or os.getenv(
+            "AUTH_DEV_TENANT_ID", "dev-tenant"
+        )
+        roles_raw = os.getenv("AUTH_DEV_ROLES", "tenant_owner")
+        roles = [role.strip() for role in roles_raw.split(",") if role.strip()]
+        return AuthContext(
+            tenant_id=tenant_id,
+            subject=request.headers.get("X-Dev-User", "dev-user"),
+            roles=roles,
+            claims={"roles": roles, "sub": "dev-user"},
+        )
+
     auth_header = request.headers.get("Authorization", "")
     token = (
         auth_header.replace("Bearer ", "", 1).strip() if auth_header.startswith("Bearer ") else None

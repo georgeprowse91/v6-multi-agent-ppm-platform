@@ -97,3 +97,27 @@ async def test_financial_budget_persistence_and_approvals(tmp_path):
         }
     )
     assert approve_response["status"] == "Approved"
+
+
+@pytest.mark.asyncio
+async def test_financial_validation_rejects_invalid_action():
+    agent = FinancialManagementAgent(
+        config={"exchange_rate_fixture": "data/fixtures/exchange_rates.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "invalid"})
+
+    assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_financial_validation_rejects_missing_budget_fields():
+    agent = FinancialManagementAgent(
+        config={"exchange_rate_fixture": "data/fixtures/exchange_rates.json"}
+    )
+    await agent.initialize()
+
+    valid = await agent.validate_input({"action": "create_budget", "budget": {"project_id": "X"}})
+
+    assert valid is False

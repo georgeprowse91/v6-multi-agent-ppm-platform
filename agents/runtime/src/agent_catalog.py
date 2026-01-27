@@ -175,4 +175,3 @@ def get_catalog_entry(agent_id: str) -> AgentCatalogEntry | None:
 def get_catalog_id(agent_id: str) -> str | None:
     entry = get_catalog_entry(agent_id)
     return entry.catalog_id if entry else None
-

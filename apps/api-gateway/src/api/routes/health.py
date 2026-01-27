@@ -6,9 +6,12 @@ from datetime import datetime
 
 from fastapi import APIRouter
 
+from api.limiter import limiter
+
 router = APIRouter()
 
 
+@limiter.exempt
 @router.get("/health")
 async def health_check():
     """
@@ -24,6 +27,7 @@ async def health_check():
     }
 
 
+@limiter.exempt
 @router.get("/health/ready")
 async def readiness_check():
     """
@@ -48,6 +52,7 @@ async def readiness_check():
     }
 
 
+@limiter.exempt
 @router.get("/health/live")
 async def liveness_check():
     """

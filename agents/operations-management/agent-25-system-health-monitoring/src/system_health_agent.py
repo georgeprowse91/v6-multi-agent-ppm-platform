@@ -13,10 +13,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
-from agents.runtime.src.state_store import TenantStateStore
 from observability.metrics import build_kpi_handles, configure_metrics
 from observability.tracing import configure_tracing, start_agent_span
+
+from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class SystemHealthAgent(BaseAgent):
