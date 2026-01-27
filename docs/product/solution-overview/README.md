@@ -4,6 +4,10 @@
 
 Describe the solution overview documentation set and link the narrative to the repo assets that implement it.
 
+## Implementation alignment
+
+The files in this folder are go-to-market narratives. The current repository implements the core API gateway, orchestration service, workflow engine, agent scaffolding, and connector manifests. UI-rich experiences and marketplace capabilities described in these documents are planned and should be validated against the [Solution Index](../../solution-index.md) and architecture docs before use.
+
 ## What's inside
 
 - `docs/product/solution-overview/change-management-training.md`: Markdown documentation for this area.

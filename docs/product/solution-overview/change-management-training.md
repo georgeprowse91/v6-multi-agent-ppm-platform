@@ -2,6 +2,10 @@
 
 This plan provides a structured approach to guiding organisations through the adoption of the multi‑agent PPM platform. It combines change‑management principles with comprehensive training and communication strategies to ensure user confidence, reduce resistance, and maximise return on investment.
 
+## Implementation alignment
+
+This document is a change-management narrative. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it for delivery commitments.
+
 ## Purpose and Principles
 
 Change management is essential for successful digital transformation. Gartner’s study notes that half of change initiatives fail[1]; success requires aligning people, processes and technology. The plan is built on the five Cs of change (communication, collaboration, commitment, clarity and continuous improvement[2]) and emphasises transparency, role‑specific training and ongoing feedback. It also addresses the AI adoption gap: an IPMA survey found that 42 % of project managers are not using AI and only 23 % are actively using it[3], highlighting the need for targeted training and confidence building.

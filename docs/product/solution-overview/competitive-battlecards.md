@@ -2,6 +2,10 @@
 
 Use these battlecards to compare the Multi‑Agent PPM Platform with other leading project portfolio management (PPM) solutions. Each battlecard highlights positioning, strengths, weaknesses and key talking points when engaging with prospects.
 
+## Implementation alignment
+
+This document is competitive positioning collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+
 ## Planview (Portfolios)
 
 **Positioning:** Established enterprise PPM solution focusing on portfolio planning, resource management and financial governance.

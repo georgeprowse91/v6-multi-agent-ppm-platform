@@ -4,6 +4,10 @@
 
 The multi‑agent PPM platform is an AI‑powered solution that modernises project portfolio management by orchestrating specialised agents across the entire project lifecycle. It addresses the growing need for real‑time, intelligent decision‑making as hybrid work becomes ubiquitous and organisations demand integrated platforms to manage complex portfolios. Market research projects that the PPM market will nearly double from USD 6.90 B in 2025 to USD 13.21 B by 2031[1], driven by integrated analytics and AI‑enabled forecasting. Adoption of AI agents is already widespread—79 % of organisations use AI agents and 74 % rank AI among their top three strategic priorities[2]—yet interoperability and clear strategy remain challenges[3][4]. This collateral equips sales teams with messaging frameworks, personas, competitive positioning, case studies and ROI tools to articulate the platform’s value.
 
+## Implementation alignment
+
+This document is marketing collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+
 ## Messaging Framework
 
 ### Tagline

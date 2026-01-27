@@ -6,20 +6,25 @@ Describe the canonical PPM entities, where their schemas live, and how agents an
 
 ## Architecture-level context
 
-The platform uses a canonical schema layer to normalize data from multiple systems. Schemas are stored in `data/schemas/` and referenced by connectors and agents to validate payloads and maintain lineage.
+The platform uses a canonical schema layer to normalize data from multiple systems. Schemas are stored in `data/schemas/` and referenced by connectors, agents, and services to validate payloads and maintain lineage.
 
 ## Canonical entities (current)
 
-| Entity | Schema file | Primary owner (agent) |
+| Entity | Schema file | Primary owner (agent/service) |
 | --- | --- | --- |
-| Portfolio | `data/schemas/portfolio.schema.json` | Portfolio Strategy (Agent 06) |
-| Program | `data/schemas/program.schema.json` | Program Management (Agent 07) |
-| Project | `data/schemas/project.schema.json` | Project Definition (Agent 08) |
-| Work item | `data/schemas/work-item.schema.json` | Schedule & Planning (Agent 10) |
-| Risk | `data/schemas/risk.schema.json` | Risk & Issue (Agent 15) |
-| Issue | `data/schemas/issue.schema.json` | Risk & Issue (Agent 15) |
-| Budget | `data/schemas/budget.schema.json` | Financial Management (Agent 12) |
-| Vendor | `data/schemas/vendor.schema.json` | Vendor & Procurement (Agent 13) |
+| Audit event | `data/schemas/audit-event.schema.json` | Audit Log Service |
+| Budget | `data/schemas/budget.schema.json` | Agent 12 – Financial Management |
+| Demand | `data/schemas/demand.schema.json` | Agent 04 – Demand & Intake |
+| Document | `data/schemas/document.schema.json` | Agent 19 – Knowledge & Document |
+| Issue | `data/schemas/issue.schema.json` | Agent 15 – Risk & Issue Management |
+| Portfolio | `data/schemas/portfolio.schema.json` | Agent 06 – Portfolio Strategy & Optimization |
+| Program | `data/schemas/program.schema.json` | Agent 07 – Program Management |
+| Project | `data/schemas/project.schema.json` | Agent 08 – Project Definition & Scope |
+| Resource | `data/schemas/resource.schema.json` | Agent 11 – Resource & Capacity |
+| Risk | `data/schemas/risk.schema.json` | Agent 15 – Risk & Issue Management |
+| ROI | `data/schemas/roi.schema.json` | Agent 05 – Business Case & Investment |
+| Vendor | `data/schemas/vendor.schema.json` | Agent 13 – Vendor & Procurement |
+| Work item | `data/schemas/work-item.schema.json` | Agent 10 – Schedule & Planning |
 
 ## Example payload (Project)
 
@@ -57,8 +62,8 @@ Expected output: canonical schema JSON files.
 
 ## Implementation status
 
-- **Implemented**: base schemas in `data/schemas/`.
-- **Planned**: validation services and schema versioning tooling.
+- **Implemented:** Base schemas in `data/schemas/` and validation in the audit log service.
+- **Planned:** Centralized schema registry APIs and schema version promotion workflows.
 
 ## Related docs
 

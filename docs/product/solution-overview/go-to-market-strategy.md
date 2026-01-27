@@ -1,5 +1,9 @@
 # Go-to-Market Strategy
 
+## Implementation alignment
+
+This document is a go-to-market strategy narrative. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+
 Multi-Agent PPM Platform
 
 Go-To-Market Strategy for PwC

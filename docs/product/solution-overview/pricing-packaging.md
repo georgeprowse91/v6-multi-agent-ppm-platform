@@ -2,6 +2,10 @@
 
 This document outlines the commercial models for the multi‑agent PPM platform and proposes value‑realisation metrics to support the go‑to‑market (GTM) strategy. The goal is to provide flexible options that align cost with customer value, encourage adoption, and support future growth.
 
+## Implementation alignment
+
+This document is pricing collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+
 ## Market Context
 
 The Project Portfolio Management (PPM) market is projected to grow from USD 6.90 B in 2025 to USD 13.21 B by 2031, with a compound annual growth rate of around 11 %[1]. Drivers include hybrid work, the need for AI‑enabled forecasting and real‑time governance, and a shift toward unified platforms[1]. Adoption of AI is becoming mainstream; surveys show that 79 % of organisations already use AI agents and 74 % rank AI among their top three strategic priorities[2]. However, interoperability and clear organisational strategy remain barriers[3][4].

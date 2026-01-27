@@ -4,6 +4,10 @@
 
 This document provides guidance for sales teams to effectively present, demonstrate and sell the multi‑agent PPM platform. It aggregates the collateral produced in this repository—solution brief, demo script, slide deck, buyer personas, competitive battlecards, email templates, ROI calculator and thought‑leadership whitepaper—and explains when and how to use each asset. Following this guide ensures a consistent and compelling message across all customer interactions.
 
+## Implementation alignment
+
+This document is sales enablement collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+
 ## Messaging Framework
 
 When engaging with prospects, focus on three core messages:

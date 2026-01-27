@@ -1,5 +1,9 @@
 # Research Whitepaper
 
+## Implementation alignment
+
+This document is research and vision collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+
 ## Executive Summary
 
 Project portfolio management (PPM) is undergoing a transformation. Market analysts forecast that the global PPM market will grow from USD 6.9 billion in 2025 to USD 13.21 billion by 2031, representing a compound annual growth rate of 11.43 percent[1]. At the same time, artificial intelligence (AI) adoption is exploding: 79 percent of organisations already use AI agents, and 74 percent rank AI in their top three strategic priorities[2]. These trends converge in project management, where AI technologies promise to deliver better forecasting, optimisation and governance. Yet many organisations struggle to realise these benefits due to siloed data, limited automation and complex tool landscapes.

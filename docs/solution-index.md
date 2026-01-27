@@ -12,21 +12,21 @@ The Multi-Agent PPM Platform documentation is organized by solution pillars (arc
 
 | Pillar | Key docs (source of truth) | What it covers | Status |
 | --- | --- | --- | --- |
-| Architecture | `docs/architecture/system-context.md`, `docs/architecture/logical-architecture.md`, `docs/architecture/physical-architecture.md`, `docs/architecture/deployment-architecture.md` | System context, logical/physical layers, deployment on Azure | Partial (narratives + diagrams are being expanded) |
-| Agents & Orchestration | `docs/architecture/agent-orchestration.md`, `docs/agents/agent-catalog.md` | Orchestration flow, catalog of 25 agents | Implemented (docs + runtime) |
+| Architecture | `docs/architecture/system-context.md`, `docs/architecture/logical-architecture.md`, `docs/architecture/physical-architecture.md`, `docs/architecture/deployment-architecture.md` | System context, logical/physical layers, deployment on Azure | Implemented (narratives + diagrams) |
+| Agents & Orchestration | `docs/architecture/agent-orchestration.md`, `docs/agents/agent-catalog.md` | Orchestration flow, catalog of 25 agents | Implemented (docs + runtime scaffolding) |
 | Methodologies | `docs/methodology/overview.md`, `docs/methodology/agile/`, `docs/methodology/waterfall/`, `docs/methodology/hybrid/` | Methodology maps, gates, templates | Implemented (docs + templates) |
-| Connectors & Integrations | `docs/connectors/overview.md`, `connectors/README.md` | Integration architecture, connector principles | Partial (Jira example complete; others planned) |
+| Connectors & Integrations | `docs/connectors/overview.md`, `docs/connectors/supported-systems.md` | Integration architecture, connector principles, maturity | Partial (Jira registry entry; others in progress) |
 | Data Model, Quality & Lineage | `docs/architecture/data-architecture.md`, `docs/data/`, `data/schemas/` | Canonical schemas, data architecture | Implemented (schemas + example lineage/quality) |
 | Security & Compliance | `docs/architecture/security-architecture.md`, `docs/compliance/` | RBAC/ABAC, threat model, retention | Implemented (docs + enforcement) |
 | Observability/Resilience/Performance | `docs/architecture/observability-architecture.md`, `docs/architecture/resilience-architecture.md`, `docs/architecture/performance-architecture.md` | Monitoring, failure modes, performance targets | Implemented (targets documented) |
-| Product & UX | `docs/product/solution-overview/README.md`, `docs/product/` | Vision, requirements, personas | Partial (needs repo-specific walkthroughs) |
+| Product & UX | `docs/product/solution-overview/README.md`, `docs/product/` | Vision, requirements, personas | Partial (go-to-market narratives; implementation details in architecture docs) |
 | Deployment & Ops | `infra/README.md`, `docs/runbooks/` | Terraform and runbooks | Implemented (runbooks + environment guidance) |
 
-## Missing/weak pillars
+## Gaps and next steps
 
-- Methodology maps need more “what the YAML means” narrative and example workflows.
-- Connector documentation needs additional manifest, mapping, and certification artifacts.
-- Observability and resilience docs can add more explicit SLO/SLI targets and degradation modes.
+- Expand connector registry coverage and certification evidence for non-Jira connectors.
+- Add production-grade event bus documentation once event contracts are finalized.
+- Provide UI walkthroughs when the web console evolves beyond the current lightweight implementation.
 
 ## Usage example
 

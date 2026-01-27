@@ -1,5 +1,9 @@
 # Market Analysis
 
+## Implementation alignment
+
+This document is market research collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in delivery commitments.
+
 ## Overview
 
 Project Portfolio Management (PPM) is a rapidly growing segment of the enterprise software market. According to Markets and Markets, the global PPM market was valued at about $7.8 billion in 2024 and is projected to exceed $13.7 billion by 2029, representing a compound annual growth rate of 11.9%[1]. This growth reflects organisations’ need to manage increasingly complex project portfolios, allocate resources effectively, and align investments with strategic goals. Future Market Insight reports that the PPM market could expand from $6.16 million (misprint in article; likely $6.16 billion) in 2024 to $14.18 billion by 2034, driven by adoption of cloud services and virtualisation technologies[2]. Other industry analyses project similar double‑digit growth through the early 2030s.

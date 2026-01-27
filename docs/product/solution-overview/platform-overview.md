@@ -4,6 +4,10 @@
 
 The Multi‑Agent PPM Platform is an AI‑powered Project Portfolio Management (PPM) workspace built for modern enterprises. It combines the rigour of methodology‑driven navigation with the flexibility of an interactive canvas and the power of specialised AI agents. Rather than yet another standalone tool, it orchestrates your existing systems of record—Planview, Jira, SAP, Workday and more—through an AI assistant that guides users along pre‑defined project methodologies and automates routine work. This overview distills the core concepts, capabilities and value proposition of the solution as outlined in the architecture document.
 
+## Implementation alignment
+
+This overview blends target-state capabilities with the current repository implementation. The repo provides a working API gateway, orchestration service, workflow engine, agent scaffolding, connector manifests/mappings, and a lightweight web console (`apps/web`). Rich UI canvas features, connector marketplace enablement, and advanced analytics are planned and should be validated against the [Solution Index](../../solution-index.md) before customer commitments.
+
 ## Core Concepts
 
 ### Methodology‑Driven Navigation
