@@ -12,7 +12,7 @@ Define the responsibilities, workflows, and integration points for Agent 09: Lif
 
 ## How it's used
 
-Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution.
+Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution. Health monitoring now pulls metric values from domain agents via the shared metrics catalog and publishes `project.health.updated` / `project.health.report.generated` events for downstream analytics consumers.
 
 ## How to run / develop / test
 

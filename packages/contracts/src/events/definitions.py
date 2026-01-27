@@ -129,6 +129,25 @@ class ProjectTransitionedEvent(EventEnvelope):
     payload: ProjectTransitionedPayload
 
 
+class ProjectHealthUpdatedPayload(BaseModel):
+    project_id: str
+    health_data: dict
+
+
+class ProjectHealthUpdatedEvent(EventEnvelope):
+    event_name: Literal["project.health.updated"]
+    payload: ProjectHealthUpdatedPayload
+
+
+class ProjectHealthReportGeneratedPayload(BaseModel):
+    report: dict
+
+
+class ProjectHealthReportGeneratedEvent(EventEnvelope):
+    event_name: Literal["project.health.report.generated"]
+    payload: ProjectHealthReportGeneratedPayload
+
+
 class ScheduleBaselineLockedPayload(BaseModel):
     project_id: str
     schedule_id: str

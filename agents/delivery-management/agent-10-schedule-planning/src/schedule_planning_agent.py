@@ -18,6 +18,7 @@ from change_configuration_agent import ChangeConfigurationAgent
 from events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
 from observability.tracing import get_trace_id
 
+from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
 
@@ -50,6 +51,7 @@ class SchedulePlanningAgent(BaseAgent):
             config.get("baseline_approval_threshold", 0.10) if config else 0.10
         )
         self.simulation_seed = config.get("simulation_seed", 42) if config else 42
+        self.scenario_engine = ScenarioEngine()
 
         schedule_store_path = (
             Path(config.get("schedule_store_path", "data/project_schedules.json"))
@@ -525,22 +527,26 @@ class SchedulePlanningAgent(BaseAgent):
 
         # Future work: Use Azure Databricks for Monte Carlo simulation
         # Run simulation with random sampling of task durations
-        simulation_results = []
         task_samples: dict[str, list[float]] = {task["task_id"]: [] for task in tasks}
         rng = random.Random(self.simulation_seed)
 
-        for _ in range(iterations):
+        async def _sample_duration(_: int) -> float:
             sampled_tasks = await self._sample_task_durations(tasks, rng=rng)
             duration = await self._calculate_simulated_duration(sampled_tasks, dependencies)
-            simulation_results.append(duration)
             for task in sampled_tasks:
                 task_samples[task["task_id"]].append(float(task.get("duration", 0)))
+            return duration
 
-        # Calculate statistics
-        p50 = await self._calculate_percentile(simulation_results, 50)
-        p80 = await self._calculate_percentile(simulation_results, 80)
-        p90 = await self._calculate_percentile(simulation_results, 90)
-        p95 = await self._calculate_percentile(simulation_results, 95)
+        monte_carlo = await self.scenario_engine.run_monte_carlo(
+            iterations=iterations,
+            sampler=_sample_duration,
+            percentiles=(50, 80, 90, 95),
+        )
+        simulation_results = monte_carlo.results
+        p50 = monte_carlo.percentiles.get(50, 0)
+        p80 = monte_carlo.percentiles.get(80, 0)
+        p90 = monte_carlo.percentiles.get(90, 0)
+        p95 = monte_carlo.percentiles.get(95, 0)
 
         # Calculate risk metrics
         risk_score = await self._calculate_schedule_risk(
@@ -559,14 +565,7 @@ class SchedulePlanningAgent(BaseAgent):
             "p95_duration": p95,
             "risk_score": risk_score,
             "risk_drivers": risk_drivers,
-            "distribution": {
-                "min": min(simulation_results) if simulation_results else 0,
-                "max": max(simulation_results) if simulation_results else 0,
-                "mean": (
-                    sum(simulation_results) / len(simulation_results) if simulation_results else 0
-                ),
-                "std_dev": await self._calculate_std_dev(simulation_results),
-            },
+            "distribution": monte_carlo.statistics,
         }
 
     async def _track_milestones(self, schedule_id: str) -> dict[str, Any]:
@@ -654,14 +653,16 @@ class SchedulePlanningAgent(BaseAgent):
         if not schedule:
             raise ValueError(f"Schedule not found: {schedule_id}")
 
-        # Create scenario based on parameters
-        scenario_schedule = await self._create_scenario(schedule, what_if_params)
-
-        # Recalculate schedule with changes
-        recalculated = await self._recalculate_schedule(scenario_schedule)
-
-        # Compare to baseline
-        comparison = await self._compare_schedules(schedule, recalculated)
+        scenario_output = await self.scenario_engine.run_scenario(
+            baseline=schedule,
+            scenario_params=what_if_params,
+            scenario_builder=self._create_scenario,
+            metrics_builder=self._recalculate_schedule,
+            comparison_builder=self._compare_schedules,
+            recommendation_builder=self._generate_scenario_recommendation,
+        )
+        recalculated = scenario_output["scenario_metrics"]
+        comparison = scenario_output["comparison"]
 
         return {
             "schedule_id": schedule_id,
@@ -671,7 +672,7 @@ class SchedulePlanningAgent(BaseAgent):
             "duration_difference": comparison.get("duration_difference", 0),
             "cost_impact": comparison.get("cost_impact", 0),
             "resource_impact": comparison.get("resource_impact", {}),
-            "recommendation": await self._generate_scenario_recommendation(comparison),
+            "recommendation": scenario_output.get("recommendation"),
         }
 
     async def _manage_baseline(
@@ -759,6 +760,8 @@ class SchedulePlanningAgent(BaseAgent):
 
         # Calculate schedule variance (SV)
         sv = await self._calculate_schedule_variance(schedule, baseline)
+        baseline_duration = max(baseline.get("project_duration_days", 0), 1)
+        schedule_variance_pct = sv / baseline_duration if baseline_duration else 0
 
         # Calculate schedule performance index (SPI)
         spi = await self._calculate_spi(schedule, baseline)
@@ -794,6 +797,7 @@ class SchedulePlanningAgent(BaseAgent):
             "schedule_id": schedule_id,
             "baseline_id": baseline_id,
             "schedule_variance_days": sv,
+            "schedule_variance_pct": schedule_variance_pct,
             "schedule_performance_index": spi,
             "variance_status": "Ahead" if sv > 0 else "Behind" if sv < 0 else "On Track",
             "delayed_tasks": delayed_tasks,

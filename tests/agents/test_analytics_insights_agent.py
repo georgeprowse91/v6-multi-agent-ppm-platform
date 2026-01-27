@@ -1,16 +1,21 @@
 import json
 
 import pytest
+
+from agents.runtime import InMemoryEventBus
 from analytics_insights_agent import AnalyticsInsightsAgent
 
 
 @pytest.mark.asyncio
 async def test_analytics_persists_outputs_and_masks_lineage(tmp_path, monkeypatch):
     monkeypatch.setenv("LINEAGE_MASK_SALT", "unit-test-salt")
+    event_bus = InMemoryEventBus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
             "analytics_lineage_store_path": tmp_path / "lineage.json",
+            "health_snapshot_store_path": tmp_path / "health.json",
+            "event_bus": event_bus,
         }
     )
     await agent.initialize()
@@ -43,8 +48,13 @@ async def test_analytics_persists_outputs_and_masks_lineage(tmp_path, monkeypatc
 
 @pytest.mark.asyncio
 async def test_analytics_get_insights_success(tmp_path):
+    event_bus = InMemoryEventBus()
     agent = AnalyticsInsightsAgent(
-        config={"analytics_output_store_path": tmp_path / "outputs.json"}
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "health_snapshot_store_path": tmp_path / "health.json",
+            "event_bus": event_bus,
+        }
     )
     await agent.initialize()
 
@@ -75,3 +85,48 @@ async def test_analytics_rejects_missing_dashboard(tmp_path):
     valid = await agent.validate_input({"action": "create_dashboard"})
 
     assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_analytics_health_summary_report(tmp_path):
+    event_bus = InMemoryEventBus()
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "health_snapshot_store_path": tmp_path / "health.json",
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    await event_bus.publish(
+        "project.health.updated",
+        {
+            "tenant_id": "tenant-analytics",
+            "payload": {
+                "health_data": {
+                    "project_id": "proj-1",
+                    "composite_score": 0.82,
+                    "health_status": "At Risk",
+                    "metrics": {
+                        "schedule": {"score": 0.7},
+                        "cost": {"score": 0.8},
+                        "risk": {"score": 0.6},
+                        "quality": {"score": 0.9},
+                        "resource": {"score": 0.85},
+                    },
+                    "monitored_at": "2024-03-01T00:00:00",
+                }
+            },
+        },
+    )
+
+    report = await agent.process(
+        {
+            "action": "generate_report",
+            "tenant_id": "tenant-analytics",
+            "report": {"title": "Portfolio Health", "type": "health_summary"},
+        }
+    )
+
+    assert report["report_id"]

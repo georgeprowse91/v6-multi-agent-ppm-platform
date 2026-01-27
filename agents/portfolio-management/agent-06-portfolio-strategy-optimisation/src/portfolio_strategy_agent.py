@@ -16,6 +16,7 @@ from typing import Any
 from events import PortfolioPrioritizedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
@@ -75,6 +76,7 @@ class PortfolioStrategyAgent(BaseAgent):
             config.get("rebalancing_frequency", "quarterly") if config else "quarterly"
         )
         self.budget_granularity = config.get("budget_granularity", 1000) if config else 1000
+        self.scenario_engine = ScenarioEngine()
 
         store_path = (
             Path(config.get("portfolio_store_path", "data/portfolio_strategy_store.json"))
@@ -438,11 +440,10 @@ class PortfolioStrategyAgent(BaseAgent):
         """
         self.logger.info(f"Running scenario analysis for {len(scenarios)} scenarios")
 
-        scenario_results: list[dict[str, Any]] = []
-
-        for scenario in scenarios:
-            scenario_id = scenario.get("id", f"scenario_{len(scenario_results)}")
-            scenario_name = scenario.get("name", f"Scenario {len(scenario_results) + 1}")
+        async def _run_single_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
+            scenario_index = len(self.optimization_scenarios)
+            scenario_id = scenario.get("id", f"scenario_{scenario_index}")
+            scenario_name = scenario.get("name", f"Scenario {scenario_index + 1}")
 
             # Extract scenario-specific parameters
             budget_multiplier = scenario.get("budget_multiplier", 1.0)
@@ -472,15 +473,13 @@ class PortfolioStrategyAgent(BaseAgent):
                 scenario.get("projects", []), adjusted_constraints
             )
 
-            scenario_results.append(
-                {
-                    "scenario_id": scenario_id,
-                    "scenario_name": scenario_name,
-                    "parameters": scenario,
-                    "results": optimization_result,
-                    "trade_offs": await self._identify_trade_offs(optimization_result),
-                }
-            )
+            result = {
+                "scenario_id": scenario_id,
+                "scenario_name": scenario_name,
+                "parameters": scenario,
+                "results": optimization_result,
+                "trade_offs": await self._identify_trade_offs(optimization_result),
+            }
 
             # Store scenario
             self.optimization_scenarios[scenario_id] = {
@@ -489,8 +488,15 @@ class PortfolioStrategyAgent(BaseAgent):
                 "created_at": datetime.utcnow().isoformat(),
             }
 
-        # Generate cross-scenario comparison
-        comparison = await self._generate_scenario_comparison(scenario_results)
+            return result
+
+        scenario_output = await self.scenario_engine.run_multi_scenarios(
+            scenarios=scenarios,
+            scenario_runner=_run_single_scenario,
+            comparison_builder=self._generate_scenario_comparison,
+        )
+        scenario_results = scenario_output["scenarios"]
+        comparison = scenario_output["comparison"]
 
         # Future work: Publish portfolio.scenario.generated event
 
