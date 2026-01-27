@@ -27,7 +27,57 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-neutral-900);
+  margin-bottom: var(--space-2);
+}
+
+.sectionDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
   margin-bottom: var(--space-4);
+}
+
+/* Canvas buttons */
+.canvasButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.canvasButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+  background-color: white;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.canvasButton:hover {
+  background-color: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-700);
+}
+
+.canvasButton:focus {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.canvasButton:active {
+  background-color: var(--color-primary-100);
+}
+
+.canvasIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-500);
 }
 
 .cardGrid {

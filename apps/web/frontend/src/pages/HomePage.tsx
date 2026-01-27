@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useCanvasStore, SAMPLE_ARTIFACT_IDS } from '@/store/useCanvasStore';
 import styles from './HomePage.module.css';
 
 const quickLinks = [
@@ -57,6 +58,33 @@ const configLinks = [
 ];
 
 export function HomePage() {
+  const { artifacts, openArtifact } = useCanvasStore();
+
+  const handleOpenCharter = () => {
+    const artifact = artifacts[SAMPLE_ARTIFACT_IDS.charter];
+    if (artifact) openArtifact(artifact);
+  };
+
+  const handleOpenWBS = () => {
+    const artifact = artifacts[SAMPLE_ARTIFACT_IDS.wbs];
+    if (artifact) openArtifact(artifact);
+  };
+
+  const handleOpenTimeline = () => {
+    const artifact = artifacts[SAMPLE_ARTIFACT_IDS.timeline];
+    if (artifact) openArtifact(artifact);
+  };
+
+  const handleOpenSpreadsheet = () => {
+    const artifact = artifacts[SAMPLE_ARTIFACT_IDS.spreadsheet];
+    if (artifact) openArtifact(artifact);
+  };
+
+  const handleOpenDashboard = () => {
+    const artifact = artifacts[SAMPLE_ARTIFACT_IDS.dashboard];
+    if (artifact) openArtifact(artifact);
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -65,6 +93,71 @@ export function HomePage() {
           Multi-agent project, program, and portfolio management
         </p>
       </header>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Open Canvas</h2>
+        <p className={styles.sectionDescription}>
+          Try the new Canvas framework with multi-tab management
+        </p>
+        <div className={styles.canvasButtons}>
+          <button onClick={handleOpenCharter} className={styles.canvasButton}>
+            <span className={styles.canvasIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </span>
+            Open Charter (Doc)
+          </button>
+          <button onClick={handleOpenWBS} className={styles.canvasButton}>
+            <span className={styles.canvasIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="6" y1="3" x2="6" y2="15" />
+                <circle cx="18" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <path d="M18 9a9 9 0 0 1-9 9" />
+              </svg>
+            </span>
+            Open WBS (Tree)
+          </button>
+          <button onClick={handleOpenTimeline} className={styles.canvasButton}>
+            <span className={styles.canvasIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </span>
+            Open Timeline
+          </button>
+          <button onClick={handleOpenSpreadsheet} className={styles.canvasButton}>
+            <span className={styles.canvasIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+                <line x1="3" y1="15" x2="21" y2="15" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+                <line x1="15" y1="3" x2="15" y2="21" />
+              </svg>
+            </span>
+            Open Spreadsheet
+          </button>
+          <button onClick={handleOpenDashboard} className={styles.canvasButton}>
+            <span className={styles.canvasIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="9" />
+                <rect x="14" y="3" width="7" height="5" />
+                <rect x="14" y="12" width="7" height="9" />
+                <rect x="3" y="16" width="7" height="5" />
+              </svg>
+            </span>
+            Open Dashboard
+          </button>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Quick Access</h2>

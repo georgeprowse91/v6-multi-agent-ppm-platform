@@ -1,4 +1,5 @@
-import { useAppStore } from '@/store';
+import { CanvasWorkspace } from '@/components/canvas';
+import { useCanvasStore } from '@/store/useCanvasStore';
 import styles from './MainCanvas.module.css';
 
 interface MainCanvasProps {
@@ -6,45 +7,16 @@ interface MainCanvasProps {
 }
 
 export function MainCanvas({ children }: MainCanvasProps) {
-  const { openTabs, activeTabId, setActiveTab, closeTab } = useAppStore();
+  const { tabs } = useCanvasStore();
+  const hasCanvasTabs = tabs.length > 0;
 
   return (
     <main className={styles.canvas}>
-      {openTabs.length > 0 && (
-        <div className={styles.tabBar}>
-          {openTabs.map((tab) => (
-            <div
-              key={tab.id}
-              className={`${styles.tab} ${activeTabId === tab.id ? styles.active : ''}`}
-            >
-              <button
-                className={styles.tabButton}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.isDirty && <span className={styles.dirtyIndicator} />}
-                <span className={styles.tabTitle}>{tab.title}</span>
-              </button>
-              <button
-                className={styles.closeButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  closeTab(tab.id);
-                }}
-                title="Close tab"
-              >
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
+      {hasCanvasTabs ? (
+        <CanvasWorkspace />
+      ) : (
+        <div className={styles.content}>{children}</div>
       )}
-      <div className={styles.content}>{children}</div>
     </main>
   );
 }

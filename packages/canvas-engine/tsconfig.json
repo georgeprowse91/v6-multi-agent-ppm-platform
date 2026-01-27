@@ -15,13 +15,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "declaration": true,
+    "declarationMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@ppm/canvas-engine": ["../../../packages/canvas-engine/src"],
-      "@ppm/canvas-engine/*": ["../../../packages/canvas-engine/src/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "../../../packages/canvas-engine/src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src"],
+  "references": []
 }

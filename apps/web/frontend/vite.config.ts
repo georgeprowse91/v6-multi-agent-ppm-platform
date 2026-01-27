@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@ppm/canvas-engine': path.resolve(__dirname, '../../../packages/canvas-engine/src'),
     },
   },
   build: {

@@ -1,0 +1,170 @@
+/**
+ * StructuredTreeCanvas styles
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+}
+
+.treeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-neutral-200, #e5e5e5);
+  background-color: var(--color-neutral-50, #fafafa);
+}
+
+.treeTitle {
+  margin: 0;
+  font-size: var(--font-size-base, 1rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-neutral-900, #171717);
+}
+
+.nodeCount {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-neutral-500, #737373);
+}
+
+.tree {
+  flex: 1;
+  padding: var(--space-4, 16px);
+  overflow: auto;
+}
+
+.nodeContainer {
+  user-select: none;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-2, 8px);
+  border-radius: var(--radius-md, 6px);
+  transition: background-color var(--transition-fast, 150ms);
+}
+
+.node:hover {
+  background-color: var(--color-neutral-100, #f5f5f5);
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  color: var(--color-neutral-500, #737373);
+  flex-shrink: 0;
+}
+
+.toggleButton:hover {
+  background-color: var(--color-neutral-200, #e5e5e5);
+  color: var(--color-neutral-700, #404040);
+}
+
+.toggleButton svg {
+  transition: transform var(--transition-fast, 150ms);
+}
+
+.toggleButton svg.collapsed {
+  transform: rotate(-90deg);
+}
+
+.leafSpacer {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.nodeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-500, #6366f1);
+  flex-shrink: 0;
+}
+
+.nodeLabel {
+  flex: 1;
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-neutral-800, #262626);
+  cursor: default;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editInput {
+  flex: 1;
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--font-size-sm, 0.875rem);
+  border: 1px solid var(--color-primary-500, #6366f1);
+  border-radius: var(--radius-sm, 4px);
+  outline: none;
+  min-width: 0;
+}
+
+.editInput:focus {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.nodeActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  opacity: 0;
+  transition: opacity var(--transition-fast, 150ms);
+}
+
+.node:hover .nodeActions {
+  opacity: 1;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  color: var(--color-neutral-500, #737373);
+}
+
+.actionButton:hover {
+  background-color: var(--color-neutral-200, #e5e5e5);
+  color: var(--color-neutral-700, #404040);
+}
+
+.actionButton.deleteButton:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error, #ef4444);
+}
+
+.children {
+  /* Children are rendered with increased depth padding */
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-8, 32px);
+  color: var(--color-neutral-500, #737373);
+}

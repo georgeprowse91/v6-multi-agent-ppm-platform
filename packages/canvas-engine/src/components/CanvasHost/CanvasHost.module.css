@@ -1,0 +1,47 @@
+/**
+ * CanvasHost styles
+ */
+
+.host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-neutral-50, #fafafa);
+  overflow: hidden;
+}
+
+.canvasArea {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-8, 32px);
+  text-align: center;
+  color: var(--color-neutral-500, #737373);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-4, 16px);
+  color: var(--color-neutral-300, #d4d4d4);
+}
+
+.emptyTitle {
+  margin: 0 0 var(--space-2, 8px);
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-neutral-700, #404040);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: var(--font-size-sm, 0.875rem);
+  max-width: 320px;
+}
