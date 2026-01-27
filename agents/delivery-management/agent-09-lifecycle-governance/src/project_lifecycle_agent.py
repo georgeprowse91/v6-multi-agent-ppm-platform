@@ -8,15 +8,18 @@ governance gates and continuously monitors project health.
 Specification: agents/delivery-management/agent-09-lifecycle-governance/README.md
 """
 
+import asyncio
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from approval_workflow_agent import ApprovalWorkflowAgent
-from events import ProjectTransitionedEvent
+from events import ProjectHealthReportGeneratedEvent, ProjectHealthUpdatedEvent, ProjectTransitionedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.health_recommendations import generate_recommendations, identify_health_concerns
+from agents.common.metrics_catalog import get_metric_value, normalize_metric_value
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
 
@@ -33,6 +36,7 @@ class ProjectLifecycleAgent(BaseAgent):
     - State transitions and approvals
     - Governance compliance monitoring
     - Dashboard generation
+    - Health metric ingestion from domain agents
     """
 
     def __init__(
@@ -56,13 +60,20 @@ class ProjectLifecycleAgent(BaseAgent):
             config.get("monitoring_frequency", "hourly") if config else "hourly"
         )
         self.methodology_rules = config.get("methodology_rules", {}) if config else {}
+        self.metric_agents = config.get("metric_agents", {}) if config else {}
 
         lifecycle_store_path = (
             Path(config.get("lifecycle_store_path", "data/project_lifecycle.json"))
             if config
             else Path("data/project_lifecycle.json")
         )
+        health_store_path = (
+            Path(config.get("health_store_path", "data/project_health_history.json"))
+            if config
+            else Path("data/project_health_history.json")
+        )
         self.lifecycle_store = TenantStateStore(lifecycle_store_path)
+        self.health_store = TenantStateStore(health_store_path)
 
         # Data stores (will be replaced with database connections)
         self.projects = {}  # type: ignore
@@ -106,6 +117,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "transition_phase",
             "evaluate_gate",
             "monitor_health",
+            "generate_health_report",
             "recommend_methodology",
             "adjust_methodology",
             "get_project_status",
@@ -125,7 +137,15 @@ class ProjectLifecycleAgent(BaseAgent):
                     self.logger.warning(f"Missing required field: {field}")
                     return False
 
-        elif action in ["transition_phase", "evaluate_gate", "override_gate"]:
+        elif action in [
+            "transition_phase",
+            "evaluate_gate",
+            "override_gate",
+            "monitor_health",
+            "generate_health_report",
+            "get_project_status",
+            "get_health_dashboard",
+        ]:
             if "project_id" not in input_data:
                 self.logger.warning("Missing project_id")
                 return False
@@ -139,8 +159,9 @@ class ProjectLifecycleAgent(BaseAgent):
         Args:
             input_data: {
                 "action": "initiate_project" | "transition_phase" | "evaluate_gate" |
-                          "monitor_health" | "recommend_methodology" | "adjust_methodology" |
-                          "get_project_status" | "get_health_dashboard" | "override_gate",
+                          "monitor_health" | "generate_health_report" | "recommend_methodology" |
+                          "adjust_methodology" | "get_project_status" | "get_health_dashboard" |
+                          "override_gate",
                 "project_data": Project initialization data,
                 "project_id": ID of existing project,
                 "target_phase": Target phase for transition,
@@ -154,6 +175,7 @@ class ProjectLifecycleAgent(BaseAgent):
             - transition_phase: Transition status, gate results, next steps
             - evaluate_gate: Gate criteria status, readiness score, gaps
             - monitor_health: Composite health score, metrics, alerts
+            - generate_health_report: Standardized health report output
             - recommend_methodology: Recommended methodology with rationale
             - adjust_methodology: Updated methodology configuration
             - get_project_status: Current phase, health, pending gates
@@ -190,6 +212,11 @@ class ProjectLifecycleAgent(BaseAgent):
 
         elif action == "monitor_health":
             return await self._monitor_health(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
+
+        elif action == "generate_health_report":
+            return await self._generate_health_report(
                 input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
@@ -451,7 +478,7 @@ class ProjectLifecycleAgent(BaseAgent):
         """
         Monitor project health continuously.
 
-        Returns composite health score and metrics.
+        Returns composite health score and metrics from domain agents.
         """
         self.logger.info(f"Monitoring health for project: {project_id}")
 
@@ -459,18 +486,67 @@ class ProjectLifecycleAgent(BaseAgent):
         if not project:
             raise ValueError(f"Project not found: {project_id}")
 
-        # Gather metrics from domain agents
-        # Future work: Integrate with Schedule & Planning Agent (Agent 10)
-        # Future work: Integrate with Financial Management Agent (Agent 12)
-        # Future work: Integrate with Risk Management Agent (Agent 15)
-        # Future work: Integrate with Quality Assurance Agent (Agent 14)
-        # Future work: Integrate with Resource & Capacity Management Agent (Agent 11)
+        metric_context = {
+            "tenant_id": tenant_id,
+            "schedule_id": project.get("schedule_id"),
+            "resource_filters": project.get("resource_filters", {}),
+        }
+        raw_schedule, raw_cost, raw_risk, raw_quality, raw_resource = await asyncio.gather(
+            get_metric_value(
+                "schedule_variance",
+                project_id,
+                tenant_id=tenant_id,
+                context=metric_context,
+                agent_clients=self.metric_agents,
+                fallback=project,
+            ),
+            get_metric_value(
+                "cost_variance",
+                project_id,
+                tenant_id=tenant_id,
+                context=metric_context,
+                agent_clients=self.metric_agents,
+                fallback=project,
+            ),
+            get_metric_value(
+                "risk_score",
+                project_id,
+                tenant_id=tenant_id,
+                context=metric_context,
+                agent_clients=self.metric_agents,
+                fallback=project,
+            ),
+            get_metric_value(
+                "quality_score",
+                project_id,
+                tenant_id=tenant_id,
+                context=metric_context,
+                agent_clients=self.metric_agents,
+                fallback=project,
+            ),
+            get_metric_value(
+                "resource_utilization",
+                project_id,
+                tenant_id=tenant_id,
+                context=metric_context,
+                agent_clients=self.metric_agents,
+                fallback=project,
+            ),
+        )
 
-        schedule_health = await self._get_schedule_health(project_id)
-        cost_health = await self._get_cost_health(project_id)
-        risk_health = await self._get_risk_health(project_id)
-        quality_health = await self._get_quality_health(project_id)
-        resource_health = await self._get_resource_health(project_id)
+        raw_metrics = {
+            "schedule_variance": raw_schedule,
+            "cost_variance": raw_cost,
+            "risk_score": raw_risk,
+            "quality_score": raw_quality,
+            "resource_utilization": raw_resource,
+        }
+
+        schedule_health = normalize_metric_value("schedule_variance", raw_schedule)
+        cost_health = normalize_metric_value("cost_variance", raw_cost)
+        risk_health = normalize_metric_value("risk_score", raw_risk)
+        quality_health = normalize_metric_value("quality_score", raw_quality)
+        resource_health = normalize_metric_value("resource_utilization", raw_resource)
 
         # Calculate composite health score
         composite_score = (
@@ -485,17 +561,21 @@ class ProjectLifecycleAgent(BaseAgent):
         health_status = await self._determine_health_status(composite_score)
 
         # Identify concerns and anomalies
-        concerns = await self._identify_concerns(
-            schedule_health, cost_health, risk_health, quality_health, resource_health
+        concerns = identify_health_concerns(
+            {
+                "schedule": schedule_health,
+                "cost": cost_health,
+                "risk": risk_health,
+                "quality": quality_health,
+                "resource": resource_health,
+            }
         )
 
         # Detect early warning signals
-        warnings = await self._detect_warnings(project_id)
+        warnings = await self._detect_warnings(project_id, raw_metrics)
 
         # Generate recommendations
-        recommendations = await self._generate_health_recommendations(
-            composite_score, concerns, warnings
-        )
+        recommendations = generate_recommendations(concerns)
 
         health_data = {
             "project_id": project_id,
@@ -505,24 +585,30 @@ class ProjectLifecycleAgent(BaseAgent):
                 "schedule": {
                     "score": schedule_health,
                     "status": await self._get_metric_status(schedule_health),
+                    "raw": raw_schedule,
                 },
                 "cost": {
                     "score": cost_health,
                     "status": await self._get_metric_status(cost_health),
+                    "raw": raw_cost,
                 },
                 "risk": {
                     "score": risk_health,
                     "status": await self._get_metric_status(risk_health),
+                    "raw": raw_risk,
                 },
                 "quality": {
                     "score": quality_health,
                     "status": await self._get_metric_status(quality_health),
+                    "raw": raw_quality,
                 },
                 "resource": {
                     "score": resource_health,
                     "status": await self._get_metric_status(resource_health),
+                    "raw": raw_resource,
                 },
             },
+            "raw_metrics": raw_metrics,
             "concerns": concerns,
             "warnings": warnings,
             "recommendations": recommendations,
@@ -531,12 +617,43 @@ class ProjectLifecycleAgent(BaseAgent):
 
         # Store health score
         self.health_scores[project_id] = health_data
+        record_id = f"{project_id}-{health_data['monitored_at']}"
+        self.health_store.upsert(tenant_id, record_id, health_data.copy())
 
         # Future work: Store in database
-        # Future work: Publish health.updated event
         # Future work: Trigger alerts if health is critical
+        await self._publish_health_updated(
+            project_id,
+            health_data,
+            tenant_id=tenant_id,
+        )
 
         return health_data
+
+    async def _generate_health_report(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
+        """
+        Generate a standardized health report and publish it as an event.
+        """
+        health_data = await self._monitor_health(project_id, tenant_id=tenant_id)
+        report_id = f"health-report-{project_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        summary = (
+            f"Project health is {health_data.get('health_status')} with "
+            f"composite score {health_data.get('composite_score', 0):.2f}."
+        )
+        report = {
+            "report_id": report_id,
+            "project_id": project_id,
+            "summary": summary,
+            "health_status": health_data.get("health_status"),
+            "composite_score": health_data.get("composite_score"),
+            "metrics": health_data.get("metrics", {}),
+            "concerns": health_data.get("concerns", []),
+            "warnings": health_data.get("warnings", []),
+            "recommendations": health_data.get("recommendations", []),
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+        await self._publish_health_report_generated(report, tenant_id=tenant_id)
+        return report
 
     async def _recommend_methodology(self, project_data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -643,11 +760,24 @@ class ProjectLifecycleAgent(BaseAgent):
     async def _get_health_dashboard(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Generate comprehensive health dashboard."""
         health_data = await self._monitor_health(project_id, tenant_id=tenant_id)
-        project_status = await self._get_project_status(project_id, tenant_id=tenant_id)
+        project = self.projects.get(project_id, {})
+        lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
+        project_status = {
+            "project_id": project_id,
+            "name": project.get("name"),
+            "current_phase": project.get("current_phase"),
+            "methodology": project.get("methodology"),
+            "status": project.get("status"),
+            "health_status": health_data.get("health_status", "Unknown"),
+            "composite_score": health_data.get("composite_score", 0),
+            "phase_start_date": lifecycle_state.get("phase_start_date") if lifecycle_state else None,
+            "transitions_count": len(lifecycle_state.get("transitions", []))
+            if lifecycle_state
+            else 0,
+        }
 
         # Generate trend data
-        # Future work: Query historical health scores
-        trends = await self._generate_health_trends(project_id)
+        trends = await self._generate_health_trends(project_id, tenant_id=tenant_id)
 
         # Generate alerts
         alerts = await self._generate_alerts(health_data)
@@ -853,64 +983,6 @@ class ProjectLifecycleAgent(BaseAgent):
         }
         return descriptions.get(criterion, criterion)
 
-    async def _get_schedule_health(self, project_id: str) -> float:
-        """Get schedule health metric."""
-        project = self.projects.get(project_id, {})
-        schedule = project.get("schedule", {})
-        spi = schedule.get("spi")
-        if spi is None:
-            variance_pct = schedule.get("variance_pct", 0)
-            spi = max(0.0, 1.0 - abs(variance_pct))
-        return max(0.0, min(float(spi), 1.0))
-
-    async def _get_cost_health(self, project_id: str) -> float:
-        """Get cost health metric."""
-        project = self.projects.get(project_id, {})
-        cost = project.get("cost", {})
-        cpi = cost.get("cpi")
-        if cpi is None:
-            variance_pct = cost.get("variance_pct", 0)
-            cpi = max(0.0, 1.0 - abs(variance_pct))
-        return max(0.0, min(float(cpi), 1.0))
-
-    async def _get_risk_health(self, project_id: str) -> float:
-        """Get risk health metric."""
-        project = self.projects.get(project_id, {})
-        risk = project.get("risk", {})
-        risk_score = risk.get("risk_score")
-        if risk_score is None:
-            open_risks = risk.get("open_risks", 0)
-            risk_score = max(0.0, 1.0 - (open_risks / 10))
-        return max(0.0, min(float(risk_score), 1.0))
-
-    async def _get_quality_health(self, project_id: str) -> float:
-        """Get quality health metric."""
-        project = self.projects.get(project_id, {})
-        quality = project.get("quality", {})
-        test_pass_rate = quality.get("test_pass_rate")
-        if test_pass_rate is None:
-            defects = float(quality.get("defects", 0) or 0)
-            test_pass_rate = max(0.0, 1.0 - (defects / 20.0))
-        return max(0.0, min(float(test_pass_rate or 0), 1.0))
-
-    async def _get_resource_health(self, project_id: str) -> float:
-        """Get resource health metric."""
-        project = self.projects.get(project_id, {})
-        resource = project.get("resource", {})
-        utilization = resource.get("utilization")
-        if utilization is None:
-            utilization = float(resource.get("utilization_pct", 0) or 0) / 100
-        else:
-            utilization = float(utilization)
-        # Ideal utilization 0.75-0.9
-        if utilization < 0.75:
-            score = utilization / 0.75
-        elif utilization > 0.9:
-            score = max(0.0, 1 - ((utilization - 0.9) / 0.2))
-        else:
-            score = 1.0
-        return max(0.0, min(score, 1.0))
-
     async def _determine_health_status(self, composite_score: float) -> str:
         """Determine health status from composite score."""
         if composite_score >= 0.85:
@@ -929,30 +1001,15 @@ class ProjectLifecycleAgent(BaseAgent):
         else:
             return "red"
 
-    async def _identify_concerns(
-        self, schedule: float, cost: float, risk: float, quality: float, resource: float
-    ) -> list[str]:
-        """Identify health concerns."""
-        concerns = []
-        if schedule < 0.70:
-            concerns.append("Schedule variance exceeds acceptable threshold")
-        if cost < 0.70:
-            concerns.append("Cost variance indicates budget overrun risk")
-        if risk < 0.70:
-            concerns.append("High-priority risks not adequately mitigated")
-        if quality < 0.70:
-            concerns.append("Quality metrics below acceptable standards")
-        if resource < 0.70:
-            concerns.append("Resource constraints affecting delivery")
-        return concerns
-
-    async def _detect_warnings(self, project_id: str) -> list[dict[str, Any]]:
+    async def _detect_warnings(
+        self, project_id: str, raw_metrics: dict[str, float | None]
+    ) -> list[dict[str, Any]]:
         """Detect early warning signals."""
         project = self.projects.get(project_id, {})
         warnings = []
 
-        schedule = project.get("schedule", {})
-        if schedule.get("variance_pct", 0) < -0.1:
+        schedule_variance = raw_metrics.get("schedule_variance")
+        if schedule_variance is not None and schedule_variance < -0.1:
             warnings.append(
                 {
                     "type": "schedule_slip",
@@ -960,8 +1017,8 @@ class ProjectLifecycleAgent(BaseAgent):
                 }
             )
 
-        cost = project.get("cost", {})
-        if cost.get("variance_pct", 0) > 0.1:
+        cost_variance = raw_metrics.get("cost_variance")
+        if cost_variance is not None and cost_variance > 0.1:
             warnings.append(
                 {
                     "type": "cost_overrun",
@@ -978,29 +1035,25 @@ class ProjectLifecycleAgent(BaseAgent):
                 }
             )
 
-        return warnings
+        quality = project.get("quality", {})
+        if quality.get("defects", 0) > 10:
+            warnings.append(
+                {
+                    "type": "quality_issues",
+                    "message": "High defect rate detected",
+                }
+            )
 
-    async def _generate_health_recommendations(
-        self, composite_score: float, concerns: list[str], warnings: list[dict[str, Any]]
-    ) -> list[str]:
-        """Generate health improvement recommendations."""
-        recommendations = []
-        for concern in concerns:
-            if "schedule" in concern.lower():
-                recommendations.append(
-                    "Review critical path and consider fast-tracking or crashing"
-                )
-            if "cost" in concern.lower():
-                recommendations.append(
-                    "Conduct budget review and identify cost reduction opportunities"
-                )
-            if "risk" in concern.lower():
-                recommendations.append("Escalate high-priority risks to steering committee")
-            if "quality" in concern.lower():
-                recommendations.append("Implement additional quality controls and testing")
-            if "resource" in concern.lower():
-                recommendations.append("Review resource allocation and consider augmentation")
-        return recommendations
+        resource_utilization = raw_metrics.get("resource_utilization")
+        if resource_utilization is not None and resource_utilization > 0.95:
+            warnings.append(
+                {
+                    "type": "resource_overload",
+                    "message": "Resource utilization exceeds 95%",
+                }
+            )
+
+        return warnings
 
     async def _get_alternative_methodologies(self, primary: str) -> list[str]:
         """Get alternative methodologies."""
@@ -1028,15 +1081,37 @@ class ProjectLifecycleAgent(BaseAgent):
         phase_info = methodology_map.get("phases", {}).get(current_phase, {})
         return phase_info.get("gates", [])  # type: ignore
 
-    async def _generate_health_trends(self, project_id: str) -> dict[str, Any]:
-        """Generate health trend data."""
-        # Future work: Query historical health scores
+    async def _generate_health_trends(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
+        """Generate health trend data from historical health scores."""
+        history = [
+            record
+            for record in self.health_store.list(tenant_id)
+            if record.get("project_id") == project_id
+        ]
+        history = sorted(history, key=lambda record: record.get("monitored_at", ""))
+
+        def _trend(values: list[float]) -> str:
+            if len(values) < 2:
+                return "stable"
+            if values[-1] > values[0]:
+                return "improving"
+            if values[-1] < values[0]:
+                return "declining"
+            return "stable"
+
+        schedule_values = [record.get("metrics", {}).get("schedule", {}).get("score", 0) for record in history]
+        cost_values = [record.get("metrics", {}).get("cost", {}).get("score", 0) for record in history]
+        risk_values = [record.get("metrics", {}).get("risk", {}).get("score", 0) for record in history]
+        quality_values = [record.get("metrics", {}).get("quality", {}).get("score", 0) for record in history]
+        resource_values = [record.get("metrics", {}).get("resource", {}).get("score", 0) for record in history]
+
         return {
-            "schedule_trend": "improving",
-            "cost_trend": "stable",
-            "risk_trend": "declining",
-            "quality_trend": "improving",
-            "resource_trend": "stable",
+            "schedule_trend": _trend(schedule_values),
+            "cost_trend": _trend(cost_values),
+            "risk_trend": _trend(risk_values),
+            "quality_trend": _trend(quality_values),
+            "resource_trend": _trend(resource_values),
+            "history": history[-10:],
         }
 
     async def _generate_alerts(self, health_data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1086,6 +1161,39 @@ class ProjectLifecycleAgent(BaseAgent):
             },
         )
         await self.event_bus.publish("project.transitioned", event.model_dump())
+
+    async def _publish_health_updated(
+        self,
+        project_id: str,
+        health_data: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> None:
+        event = ProjectHealthUpdatedEvent(
+            event_name="project.health.updated",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            trace_id=get_trace_id(),
+            payload={
+                "project_id": project_id,
+                "health_data": health_data,
+            },
+        )
+        await self.event_bus.publish("project.health.updated", event.model_dump())
+
+    async def _publish_health_report_generated(
+        self, report: dict[str, Any], *, tenant_id: str
+    ) -> None:
+        event = ProjectHealthReportGeneratedEvent(
+            event_name="project.health.report.generated",
+            event_id=f"evt-{uuid.uuid4().hex}",
+            timestamp=datetime.utcnow(),
+            tenant_id=tenant_id,
+            trace_id=get_trace_id(),
+            payload={"report": report},
+        )
+        await self.event_bus.publish("project.health.report.generated", event.model_dump())
 
     async def _request_override_approval(
         self,

@@ -17,6 +17,7 @@ from data_quality.rules import evaluate_quality_rules
 from events import ResourceAllocationCreatedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
 
@@ -53,6 +54,7 @@ class ResourceCapacityAgent(BaseAgent):
         )
         self.forecast_horizon_months = config.get("forecast_horizon_months", 12) if config else 12
         self.utilization_target = config.get("utilization_target", 0.85) if config else 0.85
+        self.scenario_engine = ScenarioEngine()
 
         resource_store_path = (
             Path(config.get("resource_store_path", "data/resource_pool.json"))
@@ -604,26 +606,23 @@ class ResourceCapacityAgent(BaseAgent):
         scenario_name = scenario_params.get("scenario_name", "Unnamed Scenario")
         changes = scenario_params.get("changes", {})
 
-        # Create baseline scenario
         baseline = await self._create_baseline_scenario()
-
-        # Apply changes to create new scenario
-        scenario = await self._apply_scenario_changes(baseline, changes)
-
-        # Calculate metrics for both scenarios
-        baseline_metrics = await self._calculate_scenario_metrics(baseline)
-        scenario_metrics = await self._calculate_scenario_metrics(scenario)
-
-        # Compare scenarios
-        comparison = await self._compare_scenarios(baseline_metrics, scenario_metrics)
+        scenario_output = await self.scenario_engine.run_scenario(
+            baseline=baseline,
+            scenario_params=changes,
+            scenario_builder=self._apply_scenario_changes,
+            metrics_builder=self._calculate_scenario_metrics,
+            comparison_builder=self._compare_scenarios,
+            recommendation_builder=self._generate_scenario_recommendation,
+        )
 
         return {
             "scenario_name": scenario_name,
             "scenario_params": scenario_params,
-            "baseline_metrics": baseline_metrics,
-            "scenario_metrics": scenario_metrics,
-            "comparison": comparison,
-            "recommendation": await self._generate_scenario_recommendation(comparison),
+            "baseline_metrics": scenario_output["baseline_metrics"],
+            "scenario_metrics": scenario_output["scenario_metrics"],
+            "comparison": scenario_output["comparison"],
+            "recommendation": scenario_output.get("recommendation"),
         }
 
     async def _allocate_resource(

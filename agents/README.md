@@ -10,6 +10,7 @@ Document the 25 specialized domain agents and how they integrate into the orches
 - `agents/delivery-management`: Subdirectory containing delivery management assets for this area.
 - `agents/operations-management`: Subdirectory containing operations management assets for this area.
 - `agents/portfolio-management`: Subdirectory containing portfolio management assets for this area.
+- `agents/common`: Shared utilities (metrics catalog, scenario engine, health recommendations).
 - `agents/runtime`: Subdirectory containing runtime assets for this area.
 - `agents/__init__.py`: Python module used by this component.
 

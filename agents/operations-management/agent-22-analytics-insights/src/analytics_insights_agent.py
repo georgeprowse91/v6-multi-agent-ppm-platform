@@ -14,7 +14,10 @@ from typing import Any
 
 from security.lineage import mask_lineage_payload
 
-from agents.runtime import BaseAgent
+from agents.common.health_recommendations import generate_recommendations, identify_health_concerns
+from agents.common.metrics_catalog import get_metric_value, normalize_metric_value
+from agents.common.scenario import ScenarioEngine
+from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
 
 
@@ -31,6 +34,7 @@ class AnalyticsInsightsAgent(BaseAgent):
     - Narrative generation
     - KPI and OKR management
     - Data governance and lineage
+    - Portfolio health aggregation from lifecycle events
     """
 
     def __init__(self, agent_id: str = "agent_022", config: dict[str, Any] | None = None):
@@ -42,6 +46,11 @@ class AnalyticsInsightsAgent(BaseAgent):
             config.get("prediction_confidence_threshold", 0.75) if config else 0.75
         )
         self.max_dashboard_widgets = config.get("max_dashboard_widgets", 20) if config else 20
+        self.scenario_engine = ScenarioEngine()
+        self.metric_agents = config.get("metric_agents", {}) if config else {}
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            self.event_bus = InMemoryEventBus()
 
         output_store_path = (
             Path(config.get("analytics_output_store_path", "data/analytics_outputs.json"))
@@ -53,8 +62,14 @@ class AnalyticsInsightsAgent(BaseAgent):
             if config
             else Path("data/analytics_lineage.json")
         )
+        health_store_path = (
+            Path(config.get("health_snapshot_store_path", "data/health_snapshots.json"))
+            if config
+            else Path("data/health_snapshots.json")
+        )
         self.analytics_output_store = TenantStateStore(output_store_path)
         self.analytics_lineage_store = TenantStateStore(lineage_store_path)
+        self.health_snapshot_store = TenantStateStore(health_store_path)
 
         # Data stores (will be replaced with database)
         self.dashboards = {}  # type: ignore
@@ -63,6 +78,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.predictions = {}  # type: ignore
         self.scenarios = {}  # type: ignore
         self.data_lineage = {}  # type: ignore
+        self.health_snapshots: dict[str, list[dict[str, Any]]] = {}
 
     async def initialize(self) -> None:
         """Initialize analytics services, ML models, and data sources."""
@@ -81,6 +97,11 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Future work: Initialize Azure OpenAI for narrative generation
         # Future work: Set up Azure Monitor for analytics pipeline monitoring
         # Future work: Connect to Azure SQL Database for metadata storage
+
+        self.event_bus.subscribe("project.health.updated", self._handle_health_updated)
+        self.event_bus.subscribe(
+            "project.health.report.generated", self._handle_health_report_generated
+        )
 
         self.logger.info("Analytics & Insights Agent initialized")
 
@@ -300,7 +321,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         report_id = await self._generate_report_id()
 
         # Collect data for report
-        data = await self._collect_report_data(report_spec)
+        data = await self._collect_report_data(tenant_id, report_spec)
 
         # Generate visualizations
         visualizations = await self._generate_visualizations(data, report_spec)
@@ -345,6 +366,8 @@ class AnalyticsInsightsAgent(BaseAgent):
         """
         self.logger.info(f"Running prediction: {model_type}")
 
+        input_data = {**input_data, "tenant_id": tenant_id}
+
         # Load ML model
         # Future work: Load from Azure Machine Learning
         model = await self._load_ml_model(model_type)
@@ -353,7 +376,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         features = await self._prepare_features(input_data, model_type)
 
         # Make prediction
-        prediction = await self._make_prediction(model, features)
+        prediction = await self._make_prediction(model, features, model_type, input_data)
 
         # Calculate confidence interval
         confidence_interval = await self._calculate_confidence_interval(prediction, model_type)
@@ -398,16 +421,21 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Get baseline metrics
         baseline = await self._get_baseline_metrics(scenario)
 
-        # Apply scenario parameters
-        scenario_metrics = await self._calculate_scenario_metrics(
-            baseline, scenario.get("parameters", {})
+        scenario_output = await self.scenario_engine.run_metric_scenario(
+            baseline_metrics=baseline,
+            scenario_params=scenario.get("parameters", {}),
+            scenario_metrics_builder=self._calculate_scenario_metrics,
+            comparison_builder=self._compare_scenarios,
+            recommendation_builder=self._calculate_scenario_impact,
         )
+        scenario_metrics = scenario_output["scenario_metrics"]
+        comparison = scenario_output["comparison"]
+        impact = scenario_output.get("recommendation")
 
-        # Compare to baseline
-        comparison = await self._compare_scenarios(baseline, scenario_metrics)
-
-        # Calculate impact
-        impact = await self._calculate_scenario_impact(comparison)
+        simulations = await self._run_metric_simulations(
+            tenant_id, scenario.get("simulations", [])
+        )
+        simulation_summary = await self._summarize_simulation_results(simulations)
 
         # Store scenario
         scenario_record = {
@@ -418,6 +446,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             "scenario_metrics": scenario_metrics,
             "comparison": comparison,
             "impact": impact,
+            "simulations": simulations,
+            "simulation_summary": simulation_summary,
             "created_at": datetime.utcnow().isoformat(),
         }
         self.scenarios[scenario_id] = scenario_record
@@ -430,6 +460,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             "scenario_metrics": scenario_metrics,
             "comparison": comparison,
             "impact": impact,
+            "simulations": simulations,
+            "simulation_summary": simulation_summary,
             "recommendations": await self._generate_scenario_recommendations(impact),
         }
 
@@ -474,8 +506,23 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Generate KPI ID if new
         kpi_id = kpi_config.get("kpi_id") or await self._generate_kpi_id()
 
-        # Calculate current value
-        current_value = await self._calculate_kpi_value(kpi_config)
+        metric_name = kpi_config.get("metric_name")
+        if metric_name and kpi_config.get("project_id"):
+            raw_value = await get_metric_value(
+                metric_name,
+                kpi_config.get("project_id"),
+                tenant_id=tenant_id,
+                agent_clients=self.metric_agents,
+                fallback=kpi_config.get("fallback", {}),
+            )
+            current_value = (
+                normalize_metric_value(metric_name, raw_value)
+                if kpi_config.get("normalize", False)
+                else float(raw_value or 0.0)
+            )
+        else:
+            # Calculate current value
+            current_value = await self._calculate_kpi_value(kpi_config)
 
         # Get historical values
         historical_values = await self._get_kpi_history(kpi_id)
@@ -635,6 +682,116 @@ class AnalyticsInsightsAgent(BaseAgent):
             "transformations": len(lineage.get("transformations", [])),
         }
 
+    async def _handle_health_updated(self, event: dict[str, Any]) -> None:
+        """Handle project health updates from the lifecycle agent."""
+        payload = event.get("payload", event)
+        tenant_id = event.get("tenant_id", payload.get("tenant_id", "default"))
+        health_data = payload.get("health_data", payload)
+        project_id = health_data.get("project_id")
+        if not project_id:
+            return
+
+        snapshots = self.health_snapshots.setdefault(tenant_id, [])
+        snapshots.append(health_data)
+        record_id = (
+            f"{project_id}-{health_data.get('monitored_at', datetime.utcnow().isoformat())}"
+        )
+        self.health_snapshot_store.upsert(tenant_id, record_id, health_data.copy())
+
+    async def _handle_health_report_generated(self, event: dict[str, Any]) -> None:
+        """Handle generated health reports for downstream analytics."""
+        payload = event.get("payload", event)
+        tenant_id = event.get("tenant_id", payload.get("tenant_id", "default"))
+        report = payload.get("report", payload)
+        report_id = report.get("report_id", f"health-report-{datetime.utcnow().isoformat()}")
+        self.reports[report_id] = report
+        self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
+
+    async def _summarize_health_portfolio(self, tenant_id: str) -> dict[str, Any]:
+        """Aggregate health data across projects for reporting."""
+        snapshots = self.health_snapshots.get(tenant_id, [])
+        if not snapshots:
+            snapshots = self.health_snapshot_store.list(tenant_id)
+
+        latest_by_project: dict[str, dict[str, Any]] = {}
+        for snapshot in sorted(snapshots, key=lambda s: s.get("monitored_at", "")):
+            project_id = snapshot.get("project_id")
+            if project_id:
+                latest_by_project[project_id] = snapshot
+
+        projects = list(latest_by_project.values())
+        status_counts = {"Healthy": 0, "At Risk": 0, "Critical": 0}
+        total_score = 0.0
+        metrics_totals = {
+            "schedule": 0.0,
+            "cost": 0.0,
+            "risk": 0.0,
+            "quality": 0.0,
+            "resource": 0.0,
+        }
+        for project in projects:
+            status = project.get("health_status", "Unknown")
+            if status in status_counts:
+                status_counts[status] += 1
+            total_score += project.get("composite_score", 0.0)
+            for metric, detail in project.get("metrics", {}).items():
+                metrics_totals[metric] += detail.get("score", 0.0)
+
+        project_count = len(projects)
+        average_score = total_score / project_count if project_count else 0.0
+        averaged_metrics = {
+            metric: (value / project_count if project_count else 0.0)
+            for metric, value in metrics_totals.items()
+        }
+        concerns = identify_health_concerns(averaged_metrics)
+
+        return {
+            "project_count": project_count,
+            "average_composite_score": average_score,
+            "status_counts": status_counts,
+            "average_metrics": averaged_metrics,
+            "concerns": concerns,
+            "recommendations": generate_recommendations(concerns),
+            "projects": projects,
+            "summarized_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _run_metric_simulations(
+        self, tenant_id: str, simulations: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Invoke scenario simulations across domain agents."""
+        results: list[dict[str, Any]] = []
+        for simulation in simulations:
+            sim_type = simulation.get("type")
+            agent_key = simulation.get("agent")
+            agent_client = self.metric_agents.get(agent_key) if agent_key else None
+            if not agent_client:
+                continue
+            payload = {
+                "tenant_id": tenant_id,
+                "action": simulation.get("action"),
+            }
+            payload.update(simulation.get("payload", {}))
+            response = await agent_client.process(payload)
+            results.append(
+                {
+                    "type": sim_type,
+                    "agent": agent_key,
+                    "response": response,
+                }
+            )
+        return results
+
+    async def _summarize_simulation_results(
+        self, simulations: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Summarize simulation outcomes across metrics."""
+        return {
+            "simulation_count": len(simulations),
+            "simulation_types": [simulation.get("type") for simulation in simulations],
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+
     # Helper methods
 
     async def _generate_dashboard_id(self) -> str:
@@ -666,6 +823,17 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Generate unique lineage ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"LINEAGE-{timestamp}"
+
+    async def _get_health_history(
+        self, tenant_id: str, project_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        """Retrieve health history snapshots."""
+        snapshots = self.health_snapshots.get(tenant_id, [])
+        if not snapshots:
+            snapshots = self.health_snapshot_store.list(tenant_id)
+        if project_id:
+            snapshots = [s for s in snapshots if s.get("project_id") == project_id]
+        return sorted(snapshots, key=lambda s: s.get("monitored_at", ""))
 
     async def _collect_from_sources(self, sources: list[str]) -> list[dict[str, Any]]:
         """Collect data from multiple sources."""
@@ -719,8 +887,19 @@ class AnalyticsInsightsAgent(BaseAgent):
             "next_refresh": (datetime.utcnow() + timedelta(minutes=interval_minutes)).isoformat(),
         }
 
-    async def _collect_report_data(self, report_spec: dict[str, Any]) -> dict[str, Any]:
+    async def _collect_report_data(
+        self, tenant_id: str, report_spec: dict[str, Any]
+    ) -> dict[str, Any]:
         """Collect data for report."""
+        report_type = report_spec.get("type", "analytical")
+        if report_type in {"health_summary", "portfolio_health"}:
+            return await self._summarize_health_portfolio(tenant_id)
+        if report_type == "kpi_summary":
+            return {
+                "kpis": list(self.kpis.values()),
+                "kpi_count": len(self.kpis),
+                "generated_at": datetime.utcnow().isoformat(),
+            }
         # Future work: Query from data warehouse
         return {}
 
@@ -728,8 +907,33 @@ class AnalyticsInsightsAgent(BaseAgent):
         self, data: dict[str, Any], report_spec: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Generate visualizations for report."""
+        report_type = report_spec.get("type", "analytical")
+        visualizations: list[dict[str, Any]] = []
+        if report_type in {"health_summary", "portfolio_health"}:
+            visualizations.append(
+                {
+                    "type": "status_distribution",
+                    "title": "Health Status Distribution",
+                    "data": data.get("status_counts", {}),
+                }
+            )
+            visualizations.append(
+                {
+                    "type": "average_metrics",
+                    "title": "Average Health Metrics",
+                    "data": data.get("average_metrics", {}),
+                }
+            )
+        elif report_type == "kpi_summary":
+            visualizations.append(
+                {
+                    "type": "kpi_table",
+                    "title": "Tracked KPIs",
+                    "data": data.get("kpis", []),
+                }
+            )
         # Future work: Create charts using Power BI or custom charting
-        return []
+        return visualizations
 
     async def _load_ml_model(self, model_type: str) -> dict[str, Any]:
         """Load ML model."""
@@ -742,9 +946,23 @@ class AnalyticsInsightsAgent(BaseAgent):
         return []
 
     async def _make_prediction(
-        self, model: dict[str, Any], features: list[float]
+        self,
+        model: dict[str, Any],
+        features: list[float],
+        model_type: str,
+        input_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Make prediction using ML model."""
+        if model_type == "health_score":
+            project_id = input_data.get("project_id")
+            history = await self._get_health_history(input_data.get("tenant_id", "default"), project_id)
+            if len(history) >= 2:
+                last_two = history[-2:]
+                delta = last_two[-1]["composite_score"] - last_two[0]["composite_score"]
+                prediction_value = max(0.0, min(1.0, last_two[-1]["composite_score"] + delta))
+                return {"value": prediction_value, "confidence": 0.75}
+            if history:
+                return {"value": history[-1]["composite_score"], "confidence": 0.6}
         # Future work: Call ML model endpoint
         return {"value": 0.0, "confidence": 0.85}
 
@@ -795,8 +1013,10 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Future work: Analyze comparison
         return "Moderate positive impact"
 
-    async def _generate_scenario_recommendations(self, impact: str) -> list[str]:
+    async def _generate_scenario_recommendations(self, impact: str | None) -> list[str]:
         """Generate recommendations based on scenario."""
+        if not impact:
+            return ["Scenario impact is neutral - monitor outcomes before acting"]
         return [f"Scenario shows {impact} - consider implementation"]
 
     async def _extract_key_insights(self, data: dict[str, Any]) -> list[str]:
@@ -868,15 +1088,24 @@ class AnalyticsInsightsAgent(BaseAgent):
         refreshed = []
         for widget in widgets:
             widget_data = widget.copy()
-            widget_data["data"] = []  # Future work: Load actual data
+            widget_type = widget.get("type")
+            if widget_type in {"health_summary", "portfolio_health"}:
+                widget_data["data"] = await self._summarize_health_portfolio(
+                    widget.get("tenant_id", "default")
+                )
+            elif widget_type == "kpi_summary":
+                widget_data["data"] = list(self.kpis.values())
+            else:
+                widget_data["data"] = []  # Future work: Load actual data
             widget_data["last_refreshed"] = datetime.utcnow().isoformat()
             refreshed.append(widget_data)
         return refreshed
 
     async def _collect_insights_data(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Collect data for insights generation."""
-        # Future work: Query from data warehouse
-        return {}
+        tenant_id = filters.get("tenant_id", "default")
+        health_summary = await self._summarize_health_portfolio(tenant_id)
+        return {"health_summary": health_summary}
 
     async def _detect_anomalies(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Detect anomalies in data."""
@@ -897,6 +1126,10 @@ class AnalyticsInsightsAgent(BaseAgent):
             insights.append(f"Detected {len(anomalies)} anomalies requiring investigation")
         if patterns:
             insights.append(f"Identified {len(patterns)} recurring patterns")
+        health_summary = data.get("health_summary", {})
+        concerns = health_summary.get("concerns", [])
+        if concerns:
+            insights.append(f"{len(concerns)} portfolio health concerns identified")
         return insights
 
     async def _generate_recommendations(self, insights: list[str]) -> list[str]:

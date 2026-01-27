@@ -19,15 +19,34 @@ class ApprovalStub:
         return {"approval_id": "appr-1", "status": "pending"}
 
 
+class MetricAgentStub:
+    def __init__(self, response: dict) -> None:
+        self.response = response
+        self.requests: list[dict] = []
+
+    async def process(self, input_data: dict) -> dict:
+        self.requests.append(input_data)
+        return self.response
+
+
 @pytest.mark.asyncio
 async def test_project_lifecycle_gate_and_health(tmp_path):
     event_bus = EventCollector()
     approval_stub = ApprovalStub()
+    metric_agents = {
+        "schedule": MetricAgentStub({"schedule_variance_pct": -0.05}),
+        "financial": MetricAgentStub({"budget_variance_pct": 0.02}),
+        "risk": MetricAgentStub({"risk_summary": {"total_risks": 4, "high_risks": 1}}),
+        "quality": MetricAgentStub({"quality_score": 0.9}),
+        "resource": MetricAgentStub({"average_utilization": 0.85}),
+    }
     agent = ProjectLifecycleAgent(
         config={
             "event_bus": event_bus,
             "approval_agent": approval_stub,
             "lifecycle_store_path": tmp_path / "lifecycle.json",
+            "health_store_path": tmp_path / "health.json",
+            "metric_agents": metric_agents,
         }
     )
     await agent.initialize()
@@ -46,11 +65,8 @@ async def test_project_lifecycle_gate_and_health(tmp_path):
             "budget": True,
         },
         "metrics": {"quality_score": 0.9},
-        "schedule": {"spi": 0.9, "variance_pct": -0.05},
-        "cost": {"cpi": 0.92, "variance_pct": 0.02},
-        "risk": {"risk_score": 0.8, "open_risks": 2},
-        "quality": {"test_pass_rate": 0.95, "defects": 2},
-        "resource": {"utilization": 0.85},
+        "risk": {"open_risks": 2},
+        "quality": {"defects": 2},
     }
     methodology_map = await agent._load_methodology_map("waterfall")
     agent.lifecycle_states[project_id] = {
@@ -70,6 +86,7 @@ async def test_project_lifecycle_gate_and_health(tmp_path):
 
     health = await agent._monitor_health(project_id, tenant_id="tenant-a")
     assert health["health_status"] in {"Healthy", "At Risk"}
+    assert any(topic == "project.health.updated" for topic, _ in event_bus.events)
 
     transition = await agent._transition_phase(
         project_id,
@@ -95,7 +112,20 @@ async def test_project_lifecycle_gate_and_health(tmp_path):
 
 @pytest.mark.asyncio
 async def test_project_lifecycle_dashboard_success(tmp_path):
-    agent = ProjectLifecycleAgent(config={"lifecycle_store_path": tmp_path / "lifecycle.json"})
+    metric_agents = {
+        "schedule": MetricAgentStub({"schedule_variance_pct": -0.02}),
+        "financial": MetricAgentStub({"budget_variance_pct": 0.01}),
+        "risk": MetricAgentStub({"risk_summary": {"total_risks": 2, "high_risks": 0}}),
+        "quality": MetricAgentStub({"quality_score": 0.92}),
+        "resource": MetricAgentStub({"average_utilization": 0.8}),
+    }
+    agent = ProjectLifecycleAgent(
+        config={
+            "lifecycle_store_path": tmp_path / "lifecycle.json",
+            "health_store_path": tmp_path / "health.json",
+            "metric_agents": metric_agents,
+        }
+    )
     await agent.initialize()
 
     project_id = "proj-200"
@@ -123,7 +153,55 @@ async def test_project_lifecycle_dashboard_success(tmp_path):
     )
 
     assert response["project_id"] == project_id
+    assert response["health_data"]["metrics"]["schedule"]["raw"] == -0.02
 
+
+@pytest.mark.asyncio
+async def test_project_lifecycle_generates_health_report(tmp_path):
+    event_bus = EventCollector()
+    metric_agents = {
+        "schedule": MetricAgentStub({"schedule_variance_pct": -0.08}),
+        "financial": MetricAgentStub({"budget_variance_pct": 0.05}),
+        "risk": MetricAgentStub({"risk_summary": {"total_risks": 5, "high_risks": 2}}),
+        "quality": MetricAgentStub({"quality_score": 0.8}),
+        "resource": MetricAgentStub({"average_utilization": 0.9}),
+    }
+    agent = ProjectLifecycleAgent(
+        config={
+            "event_bus": event_bus,
+            "lifecycle_store_path": tmp_path / "lifecycle.json",
+            "health_store_path": tmp_path / "health.json",
+            "metric_agents": metric_agents,
+        }
+    )
+    await agent.initialize()
+
+    project_id = "proj-300"
+    agent.projects[project_id] = {
+        "project_id": project_id,
+        "name": "Project Nova",
+        "methodology": "hybrid",
+        "current_phase": "Plan",
+        "status": "On Track",
+    }
+    agent.lifecycle_states[project_id] = {
+        "current_phase": "Plan",
+        "methodology_map": await agent._load_methodology_map("hybrid"),
+        "phase_start_date": "2024-02-01T00:00:00",
+        "transitions": [],
+        "gates_passed": [],
+        "gates_pending": [],
+        "project_id": project_id,
+    }
+
+    report = await agent.process(
+        {"action": "generate_health_report", "tenant_id": "tenant-a", "project_id": project_id}
+    )
+
+    assert report["project_id"] == project_id
+    assert any(
+        topic == "project.health.report.generated" for topic, _ in event_bus.events
+    )
 
 @pytest.mark.asyncio
 async def test_project_lifecycle_validation_rejects_invalid_action(tmp_path):

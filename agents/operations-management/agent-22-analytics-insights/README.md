@@ -12,7 +12,7 @@ Define the responsibilities, workflows, and integration points for Agent 22: Ana
 
 ## How it's used
 
-Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution.
+Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution. The agent subscribes to project health events to build portfolio-wide dashboards and reports, and it can invoke shared scenario simulations across domain agents.
 
 ## How to run / develop / test
 
