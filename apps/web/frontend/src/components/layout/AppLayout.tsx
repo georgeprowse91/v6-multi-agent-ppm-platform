@@ -1,7 +1,7 @@
 import { Header } from './Header';
 import { LeftPanel } from './LeftPanel';
 import { MainCanvas } from './MainCanvas';
-import { RightPanel } from './RightPanel';
+import { AssistantPanel } from '@/components/assistant';
 import styles from './AppLayout.module.css';
 
 interface AppLayoutProps {
@@ -15,7 +15,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className={styles.body}>
         <LeftPanel />
         <MainCanvas>{children}</MainCanvas>
-        <RightPanel />
+        <AssistantPanel />
       </div>
     </div>
   );

@@ -7,11 +7,13 @@
  * - Stage-gate logic: locked stages/activities shown but not actionable
  * - "Monitoring & Controlling" section always accessible
  * - Clicking activity updates current activity and opens relevant canvas
+ * - Integration with Assistant for context-aware suggestions
  */
 
 import { useCallback } from 'react';
 import { useMethodologyStore } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
+import { useAssistantStore } from '@/store/assistant';
 import {
   STATUS_ICONS,
   STATUS_COLORS,
@@ -19,6 +21,7 @@ import {
   type MethodologyStage,
   type MethodologyStatus,
 } from '@/store/methodology';
+import type { PrerequisiteInfo } from '@/store/assistant';
 import { createArtifact, createEmptyContent, type CanvasType } from '@ppm/canvas-engine';
 import styles from './MethodologyNav.module.css';
 
@@ -37,11 +40,39 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     isStageLockedComputed,
     isActivityLockedComputed,
     getStageProgressComputed,
+    getAllActivities,
+    getStageForActivity,
   } = useMethodologyStore();
 
   const { openArtifact, artifacts } = useCanvasStore();
+  const { showGatingWarning } = useAssistantStore();
 
   const { methodology, projectName } = projectMethodology;
+
+  // Helper to get incomplete prerequisites
+  const getIncompletePrerequisites = useCallback(
+    (activity: MethodologyActivity): PrerequisiteInfo[] => {
+      const allActivitiesArray = getAllActivities();
+      const result: PrerequisiteInfo[] = [];
+
+      for (const prereqId of activity.prerequisites) {
+        const prereq = allActivitiesArray.find((a) => a.id === prereqId);
+        if (!prereq || prereq.status === 'complete') continue;
+
+        const stage = getStageForActivity(prereqId);
+        result.push({
+          activityId: prereq.id,
+          activityName: prereq.name,
+          status: prereq.status as PrerequisiteInfo['status'],
+          stageId: stage?.id ?? '',
+          stageName: stage?.name ?? '',
+        });
+      }
+
+      return result;
+    },
+    [getAllActivities, getStageForActivity]
+  );
 
   const handleActivityClick = useCallback(
     (activity: MethodologyActivity, stageLocked: boolean) => {
@@ -52,10 +83,19 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
       const activityLocked = isActivityLockedComputed(activity.id);
       const isLocked = stageLocked || activityLocked;
 
+      // If locked, show gating warning in assistant
+      if (isLocked) {
+        const incompletePrereqs = getIncompletePrerequisites(activity);
+        if (incompletePrereqs.length > 0) {
+          showGatingWarning(activity, incompletePrereqs);
+        }
+        return;
+      }
+
       // Open the associated artifact if it exists, or create a new one
       if (activity.artifactId && artifacts[activity.artifactId]) {
         openArtifact(artifacts[activity.artifactId]);
-      } else if (!isLocked) {
+      } else {
         // Create a new artifact for this activity
         const newArtifact = createArtifact(
           activity.canvasType,
@@ -65,7 +105,6 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
         );
         openArtifact(newArtifact);
       }
-      // If locked and no artifact, just show selection (user can't create)
     },
     [
       setCurrentActivity,
@@ -73,6 +112,8 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
       openArtifact,
       artifacts,
       projectMethodology.projectId,
+      getIncompletePrerequisites,
+      showGatingWarning,
     ]
   );
 
