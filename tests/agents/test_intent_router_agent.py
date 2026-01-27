@@ -62,7 +62,7 @@ async def test_intent_router_rejects_missing_query():
 
 
 @pytest.mark.asyncio
-async def test_intent_router_invalid_llm_response_raises():
+async def test_intent_router_falls_back_on_malformed_llm_output():
     agent = IntentRouterAgent(
         config={
             "llm_provider": "mock",
@@ -71,5 +71,41 @@ async def test_intent_router_invalid_llm_response_raises():
     )
     await agent.initialize()
 
-    with pytest.raises(ValueError):
-        await agent.process({"query": "show portfolio"})
+    result = await agent.process({"query": "show portfolio status"})
+
+    assert any(intent["intent"] == "portfolio_query" for intent in result["intents"])
+    assert any(route["agent_id"] == "portfolio-strategy-optimization" for route in result["routing"])
+
+
+@pytest.mark.asyncio
+async def test_intent_router_falls_back_on_missing_fields():
+    agent = IntentRouterAgent(
+        config={
+            "llm_provider": "mock",
+            "llm_config": {"mock_response": {"parameters": {"project_id": "APOLLO"}}},
+        }
+    )
+    await agent.initialize()
+
+    result = await agent.process({"query": "show risk register for project Apollo"})
+
+    assert any(intent["intent"] == "risk_query" for intent in result["intents"])
+    assert any(route["agent_id"] == "risk-management" for route in result["routing"])
+
+
+@pytest.mark.asyncio
+async def test_intent_router_falls_back_on_low_confidence():
+    agent = IntentRouterAgent(
+        config={
+            "llm_provider": "mock",
+            "llm_config": {
+                "mock_response": {"intents": [{"intent": "schedule_query", "confidence": 0.1}]}
+            },
+        }
+    )
+    await agent.initialize()
+
+    result = await agent.process({"query": "show schedule timeline"})
+
+    assert any(intent["intent"] == "schedule_query" for intent in result["intents"])
+    assert any(route["agent_id"] == "schedule-planning" for route in result["routing"])

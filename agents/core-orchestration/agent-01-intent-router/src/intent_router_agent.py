@@ -13,10 +13,10 @@ import os
 import re
 import sys
 import uuid
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
+import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from agents.runtime import BaseAgent
@@ -64,9 +64,37 @@ class IntentPrediction(BaseModel):
 
 
 class IntentRouterLLMResponse(BaseModel):
-    intents: list[IntentPrediction] = Field(default_factory=list)
+    model_config = ConfigDict(extra="forbid")
+
+    intents: list[IntentPrediction] = Field(..., min_length=1)
     parameters: dict[str, Any] | None = None
     dependencies: dict[str, list[str]] | None = None
+
+
+class IntentRouteConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    agent_id: str
+    action: str | None = None
+    dependencies: list[str] = Field(default_factory=list)
+
+
+class IntentDefinition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    min_confidence: float = Field(default=0.6, ge=0.0, le=1.0)
+    routes: list[IntentRouteConfig] = Field(default_factory=list)
+    description: str | None = None
+
+
+class IntentRoutingConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    version: int
+    intents: list[IntentDefinition]
+    fallback_intent: str = "general_query"
+    default_min_confidence: float = Field(default=0.6, ge=0.0, le=1.0)
 
 
 class ExtractedParameters(BaseModel):
@@ -125,18 +153,9 @@ class IntentRouterAgent(BaseAgent):
 
     def __init__(self, agent_id: str = "intent-router", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
-        self.supported_intents = [
-            "portfolio_query",
-            "project_create",
-            "schedule_query",
-            "financial_query",
-            "risk_query",
-            "resource_query",
-            "demand_intake",
-            "compliance_query",
-            "analytics_query",
-            "general_query",
-        ]
+        self.routing_config = self._load_routing_config()
+        self.intent_definitions = {intent.name: intent for intent in self.routing_config.intents}
+        self.supported_intents = list(self.intent_definitions.keys())
         self.intent_signals = {
             "portfolio_query": ["portfolio", "program", "initiative", "portfolio health"],
             "project_create": ["create project", "start project", "new project", "project charter"],
@@ -165,7 +184,10 @@ class IntentRouterAgent(BaseAgent):
             "get",
             "please",
         }
-        self.intent_confidence_threshold = self.config.get("intent_confidence_threshold", 0.6)
+        self.intent_confidence_threshold = self.config.get(
+            "intent_confidence_threshold",
+            self.routing_config.default_min_confidence,
+        )
         llm_config = self.config.get("llm_config") or {}
         if (
             not llm_config
@@ -236,13 +258,35 @@ class IntentRouterAgent(BaseAgent):
         system_prompt = self._render_prompt(self.prompt["prompt"]["system"], redacted_payload)
         user_prompt = self._render_prompt(self.prompt["prompt"]["user"], redacted_payload)
 
+        fallback_reason: str | None = None
+        fallback_used = False
+
         llm_response = await self.llm_client.complete(system_prompt, user_prompt)
-        llm_data = self._parse_llm_response(llm_response.content)
-        intents = self._normalize_intents(llm_data.intents)
-        parameters = llm_data.parameters or {}
+        llm_data: IntentRouterLLMResponse | None = None
+        try:
+            llm_data = self._parse_llm_response(llm_response.content)
+            intents = self._normalize_intents(llm_data.intents)
+            if not intents:
+                fallback_reason = "llm_low_confidence"
+        except ValueError as exc:
+            fallback_reason = "llm_parse_error"
+            self.logger.warning(
+                "LLM response invalid, using fallback classifier",
+                extra={"error": str(exc)},
+            )
+
+        if fallback_reason:
+            fallback_used = True
+            intents = await self._classify_intent(query)
+            parameters: dict[str, Any] = {}
+            dependencies = None
+        else:
+            parameters = llm_data.parameters or {}
+            dependencies = llm_data.dependencies
+
         if not parameters:
             parameters = await self._extract_parameters(query, intents)
-        agents = await self._determine_agents(intents, llm_data.dependencies)
+        agents = await self._determine_agents(intents, dependencies)
 
         audit_event = build_audit_event(
             tenant_id=tenant_id,
@@ -257,11 +301,31 @@ class IntentRouterAgent(BaseAgent):
                 "intents": intents,
                 "routing": agents,
                 "parameters": parameters,
+                "fallback_used": fallback_used,
+                "fallback_reason": fallback_reason,
             },
             trace_id=get_trace_id(),
             correlation_id=correlation_id,
         )
         emit_audit_event(audit_event)
+        if fallback_used:
+            fallback_audit = build_audit_event(
+                tenant_id=tenant_id,
+                action="intent.fallback",
+                outcome="success",
+                actor_id=self.agent_id,
+                actor_type="service",
+                actor_roles=[],
+                resource_id=query[:64] or "query",
+                resource_type="intent_classification",
+                metadata={
+                    "fallback_reason": fallback_reason,
+                    "intents": intents,
+                },
+                trace_id=get_trace_id(),
+                correlation_id=correlation_id,
+            )
+            emit_audit_event(fallback_audit)
 
         response = IntentRouterResponse(
             intents=[IntentPrediction(**intent) for intent in intents],
@@ -271,6 +335,23 @@ class IntentRouterAgent(BaseAgent):
             context=context,
         )
         return response.model_dump()
+
+    def _load_routing_config(self) -> IntentRoutingConfig:
+        config_path = Path(
+            self.config.get("routing_config_path")
+            or os.getenv("INTENT_ROUTING_CONFIG_PATH")
+            or (Path(__file__).resolve().parents[4] / "config" / "agents" / "intent-routing.yaml")
+        )
+        try:
+            payload = yaml.safe_load(config_path.read_text())
+        except OSError as exc:
+            raise ValueError(f"Unable to read routing config at {config_path}") from exc
+        if not isinstance(payload, dict):
+            raise ValueError(f"Routing config must be a YAML mapping: {config_path}")
+        try:
+            return IntentRoutingConfig.model_validate(payload)
+        except ValidationError as exc:
+            raise ValueError(f"Routing config invalid: {config_path}") from exc
 
     def _load_mock_response(self) -> dict[str, Any] | None:
         mock_path = os.getenv("LLM_MOCK_RESPONSE_PATH")
@@ -326,9 +407,13 @@ class IntentRouterAgent(BaseAgent):
             intent = str(entry.intent or "general_query")
             confidence = entry.confidence
             if intent not in self.supported_intents:
-                intent = "general_query"
+                continue
+            intent_config = self.intent_definitions.get(intent)
+            min_confidence = (
+                intent_config.min_confidence if intent_config else self.intent_confidence_threshold
+            )
             confidence_value = float(confidence)
-            if confidence_value < self.intent_confidence_threshold:
+            if confidence_value < max(self.intent_confidence_threshold, min_confidence):
                 continue
             normalized.append(
                 {
@@ -336,9 +421,6 @@ class IntentRouterAgent(BaseAgent):
                     "confidence": round(min(max(confidence_value, 0.0), 1.0), 2),
                 }
             )
-        if not normalized:
-            normalized = [{"intent": "general_query", "confidence": 0.5}]
-
         normalized.sort(key=lambda item: float(item.get("confidence", 0.0)), reverse=True)
         return normalized
 
@@ -350,27 +432,30 @@ class IntentRouterAgent(BaseAgent):
         """
         query_lower = query.lower()
         tokens = [token for token in re.findall(r"[a-z0-9']+", query_lower) if token]
-        filtered_tokens = [token for token in tokens if token not in self.stopwords]
-        token_counts = Counter(filtered_tokens)
+        filtered_tokens = {token for token in tokens if token not in self.stopwords}
 
         intents: list[dict[str, Any]] = []
         max_score = 0.0
 
         for intent, signals in self.intent_signals.items():
+            if intent not in self.supported_intents:
+                continue
             score = 0.0
             for signal in signals:
                 if " " in signal:
                     if signal in query_lower:
-                        score += 1.5
+                        score += 2.0
                 else:
-                    score += min(1.0, token_counts.get(signal, 0))
+                    if signal in filtered_tokens:
+                        score += 1.0
 
             if score > 0:
                 max_score = max(max_score, score)
                 intents.append({"intent": intent, "raw_score": score})
 
         if not intents:
-            return [{"intent": "general_query", "confidence": 0.5}]
+            fallback_intent = self.routing_config.fallback_intent
+            return [{"intent": fallback_intent, "confidence": 0.5}]
 
         normalized_intents = []
         for intent_entry in intents:
@@ -398,30 +483,23 @@ class IntentRouterAgent(BaseAgent):
 
         Returns list of agents with execution order.
         """
-        agent_mapping = {
-            "portfolio_query": ("portfolio-strategy-optimization", "get_portfolio_status"),
-            "schedule_query": ("schedule-planning", "get_schedule"),
-            "financial_query": ("financial-management", "get_financial_summary"),
-            "risk_query": ("risk-management", "get_risk_dashboard"),
-            "resource_query": ("resource-capacity-management", "get_resource_pool"),
-            "analytics_query": ("analytics-insights", "get_insights"),
-        }
-
         agents = []
         for intent in intents:
             intent_type = intent["intent"]
-            if intent_type in agent_mapping:
-                agent_id, action = agent_mapping[intent_type]
-                depends_on = []
-                if dependencies and agent_id in dependencies:
-                    depends_on = list(dependencies.get(agent_id, []))
+            intent_config = self.intent_definitions.get(intent_type)
+            if not intent_config:
+                continue
+            for route in intent_config.routes:
+                depends_on = list(route.dependencies)
+                if dependencies and route.agent_id in dependencies:
+                    depends_on.extend(dependencies.get(route.agent_id, []))
                 agents.append(
                     {
-                        "agent_id": agent_id,
+                        "agent_id": route.agent_id,
                         "priority": intent["confidence"],
                         "intent": intent_type,
-                        "depends_on": depends_on,
-                        "action": action,
+                        "depends_on": sorted(set(depends_on)),
+                        "action": route.action,
                     }
                 )
 
