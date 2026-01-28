@@ -222,6 +222,34 @@ The workspace shell expects a `project_id` query parameter (for example, `/works
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
 
+## Agent Gallery (project-scoped)
+
+The workspace shell includes an Agent Gallery panel that lists the platform agent catalogue, per-project enablement, and configuration state. Settings are tenant-aware and scoped to a project.
+
+**Storage location**
+
+```
+apps/web/storage/agent_settings.json
+```
+
+**Role rules**
+
+- **Admins**: roles containing `tenant_owner` or `portfolio_admin` can enable/disable agents and update configuration.
+- **Non-admins**: read-only access to the registry and project settings.
+
+**Endpoints**
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/api/agent-gallery/agents` | List the available agent registry entries. |
+| `GET` | `/api/agent-gallery/{project_id}` | Fetch or initialize project agent settings. |
+| `PATCH` | `/api/agent-gallery/{project_id}/agents/{agent_id}` | Update enablement and/or configuration for an agent (admin only). |
+| `POST` | `/api/agent-gallery/{project_id}/reset-defaults` | Reset project agent settings to registry defaults (admin only). |
+
+**Defaults management**
+
+Agent defaults are derived from `agents/runtime/src/agent_catalog.py` (with descriptions/outputs enriched from `docs/agents/agent-catalog.md`). To adjust defaults, edit the registry sources and re-fetch the gallery to initialize new agents.
+
 ## Template gallery
 
 The workspace includes a template gallery for creating deliverables (documents and spreadsheets). Templates are defined in:

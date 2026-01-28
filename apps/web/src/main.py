@@ -92,6 +92,12 @@ from template_registry import (  # noqa: E402
     get_template as get_deliverable_template,
     list_templates as list_deliverable_templates,
 )
+from agent_registry import load_agent_registry  # noqa: E402
+from agent_settings_models import (  # noqa: E402
+    AgentConfigUpdate,
+    AgentProjectEntry,
+)
+from agent_settings_store import AgentSettingsStore  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
@@ -104,6 +110,7 @@ WORKSPACE_STATE_PATH = STORAGE_DIR / "workspace_state.json"
 TIMELINES_PATH = STORAGE_DIR / "timelines.json"
 SPREADSHEETS_PATH = STORAGE_DIR / "spreadsheets.json"
 TREES_PATH = STORAGE_DIR / "trees.json"
+AGENT_SETTINGS_PATH = STORAGE_DIR / "agent_settings.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 
 SESSION_COOKIE = "ppm_session"
@@ -121,6 +128,7 @@ workspace_state_store = WorkspaceStateStore(WORKSPACE_STATE_PATH)
 timeline_store = TimelineStore(TIMELINES_PATH)
 spreadsheet_store = SpreadsheetStore(SPREADSHEETS_PATH)
 tree_store = TreeStore(TREES_PATH)
+agent_settings_store = AgentSettingsStore(AGENT_SETTINGS_PATH)
 logger = logging.getLogger("web-ui")
 
 
@@ -566,6 +574,17 @@ def _assistant_context(
         open_ref["milestone_id"] = state.last_opened_milestone_id
     if open_ref:
         context["open_ref"] = open_ref
+    try:
+        registry = load_agent_registry()
+        settings = agent_settings_store.ensure_project_settings(tenant_id, project_id, registry)
+        context["enabled_agent_ids"] = [
+            agent_id for agent_id, entry in settings.agents.items() if entry.enabled
+        ]
+        context["agent_config_by_id"] = {
+            agent_id: entry.config for agent_id, entry in settings.agents.items()
+        }
+    except Exception:  # pragma: no cover - defensive
+        logger.exception("Unable to attach agent settings context")
     return context
 
 
@@ -608,6 +627,21 @@ def _require_roles(request: Request, allowed_roles: set[str]) -> dict[str, Any]:
     if not any(role in allowed_roles for role in roles):
         raise HTTPException(status_code=403, detail="RBAC denied")
     return session
+
+
+def _roles_from_request(request: Request, session: dict[str, Any]) -> set[str]:
+    auth = getattr(request.state, "auth", None)
+    roles = getattr(auth, "roles", None) if auth else None
+    if roles is None:
+        roles = session.get("roles") or []
+    if isinstance(roles, str):
+        roles = [roles]
+    return {role for role in roles if role}
+
+
+def _is_agent_admin(request: Request, session: dict[str, Any]) -> bool:
+    roles = _roles_from_request(request, session)
+    return bool(roles.intersection({"tenant_owner", "portfolio_admin"}))
 
 
 def _oidc_enabled() -> bool:
@@ -1117,6 +1151,147 @@ async def instantiate_template(
             sheet_name=sheet.name,
         )
     raise HTTPException(status_code=400, detail="Unsupported template type")
+
+
+@app.get("/api/agent-gallery/agents")
+async def list_agent_registry(request: Request) -> JSONResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    registry = load_agent_registry()
+    logger.info(
+        "agent_gallery.registry.list",
+        extra={"tenant_id": tenant_id, "project_id": None, "agent_id": None},
+    )
+    return JSONResponse(status_code=200, content=[entry.model_dump() for entry in registry])
+
+
+@app.get("/api/agent-gallery/{project_id}")
+async def get_project_agent_settings(project_id: str, request: Request) -> JSONResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    registry = load_agent_registry()
+    settings = agent_settings_store.ensure_project_settings(tenant_id, project_id, registry)
+    logger.info(
+        "agent_gallery.project.get",
+        extra={"tenant_id": tenant_id, "project_id": project_id, "agent_id": None},
+    )
+    response_agents = []
+    for entry in registry:
+        stored = settings.agents.get(entry.agent_id)
+        if not stored:
+            continue
+        response_agents.append(
+            AgentProjectEntry(
+                agent_id=entry.agent_id,
+                name=entry.name,
+                category=entry.category,
+                description=entry.description,
+                outputs=entry.outputs,
+                required=entry.required,
+                enabled=stored.enabled,
+                config=stored.config,
+            ).model_dump()
+        )
+    return JSONResponse(
+        status_code=200,
+        content={
+            "project_id": project_id,
+            "tenant_id": tenant_id,
+            "agents": response_agents,
+        },
+    )
+
+
+@app.patch("/api/agent-gallery/{project_id}/agents/{agent_id}")
+async def update_project_agent_settings(
+    project_id: str,
+    agent_id: str,
+    payload: AgentConfigUpdate,
+    request: Request,
+) -> JSONResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    if not _is_agent_admin(request, session):
+        raise HTTPException(status_code=403, detail="Agent gallery is read-only")
+    registry = load_agent_registry()
+    registry_entry = next((entry for entry in registry if entry.agent_id == agent_id), None)
+    if not registry_entry:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    if payload.enabled is False and registry_entry.required:
+        raise HTTPException(status_code=422, detail="Required agents cannot be disabled")
+    settings = agent_settings_store.ensure_project_settings(tenant_id, project_id, registry)
+    if agent_id not in settings.agents:
+        raise HTTPException(status_code=404, detail="Agent not configured")
+    try:
+        updated = agent_settings_store.update_agent_settings(
+            tenant_id,
+            project_id,
+            agent_id,
+            enabled=payload.enabled,
+            config=payload.config,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    logger.info(
+        "agent_gallery.project.patch",
+        extra={"tenant_id": tenant_id, "project_id": project_id, "agent_id": agent_id},
+    )
+    response = AgentProjectEntry(
+        agent_id=registry_entry.agent_id,
+        name=registry_entry.name,
+        category=registry_entry.category,
+        description=registry_entry.description,
+        outputs=registry_entry.outputs,
+        required=registry_entry.required,
+        enabled=updated.enabled,
+        config=updated.config,
+    )
+    return JSONResponse(status_code=200, content=response.model_dump())
+
+
+@app.post("/api/agent-gallery/{project_id}/reset-defaults")
+async def reset_project_agent_settings(project_id: str, request: Request) -> JSONResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    if not _is_agent_admin(request, session):
+        raise HTTPException(status_code=403, detail="Agent gallery is read-only")
+    registry = load_agent_registry()
+    settings = agent_settings_store.reset_project_defaults(tenant_id, project_id, registry)
+    logger.info(
+        "agent_gallery.project.reset",
+        extra={"tenant_id": tenant_id, "project_id": project_id, "agent_id": None},
+    )
+    response_agents = []
+    for entry in registry:
+        stored = settings.agents.get(entry.agent_id)
+        if not stored:
+            continue
+        response_agents.append(
+            AgentProjectEntry(
+                agent_id=entry.agent_id,
+                name=entry.name,
+                category=entry.category,
+                description=entry.description,
+                outputs=entry.outputs,
+                required=entry.required,
+                enabled=stored.enabled,
+                config=stored.config,
+            ).model_dump()
+        )
+    return JSONResponse(
+        status_code=200,
+        content={
+            "project_id": project_id,
+            "tenant_id": tenant_id,
+            "agents": response_agents,
+        },
+    )
 
 
 @app.post("/api/assistant/send")
