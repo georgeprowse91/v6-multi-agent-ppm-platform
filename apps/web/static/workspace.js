@@ -91,6 +91,12 @@ const initWorkspace = () => {
     sheet: null,
     rows: [],
   };
+  const dashboardState = {
+    errors: {
+      health: "",
+      trends: "",
+    },
+  };
 
   const setActiveTab = (targetTab) => {
     tabs.forEach((item) => {
@@ -1401,6 +1407,331 @@ const initWorkspace = () => {
     canvas.innerHTML = `<p>${tabName} canvas is not available in this view.</p>`;
   };
 
+  const updateDashboardErrorBanner = () => {
+    const banner = document.getElementById("dashboard-error");
+    if (!banner) {
+      return;
+    }
+    const messages = Object.values(dashboardState.errors).filter(Boolean);
+    if (!messages.length) {
+      banner.classList.add("is-hidden");
+      banner.innerHTML = "";
+      return;
+    }
+    banner.classList.remove("is-hidden");
+    banner.innerHTML = `
+      <strong>Dashboard data unavailable:</strong>
+      <ul>${messages.map((message) => `<li>${message}</li>`).join("")}</ul>
+    `;
+  };
+
+  const formatScore = (value) => {
+    if (typeof value !== "number") {
+      return "--";
+    }
+    return value.toFixed(2);
+  };
+
+  const formatTimestamp = (value) => {
+    if (!value) {
+      return "--";
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleString();
+  };
+
+  const renderHealthMetrics = (metrics) => {
+    const body = document.getElementById("dashboard-metrics-body");
+    if (!body) {
+      return;
+    }
+    if (!metrics || !Object.keys(metrics).length) {
+      body.innerHTML = "<tr><td colspan=\"4\">No metrics available.</td></tr>";
+      return;
+    }
+    body.innerHTML = Object.entries(metrics)
+      .map(([name, metric]) => {
+        const rawValue =
+          typeof metric.raw === "number" ? metric.raw.toFixed(2) : metric.raw || "--";
+        return `
+          <tr>
+            <td>${name}</td>
+            <td>${formatScore(metric.score)}</td>
+            <td>
+              <span class="dashboard-pill ${metric.status}">
+                ${metric.status}
+              </span>
+            </td>
+            <td>${rawValue}</td>
+          </tr>
+        `;
+      })
+      .join("");
+  };
+
+  const renderTrendTable = (points) => {
+    const body = document.getElementById("dashboard-trends-body");
+    if (!body) {
+      return;
+    }
+    if (!points || !points.length) {
+      body.innerHTML = "<tr><td colspan=\"2\">No trend data yet.</td></tr>";
+      return;
+    }
+    body.innerHTML = points
+      .map(
+        (point) => `
+          <tr>
+            <td>${formatTimestamp(point.timestamp)}</td>
+            <td>${formatScore(point.composite_score)}</td>
+          </tr>
+        `,
+      )
+      .join("");
+  };
+
+  const loadDashboardHealth = async () => {
+    const status = document.getElementById("dashboard-health-load-status");
+    if (status) {
+      status.textContent = "Loading health summary...";
+    }
+    const response = await fetch(`/api/dashboard/${projectId}/health`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      dashboardState.errors.health =
+        payload?.detail || payload?.message || "Health summary failed to load.";
+      updateDashboardErrorBanner();
+      if (status) {
+        status.textContent = "Unable to load health summary.";
+      }
+      return;
+    }
+    dashboardState.errors.health = "";
+    updateDashboardErrorBanner();
+    if (status) {
+      status.textContent = "Updated just now.";
+    }
+    document.getElementById("dashboard-health-status-value").textContent =
+      payload.health_status || "--";
+    document.getElementById("dashboard-health-score-value").textContent = formatScore(
+      payload.composite_score,
+    );
+    document.getElementById("dashboard-health-monitored-value").textContent =
+      formatTimestamp(payload.monitored_at);
+    renderHealthMetrics(payload.metrics);
+  };
+
+  const loadDashboardTrends = async () => {
+    const status = document.getElementById("dashboard-trends-load-status");
+    if (status) {
+      status.textContent = "Loading trend history...";
+    }
+    const response = await fetch(`/api/dashboard/${projectId}/trends`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      dashboardState.errors.trends =
+        payload?.detail || payload?.message || "Trend history failed to load.";
+      updateDashboardErrorBanner();
+      if (status) {
+        status.textContent = "Unable to load trends.";
+      }
+      return;
+    }
+    dashboardState.errors.trends = "";
+    updateDashboardErrorBanner();
+    if (status) {
+      status.textContent = `Showing ${payload.points?.length || 0} points.`;
+    }
+    renderTrendTable(payload.points || []);
+  };
+
+  const renderDashboardCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="dashboard-canvas">
+        <div class="dashboard-error is-hidden" id="dashboard-error" role="alert"></div>
+        <section class="dashboard-summary-card">
+          <div class="dashboard-card-header">
+            <h3>Project health summary</h3>
+            <span class="dashboard-subtext" id="dashboard-health-load-status">Loading...</span>
+          </div>
+          <div class="dashboard-summary-grid">
+            <div class="dashboard-summary-item">
+              <p class="dashboard-label">Health status</p>
+              <p class="dashboard-value" id="dashboard-health-status-value">--</p>
+            </div>
+            <div class="dashboard-summary-item">
+              <p class="dashboard-label">Composite score</p>
+              <p class="dashboard-value" id="dashboard-health-score-value">--</p>
+            </div>
+            <div class="dashboard-summary-item">
+              <p class="dashboard-label">Monitored at</p>
+              <p class="dashboard-value" id="dashboard-health-monitored-value">--</p>
+            </div>
+          </div>
+        </section>
+        <section class="dashboard-metrics-card">
+          <div class="dashboard-card-header">
+            <h3>Metric breakdown</h3>
+          </div>
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Raw</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-metrics-body">
+              <tr><td colspan="4">Loading metrics...</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section class="dashboard-trends-card">
+          <div class="dashboard-card-header">
+            <h3>Health trends</h3>
+            <span class="dashboard-subtext" id="dashboard-trends-load-status">Loading...</span>
+          </div>
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Composite score</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-trends-body">
+              <tr><td colspan="2">Loading trends...</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section class="dashboard-whatif-card">
+          <div class="dashboard-card-header">
+            <h3>What-if request</h3>
+          </div>
+          <form id="dashboard-whatif-form">
+            <label>
+              Scenario
+              <input type="text" id="dashboard-whatif-scenario" required />
+            </label>
+            <label>
+              Adjustments (JSON)
+              <textarea id="dashboard-whatif-adjustments" rows="4" placeholder='{"risk_score": 0.15}'></textarea>
+            </label>
+            <p class="dashboard-message is-error is-hidden" id="dashboard-adjustments-error"></p>
+            <button type="submit">Submit what-if</button>
+            <p class="dashboard-message" id="dashboard-whatif-status" role="status" aria-live="polite"></p>
+            <div class="dashboard-whatif-result" id="dashboard-whatif-result"></div>
+          </form>
+        </section>
+      </div>
+    `;
+
+    const adjustmentsInput = document.getElementById("dashboard-whatif-adjustments");
+    const adjustmentsError = document.getElementById("dashboard-adjustments-error");
+    const form = document.getElementById("dashboard-whatif-form");
+    const status = document.getElementById("dashboard-whatif-status");
+    const result = document.getElementById("dashboard-whatif-result");
+
+    const setWhatIfStatus = (message, isError = false) => {
+      if (!status) {
+        return;
+      }
+      status.textContent = message;
+      status.classList.toggle("is-error", isError);
+    };
+
+    const setAdjustmentsError = (message) => {
+      if (!adjustmentsError) {
+        return;
+      }
+      adjustmentsError.textContent = message;
+      adjustmentsError.classList.toggle("is-hidden", !message);
+    };
+
+    const parseAdjustments = () => {
+      if (!adjustmentsInput) {
+        return { value: {}, error: "" };
+      }
+      const raw = adjustmentsInput.value.trim();
+      if (!raw) {
+        return { value: {}, error: "" };
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed === null || Array.isArray(parsed) || typeof parsed !== "object") {
+          return { value: {}, error: "Adjustments must be a JSON object." };
+        }
+        return { value: parsed, error: "" };
+      } catch (error) {
+        return { value: {}, error: "Adjustments must be valid JSON." };
+      }
+    };
+
+    if (adjustmentsInput) {
+      adjustmentsInput.addEventListener("input", () => {
+        const { error } = parseAdjustments();
+        setAdjustmentsError(error);
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setWhatIfStatus("");
+        setAdjustmentsError("");
+        if (result) {
+          result.innerHTML = "";
+        }
+
+        const scenario = document
+          .getElementById("dashboard-whatif-scenario")
+          .value.trim();
+        if (!scenario) {
+          setWhatIfStatus("Scenario is required.", true);
+          return;
+        }
+
+        const { value, error } = parseAdjustments();
+        if (error) {
+          setAdjustmentsError(error);
+          return;
+        }
+
+        const response = await fetch(`/api/dashboard/${projectId}/what-if`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scenario, adjustments: value }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setWhatIfStatus(
+            payload?.detail || payload?.message || "Unable to submit what-if request.",
+            true,
+          );
+          return;
+        }
+        setWhatIfStatus("Scenario submitted for analysis.");
+        if (result) {
+          result.innerHTML = `
+            <div><strong>Scenario ID:</strong> ${payload.scenario_id || "--"}</div>
+            <div><strong>Status:</strong> ${payload.status || "--"}</div>
+            <div><strong>Message:</strong> ${payload.message || "--"}</div>
+          `;
+        }
+      });
+    }
+
+    loadDashboardHealth();
+    loadDashboardTrends();
+  };
+
   const renderCanvas = (tabName) => {
     if (tabName === "document") {
       renderDocumentCanvas();
@@ -1409,6 +1740,8 @@ const initWorkspace = () => {
       renderTimelineCanvas();
     } else if (tabName === "spreadsheet") {
       renderSpreadsheetCanvas();
+    } else if (tabName === "dashboard") {
+      renderDashboardCanvas();
     } else if (tabName) {
       renderPlaceholder(tabName);
     }

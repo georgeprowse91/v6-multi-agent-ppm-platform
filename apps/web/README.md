@@ -92,6 +92,13 @@ Or use the component runner:
 python -m tools.component_runner run --type app --name web
 ```
 
+#### Backend environment variables
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DOCUMENT_SERVICE_URL` | `http://document-service:8080` | Document service API base URL. |
+| `ANALYTICS_SERVICE_URL` | `http://analytics-service:8080` | Analytics service API base URL for the dashboard canvas. |
+
 ### Document canvas local run
 
 To exercise the Document canvas end-to-end, run the document service and point the web app to it:
@@ -106,10 +113,30 @@ In another terminal, run the web app with the document service URL configured:
 ```bash
 cd apps/web
 export DOCUMENT_SERVICE_URL=http://localhost:8080
+export ANALYTICS_SERVICE_URL=http://localhost:8080
 uvicorn src.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
 Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid`.
+
+### Dashboard canvas local run
+
+To exercise the Dashboard canvas end-to-end, run the analytics service and point the web app to it:
+
+```bash
+cd apps/analytics-service
+uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
+```
+
+In another terminal, run the web app with the analytics service URL configured:
+
+```bash
+cd apps/web
+export ANALYTICS_SERVICE_URL=http://localhost:8080
+uvicorn src.main:app --host 0.0.0.0 --port 8501 --reload
+```
+
+Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid` and select the Dashboard tab.
 
 ### Full Stack Development
 

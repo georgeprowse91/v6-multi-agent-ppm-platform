@@ -62,6 +62,7 @@ from spreadsheet_models import (  # noqa: E402
 )
 from timeline_store import TimelineStore  # noqa: E402
 from spreadsheet_store import SpreadsheetStore  # noqa: E402
+from analytics_proxy import AnalyticsServiceClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
@@ -331,6 +332,11 @@ class DocumentCanvasRequest(BaseModel):
     metadata: dict[str, Any] = {}
 
 
+class DashboardWhatIfRequest(BaseModel):
+    scenario: str
+    adjustments: dict[str, Any] = {}
+
+
 @app.on_event("startup")
 async def startup() -> None:
     global knowledge_store
@@ -348,12 +354,24 @@ def _document_client() -> DocumentServiceClient:
     return DocumentServiceClient()
 
 
+def _analytics_client() -> AnalyticsServiceClient:
+    return AnalyticsServiceClient()
+
+
 def _raise_upstream_error(response: httpx.Response) -> None:
     try:
         detail = response.json()
     except ValueError:
         detail = response.text
     raise HTTPException(status_code=response.status_code, detail=detail)
+
+
+def _passthrough_response(response: httpx.Response) -> Response:
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        media_type=response.headers.get("content-type"),
+    )
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -1407,6 +1425,55 @@ async def recommend_lessons(payload: LessonRecommendationRequest) -> list[Lesson
         )
         for record in records
     ]
+
+
+@app.get("/api/dashboard/{project_id}/health")
+async def get_dashboard_health(project_id: str, request: Request) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.get_project_health(project_id, headers=headers)
+    logger.info(
+        "dashboard.health.fetch",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/api/dashboard/{project_id}/trends")
+async def get_dashboard_trends(project_id: str, request: Request) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.get_project_trends(project_id, headers=headers)
+    logger.info(
+        "dashboard.trends.fetch",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.post("/api/dashboard/{project_id}/what-if")
+async def create_dashboard_what_if(
+    project_id: str, payload: DashboardWhatIfRequest, request: Request
+) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.request_what_if(
+        project_id, payload.model_dump(), headers=headers
+    )
+    logger.info(
+        "dashboard.whatif.request",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
 
 
 @app.post("/api/document-canvas/documents")
