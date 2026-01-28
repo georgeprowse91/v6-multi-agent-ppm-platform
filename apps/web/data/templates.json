@@ -1,0 +1,367 @@
+{
+  "templates": [
+    {
+      "id": "agile-software-dev",
+      "name": "Agile Software Dev",
+      "version": "1.1",
+      "available_versions": ["1.0", "1.1"],
+      "summary": "Iterative delivery template for software product teams.",
+      "description": "Bootstraps an agile workspace with product vision, backlog planning, sprint execution, and metrics dashboards.",
+      "methodology": {
+        "id": "methodology-agile",
+        "name": "Agile Scrum",
+        "description": "Iterative agile approach with sprints",
+        "type": "agile",
+        "version": "1.0",
+        "stages": [
+          {
+            "id": "stage-product-vision",
+            "name": "Product Vision",
+            "description": "Define product vision and roadmap",
+            "status": "not_started",
+            "prerequisites": [],
+            "order": 1,
+            "activities": [
+              {
+                "id": "act-vision",
+                "name": "Product Vision Statement",
+                "description": "Define the product vision",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-roadmap",
+                "name": "Product Roadmap",
+                "description": "High-level product timeline",
+                "status": "not_started",
+                "canvasType": "timeline",
+                "prerequisites": ["act-vision"],
+                "order": 2
+              }
+            ]
+          },
+          {
+            "id": "stage-backlog",
+            "name": "Product Backlog",
+            "description": "Create and prioritize product backlog",
+            "status": "not_started",
+            "prerequisites": ["stage-product-vision"],
+            "order": 2,
+            "activities": [
+              {
+                "id": "act-user-stories",
+                "name": "User Stories",
+                "description": "Define user stories and acceptance criteria",
+                "status": "not_started",
+                "canvasType": "tree",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-backlog-prioritization",
+                "name": "Backlog Prioritization",
+                "description": "Prioritize and estimate backlog items",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": ["act-user-stories"],
+                "order": 2
+              }
+            ]
+          },
+          {
+            "id": "stage-sprints",
+            "name": "Sprint Execution",
+            "description": "Execute work in sprints",
+            "status": "not_started",
+            "prerequisites": ["stage-backlog"],
+            "order": 3,
+            "activities": [
+              {
+                "id": "act-sprint-board",
+                "name": "Sprint Board",
+                "description": "Track sprint progress",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-burndown",
+                "name": "Burndown Chart",
+                "description": "Track sprint burndown",
+                "status": "not_started",
+                "canvasType": "dashboard",
+                "prerequisites": [],
+                "order": 2
+              }
+            ]
+          },
+          {
+            "id": "stage-agile-monitoring",
+            "name": "Monitoring & Metrics",
+            "description": "Track agile metrics and team health",
+            "status": "not_started",
+            "prerequisites": [],
+            "alwaysAccessible": true,
+            "order": 4,
+            "activities": [
+              {
+                "id": "act-velocity",
+                "name": "Velocity Dashboard",
+                "description": "Track team velocity over sprints",
+                "status": "not_started",
+                "canvasType": "dashboard",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 1
+              },
+              {
+                "id": "act-retrospective",
+                "name": "Retrospective Notes",
+                "description": "Sprint retrospective documentation",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 2
+              }
+            ]
+          }
+        ]
+      },
+      "agent_config": {
+        "enabled": ["intent-router", "schedule-planning", "agent_015"],
+        "disabled": ["financial-management"]
+      },
+      "connector_config": {
+        "enabled": ["jira", "slack"],
+        "disabled": ["planview", "sap", "sharepoint"]
+      },
+      "initial_tabs": [
+        {
+          "activity_id": "act-vision",
+          "type": "document",
+          "title": "Product Vision Statement"
+        },
+        {
+          "activity_id": "act-user-stories",
+          "type": "tree",
+          "title": "User Stories"
+        }
+      ],
+      "dashboards": [
+        {
+          "activity_id": "act-velocity",
+          "type": "dashboard",
+          "title": "Team Velocity Dashboard"
+        }
+      ]
+    },
+    {
+      "id": "waterfall-infrastructure",
+      "name": "Waterfall Infrastructure",
+      "version": "1.0",
+      "available_versions": ["1.0"],
+      "summary": "Stage-gated infrastructure delivery template.",
+      "description": "Creates a sequential, governance-heavy project workspace for infrastructure rollouts with planning baselines and controls.",
+      "methodology": {
+        "id": "methodology-waterfall",
+        "name": "Waterfall",
+        "description": "Traditional sequential project management approach",
+        "type": "waterfall",
+        "version": "1.0",
+        "stages": [
+          {
+            "id": "stage-initiation",
+            "name": "Initiation",
+            "description": "Define project scope, objectives, and stakeholders",
+            "status": "not_started",
+            "prerequisites": [],
+            "order": 1,
+            "activities": [
+              {
+                "id": "act-charter",
+                "name": "Project Charter",
+                "description": "Create the project charter document",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-stakeholders",
+                "name": "Stakeholder Register",
+                "description": "Identify and document project stakeholders",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": ["act-charter"],
+                "order": 2
+              }
+            ]
+          },
+          {
+            "id": "stage-planning",
+            "name": "Planning",
+            "description": "Develop project management plan and baselines",
+            "status": "not_started",
+            "prerequisites": ["stage-initiation"],
+            "order": 2,
+            "activities": [
+              {
+                "id": "act-wbs",
+                "name": "Work Breakdown Structure",
+                "description": "Decompose project scope into manageable work packages",
+                "status": "not_started",
+                "canvasType": "tree",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-schedule",
+                "name": "Project Schedule",
+                "description": "Develop the project timeline and milestones",
+                "status": "not_started",
+                "canvasType": "timeline",
+                "prerequisites": ["act-wbs"],
+                "order": 2
+              },
+              {
+                "id": "act-budget",
+                "name": "Budget Plan",
+                "description": "Estimate costs and create the project budget",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": ["act-wbs"],
+                "order": 3
+              }
+            ]
+          },
+          {
+            "id": "stage-execution",
+            "name": "Execution",
+            "description": "Execute project work and produce deliverables",
+            "status": "not_started",
+            "prerequisites": ["stage-planning"],
+            "order": 3,
+            "activities": [
+              {
+                "id": "act-deliverables",
+                "name": "Deliverables Tracker",
+                "description": "Track project deliverables and their status",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 1
+              }
+            ]
+          },
+          {
+            "id": "stage-monitoring",
+            "name": "Monitoring & Controlling",
+            "description": "Monitor and control project performance",
+            "status": "not_started",
+            "prerequisites": [],
+            "alwaysAccessible": true,
+            "order": 4,
+            "activities": [
+              {
+                "id": "act-dashboard",
+                "name": "Project Dashboard",
+                "description": "Real-time project status and KPIs",
+                "status": "not_started",
+                "canvasType": "dashboard",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 1
+              },
+              {
+                "id": "act-risks",
+                "name": "Risk Register",
+                "description": "Track and manage project risks",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 2
+              },
+              {
+                "id": "act-issues",
+                "name": "Issue Log",
+                "description": "Track and resolve project issues",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 3
+              },
+              {
+                "id": "act-changes",
+                "name": "Change Request Log",
+                "description": "Track project change requests",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 4
+              }
+            ]
+          },
+          {
+            "id": "stage-closure",
+            "name": "Closure",
+            "description": "Formally close the project",
+            "status": "not_started",
+            "prerequisites": ["stage-execution"],
+            "order": 5,
+            "activities": [
+              {
+                "id": "act-lessons",
+                "name": "Lessons Learned",
+                "description": "Document lessons learned for future projects",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-closeout",
+                "name": "Project Closeout Report",
+                "description": "Final project report and closure documentation",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": ["act-lessons"],
+                "order": 2
+              }
+            ]
+          }
+        ]
+      },
+      "agent_config": {
+        "enabled": ["intent-router", "schedule-planning", "financial-management", "agent_015"],
+        "disabled": []
+      },
+      "connector_config": {
+        "enabled": ["planview", "sharepoint", "sap"],
+        "disabled": ["jira", "slack"]
+      },
+      "initial_tabs": [
+        {
+          "activity_id": "act-charter",
+          "type": "document",
+          "title": "Project Charter"
+        },
+        {
+          "activity_id": "act-wbs",
+          "type": "tree",
+          "title": "Work Breakdown Structure"
+        }
+      ],
+      "dashboards": [
+        {
+          "activity_id": "act-dashboard",
+          "type": "dashboard",
+          "title": "Infrastructure Delivery Dashboard"
+        }
+      ]
+    }
+  ]
+}

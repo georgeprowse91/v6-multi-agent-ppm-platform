@@ -5,6 +5,7 @@ import os
 import secrets
 import sys
 from pathlib import Path
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlencode
 
@@ -25,6 +26,9 @@ from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E4
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
+DATA_DIR = WEB_ROOT / "data"
+TEMPLATES_PATH = DATA_DIR / "templates.json"
+PROJECTS_PATH = DATA_DIR / "projects.json"
 
 SESSION_COOKIE = "ppm_session"
 SESSION_STORE: dict[str, dict[str, Any]] = {}
@@ -70,6 +74,68 @@ class WorkflowStartResponse(BaseModel):
     updated_at: str
 
 
+class TemplateAgentConfig(BaseModel):
+    enabled: list[str]
+    disabled: list[str]
+
+
+class TemplateConnectorConfig(BaseModel):
+    enabled: list[str]
+    disabled: list[str]
+
+
+class TemplateTab(BaseModel):
+    activity_id: str | None = None
+    type: str
+    title: str
+
+
+class TemplateDefinition(BaseModel):
+    id: str
+    name: str
+    version: str
+    available_versions: list[str]
+    summary: str
+    description: str
+    methodology: dict[str, Any]
+    agent_config: TemplateAgentConfig
+    connector_config: TemplateConnectorConfig
+    initial_tabs: list[TemplateTab]
+    dashboards: list[TemplateTab]
+
+
+class TemplateSummary(BaseModel):
+    id: str
+    name: str
+    version: str
+    available_versions: list[str]
+    summary: str
+    description: str
+    methodology_name: str
+    methodology_type: str
+
+
+class ProjectRecord(BaseModel):
+    id: str
+    name: str
+    template_id: str
+    created_at: str
+    methodology: dict[str, Any]
+    agent_config: TemplateAgentConfig
+    connector_config: TemplateConnectorConfig
+    initial_tabs: list[TemplateTab]
+    dashboards: list[TemplateTab]
+
+
+class TemplateApplyRequest(BaseModel):
+    project_name: str
+
+
+class TemplateApplyResponse(BaseModel):
+    project: ProjectRecord
+    template: TemplateDefinition
+
+
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
     return HealthResponse()
@@ -104,6 +170,47 @@ def _oidc_enabled() -> bool:
     return bool(
         os.getenv("OIDC_CLIENT_ID") and os.getenv("OIDC_AUTH_URL") and os.getenv("OIDC_TOKEN_URL")
     )
+
+
+def _load_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
+    if not path.exists():
+        return default
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2)
+        handle.write("\n")
+
+
+def _load_templates() -> list[TemplateDefinition]:
+    payload = _load_json(TEMPLATES_PATH, {"templates": []})
+    return [TemplateDefinition.model_validate(item) for item in payload.get("templates", [])]
+
+
+def _load_projects() -> list[ProjectRecord]:
+    payload = _load_json(PROJECTS_PATH, {"projects": []})
+    return [ProjectRecord.model_validate(item) for item in payload.get("projects", [])]
+
+
+def _persist_projects(projects: list[ProjectRecord]) -> None:
+    _write_json(PROJECTS_PATH, {"projects": [project.model_dump() for project in projects]})
+
+
+def _slugify(value: str) -> str:
+    slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in value).strip("-")
+    return "-".join(filter(None, slug.split("-")))
+
+
+def _unique_project_id(base: str, existing: set[str]) -> str:
+    candidate = base
+    while candidate in existing:
+        suffix = secrets.token_hex(2)
+        candidate = f"{base}-{suffix}"
+    return candidate
 
 
 async def _exchange_code_for_token(code: str) -> dict[str, Any]:
@@ -305,6 +412,66 @@ async def api_start_workflow(request: Request, payload: WorkflowStartRequest) ->
         )
         response.raise_for_status()
         return response.json()
+
+
+@app.get("/api/templates", response_model=list[TemplateSummary])
+async def list_templates() -> list[TemplateSummary]:
+    templates = _load_templates()
+    summaries: list[TemplateSummary] = []
+    for template in templates:
+        methodology = template.methodology
+        summaries.append(
+            TemplateSummary(
+                id=template.id,
+                name=template.name,
+                version=template.version,
+                available_versions=template.available_versions,
+                summary=template.summary,
+                description=template.description,
+                methodology_name=str(methodology.get("name", "Methodology")),
+                methodology_type=str(methodology.get("type", "custom")),
+            )
+        )
+    return summaries
+
+
+@app.get("/api/templates/{template_id}", response_model=TemplateDefinition)
+async def get_template(template_id: str) -> TemplateDefinition:
+    templates = _load_templates()
+    template = next((item for item in templates if item.id == template_id), None)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template
+
+
+@app.post("/api/templates/{template_id}/apply", response_model=TemplateApplyResponse)
+async def apply_template(template_id: str, payload: TemplateApplyRequest) -> TemplateApplyResponse:
+    templates = _load_templates()
+    template = next((item for item in templates if item.id == template_id), None)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    projects = _load_projects()
+    existing_ids = {project.id for project in projects}
+    base_slug = _slugify(payload.project_name) or "project"
+    project_id = _unique_project_id(base_slug, existing_ids)
+
+    project = ProjectRecord(
+        id=project_id,
+        name=payload.project_name,
+        template_id=template.id,
+        created_at=datetime.utcnow().isoformat() + "Z",
+        methodology=template.methodology,
+        agent_config=template.agent_config,
+        connector_config=template.connector_config,
+        initial_tabs=template.initial_tabs,
+        dashboards=template.dashboards,
+    )
+
+    projects.append(project)
+    _persist_projects(projects)
+
+    return TemplateApplyResponse(project=project, template=template)
 
 
 @app.get("/")

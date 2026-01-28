@@ -63,6 +63,9 @@ interface ConnectorStoreState {
   // Helpers
   getConnectorsByCategory: (category: ConnectorCategory) => Connector[];
   getEnabledConnectorForCategory: (category: ConnectorCategory) => Connector | undefined;
+
+  // Template application
+  applyTemplateConnectors: (config: { enabled: string[]; disabled: string[] }) => void;
 }
 
 const DEFAULT_FILTER: ConnectorFilterState = {
@@ -300,6 +303,37 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
   // Close connector modal
   closeConnectorModal: () => {
     set({ selectedConnector: null, isModalOpen: false, testResult: null });
+  },
+
+  applyTemplateConnectors: (config) => {
+    set((state) => {
+      const enabledSet = new Set(config.enabled);
+      const disabledSet = new Set(config.disabled);
+      const baseConnectors =
+        state.connectors.length > 0 ? state.connectors : getMockConnectors();
+
+      const updated = baseConnectors.map((connector) => {
+        if (enabledSet.has(connector.connector_id)) {
+          return { ...connector, enabled: true };
+        }
+        if (disabledSet.has(connector.connector_id)) {
+          return { ...connector, enabled: false };
+        }
+        return connector;
+      });
+
+      const seenCategories = new Set<ConnectorCategory>();
+      const normalized = updated.map((connector) => {
+        if (!connector.enabled) return connector;
+        if (seenCategories.has(connector.category)) {
+          return { ...connector, enabled: false };
+        }
+        seenCategories.add(connector.category);
+        return connector;
+      });
+
+      return { connectors: normalized };
+    });
   },
 
   // Get connectors by category

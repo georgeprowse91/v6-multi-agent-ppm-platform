@@ -49,6 +49,10 @@ interface AgentConfigStoreState {
   setProjectAgentEnabled: (projectId: string, agentId: string, enabled: boolean) => Promise<void>;
   isAgentEnabledForProject: (projectId: string, agentId: string) => boolean;
   getEnabledAgentsForProject: (projectId: string) => AgentConfig[];
+  applyTemplateAgents: (
+    projectId: string,
+    config: { enabled: string[]; disabled: string[] }
+  ) => void;
 
   // Actions - User
   setCurrentUser: (userId: string) => Promise<void>;
@@ -216,6 +220,34 @@ export const useAgentConfigStore = create<AgentConfigStoreState>((set, get) => (
         };
       });
     }
+  },
+
+  applyTemplateAgents: (projectId, config) => {
+    set((state) => {
+      const enabledSet = new Set(config.enabled);
+      const disabledSet = new Set(config.disabled);
+      const projectConfigs: ProjectAgentConfig[] = [
+        ...Array.from(enabledSet).map((agentId) => ({
+          project_id: projectId,
+          agent_id: agentId,
+          enabled: true,
+          parameter_overrides: {},
+        })),
+        ...Array.from(disabledSet).map((agentId) => ({
+          project_id: projectId,
+          agent_id: agentId,
+          enabled: false,
+          parameter_overrides: {},
+        })),
+      ];
+
+      return {
+        projectConfigs: {
+          ...state.projectConfigs,
+          [projectId]: projectConfigs,
+        },
+      };
+    });
   },
 
   // Check if agent is enabled for project
