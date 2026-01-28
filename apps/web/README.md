@@ -169,6 +169,19 @@ Key behaviours:
 See `apps/web/src/methodologies.py` for the canonical activity maps and `apps/web/src/gating.py` for the
 deterministic gating logic.
 
+### Assistant panel (static workspace shell)
+
+The `/workspace` shell includes an Assistant panel for the currently selected activity. It provides:
+
+- **Activity context** (name + "What this is for" description).
+- **Next-best-action prompt chips** drawn from each activity's `assistant_prompts` list.
+- **Prompt box** that is empty by default; selecting a chip replaces the text.
+- **Copy** action to copy the prompt text to the clipboard, with a user-visible message if the box is empty.
+- **Clear** action to reset the prompt box.
+
+The Assistant panel is guidance only. It does **not** send prompts to any orchestrator or LLM execution
+service, and no chat transcript is stored by the static shell.
+
 ## Global State
 
 The application uses Zustand for state management. Key state slices:

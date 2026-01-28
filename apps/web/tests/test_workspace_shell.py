@@ -19,7 +19,7 @@ def test_workspace_shell_layout_strings():
         "Timeline",
         "Spreadsheet",
         "Dashboard",
-        "Activity Guidance",
+        "Assistant",
         "Select an activity to view guidance.",
     ]:
         assert label in app_js
