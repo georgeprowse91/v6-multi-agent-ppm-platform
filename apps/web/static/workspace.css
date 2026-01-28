@@ -50,9 +50,39 @@
 }
 
 .workspace-section li {
-  padding: 6px 10px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.workspace-activity {
+  width: 100%;
+  display: block;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.workspace-activity.is-selected {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.workspace-stage {
+  display: grid;
+  gap: 6px;
+}
+
+.workspace-stage-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .workspace-main {
@@ -104,6 +134,21 @@
 
 .workspace-assistant h3 {
   margin: 0;
+}
+
+.workspace-guidance-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workspace-guidance-actions button {
+  border: 1px solid #d1d9e6;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
 }
 
 @media (max-width: 1100px) {

@@ -152,6 +152,23 @@ The workspace shell expects a `project_id` query parameter (for example, `/works
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
 
+### Methodology selection and gating
+
+The workspace shell supports a methodology-driven navigation model. Methodologies can be provided via the
+`methodology` query parameter (for example, `/workspace?project_id=demo-1&methodology=hybrid`) or persisted
+through `/api/workspace/{project_id}/select`.
+
+Key behaviours:
+
+- **Methodology activities** follow prerequisite gating. An activity is allowed only when all of its
+  prerequisite activity IDs are marked complete in `activity_completion`.
+- **Monitoring activities** are never gated. They remain selectable regardless of completion state.
+- The API returns gating metadata in `gating.current_activity_access` and the next prerequisite to resolve
+  in `gating.next_required_activity_id`.
+
+See `apps/web/src/methodologies.py` for the canonical activity maps and `apps/web/src/gating.py` for the
+deterministic gating logic.
+
 ## Global State
 
 The application uses Zustand for state management. Key state slices:

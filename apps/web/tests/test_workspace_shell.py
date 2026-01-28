@@ -19,7 +19,8 @@ def test_workspace_shell_layout_strings():
         "Timeline",
         "Spreadsheet",
         "Dashboard",
-        "Assistant will provide guidance here.",
+        "Activity Guidance",
+        "Select an activity to view guidance.",
     ]:
         assert label in app_js
     assert "window.location.pathname === \"/workspace\"" in app_js

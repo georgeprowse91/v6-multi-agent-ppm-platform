@@ -27,8 +27,11 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from knowledge_store import KnowledgeStore  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store  # noqa: E402
+from gating import evaluate_activity_access, next_required_activity, stage_progress  # noqa: E402
+from methodologies import available_methodologies, get_methodology_map  # noqa: E402
 from workspace_state import (  # noqa: E402
     ActivityCompletionUpdate,
+    CanvasTab,
     WorkspaceSelectionUpdate,
     WorkspaceState,
 )
@@ -88,6 +91,64 @@ class WorkflowStartResponse(BaseModel):
     status: str
     created_at: str
     updated_at: str
+
+
+class ActivityAccessSummary(BaseModel):
+    allowed: bool
+    reasons: list[str]
+    missing_prereqs: list[str]
+
+
+class ActivitySummary(BaseModel):
+    id: str
+    name: str
+    description: str
+    prerequisites: list[str]
+    category: str
+    recommended_canvas_tab: CanvasTab
+    access: ActivityAccessSummary
+    completed: bool
+
+
+class StageProgressSummary(BaseModel):
+    complete_count: int
+    total_count: int
+    percent: float
+
+
+class StageSummary(BaseModel):
+    id: str
+    name: str
+    progress: StageProgressSummary
+    activities: list[ActivitySummary]
+
+
+class MethodologyMapSummary(BaseModel):
+    id: str
+    name: str
+    description: str
+    stages: list[StageSummary]
+    monitoring: list[ActivitySummary]
+
+
+class GatingSummary(BaseModel):
+    current_activity_access: ActivityAccessSummary
+    next_required_activity_id: str | None = None
+
+
+class WorkspaceStateResponse(BaseModel):
+    version: int
+    tenant_id: str
+    project_id: str
+    methodology: str | None = None
+    current_stage_id: str | None = None
+    current_activity_id: str | None = None
+    activity_completion: dict[str, bool]
+    current_canvas_tab: CanvasTab
+    updated_at: str
+    available_methodologies: list[str]
+    methodology_map_summary: MethodologyMapSummary
+    gating: GatingSummary
 
 
 class TemplateAgentConfig(BaseModel):
@@ -318,6 +379,82 @@ def _load_projects() -> list[ProjectRecord]:
     return [ProjectRecord.model_validate(item) for item in payload.get("projects", [])]
 
 
+def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
+    methodology_map = get_methodology_map(state.methodology)
+
+    stage_summaries: list[StageSummary] = []
+    for stage in methodology_map.get("stages", []):
+        activities: list[ActivitySummary] = []
+        for activity in stage.get("activities", []):
+            access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
+            activities.append(
+                ActivitySummary(
+                    id=activity["id"],
+                    name=activity["name"],
+                    description=activity["description"],
+                    prerequisites=activity.get("prerequisites", []),
+                    category=activity["category"],
+                    recommended_canvas_tab=activity["recommended_canvas_tab"],
+                    access=ActivityAccessSummary(**access_payload),
+                    completed=state.activity_completion.get(activity["id"], False),
+                )
+            )
+        stage_summaries.append(
+            StageSummary(
+                id=stage["id"],
+                name=stage["name"],
+                progress=StageProgressSummary(**stage_progress(methodology_map, state, stage["id"])),
+                activities=activities,
+            )
+        )
+
+    monitoring_summaries: list[ActivitySummary] = []
+    for activity in methodology_map.get("monitoring", []):
+        access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
+        monitoring_summaries.append(
+            ActivitySummary(
+                id=activity["id"],
+                name=activity["name"],
+                description=activity["description"],
+                prerequisites=activity.get("prerequisites", []),
+                category=activity["category"],
+                recommended_canvas_tab=activity["recommended_canvas_tab"],
+                access=ActivityAccessSummary(**access_payload),
+                completed=state.activity_completion.get(activity["id"], False),
+            )
+        )
+
+    current_access = (
+        evaluate_activity_access(methodology_map, state, state.current_activity_id)
+        if state.current_activity_id
+        else {"allowed": True, "reasons": [], "missing_prereqs": []}
+    )
+
+    return WorkspaceStateResponse(
+        version=state.version,
+        tenant_id=state.tenant_id,
+        project_id=state.project_id,
+        methodology=state.methodology,
+        current_stage_id=state.current_stage_id,
+        current_activity_id=state.current_activity_id,
+        activity_completion=state.activity_completion,
+        current_canvas_tab=state.current_canvas_tab,
+        updated_at=state.updated_at,
+        available_methodologies=available_methodologies(),
+        methodology_map_summary=MethodologyMapSummary(
+            id=methodology_map["id"],
+            name=methodology_map["name"],
+            description=methodology_map["description"],
+            stages=stage_summaries,
+            monitoring=monitoring_summaries,
+        ),
+        gating=GatingSummary(
+            current_activity_access=ActivityAccessSummary(**current_access),
+            next_required_activity_id=next_required_activity(methodology_map, state),
+        ),
+    )
+
+
 def _persist_projects(projects: list[ProjectRecord]) -> None:
     _write_json(PROJECTS_PATH, {"projects": [project.model_dump() for project in projects]})
 
@@ -536,34 +673,37 @@ async def api_start_workflow(request: Request, payload: WorkflowStartRequest) ->
         return response.json()
 
 
-@app.get("/api/workspace/{project_id}", response_model=WorkspaceState)
-async def get_workspace_state(project_id: str, request: Request) -> WorkspaceState:
+@app.get("/api/workspace/{project_id}", response_model=WorkspaceStateResponse)
+async def get_workspace_state(project_id: str, request: Request) -> WorkspaceStateResponse:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
-    return workspace_state_store.get_or_create(tenant_id, project_id)
+    state = workspace_state_store.get_or_create(tenant_id, project_id)
+    return _build_workspace_response(state)
 
 
-@app.post("/api/workspace/{project_id}/select", response_model=WorkspaceState)
+@app.post("/api/workspace/{project_id}/select", response_model=WorkspaceStateResponse)
 async def update_workspace_selection(
     project_id: str, payload: WorkspaceSelectionUpdate, request: Request
-) -> WorkspaceState:
+) -> WorkspaceStateResponse:
     session = _require_session(request)
     if payload.project_id and payload.project_id != project_id:
         raise HTTPException(status_code=422, detail="project_id mismatch")
     tenant_id = session["tenant_id"]
     updates = payload.model_dump(exclude={"project_id"})
-    return workspace_state_store.update_selection(tenant_id, project_id, updates)
+    state = workspace_state_store.update_selection(tenant_id, project_id, updates)
+    return _build_workspace_response(state)
 
 
-@app.post("/api/workspace/{project_id}/activity-completion", response_model=WorkspaceState)
+@app.post("/api/workspace/{project_id}/activity-completion", response_model=WorkspaceStateResponse)
 async def update_activity_completion(
     project_id: str, payload: ActivityCompletionUpdate, request: Request
-) -> WorkspaceState:
+) -> WorkspaceStateResponse:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
-    return workspace_state_store.update_activity_completion(
+    state = workspace_state_store.update_activity_completion(
         tenant_id, project_id, payload.activity_id, payload.completed
     )
+    return _build_workspace_response(state)
 
 
 @app.get("/api/templates", response_model=list[TemplateSummary])
