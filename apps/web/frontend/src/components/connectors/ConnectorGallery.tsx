@@ -11,6 +11,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useConnectorStore, CATEGORY_INFO, type Connector, type ConnectorCategory } from '@/store/connectors';
+import { SyncStatusPanel } from './SyncStatusPanel';
 import styles from './ConnectorGallery.module.css';
 
 export function ConnectorGallery() {
@@ -106,6 +107,7 @@ export function ConnectorGallery() {
 
   return (
     <div className={styles.container}>
+      <SyncStatusPanel />
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>

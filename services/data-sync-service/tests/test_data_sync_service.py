@@ -28,5 +28,5 @@ def test_sync_run_returns_rules() -> None:
     response = client.post("/sync/run", json={"connector": "jira", "dry_run": True})
     assert response.status_code == 200
     payload = response.json()
-    assert payload["status"] == "planned"
+    assert payload["status"] == "queued"
     assert "ds-001" in payload["planned_rules"]

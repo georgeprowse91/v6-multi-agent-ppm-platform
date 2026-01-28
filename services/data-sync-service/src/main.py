@@ -19,12 +19,19 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from conflict_store import get_conflict_store  # noqa: E402
 from data_sync_queue import get_queue_client  # noqa: E402
 from data_sync_status import get_status_store  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
+from sync_log_store import get_sync_log_store  # noqa: E402
+from sync_registry import (  # noqa: E402
+    build_default_registry,
+    get_registry,
+    get_scheduler,
+)
 
 logger = logging.getLogger("data-sync-service")
 logging.basicConfig(level=logging.INFO)
@@ -67,12 +74,65 @@ class SyncStatusResponse(BaseModel):
     details: dict[str, Any]
 
 
+class SyncJobSummary(BaseModel):
+    connector: str
+    entity: str
+    interval_seconds: int
+    strategy: str
+    description: str
+    last_run_at: str | None
+    next_run_at: str | None
+    last_status: str | None
+    last_latency_ms: int | None
+    last_error: str | None
+
+
+class SyncLogResponse(BaseModel):
+    log_id: str
+    connector: str
+    entity: str
+    status: str
+    latency_ms: int
+    errors: list[str]
+    last_sync_at: str
+    created_at: str
+    details: dict[str, Any]
+
+
+class SyncSummaryResponse(BaseModel):
+    connector: str
+    entity: str
+    total_runs: int
+    success_runs: int
+    error_runs: int
+    success_rate: float
+    last_sync_at: str | None
+    last_status: str | None
+
+
+class ConflictResponse(BaseModel):
+    conflict_id: str
+    connector: str
+    entity: str
+    task_id: str | None
+    external_id: str | None
+    strategy: str
+    reason: str
+    internal_updated_at: str | None
+    external_updated_at: str | None
+    created_at: str
+    details: dict[str, Any]
+
+
 app = FastAPI(title="Data Sync Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 configure_tracing("data-sync-service")
 configure_metrics("data-sync-service")
 app.add_middleware(TraceMiddleware, service_name="data-sync-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-sync-service")
+
+build_default_registry()
+scheduler = get_scheduler()
 
 data_sync_jobs_total = configure_metrics("data-sync-service").create_counter(
     name="data_sync_jobs_total",
@@ -84,6 +144,16 @@ data_sync_jobs_total = configure_metrics("data-sync-service").create_counter(
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
     return HealthResponse()
+
+
+@app.on_event("startup")
+async def _start_scheduler() -> None:
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+async def _stop_scheduler() -> None:
+    scheduler.stop()
 
 
 def _load_rules() -> list[SyncRule]:
@@ -153,6 +223,90 @@ async def get_sync_status(job_id: str) -> SyncStatusResponse:
     payload = job.__dict__.copy()
     payload["details"] = _mask_lineage(payload.get("details", {}))
     return SyncStatusResponse(**payload)
+
+
+@app.get("/sync/jobs", response_model=list[SyncJobSummary])
+async def list_sync_jobs() -> list[SyncJobSummary]:
+    registry = get_registry()
+    jobs: list[SyncJobSummary] = []
+    for job in registry.list_jobs():
+        state = scheduler.get_state(job.connector, job.entity)
+        jobs.append(
+            SyncJobSummary(
+                connector=job.connector,
+                entity=job.entity,
+                interval_seconds=job.interval_seconds,
+                strategy=job.strategy,
+                description=job.description,
+                last_run_at=state.last_run_at,
+                next_run_at=state.next_run_at,
+                last_status=state.last_status,
+                last_latency_ms=state.last_latency_ms,
+                last_error=state.last_error,
+            )
+        )
+    return jobs
+
+
+@app.post("/sync/jobs/{connector}/{entity}/run", response_model=SyncLogResponse)
+async def run_sync_job(connector: str, entity: str, dry_run: bool = False) -> SyncLogResponse:
+    try:
+        result = scheduler.run_job(connector, entity, dry_run=dry_run)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    log_store = get_sync_log_store()
+    summary = log_store.list_recent(limit=1)
+    if summary:
+        return SyncLogResponse(**summary[0].__dict__)
+    return SyncLogResponse(
+        log_id="n/a",
+        connector=connector,
+        entity=entity,
+        status=result.status,
+        latency_ms=result.latency_ms,
+        errors=result.errors,
+        last_sync_at=result.last_sync_at,
+        created_at=result.last_sync_at,
+        details=result.details,
+    )
+
+
+@app.get("/sync/logs", response_model=list[SyncLogResponse])
+async def list_sync_logs(limit: int = 50) -> list[SyncLogResponse]:
+    log_store = get_sync_log_store()
+    return [SyncLogResponse(**log.__dict__) for log in log_store.list_recent(limit=limit)]
+
+
+@app.get("/sync/summary", response_model=list[SyncSummaryResponse])
+async def get_sync_summary() -> list[SyncSummaryResponse]:
+    log_store = get_sync_log_store()
+    registry = get_registry()
+    summaries: list[SyncSummaryResponse] = []
+    for job in registry.list_jobs():
+        stats = log_store.summary(connector=job.connector)
+        state = scheduler.get_state(job.connector, job.entity)
+        summaries.append(
+            SyncSummaryResponse(
+                connector=job.connector,
+                entity=job.entity,
+                total_runs=stats["total_runs"],
+                success_runs=stats["success_runs"],
+                error_runs=stats["error_runs"],
+                success_rate=stats["success_rate"],
+                last_sync_at=stats["last_sync_at"],
+                last_status=state.last_status,
+            )
+        )
+    return summaries
+
+
+@app.get("/sync/conflicts", response_model=list[ConflictResponse])
+async def list_conflicts(limit: int = 50) -> list[ConflictResponse]:
+    conflict_store = get_conflict_store()
+    return [
+        ConflictResponse(**record.__dict__)
+        for record in conflict_store.list_recent(limit=limit)
+    ]
 
 
 if __name__ == "__main__":
