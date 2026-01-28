@@ -10,7 +10,14 @@
     "id": "planview",
     "name": "Planview",
     "manifest_path": "connectors/planview/manifest.yaml",
-    "status": "beta",
+    "status": "production",
+    "certification": "automated"
+  },
+  {
+    "id": "clarity",
+    "name": "Clarity PPM",
+    "manifest_path": "connectors/clarity/manifest.yaml",
+    "status": "production",
     "certification": "automated"
   },
   {
