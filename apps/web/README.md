@@ -98,6 +98,8 @@ python -m tools.component_runner run --type app --name web
 | --- | --- | --- |
 | `DOCUMENT_SERVICE_URL` | `http://document-service:8080` | Document service API base URL. |
 | `ANALYTICS_SERVICE_URL` | `http://analytics-service:8080` | Analytics service API base URL for the dashboard canvas. |
+| `API_GATEWAY_URL` | `http://api-gateway:8000` | API gateway base URL for assistant orchestration. |
+| `ASSISTANT_TIMEOUT_S` | `20` | Timeout (seconds) for assistant proxy requests. |
 
 ### Document canvas local run
 
@@ -197,6 +199,38 @@ Endpoints:
 The workspace shell expects a `project_id` query parameter (for example, `/workspace?project_id=demo-1`).
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
+
+## Assistant proxy
+
+The assistant panel sends requests to the web backend, which forwards them to the API gateway orchestrator endpoint.
+
+### Endpoint
+
+```
+POST /api/assistant/send
+{
+  "project_id": "<project-id>",
+  "message": "<user prompt>"
+}
+```
+
+### Context forwarded
+
+The proxy forwards the authenticated tenant identifier along with workspace context:
+
+- `tenant_id` (derived from auth/session)
+- `project_id`
+- `correlation_id` (generated server-side)
+- `methodology`, `current_stage_id`, `current_activity_id`, `current_canvas_tab`
+- `open_ref` IDs only (`document_id`, `sheet_id`, `milestone_id` when available)
+
+Document content is **not** sent automatically—only identifiers.
+
+### Limitations
+
+- Session-only transcript (no persistence across refreshes)
+- No streaming responses
+- No automatic artifact content forwarding
 
 ## Tree Canvas APIs
 

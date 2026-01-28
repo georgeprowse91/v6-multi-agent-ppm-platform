@@ -75,6 +75,7 @@ const initWorkspace = () => {
   const urlMethodology = searchParams.get("methodology");
   const tabs = Array.from(document.querySelectorAll(".workspace-tab"));
   let workspaceState = null;
+  const assistantTranscript = [];
   let activityIndex = new Map();
   const documentState = {
     list: [],
@@ -253,8 +254,20 @@ const initWorkspace = () => {
         <div class="assistant-actions">
           <button type="button" id="assistant-copy">Copy</button>
           <button type="button" id="assistant-clear">Clear</button>
+          <button type="button" id="assistant-send" disabled>Send</button>
         </div>
         <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
+        <div class="assistant-transcript">
+          <div class="assistant-transcript-header">
+            <span>Transcript</span>
+            <span class="assistant-transcript-hint">Session-only</span>
+          </div>
+          <div class="assistant-transcript-body" id="assistant-transcript">
+            <p class="assistant-transcript-empty" id="assistant-transcript-empty">
+              No assistant messages yet.
+            </p>
+          </div>
+        </div>
         <div class="workspace-guidance-actions">
           ${
             showNextRequired
@@ -2411,12 +2424,20 @@ const initWorkspace = () => {
 
     const promptBox = document.getElementById("assistant-prompt");
     const status = document.getElementById("assistant-status");
+    const sendButton = document.getElementById("assistant-send");
     const setAssistantStatus = (message, isError = false) => {
       if (!status) {
         return;
       }
       status.textContent = message;
       status.classList.toggle("is-error", isError);
+    };
+
+    const updateSendState = () => {
+      if (!sendButton || !promptBox) {
+        return;
+      }
+      sendButton.disabled = !promptBox.value.trim();
     };
 
     document.querySelectorAll(".assistant-chip").forEach((chip) => {
@@ -2426,8 +2447,16 @@ const initWorkspace = () => {
         }
         promptBox.value = chip.dataset.prompt || chip.textContent.trim();
         setAssistantStatus("");
+        updateSendState();
       });
     });
+
+    if (promptBox) {
+      promptBox.addEventListener("input", () => {
+        updateSendState();
+        setAssistantStatus("");
+      });
+    }
 
     const copyButton = document.getElementById("assistant-copy");
     if (copyButton) {
@@ -2461,8 +2490,76 @@ const initWorkspace = () => {
         }
         promptBox.value = "";
         setAssistantStatus("Prompt cleared.");
+        updateSendState();
       });
     }
+
+    if (sendButton) {
+      sendButton.addEventListener("click", async () => {
+        if (!promptBox) {
+          return;
+        }
+        const message = promptBox.value.trim();
+        if (!message) {
+          setAssistantStatus("Add a prompt before sending.", true);
+          updateSendState();
+          return;
+        }
+        const timestamp = new Date().toISOString();
+        pushTranscriptEntry({ role: "user", text: message, timestamp });
+        setAssistantStatus("Sending request...");
+        sendButton.disabled = true;
+        try {
+          const response = await fetch("/api/assistant/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ project_id: projectId, message }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const errorDetail =
+              payload.detail ||
+              payload.error ||
+              payload.message ||
+              "Assistant request failed.";
+            pushTranscriptEntry({
+              role: "assistant",
+              text: typeof errorDetail === "string" ? errorDetail : JSON.stringify(errorDetail),
+              timestamp: new Date().toISOString(),
+              correlation_id: payload.correlation_id,
+              isError: true,
+            });
+            setAssistantStatus("Assistant request failed.", true);
+            updateSendState();
+            return;
+          }
+          const assistantResponse = payload.response;
+          const assistantText = extractAssistantText(assistantResponse);
+          pushTranscriptEntry({
+            role: "assistant",
+            text: assistantText,
+            rawResponse: assistantText ? undefined : assistantResponse,
+            timestamp: new Date().toISOString(),
+            correlation_id: payload.correlation_id,
+          });
+          setAssistantStatus("Response received.");
+          promptBox.value = "";
+          updateSendState();
+        } catch (error) {
+          pushTranscriptEntry({
+            role: "assistant",
+            text: "Network error while sending assistant request.",
+            timestamp: new Date().toISOString(),
+            isError: true,
+          });
+          setAssistantStatus("Network error while sending assistant request.", true);
+          updateSendState();
+        }
+      });
+    }
+
+    updateSendState();
+    renderAssistantTranscript();
   };
 
   const loadWorkspaceState = async () => {
@@ -2484,6 +2581,130 @@ const initWorkspace = () => {
       }
     }
     updateWorkspaceUI(payload);
+  };
+
+  const escapeHtml = (value) =>
+    String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  const extractAssistantText = (payload) => {
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+    const direct = ["message", "answer", "text", "content"];
+    for (const key of direct) {
+      if (typeof payload[key] === "string" && payload[key].trim()) {
+        return payload[key];
+      }
+    }
+    if (payload.data && typeof payload.data === "object") {
+      for (const key of direct) {
+        if (typeof payload.data[key] === "string" && payload.data[key].trim()) {
+          return payload.data[key];
+        }
+      }
+    }
+    return null;
+  };
+
+  const renderAssistantTranscript = () => {
+    const transcript = document.getElementById("assistant-transcript");
+    if (!transcript) {
+      return;
+    }
+    if (!assistantTranscript.length) {
+      transcript.innerHTML =
+        "<p class=\"assistant-transcript-empty\" id=\"assistant-transcript-empty\">No assistant messages yet.</p>";
+      return;
+    }
+    transcript.innerHTML = assistantTranscript
+      .map((entry) => {
+        const timestamp = entry.timestamp
+          ? `<span class=\"assistant-message-time\">${escapeHtml(entry.timestamp)}</span>`
+          : "";
+        const correlationId = entry.correlation_id
+          ? `<div class=\"assistant-correlation\">
+              <span>correlation_id: <code>${escapeHtml(entry.correlation_id)}</code></span>
+              <button type=\"button\" class=\"assistant-copy-correlation\" data-correlation-id=\"${escapeHtml(
+                entry.correlation_id,
+              )}\">Copy correlation_id</button>
+            </div>`
+          : "";
+        let body = "";
+        if (entry.text) {
+          body = `<p class=\"assistant-message-text\">${escapeHtml(entry.text)}</p>`;
+        } else if (entry.rawResponse !== undefined) {
+          const formatted = escapeHtml(
+            typeof entry.rawResponse === "string"
+              ? entry.rawResponse
+              : JSON.stringify(entry.rawResponse, null, 2),
+          );
+          body = `
+            <details class=\"assistant-message-details\">
+              <summary>View response JSON</summary>
+              <pre>${formatted}</pre>
+            </details>
+          `;
+        }
+        return `
+          <div class=\"assistant-message assistant-${entry.role}${
+            entry.isError ? " is-error" : ""
+          }\">
+            <div class=\"assistant-message-header\">
+              <span class=\"assistant-message-role\">${escapeHtml(
+                entry.role === "user" ? "You" : "Assistant",
+              )}</span>
+              ${timestamp}
+            </div>
+            ${body}
+            ${correlationId}
+          </div>
+        `;
+      })
+      .join("");
+
+    transcript.querySelectorAll(".assistant-copy-correlation").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const correlationId = button.dataset.correlationId;
+        if (!correlationId) {
+          return;
+        }
+        if (!navigator.clipboard) {
+          const status = document.getElementById("assistant-status");
+          if (status) {
+            status.textContent = "Clipboard access is unavailable in this browser.";
+            status.classList.add("is-error");
+          }
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(correlationId);
+          const status = document.getElementById("assistant-status");
+          if (status) {
+            status.textContent = "Correlation ID copied.";
+            status.classList.remove("is-error");
+          }
+        } catch (error) {
+          const status = document.getElementById("assistant-status");
+          if (status) {
+            status.textContent = "Unable to copy correlation ID.";
+            status.classList.add("is-error");
+          }
+        }
+      });
+    });
+  };
+
+  const pushTranscriptEntry = (entry) => {
+    assistantTranscript.push(entry);
+    if (assistantTranscript.length > 50) {
+      assistantTranscript.shift();
+    }
+    renderAssistantTranscript();
   };
 
   tabs.forEach((tab) => {
@@ -2508,6 +2729,6 @@ const initWorkspace = () => {
   loadWorkspaceState();
 };
 
-if (window.location.pathname === "/workspace") {
-  initWorkspace();
-}
+  if (window.location.pathname === "/workspace") {
+    initWorkspace();
+  }

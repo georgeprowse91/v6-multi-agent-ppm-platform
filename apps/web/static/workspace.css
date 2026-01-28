@@ -410,6 +410,17 @@
   font-size: 12px;
 }
 
+.assistant-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+#assistant-send {
+  background: #1e3a8a;
+  border-color: #1e3a8a;
+  color: #ffffff;
+}
+
 .assistant-status {
   margin: 0;
   font-size: 12px;
@@ -418,6 +429,127 @@
 
 .assistant-status.is-error {
   color: #b91c1c;
+}
+
+.assistant-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.assistant-transcript-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.assistant-transcript-hint {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.assistant-transcript-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.assistant-transcript-empty {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.assistant-message {
+  border-radius: 10px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assistant-message.assistant-user {
+  border-left: 4px solid #4f46e5;
+}
+
+.assistant-message.assistant-assistant {
+  border-left: 4px solid #0f766e;
+}
+
+.assistant-message.is-error {
+  border-left-color: #b91c1c;
+  background: #fef2f2;
+}
+
+.assistant-message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #475569;
+}
+
+.assistant-message-role {
+  font-weight: 600;
+  color: #111827;
+}
+
+.assistant-message-text {
+  margin: 0;
+  font-size: 13px;
+  color: #111827;
+  white-space: pre-wrap;
+}
+
+.assistant-message-details summary {
+  font-size: 12px;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.assistant-message-details pre {
+  margin: 8px 0 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  overflow-x: auto;
+}
+
+.assistant-correlation {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  color: #334155;
+}
+
+.assistant-correlation code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.assistant-copy-correlation {
+  align-self: flex-start;
+  border-radius: 8px;
+  padding: 4px 10px;
+  border: 1px solid #cbd5f5;
+  background: #eef2ff;
+  color: #1e3a8a;
+  font-size: 11px;
+  cursor: pointer;
 }
 
 .workspace-guidance-actions {

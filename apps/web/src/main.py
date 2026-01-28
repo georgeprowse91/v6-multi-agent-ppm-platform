@@ -75,6 +75,7 @@ from tree_models import (  # noqa: E402
 from tree_store import TreeStore  # noqa: E402
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
+from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
@@ -180,6 +181,11 @@ class MethodologyMapSummary(BaseModel):
 class GatingSummary(BaseModel):
     current_activity_access: ActivityAccessSummary
     next_required_activity_id: str | None = None
+
+
+class AssistantSendRequest(BaseModel):
+    project_id: str
+    message: str
 
 
 class SelectedActivitySummary(BaseModel):
@@ -374,6 +380,10 @@ def _analytics_client() -> AnalyticsServiceClient:
     return AnalyticsServiceClient()
 
 
+def _orchestrator_client() -> OrchestratorProxyClient:
+    return OrchestratorProxyClient()
+
+
 def _raise_upstream_error(response: httpx.Response) -> None:
     try:
         detail = response.json()
@@ -418,6 +428,39 @@ def _require_session(request: Request) -> dict[str, Any]:
     if not session:
         raise HTTPException(status_code=401, detail="Authentication required")
     return session
+
+
+def _tenant_id_from_request(request: Request, session: dict[str, Any]) -> str | None:
+    auth = getattr(request.state, "auth", None)
+    tenant_id = getattr(auth, "tenant_id", None) if auth else None
+    return tenant_id or session.get("tenant_id")
+
+
+def _assistant_context(
+    tenant_id: str,
+    project_id: str,
+    correlation_id: str,
+) -> dict[str, Any]:
+    state = workspace_state_store.get_or_create(tenant_id, project_id)
+    context: dict[str, Any] = {
+        "tenant_id": tenant_id,
+        "project_id": project_id,
+        "correlation_id": correlation_id,
+        "methodology": state.methodology,
+        "current_stage_id": state.current_stage_id,
+        "current_activity_id": state.current_activity_id,
+        "current_canvas_tab": state.current_canvas_tab,
+    }
+    open_ref: dict[str, str] = {}
+    if state.last_opened_document_id:
+        open_ref["document_id"] = state.last_opened_document_id
+    if state.last_opened_sheet_id:
+        open_ref["sheet_id"] = state.last_opened_sheet_id
+    if state.last_opened_milestone_id:
+        open_ref["milestone_id"] = state.last_opened_milestone_id
+    if open_ref:
+        context["open_ref"] = open_ref
+    return context
 
 
 def _dev_session() -> dict[str, Any] | None:
@@ -656,7 +699,7 @@ async def _decode_id_token(id_token: str) -> dict[str, Any]:
 @app.get("/config", response_model=UIConfig)
 async def config() -> UIConfig:
     return UIConfig(
-        api_gateway_url=os.getenv("API_GATEWAY_URL", "http://localhost:8000"),
+        api_gateway_url=os.getenv("API_GATEWAY_URL", "http://api-gateway:8000"),
         workflow_engine_url=os.getenv("WORKFLOW_ENGINE_URL", "http://localhost:8082"),
         oidc_enabled=_oidc_enabled(),
         login_url="/login",
@@ -846,6 +889,58 @@ async def update_activity_completion(
         tenant_id, project_id, payload.activity_id, payload.completed
     )
     return _build_workspace_response(state)
+
+
+@app.post("/api/assistant/send")
+async def send_assistant_message(payload: AssistantSendRequest, request: Request) -> JSONResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    correlation_id = f"corr-{secrets.token_hex(8)}"
+    context = _assistant_context(tenant_id, payload.project_id, correlation_id)
+    headers = build_forward_headers(request, session)
+    headers["X-Tenant-ID"] = tenant_id
+    try:
+        response = await _orchestrator_client().send_query(
+            query=payload.message, context=context, headers=headers
+        )
+    except httpx.TimeoutException:
+        return JSONResponse(
+            status_code=504,
+            content={"detail": "upstream timeout", "correlation_id": correlation_id},
+        )
+
+    if response.status_code >= 400:
+        try:
+            detail = response.json()
+        except ValueError:
+            return JSONResponse(
+                status_code=response.status_code,
+                content={"detail": response.text, "correlation_id": correlation_id},
+            )
+        if isinstance(detail, dict):
+            detail["correlation_id"] = correlation_id
+            return JSONResponse(status_code=response.status_code, content=detail)
+        return JSONResponse(
+            status_code=response.status_code,
+            content={"detail": detail, "correlation_id": correlation_id},
+        )
+
+    try:
+        response_payload: Any = response.json()
+    except ValueError:
+        response_payload = response.text
+    return JSONResponse(
+        status_code=200,
+        content={
+            "tenant_id": tenant_id,
+            "project_id": payload.project_id,
+            "correlation_id": correlation_id,
+            "response": response_payload,
+            "received_at": datetime.now(timezone.utc).isoformat(),
+        },
+    )
 
 
 @app.get("/api/tree/{project_id}", response_model=TreeListResponse)
