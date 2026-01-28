@@ -1,0 +1,131 @@
+.workspace-body {
+  margin: 0;
+  background: #f5f7fb;
+  color: #1f2a44;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.workspace-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
+  min-height: 100vh;
+}
+
+.workspace-nav {
+  background: #111827;
+  color: #e5e7eb;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.workspace-brand {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.workspace-session {
+  font-size: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.workspace-section h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.workspace-section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.workspace-section li {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.workspace-main {
+  background: #f9fafb;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.workspace-tab {
+  border: 1px solid #d1d9e6;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.workspace-tab.is-active {
+  background: #1b4cdb;
+  border-color: #1b4cdb;
+  color: #ffffff;
+}
+
+.workspace-canvas {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.workspace-assistant {
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-assistant h3 {
+  margin: 0;
+}
+
+@media (max-width: 1100px) {
+  .workspace-shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .workspace-assistant {
+    grid-column: 1 / -1;
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+}
+
+@media (max-width: 800px) {
+  .workspace-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+}

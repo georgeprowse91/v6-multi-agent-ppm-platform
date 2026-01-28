@@ -124,6 +124,7 @@ This outputs to `apps/web/static/dist/`. The FastAPI backend can then serve the 
 | Path | Description |
 |------|-------------|
 | `/` | Home page with quick access to portfolios, programs, projects |
+| `/workspace` | Static workspace shell layout (navigation, canvas tabs, assistant panel) |
 | `/portfolio/:id` | Portfolio workspace |
 | `/program/:id` | Program workspace |
 | `/project/:id` | Project workspace |
