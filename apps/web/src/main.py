@@ -136,6 +136,15 @@ class GatingSummary(BaseModel):
     next_required_activity_id: str | None = None
 
 
+class SelectedActivitySummary(BaseModel):
+    id: str
+    name: str
+    description: str
+    assistant_prompts: list[str]
+    recommended_canvas_tab: CanvasTab
+    category: str
+
+
 class WorkspaceStateResponse(BaseModel):
     version: int
     tenant_id: str
@@ -149,6 +158,7 @@ class WorkspaceStateResponse(BaseModel):
     available_methodologies: list[str]
     methodology_map_summary: MethodologyMapSummary
     gating: GatingSummary
+    selected_activity: SelectedActivitySummary | None = None
 
 
 class TemplateAgentConfig(BaseModel):
@@ -424,6 +434,39 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
             )
         )
 
+    selected_activity_payload: SelectedActivitySummary | None = None
+    if state.current_activity_id:
+        activity_lookup = None
+        for stage in methodology_map.get("stages", []):
+            activity_lookup = next(
+                (
+                    activity
+                    for activity in stage.get("activities", [])
+                    if activity["id"] == state.current_activity_id
+                ),
+                None,
+            )
+            if activity_lookup:
+                break
+        if not activity_lookup:
+            activity_lookup = next(
+                (
+                    activity
+                    for activity in methodology_map.get("monitoring", [])
+                    if activity["id"] == state.current_activity_id
+                ),
+                None,
+            )
+        if activity_lookup:
+            selected_activity_payload = SelectedActivitySummary(
+                id=activity_lookup["id"],
+                name=activity_lookup["name"],
+                description=activity_lookup["description"],
+                assistant_prompts=activity_lookup.get("assistant_prompts", []),
+                recommended_canvas_tab=activity_lookup["recommended_canvas_tab"],
+                category=activity_lookup["category"],
+            )
+
     current_access = (
         evaluate_activity_access(methodology_map, state, state.current_activity_id)
         if state.current_activity_id
@@ -452,6 +495,7 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
             current_activity_access=ActivityAccessSummary(**current_access),
             next_required_activity_id=next_required_activity(methodology_map, state),
         ),
+        selected_activity=selected_activity_payload,
     )
 
 

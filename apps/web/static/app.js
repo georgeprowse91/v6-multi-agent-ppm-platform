@@ -100,7 +100,7 @@ const renderWorkspaceShell = () => {
         </section>
       </main>
       <aside class="workspace-assistant" aria-label="Activity guidance panel">
-        <h3>Activity Guidance</h3>
+        <h3>Assistant</h3>
         <div id="activity-guidance">
           <p>Select an activity to view guidance.</p>
         </div>
@@ -210,11 +210,12 @@ const initWorkspace = () => {
   const renderGuidancePanel = (payload) => {
     const guidance = document.getElementById("activity-guidance");
     const activityId = payload.current_activity_id;
-    if (!activityId || !activityIndex.has(activityId)) {
+    const selectedActivity = payload.selected_activity;
+    if (!activityId || !selectedActivity) {
       guidance.innerHTML = "<p>Select an activity to view guidance.</p>";
       return;
     }
-    const activity = activityIndex.get(activityId);
+    const activity = activityIndex.get(activityId) || selectedActivity;
     const access = payload.gating.current_activity_access;
     const blocked = access && !access.allowed;
     const missingList = blocked
@@ -225,11 +226,26 @@ const initWorkspace = () => {
       : "";
     const nextRequiredId = payload.gating.next_required_activity_id;
     const showNextRequired = Boolean(nextRequiredId && activityIndex.has(nextRequiredId));
+    const assistantPrompts = selectedActivity.assistant_prompts || [];
+    const promptChips = assistantPrompts.length
+      ? assistantPrompts
+          .map(
+            (prompt) => `
+              <button type="button" class="assistant-chip" data-prompt="${prompt}">
+                ${prompt}
+              </button>
+            `,
+          )
+          .join("")
+      : "<p class=\"assistant-empty\">No prompts available for this activity.</p>";
 
     guidance.innerHTML = `
       <div class="workspace-guidance">
-        <h4>${activity.name}</h4>
-        <p>${activity.description}</p>
+        <div class="assistant-context">
+          <h4>${selectedActivity.name}</h4>
+          <p class="assistant-label">What this is for</p>
+          <p>${selectedActivity.description}</p>
+        </div>
         ${
           blocked
             ? `
@@ -240,6 +256,21 @@ const initWorkspace = () => {
             `
             : ""
         }
+        <div class="assistant-prompt-box">
+          <label for="assistant-prompt">Prompt</label>
+          <textarea id="assistant-prompt" rows="4" placeholder="Select a prompt chip or write your own."></textarea>
+        </div>
+        <div class="assistant-chips">
+          <p class="assistant-label">Next-best-action prompts</p>
+          <div class="assistant-chip-list">
+            ${promptChips}
+          </div>
+        </div>
+        <div class="assistant-actions">
+          <button type="button" id="assistant-copy">Copy</button>
+          <button type="button" id="assistant-clear">Clear</button>
+        </div>
+        <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
         <div class="workspace-guidance-actions">
           ${
             showNextRequired
@@ -249,7 +280,7 @@ const initWorkspace = () => {
               : ""
           }
           ${
-            activity.category === "methodology"
+            selectedActivity.category === "methodology"
               ? `<button type="button" id="mark-complete" data-activity-id="${activity.id}">
                   Mark activity complete
                 </button>`
@@ -346,6 +377,61 @@ const initWorkspace = () => {
         }
         const payload = await response.json();
         updateWorkspaceUI(payload);
+      });
+    }
+
+    const promptBox = document.getElementById("assistant-prompt");
+    const status = document.getElementById("assistant-status");
+    const setAssistantStatus = (message, isError = false) => {
+      if (!status) {
+        return;
+      }
+      status.textContent = message;
+      status.classList.toggle("is-error", isError);
+    };
+
+    document.querySelectorAll(".assistant-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        if (!promptBox) {
+          return;
+        }
+        promptBox.value = chip.dataset.prompt || chip.textContent.trim();
+        setAssistantStatus("");
+      });
+    });
+
+    const copyButton = document.getElementById("assistant-copy");
+    if (copyButton) {
+      copyButton.addEventListener("click", async () => {
+        if (!promptBox) {
+          return;
+        }
+        const text = promptBox.value.trim();
+        if (!text) {
+          setAssistantStatus("Add a prompt before copying.", true);
+          return;
+        }
+        if (!navigator.clipboard) {
+          setAssistantStatus("Clipboard access is unavailable in this browser.", true);
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(promptBox.value);
+          setAssistantStatus("Copied to clipboard.");
+        } catch (error) {
+          setAssistantStatus("Unable to copy to clipboard.", true);
+        }
+      });
+    }
+
+    const clearButton = document.getElementById("assistant-clear");
+    if (clearButton) {
+      clearButton.addEventListener("click", () => {
+        if (!promptBox) {
+          return;
+        }
+        promptBox.value = "";
+        setAssistantStatus("Prompt cleared.");
       });
     }
   };
