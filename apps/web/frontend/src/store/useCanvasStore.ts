@@ -14,6 +14,7 @@ import type {
   SpreadsheetContent,
   DashboardContent,
 } from '@ppm/canvas-engine';
+import { createDocumentVersion } from '@/services/knowledgeApi';
 // createArtifact and createEmptyContent are used via @ppm/canvas-engine exports
 
 export interface CanvasTab {
@@ -41,8 +42,8 @@ interface CanvasStoreState {
 
   // Artifact actions
   updateArtifactContent: (artifactId: string, content: ArtifactContent) => void;
-  saveArtifact: (artifactId: string) => void;
-  publishArtifact: (artifactId: string) => void;
+  saveArtifact: (artifactId: string) => Promise<void>;
+  publishArtifact: (artifactId: string) => Promise<void>;
 
   // Helper to get active artifact
   getActiveArtifact: () => CanvasArtifact | null;
@@ -428,60 +429,106 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     });
   },
 
-  saveArtifact: (artifactId) => {
-    set((state) => {
-      const artifact = state.artifacts[artifactId];
-      if (!artifact) return state;
+  saveArtifact: async (artifactId) => {
+    const artifact = get().artifacts[artifactId];
+    if (!artifact) return;
 
-      // In a real app, this would call an API
-      console.log('Saving artifact:', artifactId);
+    if (artifact.type === 'document') {
+      try {
+        const response = await createDocumentVersion({
+          projectId: artifact.projectId,
+          documentKey: artifact.id,
+          name: artifact.title,
+          docType: artifact.type,
+          classification: 'internal',
+          status: 'draft',
+          content: artifact.content.html ?? artifact.content.plainText ?? '',
+          metadata: {
+            ...artifact.metadata,
+            savedAt: new Date().toISOString(),
+          },
+        });
+        set((state) => ({
+          artifacts: {
+            ...state.artifacts,
+            [artifactId]: {
+              ...artifact,
+              status: 'draft',
+              version: response.version,
+              metadata: {
+                ...artifact.metadata,
+                updatedAt: new Date().toISOString(),
+                repositoryVersion: response.version,
+              },
+            },
+          },
+          tabs: state.tabs.map((t) =>
+            t.artifactId === artifactId ? { ...t, isDirty: false } : t
+          ),
+        }));
+        return;
+      } catch (error) {
+        console.error('Failed to save artifact', error);
+        return;
+      }
+    }
 
-      // Mark tab as not dirty
-      const tab = state.tabs.find((t) => t.artifactId === artifactId);
-
-      return {
-        tabs: tab
-          ? state.tabs.map((t) =>
-              t.id === tab.id ? { ...t, isDirty: false } : t
-            )
-          : state.tabs,
-      };
-    });
+    set((state) => ({
+      tabs: state.tabs.map((t) =>
+        t.artifactId === artifactId ? { ...t, isDirty: false } : t
+      ),
+    }));
   },
 
-  publishArtifact: (artifactId) => {
-    set((state) => {
-      const artifact = state.artifacts[artifactId];
-      if (!artifact) return state;
+  publishArtifact: async (artifactId) => {
+    const artifact = get().artifacts[artifactId];
+    if (!artifact) return;
 
-      // In a real app, this would call an API
-      console.log('Publishing artifact:', artifactId);
+    if (artifact.type === 'document') {
+      try {
+        const response = await createDocumentVersion({
+          projectId: artifact.projectId,
+          documentKey: artifact.id,
+          name: artifact.title,
+          docType: artifact.type,
+          classification: 'internal',
+          status: 'published',
+          content: artifact.content.html ?? artifact.content.plainText ?? '',
+          metadata: {
+            ...artifact.metadata,
+            publishedAt: new Date().toISOString(),
+          },
+        });
+        set((state) => ({
+          artifacts: {
+            ...state.artifacts,
+            [artifactId]: {
+              ...artifact,
+              status: 'published',
+              version: response.version,
+              metadata: {
+                ...artifact.metadata,
+                updatedAt: new Date().toISOString(),
+                repositoryVersion: response.version,
+              },
+            },
+          },
+          tabs: state.tabs.map((t) =>
+            t.artifactId === artifactId ? { ...t, isDirty: false } : t
+          ),
+        }));
+        return;
+      } catch (error) {
+        console.error('Failed to publish artifact', error);
+        return;
+      }
+    }
 
-      const updatedArtifact = {
-        ...artifact,
-        status: 'published' as const,
-        version: artifact.version + 1,
-        metadata: {
-          ...artifact.metadata,
-          updatedAt: new Date().toISOString(),
-        },
-      };
-
-      // Mark tab as not dirty
-      const tab = state.tabs.find((t) => t.artifactId === artifactId);
-
-      return {
-        artifacts: {
-          ...state.artifacts,
-          [artifactId]: updatedArtifact,
-        },
-        tabs: tab
-          ? state.tabs.map((t) =>
-              t.id === tab.id ? { ...t, isDirty: false } : t
-            )
-          : state.tabs,
-      };
-    });
+    set((state) => ({
+      tabs: state.tabs.map((t) =>
+        t.artifactId === artifactId ? { ...t, isDirty: false } : t
+      ),
+    }));
   },
 
   getActiveArtifact: () => {

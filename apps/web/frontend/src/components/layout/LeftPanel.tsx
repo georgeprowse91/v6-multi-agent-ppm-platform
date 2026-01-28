@@ -72,6 +72,30 @@ const workflowNav: NavItem[] = [
   },
 ];
 
+const knowledgeNav: NavItem[] = [
+  {
+    id: 'knowledge-documents',
+    label: 'Documents',
+    path: '/knowledge/documents',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h9a2 2 0 002-2V7.5a2 2 0 00-.586-1.414l-3.5-3.5A2 2 0 0010.5 2H4zm7 1.5L14.5 7H11a1 1 0 01-1-1V3.5z" />
+        <path d="M6 10a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'knowledge-lessons',
+    label: 'Lessons Learned',
+    path: '/knowledge/lessons',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 2a6 6 0 00-3.536 10.848c.314.22.536.6.536 1.02V15a1 1 0 001 1h4a1 1 0 001-1v-1.132c0-.42.222-.8.536-1.02A6 6 0 0010 2zm-2 13h4v1H8v-1zm4-4.414V11a1 1 0 01-.553.894L10 12.618l-1.447-.724A1 1 0 018 11v-.414A4 4 0 1114 10.586z" />
+      </svg>
+    ),
+  },
+];
+
 export function LeftPanel() {
   const location = useLocation();
   const { leftPanelCollapsed, toggleLeftPanel } =
@@ -146,6 +170,30 @@ export function LeftPanel() {
           )}
           <ul className={styles.navList}>
             {workflowNav.map((item) => (
+              <li key={item.id}>
+                <Link
+                  to={item.path!}
+                  className={`${styles.navItem} ${
+                    location.pathname === item.path ? styles.active : ''
+                  }`}
+                  title={leftPanelCollapsed ? item.label : undefined}
+                >
+                  <span className={styles.icon}>{item.icon}</span>
+                  {!leftPanelCollapsed && (
+                    <span className={styles.label}>{item.label}</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className={styles.section}>
+          {!leftPanelCollapsed && (
+            <h3 className={styles.sectionTitle}>Knowledge</h3>
+          )}
+          <ul className={styles.navList}>
+            {knowledgeNav.map((item) => (
               <li key={item.id}>
                 <Link
                   to={item.path!}

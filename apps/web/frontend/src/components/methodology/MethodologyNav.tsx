@@ -11,6 +11,7 @@
  */
 
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMethodologyStore } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { useAssistantStore } from '@/store/assistant';
@@ -46,6 +47,7 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
 
   const { openArtifact, artifacts } = useCanvasStore();
   const { showGatingWarning } = useAssistantStore();
+  const navigate = useNavigate();
 
   const { methodology, projectName } = projectMethodology;
 
@@ -124,6 +126,18 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     [toggleStageExpanded]
   );
 
+  const handleCaptureLessons = useCallback(
+    (stageId: string, stageName: string) => {
+      const params = new URLSearchParams({
+        projectId: projectMethodology.projectId,
+        stageId,
+        stageName,
+      });
+      navigate(`/knowledge/lessons?${params.toString()}`);
+    },
+    [navigate, projectMethodology.projectId]
+  );
+
   return (
     <div className={styles.methodologyNav}>
       {!collapsed && (
@@ -147,6 +161,7 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
             isActivityLocked={isActivityLockedComputed}
             onStageClick={handleStageHeaderClick}
             onActivityClick={handleActivityClick}
+            onCaptureLessons={handleCaptureLessons}
           />
         ))}
       </nav>
@@ -164,6 +179,7 @@ interface StageItemProps {
   isActivityLocked: (activityId: string) => boolean;
   onStageClick: (stageId: string) => void;
   onActivityClick: (activity: MethodologyActivity, stageLocked: boolean) => void;
+  onCaptureLessons: (stageId: string, stageName: string) => void;
 }
 
 function StageItem({
@@ -176,6 +192,7 @@ function StageItem({
   isActivityLocked,
   onStageClick,
   onActivityClick,
+  onCaptureLessons,
 }: StageItemProps) {
   // Compute effective status (locked overrides actual status for display)
   const displayStatus: MethodologyStatus = isLocked ? 'locked' : stage.status;
@@ -201,6 +218,18 @@ function StageItem({
           <>
             <span className={styles.stageName}>{stage.name}</span>
             <span className={styles.stageProgress}>{progress}%</span>
+            {stage.status === 'complete' && (
+              <button
+                className={styles.stageActionButton}
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onCaptureLessons(stage.id, stage.name);
+                }}
+              >
+                Capture Lessons
+              </button>
+            )}
           </>
         )}
       </button>

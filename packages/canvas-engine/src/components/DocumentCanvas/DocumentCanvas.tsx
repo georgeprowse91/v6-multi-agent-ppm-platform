@@ -7,15 +7,21 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 import type { CanvasComponentProps } from '../../types/canvas';
+import type { CanvasArtifact } from '../../types/artifact';
 import type { DocumentContent } from '../../types/artifact';
 import styles from './DocumentCanvas.module.css';
 
-export interface DocumentCanvasProps extends CanvasComponentProps<DocumentContent> {}
+export interface DocumentCanvasProps extends CanvasComponentProps<DocumentContent> {
+  onSaveDraft?: (artifact: CanvasArtifact<DocumentContent>) => void;
+  onPublish?: (artifact: CanvasArtifact<DocumentContent>) => void;
+}
 
 export function DocumentCanvas({
   artifact,
   readOnly = false,
   onChange,
+  onSaveDraft,
+  onPublish,
   className,
 }: DocumentCanvasProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -47,6 +53,23 @@ export function DocumentCanvas({
     <div className={`${styles.container} ${className ?? ''}`}>
       {!readOnly && (
         <div className={styles.formatBar}>
+          <div className={styles.actionGroup}>
+            <button
+              className={styles.actionButton}
+              onClick={() => onSaveDraft?.(artifact)}
+              type="button"
+            >
+              Save Draft
+            </button>
+            <button
+              className={`${styles.actionButton} ${styles.primaryAction}`}
+              onClick={() => onPublish?.(artifact)}
+              type="button"
+            >
+              Publish
+            </button>
+          </div>
+          <div className={styles.separator} />
           <div className={styles.formatGroup}>
             <button
               className={styles.formatButton}

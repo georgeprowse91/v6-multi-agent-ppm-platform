@@ -79,6 +79,8 @@ export function CanvasWorkspace() {
             <DocumentCanvas
               artifact={artifact as CanvasArtifact<DocumentContent>}
               onChange={onChange as (content: DocumentContent) => void}
+              onSaveDraft={handleSaveDraft}
+              onPublish={handlePublish}
             />
           );
         case 'tree':

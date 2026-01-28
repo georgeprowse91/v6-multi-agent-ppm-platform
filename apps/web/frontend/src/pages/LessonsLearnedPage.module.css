@@ -1,0 +1,176 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filterInput {
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-neutral-300, #d4d4d4);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.8fr;
+  gap: var(--space-6);
+}
+
+.formSection,
+.listSection,
+.recommendationSection {
+  background: white;
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.formGroup label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-neutral-700, #404040);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--color-neutral-300, #d4d4d4);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.lessonList,
+.recommendationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lessonCard,
+.recommendationCard {
+  border: 1px solid var(--color-neutral-200, #e5e5e5);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-3);
+  background: var(--color-neutral-50, #fafafa);
+}
+
+.lessonHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lessonMeta {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-neutral-500, #737373);
+}
+
+.lessonDescription {
+  margin-top: var(--space-2);
+  color: var(--color-neutral-700, #404040);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+.lessonActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.chip,
+.chipAlt {
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: var(--font-size-xs, 0.75rem);
+  background: var(--color-primary-50, #eef2ff);
+  color: var(--color-primary-700, #4338ca);
+}
+
+.chipAlt {
+  background: var(--color-neutral-200, #e5e5e5);
+  color: var(--color-neutral-700, #404040);
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  border-radius: var(--radius-sm, 4px);
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: var(--color-primary-600, #4f46e5);
+  color: white;
+}
+
+.secondaryButton {
+  background: var(--color-neutral-100, #f5f5f5);
+  color: var(--color-neutral-700, #404040);
+  border-color: var(--color-neutral-200, #e5e5e5);
+}
+
+.dangerButton {
+  background: var(--color-danger-600, #dc2626);
+  color: white;
+}
+
+.emptyState {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-neutral-500, #737373);
+  border: 1px dashed var(--color-neutral-200, #e5e5e5);
+  border-radius: var(--radius-md, 8px);
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

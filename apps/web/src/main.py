@@ -23,12 +23,14 @@ if str(OBSERVABILITY_ROOT) not in sys.path:
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from knowledge_store import KnowledgeStore  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
 DATA_DIR = WEB_ROOT / "data"
 TEMPLATES_PATH = DATA_DIR / "templates.json"
 PROJECTS_PATH = DATA_DIR / "projects.json"
+KNOWLEDGE_DB_PATH = DATA_DIR / "knowledge.db"
 
 SESSION_COOKIE = "ppm_session"
 SESSION_STORE: dict[str, dict[str, Any]] = {}
@@ -39,6 +41,8 @@ configure_tracing("web-ui")
 configure_metrics("web-ui")
 app.add_middleware(TraceMiddleware, service_name="web-ui")
 app.add_middleware(RequestMetricsMiddleware, service_name="web-ui")
+
+knowledge_store: KnowledgeStore | None = None
 
 
 class HealthResponse(BaseModel):
@@ -134,6 +138,87 @@ class TemplateApplyRequest(BaseModel):
 class TemplateApplyResponse(BaseModel):
     project: ProjectRecord
     template: TemplateDefinition
+
+
+class DocumentVersionRequest(BaseModel):
+    project_id: str
+    document_key: str
+    name: str
+    doc_type: str
+    classification: str
+    status: str
+    content: str
+    metadata: dict[str, Any] = {}
+
+
+class DocumentVersionResponse(BaseModel):
+    document_id: str
+    document_key: str
+    project_id: str
+    name: str
+    doc_type: str
+    classification: str
+    version: int
+    status: str
+    content: str
+    created_at: str
+    metadata: dict[str, Any]
+
+
+class DocumentSummaryResponse(BaseModel):
+    document_id: str
+    document_key: str
+    project_id: str
+    name: str
+    doc_type: str
+    classification: str
+    latest_version: int
+    latest_status: str
+    created_at: str
+    updated_at: str
+
+
+class LessonRequest(BaseModel):
+    project_id: str
+    stage_id: str | None = None
+    stage_name: str | None = None
+    title: str
+    description: str
+    tags: list[str] = []
+    topics: list[str] = []
+
+
+class LessonResponse(BaseModel):
+    lesson_id: str
+    project_id: str
+    stage_id: str | None = None
+    stage_name: str | None = None
+    title: str
+    description: str
+    tags: list[str]
+    topics: list[str]
+    created_at: str
+    updated_at: str
+
+
+class LessonRecommendationRequest(BaseModel):
+    project_id: str
+    tags: list[str] = []
+    topics: list[str] = []
+    limit: int = 5
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    global knowledge_store
+    knowledge_store = KnowledgeStore(KNOWLEDGE_DB_PATH)
+
+
+def _get_knowledge_store() -> KnowledgeStore:
+    global knowledge_store
+    if knowledge_store is None:
+        knowledge_store = KnowledgeStore(KNOWLEDGE_DB_PATH)
+    return knowledge_store
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -472,6 +557,199 @@ async def apply_template(template_id: str, payload: TemplateApplyRequest) -> Tem
     _persist_projects(projects)
 
     return TemplateApplyResponse(project=project, template=template)
+
+
+@app.post("/api/knowledge/documents", response_model=DocumentVersionResponse)
+async def create_document_version(payload: DocumentVersionRequest) -> DocumentVersionResponse:
+    store = _get_knowledge_store()
+    record = store.create_document_version(
+        project_id=payload.project_id,
+        document_key=payload.document_key,
+        name=payload.name,
+        doc_type=payload.doc_type,
+        classification=payload.classification,
+        status=payload.status,
+        content=payload.content,
+        metadata=payload.metadata,
+    )
+    return DocumentVersionResponse(
+        document_id=record.document_id,
+        document_key=record.document_key,
+        project_id=record.project_id,
+        name=record.name,
+        doc_type=record.doc_type,
+        classification=record.classification,
+        version=record.version,
+        status=record.status,
+        content=record.content,
+        created_at=record.created_at.isoformat(),
+        metadata=record.metadata,
+    )
+
+
+@app.get("/api/knowledge/documents", response_model=list[DocumentSummaryResponse])
+async def list_documents(project_id: str, query: str | None = None) -> list[DocumentSummaryResponse]:
+    store = _get_knowledge_store()
+    records = store.list_documents(project_id=project_id, query=query)
+    return [
+        DocumentSummaryResponse(
+            document_id=record.document_id,
+            document_key=record.document_key,
+            project_id=record.project_id,
+            name=record.name,
+            doc_type=record.doc_type,
+            classification=record.classification,
+            latest_version=record.latest_version,
+            latest_status=record.latest_status,
+            created_at=record.created_at.isoformat(),
+            updated_at=record.updated_at.isoformat(),
+        )
+        for record in records
+    ]
+
+
+@app.get("/api/knowledge/documents/{document_id}/versions", response_model=list[DocumentVersionResponse])
+async def list_document_versions(document_id: str) -> list[DocumentVersionResponse]:
+    store = _get_knowledge_store()
+    records = store.list_versions(document_id=document_id)
+    return [
+        DocumentVersionResponse(
+            document_id=record.document_id,
+            document_key=record.document_key,
+            project_id=record.project_id,
+            name=record.name,
+            doc_type=record.doc_type,
+            classification=record.classification,
+            version=record.version,
+            status=record.status,
+            content=record.content,
+            created_at=record.created_at.isoformat(),
+            metadata=record.metadata,
+        )
+        for record in records
+    ]
+
+
+@app.post("/api/knowledge/lessons", response_model=LessonResponse)
+async def create_lesson(payload: LessonRequest) -> LessonResponse:
+    store = _get_knowledge_store()
+    record = store.create_lesson(
+        project_id=payload.project_id,
+        stage_id=payload.stage_id,
+        stage_name=payload.stage_name,
+        title=payload.title,
+        description=payload.description,
+        tags=payload.tags,
+        topics=payload.topics,
+    )
+    return LessonResponse(
+        lesson_id=record.lesson_id,
+        project_id=record.project_id,
+        stage_id=record.stage_id,
+        stage_name=record.stage_name,
+        title=record.title,
+        description=record.description,
+        tags=record.tags,
+        topics=record.topics,
+        created_at=record.created_at.isoformat(),
+        updated_at=record.updated_at.isoformat(),
+    )
+
+
+@app.put("/api/knowledge/lessons/{lesson_id}", response_model=LessonResponse)
+async def update_lesson(lesson_id: str, payload: LessonRequest) -> LessonResponse:
+    store = _get_knowledge_store()
+    record = store.update_lesson(
+        lesson_id=lesson_id,
+        title=payload.title,
+        description=payload.description,
+        tags=payload.tags,
+        topics=payload.topics,
+        stage_id=payload.stage_id,
+        stage_name=payload.stage_name,
+    )
+    if not record:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    return LessonResponse(
+        lesson_id=record.lesson_id,
+        project_id=record.project_id,
+        stage_id=record.stage_id,
+        stage_name=record.stage_name,
+        title=record.title,
+        description=record.description,
+        tags=record.tags,
+        topics=record.topics,
+        created_at=record.created_at.isoformat(),
+        updated_at=record.updated_at.isoformat(),
+    )
+
+
+@app.delete("/api/knowledge/lessons/{lesson_id}")
+async def delete_lesson(lesson_id: str) -> dict[str, Any]:
+    store = _get_knowledge_store()
+    deleted = store.delete_lesson(lesson_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    return {"status": "deleted", "lesson_id": lesson_id}
+
+
+@app.get("/api/knowledge/lessons", response_model=list[LessonResponse])
+async def list_lessons(
+    project_id: str,
+    query: str | None = None,
+    tags: str | None = None,
+    topics: str | None = None,
+) -> list[LessonResponse]:
+    store = _get_knowledge_store()
+    tag_list = [tag.strip() for tag in tags.split(",")] if tags else None
+    topic_list = [topic.strip() for topic in topics.split(",")] if topics else None
+    records = store.list_lessons(
+        project_id=project_id,
+        query=query,
+        tags=[tag for tag in (tag_list or []) if tag],
+        topics=[topic for topic in (topic_list or []) if topic],
+    )
+    return [
+        LessonResponse(
+            lesson_id=record.lesson_id,
+            project_id=record.project_id,
+            stage_id=record.stage_id,
+            stage_name=record.stage_name,
+            title=record.title,
+            description=record.description,
+            tags=record.tags,
+            topics=record.topics,
+            created_at=record.created_at.isoformat(),
+            updated_at=record.updated_at.isoformat(),
+        )
+        for record in records
+    ]
+
+
+@app.post("/api/knowledge/lessons/recommendations", response_model=list[LessonResponse])
+async def recommend_lessons(payload: LessonRecommendationRequest) -> list[LessonResponse]:
+    store = _get_knowledge_store()
+    records = store.recommend_lessons(
+        project_id=payload.project_id,
+        tags=payload.tags,
+        topics=payload.topics,
+        limit=payload.limit,
+    )
+    return [
+        LessonResponse(
+            lesson_id=record.lesson_id,
+            project_id=record.project_id,
+            stage_id=record.stage_id,
+            stage_name=record.stage_name,
+            title=record.title,
+            description=record.description,
+            tags=record.tags,
+            topics=record.topics,
+            created_at=record.created_at.isoformat(),
+            updated_at=record.updated_at.isoformat(),
+        )
+        for record in records
+    ]
 
 
 @app.get("/")

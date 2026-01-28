@@ -6,6 +6,8 @@ import {
   ConfigPage,
   ApprovalsPage,
   WorkflowMonitoringPage,
+  DocumentSearchPage,
+  LessonsLearnedPage,
 } from '@/pages';
 
 export function App() {
@@ -46,6 +48,10 @@ export function App() {
         {/* Workflow pages */}
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
+
+        {/* Knowledge pages */}
+        <Route path="/knowledge/documents" element={<DocumentSearchPage />} />
+        <Route path="/knowledge/lessons" element={<LessonsLearnedPage />} />
       </Routes>
     </AppLayout>
   );
