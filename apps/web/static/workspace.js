@@ -92,6 +92,22 @@ const renderWorkspaceShell = () => {
           </div>
           <p class="templates-status" id="template-status" role="status"></p>
         </section>
+        <section class="workspace-agents" aria-label="Agent gallery">
+          <div class="agents-header">
+            <h3>Agents</h3>
+            <span class="agents-role" id="agents-role"></span>
+          </div>
+          <div class="agents-toolbar">
+            <label class="agents-search" for="agents-search">
+              <span>Search</span>
+              <input id="agents-search" type="search" placeholder="Search agents" />
+            </label>
+          </div>
+          <div class="agents-list" id="agents-list">
+            <p class="agents-empty">Loading agent gallery...</p>
+          </div>
+          <p class="agents-status" id="agents-status" role="status"></p>
+        </section>
         <section class="workspace-connectors" aria-label="Connector gallery">
           <div class="connectors-header">
             <h3>Connectors</h3>
@@ -145,6 +161,32 @@ const renderWorkspaceShell = () => {
             </form>
           </div>
         </div>
+        <div class="agent-modal is-hidden" id="agent-modal" aria-hidden="true">
+          <div class="agent-modal-card" role="dialog" aria-modal="true">
+            <div class="agent-modal-header">
+              <h4 id="agent-modal-title">Configure agent</h4>
+              <button type="button" class="agent-modal-close" id="agent-modal-close">
+                ✕
+              </button>
+            </div>
+            <div class="agent-modal-body">
+              <p class="agent-modal-description" id="agent-modal-description"></p>
+              <label class="agent-field">
+                <span>Configuration (JSON object)</span>
+                <textarea id="agent-modal-config" rows="8" placeholder="{ }"></textarea>
+              </label>
+              <p class="agent-modal-status" id="agent-modal-status"></p>
+              <div class="agent-modal-actions">
+                <button type="button" class="agent-modal-primary" id="agent-modal-save">
+                  Save configuration
+                </button>
+                <button type="button" class="agent-modal-secondary" id="agent-modal-reset">
+                  Reset to defaults
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </aside>
     </div>
   `;
@@ -156,6 +198,7 @@ const initWorkspace = () => {
   let session = null;
   loadSession(sessionInfo).then((payload) => {
     session = payload;
+    loadAgentGallery();
   });
   const searchParams = new URLSearchParams(window.location.search);
   const projectId = searchParams.get("project_id") || "default";
@@ -202,6 +245,12 @@ const initWorkspace = () => {
     instances: [],
     selectedType: null,
     status: "",
+  };
+  const agentsState = {
+    agents: [],
+    query: "",
+    expanded: new Set(),
+    selected: null,
   };
 
   const setActiveTab = (targetTab) => {
@@ -840,6 +889,314 @@ const initWorkspace = () => {
     }
     if (Object.keys(openRef).length) {
       await openLinkedArtifact(openRef);
+    }
+  };
+
+
+  const setAgentStatus = (message, isError = false) => {
+    const status = document.getElementById("agents-status");
+    if (!status) {
+      return;
+    }
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  };
+
+  const isAgentAdmin = () => {
+    const roles = session?.roles || [];
+    if (typeof roles === "string") {
+      return ["tenant_owner", "portfolio_admin"].includes(roles);
+    }
+    return roles.some((role) => ["tenant_owner", "portfolio_admin"].includes(role));
+  };
+
+  const renderAgentGallery = () => {
+    const list = document.getElementById("agents-list");
+    if (!list) {
+      return;
+    }
+    if (!agentsState.agents.length) {
+      list.innerHTML = '<p class="agents-empty">No agents available.</p>';
+      return;
+    }
+    const query = agentsState.query.toLowerCase();
+    const filtered = agentsState.agents.filter((agent) => {
+      if (!query) {
+        return true;
+      }
+      const haystack = `${agent.name} ${agent.description} ${agent.outputs.join(" ")}`.toLowerCase();
+      return haystack.includes(query);
+    });
+    if (!filtered.length) {
+      list.innerHTML = '<p class="agents-empty">No matching agents.</p>';
+      return;
+    }
+    const grouped = filtered.reduce((acc, agent) => {
+      const category = agent.category || "Uncategorized";
+      acc[category] = acc[category] || [];
+      acc[category].push(agent);
+      return acc;
+    }, {});
+    list.innerHTML = Object.keys(grouped)
+      .sort()
+      .map((category) => {
+        const isExpanded = agentsState.expanded.has(category);
+        const cards = grouped[category]
+          .map((agent) => {
+            const outputs = agent.outputs.length
+              ? agent.outputs
+                  .map((output) => `<span class="agent-chip">${escapeHtml(output)}</span>`)
+                  .join(" ")
+              : '<span class="agent-chip is-muted">Outputs not listed</span>';
+            const requiredBadge = agent.required ? '<span class="agent-badge">Required</span>' : "";
+            return `
+              <div class="agent-card" data-agent-id="${escapeHtml(agent.agent_id)}">
+                <div class="agent-card-header">
+                  <div>
+                    <h5>${escapeHtml(agent.name)}</h5>
+                    <div class="agent-card-meta">
+                      ${requiredBadge}
+                      <span>${escapeHtml(agent.agent_id)}</span>
+                    </div>
+                  </div>
+                  <label class="agent-toggle">
+                    <input type="checkbox" ${agent.enabled ? "checked" : ""} ${
+                      !isAgentAdmin() || agent.required ? "disabled" : ""
+                    } />
+                    <span>Enabled</span>
+                  </label>
+                </div>
+                <p class="agent-description">${escapeHtml(agent.description)}</p>
+                <div class="agent-outputs">${outputs}</div>
+                <div class="agent-actions">
+                  <button type="button" class="agent-configure" ${
+                    !isAgentAdmin() ? "disabled" : ""
+                  }>Configure</button>
+                  <button type="button" class="agent-sample">View sample outputs</button>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+        return `
+          <div class="agent-category" data-category="${escapeHtml(category)}">
+            <button type="button" class="agent-category-toggle" aria-expanded="${
+              isExpanded ? "true" : "false"
+            }">
+              <span>${escapeHtml(category)}</span>
+              <span class="agent-category-count">${grouped[category].length}</span>
+            </button>
+            <div class="agent-category-body${isExpanded ? "" : " is-collapsed"}">
+              ${cards}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    list.querySelectorAll(".agent-category-toggle").forEach((button) => {
+      button.addEventListener("click", () => {
+        const category = button.parentElement?.dataset.category;
+        if (!category) {
+          return;
+        }
+        if (agentsState.expanded.has(category)) {
+          agentsState.expanded.delete(category);
+        } else {
+          agentsState.expanded.add(category);
+        }
+        renderAgentGallery();
+      });
+    });
+
+    list.querySelectorAll(".agent-toggle input").forEach((input) => {
+      input.addEventListener("change", async (event) => {
+        const card = event.target.closest(".agent-card");
+        const agentId = card?.dataset.agentId;
+        if (!agentId) {
+          return;
+        }
+        const enabled = event.target.checked;
+        await patchAgentSetting(agentId, { enabled });
+      });
+    });
+
+    list.querySelectorAll(".agent-configure").forEach((button) => {
+      button.addEventListener("click", () => {
+        const card = button.closest(".agent-card");
+        const agentId = card?.dataset.agentId;
+        if (!agentId) {
+          return;
+        }
+        const agent = agentsState.agents.find((item) => item.agent_id === agentId);
+        if (agent) {
+          openAgentModal(agent);
+        }
+      });
+    });
+
+    list.querySelectorAll(".agent-sample").forEach((button) => {
+      button.addEventListener("click", () => {
+        setAgentStatus("Sample outputs not implemented in this PR.");
+      });
+    });
+  };
+
+  const loadAgentGallery = async () => {
+    const roleLabel = document.getElementById("agents-role");
+    if (roleLabel) {
+      roleLabel.textContent = isAgentAdmin() ? "Admin access" : "Read-only";
+    }
+    setAgentStatus("Loading agent gallery...");
+    const response = await fetch(`/api/agent-gallery/${projectId}`);
+    if (!response.ok) {
+      setAgentStatus("Unable to load agent settings.", true);
+      return;
+    }
+    const payload = await response.json();
+    agentsState.agents = payload.agents || [];
+    if (!agentsState.expanded.size) {
+      agentsState.agents.forEach((agent) => agentsState.expanded.add(agent.category));
+    }
+    renderAgentGallery();
+    setAgentStatus(
+      agentsState.agents.length ? `${agentsState.agents.length} agent(s) loaded.` : "No agents available.",
+    );
+  };
+
+  const patchAgentSetting = async (agentId, body) => {
+    setAgentStatus("Saving agent changes...");
+    const response = await fetch(`/api/agent-gallery/${projectId}/agents/${agentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setAgentStatus(payload?.detail || "Unable to update agent.", true);
+      await loadAgentGallery();
+      return;
+    }
+    agentsState.agents = agentsState.agents.map((agent) =>
+      agent.agent_id === agentId ? { ...agent, ...payload } : agent,
+    );
+    renderAgentGallery();
+    setAgentStatus("Agent updated.");
+  };
+
+  const openAgentModal = (agent) => {
+    const modal = document.getElementById("agent-modal");
+    const title = document.getElementById("agent-modal-title");
+    const description = document.getElementById("agent-modal-description");
+    const configField = document.getElementById("agent-modal-config");
+    const status = document.getElementById("agent-modal-status");
+    if (!modal || !title || !description || !configField) {
+      return;
+    }
+    agentsState.selected = agent;
+    title.textContent = `Configure ${agent.name}`;
+    description.textContent = agent.description;
+    configField.value = JSON.stringify(agent.config || {}, null, 2);
+    if (status) {
+      status.textContent = "";
+      status.classList.remove("is-error");
+    }
+    modal.classList.remove("is-hidden");
+    modal.setAttribute("aria-hidden", "false");
+  };
+
+  const closeAgentModal = () => {
+    const modal = document.getElementById("agent-modal");
+    if (!modal) {
+      return;
+    }
+    modal.classList.add("is-hidden");
+    modal.setAttribute("aria-hidden", "true");
+    agentsState.selected = null;
+  };
+
+  const attachAgentHandlers = () => {
+    const searchInput = document.getElementById("agents-search");
+    if (searchInput) {
+      searchInput.addEventListener("input", () => {
+        agentsState.query = searchInput.value.trim();
+        renderAgentGallery();
+      });
+    }
+    const closeButton = document.getElementById("agent-modal-close");
+    if (closeButton) {
+      closeButton.addEventListener("click", () => closeAgentModal());
+    }
+    const saveButton = document.getElementById("agent-modal-save");
+    if (saveButton) {
+      saveButton.addEventListener("click", async () => {
+        if (!agentsState.selected) {
+          return;
+        }
+        const configField = document.getElementById("agent-modal-config");
+        const status = document.getElementById("agent-modal-status");
+        if (!configField) {
+          return;
+        }
+        let parsed = {};
+        try {
+          parsed = configField.value.trim() ? JSON.parse(configField.value) : {};
+        } catch (error) {
+          if (status) {
+            status.textContent = "Invalid JSON: please enter an object.";
+            status.classList.add("is-error");
+          }
+          return;
+        }
+        if (parsed === null || Array.isArray(parsed) || typeof parsed !== "object") {
+          if (status) {
+            status.textContent = "Configuration must be a JSON object.";
+            status.classList.add("is-error");
+          }
+          return;
+        }
+        if (status) {
+          status.textContent = "Saving configuration...";
+          status.classList.remove("is-error");
+        }
+        await patchAgentSetting(agentsState.selected.agent_id, { config: parsed });
+        closeAgentModal();
+      });
+    }
+    const resetButton = document.getElementById("agent-modal-reset");
+    if (resetButton) {
+      resetButton.addEventListener("click", async () => {
+        const status = document.getElementById("agent-modal-status");
+        if (status) {
+          status.textContent = "Resetting to defaults...";
+          status.classList.remove("is-error");
+        }
+        const response = await fetch(`/api/agent-gallery/${projectId}/reset-defaults`, {
+          method: "POST",
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          if (status) {
+            status.textContent = payload?.detail || "Unable to reset defaults.";
+            status.classList.add("is-error");
+          }
+          return;
+        }
+        agentsState.agents = payload.agents || [];
+        renderAgentGallery();
+        if (status) {
+          status.textContent = "Defaults restored.";
+        }
+        closeAgentModal();
+      });
+    }
+    const modal = document.getElementById("agent-modal");
+    if (modal) {
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeAgentModal();
+        }
+      });
     }
   };
 
@@ -3331,6 +3688,7 @@ const initWorkspace = () => {
   });
 
   attachTemplateHandlers();
+  attachAgentHandlers();
   attachConnectorHandlers();
   loadTemplates();
   loadConnectorTypes();
