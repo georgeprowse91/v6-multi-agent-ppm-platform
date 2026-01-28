@@ -85,6 +85,12 @@ const initWorkspace = () => {
     editingId: null,
     exportPayload: null,
   };
+  const spreadsheetState = {
+    sheets: [],
+    selectedSheetId: null,
+    sheet: null,
+    rows: [],
+  };
 
   const setActiveTab = (targetTab) => {
     tabs.forEach((item) => {
@@ -821,6 +827,572 @@ const initWorkspace = () => {
     refreshExport();
   };
 
+  const setSpreadsheetMessage = (message, isError = false) => {
+    const element = document.getElementById("spreadsheet-message");
+    if (!element) {
+      return;
+    }
+    element.textContent = message;
+    element.classList.toggle("is-error", isError);
+  };
+
+  const setSpreadsheetCreateMessage = (message, isError = false) => {
+    const element = document.getElementById("spreadsheet-create-message");
+    if (!element) {
+      return;
+    }
+    element.textContent = message;
+    element.classList.toggle("is-error", isError);
+  };
+
+  const setSpreadsheetImportMessage = (message, isError = false) => {
+    const element = document.getElementById("spreadsheet-import-message");
+    if (!element) {
+      return;
+    }
+    element.textContent = message;
+    element.classList.toggle("is-error", isError);
+  };
+
+  const renderSpreadsheetSheetOptions = () => {
+    const select = document.getElementById("spreadsheet-sheet-select");
+    if (!select) {
+      return;
+    }
+    select.innerHTML = "";
+    if (!spreadsheetState.sheets.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No sheets yet";
+      select.appendChild(option);
+      return;
+    }
+    spreadsheetState.sheets.forEach((sheet) => {
+      const option = document.createElement("option");
+      option.value = sheet.sheet_id;
+      option.textContent = sheet.name;
+      select.appendChild(option);
+    });
+    select.value = spreadsheetState.selectedSheetId || spreadsheetState.sheets[0].sheet_id;
+  };
+
+  const loadSpreadsheetSheet = async (sheetId) => {
+    if (!sheetId) {
+      spreadsheetState.sheet = null;
+      spreadsheetState.rows = [];
+      renderSpreadsheetTable();
+      return;
+    }
+    const response = await fetch(
+      `/api/spreadsheets/${projectId}/sheets/${sheetId}`,
+    );
+    if (!response.ok) {
+      setSpreadsheetMessage("Unable to load sheet.", true);
+      return;
+    }
+    const payload = await response.json();
+    spreadsheetState.sheet = payload.sheet;
+    spreadsheetState.rows = payload.rows || [];
+    renderSpreadsheetTable();
+  };
+
+  const loadSpreadsheetSheets = async () => {
+    const response = await fetch(`/api/spreadsheets/${projectId}/sheets`);
+    if (!response.ok) {
+      setSpreadsheetMessage("Unable to load sheets.", true);
+      return;
+    }
+    const payload = await response.json();
+    spreadsheetState.sheets = payload || [];
+    if (
+      !spreadsheetState.selectedSheetId ||
+      !spreadsheetState.sheets.some(
+        (sheet) => sheet.sheet_id === spreadsheetState.selectedSheetId,
+      )
+    ) {
+      spreadsheetState.selectedSheetId =
+        spreadsheetState.sheets[0]?.sheet_id || null;
+    }
+    renderSpreadsheetSheetOptions();
+    await loadSpreadsheetSheet(spreadsheetState.selectedSheetId);
+  };
+
+  const renderSpreadsheetTable = () => {
+    const wrapper = document.getElementById("spreadsheet-table-wrapper");
+    const title = document.getElementById("spreadsheet-sheet-title");
+    if (!wrapper) {
+      return;
+    }
+    if (!spreadsheetState.sheet) {
+      wrapper.innerHTML = "<p class=\"spreadsheet-empty\">Create a sheet to get started.</p>";
+      if (title) {
+        title.textContent = "Spreadsheet";
+      }
+      return;
+    }
+    const columns = spreadsheetState.sheet.columns || [];
+    if (title) {
+      title.textContent = spreadsheetState.sheet.name;
+    }
+    const headerCells = columns
+      .map(
+        (column) => `
+          <th>
+            <div class="spreadsheet-header-cell">
+              <span>${column.name}</span>
+              <span class="spreadsheet-header-meta">${column.type}${column.required ? " *" : ""}</span>
+            </div>
+          </th>
+        `,
+      )
+      .join("");
+    const newRowCells = columns
+      .map((column) => {
+        if (column.type === "bool") {
+          return `
+            <td>
+              <input
+                type="checkbox"
+                class="spreadsheet-cell-input"
+                data-column-id="${column.column_id}"
+                data-column-type="${column.type}"
+              />
+            </td>
+          `;
+        }
+        const inputType =
+          column.type === "date"
+            ? "date"
+            : column.type === "number"
+              ? "number"
+              : "text";
+        return `
+          <td>
+            <input
+              type="${inputType}"
+              class="spreadsheet-cell-input"
+              data-column-id="${column.column_id}"
+              data-column-type="${column.type}"
+            />
+          </td>
+        `;
+      })
+      .join("");
+    const rowsMarkup = spreadsheetState.rows
+      .map((row) => {
+        const cells = columns
+          .map((column) => {
+            const cellValue = row.values[column.column_id];
+            if (column.type === "bool") {
+              return `
+                <td>
+                  <input
+                    type="checkbox"
+                    class="spreadsheet-cell-input"
+                    data-row-id="${row.row_id}"
+                    data-column-id="${column.column_id}"
+                    data-column-type="${column.type}"
+                    ${cellValue ? "checked" : ""}
+                  />
+                </td>
+              `;
+            }
+            const inputType =
+              column.type === "date"
+                ? "date"
+                : column.type === "number"
+                  ? "number"
+                  : "text";
+            const displayValue =
+              cellValue === null || cellValue === undefined ? "" : cellValue;
+            return `
+              <td>
+                <input
+                  type="${inputType}"
+                  class="spreadsheet-cell-input"
+                  data-row-id="${row.row_id}"
+                  data-column-id="${column.column_id}"
+                  data-column-type="${column.type}"
+                  value="${displayValue}"
+                />
+              </td>
+            `;
+          })
+          .join("");
+        return `
+          <tr data-row-id="${row.row_id}">
+            ${cells}
+            <td>
+              <button type="button" class="secondary" data-action="delete" data-row-id="${row.row_id}">
+                Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+    wrapper.innerHTML = `
+      <form id="spreadsheet-row-form">
+        <table class="spreadsheet-table">
+          <thead>
+            <tr>
+              ${headerCells}
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="spreadsheet-new-row">
+              ${newRowCells}
+              <td>
+                <button type="submit">Add row</button>
+              </td>
+            </tr>
+            ${rowsMarkup}
+          </tbody>
+        </table>
+      </form>
+    `;
+
+    const rowForm = document.getElementById("spreadsheet-row-form");
+    rowForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setSpreadsheetMessage("");
+      const values = {};
+      rowForm
+        .querySelectorAll(".spreadsheet-new-row .spreadsheet-cell-input")
+        .forEach((input) => {
+          const columnId = input.dataset.columnId;
+          const columnType = input.dataset.columnType;
+          if (!columnId) {
+            return;
+          }
+          if (columnType === "bool") {
+            values[columnId] = input.checked;
+          } else {
+            values[columnId] = input.value;
+          }
+        });
+
+      const response = await fetch(
+        `/api/spreadsheets/${projectId}/sheets/${spreadsheetState.sheet.sheet_id}/rows`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ values }),
+        },
+      );
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setSpreadsheetMessage(
+          payload?.detail || "Unable to add row.",
+          true,
+        );
+        return;
+      }
+      setSpreadsheetMessage("Row added.");
+      rowForm
+        .querySelectorAll(".spreadsheet-new-row .spreadsheet-cell-input")
+        .forEach((input) => {
+          if (input.type === "checkbox") {
+            input.checked = false;
+          } else {
+            input.value = "";
+          }
+        });
+      await loadSpreadsheetSheet(spreadsheetState.sheet.sheet_id);
+    });
+
+    wrapper.querySelectorAll("input[data-row-id]").forEach((input) => {
+      input.addEventListener("change", async () => {
+        setSpreadsheetMessage("");
+        const rowId = input.dataset.rowId;
+        const columnId = input.dataset.columnId;
+        const columnType = input.dataset.columnType;
+        if (!rowId || !columnId) {
+          return;
+        }
+        const value =
+          columnType === "bool" ? input.checked : input.value;
+        const response = await fetch(
+          `/api/spreadsheets/${projectId}/sheets/${spreadsheetState.sheet.sheet_id}/rows/${rowId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ values: { [columnId]: value } }),
+          },
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setSpreadsheetMessage(
+            payload?.detail || "Unable to update row.",
+            true,
+          );
+          return;
+        }
+        setSpreadsheetMessage("Row updated.");
+      });
+    });
+
+    wrapper.querySelectorAll("button[data-action=\"delete\"]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const rowId = button.dataset.rowId;
+        if (!rowId) {
+          return;
+        }
+        const confirmed = window.confirm("Delete this row?");
+        if (!confirmed) {
+          return;
+        }
+        const response = await fetch(
+          `/api/spreadsheets/${projectId}/sheets/${spreadsheetState.sheet.sheet_id}/rows/${rowId}`,
+          { method: "DELETE" },
+        );
+        if (!response.ok) {
+          setSpreadsheetMessage("Unable to delete row.", true);
+          return;
+        }
+        setSpreadsheetMessage("Row deleted.");
+        await loadSpreadsheetSheet(spreadsheetState.sheet.sheet_id);
+      });
+    });
+  };
+
+  const addSpreadsheetColumnRow = (container) => {
+    const row = document.createElement("div");
+    row.classList.add("spreadsheet-column-row");
+    row.innerHTML = `
+      <input type="text" placeholder="Column name" required />
+      <select>
+        <option value="text">Text</option>
+        <option value="number">Number</option>
+        <option value="date">Date</option>
+        <option value="bool">Bool</option>
+      </select>
+      <label class="spreadsheet-required">
+        <input type="checkbox" />
+        Required
+      </label>
+      <button type="button" class="secondary" data-action="remove-column">Remove</button>
+    `;
+    row
+      .querySelector("[data-action=\"remove-column\"]")
+      .addEventListener("click", () => {
+        if (container.children.length <= 1) {
+          setSpreadsheetCreateMessage("At least one column is required.", true);
+          return;
+        }
+        row.remove();
+      });
+    container.appendChild(row);
+  };
+
+  const renderSpreadsheetCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="spreadsheet-canvas">
+        <section class="spreadsheet-header">
+          <div class="spreadsheet-sheet-select">
+            <label for="spreadsheet-sheet-select">Sheet</label>
+            <select id="spreadsheet-sheet-select"></select>
+            <button type="button" class="secondary" id="spreadsheet-new-sheet">New sheet</button>
+          </div>
+          <div class="spreadsheet-actions">
+            <button type="button" id="spreadsheet-export">Export CSV</button>
+          </div>
+        </section>
+        <section class="spreadsheet-create-panel is-hidden" id="spreadsheet-create-panel">
+          <h3>Create sheet</h3>
+          <form id="spreadsheet-create-form">
+            <label>
+              Sheet name
+              <input type="text" id="spreadsheet-sheet-name" required />
+            </label>
+            <div class="spreadsheet-columns" id="spreadsheet-columns"></div>
+            <div class="spreadsheet-column-actions">
+              <button type="button" class="secondary" id="spreadsheet-add-column">Add column</button>
+            </div>
+            <div class="spreadsheet-form-actions">
+              <button type="submit">Create sheet</button>
+              <button type="button" class="secondary" id="spreadsheet-cancel-create">
+                Cancel
+              </button>
+            </div>
+            <p class="spreadsheet-message" id="spreadsheet-create-message" role="status"></p>
+          </form>
+        </section>
+        <section class="spreadsheet-table-panel">
+          <div class="spreadsheet-table-header">
+            <h3 id="spreadsheet-sheet-title">Spreadsheet</h3>
+          </div>
+          <div id="spreadsheet-table-wrapper" class="spreadsheet-table-wrapper"></div>
+          <p class="spreadsheet-message" id="spreadsheet-message" role="status"></p>
+        </section>
+        <section class="spreadsheet-import">
+          <h3>Import CSV</h3>
+          <form id="spreadsheet-import-form">
+            <textarea id="spreadsheet-import-text" rows="6" placeholder="Paste CSV content..."></textarea>
+            <div class="spreadsheet-import-actions">
+              <button type="submit">Import CSV</button>
+            </div>
+            <p class="spreadsheet-message" id="spreadsheet-import-message" role="status"></p>
+          </form>
+        </section>
+      </div>
+    `;
+
+    const select = document.getElementById("spreadsheet-sheet-select");
+    select.addEventListener("change", async () => {
+      spreadsheetState.selectedSheetId = select.value || null;
+      await loadSpreadsheetSheet(spreadsheetState.selectedSheetId);
+    });
+
+    const createPanel = document.getElementById("spreadsheet-create-panel");
+    const newSheetButton = document.getElementById("spreadsheet-new-sheet");
+    const cancelCreateButton = document.getElementById("spreadsheet-cancel-create");
+    const columnsContainer = document.getElementById("spreadsheet-columns");
+
+    const showCreatePanel = (show) => {
+      createPanel.classList.toggle("is-hidden", !show);
+    };
+
+    newSheetButton.addEventListener("click", () => {
+      setSpreadsheetCreateMessage("");
+      showCreatePanel(true);
+    });
+
+    cancelCreateButton.addEventListener("click", () => {
+      showCreatePanel(false);
+    });
+
+    addSpreadsheetColumnRow(columnsContainer);
+
+    document
+      .getElementById("spreadsheet-add-column")
+      .addEventListener("click", () => {
+        addSpreadsheetColumnRow(columnsContainer);
+      });
+
+    document
+      .getElementById("spreadsheet-create-form")
+      .addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setSpreadsheetCreateMessage("");
+        const name = document.getElementById("spreadsheet-sheet-name").value.trim();
+        if (!name) {
+          setSpreadsheetCreateMessage("Sheet name is required.", true);
+          return;
+        }
+        const columns = [];
+        columnsContainer.querySelectorAll(".spreadsheet-column-row").forEach((row) => {
+          const nameInput = row.querySelector("input[type=\"text\"]");
+          const typeSelect = row.querySelector("select");
+          const requiredInput = row.querySelector("input[type=\"checkbox\"]");
+          const columnName = nameInput.value.trim();
+          if (!columnName) {
+            return;
+          }
+          columns.push({
+            name: columnName,
+            type: typeSelect.value,
+            required: requiredInput.checked,
+          });
+        });
+        if (!columns.length) {
+          setSpreadsheetCreateMessage("Add at least one column.", true);
+          return;
+        }
+        const response = await fetch(`/api/spreadsheets/${projectId}/sheets`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, columns }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setSpreadsheetCreateMessage(
+            payload?.detail || "Unable to create sheet.",
+            true,
+          );
+          return;
+        }
+        setSpreadsheetCreateMessage("Sheet created.");
+        document.getElementById("spreadsheet-sheet-name").value = "";
+        columnsContainer.innerHTML = "";
+        addSpreadsheetColumnRow(columnsContainer);
+        showCreatePanel(false);
+        spreadsheetState.selectedSheetId = payload.sheet_id;
+        await loadSpreadsheetSheets();
+      });
+
+    document
+      .getElementById("spreadsheet-export")
+      .addEventListener("click", async () => {
+        if (!spreadsheetState.sheet) {
+          setSpreadsheetMessage("Select a sheet to export.", true);
+          return;
+        }
+        const response = await fetch(
+          `/api/spreadsheets/${projectId}/sheets/${spreadsheetState.sheet.sheet_id}/export.csv`,
+        );
+        if (!response.ok) {
+          setSpreadsheetMessage("Unable to export CSV.", true);
+          return;
+        }
+        const csvText = await response.text();
+        const blob = new Blob([csvText], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${spreadsheetState.sheet.name}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      });
+
+    document
+      .getElementById("spreadsheet-import-form")
+      .addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setSpreadsheetImportMessage("");
+        if (!spreadsheetState.sheet) {
+          setSpreadsheetImportMessage("Select a sheet to import into.", true);
+          return;
+        }
+        const textArea = document.getElementById("spreadsheet-import-text");
+        const csvPayload = textArea.value.trim();
+        if (!csvPayload) {
+          setSpreadsheetImportMessage("Paste CSV content to import.", true);
+          return;
+        }
+        const response = await fetch(
+          `/api/spreadsheets/${projectId}/sheets/${spreadsheetState.sheet.sheet_id}/import.csv`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "text/csv" },
+            body: csvPayload,
+          },
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setSpreadsheetImportMessage(
+            payload?.detail || "Unable to import CSV.",
+            true,
+          );
+          return;
+        }
+        setSpreadsheetImportMessage(
+          `Imported ${payload.imported} row(s).`,
+        );
+        textArea.value = "";
+        await loadSpreadsheetSheet(spreadsheetState.sheet.sheet_id);
+      });
+
+    loadSpreadsheetSheets();
+  };
+
   const renderPlaceholder = (tabName) => {
     const canvas = document.querySelector(".workspace-canvas");
     if (!canvas) {
@@ -835,6 +1407,8 @@ const initWorkspace = () => {
       renderDocumentDetail(documentState.selected);
     } else if (tabName === "timeline") {
       renderTimelineCanvas();
+    } else if (tabName === "spreadsheet") {
+      renderSpreadsheetCanvas();
     } else if (tabName) {
       renderPlaceholder(tabName);
     }

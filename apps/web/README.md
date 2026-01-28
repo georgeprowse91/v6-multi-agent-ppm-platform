@@ -189,6 +189,48 @@ Endpoints:
 | `DELETE` | `/api/timeline/{project_id}/milestones/{milestone_id}` | Delete a milestone. |
 | `GET` | `/api/timeline/{project_id}/export` | Export timeline JSON for the project. |
 
+## Spreadsheet canvas APIs
+
+Spreadsheet sheets and rows are persisted per `(tenant_id, project_id)` in:
+
+```
+apps/web/storage/spreadsheets.json
+```
+
+Sheets:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/spreadsheets/{project_id}/sheets` | List spreadsheet sheets for the current tenant/project. |
+| `POST` | `/api/spreadsheets/{project_id}/sheets` | Create a new sheet with typed columns. |
+| `GET` | `/api/spreadsheets/{project_id}/sheets/{sheet_id}` | Fetch a sheet with its rows. |
+
+Rows:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/spreadsheets/{project_id}/sheets/{sheet_id}/rows` | Add a row to a sheet. |
+| `PATCH` | `/api/spreadsheets/{project_id}/sheets/{sheet_id}/rows/{row_id}` | Update row values (partial updates are allowed). |
+| `DELETE` | `/api/spreadsheets/{project_id}/sheets/{sheet_id}/rows/{row_id}` | Delete a row. |
+
+CSV:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/spreadsheets/{project_id}/sheets/{sheet_id}/export.csv` | Export a sheet as CSV. |
+| `POST` | `/api/spreadsheets/{project_id}/sheets/{sheet_id}/import.csv` | Import rows from CSV (`text/csv` body). |
+
+### CSV format
+
+- Header row uses column names from the sheet (case-sensitive).
+- Required columns must be included and populated.
+- Column types:
+  - `text` -> string
+  - `number` -> numeric (coerced to float)
+  - `date` -> `YYYY-MM-DD`
+  - `bool` -> `true` / `false`
+- Unknown columns or invalid values return `422`.
+
 ### Methodology selection and gating
 
 The workspace shell supports a methodology-driven navigation model. Methodologies can be provided via the
