@@ -251,3 +251,45 @@ export const CATEGORY_ICONS: Record<ActionCategory, string> = {
   analyse: '📊',
   navigate: '→',
 };
+
+/**
+ * Maps action chip IDs/types to agent IDs for enablement filtering.
+ * When an action requires a specific agent, we map it here.
+ */
+export const ACTION_AGENT_MAPPING: Record<string, string> = {
+  // Budget-related actions -> Financial Management Agent
+  'generate-budget-from-wbs': 'financial-management',
+  'create-budget-manual': 'financial-management',
+  'view-budget-status': 'financial-management',
+
+  // Schedule-related actions -> Schedule & Planning Agent
+  'generate-schedule-from-wbs': 'schedule-planning',
+  'view-schedule-status': 'schedule-planning',
+
+  // Risk-related actions -> Risk & Issue Management Agent
+  'open-risk-register': 'agent_015',
+  'risk-analysis': 'agent_015',
+};
+
+/**
+ * Gets the agent ID associated with an action chip, if any.
+ */
+export function getAgentForAction(chipId: string): string | undefined {
+  // Check direct mapping first
+  if (ACTION_AGENT_MAPPING[chipId]) {
+    return ACTION_AGENT_MAPPING[chipId];
+  }
+
+  // Check prefix patterns
+  if (chipId.startsWith('budget-') || chipId.includes('-budget')) {
+    return 'financial-management';
+  }
+  if (chipId.startsWith('schedule-') || chipId.includes('-schedule')) {
+    return 'schedule-planning';
+  }
+  if (chipId.startsWith('risk-') || chipId.includes('-risk')) {
+    return 'agent_015';
+  }
+
+  return undefined;
+}

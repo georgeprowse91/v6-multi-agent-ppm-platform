@@ -1,3 +1,4 @@
+import { AgentGallery } from '@/components/agentConfig';
 import styles from './ConfigPage.module.css';
 
 type ConfigType = 'agents' | 'connectors' | 'templates';
@@ -48,6 +49,12 @@ const configInfo: Record<
 export function ConfigPage({ type }: ConfigPageProps) {
   const info = configInfo[type];
 
+  // Render AgentGallery for agents type
+  if (type === 'agents') {
+    return <AgentGallery />;
+  }
+
+  // Placeholder for other config types
   return (
     <div className={styles.page}>
       <header className={styles.header}>

@@ -2,6 +2,7 @@ export { useAppStore } from './useAppStore';
 export { useCanvasStore, SAMPLE_ARTIFACT_IDS } from './useCanvasStore';
 export { useMethodologyStore } from './methodology';
 export { useAssistantStore, CATEGORY_COLORS, CATEGORY_ICONS } from './assistant';
+export { useAgentConfigStore, CATEGORY_INFO } from './agentConfig';
 export type {
   EntitySelection,
   Activity,
@@ -29,3 +30,13 @@ export type {
   PrerequisiteInfo,
   SuggestionTrigger,
 } from './assistant';
+export type {
+  AgentCategory,
+  AgentConfig,
+  AgentFilterState,
+  AgentParameter,
+  CategoryInfo,
+  DevUser,
+  ParameterType,
+  ProjectAgentConfig,
+} from './agentConfig';

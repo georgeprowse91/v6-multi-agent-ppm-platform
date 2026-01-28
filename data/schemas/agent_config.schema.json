@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ppm.example.com/schemas/agent_config.json",
+  "title": "Agent Configuration Schema",
+  "description": "Schema for agent configuration storage, including global agent settings, project-specific configurations, and user profiles.",
+  "type": "object",
+  "required": ["agents", "project_configs", "dev_users"],
+  "properties": {
+    "agents": {
+      "type": "object",
+      "description": "Global agent configurations keyed by catalog_id",
+      "additionalProperties": {
+        "$ref": "#/$defs/AgentConfig"
+      }
+    },
+    "project_configs": {
+      "type": "object",
+      "description": "Project-specific agent configurations keyed by project_id",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Agent configurations for a project keyed by agent_id",
+        "additionalProperties": {
+          "$ref": "#/$defs/ProjectAgentConfig"
+        }
+      }
+    },
+    "dev_users": {
+      "type": "object",
+      "description": "Development user profiles for RBAC testing",
+      "additionalProperties": {
+        "$ref": "#/$defs/DevUserProfile"
+      }
+    }
+  },
+  "$defs": {
+    "AgentCategory": {
+      "type": "string",
+      "enum": ["core", "portfolio", "delivery", "operations", "platform", "governance"],
+      "description": "Category for grouping agents"
+    },
+    "UserRole": {
+      "type": "string",
+      "enum": ["admin", "pm", "member"],
+      "description": "User role for permission checks"
+    },
+    "ParameterType": {
+      "type": "string",
+      "enum": ["string", "number", "boolean", "select", "multiselect"],
+      "description": "Type of configurable parameter"
+    },
+    "AgentParameter": {
+      "type": "object",
+      "description": "A configurable parameter for an agent",
+      "required": ["name", "display_name", "description", "param_type", "default_value", "required"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Internal parameter name (snake_case)"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "User-facing parameter name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what the parameter controls"
+        },
+        "param_type": {
+          "$ref": "#/$defs/ParameterType"
+        },
+        "default_value": {
+          "description": "Default value for the parameter"
+        },
+        "current_value": {
+          "description": "Current value (if different from default)"
+        },
+        "options": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Available options for select/multiselect types"
+        },
+        "min_value": {
+          "type": "number",
+          "description": "Minimum value for number type"
+        },
+        "max_value": {
+          "type": "number",
+          "description": "Maximum value for number type"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the parameter is required"
+        }
+      }
+    },
+    "AgentConfig": {
+      "type": "object",
+      "description": "Configuration for a single agent",
+      "required": ["catalog_id", "agent_id", "display_name", "description", "category", "enabled"],
+      "properties": {
+        "catalog_id": {
+          "type": "string",
+          "description": "Unique identifier matching agent catalog (e.g., 'agent-15-risk-issue-management')"
+        },
+        "agent_id": {
+          "type": "string",
+          "description": "Runtime agent identifier (e.g., 'agent_015')"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "User-facing agent name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of agent functionality"
+        },
+        "category": {
+          "$ref": "#/$defs/AgentCategory"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the agent is globally enabled"
+        },
+        "parameters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/AgentParameter" },
+          "description": "Configurable parameters for this agent"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of agent capabilities"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        },
+        "updated_by": {
+          "type": ["string", "null"],
+          "description": "User ID who last updated the config"
+        }
+      }
+    },
+    "ProjectAgentConfig": {
+      "type": "object",
+      "description": "Project-specific agent configuration (enablement + parameter overrides)",
+      "required": ["project_id", "agent_id", "enabled"],
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "description": "Project identifier"
+        },
+        "agent_id": {
+          "type": "string",
+          "description": "Agent identifier"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the agent is enabled for this project"
+        },
+        "parameter_overrides": {
+          "type": "object",
+          "description": "Project-specific parameter overrides (keyed by parameter name)",
+          "additionalProperties": true
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        },
+        "updated_by": {
+          "type": ["string", "null"],
+          "description": "User ID who last updated the config"
+        }
+      }
+    },
+    "DevUserProfile": {
+      "type": "object",
+      "description": "Development user profile for RBAC testing",
+      "required": ["user_id", "name", "email", "role"],
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "Unique user identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "User display name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User email address"
+        },
+        "role": {
+          "$ref": "#/$defs/UserRole"
+        },
+        "tenant_id": {
+          "type": "string",
+          "default": "default",
+          "description": "Tenant identifier for multi-tenancy"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "agents": {
+        "agent-15-risk-issue-management": {
+          "catalog_id": "agent-15-risk-issue-management",
+          "agent_id": "agent_015",
+          "display_name": "Risk & Issue Management",
+          "description": "Identifies, assesses, and manages project risks and issues",
+          "category": "operations",
+          "enabled": true,
+          "parameters": [
+            {
+              "name": "risk_assessment_method",
+              "display_name": "Risk Assessment Method",
+              "description": "Method for assessing risk severity",
+              "param_type": "select",
+              "default_value": "probability_impact",
+              "options": ["probability_impact", "monte_carlo", "qualitative", "quantitative"],
+              "required": true
+            },
+            {
+              "name": "auto_escalate_high_risks",
+              "display_name": "Auto-escalate High Risks",
+              "description": "Automatically escalate high-severity risks",
+              "param_type": "boolean",
+              "default_value": true,
+              "required": true
+            }
+          ],
+          "capabilities": ["risk_identification", "risk_assessment", "issue_tracking"],
+          "updated_at": "2025-01-27T12:00:00Z",
+          "updated_by": "admin"
+        }
+      },
+      "project_configs": {
+        "project-apollo": {
+          "agent_015": {
+            "project_id": "project-apollo",
+            "agent_id": "agent_015",
+            "enabled": true,
+            "parameter_overrides": {
+              "risk_assessment_method": "monte_carlo"
+            },
+            "updated_at": "2025-01-27T12:00:00Z",
+            "updated_by": "pm"
+          }
+        }
+      },
+      "dev_users": {
+        "admin": {
+          "user_id": "admin",
+          "name": "Admin User",
+          "email": "admin@example.com",
+          "role": "admin",
+          "tenant_id": "default"
+        }
+      }
+    }
+  ]
+}
