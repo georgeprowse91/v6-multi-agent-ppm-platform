@@ -63,6 +63,32 @@ async def test_system_health_status_success(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_system_health_collect_metrics_triggers_alerts(tmp_path):
+    agent = SystemHealthAgent(
+        config={
+            "alert_store_path": tmp_path / "alerts.json",
+            "incident_store_path": tmp_path / "incidents.json",
+            "alert_threshold_error_rate": 0.05,
+            "alert_threshold_response_time_ms": 500,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "collect_metrics",
+            "tenant_id": "tenant-health",
+            "service_name": "api",
+            "metrics": {"error_rate": 0.2, "response_time_ms": 900},
+        }
+    )
+
+    assert response["alerts_triggered"]
+    alerts = agent.alert_store.list("tenant-health")
+    assert len(alerts) >= 2
+
+
+@pytest.mark.asyncio
 async def test_system_health_validation_rejects_invalid_action(tmp_path):
     agent = SystemHealthAgent(
         config={

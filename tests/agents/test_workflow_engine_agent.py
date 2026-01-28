@@ -66,6 +66,64 @@ async def test_workflow_engine_instances_success(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_workflow_engine_trigger_task_event_executes_automated_task(tmp_path):
+    agent = WorkflowEngineAgent(
+        config={
+            "workflow_definition_store_path": tmp_path / "definitions.json",
+            "workflow_instance_store_path": tmp_path / "instances.json",
+            "workflow_event_store_path": tmp_path / "events.json",
+            "workflow_subscription_store_path": tmp_path / "subscriptions.json",
+        }
+    )
+    await agent.initialize()
+
+    workflow = await agent.process(
+        {
+            "action": "define_workflow",
+            "tenant_id": "tenant-workflow",
+            "workflow": {
+                "name": "Event Triggered Workflow",
+                "tasks": [{"task_id": "auto-task", "type": "automated"}],
+                "event_triggers": [
+                    {
+                        "event_type": "workflow.task.trigger",
+                        "action": "trigger_task",
+                        "task_id": "auto-task",
+                    }
+                ],
+            },
+        }
+    )
+
+    instance = await agent.process(
+        {
+            "action": "start_workflow",
+            "tenant_id": "tenant-workflow",
+            "workflow_id": workflow["workflow_id"],
+            "input": {"requester": "ops"},
+        }
+    )
+
+    await agent.process(
+        {
+            "action": "handle_event",
+            "tenant_id": "tenant-workflow",
+            "event": {
+                "event_type": "workflow.task.trigger",
+                "data": {
+                    "instance_id": instance["instance_id"],
+                    "task_id": "auto-task",
+                },
+            },
+        }
+    )
+
+    assignment = agent.task_assignments.get("auto-task")
+    assert assignment is not None
+    assert assignment["status"] == "completed"
+
+
+@pytest.mark.asyncio
 async def test_workflow_engine_validation_rejects_invalid_action(tmp_path):
     agent = WorkflowEngineAgent(
         config={

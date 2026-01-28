@@ -336,7 +336,7 @@ class WorkflowEngineAgent(BaseAgent):
         # Execute first tasks
         initial_tasks = await self._get_initial_tasks(workflow)
         for task in initial_tasks:
-            await self._execute_task(instance_id, task)
+            await self._execute_task(tenant_id, instance_id, task)
 
         # Future work: Store in database
         # Future work: Publish workflow.started event
@@ -451,7 +451,7 @@ class WorkflowEngineAgent(BaseAgent):
 
             # Execute next tasks
             for next_task in next_tasks:
-                await self._execute_task(instance_id, next_task)
+                await self._execute_task(tenant_id, instance_id, next_task)
 
             # Check if workflow is complete
             if await self._is_workflow_complete(instance):
@@ -590,9 +590,27 @@ class WorkflowEngineAgent(BaseAgent):
                     )
                     triggered_instances.append(result.get("instance_id"))
                 elif subscription.get("action") == "trigger_task":
-                    # Trigger specific task in running instance
-                    # Future work: Implement task triggering
-                    pass
+                    instance_id = event_data.get("instance_id")
+                    task_id = event_data.get("task_id") or subscription.get("task_id")
+                    if not instance_id or not task_id:
+                        continue
+                    instance = self._load_instance(tenant_id, instance_id)
+                    if not instance:
+                        continue
+                    workflow_id = instance.get("workflow_id") or subscription.get("workflow_id")
+                    workflow = self.workflow_definitions.get(workflow_id)
+                    if not workflow:
+                        workflow = self.workflow_definition_store.get(tenant_id, workflow_id)
+                    if not workflow:
+                        continue
+                    task = next(
+                        (item for item in workflow.get("tasks", []) if item.get("task_id") == task_id),
+                        None,
+                    )
+                    if not task:
+                        continue
+                    await self._execute_task(tenant_id, instance_id, task)
+                    triggered_instances.append(instance_id)
 
         await self._emit_workflow_event(
             tenant_id,
@@ -733,7 +751,7 @@ class WorkflowEngineAgent(BaseAgent):
         tasks = workflow.get("tasks", [])
         return [t for t in tasks if t.get("initial", False)][:1]
 
-    async def _execute_task(self, instance_id: str, task: dict[str, Any]) -> None:
+    async def _execute_task(self, tenant_id: str, instance_id: str, task: dict[str, Any]) -> None:
         """Execute workflow task."""
         task_id = task.get("task_id")
 
@@ -753,8 +771,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         # If automated task, execute immediately
         if task.get("type") == "automated":
-            # Future work: Execute automated task
-            pass
+            await self._complete_task(tenant_id, task_id, {"status": "auto_completed"})
 
     async def _determine_next_tasks(
         self, instance: dict[str, Any], completed_task_id: str

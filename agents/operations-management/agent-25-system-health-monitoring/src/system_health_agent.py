@@ -9,6 +9,7 @@ Specification: agents/operations-management/agent-25-system-health-monitoring/RE
 """
 
 import re
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -255,7 +256,9 @@ class SystemHealthAgent(BaseAgent):
             self.metrics[metric_id] = metric_record
 
             # Check thresholds and trigger alerts if needed
-            await self._check_metric_thresholds(service_name, metrics_data)
+            alerts_triggered = await self._check_metric_thresholds(
+                tenant_id, service_name, metrics_data
+            )
 
         # Future work: Store in Azure Monitor
         # Future work: Emit to Application Insights
@@ -265,6 +268,7 @@ class SystemHealthAgent(BaseAgent):
             "service_name": service_name,
             "metrics_collected": len(metrics_data),
             "timestamp": timestamp,
+            "alerts_triggered": alerts_triggered,
         }
 
     async def _check_health(self, service_name: str | None = None) -> dict[str, Any]:
@@ -656,7 +660,8 @@ class SystemHealthAgent(BaseAgent):
     async def _generate_alert_id(self) -> str:
         """Generate unique alert ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        return f"ALERT-{timestamp}"
+        suffix = uuid.uuid4().hex[:8]
+        return f"ALERT-{timestamp}-{suffix}"
 
     async def _generate_incident_id(self) -> str:
         """Generate unique incident ID."""
@@ -669,20 +674,50 @@ class SystemHealthAgent(BaseAgent):
         return f"ANOM-{timestamp}"
 
     async def _check_metric_thresholds(
-        self, service_name: str, metrics_data: dict[str, Any]
-    ) -> None:
+        self, tenant_id: str, service_name: str, metrics_data: dict[str, Any]
+    ) -> list[str]:
         """Check metrics against alert thresholds."""
+        alert_ids: list[str] = []
+
         # Check error rate
         error_rate = metrics_data.get("error_rate", 0)
         if error_rate > self.alert_threshold_error_rate:
-            # Future work: Trigger alert
-            pass
+            response = await self._create_alert(
+                tenant_id,
+                {
+                    "name": f"{service_name} error rate threshold exceeded",
+                    "description": (
+                        f"Error rate {error_rate:.2%} exceeded threshold "
+                        f"{self.alert_threshold_error_rate:.2%}."
+                    ),
+                    "severity": "critical",
+                    "service_name": service_name,
+                    "condition": "error_rate",
+                    "threshold": self.alert_threshold_error_rate,
+                },
+            )
+            alert_ids.append(response["alert_id"])
 
         # Check response time
         response_time = metrics_data.get("response_time_ms", 0)
         if response_time > self.alert_threshold_response_time_ms:
-            # Future work: Trigger alert
-            pass
+            response = await self._create_alert(
+                tenant_id,
+                {
+                    "name": f"{service_name} response time threshold exceeded",
+                    "description": (
+                        f"Response time {response_time:.0f}ms exceeded threshold "
+                        f"{self.alert_threshold_response_time_ms:.0f}ms."
+                    ),
+                    "severity": "warning",
+                    "service_name": service_name,
+                    "condition": "response_time_ms",
+                    "threshold": self.alert_threshold_response_time_ms,
+                },
+            )
+            alert_ids.append(response["alert_id"])
+
+        return alert_ids
 
     async def _check_service_health(self, service_name: str) -> dict[str, Any]:
         """Check health of specific service."""
