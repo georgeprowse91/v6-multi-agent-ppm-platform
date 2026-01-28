@@ -93,17 +93,17 @@ const renderWorkspaceShell = () => {
       </aside>
       <main class="workspace-main">
         <div class="workspace-tabs" role="tablist" aria-label="Canvas tabs">
-          <button class="workspace-tab is-active" role="tab" aria-selected="true">
+          <button class="workspace-tab is-active" role="tab" aria-selected="true" data-canvas-tab="document">
             Document
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false">Tree</button>
-          <button class="workspace-tab" role="tab" aria-selected="false">
+          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="tree">Tree</button>
+          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="timeline">
             Timeline
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false">
+          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="spreadsheet">
             Spreadsheet
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false">
+          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="dashboard">
             Dashboard
           </button>
         </div>
@@ -123,17 +123,53 @@ const initWorkspace = () => {
   renderWorkspaceShell();
   const sessionInfo = document.getElementById("workspace-session");
   loadSession(sessionInfo);
+  const projectId =
+    new URLSearchParams(window.location.search).get("project_id") || "default";
   const tabs = Array.from(document.querySelectorAll(".workspace-tab"));
+
+  const setActiveTab = (targetTab) => {
+    tabs.forEach((item) => {
+      const isActive = item === targetTab;
+      item.classList.toggle("is-active", isActive);
+      item.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+  };
+
+  const persistSelection = async (currentCanvasTab) => {
+    await fetch(`/api/workspace/${projectId}/select`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        current_canvas_tab: currentCanvasTab,
+        current_stage_id: null,
+        current_activity_id: null,
+        methodology: null,
+      }),
+    });
+  };
+
+  const loadWorkspaceState = async () => {
+    const response = await fetch(`/api/workspace/${projectId}`);
+    if (!response.ok) {
+      return;
+    }
+    const payload = await response.json();
+    const currentTab = tabs.find(
+      (tab) => tab.dataset.canvasTab === payload.current_canvas_tab,
+    );
+    if (currentTab) {
+      setActiveTab(currentTab);
+    }
+  };
+
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      tabs.forEach((item) => {
-        item.classList.remove("is-active");
-        item.setAttribute("aria-selected", "false");
-      });
-      tab.classList.add("is-active");
-      tab.setAttribute("aria-selected", "true");
+      setActiveTab(tab);
+      persistSelection(tab.dataset.canvasTab);
     });
   });
+
+  loadWorkspaceState();
 };
 
 const initConsole = () => {

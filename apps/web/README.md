@@ -132,6 +132,26 @@ This outputs to `apps/web/static/dist/`. The FastAPI backend can then serve the 
 | `/config/connectors` | Integration connector settings |
 | `/config/templates` | Project/workflow templates |
 
+## Workspace State APIs
+
+Workspace state is persisted per `(tenant_id, project_id)` in:
+
+```
+apps/web/storage/workspace_state.json
+```
+
+Endpoints:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/workspace/{project_id}` | Fetch or create workspace state for the current tenant. |
+| `POST` | `/api/workspace/{project_id}/select` | Persist canvas tab + selection metadata. |
+| `POST` | `/api/workspace/{project_id}/activity-completion` | Persist activity completion status. |
+
+The workspace shell expects a `project_id` query parameter (for example, `/workspace?project_id=demo-1`).
+
+> **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
+
 ## Global State
 
 The application uses Zustand for state management. Key state slices:
