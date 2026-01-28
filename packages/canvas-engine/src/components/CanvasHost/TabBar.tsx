@@ -66,9 +66,15 @@ function CanvasIcon({ type }: { type: string }) {
 export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose }: TabBarProps) {
   return (
     <div className={styles.tabBar} role="tablist">
-      {tabs.map(tab => {
+      {tabs.map((tab, index) => {
         const isActive = tab.id === activeTabId;
         const config = CANVAS_TYPE_CONFIGS[tab.type];
+        const focusTabByIndex = (nextIndex: number) => {
+          const target = tabs[nextIndex];
+          if (target) {
+            onTabSelect(target.id);
+          }
+        };
 
         return (
           <div
@@ -81,9 +87,30 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose }: TabBarPro
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onTabSelect(tab.id);
+                return;
+              }
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                focusTabByIndex((index + 1) % tabs.length);
+                return;
+              }
+              if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                focusTabByIndex((index - 1 + tabs.length) % tabs.length);
+                return;
+              }
+              if (e.key === 'Home') {
+                e.preventDefault();
+                focusTabByIndex(0);
+                return;
+              }
+              if (e.key === 'End') {
+                e.preventDefault();
+                focusTabByIndex(tabs.length - 1);
               }
             }}
-            tabIndex={0}
+            tabIndex={isActive ? 0 : -1}
+            id={`canvas-tab-${tab.id}`}
           >
             <CanvasIcon type={tab.type} />
             <span className={styles.tabTitle} title={tab.title}>

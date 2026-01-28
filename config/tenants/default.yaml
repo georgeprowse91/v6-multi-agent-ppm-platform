@@ -16,6 +16,10 @@ retention_defaults:
   policy: "internal-1y"
 rbac_defaults:
   roles:
+    - "PMO_ADMIN"
+    - "PM"
+    - "TEAM_MEMBER"
+    - "AUDITOR"
     - "tenant_owner"
     - "portfolio_admin"
     - "project_manager"

@@ -18,12 +18,15 @@ from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-if str(OBSERVABILITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(OBSERVABILITY_ROOT))
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+for root in (OBSERVABILITY_ROOT, SECURITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from knowledge_store import KnowledgeStore  # noqa: E402
+from security.audit_log import build_event, get_audit_log_store  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
@@ -240,14 +243,39 @@ def _oidc_optional(name: str) -> str | None:
 def _session_from_request(request: Request) -> dict[str, Any] | None:
     session_id = request.cookies.get(SESSION_COOKIE)
     if not session_id:
-        return None
-    return SESSION_STORE.get(session_id)
+        return _dev_session()
+    return SESSION_STORE.get(session_id) or _dev_session()
 
 
 def _require_session(request: Request) -> dict[str, Any]:
     session = _session_from_request(request)
     if not session:
         raise HTTPException(status_code=401, detail="Authentication required")
+    return session
+
+
+def _dev_session() -> dict[str, Any] | None:
+    auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    if not (auth_dev_mode and environment in {"dev", "development", "local", "test"}):
+        return None
+    roles_raw = os.getenv("AUTH_DEV_ROLES", "PMO_ADMIN")
+    roles = [role.strip() for role in roles_raw.split(",") if role.strip()]
+    return {
+        "subject": os.getenv("AUTH_DEV_SUBJECT", "dev-user"),
+        "tenant_id": os.getenv("AUTH_DEV_TENANT_ID", "dev-tenant"),
+        "roles": roles,
+        "access_token": "dev-token",
+    }
+
+
+def _require_roles(request: Request, allowed_roles: set[str]) -> dict[str, Any]:
+    session = _require_session(request)
+    roles = session.get("roles") or []
+    if isinstance(roles, str):
+        roles = [roles]
+    if not any(role in allowed_roles for role in roles):
+        raise HTTPException(status_code=403, detail="RBAC denied")
     return session
 
 
@@ -491,7 +519,7 @@ async def api_start_workflow(request: Request, payload: WorkflowStartRequest) ->
                 "actor": {
                     "id": session.get("subject") or "ui-user",
                     "type": "user",
-                    "roles": session.get("roles") or ["portfolio_admin"],
+                    "roles": session.get("roles") or ["PMO_ADMIN"],
                 },
             },
         )
@@ -500,7 +528,21 @@ async def api_start_workflow(request: Request, payload: WorkflowStartRequest) ->
 
 
 @app.get("/api/templates", response_model=list[TemplateSummary])
-async def list_templates() -> list[TemplateSummary]:
+async def list_templates(request: Request) -> list[TemplateSummary]:
+    _require_roles(
+        request,
+        {
+            "PMO_ADMIN",
+            "PM",
+            "TEAM_MEMBER",
+            "AUDITOR",
+            "tenant_owner",
+            "portfolio_admin",
+            "project_manager",
+            "analyst",
+            "auditor",
+        },
+    )
     templates = _load_templates()
     summaries: list[TemplateSummary] = []
     for template in templates:
@@ -521,7 +563,21 @@ async def list_templates() -> list[TemplateSummary]:
 
 
 @app.get("/api/templates/{template_id}", response_model=TemplateDefinition)
-async def get_template(template_id: str) -> TemplateDefinition:
+async def get_template(template_id: str, request: Request) -> TemplateDefinition:
+    _require_roles(
+        request,
+        {
+            "PMO_ADMIN",
+            "PM",
+            "TEAM_MEMBER",
+            "AUDITOR",
+            "tenant_owner",
+            "portfolio_admin",
+            "project_manager",
+            "analyst",
+            "auditor",
+        },
+    )
     templates = _load_templates()
     template = next((item for item in templates if item.id == template_id), None)
     if not template:
@@ -530,7 +586,13 @@ async def get_template(template_id: str) -> TemplateDefinition:
 
 
 @app.post("/api/templates/{template_id}/apply", response_model=TemplateApplyResponse)
-async def apply_template(template_id: str, payload: TemplateApplyRequest) -> TemplateApplyResponse:
+async def apply_template(
+    template_id: str, payload: TemplateApplyRequest, request: Request
+) -> TemplateApplyResponse:
+    session = _require_roles(
+        request,
+        {"PMO_ADMIN", "PM", "tenant_owner", "portfolio_admin", "project_manager"},
+    )
     templates = _load_templates()
     template = next((item for item in templates if item.id == template_id), None)
     if not template:
@@ -556,11 +618,27 @@ async def apply_template(template_id: str, payload: TemplateApplyRequest) -> Tem
     projects.append(project)
     _persist_projects(projects)
 
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=session.get("tenant_id", "unknown"),
+            actor_id=session.get("subject") or "ui-user",
+            actor_type="user",
+            roles=session.get("roles") or [],
+            action="template.applied",
+            resource_type="template",
+            resource_id=template_id,
+            outcome="success",
+            metadata={"project_id": project_id},
+        )
+    )
+
     return TemplateApplyResponse(project=project, template=template)
 
 
 @app.post("/api/knowledge/documents", response_model=DocumentVersionResponse)
-async def create_document_version(payload: DocumentVersionRequest) -> DocumentVersionResponse:
+async def create_document_version(
+    payload: DocumentVersionRequest, request: Request
+) -> DocumentVersionResponse:
     store = _get_knowledge_store()
     record = store.create_document_version(
         project_id=payload.project_id,
@@ -572,6 +650,21 @@ async def create_document_version(payload: DocumentVersionRequest) -> DocumentVe
         content=payload.content,
         metadata=payload.metadata,
     )
+    if payload.status.lower() == "published":
+        session = _session_from_request(request) or {}
+        get_audit_log_store().record_event(
+            build_event(
+                tenant_id=session.get("tenant_id", "unknown"),
+                actor_id=session.get("subject") or "ui-user",
+                actor_type="user",
+                roles=session.get("roles") or [],
+                action="document.published",
+                resource_type="document",
+                resource_id=record.document_id,
+                outcome="success",
+                metadata={"project_id": record.project_id},
+            )
+        )
     return DocumentVersionResponse(
         document_id=record.document_id,
         document_key=record.document_key,

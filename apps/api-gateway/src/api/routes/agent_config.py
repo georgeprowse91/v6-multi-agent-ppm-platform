@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Request
 from pydantic import BaseModel
 
 # Add services to path
@@ -21,6 +21,7 @@ from agent_config_service import (
     AgentCategory,
     get_agent_config_store,
 )
+from security.audit_log import build_event, get_audit_log_store
 
 router = APIRouter()
 
@@ -91,14 +92,17 @@ def get_current_user_id(x_user_id: str | None = Header(None, alias="X-User-Id"))
     return x_user_id or "admin"
 
 
-def check_user_permission(user_id: str) -> None:
+def check_user_permission(user_id: str, roles: list[str]) -> None:
     """Check if user has permission to configure agents."""
     store = get_agent_config_store()
-    if not store.can_user_configure_agents(user_id):
-        raise HTTPException(
-            status_code=403,
-            detail="User does not have permission to configure agents"
-        )
+    if store.can_user_configure_agents(user_id):
+        return
+    if any(role in {"PMO_ADMIN", "PM", "tenant_owner", "portfolio_admin", "project_manager"} for role in roles):
+        return
+    raise HTTPException(
+        status_code=403,
+        detail="User does not have permission to configure agents"
+    )
 
 
 # Agent Configuration Endpoints
@@ -156,6 +160,7 @@ async def get_agent_config(catalog_id: str):
 async def update_agent_config(
     catalog_id: str,
     updates: AgentConfigUpdateModel,
+    http_request: Request,
     x_user_id: str | None = Header(None, alias="X-User-Id"),
 ):
     """
@@ -163,8 +168,9 @@ async def update_agent_config(
 
     Requires admin or PM role.
     """
-    user_id = get_current_user_id(x_user_id)
-    check_user_permission(user_id)
+    auth = http_request.state.auth
+    user_id = get_current_user_id(x_user_id or auth.subject)
+    check_user_permission(user_id, auth.roles)
 
     store = get_agent_config_store()
 
@@ -178,6 +184,24 @@ async def update_agent_config(
 
     if not agent:
         raise HTTPException(status_code=404, detail=f"Agent not found: {catalog_id}")
+
+    if updates.enabled is not None:
+        action = "agent.enabled" if updates.enabled else "agent.disabled"
+    else:
+        action = "agent.config.updated"
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action=action,
+            resource_type="agent",
+            resource_id=catalog_id,
+            outcome="success",
+            metadata={"project_scope": "global"},
+        )
+    )
 
     return AgentConfigModel(**agent.to_dict())
 
@@ -208,6 +232,7 @@ async def set_project_agent_config(
     project_id: str,
     agent_id: str,
     config: ProjectAgentConfigUpdateModel,
+    http_request: Request,
     x_user_id: str | None = Header(None, alias="X-User-Id"),
 ):
     """
@@ -215,8 +240,9 @@ async def set_project_agent_config(
 
     Requires admin or PM role.
     """
-    user_id = get_current_user_id(x_user_id)
-    check_user_permission(user_id)
+    auth = http_request.state.auth
+    user_id = get_current_user_id(x_user_id or auth.subject)
+    check_user_permission(user_id, auth.roles)
 
     store = get_agent_config_store()
     result = store.set_project_agent_config(
@@ -225,6 +251,21 @@ async def set_project_agent_config(
         enabled=config.enabled,
         parameter_overrides=config.parameter_overrides,
         updated_by=user_id,
+    )
+
+    action = "agent.enabled" if config.enabled else "agent.disabled"
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action=action,
+            resource_type="agent",
+            resource_id=agent_id,
+            outcome="success",
+            metadata={"project_id": project_id},
+        )
     )
 
     return ProjectAgentConfigModel(**result.to_dict())

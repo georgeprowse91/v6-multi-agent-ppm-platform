@@ -1,5 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useCallback } from 'react';
 import { useAppStore } from '@/store';
+import { useTranslation } from '@/i18n';
+import { canViewAuditLogs } from '@/auth/permissions';
 import { MethodologyNav } from '@/components/methodology';
 import styles from './LeftPanel.module.css';
 
@@ -98,8 +101,58 @@ const knowledgeNav: NavItem[] = [
 
 export function LeftPanel() {
   const location = useLocation();
-  const { leftPanelCollapsed, toggleLeftPanel } =
-    useAppStore();
+  const { leftPanelCollapsed, toggleLeftPanel, session } = useAppStore();
+  const { t } = useTranslation();
+  const showAuditLogs = canViewAuditLogs(session.user?.roles);
+
+  const handleNavKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLUListElement>) => {
+      const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+      if (!keys.includes(event.key)) return;
+      const items = Array.from(
+        event.currentTarget.querySelectorAll<HTMLElement>('a[data-nav-item="true"]')
+      );
+      if (!items.length) return;
+      const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+      if (currentIndex === -1) return;
+      event.preventDefault();
+      let nextIndex = currentIndex;
+      if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % items.length;
+      if (event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + items.length) % items.length;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = items.length - 1;
+      items[nextIndex]?.focus();
+    },
+    []
+  );
+
+  const labelOverrides: Record<string, string> = {
+    agents: t('nav.agents'),
+    connectors: t('nav.connectors'),
+    templates: t('nav.templates'),
+    approvals: t('nav.approvals'),
+    'workflow-monitoring': t('nav.workflowMonitor'),
+    'knowledge-documents': t('nav.documents'),
+    'knowledge-lessons': t('nav.lessons'),
+  };
+
+  const configItems = [
+    ...configNav,
+    ...(showAuditLogs
+      ? [
+          {
+            id: 'audit-logs',
+            label: t('nav.auditLogs'),
+            path: '/admin/audit',
+            icon: (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a4 4 0 00-4 4v2H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-2V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1z" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <aside
@@ -111,6 +164,9 @@ export function LeftPanel() {
           className={styles.collapseButton}
           onClick={toggleLeftPanel}
           title={leftPanelCollapsed ? 'Expand panel' : 'Collapse panel'}
+          aria-label={leftPanelCollapsed ? 'Expand navigation panel' : 'Collapse navigation panel'}
+          aria-expanded={!leftPanelCollapsed}
+          aria-controls="left-panel-nav"
         >
           <svg
             width="20"
@@ -130,11 +186,11 @@ export function LeftPanel() {
         </button>
       </div>
 
-      <nav className={styles.nav}>
+      <nav className={styles.nav} id="left-panel-nav" aria-label="Primary navigation">
         {/* Methodology Navigation - Main section */}
         <div className={styles.section}>
           {!leftPanelCollapsed && (
-            <h3 className={styles.sectionTitle}>Methodology</h3>
+            <h3 className={styles.sectionTitle}>{t('nav.methodology')}</h3>
           )}
           <MethodologyNav collapsed={leftPanelCollapsed} />
         </div>
@@ -142,21 +198,22 @@ export function LeftPanel() {
         {/* Configuration Navigation */}
         <div className={styles.section}>
           {!leftPanelCollapsed && (
-            <h3 className={styles.sectionTitle}>Configuration</h3>
+            <h3 className={styles.sectionTitle}>{t('nav.configuration')}</h3>
           )}
-          <ul className={styles.navList}>
-            {configNav.map((item) => (
+          <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
+            {configItems.map((item) => (
               <li key={item.id}>
                 <Link
                   to={item.path!}
                   className={`${styles.navItem} ${
                     location.pathname === item.path ? styles.active : ''
                   }`}
-                  title={leftPanelCollapsed ? item.label : undefined}
+                  title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                  data-nav-item="true"
                 >
                   <span className={styles.icon}>{item.icon}</span>
                   {!leftPanelCollapsed && (
-                    <span className={styles.label}>{item.label}</span>
+                    <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
                   )}
                 </Link>
               </li>
@@ -166,9 +223,9 @@ export function LeftPanel() {
 
         <div className={styles.section}>
           {!leftPanelCollapsed && (
-            <h3 className={styles.sectionTitle}>Workflow</h3>
+            <h3 className={styles.sectionTitle}>{t('nav.workflow')}</h3>
           )}
-          <ul className={styles.navList}>
+          <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
             {workflowNav.map((item) => (
               <li key={item.id}>
                 <Link
@@ -176,11 +233,12 @@ export function LeftPanel() {
                   className={`${styles.navItem} ${
                     location.pathname === item.path ? styles.active : ''
                   }`}
-                  title={leftPanelCollapsed ? item.label : undefined}
+                  title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                  data-nav-item="true"
                 >
                   <span className={styles.icon}>{item.icon}</span>
                   {!leftPanelCollapsed && (
-                    <span className={styles.label}>{item.label}</span>
+                    <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
                   )}
                 </Link>
               </li>
@@ -190,9 +248,9 @@ export function LeftPanel() {
 
         <div className={styles.section}>
           {!leftPanelCollapsed && (
-            <h3 className={styles.sectionTitle}>Knowledge</h3>
+            <h3 className={styles.sectionTitle}>{t('nav.knowledge')}</h3>
           )}
-          <ul className={styles.navList}>
+          <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
             {knowledgeNav.map((item) => (
               <li key={item.id}>
                 <Link
@@ -200,11 +258,12 @@ export function LeftPanel() {
                   className={`${styles.navItem} ${
                     location.pathname === item.path ? styles.active : ''
                   }`}
-                  title={leftPanelCollapsed ? item.label : undefined}
+                  title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                  data-nav-item="true"
                 >
                   <span className={styles.icon}>{item.icon}</span>
                   {!leftPanelCollapsed && (
-                    <span className={styles.label}>{item.label}</span>
+                    <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
                   )}
                 </Link>
               </li>

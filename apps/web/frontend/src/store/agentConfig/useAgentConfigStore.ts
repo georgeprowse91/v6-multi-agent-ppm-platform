@@ -285,9 +285,9 @@ export const useAgentConfigStore = create<AgentConfigStoreState>((set, get) => (
       set({
         currentUser: {
           user_id: userId,
-          name: userId === 'admin' ? 'Admin User' : 'Project Manager',
+          name: userId === 'admin' ? 'PMO Admin' : 'Project Manager',
           email: `${userId}@example.com`,
-          role: userId === 'admin' ? 'admin' : 'pm',
+          role: userId === 'admin' ? 'PMO_ADMIN' : 'PM',
           tenant_id: 'default',
         },
         canConfigure: userId === 'admin' || userId === 'pm',
@@ -312,7 +312,7 @@ export const useAgentConfigStore = create<AgentConfigStoreState>((set, get) => (
     } catch (error) {
       // Allow for development
       const role = get().currentUser?.role;
-      set({ canConfigure: role === 'admin' || role === 'pm' });
+      set({ canConfigure: role === 'PMO_ADMIN' || role === 'PM' });
     }
   },
 

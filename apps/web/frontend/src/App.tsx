@@ -8,6 +8,7 @@ import {
   WorkflowMonitoringPage,
   DocumentSearchPage,
   LessonsLearnedPage,
+  AuditLogPage,
 } from '@/pages';
 
 export function App() {
@@ -52,6 +53,9 @@ export function App() {
         {/* Knowledge pages */}
         <Route path="/knowledge/documents" element={<DocumentSearchPage />} />
         <Route path="/knowledge/lessons" element={<LessonsLearnedPage />} />
+
+        {/* Admin pages */}
+        <Route path="/admin/audit" element={<AuditLogPage />} />
       </Routes>
     </AppLayout>
   );

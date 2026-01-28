@@ -3,6 +3,10 @@ levels:
     description: "Publicly shareable information."
     retention_policy: "public-30d"
     allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "AUDITOR"
       - "tenant_owner"
       - "portfolio_admin"
       - "project_manager"
@@ -13,6 +17,10 @@ levels:
     description: "Internal business data with limited exposure."
     retention_policy: "internal-1y"
     allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "AUDITOR"
       - "tenant_owner"
       - "portfolio_admin"
       - "project_manager"
@@ -22,6 +30,9 @@ levels:
     description: "Sensitive business data restricted to leadership."
     retention_policy: "confidential-5y"
     allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "AUDITOR"
       - "tenant_owner"
       - "portfolio_admin"
       - "project_manager"
@@ -30,5 +41,6 @@ levels:
     description: "Highly sensitive data, limited to executive access."
     retention_policy: "restricted-7y"
     allowed_roles:
+      - "PMO_ADMIN"
       - "tenant_owner"
       - "portfolio_admin"

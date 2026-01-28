@@ -10,6 +10,8 @@
 
 import { useEffect, useMemo } from 'react';
 import { useAgentConfigStore, CATEGORY_INFO, type AgentConfig, type AgentCategory } from '@/store/agentConfig';
+import { useAppStore } from '@/store';
+import { canManageConfig } from '@/auth/permissions';
 import styles from './AgentGallery.module.css';
 
 interface AgentGalleryProps {
@@ -22,7 +24,6 @@ export function AgentGallery({ projectId = 'project-apollo' }: AgentGalleryProps
     agentsLoading,
     agentsError,
     filter,
-    canConfigure,
     currentUser,
     fetchAgents,
     fetchProjectConfigs,
@@ -39,6 +40,8 @@ export function AgentGallery({ projectId = 'project-apollo' }: AgentGalleryProps
     closeAgentModal,
     saveAgentConfig,
   } = useAgentConfigStore();
+  const { session } = useAppStore();
+  const canConfigure = canManageConfig(session.user?.roles);
 
   // Initialize store
   useEffect(() => {

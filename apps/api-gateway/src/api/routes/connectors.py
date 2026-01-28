@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 # Add connector SDK to path
@@ -41,6 +41,7 @@ from connector_registry import (
     get_connector_definition,
     get_connectors_by_category,
 )
+from security.audit_log import build_event, get_audit_log_store
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -317,7 +318,9 @@ async def get_connector(connector_id: str):
 
 
 @router.put("/connectors/{connector_id}/config", response_model=ConnectorConfigResponse)
-async def update_connector_config(connector_id: str, request: ConnectorConfigRequest):
+async def update_connector_config(
+    connector_id: str, request: ConnectorConfigRequest, http_request: Request
+):
     """
     Update connector configuration.
 
@@ -351,6 +354,21 @@ async def update_connector_config(connector_id: str, request: ConnectorConfigReq
 
     store.save(config)
 
+    auth = http_request.state.auth
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action="connector.config.updated",
+            resource_type="connector",
+            resource_id=connector_id,
+            outcome="success",
+            metadata={"enabled": config.enabled},
+        )
+    )
+
     return ConnectorConfigResponse(
         connector_id=config.connector_id,
         name=config.name,
@@ -369,7 +387,7 @@ async def update_connector_config(connector_id: str, request: ConnectorConfigReq
 
 
 @router.post("/connectors/{connector_id}/enable", response_model=ConnectorConfigResponse)
-async def enable_connector(connector_id: str):
+async def enable_connector(connector_id: str, http_request: Request):
     """
     Enable a connector.
 
@@ -389,6 +407,20 @@ async def enable_connector(connector_id: str):
 
     # Create config if it doesn't exist
     config = store.get(connector_id)
+
+    auth = http_request.state.auth
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action="connector.enabled",
+            resource_type="connector",
+            resource_id=connector_id,
+            outcome="success",
+        )
+    )
     if not config:
         config = ConnectorConfig(
             connector_id=connector_id,
@@ -419,7 +451,7 @@ async def enable_connector(connector_id: str):
 
 
 @router.post("/connectors/{connector_id}/disable", response_model=ConnectorConfigResponse)
-async def disable_connector(connector_id: str):
+async def disable_connector(connector_id: str, http_request: Request):
     """
     Disable a connector.
     """
@@ -432,6 +464,20 @@ async def disable_connector(connector_id: str):
     config.enabled = False
     config.updated_at = datetime.now(timezone.utc)
     store.save(config)
+
+    auth = http_request.state.auth
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action="connector.disabled",
+            resource_type="connector",
+            resource_id=connector_id,
+            outcome="success",
+        )
+    )
 
     return ConnectorConfigResponse(
         connector_id=config.connector_id,
@@ -512,12 +558,26 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
 
 
 @router.delete("/connectors/{connector_id}/config")
-async def delete_connector_config(connector_id: str):
+async def delete_connector_config(connector_id: str, http_request: Request):
     """
     Delete a connector configuration.
     """
     store = get_config_store()
     if not store.delete(connector_id):
         raise HTTPException(status_code=404, detail=f"Connector configuration not found: {connector_id}")
+
+    auth = http_request.state.auth
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action="connector.config.deleted",
+            resource_type="connector",
+            resource_id=connector_id,
+            outcome="success",
+        )
+    )
 
     return {"status": "deleted", "connector_id": connector_id}

@@ -4,6 +4,8 @@ import { useMethodologyStore } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { useAgentConfigStore } from '@/store/agentConfig';
 import { useConnectorStore } from '@/store/connectors';
+import { useAppStore } from '@/store';
+import { canManageConfig } from '@/auth/permissions';
 import { createArtifact, createEmptyContent, type CanvasType } from '@ppm/canvas-engine';
 import type { MethodologyMap } from '@/store/methodology';
 import styles from './TemplateGallery.module.css';
@@ -75,6 +77,8 @@ export function TemplateGallery() {
   const { openArtifact } = useCanvasStore();
   const { fetchAgents, applyTemplateAgents } = useAgentConfigStore();
   const { fetchConnectors, applyTemplateConnectors } = useConnectorStore();
+  const { session } = useAppStore();
+  const canApply = canManageConfig(session.user?.roles);
 
   useEffect(() => {
     const loadTemplates = async () => {
@@ -113,6 +117,10 @@ export function TemplateGallery() {
   };
 
   const handleApplyTemplate = async (templateId: string) => {
+    if (!canApply) {
+      setError('You do not have permission to apply templates.');
+      return;
+    }
     const projectName = projectNames[templateId]?.trim();
     if (!projectName) {
       setError('Please provide a project name before applying a template.');
@@ -246,7 +254,9 @@ export function TemplateGallery() {
             <button
               className={styles.applyButton}
               onClick={() => handleApplyTemplate(template.id)}
-              disabled={Boolean(applying[template.id])}
+              disabled={Boolean(applying[template.id]) || !canApply}
+              aria-disabled={!canApply}
+              title={canApply ? 'Apply template' : 'Read-only'}
             >
               {applying[template.id] ? 'Applying...' : 'Use This Template'}
             </button>

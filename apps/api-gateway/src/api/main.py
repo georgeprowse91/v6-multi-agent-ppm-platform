@@ -19,12 +19,13 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
-from api.routes import agents, health, agent_config, analytics, connectors, workflows
+from api.routes import agents, health, agent_config, analytics, connectors, workflows, audit
 from api.runtime_bootstrap import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for path_root in (REPO_ROOT, OBSERVABILITY_ROOT):
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+for path_root in (REPO_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT):
     if str(path_root) not in sys.path:
         sys.path.insert(0, str(path_root))
 
@@ -167,6 +168,7 @@ app.include_router(agent_config.router, prefix="/api/v1", tags=["agent-config"])
 app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
 app.include_router(connectors.router, prefix="/api/v1", tags=["connectors"])
 app.include_router(workflows.router, prefix="/api/v1", tags=["workflows"])
+app.include_router(audit.router, prefix="/api/v1", tags=["audit"])
 
 
 # Global exception handler

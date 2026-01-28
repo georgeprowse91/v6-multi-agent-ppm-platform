@@ -27,9 +27,10 @@ class AgentCategory(str, Enum):
 
 class UserRole(str, Enum):
     """User roles for permission checks."""
-    ADMIN = "admin"
-    PM = "pm"          # Project Manager
-    MEMBER = "member"
+    PMO_ADMIN = "PMO_ADMIN"
+    PM = "PM"
+    TEAM_MEMBER = "TEAM_MEMBER"
+    AUDITOR = "AUDITOR"
 
 
 @dataclass
@@ -140,9 +141,14 @@ class DevUserProfile:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "DevUserProfile":
-        role = data.get("role", UserRole.MEMBER)
+        role = data.get("role", UserRole.TEAM_MEMBER)
         if isinstance(role, str):
-            role = UserRole(role)
+            legacy_map = {
+                "admin": UserRole.PMO_ADMIN,
+                "pm": UserRole.PM,
+                "member": UserRole.TEAM_MEMBER,
+            }
+            role = legacy_map.get(role, UserRole(role))
         return cls(
             user_id=data["user_id"],
             name=data["name"],
@@ -175,9 +181,9 @@ class AgentConfigStore:
         return {
             "admin": DevUserProfile(
                 user_id="admin",
-                name="Admin User",
+                name="PMO Admin",
                 email="admin@example.com",
-                role=UserRole.ADMIN,
+                role=UserRole.PMO_ADMIN,
             ).to_dict(),
             "pm": DevUserProfile(
                 user_id="pm",
@@ -189,7 +195,13 @@ class AgentConfigStore:
                 user_id="member",
                 name="Team Member",
                 email="member@example.com",
-                role=UserRole.MEMBER,
+                role=UserRole.TEAM_MEMBER,
+            ).to_dict(),
+            "auditor": DevUserProfile(
+                user_id="auditor",
+                name="Audit Reviewer",
+                email="auditor@example.com",
+                role=UserRole.AUDITOR,
             ).to_dict(),
         }
 
@@ -775,8 +787,8 @@ class AgentConfigStore:
         user = self.get_dev_user(user_id)
         if not user:
             return False
-        # Only admin and PM roles can configure agents
-        return user.role in (UserRole.ADMIN, UserRole.PM)
+        # Only PMO admin and PM roles can configure agents
+        return user.role in (UserRole.PMO_ADMIN, UserRole.PM)
 
 
 # Global instance for easy access

@@ -18,6 +18,7 @@ if str(WORKFLOW_ENGINE_SRC) not in sys.path:
 
 from workflow_definitions import load_definition, seed_definitions  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
+from security.audit_log import build_event, get_audit_log_store
 from workflow_storage import WorkflowStore  # noqa: E402
 
 router = APIRouter()
@@ -340,6 +341,23 @@ async def decide_approval(
     runtime = _get_runtime(http_request)
     instance = await runtime.handle_approval_decision(
         approval, request.decision, request.approver_id, request.comments
+    )
+    auth = http_request.state.auth
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action="approval.decision",
+            resource_type="approval",
+            resource_id=approval_id,
+            outcome="success",
+            metadata={
+                "decision": request.decision,
+                "approver_id": request.approver_id,
+            },
+        )
     )
     return WorkflowRunResponse(
         run_id=instance.run_id,

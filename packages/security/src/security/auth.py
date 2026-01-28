@@ -55,6 +55,25 @@ def _normalize_roles(claims: dict[str, Any], roles_claim: str) -> list[str]:
     return list(roles)
 
 
+def _dev_claims_from_jwt(token: str) -> dict[str, Any] | None:
+    dev_secret = os.getenv("AUTH_DEV_JWT_SECRET")
+    if not dev_secret:
+        return None
+    try:
+        return cast(
+            dict[str, Any],
+            jwt.decode(
+                token,
+                dev_secret,
+                algorithms=["HS256"],
+                options={"verify_aud": False, "verify_iss": False},
+            ),
+        )
+    except InvalidTokenError as exc:
+        logger.warning("dev_token_validation_failed", extra={"error": str(exc)})
+        return None
+
+
 async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
     if config.identity_access_url:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -115,16 +134,36 @@ async def authenticate_request(request: Request, config: AuthConfig | None = Non
     auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
     environment = os.getenv("ENVIRONMENT", "development").lower()
     if auth_dev_mode and environment in {"dev", "development", "local", "test"}:
-        tenant_id = request.headers.get("X-Tenant-ID") or os.getenv(
-            "AUTH_DEV_TENANT_ID", "dev-tenant"
+        auth_header = request.headers.get("Authorization", "")
+        token = (
+            auth_header.replace("Bearer ", "", 1).strip()
+            if auth_header.startswith("Bearer ")
+            else None
         )
-        roles_raw = os.getenv("AUTH_DEV_ROLES", "tenant_owner")
-        roles = [role.strip() for role in roles_raw.split(",") if role.strip()]
+        claims = _dev_claims_from_jwt(token) if token else None
+        tenant_id = (
+            request.headers.get("X-Tenant-ID")
+            or (claims.get("tenant_id") if claims else None)
+            or os.getenv("AUTH_DEV_TENANT_ID", "dev-tenant")
+        )
+        roles_raw = (
+            ",".join(claims.get("roles", []))
+            if claims and isinstance(claims.get("roles"), list)
+            else claims.get("roles")
+            if claims and isinstance(claims.get("roles"), str)
+            else os.getenv("AUTH_DEV_ROLES", "PMO_ADMIN")
+        )
+        roles = [role.strip() for role in str(roles_raw).split(",") if role.strip()]
+        subject = (
+            claims.get("sub")
+            if claims
+            else request.headers.get("X-Dev-User", "dev-user")
+        )
         return AuthContext(
             tenant_id=tenant_id,
-            subject=request.headers.get("X-Dev-User", "dev-user"),
+            subject=subject,
             roles=roles,
-            claims={"roles": roles, "sub": "dev-user"},
+            claims=claims or {"roles": roles, "sub": subject},
         )
 
     auth_header = request.headers.get("Authorization", "")

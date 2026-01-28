@@ -40,7 +40,7 @@
     },
     "UserRole": {
       "type": "string",
-      "enum": ["admin", "pm", "member"],
+      "enum": ["PMO_ADMIN", "PM", "TEAM_MEMBER", "AUDITOR"],
       "description": "User role for permission checks"
     },
     "ParameterType": {

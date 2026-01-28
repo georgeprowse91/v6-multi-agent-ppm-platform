@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { Header } from './Header';
 import { LeftPanel } from './LeftPanel';
 import { MainCanvas } from './MainCanvas';
 import { AssistantPanel } from '@/components/assistant';
+import { useAppStore } from '@/store';
 import styles from './AppLayout.module.css';
 
 interface AppLayoutProps {
@@ -9,6 +11,41 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const { setSession } = useAppStore();
+
+  useEffect(() => {
+    let mounted = true;
+    const loadSession = async () => {
+      try {
+        const response = await fetch('/session');
+        const data = await response.json();
+        if (!mounted) return;
+        if (data.authenticated) {
+          setSession({
+            authenticated: true,
+            loading: false,
+            user: {
+              id: data.subject ?? 'user',
+              name: data.subject ?? 'User',
+              email: '',
+              tenantId: data.tenant_id ?? 'default',
+              roles: data.roles ?? [],
+            },
+          });
+        } else {
+          setSession({ authenticated: false, loading: false, user: null });
+        }
+      } catch {
+        if (!mounted) return;
+        setSession({ authenticated: false, loading: false, user: null });
+      }
+    };
+    loadSession();
+    return () => {
+      mounted = false;
+    };
+  }, [setSession]);
+
   return (
     <div className={styles.layout}>
       <Header />

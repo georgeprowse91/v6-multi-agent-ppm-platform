@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "methodology": "Methodology",
+    "configuration": "Configuration",
+    "workflow": "Workflow",
+    "knowledge": "Knowledge",
+    "auditLogs": "Audit Logs",
+    "agents": "Agents",
+    "connectors": "Connectors",
+    "templates": "Templates",
+    "approvals": "My Approvals",
+    "workflowMonitor": "Workflow Monitor",
+    "documents": "Documents",
+    "lessons": "Lessons Learned"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "description": "Review configuration and workflow actions recorded for this tenant.",
+    "empty": "No audit events found.",
+    "accessDenied": "You do not have access to audit logs."
+  }
+}

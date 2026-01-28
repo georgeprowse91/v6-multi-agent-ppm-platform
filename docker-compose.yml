@@ -18,7 +18,7 @@ services:
       - ENVIRONMENT=development
       - ORCHESTRATION_STATE_BACKEND=db
       - AUTH_DEV_MODE=${AUTH_DEV_MODE:-true}
-      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-tenant_owner}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-PMO_ADMIN}
       - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID:-dev-tenant}
       - LLM_PROVIDER=${LLM_PROVIDER:-mock}
       - LLM_MOCK_RESPONSE_PATH=${LLM_MOCK_RESPONSE_PATH:-/app/examples/demo-scenarios/quickstart-llm-response.json}
@@ -47,7 +47,7 @@ services:
     environment:
       - ENVIRONMENT=development
       - AUTH_DEV_MODE=${AUTH_DEV_MODE:-true}
-      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-tenant_owner}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-PMO_ADMIN}
       - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID:-dev-tenant}
       - WORKFLOW_DB_PATH=/app/apps/workflow-engine/storage/workflows.db
     volumes:

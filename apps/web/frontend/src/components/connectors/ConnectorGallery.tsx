@@ -11,6 +11,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useConnectorStore, CATEGORY_INFO, type Connector, type ConnectorCategory } from '@/store/connectors';
+import { useAppStore } from '@/store';
+import { canManageConfig } from '@/auth/permissions';
 import { SyncStatusPanel } from './SyncStatusPanel';
 import styles from './ConnectorGallery.module.css';
 
@@ -37,6 +39,8 @@ export function ConnectorGallery() {
     testResult,
     clearTestResult,
   } = useConnectorStore();
+  const { session } = useAppStore();
+  const canManage = canManageConfig(session.user?.roles);
 
   // Initialize store
   useEffect(() => {
@@ -74,6 +78,7 @@ export function ConnectorGallery() {
   }, [connectorsByCategory]);
 
   const handleToggleEnabled = async (connector: Connector) => {
+    if (!canManage) return;
     if (connector.status !== 'available') return;
     if (connector.enabled) {
       await disableConnector(connector.connector_id);
@@ -83,6 +88,7 @@ export function ConnectorGallery() {
   };
 
   const handleOpenConfig = (connector: Connector) => {
+    if (!canManage) return;
     openConnectorModal(connector);
   };
 
@@ -203,6 +209,7 @@ export function ConnectorGallery() {
               connectors={connectorsByCategory[category]}
               onToggleEnabled={handleToggleEnabled}
               onOpenConfig={handleOpenConfig}
+              canManage={canManage}
             />
           ))
         )}
@@ -232,6 +239,7 @@ interface CategorySectionProps {
   connectors: Connector[];
   onToggleEnabled: (connector: Connector) => void;
   onOpenConfig: (connector: Connector) => void;
+  canManage: boolean;
 }
 
 function CategorySection({
@@ -239,6 +247,7 @@ function CategorySection({
   connectors,
   onToggleEnabled,
   onOpenConfig,
+  canManage,
 }: CategorySectionProps) {
   const info = CATEGORY_INFO[category];
   const enabledConnector = connectors.find((c) => c.enabled);
@@ -267,6 +276,7 @@ function CategorySection({
             connector={connector}
             onToggleEnabled={() => onToggleEnabled(connector)}
             onOpenConfig={() => onOpenConfig(connector)}
+            canManage={canManage}
           />
         ))}
       </div>
@@ -281,15 +291,18 @@ interface ConnectorCardProps {
   connector: Connector;
   onToggleEnabled: () => void;
   onOpenConfig: () => void;
+  canManage: boolean;
 }
 
 function ConnectorCard({
   connector,
   onToggleEnabled,
   onOpenConfig,
+  canManage,
 }: ConnectorCardProps) {
   const isAvailable = connector.status === 'available';
   const isComingSoon = connector.status === 'coming_soon';
+  const canToggle = canManage && isAvailable;
 
   return (
     <div className={`${styles.connectorCard} ${!isAvailable ? styles.comingSoon : ''} ${connector.enabled ? styles.enabled : ''}`}>
@@ -302,12 +315,22 @@ function ConnectorCard({
           {isComingSoon && <span className={styles.statusBadge}>Coming Soon</span>}
           {connector.status === 'beta' && <span className={styles.statusBadgeBeta}>Beta</span>}
         </div>
-        <label className={styles.toggleSwitch} title={isAvailable ? 'Toggle enabled' : 'Not available yet'}>
+        <label
+          className={styles.toggleSwitch}
+          title={
+            !isAvailable
+              ? 'Not available yet'
+              : canManage
+              ? 'Toggle enabled'
+              : 'Read-only'
+          }
+        >
           <input
             type="checkbox"
             checked={connector.enabled}
             onChange={onToggleEnabled}
-            disabled={!isAvailable}
+            disabled={!canToggle}
+            aria-label={`Toggle ${connector.name}`}
           />
           <span className={styles.toggleSlider}></span>
         </label>
@@ -334,8 +357,14 @@ function ConnectorCard({
         <button
           className={styles.configButton}
           onClick={onOpenConfig}
-          disabled={!isAvailable}
-          title={isAvailable ? 'Configure connector' : 'Not available yet'}
+          disabled={!canToggle}
+          title={
+            !isAvailable
+              ? 'Not available yet'
+              : canManage
+              ? 'Configure connector'
+              : 'Read-only'
+          }
         >
           Configure
         </button>

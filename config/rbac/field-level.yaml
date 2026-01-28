@@ -2,23 +2,33 @@ fields:
   project:
     budget:
       allowed_roles:
+        - "PMO_ADMIN"
+        - "PM"
         - "tenant_owner"
         - "portfolio_admin"
         - "project_manager"
     risk_rating:
       allowed_roles:
+        - "PMO_ADMIN"
+        - "AUDITOR"
         - "tenant_owner"
         - "portfolio_admin"
         - "auditor"
   portfolio:
     strategic_score:
       allowed_roles:
+        - "PMO_ADMIN"
+        - "TEAM_MEMBER"
         - "tenant_owner"
         - "portfolio_admin"
         - "analyst"
 classification_access:
   public:
     allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "AUDITOR"
       - "tenant_owner"
       - "portfolio_admin"
       - "project_manager"
@@ -27,6 +37,10 @@ classification_access:
       - "integration_service"
   internal:
     allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "AUDITOR"
       - "tenant_owner"
       - "portfolio_admin"
       - "project_manager"
@@ -34,11 +48,15 @@ classification_access:
       - "auditor"
   confidential:
     allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "AUDITOR"
       - "tenant_owner"
       - "portfolio_admin"
       - "project_manager"
       - "auditor"
   restricted:
     allowed_roles:
+      - "PMO_ADMIN"
       - "tenant_owner"
       - "portfolio_admin"
