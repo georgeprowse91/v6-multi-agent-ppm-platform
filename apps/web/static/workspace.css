@@ -633,6 +633,172 @@
   max-height: 280px;
 }
 
+.spreadsheet-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spreadsheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.spreadsheet-sheet-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spreadsheet-sheet-select select {
+  border: 1px solid #d1d9e6;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.spreadsheet-actions button,
+.spreadsheet-form-actions button,
+.spreadsheet-import-actions button,
+.spreadsheet-table button {
+  border: none;
+  background: #1b4cdb;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.spreadsheet-actions button.secondary,
+.spreadsheet-form-actions button.secondary,
+.spreadsheet-column-row button.secondary,
+.spreadsheet-table button.secondary {
+  background: #e2e8f0;
+  color: #1f2937;
+  border: 1px solid #d1d9e6;
+}
+
+.spreadsheet-create-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.spreadsheet-create-panel.is-hidden {
+  display: none;
+}
+
+.spreadsheet-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.spreadsheet-column-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.spreadsheet-column-row input,
+.spreadsheet-column-row select {
+  border: 1px solid #d1d9e6;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.spreadsheet-required {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.spreadsheet-table-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spreadsheet-table-wrapper {
+  overflow-x: auto;
+}
+
+.spreadsheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.spreadsheet-table th,
+.spreadsheet-table td {
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  text-align: left;
+}
+
+.spreadsheet-header-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spreadsheet-header-meta {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.spreadsheet-cell-input {
+  width: 100%;
+  border: 1px solid #d1d9e6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.spreadsheet-cell-input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.spreadsheet-new-row {
+  background: #f8fafc;
+}
+
+.spreadsheet-message {
+  margin: 0;
+  font-size: 12px;
+  color: #1d4ed8;
+}
+
+.spreadsheet-message.is-error {
+  color: #b91c1c;
+}
+
+.spreadsheet-empty {
+  margin: 0;
+  color: #6b7280;
+}
+
+.spreadsheet-import textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #d1d9e6;
+  padding: 10px 12px;
+  font-size: 12px;
+  resize: vertical;
+  background: #f8fafc;
+}
+
 @media (max-width: 1100px) {
   .document-canvas {
     grid-template-columns: 1fr;
