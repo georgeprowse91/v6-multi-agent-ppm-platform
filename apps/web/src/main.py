@@ -5,7 +5,7 @@ import logging
 import os
 import secrets
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -37,6 +37,14 @@ from workspace_state import (  # noqa: E402
     WorkspaceState,
 )
 from workspace_state_store import WorkspaceStateStore  # noqa: E402
+from timeline_models import (  # noqa: E402
+    Milestone,
+    MilestoneCreate,
+    MilestoneUpdate,
+    TimelineExportResponse,
+    TimelineResponse,
+)
+from timeline_store import TimelineStore  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +55,7 @@ TEMPLATES_PATH = DATA_DIR / "templates.json"
 PROJECTS_PATH = DATA_DIR / "projects.json"
 KNOWLEDGE_DB_PATH = DATA_DIR / "knowledge.db"
 WORKSPACE_STATE_PATH = STORAGE_DIR / "workspace_state.json"
+TIMELINES_PATH = STORAGE_DIR / "timelines.json"
 
 SESSION_COOKIE = "ppm_session"
 SESSION_STORE: dict[str, dict[str, Any]] = {}
@@ -60,6 +69,7 @@ app.add_middleware(RequestMetricsMiddleware, service_name="web-ui")
 
 knowledge_store: KnowledgeStore | None = None
 workspace_state_store = WorkspaceStateStore(WORKSPACE_STATE_PATH)
+timeline_store = TimelineStore(TIMELINES_PATH)
 logger = logging.getLogger("web-ui")
 
 
@@ -771,6 +781,102 @@ async def update_activity_completion(
         tenant_id, project_id, payload.activity_id, payload.completed
     )
     return _build_workspace_response(state)
+
+
+@app.get("/api/timeline/{project_id}", response_model=TimelineResponse)
+async def list_timeline_milestones(project_id: str, request: Request) -> TimelineResponse:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    milestones = timeline_store.list_milestones(tenant_id, project_id)
+    logger.info(
+        "timeline.list",
+        extra={"tenant_id": tenant_id, "project_id": project_id},
+    )
+    return TimelineResponse(
+        tenant_id=tenant_id,
+        project_id=project_id,
+        milestones=milestones,
+    )
+
+
+@app.post("/api/timeline/{project_id}/milestones", response_model=Milestone)
+async def create_timeline_milestone(
+    project_id: str, payload: MilestoneCreate, request: Request
+) -> Milestone:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    milestone = timeline_store.create_milestone(tenant_id, project_id, payload)
+    logger.info(
+        "timeline.create",
+        extra={
+            "tenant_id": tenant_id,
+            "project_id": project_id,
+            "milestone_id": milestone.milestone_id,
+        },
+    )
+    return milestone
+
+
+@app.patch("/api/timeline/{project_id}/milestones/{milestone_id}", response_model=Milestone)
+async def update_timeline_milestone(
+    project_id: str,
+    milestone_id: str,
+    payload: MilestoneUpdate,
+    request: Request,
+) -> Milestone:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    milestone = timeline_store.update_milestone(
+        tenant_id, project_id, milestone_id, payload
+    )
+    if not milestone:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+    logger.info(
+        "timeline.update",
+        extra={
+            "tenant_id": tenant_id,
+            "project_id": project_id,
+            "milestone_id": milestone_id,
+        },
+    )
+    return milestone
+
+
+@app.delete("/api/timeline/{project_id}/milestones/{milestone_id}")
+async def delete_timeline_milestone(
+    project_id: str, milestone_id: str, request: Request
+) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    deleted = timeline_store.delete_milestone(tenant_id, project_id, milestone_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+    logger.info(
+        "timeline.delete",
+        extra={
+            "tenant_id": tenant_id,
+            "project_id": project_id,
+            "milestone_id": milestone_id,
+        },
+    )
+    return {"deleted": True, "milestone_id": milestone_id}
+
+
+@app.get("/api/timeline/{project_id}/export", response_model=TimelineExportResponse)
+async def export_timeline(project_id: str, request: Request) -> TimelineExportResponse:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    milestones = timeline_store.list_milestones(tenant_id, project_id)
+    logger.info(
+        "timeline.export",
+        extra={"tenant_id": tenant_id, "project_id": project_id},
+    )
+    return TimelineExportResponse(
+        tenant_id=tenant_id,
+        project_id=project_id,
+        exported_at=datetime.now(timezone.utc),
+        milestones=milestones,
+    )
 
 
 @app.get("/api/templates", response_model=list[TemplateSummary])

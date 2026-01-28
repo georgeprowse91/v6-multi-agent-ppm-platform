@@ -171,6 +171,24 @@ The workspace shell expects a `project_id` query parameter (for example, `/works
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
 
+## Timeline canvas APIs
+
+Timeline milestones are persisted per `(tenant_id, project_id)` in:
+
+```
+apps/web/storage/timelines.json
+```
+
+Endpoints:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/timeline/{project_id}` | List milestones for the current tenant/project. |
+| `POST` | `/api/timeline/{project_id}/milestones` | Create a milestone. |
+| `PATCH` | `/api/timeline/{project_id}/milestones/{milestone_id}` | Update a milestone. |
+| `DELETE` | `/api/timeline/{project_id}/milestones/{milestone_id}` | Delete a milestone. |
+| `GET` | `/api/timeline/{project_id}/export` | Export timeline JSON for the project. |
+
 ### Methodology selection and gating
 
 The workspace shell supports a methodology-driven navigation model. Methodologies can be provided via the

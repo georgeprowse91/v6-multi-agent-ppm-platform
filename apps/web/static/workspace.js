@@ -80,6 +80,11 @@ const initWorkspace = () => {
     list: [],
     selected: null,
   };
+  const timelineState = {
+    milestones: [],
+    editingId: null,
+    exportPayload: null,
+  };
 
   const setActiveTab = (targetTab) => {
     tabs.forEach((item) => {
@@ -536,6 +541,286 @@ const initWorkspace = () => {
     loadDocumentList();
   };
 
+  const setTimelineMessage = (message, isError = false) => {
+    const messageElement = document.getElementById("timeline-message");
+    if (!messageElement) {
+      return;
+    }
+    messageElement.textContent = message;
+    messageElement.classList.toggle("is-error", isError);
+  };
+
+  const renderTimelineList = () => {
+    const listElement = document.getElementById("timeline-list");
+    const emptyElement = document.getElementById("timeline-empty");
+    if (!listElement) {
+      return;
+    }
+    listElement.innerHTML = "";
+    if (!timelineState.milestones.length) {
+      if (emptyElement) {
+        emptyElement.classList.remove("is-hidden");
+      }
+      return;
+    }
+    if (emptyElement) {
+      emptyElement.classList.add("is-hidden");
+    }
+    timelineState.milestones.forEach((milestone) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${milestone.date}</td>
+        <td>${milestone.title}</td>
+        <td class="timeline-status ${milestone.status}">${milestone.status.replace("_", " ")}</td>
+        <td>${milestone.owner || "—"}</td>
+        <td class="timeline-actions">
+          <button type="button" data-action="edit">Edit</button>
+          <button type="button" data-action="delete">Delete</button>
+        </td>
+      `;
+      row.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const action = button.dataset.action;
+          if (action === "edit") {
+            timelineState.editingId = milestone.milestone_id;
+            const form = document.getElementById("timeline-form");
+            if (form) {
+              form.dataset.editing = "true";
+            }
+            document.getElementById("timeline-title").value = milestone.title;
+            document.getElementById("timeline-date").value = milestone.date;
+            document.getElementById("timeline-status").value = milestone.status;
+            document.getElementById("timeline-owner").value = milestone.owner || "";
+            document.getElementById("timeline-notes").value = milestone.notes || "";
+            document.getElementById("timeline-submit").textContent = "Save changes";
+            document.getElementById("timeline-cancel").classList.remove("is-hidden");
+          }
+          if (action === "delete") {
+            const confirmed = window.confirm(
+              `Delete milestone \"${milestone.title}\"?`,
+            );
+            if (!confirmed) {
+              return;
+            }
+            const response = await fetch(
+              `/api/timeline/${projectId}/milestones/${milestone.milestone_id}`,
+              { method: "DELETE" },
+            );
+            if (!response.ok) {
+              setTimelineMessage("Unable to delete milestone.", true);
+              return;
+            }
+            setTimelineMessage("Milestone deleted.");
+            await loadTimeline();
+          }
+        });
+      });
+      listElement.appendChild(row);
+    });
+  };
+
+  const loadTimeline = async () => {
+    const statusElement = document.getElementById("timeline-list-status");
+    if (statusElement) {
+      statusElement.textContent = "Loading milestones...";
+    }
+    const response = await fetch(`/api/timeline/${projectId}`);
+    if (!response.ok) {
+      if (statusElement) {
+        statusElement.textContent = "Unable to load milestones.";
+      }
+      return;
+    }
+    const payload = await response.json();
+    timelineState.milestones = payload.milestones || [];
+    if (statusElement) {
+      statusElement.textContent = `${timelineState.milestones.length} milestones`;
+    }
+    renderTimelineList();
+  };
+
+  const resetTimelineForm = () => {
+    timelineState.editingId = null;
+    const form = document.getElementById("timeline-form");
+    if (form) {
+      form.dataset.editing = "false";
+    }
+    document.getElementById("timeline-title").value = "";
+    document.getElementById("timeline-date").value = "";
+    document.getElementById("timeline-status").value = "planned";
+    document.getElementById("timeline-owner").value = "";
+    document.getElementById("timeline-notes").value = "";
+    document.getElementById("timeline-submit").textContent = "Add milestone";
+    document.getElementById("timeline-cancel").classList.add("is-hidden");
+  };
+
+  const renderTimelineCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="timeline-canvas">
+        <section class="timeline-form-card">
+          <h3>Add milestone</h3>
+          <form id="timeline-form" data-editing="false">
+            <label>
+              Title
+              <input type="text" id="timeline-title" required />
+            </label>
+            <label>
+              Date
+              <input type="date" id="timeline-date" required />
+            </label>
+            <label>
+              Status
+              <select id="timeline-status" required>
+                <option value="planned">Planned</option>
+                <option value="at_risk">At risk</option>
+                <option value="complete">Complete</option>
+              </select>
+            </label>
+            <label>
+              Owner
+              <input type="text" id="timeline-owner" />
+            </label>
+            <label>
+              Notes
+              <textarea id="timeline-notes" rows="3"></textarea>
+            </label>
+            <div class="timeline-form-actions">
+              <button type="submit" id="timeline-submit">Add milestone</button>
+              <button type="button" class="secondary is-hidden" id="timeline-cancel">
+                Cancel
+              </button>
+            </div>
+            <p class="timeline-message" id="timeline-message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+        <section class="timeline-list-panel">
+          <div class="timeline-list-header">
+            <h3>Milestones</h3>
+            <p id="timeline-list-status" class="timeline-list-status"></p>
+          </div>
+          <p id="timeline-empty" class="timeline-empty">No milestones yet.</p>
+          <table class="timeline-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="timeline-list"></tbody>
+          </table>
+        </section>
+        <section class="timeline-export">
+          <div class="timeline-export-header">
+            <h3>Export JSON</h3>
+            <div class="timeline-export-actions">
+              <button type="button" id="timeline-export">Refresh export</button>
+              <button type="button" class="secondary" id="timeline-export-copy">Copy JSON</button>
+            </div>
+          </div>
+          <pre id="timeline-export-output">{}</pre>
+        </section>
+      </div>
+    `;
+
+    const form = document.getElementById("timeline-form");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setTimelineMessage("");
+
+      const title = document.getElementById("timeline-title").value.trim();
+      const date = document.getElementById("timeline-date").value;
+      const status = document.getElementById("timeline-status").value;
+      const owner = document.getElementById("timeline-owner").value.trim();
+      const notes = document.getElementById("timeline-notes").value.trim();
+
+      if (!title || !date || !status) {
+        setTimelineMessage("Title, date, and status are required.", true);
+        return;
+      }
+
+      const payload = {
+        title,
+        date,
+        status,
+        owner: owner || null,
+        notes: notes || null,
+      };
+
+      const isEditing = Boolean(timelineState.editingId);
+      const url = isEditing
+        ? `/api/timeline/${projectId}/milestones/${timelineState.editingId}`
+        : `/api/timeline/${projectId}/milestones`;
+      const response = await fetch(url, {
+        method: isEditing ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const responseBody = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setTimelineMessage(
+          responseBody?.detail || "Unable to save milestone.",
+          true,
+        );
+        return;
+      }
+      setTimelineMessage(isEditing ? "Milestone updated." : "Milestone added.");
+      resetTimelineForm();
+      await loadTimeline();
+    });
+
+    const cancelButton = document.getElementById("timeline-cancel");
+    cancelButton.addEventListener("click", () => {
+      resetTimelineForm();
+    });
+
+    const exportButton = document.getElementById("timeline-export");
+    const exportOutput = document.getElementById("timeline-export-output");
+    const exportCopy = document.getElementById("timeline-export-copy");
+
+    const refreshExport = async () => {
+      const response = await fetch(`/api/timeline/${projectId}/export`);
+      if (!response.ok) {
+        setTimelineMessage("Unable to export timeline.", true);
+        return;
+      }
+      const payload = await response.json();
+      timelineState.exportPayload = payload;
+      if (exportOutput) {
+        exportOutput.textContent = JSON.stringify(payload, null, 2);
+      }
+    };
+
+    exportButton.addEventListener("click", refreshExport);
+    exportCopy.addEventListener("click", async () => {
+      if (!navigator.clipboard) {
+        setTimelineMessage("Clipboard access is unavailable in this browser.", true);
+        return;
+      }
+      const content = exportOutput?.textContent || "";
+      if (!content.trim()) {
+        setTimelineMessage("Nothing to copy yet.", true);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(content);
+        setTimelineMessage("Export copied to clipboard.");
+      } catch (error) {
+        setTimelineMessage("Unable to copy export.", true);
+      }
+    });
+
+    resetTimelineForm();
+    loadTimeline();
+    refreshExport();
+  };
+
   const renderPlaceholder = (tabName) => {
     const canvas = document.querySelector(".workspace-canvas");
     if (!canvas) {
@@ -548,6 +833,8 @@ const initWorkspace = () => {
     if (tabName === "document") {
       renderDocumentCanvas();
       renderDocumentDetail(documentState.selected);
+    } else if (tabName === "timeline") {
+      renderTimelineCanvas();
     } else if (tabName) {
       renderPlaceholder(tabName);
     }
