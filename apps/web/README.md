@@ -200,6 +200,49 @@ The workspace shell expects a `project_id` query parameter (for example, `/works
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
 
+## Template gallery
+
+The workspace includes a template gallery for creating deliverables (documents and spreadsheets). Templates are defined in:
+
+- `apps/web/src/template_models.py` (Pydantic models + placeholder rendering)
+- `apps/web/src/template_registry.py` (static registry of template definitions)
+
+### Template placeholders
+
+Templates support simple string substitution (no code execution) for the following placeholders:
+
+- `{{project_id}}`
+- `{{tenant_id}}`
+- `{{date}}` (YYYY-MM-DD)
+- `{{user}}` (derived from the authenticated subject or passed via parameters; defaults to `unknown`)
+
+Custom parameters passed during instantiation are merged into the placeholder context.
+
+### API endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/api/templates` | List template summaries; supports `type`, `tag`, `q`, and `gallery=true` filters. |
+| `GET` | `/api/templates/{template_id}` | Fetch full template definition (`gallery=true` preferred when requesting deliverable templates). |
+| `POST` | `/api/templates/{template_id}/instantiate` | Instantiate a template into a document or spreadsheet. |
+
+> **Note:** `/api/templates` is shared with project template configuration. Use `gallery=true` to explicitly request deliverable templates for the workspace gallery.
+
+Example instantiate request:
+
+```json
+{
+  "project_id": "demo-1",
+  "parameters": { "user": "Alex" }
+}
+```
+
+### Adding new templates
+
+1. Add a new `Template` entry in `apps/web/src/template_registry.py`.
+2. Set `template_id` to a stable identifier and increment `schema_version` if you change the schema.
+3. Use `defaults` for document templates (classification + retention) and specify payload templates with placeholder tokens.
+
 ## Assistant proxy
 
 The assistant panel sends requests to the web backend, which forwards them to the API gateway orchestrator endpoint.

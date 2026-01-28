@@ -57,10 +57,41 @@ const renderWorkspaceShell = () => {
         </section>
       </main>
       <aside class="workspace-assistant" aria-label="Activity guidance panel">
-        <h3>Assistant</h3>
-        <div id="activity-guidance">
-          <p>Select an activity to view guidance.</p>
+        <div class="assistant-panel">
+          <h3>Assistant</h3>
+          <div id="activity-guidance">
+            <p>Select an activity to view guidance.</p>
+          </div>
         </div>
+        <section class="workspace-templates" aria-label="Template gallery">
+          <h3>Templates</h3>
+          <div class="templates-toolbar">
+            <div class="templates-tabs" role="tablist" aria-label="Template filters">
+              <button class="template-tab is-active" role="tab" aria-selected="true" data-template-filter="all">
+                All
+              </button>
+              <button class="template-tab" role="tab" aria-selected="false" data-template-filter="document">
+                Documents
+              </button>
+              <button class="template-tab" role="tab" aria-selected="false" data-template-filter="spreadsheet">
+                Spreadsheets
+              </button>
+            </div>
+            <label class="templates-search" for="template-search">
+              <span>Search</span>
+              <input id="template-search" type="search" placeholder="Search templates" />
+            </label>
+          </div>
+          <div class="templates-body">
+            <div class="templates-list" id="template-list">
+              <p class="templates-empty">Loading templates...</p>
+            </div>
+            <div class="templates-detail" id="template-detail">
+              <p>Select a template to see details.</p>
+            </div>
+          </div>
+          <p class="templates-status" id="template-status" role="status"></p>
+        </section>
       </aside>
     </div>
   `;
@@ -69,7 +100,10 @@ const renderWorkspaceShell = () => {
 const initWorkspace = () => {
   renderWorkspaceShell();
   const sessionInfo = document.getElementById("workspace-session");
-  loadSession(sessionInfo);
+  let session = null;
+  loadSession(sessionInfo).then((payload) => {
+    session = payload;
+  });
   const searchParams = new URLSearchParams(window.location.search);
   const projectId = searchParams.get("project_id") || "default";
   const urlMethodology = searchParams.get("methodology");
@@ -103,6 +137,12 @@ const initWorkspace = () => {
       health: "",
       trends: "",
     },
+  };
+  const templatesState = {
+    list: [],
+    selected: null,
+    filter: "all",
+    query: "",
   };
 
   const setActiveTab = (targetTab) => {
@@ -590,6 +630,157 @@ const initWorkspace = () => {
     });
     if (response) {
       updateWorkspaceUI(response);
+    }
+  };
+
+  const setTemplateStatus = (message, isError = false) => {
+    const status = document.getElementById("template-status");
+    if (!status) {
+      return;
+    }
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  };
+
+  const renderTemplateList = () => {
+    const list = document.getElementById("template-list");
+    if (!list) {
+      return;
+    }
+    if (!templatesState.list.length) {
+      list.innerHTML = "<p class=\"templates-empty\">No templates found.</p>";
+      return;
+    }
+    list.innerHTML = templatesState.list
+      .map(
+        (template) => `
+          <button type="button" class="template-item${
+            templatesState.selected?.template_id === template.template_id
+              ? " is-selected"
+              : ""
+          }" data-template-id="${template.template_id}">
+            <span class="template-name">${escapeHtml(template.name)}</span>
+            <span class="template-type">${escapeHtml(template.type)}</span>
+          </button>
+        `,
+      )
+      .join("");
+
+    list.querySelectorAll(".template-item").forEach((button) => {
+      button.addEventListener("click", () => {
+        const templateId = button.dataset.templateId;
+        const match = templatesState.list.find(
+          (item) => item.template_id === templateId,
+        );
+        if (!match) {
+          return;
+        }
+        templatesState.selected = match;
+        renderTemplateList();
+        renderTemplateDetail();
+      });
+    });
+  };
+
+  const renderTemplateDetail = () => {
+    const detail = document.getElementById("template-detail");
+    if (!detail) {
+      return;
+    }
+    const template = templatesState.selected;
+    if (!template) {
+      detail.innerHTML = "<p>Select a template to see details.</p>";
+      return;
+    }
+    const tags = template.tags.length
+      ? template.tags
+          .map((tag) => `<span class="template-tag">${escapeHtml(tag)}</span>`)
+          .join("")
+      : "<span class=\"template-tag is-muted\">No tags</span>";
+    detail.innerHTML = `
+      <div class="template-detail-card">
+        <p class="template-detail-type">${escapeHtml(template.type)}</p>
+        <h4>${escapeHtml(template.name)}</h4>
+        <p class="template-detail-description">${escapeHtml(template.description)}</p>
+        <div class="template-tags">${tags}</div>
+        <button type="button" class="template-instantiate" id="template-instantiate">
+          Instantiate
+        </button>
+      </div>
+    `;
+
+    const instantiateButton = document.getElementById("template-instantiate");
+    if (instantiateButton) {
+      instantiateButton.addEventListener("click", () => {
+        instantiateTemplate();
+      });
+    }
+  };
+
+  const loadTemplates = async () => {
+    const params = new URLSearchParams();
+    params.set("gallery", "true");
+    if (templatesState.filter !== "all") {
+      params.set("type", templatesState.filter);
+    }
+    if (templatesState.query) {
+      params.set("q", templatesState.query);
+    }
+    setTemplateStatus("Loading templates...");
+    const response = await fetch(`/api/templates?${params.toString()}`);
+    if (!response.ok) {
+      setTemplateStatus("Unable to load templates.", true);
+      return;
+    }
+    const payload = await response.json();
+    templatesState.list = payload;
+    if (
+      templatesState.selected &&
+      !templatesState.list.find(
+        (item) => item.template_id === templatesState.selected?.template_id,
+      )
+    ) {
+      templatesState.selected = null;
+    }
+    if (!templatesState.selected && templatesState.list.length) {
+      templatesState.selected = templatesState.list[0];
+    }
+    renderTemplateList();
+    renderTemplateDetail();
+    setTemplateStatus(
+      templatesState.list.length
+        ? `${templatesState.list.length} template(s).`
+        : "No templates found.",
+    );
+  };
+
+  const instantiateTemplate = async () => {
+    if (!templatesState.selected) {
+      return;
+    }
+    const templateId = templatesState.selected.template_id;
+    setTemplateStatus("Instantiating template...");
+    const parameters = session?.subject ? { user: session.subject } : {};
+    const response = await fetch(`/api/templates/${templateId}/instantiate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ project_id: projectId, parameters }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setTemplateStatus(payload?.detail || "Unable to instantiate template.", true);
+      return;
+    }
+    setTemplateStatus("Template instantiated.");
+    const openRef = {};
+    if (payload.created_type === "document" && payload.document_id) {
+      openRef.document_id = payload.document_id;
+    }
+    if (payload.created_type === "spreadsheet" && payload.sheet_id) {
+      openRef.sheet_id = payload.sheet_id;
+    }
+    if (Object.keys(openRef).length) {
+      await openLinkedArtifact(openRef);
     }
   };
 
@@ -2591,6 +2782,29 @@ const initWorkspace = () => {
       .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
+  const attachTemplateHandlers = () => {
+    document.querySelectorAll(".template-tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        const filter = button.dataset.templateFilter || "all";
+        templatesState.filter = filter;
+        document.querySelectorAll(".template-tab").forEach((item) => {
+          const isActive = item === button;
+          item.classList.toggle("is-active", isActive);
+          item.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+        loadTemplates();
+      });
+    });
+
+    const searchInput = document.getElementById("template-search");
+    if (searchInput) {
+      searchInput.addEventListener("input", () => {
+        templatesState.query = searchInput.value.trim();
+        loadTemplates();
+      });
+    }
+  };
+
   const extractAssistantText = (payload) => {
     if (!payload || typeof payload !== "object") {
       return null;
@@ -2726,6 +2940,8 @@ const initWorkspace = () => {
     });
   });
 
+  attachTemplateHandlers();
+  loadTemplates();
   loadWorkspaceState();
 };
 

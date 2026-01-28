@@ -52,6 +52,7 @@ from timeline_models import (  # noqa: E402
     TimelineResponse,
 )
 from spreadsheet_models import (  # noqa: E402
+    ColumnCreate,
     DeleteResult,
     ImportResult,
     Row,
@@ -76,6 +77,19 @@ from tree_store import TreeStore  # noqa: E402
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
+from template_models import (  # noqa: E402
+    Template as DeliverableTemplate,
+    TemplateInstantiateRequest,
+    TemplateInstantiateResponse,
+    TemplateSummary as DeliverableTemplateSummary,
+    TemplateType,
+    build_placeholder_context,
+    render_template_value,
+)
+from template_registry import (  # noqa: E402
+    get_template as get_deliverable_template,
+    list_templates as list_deliverable_templates,
+)
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
@@ -461,6 +475,22 @@ def _assistant_context(
     if open_ref:
         context["open_ref"] = open_ref
     return context
+
+
+def _template_context(
+    *,
+    project_id: str,
+    tenant_id: str,
+    session: dict[str, Any],
+    parameters: dict[str, Any] | None,
+) -> dict[str, Any]:
+    user = (parameters or {}).get("user") or session.get("subject") or "unknown"
+    return build_placeholder_context(
+        project_id=project_id,
+        tenant_id=tenant_id,
+        user=user,
+        parameters=parameters,
+    )
 
 
 def _dev_session() -> dict[str, Any] | None:
@@ -889,6 +919,112 @@ async def update_activity_completion(
         tenant_id, project_id, payload.activity_id, payload.completed
     )
     return _build_workspace_response(state)
+
+
+@app.post(
+    "/api/templates/{template_id}/instantiate",
+    response_model=TemplateInstantiateResponse,
+)
+async def instantiate_template(
+    template_id: str, payload: TemplateInstantiateRequest, request: Request
+) -> TemplateInstantiateResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    template = get_deliverable_template(template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    context = _template_context(
+        project_id=payload.project_id,
+        tenant_id=tenant_id,
+        session=session,
+        parameters=payload.parameters,
+    )
+    logger.info(
+        "templates.instantiate",
+        extra={
+            "tenant_id": tenant_id,
+            "project_id": payload.project_id,
+            "template_id": template_id,
+        },
+    )
+    if template.type == TemplateType.document:
+        if template.defaults is None:
+            raise HTTPException(status_code=500, detail="Document template defaults missing")
+        classification = context.get("classification") or template.defaults.classification
+        retention_days = int(
+            context.get("retention_days") or template.defaults.retention_days
+        )
+        payload_model = template.payload
+        name = render_template_value(payload_model.name_template, context)
+        content = render_template_value(payload_model.content_template, context)
+        metadata = (
+            render_template_value(payload_model.metadata_template, context)
+            if payload_model.metadata_template
+            else {}
+        )
+        headers = build_forward_headers(request, session)
+        response = await _document_client().create_document(
+            {
+                "name": name,
+                "content": content,
+                "classification": classification,
+                "retention_days": retention_days,
+                "metadata": metadata,
+            },
+            headers=headers,
+        )
+        if response.status_code == 403:
+            return JSONResponse(status_code=403, content=response.json())
+        if response.status_code >= 400:
+            _raise_upstream_error(response)
+        body = response.json()
+        return TemplateInstantiateResponse(
+            created_type=TemplateType.document,
+            document_id=body.get("document_id"),
+            name=body.get("name"),
+            advisories=body.get("advisories"),
+        )
+    if template.type == TemplateType.spreadsheet:
+        payload_model = template.payload
+        sheet_name = render_template_value(payload_model.sheet_name_template, context)
+        columns = [
+            ColumnCreate(name=column.name, type=column.type, required=column.required)
+            for column in payload_model.columns
+        ]
+        try:
+            sheet = spreadsheet_store.create_sheet(
+                tenant_id,
+                payload.project_id,
+                SheetCreate(name=sheet_name, columns=columns),
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if payload_model.seed_rows:
+            column_map = {column.name: column.column_id for column in sheet.columns}
+            for row in payload_model.seed_rows:
+                rendered = render_template_value(row.values, context)
+                values = {
+                    column_map[name]: value
+                    for name, value in rendered.items()
+                    if name in column_map
+                }
+                try:
+                    spreadsheet_store.add_row(
+                        tenant_id,
+                        payload.project_id,
+                        sheet.sheet_id,
+                        RowCreate(values=values),
+                    )
+                except ValueError as exc:
+                    raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return TemplateInstantiateResponse(
+            created_type=TemplateType.spreadsheet,
+            sheet_id=sheet.sheet_id,
+            sheet_name=sheet.name,
+        )
+    raise HTTPException(status_code=400, detail="Unsupported template type")
 
 
 @app.post("/api/assistant/send")
@@ -1327,8 +1463,47 @@ async def import_spreadsheet_csv(
     return ImportResult(imported=imported)
 
 
-@app.get("/api/templates", response_model=list[TemplateSummary])
-async def list_templates(request: Request) -> list[TemplateSummary]:
+@app.get(
+    "/api/templates",
+    response_model=list[TemplateSummary | DeliverableTemplateSummary],
+)
+async def list_templates(
+    request: Request,
+    type: str | None = None,
+    tag: str | None = None,
+    q: str | None = None,
+    gallery: bool | None = None,
+) -> list[TemplateSummary | DeliverableTemplateSummary]:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    wants_gallery = (
+        gallery is True
+        or "type" in request.query_params
+        or "tag" in request.query_params
+        or "q" in request.query_params
+    )
+    if wants_gallery:
+        try:
+            template_type = TemplateType(type) if type else None
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail="Unsupported template type") from exc
+        templates = list_deliverable_templates(
+            template_type=template_type,
+            tag=tag,
+            query=q,
+        )
+        logger.info(
+            "templates.list",
+            extra={
+                "tenant_id": tenant_id,
+                "project_id": request.query_params.get("project_id"),
+                "template_id": None,
+            },
+        )
+        return templates
+
     _require_roles(
         request,
         {
@@ -1362,8 +1537,31 @@ async def list_templates(request: Request) -> list[TemplateSummary]:
     return summaries
 
 
-@app.get("/api/templates/{template_id}", response_model=TemplateDefinition)
-async def get_template(template_id: str, request: Request) -> TemplateDefinition:
+@app.get(
+    "/api/templates/{template_id}",
+    response_model=TemplateDefinition | DeliverableTemplate,
+)
+async def get_template(
+    template_id: str, request: Request, gallery: bool | None = None
+) -> TemplateDefinition | DeliverableTemplate:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+    deliverable_template = get_deliverable_template(template_id)
+    if gallery is True or deliverable_template is not None:
+        if not deliverable_template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        logger.info(
+            "templates.get",
+            extra={
+                "tenant_id": tenant_id,
+                "project_id": request.query_params.get("project_id"),
+                "template_id": template_id,
+            },
+        )
+        return deliverable_template
+
     _require_roles(
         request,
         {
