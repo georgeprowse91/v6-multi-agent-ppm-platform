@@ -8,6 +8,7 @@ Catalog backend services that power data sync, policy enforcement, and telemetry
 
 - `services/audit-log`: Subdirectory containing audit log assets for this area.
 - `services/data-sync-service`: Subdirectory containing data sync service assets for this area.
+- `services/data-service`: Subdirectory containing data service assets for this area.
 - `services/identity-access`: Subdirectory containing identity access assets for this area.
 - `services/notification-service`: Subdirectory containing notification service assets for this area.
 - `services/policy-engine`: Subdirectory containing policy engine assets for this area.

@@ -5,6 +5,7 @@ This module provides the abstract base class that all agents inherit from.
 """
 
 import logging
+import os
 import sys
 import uuid
 from abc import ABC, abstractmethod
@@ -27,6 +28,7 @@ from agents.runtime.src.models import (  # noqa: E402
     AgentResponse,
     AgentResponseMetadata,
 )
+from agents.runtime.src.data_service import DataServiceClient  # noqa: E402
 from agents.runtime.src.policy import (  # noqa: E402
     evaluate_policy_bundle,
     load_default_policy_bundle,
@@ -61,6 +63,10 @@ class BaseAgent(ABC):
         self.catalog_id = catalog_id or self.config.get("catalog_id") or get_catalog_id(agent_id)
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.initialized = False
+        self.data_service: DataServiceClient | None = None
+        data_service_url = self.config.get("data_service_url") or os.getenv("DATA_SERVICE_URL")
+        if data_service_url:
+            self.data_service = DataServiceClient.from_url(data_service_url)
 
     async def initialize(self) -> None:
         """
@@ -113,6 +119,8 @@ class BaseAgent(ABC):
         Override this method to perform cleanup tasks.
         """
         self.logger.info(f"Cleaning up agent {self.agent_id}")
+        if self.data_service:
+            await self.data_service.close()
 
     async def execute(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """

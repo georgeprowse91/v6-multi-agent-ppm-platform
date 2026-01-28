@@ -8,6 +8,8 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
+from connectors.sdk.src.data_service_client import DataServiceClient
+
 
 @dataclass
 class ConnectorManifest:
@@ -86,3 +88,20 @@ class ConnectorRuntime:
         if not isinstance(raw, list):
             raise ValueError("Fixture must be a list of records")
         return self.apply_mappings(raw, tenant_id)
+
+    def store_canonical_entities(
+        self,
+        entities: list[dict[str, Any]],
+        schema_name: str,
+        data_service: DataServiceClient,
+    ) -> list[dict[str, Any]]:
+        stored: list[dict[str, Any]] = []
+        for entity in entities:
+            stored.append(
+                data_service.store_entity(
+                    schema_name,
+                    entity,
+                    entity_id=entity.get("id"),
+                )
+            )
+        return stored
