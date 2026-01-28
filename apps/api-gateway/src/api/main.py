@@ -19,7 +19,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
-from api.routes import agents, health, agent_config, connectors
+from api.routes import agents, health, agent_config, analytics, connectors
 from api.runtime_bootstrap import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -163,6 +163,7 @@ async def get_status():
 app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(agent_config.router, prefix="/api/v1", tags=["agent-config"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
 app.include_router(connectors.router, prefix="/api/v1", tags=["connectors"])
 
 
