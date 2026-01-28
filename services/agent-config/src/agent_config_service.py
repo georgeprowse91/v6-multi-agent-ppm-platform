@@ -470,6 +470,50 @@ class AgentConfigStore:
             category=AgentCategory.OPERATIONS,
             enabled=True,
             capabilities=["vendor_management", "contract_tracking", "procurement"],
+            parameters=[
+                AgentParameter(
+                    name="default_currency",
+                    display_name="Default Currency",
+                    description="Currency used for procurement transactions",
+                    param_type="string",
+                    default_value="USD",
+                ),
+                AgentParameter(
+                    name="procurement_threshold",
+                    display_name="Procurement Threshold",
+                    description="Spend threshold that triggers approvals",
+                    param_type="number",
+                    default_value=10000,
+                    min_value=0,
+                    max_value=1000000,
+                ),
+                AgentParameter(
+                    name="min_vendor_proposals",
+                    display_name="Minimum Vendor Proposals",
+                    description="Minimum number of vendor proposals to collect",
+                    param_type="number",
+                    default_value=3,
+                    min_value=1,
+                    max_value=10,
+                ),
+                AgentParameter(
+                    name="invoice_tolerance_pct",
+                    display_name="Invoice Tolerance (%)",
+                    description="Allowed variance for invoice reconciliation",
+                    param_type="number",
+                    default_value=0.05,
+                    min_value=0,
+                    max_value=0.5,
+                ),
+                AgentParameter(
+                    name="vendor_categories",
+                    display_name="Vendor Categories",
+                    description="Default vendor categories for onboarding",
+                    param_type="multiselect",
+                    default_value=["software", "hardware", "consulting", "materials", "services", "cloud"],
+                    options=["software", "hardware", "consulting", "materials", "services", "cloud"],
+                ),
+            ],
         ).to_dict()
 
         agents["agent-14-quality-management"] = AgentConfig(
@@ -480,6 +524,42 @@ class AgentConfigStore:
             category=AgentCategory.OPERATIONS,
             enabled=True,
             capabilities=["quality_planning", "defect_tracking", "quality_metrics"],
+            parameters=[
+                AgentParameter(
+                    name="defect_severity_levels",
+                    display_name="Defect Severity Levels",
+                    description="Supported defect severity options",
+                    param_type="multiselect",
+                    default_value=["critical", "high", "medium", "low"],
+                    options=["critical", "high", "medium", "low"],
+                ),
+                AgentParameter(
+                    name="quality_standards",
+                    display_name="Quality Standards",
+                    description="Quality standards used for audits",
+                    param_type="multiselect",
+                    default_value=["ISO 9001", "CMMI", "IEEE 829"],
+                    options=["ISO 9001", "CMMI", "IEEE 829"],
+                ),
+                AgentParameter(
+                    name="min_test_coverage",
+                    display_name="Minimum Test Coverage",
+                    description="Minimum acceptable test coverage",
+                    param_type="number",
+                    default_value=0.8,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="defect_density_threshold",
+                    display_name="Defect Density Threshold",
+                    description="Threshold for defect density alerts",
+                    param_type="number",
+                    default_value=0.05,
+                    min_value=0,
+                    max_value=1,
+                ),
+            ],
         ).to_dict()
 
         # Risk & Issue Management Agent - with detailed parameters
@@ -561,6 +641,25 @@ class AgentConfigStore:
             category=AgentCategory.GOVERNANCE,
             enabled=True,
             capabilities=["compliance_tracking", "audit_management", "regulatory_reporting"],
+            parameters=[
+                AgentParameter(
+                    name="regulations",
+                    display_name="Regulations",
+                    description="Regulatory frameworks to track",
+                    param_type="multiselect",
+                    default_value=["GDPR", "SOX", "ISO 27001", "HIPAA", "PCI DSS"],
+                    options=["GDPR", "SOX", "ISO 27001", "HIPAA", "PCI DSS"],
+                ),
+                AgentParameter(
+                    name="control_test_frequencies",
+                    display_name="Control Test Frequencies",
+                    description="JSON map of control test cadence by severity",
+                    param_type="string",
+                    default_value=(
+                        '{"critical":"monthly","high":"quarterly","medium":"semi-annually","low":"annually"}'
+                    ),
+                ),
+            ],
         ).to_dict()
 
         agents["agent-17-change-configuration"] = AgentConfig(
@@ -571,6 +670,49 @@ class AgentConfigStore:
             category=AgentCategory.OPERATIONS,
             enabled=True,
             capabilities=["change_management", "configuration_control", "impact_analysis"],
+            parameters=[
+                AgentParameter(
+                    name="change_types",
+                    display_name="Change Types",
+                    description="Supported change request types",
+                    param_type="multiselect",
+                    default_value=["normal", "standard", "emergency"],
+                    options=["normal", "standard", "emergency"],
+                ),
+                AgentParameter(
+                    name="priority_levels",
+                    display_name="Priority Levels",
+                    description="Supported change priority levels",
+                    param_type="multiselect",
+                    default_value=["critical", "high", "medium", "low"],
+                    options=["critical", "high", "medium", "low"],
+                ),
+                AgentParameter(
+                    name="baseline_threshold",
+                    display_name="Baseline Threshold",
+                    description="Threshold to trigger baseline reviews",
+                    param_type="number",
+                    default_value=0.1,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="approval_priority_thresholds",
+                    display_name="Approval Priority Thresholds",
+                    description="Priorities requiring approval workflow",
+                    param_type="multiselect",
+                    default_value=["critical", "high"],
+                    options=["critical", "high", "medium", "low"],
+                ),
+                AgentParameter(
+                    name="approval_change_types",
+                    display_name="Approval Change Types",
+                    description="Change types requiring approval workflow",
+                    param_type="multiselect",
+                    default_value=["normal", "emergency"],
+                    options=["normal", "standard", "emergency"],
+                ),
+            ],
         ).to_dict()
 
         agents["agent-18-release-deployment"] = AgentConfig(
@@ -581,6 +723,42 @@ class AgentConfigStore:
             category=AgentCategory.OPERATIONS,
             enabled=True,
             capabilities=["release_planning", "deployment_coordination", "rollback_management"],
+            parameters=[
+                AgentParameter(
+                    name="environments",
+                    display_name="Environments",
+                    description="Release environments managed by the agent",
+                    param_type="multiselect",
+                    default_value=["development", "test", "staging", "production"],
+                    options=["development", "test", "staging", "production"],
+                ),
+                AgentParameter(
+                    name="auto_rollback_threshold",
+                    display_name="Auto Rollback Threshold",
+                    description="Failure threshold that triggers automatic rollback",
+                    param_type="number",
+                    default_value=0.05,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="deployment_window_hours",
+                    display_name="Deployment Window (hours)",
+                    description="Default deployment window length",
+                    param_type="number",
+                    default_value=4,
+                    min_value=1,
+                    max_value=24,
+                ),
+                AgentParameter(
+                    name="approval_environments",
+                    display_name="Approval Environments",
+                    description="Environments requiring approval gates",
+                    param_type="multiselect",
+                    default_value=["production"],
+                    options=["development", "test", "staging", "production"],
+                ),
+            ],
         ).to_dict()
 
         agents["agent-19-knowledge-document-management"] = AgentConfig(
@@ -591,6 +769,63 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["document_management", "knowledge_capture", "search_indexing"],
+            parameters=[
+                AgentParameter(
+                    name="max_summary_length",
+                    display_name="Max Summary Length",
+                    description="Maximum length for generated summaries",
+                    param_type="number",
+                    default_value=500,
+                    min_value=50,
+                    max_value=5000,
+                ),
+                AgentParameter(
+                    name="search_result_limit",
+                    display_name="Search Result Limit",
+                    description="Maximum number of search results returned",
+                    param_type="number",
+                    default_value=50,
+                    min_value=1,
+                    max_value=200,
+                ),
+                AgentParameter(
+                    name="similarity_threshold",
+                    display_name="Similarity Threshold",
+                    description="Similarity threshold for related documents",
+                    param_type="number",
+                    default_value=0.75,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="document_types",
+                    display_name="Document Types",
+                    description="Supported document categories",
+                    param_type="multiselect",
+                    default_value=[
+                        "charter",
+                        "requirements",
+                        "design",
+                        "test_plan",
+                        "meeting_minutes",
+                        "lessons_learned",
+                        "policy",
+                        "procedure",
+                        "report",
+                    ],
+                    options=[
+                        "charter",
+                        "requirements",
+                        "design",
+                        "test_plan",
+                        "meeting_minutes",
+                        "lessons_learned",
+                        "policy",
+                        "procedure",
+                        "report",
+                    ],
+                ),
+            ],
         ).to_dict()
 
         agents["agent-20-continuous-improvement-process-mining"] = AgentConfig(
@@ -601,6 +836,43 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["process_mining", "bottleneck_detection", "improvement_recommendations"],
+            parameters=[
+                AgentParameter(
+                    name="bottleneck_threshold",
+                    display_name="Bottleneck Threshold",
+                    description="Threshold for bottleneck detection",
+                    param_type="number",
+                    default_value=0.2,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="deviation_threshold",
+                    display_name="Deviation Threshold",
+                    description="Threshold for process deviation detection",
+                    param_type="number",
+                    default_value=0.15,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="min_frequency_threshold",
+                    display_name="Minimum Frequency Threshold",
+                    description="Minimum event frequency to include in mining",
+                    param_type="number",
+                    default_value=5,
+                    min_value=1,
+                    max_value=100,
+                ),
+                AgentParameter(
+                    name="mining_algorithms",
+                    display_name="Mining Algorithms",
+                    description="Process mining algorithms available",
+                    param_type="multiselect",
+                    default_value=["alpha_miner", "heuristic_miner", "fuzzy_miner"],
+                    options=["alpha_miner", "heuristic_miner", "fuzzy_miner"],
+                ),
+            ],
         ).to_dict()
 
         agents["agent-21-stakeholder-comms"] = AgentConfig(
@@ -611,6 +883,33 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["stakeholder_mapping", "communication_planning", "reporting"],
+            parameters=[
+                AgentParameter(
+                    name="communication_channels",
+                    display_name="Communication Channels",
+                    description="Default communication channels",
+                    param_type="multiselect",
+                    default_value=["email", "teams", "slack", "sms", "portal"],
+                    options=["email", "teams", "slack", "sms", "portal"],
+                ),
+                AgentParameter(
+                    name="engagement_levels",
+                    display_name="Engagement Levels",
+                    description="Supported engagement levels",
+                    param_type="multiselect",
+                    default_value=["high", "medium", "low", "minimal"],
+                    options=["high", "medium", "low", "minimal"],
+                ),
+                AgentParameter(
+                    name="sentiment_threshold",
+                    display_name="Sentiment Threshold",
+                    description="Threshold for negative sentiment alerts",
+                    param_type="number",
+                    default_value=-0.3,
+                    min_value=-1,
+                    max_value=1,
+                ),
+            ],
         ).to_dict()
 
         agents["agent-22-analytics-insights"] = AgentConfig(
@@ -621,6 +920,35 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["data_analysis", "trend_detection", "predictive_analytics"],
+            parameters=[
+                AgentParameter(
+                    name="refresh_interval_minutes",
+                    display_name="Refresh Interval (minutes)",
+                    description="Interval between analytics refresh cycles",
+                    param_type="number",
+                    default_value=60,
+                    min_value=5,
+                    max_value=1440,
+                ),
+                AgentParameter(
+                    name="prediction_confidence_threshold",
+                    display_name="Prediction Confidence Threshold",
+                    description="Minimum confidence for predictions",
+                    param_type="number",
+                    default_value=0.75,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="max_dashboard_widgets",
+                    display_name="Max Dashboard Widgets",
+                    description="Maximum widgets per dashboard",
+                    param_type="number",
+                    default_value=20,
+                    min_value=1,
+                    max_value=100,
+                ),
+            ],
         ).to_dict()
 
         agents["agent-23-data-synchronisation-quality"] = AgentConfig(
@@ -631,6 +959,34 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["data_validation", "sync_management", "quality_rules"],
+            parameters=[
+                AgentParameter(
+                    name="sync_latency_sla_seconds",
+                    display_name="Sync Latency SLA (seconds)",
+                    description="Target latency for data synchronization",
+                    param_type="number",
+                    default_value=60,
+                    min_value=1,
+                    max_value=3600,
+                ),
+                AgentParameter(
+                    name="duplicate_confidence_threshold",
+                    display_name="Duplicate Confidence Threshold",
+                    description="Confidence threshold for duplicate detection",
+                    param_type="number",
+                    default_value=0.85,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="conflict_resolution_strategy",
+                    display_name="Conflict Resolution Strategy",
+                    description="Default strategy for resolving sync conflicts",
+                    param_type="select",
+                    default_value="last_write_wins",
+                    options=["last_write_wins", "source_priority", "manual_review"],
+                ),
+            ],
         ).to_dict()
 
         agents["agent-24-workflow-process-engine"] = AgentConfig(
@@ -641,6 +997,35 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["workflow_execution", "process_automation", "task_routing"],
+            parameters=[
+                AgentParameter(
+                    name="default_timeout_minutes",
+                    display_name="Default Timeout (minutes)",
+                    description="Default timeout for workflow tasks",
+                    param_type="number",
+                    default_value=60,
+                    min_value=1,
+                    max_value=1440,
+                ),
+                AgentParameter(
+                    name="max_retry_attempts",
+                    display_name="Max Retry Attempts",
+                    description="Maximum retry attempts for failed tasks",
+                    param_type="number",
+                    default_value=3,
+                    min_value=0,
+                    max_value=10,
+                ),
+                AgentParameter(
+                    name="max_parallel_tasks",
+                    display_name="Max Parallel Tasks",
+                    description="Maximum parallel tasks per workflow",
+                    param_type="number",
+                    default_value=10,
+                    min_value=1,
+                    max_value=100,
+                ),
+            ],
         ).to_dict()
 
         agents["agent-25-system-health-monitoring"] = AgentConfig(
@@ -651,6 +1036,35 @@ class AgentConfigStore:
             category=AgentCategory.PLATFORM,
             enabled=True,
             capabilities=["health_monitoring", "alerting", "performance_metrics"],
+            parameters=[
+                AgentParameter(
+                    name="alert_threshold_error_rate",
+                    display_name="Alert Threshold Error Rate",
+                    description="Error rate threshold that triggers alerts",
+                    param_type="number",
+                    default_value=0.05,
+                    min_value=0,
+                    max_value=1,
+                ),
+                AgentParameter(
+                    name="alert_threshold_response_time_ms",
+                    display_name="Alert Threshold Response Time (ms)",
+                    description="Response time threshold that triggers alerts",
+                    param_type="number",
+                    default_value=1000,
+                    min_value=50,
+                    max_value=10000,
+                ),
+                AgentParameter(
+                    name="metrics_retention_days",
+                    display_name="Metrics Retention (days)",
+                    description="Retention period for metrics data",
+                    param_type="number",
+                    default_value=90,
+                    min_value=1,
+                    max_value=365,
+                ),
+            ],
         ).to_dict()
 
         return agents

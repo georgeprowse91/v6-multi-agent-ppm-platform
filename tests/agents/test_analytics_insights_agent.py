@@ -13,6 +13,7 @@ async def test_analytics_persists_outputs_and_masks_lineage(tmp_path, monkeypatc
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
             "analytics_lineage_store_path": tmp_path / "lineage.json",
             "health_snapshot_store_path": tmp_path / "health.json",
             "event_bus": event_bus,
@@ -52,6 +53,7 @@ async def test_analytics_get_insights_success(tmp_path):
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
             "health_snapshot_store_path": tmp_path / "health.json",
             "event_bus": event_bus,
         }
@@ -66,7 +68,10 @@ async def test_analytics_get_insights_success(tmp_path):
 @pytest.mark.asyncio
 async def test_analytics_rejects_invalid_action(tmp_path):
     agent = AnalyticsInsightsAgent(
-        config={"analytics_output_store_path": tmp_path / "outputs.json"}
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+        }
     )
     await agent.initialize()
 
@@ -78,7 +83,10 @@ async def test_analytics_rejects_invalid_action(tmp_path):
 @pytest.mark.asyncio
 async def test_analytics_rejects_missing_dashboard(tmp_path):
     agent = AnalyticsInsightsAgent(
-        config={"analytics_output_store_path": tmp_path / "outputs.json"}
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+        }
     )
     await agent.initialize()
 
@@ -93,6 +101,7 @@ async def test_analytics_health_summary_report(tmp_path):
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
             "health_snapshot_store_path": tmp_path / "health.json",
             "event_bus": event_bus,
         }
@@ -130,3 +139,36 @@ async def test_analytics_health_summary_report(tmp_path):
     )
 
     assert report["report_id"]
+
+
+@pytest.mark.asyncio
+async def test_analytics_kpi_threshold_alerts(tmp_path):
+    events: list[dict] = []
+
+    def capture_event(payload: dict) -> None:
+        events.append(payload)
+
+    event_bus = InMemoryEventBus()
+    event_bus.subscribe("analytics.kpi.threshold_breached", capture_event)
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "health_snapshot_store_path": tmp_path / "health.json",
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "track_kpi",
+            "tenant_id": "tenant-analytics",
+            "kpi": {"name": "Delivery Velocity", "thresholds": {"max": 80}},
+        }
+    )
+
+    assert response["alerts_triggered"]
+    alerts = agent.analytics_alert_store.list("tenant-analytics")
+    assert alerts
+    assert events

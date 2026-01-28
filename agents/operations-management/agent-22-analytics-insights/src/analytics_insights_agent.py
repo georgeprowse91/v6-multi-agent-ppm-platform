@@ -57,6 +57,11 @@ class AnalyticsInsightsAgent(BaseAgent):
             if config
             else Path("data/analytics_outputs.json")
         )
+        alert_store_path = (
+            Path(config.get("analytics_alert_store_path", "data/analytics_alerts.json"))
+            if config
+            else Path("data/analytics_alerts.json")
+        )
         lineage_store_path = (
             Path(config.get("analytics_lineage_store_path", "data/analytics_lineage.json"))
             if config
@@ -68,6 +73,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             else Path("data/health_snapshots.json")
         )
         self.analytics_output_store = TenantStateStore(output_store_path)
+        self.analytics_alert_store = TenantStateStore(alert_store_path)
         self.analytics_lineage_store = TenantStateStore(lineage_store_path)
         self.health_snapshot_store = TenantStateStore(health_store_path)
 
@@ -75,6 +81,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.dashboards = {}  # type: ignore
         self.reports = {}  # type: ignore
         self.kpis = {}  # type: ignore
+        self.kpi_alerts = {}  # type: ignore
         self.predictions = {}  # type: ignore
         self.scenarios = {}  # type: ignore
         self.data_lineage = {}  # type: ignore
@@ -549,10 +556,26 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.kpis[kpi_id] = kpi_record
         self.analytics_output_store.upsert(tenant_id, kpi_id, kpi_record.copy())
 
-        # Trigger alerts if threshold breached
+        alerts_triggered: list[str] = []
         if threshold_status.get("breached"):
-            # Future work: Publish KPI alert event
-            pass
+            alert_id = f"KPI-ALERT-{len(self.kpi_alerts) + 1}"
+            alert = {
+                "alert_id": alert_id,
+                "kpi_id": kpi_id,
+                "name": kpi_config.get("name"),
+                "current_value": current_value,
+                "thresholds": kpi_config.get("thresholds", {}),
+                "status": "active",
+                "triggered_at": datetime.utcnow().isoformat(),
+            }
+            self.kpi_alerts[alert_id] = alert
+            self.analytics_alert_store.upsert(tenant_id, alert_id, alert.copy())
+            alerts_triggered.append(alert_id)
+            if self.event_bus:
+                await self.event_bus.publish(
+                    "analytics.kpi.threshold_breached",
+                    {"tenant_id": tenant_id, "payload": alert},
+                )
 
         return {
             "kpi_id": kpi_id,
@@ -566,6 +589,7 @@ class AnalyticsInsightsAgent(BaseAgent):
                 if kpi_config.get("target")
                 else 0
             ),
+            "alerts_triggered": alerts_triggered,
         }
 
     async def _query_data(self, query: str, filters: dict[str, Any]) -> dict[str, Any]:
