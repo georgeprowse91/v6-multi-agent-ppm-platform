@@ -5,7 +5,7 @@
  * Formula support will be added in a future iteration.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { CanvasComponentProps } from '../../types/canvas';
 import type { SpreadsheetContent, SpreadsheetCell } from '../../types/artifact';
 import styles from './SpreadsheetCanvas.module.css';
@@ -27,7 +27,17 @@ export function SpreadsheetCanvas({
   const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null);
   const [editingCell, setEditingCell] = useState<CellPosition | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [editingColumn, setEditingColumn] = useState<number | null>(null);
+  const [columnEditValue, setColumnEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const columnInputRef = useRef<HTMLInputElement>(null);
+
+  const selectedRow = selectedCell?.row ?? null;
+  const selectedColumn = selectedCell?.col ?? null;
+  const columnLabels = useMemo(
+    () => columns.map((col, idx) => col || String.fromCharCode(65 + idx)),
+    [columns]
+  );
 
   // Focus input when editing
   useEffect(() => {
@@ -36,6 +46,13 @@ export function SpreadsheetCanvas({
       inputRef.current.select();
     }
   }, [editingCell]);
+
+  useEffect(() => {
+    if (editingColumn !== null && columnInputRef.current) {
+      columnInputRef.current.focus();
+      columnInputRef.current.select();
+    }
+  }, [editingColumn]);
 
   const getCellValue = (cell: SpreadsheetCell): string => {
     if (cell.value === null || cell.value === undefined) return '';
@@ -52,6 +69,14 @@ export function SpreadsheetCanvas({
     },
     [rows, readOnly]
   );
+
+  const handleRowHeaderClick = useCallback((row: number) => {
+    setSelectedCell({ row, col: 0 });
+  }, []);
+
+  const handleColumnHeaderClick = useCallback((col: number) => {
+    setSelectedCell({ row: 0, col });
+  }, []);
 
   const handleCellDoubleClick = useCallback(
     (row: number, col: number) => {
@@ -92,6 +117,28 @@ export function SpreadsheetCanvas({
     [rows, onChange, artifact.content]
   );
 
+  const handleColumnRename = useCallback(() => {
+    if (editingColumn === null || !onChange || readOnly) {
+      setEditingColumn(null);
+      return;
+    }
+    const trimmed = columnEditValue.trim();
+    const updated = columns.map((col, idx) =>
+      idx === editingColumn ? trimmed || col : col
+    );
+    onChange({ ...artifact.content, columns: updated });
+    setEditingColumn(null);
+  }, [editingColumn, columnEditValue, onChange, readOnly, columns, artifact.content]);
+
+  const handleColumnDoubleClick = useCallback(
+    (col: number) => {
+      if (readOnly) return;
+      setEditingColumn(col);
+      setColumnEditValue(columns[col] || '');
+    },
+    [columns, readOnly]
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!selectedCell) return;
@@ -116,6 +163,7 @@ export function SpreadsheetCanvas({
 
         case 'Escape':
           setEditingCell(null);
+          setEditingColumn(null);
           break;
 
         case 'Tab':
@@ -190,6 +238,21 @@ export function SpreadsheetCanvas({
     });
   }, [onChange, readOnly, columns, rows, artifact.content]);
 
+  const handleDeleteRow = useCallback(() => {
+    if (!onChange || readOnly || selectedRow === null) return;
+    const newRows = rows.filter((_, idx) => idx !== selectedRow);
+    onChange({ ...artifact.content, rows: newRows });
+    setSelectedCell(null);
+  }, [onChange, readOnly, selectedRow, rows, artifact.content]);
+
+  const handleDeleteColumn = useCallback(() => {
+    if (!onChange || readOnly || selectedColumn === null) return;
+    const newColumns = columns.filter((_, idx) => idx !== selectedColumn);
+    const newRows = rows.map((row) => row.filter((_, idx) => idx !== selectedColumn));
+    onChange({ ...artifact.content, columns: newColumns, rows: newRows });
+    setSelectedCell(null);
+  }, [onChange, readOnly, selectedColumn, columns, rows, artifact.content]);
+
   return (
     <div className={`${styles.container} ${className ?? ''}`}>
       <div className={styles.toolbar}>
@@ -217,6 +280,28 @@ export function SpreadsheetCanvas({
               </svg>
               Add Column
             </button>
+            <button
+              className={styles.toolbarButton}
+              onClick={handleDeleteRow}
+              title="Delete selected row"
+              disabled={selectedRow === null}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Delete Row
+            </button>
+            <button
+              className={styles.toolbarButton}
+              onClick={handleDeleteColumn}
+              title="Delete selected column"
+              disabled={selectedColumn === null}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Delete Column
+            </button>
           </>
         )}
         <span className={styles.info}>
@@ -229,9 +314,30 @@ export function SpreadsheetCanvas({
           <thead>
             <tr>
               <th className={styles.rowHeader}>#</th>
-              {columns.map((col, idx) => (
-                <th key={idx} className={styles.colHeader}>
-                  {col}
+              {columnLabels.map((col, idx) => (
+                <th
+                  key={idx}
+                  className={`${styles.colHeader} ${selectedColumn === idx ? styles.selectedHeader : ''}`}
+                  onClick={() => handleColumnHeaderClick(idx)}
+                  onDoubleClick={() => handleColumnDoubleClick(idx)}
+                >
+                  {editingColumn === idx ? (
+                    <input
+                      ref={columnInputRef}
+                      type="text"
+                      className={styles.columnInput}
+                      value={columnEditValue}
+                      onChange={(e) => setColumnEditValue(e.target.value)}
+                      onBlur={handleColumnRename}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleColumnRename();
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span>{col}</span>
+                  )}
                 </th>
               ))}
             </tr>
@@ -239,7 +345,14 @@ export function SpreadsheetCanvas({
           <tbody>
             {rows.map((row, rowIdx) => (
               <tr key={rowIdx}>
-                <td className={styles.rowHeader}>{rowIdx + 1}</td>
+                <td
+                  className={`${styles.rowHeader} ${
+                    selectedRow === rowIdx ? styles.selectedHeader : ''
+                  }`}
+                  onClick={() => handleRowHeaderClick(rowIdx)}
+                >
+                  {rowIdx + 1}
+                </td>
                 {row.map((cell, colIdx) => {
                   const isSelected =
                     selectedCell?.row === rowIdx && selectedCell?.col === colIdx;

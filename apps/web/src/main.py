@@ -28,7 +28,8 @@ from jwt import InvalidTokenError
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-for root in (OBSERVABILITY_ROOT, SECURITY_ROOT):
+LLM_ROOT = REPO_ROOT / "packages" / "llm" / "src"
+for root in (OBSERVABILITY_ROOT, SECURITY_ROOT, LLM_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -103,6 +104,7 @@ from agent_settings_store import AgentSettingsStore  # noqa: E402
 from oidc_client import OIDCClient  # noqa: E402
 from security.prompt_safety import evaluate_prompt  # noqa: E402
 from security.secrets import resolve_secret  # noqa: E402
+from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
@@ -308,6 +310,7 @@ class ProjectRecord(BaseModel):
     id: str
     name: str
     template_id: str
+    template_version: str = "1.0"
     created_at: str
     methodology: dict[str, Any]
     agent_config: TemplateAgentConfig
@@ -318,6 +321,7 @@ class ProjectRecord(BaseModel):
 
 class TemplateApplyRequest(BaseModel):
     project_name: str
+    version: str | None = None
 
 
 class TemplateApplyResponse(BaseModel):
@@ -404,6 +408,43 @@ class DocumentCanvasRequest(BaseModel):
 class DashboardWhatIfRequest(BaseModel):
     scenario: str
     adjustments: dict[str, Any] = {}
+
+
+class AssistantPrerequisite(BaseModel):
+    activity_id: str
+    activity_name: str
+    stage_id: str
+    stage_name: str
+    status: str
+
+
+class AssistantSuggestionRequest(BaseModel):
+    project_id: str
+    activity_id: str | None = None
+    stage_id: str | None = None
+    activity_name: str | None = None
+    stage_name: str | None = None
+    activity_status: str | None = None
+    canvas_type: CanvasTab | None = None
+    incomplete_prerequisites: list[AssistantPrerequisite] = []
+
+
+class AssistantSuggestion(BaseModel):
+    id: str
+    label: str
+    category: str
+    priority: str
+    icon: str | None = None
+    action_type: str
+    payload: dict[str, Any]
+    enabled: bool = True
+    description: str | None = None
+
+
+class AssistantSuggestionResponse(BaseModel):
+    context: dict[str, Any]
+    suggestions: list[AssistantSuggestion]
+    generated_by: str
 
 
 @app.on_event("startup")
@@ -645,6 +686,145 @@ def _assistant_context(
     return context
 
 
+def _find_activity(methodology_map: dict[str, Any], activity_id: str) -> dict[str, Any] | None:
+    for stage in methodology_map.get("stages", []):
+        for activity in stage.get("activities", []):
+            if activity.get("id") == activity_id:
+                return activity
+    return None
+
+
+def _fallback_suggestions(
+    payload: AssistantSuggestionRequest,
+    state: WorkspaceState,
+    methodology_map: dict[str, Any],
+) -> list[AssistantSuggestion]:
+    suggestions: list[AssistantSuggestion] = []
+    for prereq in payload.incomplete_prerequisites[:3]:
+        suggestions.append(
+            AssistantSuggestion(
+                id=f"prereq-{prereq.activity_id}",
+                label=f"Go to {prereq.activity_name}",
+                category="navigate",
+                priority="high",
+                icon="→",
+                action_type="open_activity",
+                payload={
+                    "type": "open_activity",
+                    "activityId": prereq.activity_id,
+                    "stageId": prereq.stage_id,
+                },
+                description=f"Complete prerequisite {prereq.activity_name}.",
+            )
+        )
+
+    if payload.activity_id and payload.activity_name:
+        suggestions.append(
+            AssistantSuggestion(
+                id=f"continue-{payload.activity_id}",
+                label=f"Continue {payload.activity_name}",
+                category="create",
+                priority="high",
+                icon="▶",
+                action_type="open_activity",
+                payload={"type": "open_activity", "activityId": payload.activity_id},
+                description="Resume work on the current activity.",
+            )
+        )
+
+    next_activity_id = next_required_activity(methodology_map, state)
+    if next_activity_id and next_activity_id != payload.activity_id:
+        next_activity = _find_activity(methodology_map, next_activity_id)
+        suggestions.append(
+            AssistantSuggestion(
+                id=f"next-{next_activity_id}",
+                label=f"Open {next_activity.get('name', 'next activity')}",
+                category="navigate",
+                priority="medium",
+                icon="✨",
+                action_type="open_activity",
+                payload={"type": "open_activity", "activityId": next_activity_id},
+                description="Move to the next required activity.",
+            )
+        )
+
+    suggestions.append(
+        AssistantSuggestion(
+            id="open-dashboard",
+            label="View project dashboard",
+            category="analyse",
+            priority="low",
+            icon="📈",
+            action_type="open_dashboard",
+            payload={"type": "open_dashboard"},
+            description="Review project health and metrics.",
+        )
+    )
+    return suggestions
+
+
+async def _llm_suggestions(
+    payload: AssistantSuggestionRequest,
+    context: dict[str, Any],
+    methodology_map: dict[str, Any],
+) -> list[AssistantSuggestion]:
+    llm = LLMClient()
+    system_prompt = (
+        "You are a PMO assistant generating next best action suggestions. "
+        "Return JSON with a top-level key 'suggestions' that is a list of objects. "
+        "Each suggestion must include: label, category, priority, action_type, payload, description, icon. "
+        "Use action_type values from: open_activity, open_artifact, open_dashboard, generate_template, "
+        "show_prerequisites, complete_activity, custom. "
+        "Use category values from: create, review, approve, analyse, navigate. "
+        "Use priority values from: high, medium, low. "
+        "Payload should include a 'type' field matching action_type and any required ids."
+    )
+    user_prompt = json.dumps(
+        {
+            "context": context,
+            "activity": payload.model_dump(),
+            "activities": [
+                {
+                    "id": activity.get("id"),
+                    "name": activity.get("name"),
+                    "status": activity.get("status"),
+                    "stage_id": stage.get("id"),
+                }
+                for stage in methodology_map.get("stages", [])
+                for activity in stage.get("activities", [])
+            ],
+        },
+        indent=2,
+    )
+
+    response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
+    try:
+        data = json.loads(response.content)
+    except json.JSONDecodeError as exc:
+        raise ValueError("LLM response was not JSON") from exc
+
+    suggestions: list[AssistantSuggestion] = []
+    for item in data.get("suggestions", []):
+        if not isinstance(item, dict):
+            continue
+        try:
+            suggestion = AssistantSuggestion(
+                id=item.get("id") or f"llm-{_random_token_hex(4)}",
+                label=str(item.get("label", "")),
+                category=str(item.get("category", "analyse")),
+                priority=str(item.get("priority", "medium")),
+                icon=item.get("icon"),
+                action_type=str(item.get("action_type", "custom")),
+                payload=item.get("payload") or {},
+                description=item.get("description"),
+                enabled=bool(item.get("enabled", True)),
+            )
+        except Exception:  # pragma: no cover - defensive parsing
+            continue
+        suggestions.append(suggestion)
+    return suggestions
+
+
 def _template_context(
     *,
     project_id: str,
@@ -736,6 +916,23 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 def _load_templates() -> list[TemplateDefinition]:
     payload = _load_json(TEMPLATES_PATH, {"templates": []})
     return [TemplateDefinition.model_validate(item) for item in payload.get("templates", [])]
+
+
+def _select_project_template(
+    template_id: str, version: str | None = None
+) -> TemplateDefinition | None:
+    templates = [item for item in _load_templates() if item.id == template_id]
+    if not templates:
+        return None
+    if version is None:
+        return templates[0]
+    exact = next((item for item in templates if item.version == version), None)
+    if exact:
+        return exact
+    fallback = templates[0]
+    if version in fallback.available_versions:
+        return fallback.model_copy(update={"version": version})
+    return None
 
 
 def _load_projects() -> list[ProjectRecord]:
@@ -1510,6 +1707,52 @@ async def send_assistant_message(payload: AssistantSendRequest, request: Request
     )
 
 
+@app.post("/api/assistant/suggestions", response_model=AssistantSuggestionResponse)
+async def generate_assistant_suggestions(
+    payload: AssistantSuggestionRequest, request: Request
+) -> AssistantSuggestionResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant not available")
+
+    state = workspace_state_store.get_or_create(tenant_id, payload.project_id)
+    methodology_map = get_methodology_map(state.methodology)
+    correlation_id = f"corr-{_random_token_hex(8)}"
+    context = _assistant_context(tenant_id, payload.project_id, correlation_id)
+    context.update(
+        {
+            "activity_id": payload.activity_id,
+            "stage_id": payload.stage_id,
+            "activity_name": payload.activity_name,
+            "stage_name": payload.stage_name,
+            "activity_status": payload.activity_status,
+            "canvas_type": payload.canvas_type,
+            "incomplete_prerequisites": [
+                prereq.model_dump() for prereq in payload.incomplete_prerequisites
+            ],
+        }
+    )
+
+    suggestions: list[AssistantSuggestion] = []
+    generated_by = "heuristic"
+    try:
+        suggestions = await _llm_suggestions(payload, context, methodology_map)
+        if suggestions:
+            generated_by = "llm"
+    except (LLMProviderError, ValueError):
+        suggestions = []
+
+    if not suggestions:
+        suggestions = _fallback_suggestions(payload, state, methodology_map)
+
+    return AssistantSuggestionResponse(
+        context=context,
+        suggestions=suggestions,
+        generated_by=generated_by,
+    )
+
+
 @app.get("/api/tree/{project_id}", response_model=TreeListResponse)
 async def list_tree_nodes(project_id: str, request: Request) -> TreeListResponse:
     session = _require_session(request)
@@ -1973,7 +2216,10 @@ async def list_templates(
     response_model=TemplateDefinition | DeliverableTemplate,
 )
 async def get_template(
-    template_id: str, request: Request, gallery: bool | None = None
+    template_id: str,
+    request: Request,
+    gallery: bool | None = None,
+    version: str | None = None,
 ) -> TemplateDefinition | DeliverableTemplate:
     session = _require_session(request)
     tenant_id = _tenant_id_from_request(request, session)
@@ -2007,8 +2253,7 @@ async def get_template(
             "auditor",
         },
     )
-    templates = _load_templates()
-    template = next((item for item in templates if item.id == template_id), None)
+    template = _select_project_template(template_id, version=version)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
     return template
@@ -2022,10 +2267,12 @@ async def apply_template(
         request,
         {"PMO_ADMIN", "PM", "tenant_owner", "portfolio_admin", "project_manager"},
     )
-    templates = _load_templates()
-    template = next((item for item in templates if item.id == template_id), None)
+    template = _select_project_template(template_id, version=payload.version)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
+    selected_version = payload.version or template.version
+    if selected_version not in template.available_versions:
+        raise HTTPException(status_code=422, detail="Template version not available")
 
     projects = _load_projects()
     existing_ids = {project.id for project in projects}
@@ -2036,6 +2283,7 @@ async def apply_template(
         id=project_id,
         name=payload.project_name,
         template_id=template.id,
+        template_version=selected_version,
         created_at=datetime.utcnow().isoformat() + "Z",
         methodology=template.methodology,
         agent_config=template.agent_config,
@@ -2061,7 +2309,8 @@ async def apply_template(
         )
     )
 
-    return TemplateApplyResponse(project=project, template=template)
+    response_template = template.model_copy(update={"version": selected_version})
+    return TemplateApplyResponse(project=project, template=response_template)
 
 
 @app.post("/api/knowledge/documents", response_model=DocumentVersionResponse)
@@ -2331,6 +2580,36 @@ async def create_dashboard_what_if(
     )
     logger.info(
         "dashboard.whatif.request",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/api/dashboard/{project_id}/kpis")
+async def get_dashboard_kpis(project_id: str, request: Request) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.get_project_kpis(project_id, headers=headers)
+    logger.info(
+        "dashboard.kpis.fetch",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/api/dashboard/{project_id}/narrative")
+async def get_dashboard_narrative(project_id: str, request: Request) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.get_project_narrative(project_id, headers=headers)
+    logger.info(
+        "dashboard.narrative.fetch",
         extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
     )
     if response.status_code >= 400:

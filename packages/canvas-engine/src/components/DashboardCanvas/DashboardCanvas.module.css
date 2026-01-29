@@ -150,6 +150,20 @@
   color: var(--color-neutral-500, #737373);
 }
 
+.kpiMetricList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  margin-top: var(--space-2, 8px);
+}
+
+.kpiMetricRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-neutral-700, #404040);
+}
+
 .healthStatus {
   font-size: var(--font-size-sm, 0.875rem);
   color: var(--color-primary-600, #4f46e5);

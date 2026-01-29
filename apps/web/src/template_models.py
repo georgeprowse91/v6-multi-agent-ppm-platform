@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic.config import ConfigDict
 
 
@@ -58,6 +58,8 @@ class Template(BaseModel):
     type: TemplateType
     description: str
     tags: list[str]
+    version: str = "1.0"
+    available_versions: list[str] = Field(default_factory=lambda: ["1.0"])
     schema_version: int = 1
     defaults: DocumentTemplateDefaults | None = None
     payload: DocumentTemplatePayload | SpreadsheetTemplatePayload
@@ -69,6 +71,8 @@ class Template(BaseModel):
             type=self.type,
             description=self.description,
             tags=self.tags,
+            version=self.version,
+            available_versions=self.available_versions,
             schema_version=self.schema_version,
         )
 
@@ -81,6 +85,8 @@ class TemplateSummary(BaseModel):
     type: TemplateType
     description: str
     tags: list[str]
+    version: str
+    available_versions: list[str]
     schema_version: int
 
 

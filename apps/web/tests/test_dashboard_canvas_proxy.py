@@ -150,6 +150,64 @@ def test_whatif_proxy_forwards_headers_and_body(client, monkeypatch):
     }
 
 
+def test_kpi_proxy_forwards_headers(client, monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["headers"] = dict(request.headers)
+        captured["path"] = request.url.path
+        return httpx.Response(
+            200,
+            json={
+                "project_id": "demo-1",
+                "metrics": [{"name": "Budget", "value": 10, "normalized": 0.7}],
+                "computed_at": "2024-01-01T00:00:00Z",
+            },
+        )
+
+    transport = httpx.MockTransport(handler)
+    _wire_client(monkeypatch, transport)
+    _set_tenant(monkeypatch, "tenant-a")
+
+    response = client.get("/api/dashboard/demo-1/kpis")
+
+    assert response.status_code == 200
+    assert captured["path"] == "/api/projects/demo-1/kpis"
+    assert captured["headers"]["authorization"] == "Bearer dev-token"
+    assert captured["headers"]["x-tenant-id"] == "tenant-a"
+
+
+def test_narrative_proxy_forwards_headers(client, monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["headers"] = dict(request.headers)
+        captured["path"] = request.url.path
+        return httpx.Response(
+            200,
+            json={
+                "project_id": "demo-1",
+                "summary": "All good",
+                "highlights": [],
+                "risks": [],
+                "opportunities": [],
+                "data_quality_notes": [],
+                "computed_at": "2024-01-01T00:00:00Z",
+            },
+        )
+
+    transport = httpx.MockTransport(handler)
+    _wire_client(monkeypatch, transport)
+    _set_tenant(monkeypatch, "tenant-a")
+
+    response = client.get("/api/dashboard/demo-1/narrative")
+
+    assert response.status_code == 200
+    assert captured["path"] == "/api/projects/demo-1/kpis/narrative"
+    assert captured["headers"]["authorization"] == "Bearer dev-token"
+    assert captured["headers"]["x-tenant-id"] == "tenant-a"
+
+
 def test_proxy_propagates_error_status_and_payload(client, monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(502, json={"detail": "upstream error"})

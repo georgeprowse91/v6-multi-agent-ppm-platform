@@ -56,7 +56,7 @@ interface AssistantStoreState {
     allStages: MethodologyStage[],
     isLocked: boolean,
     incompletePrereqs: PrerequisiteInfo[]
-  ) => void;
+  ) => Promise<void>;
 
   // Actions - Gating warnings
   showGatingWarning: (
@@ -148,7 +148,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   },
 
   // Generate suggestions based on current context
-  generateSuggestions: (
+  generateSuggestions: async (
     _trigger,
     activity,
     stage,
@@ -159,8 +159,6 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   ) => {
     set({ isGeneratingSuggestions: true });
 
-    const chips: ActionChip[] = [];
-
     // Handle locked activity - show gating warning
     if (isLocked && activity && incompletePrereqs.length > 0) {
       get().showGatingWarning(activity, incompletePrereqs);
@@ -168,20 +166,62 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
       return;
     }
 
-    // Generate suggestions based on the selected activity
+    const fallbackChips: ActionChip[] = [];
     if (activity && stage) {
-      const suggestions = generateActivitySuggestions(
-        activity,
-        stage,
-        allActivities,
-        allStages
+      fallbackChips.push(
+        ...generateActivitySuggestions(activity, stage, allActivities, allStages)
       );
-      chips.push(...suggestions);
+    } else if (!activity) {
+      fallbackChips.push(...generateGeneralSuggestions(allActivities, allStages));
     }
 
-    // Add general suggestions if no specific activity
-    if (!activity) {
-      chips.push(...generateGeneralSuggestions(allActivities, allStages));
+    const context = get().context;
+    const payload = context
+      ? {
+          project_id: context.projectId,
+          activity_id: activity?.id ?? null,
+          stage_id: stage?.id ?? null,
+          activity_name: activity?.name ?? null,
+          stage_name: stage?.name ?? null,
+          activity_status: activity?.status ?? null,
+          canvas_type: activity?.canvasType ?? null,
+          incomplete_prerequisites: incompletePrereqs.map((prereq) => ({
+            activity_id: prereq.activityId,
+            activity_name: prereq.activityName,
+            stage_id: prereq.stageId,
+            stage_name: prereq.stageName,
+            status: prereq.status,
+          })),
+        }
+      : null;
+
+    let chips = fallbackChips;
+    if (payload) {
+      try {
+        const response = await fetch('/api/assistant/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+            chips = data.suggestions.map((suggestion: any) => ({
+              id: suggestion.id,
+              label: suggestion.label,
+              category: suggestion.category,
+              priority: suggestion.priority,
+              icon: suggestion.icon,
+              actionType: suggestion.action_type,
+              payload: suggestion.payload,
+              enabled: suggestion.enabled ?? true,
+              description: suggestion.description,
+            }));
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load assistant suggestions', error);
+      }
     }
 
     set({
@@ -189,7 +229,6 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
       isGeneratingSuggestions: false,
     });
 
-    // Add assistant message with suggestions
     if (chips.length > 0) {
       const message = activity
         ? `I see you're working on "${activity.name}". Here are some suggested actions:`

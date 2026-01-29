@@ -72,6 +72,7 @@ export function TemplateGallery() {
   const [error, setError] = useState<string | null>(null);
   const [projectNames, setProjectNames] = useState<Record<string, string>>({});
   const [applying, setApplying] = useState<Record<string, boolean>>({});
+  const [selectedVersions, setSelectedVersions] = useState<Record<string, string>>({});
 
   const { loadProjectMethodology } = useMethodologyStore();
   const { openArtifact } = useCanvasStore();
@@ -97,6 +98,12 @@ export function TemplateGallery() {
             return acc;
           }, {})
         );
+        setSelectedVersions(
+          data.reduce<Record<string, string>>((acc, template) => {
+            acc[template.id] = template.version;
+            return acc;
+          }, {})
+        );
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         setError(message);
@@ -114,6 +121,10 @@ export function TemplateGallery() {
 
   const handleNameChange = (templateId: string, value: string) => {
     setProjectNames((prev) => ({ ...prev, [templateId]: value }));
+  };
+
+  const handleVersionChange = (templateId: string, value: string) => {
+    setSelectedVersions((prev) => ({ ...prev, [templateId]: value }));
   };
 
   const handleApplyTemplate = async (templateId: string) => {
@@ -134,7 +145,10 @@ export function TemplateGallery() {
       const response = await fetch(`/api/templates/${templateId}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_name: projectName }),
+        body: JSON.stringify({
+          project_name: projectName,
+          version: selectedVersions[templateId],
+        }),
       });
       if (!response.ok) {
         throw new Error(`Failed to apply template: ${response.statusText}`);
@@ -240,6 +254,21 @@ export function TemplateGallery() {
                 Versions: {template.available_versions.join(', ')}
               </span>
             </div>
+
+            <label className={styles.inputLabel}>
+              Template version
+              <select
+                className={styles.select}
+                value={selectedVersions[template.id] ?? template.version}
+                onChange={(e) => handleVersionChange(template.id, e.target.value)}
+              >
+                {template.available_versions.map((version) => (
+                  <option key={version} value={version}>
+                    v{version}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <label className={styles.inputLabel}>
               Project name

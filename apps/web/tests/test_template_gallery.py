@@ -1,6 +1,7 @@
 import json
 import sys
 from datetime import datetime, timezone
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 import httpx
@@ -8,10 +9,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-import main  # noqa: E402
+MODULE_PATH = SRC_DIR / "main.py"
+spec = spec_from_file_location("web_main", MODULE_PATH)
+assert spec and spec.loader
+main = module_from_spec(spec)
+sys.modules[spec.name] = main
+spec.loader.exec_module(main)
 from document_proxy import DocumentServiceClient  # noqa: E402
 from spreadsheet_store import SpreadsheetStore  # noqa: E402
 
@@ -128,3 +131,15 @@ def test_tenant_isolation_instantiation(client, monkeypatch):
     list_response = client.get("/api/spreadsheets/demo-1/sheets")
     assert list_response.status_code == 200
     assert list_response.json() == []
+
+
+def test_apply_template_with_version(client, monkeypatch):
+    _set_tenant(monkeypatch, "tenant-a")
+    response = client.post(
+        "/api/templates/agile-software-dev/apply",
+        json={"project_name": "Agile Demo", "version": "1.0"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["project"]["template_version"] == "1.0"
+    assert payload["template"]["version"] == "1.0"

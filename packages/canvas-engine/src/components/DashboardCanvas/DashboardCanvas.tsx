@@ -12,7 +12,7 @@ import styles from './DashboardCanvas.module.css';
 
 export interface DashboardCanvasProps extends CanvasComponentProps<DashboardContent> {}
 
-const API_BASE = '/api/v1';
+const API_BASE = '/api/dashboard';
 
 type HealthMetric = {
   score: number;
@@ -35,6 +35,34 @@ type HealthTrendPoint = {
   timestamp: string;
   composite_score: number;
   metrics: Record<string, number>;
+};
+
+type QualitySummary = {
+  average_score: number;
+  total_events: number;
+  by_entity: Record<string, number>;
+};
+
+type KpiMetric = {
+  name: string;
+  value: number | null;
+  normalized: number;
+};
+
+type ProjectKpis = {
+  project_id: string;
+  metrics: KpiMetric[];
+  computed_at: string;
+};
+
+type NarrativeResponse = {
+  project_id: string;
+  summary: string;
+  highlights: string[];
+  risks: string[];
+  opportunities: string[];
+  data_quality_notes: string[];
+  computed_at: string;
 };
 
 /** Mock chart component */
@@ -256,6 +284,9 @@ export function DashboardCanvas({
   const { widgets, gridColumns = 12 } = artifact.content;
   const [health, setHealth] = useState<ProjectHealth | null>(null);
   const [trends, setTrends] = useState<HealthTrendPoint[]>([]);
+  const [quality, setQuality] = useState<QualitySummary | null>(null);
+  const [kpis, setKpis] = useState<ProjectKpis | null>(null);
+  const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [whatIfMessage, setWhatIfMessage] = useState<string | null>(null);
@@ -266,9 +297,18 @@ export function DashboardCanvas({
       setLoading(true);
       setError(null);
       try {
-        const [healthResponse, trendResponse] = await Promise.all([
-          fetch(`${API_BASE}/projects/${artifact.projectId}/health`),
-          fetch(`${API_BASE}/projects/${artifact.projectId}/health/trends`),
+        const [
+          healthResponse,
+          trendResponse,
+          qualityResponse,
+          kpiResponse,
+          narrativeResponse,
+        ] = await Promise.all([
+          fetch(`${API_BASE}/${artifact.projectId}/health`),
+          fetch(`${API_BASE}/${artifact.projectId}/trends`),
+          fetch(`${API_BASE}/${artifact.projectId}/quality`),
+          fetch(`${API_BASE}/${artifact.projectId}/kpis`),
+          fetch(`${API_BASE}/${artifact.projectId}/narrative`),
         ]);
         if (!healthResponse.ok) {
           throw new Error('Unable to load project health.');
@@ -277,9 +317,19 @@ export function DashboardCanvas({
         const trendsData = trendResponse.ok
           ? ((await trendResponse.json()) as { points?: HealthTrendPoint[] })
           : { points: [] };
+        const qualityData = qualityResponse.ok
+          ? ((await qualityResponse.json()) as QualitySummary)
+          : null;
+        const kpiData = kpiResponse.ok ? ((await kpiResponse.json()) as ProjectKpis) : null;
+        const narrativeData = narrativeResponse.ok
+          ? ((await narrativeResponse.json()) as NarrativeResponse)
+          : null;
         if (isMounted) {
           setHealth(healthData);
           setTrends(trendsData.points ?? []);
+          setQuality(qualityData);
+          setKpis(kpiData);
+          setNarrative(narrativeData);
         }
       } catch (err) {
         if (isMounted) {
@@ -328,7 +378,7 @@ export function DashboardCanvas({
     setWhatIfMessage(null);
     try {
       const response = await fetch(
-        `${API_BASE}/projects/${artifact.projectId}/health/what-if`,
+        `${API_BASE}/${artifact.projectId}/what-if`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -349,7 +399,7 @@ export function DashboardCanvas({
   };
 
   // If no widgets, show empty state
-  if (!loading && widgets.length === 0 && !health) {
+  if (!loading && widgets.length === 0 && !health && !kpis) {
     return (
       <div className={`${styles.container} ${className ?? ''}`}>
         <div className={styles.emptyState}>
@@ -429,6 +479,22 @@ export function DashboardCanvas({
           </>
         )}
         {!health && loading && <div className={styles.loadingCard}>Loading KPIs...</div>}
+        {kpis && !loading && (
+          <div className={styles.kpiCardWide}>
+            <div className={styles.kpiLabel}>Key Metrics</div>
+            <div className={styles.kpiMetricList}>
+              {kpis.metrics.slice(0, 4).map((metric) => (
+                <div key={metric.name} className={styles.kpiMetricRow}>
+                  <span>{metric.name}</span>
+                  <strong>{metric.value ?? '—'}</strong>
+                </div>
+              ))}
+            </div>
+            <div className={styles.kpiHelper}>
+              Computed {new Date(kpis.computed_at).toLocaleString()}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={styles.trendGrid}>
@@ -486,6 +552,62 @@ export function DashboardCanvas({
             <p className={styles.statusMessage}>
               {whatIfMessage ?? 'Run a what-if scenario to explore improvement options.'}
             </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.trendGrid}>
+        <div className={styles.widgetContainer}>
+          <div className={styles.sectionHeader}>
+            <h3>Quality Overview</h3>
+            <span>Data lineage and monitoring</span>
+          </div>
+          <div className={styles.sectionBody}>
+            {quality ? (
+              <>
+                <p className={styles.statusMessage}>
+                  Average quality score: <strong>{Math.round(quality.average_score * 100)}%</strong>
+                </p>
+                <p className={styles.statusMessage}>
+                  {quality.total_events} quality signals analyzed.
+                </p>
+                <ul className={styles.list}>
+                  {Object.entries(quality.by_entity).map(([entity, score]) => (
+                    <li key={entity}>
+                      {entity}: {Math.round(score * 100)}%
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className={styles.statusMessage}>Quality metrics not yet available.</p>
+            )}
+          </div>
+        </div>
+        <div className={styles.widgetContainer}>
+          <div className={styles.sectionHeader}>
+            <h3>Executive Narrative</h3>
+            <span>AI-generated project brief</span>
+          </div>
+          <div className={styles.sectionBody}>
+            {narrative ? (
+              <>
+                <p className={styles.statusMessage}>{narrative.summary}</p>
+                <ul className={styles.list}>
+                  {narrative.highlights.slice(0, 3).map((highlight) => (
+                    <li key={highlight}>{highlight}</li>
+                  ))}
+                  {narrative.risks.slice(0, 2).map((risk) => (
+                    <li key={risk}>Risk: {risk}</li>
+                  ))}
+                  {narrative.opportunities.slice(0, 2).map((item) => (
+                    <li key={item}>Opportunity: {item}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className={styles.statusMessage}>Narrative insights are loading.</p>
+            )}
           </div>
         </div>
       </div>
