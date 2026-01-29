@@ -1,5 +1,8 @@
+import json
 import sys
 from pathlib import Path
+
+from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "apps" / "analytics-service"))
@@ -24,3 +27,17 @@ def test_prompt_manifests_validate() -> None:
 def test_sandbox_configs_validate() -> None:
     for config in list_sandbox_configs():
         load_sandbox_config(config)
+
+
+def test_new_schemas_validate() -> None:
+    schema_dir = REPO_ROOT / "data" / "schemas"
+    schema_names = [
+        "demand.schema.json",
+        "resource.schema.json",
+        "roi.schema.json",
+        "agent_config.schema.json",
+    ]
+
+    for schema_name in schema_names:
+        schema = json.loads((schema_dir / schema_name).read_text())
+        Draft202012Validator.check_schema(schema)
