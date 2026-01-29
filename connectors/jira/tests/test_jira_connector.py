@@ -451,12 +451,50 @@ class TestJiraConnectorUnsupportedOperations:
         with pytest.raises(ValueError, match="Unsupported resource type"):
             connector.read("unsupported_type")
 
-    def test_write_not_supported(self, mock_env, jira_config):
-        """Test that write operations are not supported."""
-        connector = JiraConnector(jira_config)
 
-        with pytest.raises(NotImplementedError):
-            connector.write("issues", [{"summary": "Test"}])
+class TestJiraConnectorWriteOperations:
+    """Tests for Jira connector write operations."""
+
+    def test_create_issue_success(self, mock_env, jira_config, mock_myself_response):
+        transport = MockTransport(
+            {
+                "/rest/api/3/myself": {"status_code": 200, "content": mock_myself_response},
+                "/rest/api/3/issue": {"status_code": 201, "content": {"id": "3000", "key": "TEST-1"}},
+            }
+        )
+        connector = JiraConnector(jira_config, transport=transport)
+        connector.authenticate()
+
+        results = connector.write(
+            "issues",
+            [{"summary": "Write test", "project_key": "TEST", "issue_type": "Task"}],
+        )
+
+        assert results == [{"id": "3000", "key": "TEST-1", "status": None}]
+
+    def test_update_issue_conflict(self, mock_env, jira_config, mock_myself_response):
+        transport = MockTransport(
+            {
+                "/rest/api/3/myself": {"status_code": 200, "content": mock_myself_response},
+                "/rest/api/3/issue/TEST-2": {
+                    "status_code": 200,
+                    "content": {
+                        "id": "3001",
+                        "key": "TEST-2",
+                        "fields": {"updated": "2024-01-02T00:00:00Z"},
+                    },
+                },
+            }
+        )
+        connector = JiraConnector(jira_config, transport=transport)
+        connector.authenticate()
+
+        results = connector.write(
+            "issues",
+            [{"key": "TEST-2", "status": "done", "updated_at": "2024-01-01T00:00:00Z"}],
+        )
+
+        assert results[0]["conflict"] is True
 
 
 if __name__ == "__main__":

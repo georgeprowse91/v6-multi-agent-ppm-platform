@@ -3,11 +3,14 @@ from __future__ import annotations
 import base64
 import os
 from dataclasses import dataclass
+import json
 from pathlib import Path
 from typing import Any
 from connectors.sdk.src.http_client import HttpClient
 from connectors.sdk.src.runtime import ConnectorRuntime
 from connectors.sdk.src.secrets import resolve_secret
+from connectors.jira.src.jira_connector import JiraConnector
+from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 
@@ -171,16 +174,58 @@ def run_sync(
     return runtime.apply_mappings(records, tenant_id, include_schema=include_schema)
 
 
+def run_write(
+    fixture_path: Path | None,
+    tenant_id: str,
+    *,
+    live: bool = False,
+    client: HttpClient | None = None,
+    config: JiraConfig | None = None,
+    data: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    runtime = ConnectorRuntime(CONNECTOR_ROOT)
+    if fixture_path:
+        raw = json.loads(fixture_path.read_text())
+        if not isinstance(raw, list):
+            raise ValueError("Fixture must be a list of records")
+        payload = raw
+    elif data is not None:
+        payload = data
+    else:
+        raise ValueError("No records provided for write operation")
+
+    rate_limit = runtime.manifest.sync.get("rate_limit_per_minute", 60)
+    config = config or JiraConfig.from_env(rate_limit)
+    client = client or _build_client(config)
+
+    connector_config = ConnectorConfig(
+        connector_id="jira",
+        name="Jira",
+        category=ConnectorCategory.PM,
+        enabled=True,
+        sync_direction=SyncDirection.BIDIRECTIONAL,
+        sync_frequency=SyncFrequency.MANUAL,
+        instance_url=config.instance_url if config else "",
+        project_key="",
+    )
+    connector = JiraConnector(connector_config, client=client)
+    connector.authenticate()
+    return connector.write("issues", payload)
+
+
 if __name__ == "__main__":
     import argparse
-    import json
 
     parser = argparse.ArgumentParser(description="Run connector sync against a fixture file")
     parser.add_argument("fixture", nargs="?", type=str, help="Path to fixture JSON")
     parser.add_argument("--tenant", required=True, help="Tenant identifier")
     parser.add_argument("--live", action="store_true", help="Run against live API using env vars")
+    parser.add_argument("--write", action="store_true", help="Write records to Jira instead of sync")
     args = parser.parse_args()
 
     fixture = Path(args.fixture) if args.fixture else None
-    output = run_sync(fixture, args.tenant, live=args.live)
+    if args.write:
+        output = run_write(fixture, args.tenant, live=args.live)
+    else:
+        output = run_sync(fixture, args.tenant, live=args.live)
     print(json.dumps(output, indent=2))

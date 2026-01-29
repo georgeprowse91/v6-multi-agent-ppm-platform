@@ -51,7 +51,7 @@ class JiraConnector(BaseConnector):
     CONNECTOR_NAME = "Jira"
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.PM
-    SUPPORTS_WRITE = False  # MVP: read-only
+    SUPPORTS_WRITE = True
 
     def __init__(
         self,
@@ -65,6 +65,87 @@ class JiraConnector(BaseConnector):
         self._instance_url: str | None = None
         self._email: str | None = None
         self._api_token: str | None = None
+
+    def write(
+        self,
+        resource_type: str,
+        data: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """
+        Write data to Jira.
+
+        Supported resource_type values:
+        - 'issues': Create or update issues
+        """
+        if resource_type != "issues":
+            raise ValueError(f"Unsupported resource type: {resource_type}")
+
+        if not self._authenticated:
+            if not self.authenticate():
+                raise RuntimeError("Failed to authenticate with Jira")
+
+        client = self._client or self._build_client()
+        results: list[dict[str, Any]] = []
+
+        for record in data:
+            issue_id = record.get("id") or record.get("key")
+            status_value = record.get("status")
+
+            if issue_id:
+                current = client.get(
+                    f"/rest/api/3/issue/{issue_id}",
+                    params={"fields": "summary,status,updated"},
+                ).json()
+                current_fields = current.get("fields", {})
+                current_updated = current_fields.get("updated")
+                client_updated = record.get("updated") or record.get("updated_at")
+                if client_updated and current_updated and client_updated != current_updated:
+                    results.append(
+                        {
+                            "id": current.get("id") or issue_id,
+                            "key": current.get("key") or issue_id,
+                            "conflict": True,
+                            "message": "Conflict detected: issue has been updated in Jira.",
+                            "server_updated": current_updated,
+                            "client_updated": client_updated,
+                        }
+                    )
+                    continue
+
+                fields = self._build_issue_fields(record)
+                if fields:
+                    client.request(
+                        "PUT",
+                        f"/rest/api/3/issue/{issue_id}",
+                        json={"fields": fields},
+                    )
+                if status_value:
+                    self._transition_issue(client, issue_id, status_value)
+                results.append(
+                    {
+                        "id": current.get("id") or issue_id,
+                        "key": current.get("key") or issue_id,
+                        "status": status_value or self._extract_nested(
+                            current_fields, "status", "name"
+                        ),
+                    }
+                )
+                continue
+
+            created = self._create_issue(client, record)
+            created_id = created.get("id")
+            created_key = created.get("key")
+            if status_value and (created_id or created_key):
+                self._transition_issue(client, created_key or created_id, status_value)
+            results.append(
+                {
+                    "id": created_id,
+                    "key": created_key,
+                    "status": status_value,
+                }
+            )
+
+        return results
 
     def _get_credentials(self) -> tuple[str, str, str]:
         """
@@ -398,6 +479,92 @@ class JiraConnector(BaseConnector):
         for child in node.get("content", []):
             if isinstance(child, dict):
                 self._extract_text_from_adf(child, texts)
+
+    def _build_issue_fields(self, record: dict[str, Any]) -> dict[str, Any]:
+        fields: dict[str, Any] = {}
+
+        summary = record.get("summary") or record.get("title")
+        if summary:
+            fields["summary"] = summary
+
+        description = record.get("description")
+        if description is not None:
+            fields["description"] = self._format_description(description)
+
+        due_date = record.get("due_date") or record.get("duedate")
+        if due_date:
+            fields["duedate"] = due_date
+
+        issue_type = record.get("issue_type") or record.get("type")
+        if issue_type:
+            fields["issuetype"] = {"name": self._map_issue_type(issue_type)}
+
+        project_key = record.get("project_key") or record.get("project")
+        if project_key:
+            fields["project"] = {"key": project_key}
+
+        return fields
+
+    def _format_description(self, description: str) -> dict[str, Any]:
+        if isinstance(description, dict):
+            return description
+        text = str(description)
+        lines = text.splitlines() or [text]
+        content = []
+        for line in lines:
+            content.append(
+                {"type": "paragraph", "content": [{"type": "text", "text": line}]}
+            )
+        return {"type": "doc", "version": 1, "content": content}
+
+    def _map_issue_type(self, issue_type: str) -> str:
+        normalized = issue_type.strip().lower()
+        if normalized in {"story", "bug", "task"}:
+            return normalized.title()
+        if normalized in {"milestone", "deliverable"}:
+            return "Task"
+        return issue_type
+
+    def _map_status(self, status: str) -> str:
+        normalized = status.strip().lower().replace(" ", "_")
+        mapping = {
+            "todo": "To Do",
+            "to_do": "To Do",
+            "in_progress": "In Progress",
+            "done": "Done",
+            "blocked": "Blocked",
+        }
+        return mapping.get(normalized, status)
+
+    def _transition_issue(self, client: HttpClient, issue_id: str, status: str) -> None:
+        target_status = self._map_status(status)
+        transitions = client.get(
+            f"/rest/api/3/issue/{issue_id}/transitions"
+        ).json()
+        for transition in transitions.get("transitions", []):
+            to_status = (transition.get("to") or {}).get("name")
+            if to_status and to_status.lower() == target_status.lower():
+                client.post(
+                    f"/rest/api/3/issue/{issue_id}/transitions",
+                    json={"transition": {"id": transition.get("id")}},
+                )
+                return
+        raise ValueError(f"No transition found for status '{target_status}' on issue {issue_id}")
+
+    def _create_issue(self, client: HttpClient, record: dict[str, Any]) -> dict[str, Any]:
+        fields = self._build_issue_fields(record)
+        if "summary" not in fields:
+            raise ValueError("Issue summary is required to create a Jira issue")
+        if "project" not in fields:
+            project_key = self.config.project_key
+            if not project_key:
+                raise ValueError("Project key is required to create a Jira issue")
+            fields["project"] = {"key": project_key}
+        if "issuetype" not in fields:
+            fields["issuetype"] = {"name": "Task"}
+
+        response = client.post("/rest/api/3/issue", json={"fields": fields})
+        return response.json()
 
 
 def create_jira_connector(

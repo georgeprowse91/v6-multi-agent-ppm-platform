@@ -164,7 +164,7 @@ class BaseConnector(ABC):
     CONNECTOR_NAME: str = "Base Connector"
     CONNECTOR_VERSION: str = "1.0.0"
     CONNECTOR_CATEGORY: ConnectorCategory = ConnectorCategory.PM
-    SUPPORTS_WRITE: bool = False
+    SUPPORTS_WRITE: bool = False  # Override to enable write operations
 
     def __init__(self, config: ConnectorConfig) -> None:
         self.config = config

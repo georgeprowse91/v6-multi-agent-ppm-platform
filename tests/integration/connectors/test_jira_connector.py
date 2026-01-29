@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import httpx
 
-from connectors.jira.src.main import JiraConfig, run_sync
+from connectors.jira.src.main import JiraConfig, run_sync, run_write
 from connectors.sdk.src.http_client import HttpClient
 
 
@@ -94,3 +94,115 @@ def test_jira_live_sync_maps_projects() -> None:
             "updated_at": "2024-01-04T11:00:00Z",
         },
     ]
+
+
+def test_jira_live_write_creates_issue() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.url.path == "/rest/api/3/myself":
+            return httpx.Response(200, json={"displayName": "Tester"})
+        if request.url.path == "/rest/api/3/issue" and request.method == "POST":
+            return httpx.Response(201, json={"id": "3000", "key": "PROJ-9"})
+        raise AssertionError(f"Unexpected path: {request.method} {request.url.path}")
+
+    transport = httpx.MockTransport(handler)
+    client = HttpClient(base_url="https://jira.example", transport=transport)
+    config = JiraConfig(
+        instance_url="https://jira.example",
+        email="user@example.com",
+        api_token="token",
+        rate_limit_per_minute=120,
+    )
+
+    payload = [
+        {
+            "summary": "New connector issue",
+            "project_key": "PROJ",
+            "issue_type": "Task",
+            "description": "Create from PPM",
+        }
+    ]
+
+    results = run_write(
+        None,
+        "tenant-demo",
+        live=True,
+        client=client,
+        config=config,
+        data=payload,
+    )
+
+    assert results == [{"id": "3000", "key": "PROJ-9", "status": None}]
+    assert any(request.url.path == "/rest/api/3/myself" for request in requests)
+
+
+def test_jira_live_write_updates_issue_status_and_detects_conflict() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.url.path == "/rest/api/3/myself":
+            return httpx.Response(200, json={"displayName": "Tester"})
+        if request.url.path == "/rest/api/3/issue/PROJ-1":
+            return httpx.Response(
+                200,
+                json={
+                    "id": "1001",
+                    "key": "PROJ-1",
+                    "fields": {"updated": "2024-01-01T00:00:00Z", "status": {"name": "To Do"}},
+                },
+            )
+        if request.url.path == "/rest/api/3/issue/PROJ-2":
+            return httpx.Response(
+                200,
+                json={
+                    "id": "1002",
+                    "key": "PROJ-2",
+                    "fields": {"updated": "2024-01-02T00:00:00Z", "status": {"name": "To Do"}},
+                },
+            )
+        if request.url.path.endswith("/transitions") and request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "transitions": [
+                        {"id": "31", "to": {"name": "Done"}},
+                    ]
+                },
+            )
+        if request.url.path.endswith("/transitions") and request.method == "POST":
+            return httpx.Response(204)
+        raise AssertionError(f"Unexpected path: {request.method} {request.url.path}")
+
+    transport = httpx.MockTransport(handler)
+    client = HttpClient(base_url="https://jira.example", transport=transport)
+    config = JiraConfig(
+        instance_url="https://jira.example",
+        email="user@example.com",
+        api_token="token",
+        rate_limit_per_minute=120,
+    )
+
+    payload = [
+        {"key": "PROJ-1", "status": "done", "updated_at": "2024-01-01T00:00:00Z"},
+        {"key": "PROJ-2", "status": "done", "updated_at": "2024-01-01T00:00:00Z"},
+    ]
+
+    results = run_write(
+        None,
+        "tenant-demo",
+        live=True,
+        client=client,
+        config=config,
+        data=payload,
+    )
+
+    assert results[0] == {"id": "1001", "key": "PROJ-1", "status": "done"}
+    assert results[1]["conflict"] is True
+    assert results[1]["server_updated"] == "2024-01-02T00:00:00Z"
+    assert any(
+        request.url.path.endswith("/transitions") and request.method == "POST"
+        for request in requests
+    )
