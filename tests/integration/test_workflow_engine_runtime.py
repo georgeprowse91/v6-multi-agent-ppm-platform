@@ -8,7 +8,7 @@ import jwt
 from fastapi.testclient import TestClient
 
 
-def _load_app():
+def _load_module():
     module_path = (
         Path(__file__).resolve().parents[2] / "apps" / "workflow-engine" / "src" / "main.py"
     )
@@ -17,13 +17,23 @@ def _load_app():
     assert spec and spec.loader
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    return module.app
+    return module
+
+
+class DummyAgentClient:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, str]] = []
+
+    async def execute(self, agent_id: str, action: str, payload: dict, context: dict) -> dict:
+        self.calls.append({"agent_id": agent_id, "action": action})
+        return {"status": "ok"}
 
 
 def test_workflow_persistence(tmp_path, monkeypatch) -> None:
     db_path = tmp_path / "workflow.db"
     monkeypatch.setenv("WORKFLOW_DB_PATH", str(db_path))
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
+    monkeypatch.setenv("AGENT_SERVICE_URL", "http://agent.test")
 
     token = jwt.encode(
         {
@@ -38,8 +48,9 @@ def test_workflow_persistence(tmp_path, monkeypatch) -> None:
     )
     headers = {"Authorization": f"Bearer {token}", "X-Tenant-ID": "tenant-alpha"}
 
-    app = _load_app()
-    client = TestClient(app)
+    module = _load_module()
+    module.runtime.agent_client = DummyAgentClient()
+    client = TestClient(module.app)
 
     response = client.post(
         "/workflows/start",
@@ -54,6 +65,7 @@ def test_workflow_persistence(tmp_path, monkeypatch) -> None:
     )
     assert response.status_code == 200
     run_id = response.json()["run_id"]
+    assert module.runtime.agent_client.calls
 
     fetch = client.get(f"/workflows/{run_id}", headers=headers)
     assert fetch.status_code == 200

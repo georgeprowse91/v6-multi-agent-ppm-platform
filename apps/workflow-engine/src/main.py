@@ -23,6 +23,7 @@ for root in (REPO_ROOT, WORKFLOW_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from agent_client import get_agent_client  # noqa: E402
 from workflow_audit import emit_audit_event  # noqa: E402
 from workflow_definitions import load_definition, seed_definitions  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
@@ -47,7 +48,8 @@ bootstrap_runtime_paths()
 from approval_workflow_agent import ApprovalWorkflowAgent  # noqa: E402
 
 approval_agent = ApprovalWorkflowAgent()
-runtime = WorkflowRuntime(store, approval_agent)
+agent_client = get_agent_client()
+runtime = WorkflowRuntime(store, approval_agent, agent_client)
 
 
 class HealthResponse(BaseModel):

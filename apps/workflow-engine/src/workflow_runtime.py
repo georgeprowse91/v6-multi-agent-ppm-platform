@@ -2,15 +2,22 @@ from __future__ import annotations
 
 from typing import Any
 
+from agent_client import AgentClient
 from approval_workflow_agent import ApprovalWorkflowAgent
 
 from workflow_storage import WorkflowApproval, WorkflowInstance, WorkflowStore
 
 
 class WorkflowRuntime:
-    def __init__(self, store: WorkflowStore, approval_agent: ApprovalWorkflowAgent) -> None:
+    def __init__(
+        self,
+        store: WorkflowStore,
+        approval_agent: ApprovalWorkflowAgent,
+        agent_client: AgentClient | None = None,
+    ) -> None:
         self.store = store
         self.approval_agent = approval_agent
+        self.agent_client = agent_client
 
     async def start(
         self, instance: WorkflowInstance, definition: dict[str, Any], actor: dict[str, Any]
@@ -202,6 +209,85 @@ class WorkflowRuntime:
                     current_step_id,
                 )
                 return self.store.get(instance.run_id)
+
+            if step_type == "task":
+                agent_config = step.get("config", {})
+                agent_id = agent_config.get("agent")
+                action = agent_config.get("action")
+                if not self.agent_client:
+                    self.store.upsert_step_state(
+                        instance.run_id, current_step_id, "failed", attempts, step_output
+                    )
+                    self.store.update_step_error(
+                        instance.run_id, current_step_id, "Agent client not configured"
+                    )
+                    self.store.update_status(instance.run_id, "failed", current_step_id)
+                    self.store.add_event(
+                        instance.run_id,
+                        "failed",
+                        f"Agent client not configured for step {current_step_id}",
+                        current_step_id,
+                    )
+                    return self.store.get(instance.run_id)
+                if not agent_id or not action:
+                    self.store.upsert_step_state(
+                        instance.run_id, current_step_id, "failed", attempts, step_output
+                    )
+                    self.store.update_step_error(
+                        instance.run_id,
+                        current_step_id,
+                        "Task step missing agent or action",
+                    )
+                    self.store.update_status(instance.run_id, "failed", current_step_id)
+                    self.store.add_event(
+                        instance.run_id,
+                        "failed",
+                        f"Task step {current_step_id} missing agent/action",
+                        current_step_id,
+                    )
+                    return self.store.get(instance.run_id)
+                resolved_config = {
+                    key: self._resolve_reference(value, instance.payload)
+                    for key, value in agent_config.items()
+                    if key not in {"agent", "action"}
+                }
+                try:
+                    agent_response = await self.agent_client.execute(
+                        agent_id=agent_id,
+                        action=action,
+                        payload={
+                            "workflow_id": instance.workflow_id,
+                            "run_id": instance.run_id,
+                            "step_id": current_step_id,
+                            "payload": instance.payload,
+                            "config": resolved_config,
+                            "actor": actor,
+                        },
+                        context={
+                            "tenant_id": instance.tenant_id,
+                            "correlation_id": instance.run_id,
+                        },
+                    )
+                except Exception as exc:
+                    self.store.upsert_step_state(
+                        instance.run_id, current_step_id, "failed", attempts, step_output
+                    )
+                    self.store.update_step_error(
+                        instance.run_id, current_step_id, f"Agent call failed: {exc}"
+                    )
+                    self.store.update_status(instance.run_id, "failed", current_step_id)
+                    self.store.add_event(
+                        instance.run_id,
+                        "failed",
+                        f"Agent call failed for step {current_step_id}",
+                        current_step_id,
+                    )
+                    return self.store.get(instance.run_id)
+                step_output = {
+                    "agent": agent_id,
+                    "action": action,
+                    "response": agent_response,
+                }
 
             self.store.upsert_step_state(
                 instance.run_id, current_step_id, "completed", attempts, step_output

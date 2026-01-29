@@ -16,6 +16,7 @@ WORKFLOW_ENGINE_SRC = REPO_ROOT / "apps" / "workflow-engine" / "src"
 if str(WORKFLOW_ENGINE_SRC) not in sys.path:
     sys.path.insert(0, str(WORKFLOW_ENGINE_SRC))
 
+from agent_client import get_agent_client  # noqa: E402
 from workflow_definitions import load_definition, seed_definitions  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store
@@ -119,7 +120,8 @@ def _get_runtime(request: Request) -> WorkflowRuntime:
     approval_agent = orchestrator.get_agent("agent_003_approval_workflow")
     if not approval_agent:
         raise HTTPException(status_code=503, detail="Approval agent unavailable")
-    return WorkflowRuntime(store, approval_agent)
+    agent_client = get_agent_client()
+    return WorkflowRuntime(store, approval_agent, agent_client)
 
 
 @router.get("/workflows/definitions", response_model=list[WorkflowDefinitionResponse])
