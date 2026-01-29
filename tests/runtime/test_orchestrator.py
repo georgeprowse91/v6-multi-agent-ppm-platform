@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import time
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
 
 import pytest
 
@@ -9,6 +11,23 @@ from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.event_bus import InMemoryEventBus
 from agents.runtime.src.memory_store import InMemoryConversationStore
 from agents.runtime.src.orchestrator import AgentTask, Orchestrator, RetryPolicy
+
+ORCHESTRATOR_SERVICE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "apps"
+    / "orchestration-service"
+    / "src"
+    / "orchestrator.py"
+)
+
+
+def _load_service_orchestrator():
+    spec = spec_from_file_location("orchestration_service_orchestrator", ORCHESTRATOR_SERVICE_PATH)
+    if not spec or not spec.loader:
+        raise ImportError("Unable to load orchestration service orchestrator module")
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.AgentOrchestrator
 
 
 class SleepAgent(BaseAgent):
@@ -103,3 +122,34 @@ async def test_orchestrator_persists_memory_across_calls() -> None:
     persisted = await memory_store.load("conversation-1")
     history = persisted.get("history", [])
     assert len(history) == 2
+
+
+@pytest.mark.asyncio
+async def test_service_orchestrator_calls_workflow_client() -> None:
+    AgentOrchestrator = _load_service_orchestrator()
+
+    class StubWorkflowClient:
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+
+        async def start_workflow(
+            self, payload: dict, headers: dict[str, str]
+        ) -> dict[str, str]:
+            self.calls.append({"payload": payload, "headers": headers})
+            return {"run_id": "run-123"}
+
+    workflow_client = StubWorkflowClient()
+    orchestrator = AgentOrchestrator(workflow_client=workflow_client)
+
+    response = await orchestrator.start_workflow(
+        tenant_id="tenant-1",
+        workflow_id="intake-triage",
+        payload={"request": "run"},
+        actor={"id": "user-1", "type": "user", "roles": ["PMO_ADMIN"]},
+        headers={"Authorization": "Bearer token"},
+    )
+
+    assert response["run_id"] == "run-123"
+    assert workflow_client.calls
+    assert workflow_client.calls[0]["payload"]["workflow_id"] == "intake-triage"
+    assert workflow_client.calls[0]["headers"]["X-Tenant-ID"] == "tenant-1"

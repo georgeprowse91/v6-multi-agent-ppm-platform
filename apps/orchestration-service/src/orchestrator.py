@@ -12,6 +12,7 @@ from agents.runtime import AgentResponse
 from persistence import WorkflowState, build_state_store, make_state_key
 
 from tools.runtime_paths import bootstrap_runtime_paths
+from workflow_client import WorkflowClient
 
 logger = logging.getLogger(__name__)
 DEFAULT_POLICY_BUNDLE_PATH = (
@@ -26,7 +27,7 @@ class AgentOrchestrator:
     Manages agent lifecycle, routing, and coordination.
     """
 
-    def __init__(self):
+    def __init__(self, workflow_client: WorkflowClient | None = None):
         self.agents = {}
         self.catalog_agents = {}
         self.initialized = False
@@ -34,6 +35,7 @@ class AgentOrchestrator:
         self.response_orchestrator = None
         self.policy_bundle_path = DEFAULT_POLICY_BUNDLE_PATH
         self.workflow_states: dict[str, WorkflowState] = {}
+        self.workflow_client = workflow_client or WorkflowClient()
         state_path = Path(
             os.getenv(
                 "ORCHESTRATION_STATE_PATH",
@@ -93,6 +95,50 @@ class AgentOrchestrator:
         saved_state = await self.state_store.save(state)
         self.workflow_states[key] = saved_state
         return saved_state
+
+    async def start_workflow(
+        self,
+        tenant_id: str,
+        workflow_id: str,
+        payload: dict[str, Any],
+        actor: dict[str, Any],
+        classification: str = "internal",
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        request_payload = {
+            "workflow_id": workflow_id,
+            "tenant_id": tenant_id,
+            "classification": classification,
+            "payload": payload,
+            "actor": actor,
+        }
+        workflow_headers = self._workflow_headers(tenant_id, headers)
+        return await self.workflow_client.start_workflow(request_payload, workflow_headers)
+
+    async def list_workflows(
+        self, tenant_id: str, headers: dict[str, str] | None = None
+    ) -> list[dict[str, Any]]:
+        workflow_headers = self._workflow_headers(tenant_id, headers)
+        return await self.workflow_client.list_workflows(workflow_headers)
+
+    async def get_workflow(
+        self, tenant_id: str, run_id: str, headers: dict[str, str] | None = None
+    ) -> dict[str, Any]:
+        workflow_headers = self._workflow_headers(tenant_id, headers)
+        return await self.workflow_client.get_workflow(run_id, workflow_headers)
+
+    async def resume_workflow(
+        self, tenant_id: str, run_id: str, headers: dict[str, str] | None = None
+    ) -> dict[str, Any]:
+        workflow_headers = self._workflow_headers(tenant_id, headers)
+        return await self.workflow_client.resume_workflow(run_id, workflow_headers)
+
+    def _workflow_headers(
+        self, tenant_id: str, headers: dict[str, str] | None = None
+    ) -> dict[str, str]:
+        workflow_headers = dict(headers or {})
+        workflow_headers.setdefault("X-Tenant-ID", tenant_id)
+        return workflow_headers
 
     def resume_workflows(self, tenant_id: str) -> list[str]:
         return [
