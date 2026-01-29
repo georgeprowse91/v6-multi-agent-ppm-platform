@@ -15,6 +15,21 @@ Catalog backend services that power data sync, policy enforcement, and telemetry
 - `services/policy-engine`: Subdirectory containing policy engine assets for this area.
 - `services/telemetry-service`: Subdirectory containing telemetry service assets for this area.
 
+## Service descriptions & endpoints
+
+Each service runs a FastAPI application (default port `8080`) with health checks at `/healthz`.
+
+| Service | Description | Primary endpoints |
+| --- | --- | --- |
+| Audit Log | Immutable audit trail with retention and WORM storage enforcement. | `POST /audit/events`, `GET /audit/events/{event_id}` |
+| Data Sync Service | Runs connector sync jobs, tracks status, and manages conflicts. | `POST /sync/run`, `GET /sync/status/{job_id}`, `GET /sync/conflicts` |
+| Data Lineage Service | Captures lineage events and quality summaries. | `POST /lineage/events`, `GET /lineage/graph`, `GET /quality/summary` |
+| Data Service | Manages schemas and canonical entities. | `POST /schemas`, `GET /schemas`, `POST /entities/{schema_name}` |
+| Identity & Access | Validates auth tokens and supports SCIM provisioning. | `POST /auth/validate`, `POST /scim/v2/Users`, `GET /scim/v2/Groups` |
+| Notification Service | Sends email/chat/webhook notifications. | `POST /notifications/send` |
+| Policy Engine | Evaluates RBAC/ABAC policy decisions. | `POST /policies/evaluate`, `POST /rbac/evaluate`, `POST /abac/evaluate` |
+| Telemetry Service | Ingests telemetry payloads for observability. | `POST /telemetry/ingest` |
+
 ## How it's used
 
 Services are discovered by `tools/component_runner` and deployed via Helm and Terraform resources under `infra/`.

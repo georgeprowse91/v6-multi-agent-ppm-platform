@@ -1,0 +1,47 @@
+@startuml
+!pragma layout smetana
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+Title Multi-Agent PPM Platform - Deployment Overview
+
+cloud "User Devices" as users
+cloud "External Systems" as external {
+  [Jira/Planview] as ppm
+  [SAP/Workday] as erp
+  [Slack/Teams] as chat
+  [Azure AD/Okta] as idp
+}
+
+node "AKS Cluster" as aks {
+  [Ingress Controller] as ingress
+  [API Gateway] as api
+  [Workflow Engine] as workflow
+  [Orchestration Service] as orchestration
+  [Core Services] as services
+}
+
+cloud "Azure Managed Services" as azure {
+  database "PostgreSQL" as postgres
+  queue "Redis Cache" as redis
+  cloud "Blob Storage (WORM)" as blob
+  [Key Vault] as keyvault
+  [Azure Monitor] as monitor
+}
+
+users --> ingress : HTTPS
+ingress --> api
+api --> workflow
+api --> orchestration
+orchestration --> services
+
+services --> postgres
+services --> redis
+services --> blob
+services --> keyvault
+services --> monitor
+
+api --> idp : SSO/Auth
+services --> external : Connector sync
+
+@enduml

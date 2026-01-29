@@ -10,6 +10,12 @@ three domain agents, and workflow persistence.
 - Python 3.11+ (optional, for running the smoke script locally)
 - `make`
 
+## Preflight checks
+
+- Confirm Docker is running: `docker ps`
+- Confirm ports are free: `8000`, `8080`, and `8501`
+- Ensure `.env` is present if you need custom overrides
+
 ## Start the local stack
 ```bash
 make dev-up
@@ -69,6 +75,9 @@ Expected output:
 curl -sS http://localhost:8000/healthz | jq
 curl -sS http://localhost:8080/healthz | jq
 ```
+
+Optional: verify service-level health when running individual services directly by using their
+configured port and `/healthz` endpoint.
 
 ## Stop the stack
 ```bash

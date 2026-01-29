@@ -6,12 +6,15 @@ Centralize canonical entity storage and manage JSON Schema versions for the plat
 
 ## Key endpoints
 
+- `GET /healthz`: Service health check.
 - `POST /schemas`: Register a schema (auto-increments version when omitted).
 - `GET /schemas`: List schemas with latest versions.
 - `GET /schemas/{schema_name}/versions`: List all versions for a schema.
 - `GET /schemas/{schema_name}/latest`: Retrieve latest schema.
 - `POST /entities/{schema_name}`: Store a canonical entity after validation.
 - `GET /entities/{schema_name}/{entity_id}`: Retrieve a canonical entity.
+
+**Default port:** `8080`
 
 ## Configuration
 

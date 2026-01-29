@@ -4,6 +4,13 @@
 
 Define the Telemetry Service service responsibilities and how it integrates with the platform.
 
+## Key endpoints
+
+- `GET /healthz`: Service health check.
+- `POST /telemetry/ingest`: Ingest telemetry events.
+
+**Default port:** `8080`
+
 ## What's inside
 
 - `services/telemetry-service/contracts`: Service contracts and schema artifacts.

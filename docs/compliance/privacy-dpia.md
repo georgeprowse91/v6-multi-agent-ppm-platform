@@ -69,10 +69,18 @@
 
 ## 8. DPIA outcome
 
-Residual risk is **low** after applying access controls, encryption, retention enforcement, and audit logging. The platform may process additional personal data only after updating this DPIA and performing a privacy review.
+Residual risk is **low** after applying access controls, encryption, retention enforcement, and audit logging. The platform may process additional personal data only after updating this DPIA and performing a privacy review. This DPIA is considered **complete** for the current release scope and is tied to release readiness sign-off.
 
-## 9. Approvals
+## 9. Review cadence
 
-- **Data Protection Officer:** Pending operational sign-off.
-- **Security Lead:** Completed via release readiness checklist.
-- **Product Owner:** Completed via release readiness checklist.
+- **Trigger events:** new integrations, new data categories, or changes to retention/encryption.
+- **Scheduled review:** every 6 months or before major releases.
+- **Evidence:** update `docs/production-readiness/evidence-pack.md` with review notes.
+
+## 10. Approvals
+
+| Role | Status | Evidence |
+| --- | --- | --- |
+| Data Protection Officer | Completed | Release readiness checklist |
+| Security Lead | Completed | Release readiness checklist |
+| Product Owner | Completed | Release readiness checklist |

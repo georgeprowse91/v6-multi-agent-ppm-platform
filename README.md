@@ -55,6 +55,24 @@ make run-api
 make run-web
 ```
 
+## Service catalog & endpoints
+
+The platform ships with dedicated backend services. Use the table below to understand responsibilities and
+their primary endpoints when run locally (each service defaults to port `8080` unless noted).
+
+| Service | Description | Primary endpoints |
+| --- | --- | --- |
+| API Gateway | Front door for client requests, auth hand-off, and orchestration fan-out. | `GET /healthz`, `POST /api/v1/query`, `GET /api/v1/status` |
+| Workflow Engine | Workflow persistence and execution for deterministic flows. | `GET /healthz`, `POST /workflows/start`, `GET /workflows/{workflow_id}` |
+| Audit Log | Immutable audit trail with retention enforcement. | `GET /healthz`, `POST /audit/events`, `GET /audit/events/{event_id}` |
+| Data Service | Canonical schema and entity storage. | `GET /healthz`, `POST /schemas`, `POST /entities/{schema_name}` |
+| Data Sync Service | Connector-driven sync jobs and conflict management. | `GET /healthz`, `POST /sync/run`, `GET /sync/status/{job_id}`, `GET /sync/conflicts` |
+| Data Lineage Service | Lineage capture and quality scoring. | `GET /healthz`, `POST /lineage/events`, `GET /lineage/graph`, `GET /quality/summary` |
+| Identity & Access | SCIM + token validation for identity management. | `GET /healthz`, `POST /auth/validate`, `POST /scim/v2/Users`, `GET /scim/v2/Groups` |
+| Notification Service | Outbound notifications (email/chat/webhook). | `GET /healthz`, `POST /notifications/send` |
+| Policy Engine | RBAC/ABAC and policy evaluation. | `GET /healthz`, `POST /policies/evaluate`, `POST /rbac/evaluate`, `POST /abac/evaluate` |
+| Telemetry Service | Ingests platform metrics/events for observability. | `GET /healthz`, `POST /telemetry/ingest` |
+
 ## Testing
 
 ```bash
@@ -106,8 +124,10 @@ python scripts/check-placeholders.py
 ## Related docs
 
 - [Docs hub](docs/README.md)
+- [Developer onboarding](docs/onboarding/developer-onboarding.md)
 - [Solution overview](docs/product/solution-overview/README.md)
 - [Architecture documentation](docs/architecture/README.md)
 - [Agent catalog](docs/agents/README.md)
 - [Connector overview](docs/connectors/overview.md)
 - [Data model & lineage](docs/data/README.md)
+- [Release process](docs/production-readiness/release-process.md)

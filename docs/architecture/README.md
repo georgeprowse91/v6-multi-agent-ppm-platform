@@ -12,6 +12,9 @@ Describe the architecture documentation set and link the narrative to the repo a
 - `docs/architecture/ai-architecture.md`: Markdown documentation for this area.
 - `docs/architecture/connector-architecture.md`: Markdown documentation for this area.
 - `docs/architecture/data-architecture.md`: Markdown documentation for this area.
+- `docs/architecture/deployment-architecture.md`: Deployment topology and infrastructure concerns.
+- `docs/architecture/logical-architecture.md`: Logical component layout and service topology.
+- `docs/architecture/security-architecture.md`: Security controls and compliance design.
 
 ## How it's used
 
@@ -32,4 +35,6 @@ No configuration. Documentation content lives in Markdown and YAML files under t
 ## Troubleshooting
 
 - Broken links: run the link checker and fix any relative path mismatches.
-- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.
+- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced:
+  - `c4-context.puml`, `c4-container.puml`, `c4-component.puml`
+  - `service-topology.puml`, `deployment-overview.puml`

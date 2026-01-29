@@ -4,6 +4,15 @@
 
 Define the Policy Engine service responsibilities and how it integrates with the platform.
 
+## Key endpoints
+
+- `GET /healthz`: Service health check.
+- `POST /policies/evaluate`: Evaluate policy decisions against inputs.
+- `POST /rbac/evaluate`: Evaluate RBAC policies.
+- `POST /abac/evaluate`: Evaluate ABAC policies.
+
+**Default port:** `8080`
+
 ## What's inside
 
 - `services/policy-engine/contracts`: Service contracts and schema artifacts.

@@ -6,11 +6,14 @@ Capture lineage events and compute data quality scores for analytics and auditin
 
 ## Key endpoints
 
+- `GET /healthz`: Service health check.
 - `POST /lineage/events`: Ingest a lineage event and compute quality scores.
 - `GET /lineage/events`: List lineage events for the tenant.
 - `GET /lineage/events/{lineage_id}`: Retrieve a lineage event.
 - `GET /lineage/graph`: Retrieve a lineage graph (nodes + edges).
 - `GET /quality/summary`: Retrieve quality score summaries.
+
+**Default port:** `8080`
 
 ## Configuration
 

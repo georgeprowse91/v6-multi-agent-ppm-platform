@@ -4,6 +4,20 @@
 
 Define the Identity Access service responsibilities and how it integrates with the platform.
 
+## Key endpoints
+
+- `GET /healthz`: Service health check.
+- `POST /auth/validate`: Validate a JWT and return tenant/role claims.
+- `POST /scim/v2/Users`: Create a user via SCIM.
+- `GET /scim/v2/Users`: List users via SCIM.
+- `PATCH /scim/v2/Users/{user_id}`: Update a user.
+- `POST /scim/v2/Groups`: Create a group via SCIM.
+- `GET /scim/v2/Groups`: List groups via SCIM.
+- `PATCH /scim/v2/Groups/{group_id}`: Update a group.
+- `GET /scim/internal/roles/{user_id}`: Retrieve resolved roles for a user.
+
+**Default port:** `8080`
+
 ## What's inside
 
 - `services/identity-access/contracts`: Service contracts and schema artifacts.

@@ -4,6 +4,14 @@
 
 Define the Audit Log service responsibilities and how it integrates with the platform.
 
+## Key endpoints
+
+- `GET /healthz`: Service health check.
+- `POST /audit/events`: Ingest a new audit event (validated against schema).
+- `GET /audit/events/{event_id}`: Retrieve a single audit event.
+
+**Default port:** `8080`
+
 ## What's inside
 
 - `services/audit-log/contracts`: Service contracts and schema artifacts.

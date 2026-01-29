@@ -1,0 +1,54 @@
+@startuml
+!pragma layout smetana
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+Title Multi-Agent PPM Platform - Service Topology
+
+package "Experience Layer" {
+  [API Gateway] as api
+  [Web Console] as web
+}
+
+package "Workflow & Orchestration" {
+  [Workflow Engine] as workflow
+  [Orchestration Service] as orchestration
+}
+
+package "Core Services" {
+  [Audit Log Service] as audit
+  [Data Service] as data
+  [Data Sync Service] as sync
+  [Data Lineage Service] as lineage
+  [Identity & Access] as identity
+  [Notification Service] as notify
+  [Policy Engine] as policy
+  [Telemetry Service] as telemetry
+}
+
+database "PostgreSQL" as postgres
+queue "Redis" as redis
+cloud "WORM Storage" as worm
+
+web --> api : UI requests
+api --> identity : validate tokens
+api --> orchestration : orchestrate intents
+api --> workflow : workflow API
+
+orchestration --> policy : policy checks
+orchestration --> data : canonical entities
+orchestration --> audit : audit events
+orchestration --> telemetry : metrics/events
+orchestration --> notify : notifications
+
+sync --> data : upsert entities
+sync --> lineage : lineage events
+sync --> audit : sync audit
+
+workflow --> postgres : state
+api --> redis : caching/queues
+
+audit --> worm : immutable storage
+telemetry --> postgres : metrics store
+
+@enduml

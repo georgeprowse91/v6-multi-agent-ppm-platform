@@ -14,6 +14,7 @@ release steps, and rollback guidance.
 - [ ] Validate Terraform plan for infrastructure changes.
 - [ ] Confirm Key Vault, Service Bus, and database connectivity.
 - [ ] Ensure backup snapshot completed within last 24 hours.
+- [ ] Confirm SBOM/signature workflow has completed for the release tag.
 
 ## Deployment steps
 1. **Tag release**
@@ -21,17 +22,21 @@ release steps, and rollback guidance.
 2. **Apply infrastructure updates**
    - Run Terraform in the target environment.
 3. **Deploy services**
-   - Use Helm to upgrade services in order: identity, API gateway, workflow engine, agents, connectors.
+   - Use Helm to upgrade services in order: identity, policy engine, core services, API gateway, workflow engine, agents, connectors.
 4. **Run smoke tests**
    - Execute `/healthz` and `/api/v1/status` checks.
+   - Confirm `POST /audit/events` and `POST /telemetry/ingest` respond with success.
 5. **Validate monitoring**
    - Confirm metrics, traces, and alerts are flowing in Azure Monitor.
+6. **Notify stakeholders**
+   - Share deployment completion in the release channel with a rollback plan.
 
 ## Rollback steps
 1. Identify last known good release tag.
 2. Roll back Helm releases to prior chart versions.
 3. Revert configuration changes if necessary.
 4. Re-run smoke tests and verify SLO dashboards stabilize.
+5. Capture incident notes if rollback was required.
 
 ## Post-deployment validation
 - [ ] E2E workflow tests pass.

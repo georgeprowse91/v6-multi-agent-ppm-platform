@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the docs documentation set and link the narrative to the repo assets that implement it.
+Describe the documentation set and link the narrative to the repo assets that implement it.
 
 ## What's inside
 
@@ -13,12 +13,21 @@ Describe the docs documentation set and link the narrative to the repo assets th
 - `docs/connectors`: Connector documentation and integration guidance.
 - `docs/data`: Data assets and fixtures for this component.
 - `docs/methodology`: Methodology maps, stage gates, and templates.
+- `docs/onboarding`: Developer onboarding and environment setup guidance.
 - `docs/product`: Product documentation, including template catalog.
+- `docs/production-readiness`: Release checklists and evidence packs.
+- `docs/runbooks`: Operational runbooks for incidents, deployments, and recovery.
 - `docs/templates`: Shared template library for agent artefacts.
 
 ## How it's used
 
 These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
+
+## Onboarding & release references
+
+- Developer onboarding guide: `docs/onboarding/developer-onboarding.md`
+- Release process: `docs/production-readiness/release-process.md`
+- Operational runbooks: `docs/runbooks/`
 
 ## How to run / develop / test
 

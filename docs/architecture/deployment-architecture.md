@@ -12,15 +12,21 @@ The deployment architecture maps the logical components into Azure environments 
 
 | Environment | Purpose | Data handling | Infra path |
 | --- | --- | --- | --- |
-| Dev | Engineer experimentation | Synthetic/seed data only | `infra/terraform/dev/` |
-| Staging | Pre-prod validation | Sanitized data | `infra/terraform/staging/` |
-| Production | Customer workloads | Live data with retention policies | `infra/terraform/prod/` |
+| Dev | Engineer experimentation | Synthetic/seed data only | `infra/terraform/envs/dev/` |
+| Staging | Pre-prod validation | Sanitized data | `infra/terraform/envs/test/` |
+| Production | Customer workloads | Live data with retention policies | `infra/terraform/envs/prod/` |
 
 ## Release flow
 
 1. **Build**: GitHub Actions builds Docker images from `apps/api-gateway/Dockerfile`.
 2. **Validate**: unit tests + docs checks (`scripts/check-links.py`, `scripts/check-placeholders.py`).
 3. **Deploy**: Terraform provisions infra, then Kubernetes manifests roll out services.
+
+## Diagram
+
+```text
+PlantUML: docs/architecture/diagrams/deployment-overview.puml
+```
 
 ## DR strategy (planned)
 

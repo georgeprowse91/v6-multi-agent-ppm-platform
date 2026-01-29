@@ -28,6 +28,12 @@ These planes are orchestrated through intent routing, task planning, and policy 
 PlantUML: docs/architecture/diagrams/c4-component.puml
 ```
 
+Supplementary service interaction diagram:
+
+```text
+PlantUML: docs/architecture/diagrams/service-topology.puml
+```
+
 ## Usage example
 
 Inspect the component diagram source:

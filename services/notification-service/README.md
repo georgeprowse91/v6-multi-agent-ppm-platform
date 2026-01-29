@@ -4,6 +4,13 @@
 
 Define the Notification Service service responsibilities and how it integrates with the platform.
 
+## Key endpoints
+
+- `GET /healthz`: Service health check.
+- `POST /notifications/send`: Send a notification payload.
+
+**Default port:** `8080`
+
 ## What's inside
 
 - `services/notification-service/contracts`: Service contracts and schema artifacts.
