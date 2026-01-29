@@ -78,6 +78,7 @@ from tree_models import (  # noqa: E402
 from tree_store import TreeStore  # noqa: E402
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
 from connector_hub_proxy import ConnectorHubClient  # noqa: E402
+from lineage_proxy import LineageServiceClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
 from template_models import (  # noqa: E402
@@ -424,6 +425,10 @@ def _document_client() -> DocumentServiceClient:
 
 def _analytics_client() -> AnalyticsServiceClient:
     return AnalyticsServiceClient()
+
+
+def _lineage_client() -> LineageServiceClient:
+    return LineageServiceClient()
 
 
 def _orchestrator_client() -> OrchestratorProxyClient:
@@ -2292,6 +2297,21 @@ async def get_dashboard_trends(project_id: str, request: Request) -> Response:
     response = await client.get_project_trends(project_id, headers=headers)
     logger.info(
         "dashboard.trends.fetch",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/api/dashboard/{project_id}/quality")
+async def get_dashboard_quality(project_id: str, request: Request) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _lineage_client()
+    response = await client.get_quality_summary(headers=headers)
+    logger.info(
+        "dashboard.quality.fetch",
         extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
     )
     if response.status_code >= 400:

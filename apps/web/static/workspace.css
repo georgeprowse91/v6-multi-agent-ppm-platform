@@ -1878,6 +1878,7 @@
 .dashboard-summary-card,
 .dashboard-metrics-card,
 .dashboard-trends-card,
+.dashboard-quality-card,
 .dashboard-whatif-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1890,6 +1891,15 @@
 
 .dashboard-summary-card {
   grid-column: 1 / -1;
+}
+
+.dashboard-quality-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
 }
 
 .dashboard-card-header {

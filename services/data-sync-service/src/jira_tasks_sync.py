@@ -6,6 +6,7 @@ from typing import Any
 
 from conflict_store import get_conflict_store
 from jira_client import JiraIssue, get_jira_client
+from lineage_client import get_lineage_client
 from sync_log_store import get_sync_log_store
 from task_store import TaskRecord, get_task_store
 
@@ -83,6 +84,7 @@ class JiraTasksSyncJob:
         conflicts = 0
         skipped = 0
         write_back: list[dict[str, Any]] = []
+        lineage_client = get_lineage_client()
         project_key = None
         try:
             issues = self.jira_client.fetch_issues(project_key=project_key)
@@ -113,6 +115,7 @@ class JiraTasksSyncJob:
                     if payload and not dry_run:
                         self.task_store.upsert(task_id, payload)
                         updated += 1
+                        self._emit_lineage_event(lineage_client, issue, task_id, payload)
                     else:
                         skipped += 1
                 else:
@@ -120,6 +123,7 @@ class JiraTasksSyncJob:
                     if not dry_run:
                         self.task_store.upsert(task_id, payload)
                         created += 1
+                        self._emit_lineage_event(lineage_client, issue, task_id, payload)
                     else:
                         skipped += 1
         except Exception as exc:  # noqa: BLE001
@@ -157,3 +161,39 @@ class JiraTasksSyncJob:
 
     def write_back(self, payloads: list[dict[str, Any]]) -> dict[str, Any]:
         return {"status": "not_implemented", "count": len(payloads)}
+
+    def _emit_lineage_event(
+        self,
+        lineage_client,
+        issue: JiraIssue,
+        task_id: str,
+        payload: dict[str, Any],
+    ) -> None:
+        if not lineage_client:
+            return
+        lineage_payload = {
+            "tenant_id": lineage_client.tenant_id,
+            "connector": "jira",
+            "source": {
+                "system": "jira",
+                "object": "issue",
+                "record_id": issue.issue_id,
+                "key": issue.key,
+            },
+            "target": {
+                "schema": "task",
+                "record_id": task_id,
+            },
+            "transformations": [
+                "jira.summary -> task.title",
+                "jira.status -> task.status",
+                "jira.issue_id -> task.external_id",
+            ],
+            "entity_type": "task",
+            "entity_payload": payload,
+            "metadata": {"updated_at": issue.updated_at},
+        }
+        try:
+            lineage_client.emit_event(lineage_payload)
+        except Exception:  # noqa: BLE001
+            return

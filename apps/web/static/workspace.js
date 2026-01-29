@@ -232,6 +232,7 @@ const initWorkspace = () => {
     errors: {
       health: "",
       trends: "",
+      quality: "",
     },
   };
   const templatesState = {
@@ -3026,6 +3027,31 @@ const initWorkspace = () => {
       .join("");
   };
 
+  const renderQualitySummary = (payload) => {
+    const scoreValue = document.getElementById("dashboard-quality-score-value");
+    const eventsValue = document.getElementById("dashboard-quality-events-value");
+    const entityList = document.getElementById("dashboard-quality-entity-list");
+    if (scoreValue) {
+      scoreValue.textContent = formatScore(payload?.average_score);
+    }
+    if (eventsValue) {
+      eventsValue.textContent = payload?.total_events ?? "--";
+    }
+    if (entityList) {
+      const entries = Object.entries(payload?.by_entity || {});
+      if (!entries.length) {
+        entityList.innerHTML = "<li>No entity scores yet.</li>";
+      } else {
+        entityList.innerHTML = entries
+          .map(
+            ([name, score]) =>
+              `<li><strong>${name}</strong>: ${formatScore(score)}</li>`,
+          )
+          .join("");
+      }
+    }
+  };
+
   const loadDashboardHealth = async () => {
     const status = document.getElementById("dashboard-health-load-status");
     if (status) {
@@ -3079,6 +3105,30 @@ const initWorkspace = () => {
       status.textContent = `Showing ${payload.points?.length || 0} points.`;
     }
     renderTrendTable(payload.points || []);
+  };
+
+  const loadDashboardQuality = async () => {
+    const status = document.getElementById("dashboard-quality-load-status");
+    if (status) {
+      status.textContent = "Loading quality summary...";
+    }
+    const response = await fetch(`/api/dashboard/${projectId}/quality`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      dashboardState.errors.quality =
+        payload?.detail || payload?.message || "Quality summary failed to load.";
+      updateDashboardErrorBanner();
+      if (status) {
+        status.textContent = "Unable to load quality summary.";
+      }
+      return;
+    }
+    dashboardState.errors.quality = "";
+    updateDashboardErrorBanner();
+    if (status) {
+      status.textContent = "Updated just now.";
+    }
+    renderQualitySummary(payload);
   };
 
   const renderDashboardCanvas = () => {
@@ -3143,6 +3193,28 @@ const initWorkspace = () => {
               <tr><td colspan="2">Loading trends...</td></tr>
             </tbody>
           </table>
+        </section>
+        <section class="dashboard-quality-card">
+          <div class="dashboard-card-header">
+            <h3>Data quality summary</h3>
+            <span class="dashboard-subtext" id="dashboard-quality-load-status">Loading...</span>
+          </div>
+          <div class="dashboard-summary-grid">
+            <div class="dashboard-summary-item">
+              <p class="dashboard-label">Average score</p>
+              <p class="dashboard-value" id="dashboard-quality-score-value">--</p>
+            </div>
+            <div class="dashboard-summary-item">
+              <p class="dashboard-label">Events tracked</p>
+              <p class="dashboard-value" id="dashboard-quality-events-value">--</p>
+            </div>
+          </div>
+          <div>
+            <p class="dashboard-label">Scores by entity</p>
+            <ul class="dashboard-quality-list" id="dashboard-quality-entity-list">
+              <li>Loading quality metrics...</li>
+            </ul>
+          </div>
         </section>
         <section class="dashboard-whatif-card">
           <div class="dashboard-card-header">
@@ -3263,6 +3335,7 @@ const initWorkspace = () => {
 
     loadDashboardHealth();
     loadDashboardTrends();
+    loadDashboardQuality();
   };
 
   const renderCanvas = (tabName) => {

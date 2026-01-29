@@ -98,6 +98,7 @@ python -m tools.component_runner run --type app --name web
 | --- | --- | --- |
 | `DOCUMENT_SERVICE_URL` | `http://document-service:8080` | Document service API base URL. |
 | `ANALYTICS_SERVICE_URL` | `http://analytics-service:8080` | Analytics service API base URL for the dashboard canvas. |
+| `DATA_LINEAGE_SERVICE_URL` | `http://data-lineage-service:8080` | Data lineage service API base URL for quality dashboards. |
 | `API_GATEWAY_URL` | `http://api-gateway:8000` | API gateway base URL for assistant orchestration. |
 | `ASSISTANT_TIMEOUT_S` | `20` | Timeout (seconds) for assistant proxy requests. |
 | `CONNECTOR_HUB_URL` | `http://connector-hub:8080` | Connector hub API base URL for the connector gallery. |

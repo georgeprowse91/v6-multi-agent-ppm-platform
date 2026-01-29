@@ -8,10 +8,12 @@ consistent, up-to-date and accurate through master data management and event-dri
 Specification: agents/operations-management/agent-23-data-synchronisation-quality/README.md
 """
 
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import httpx
 from observability.tracing import get_trace_id
 from security.lineage import mask_lineage_payload
 
@@ -705,6 +707,7 @@ class DataSyncAgent(BaseAgent):
         }
         masked_lineage = mask_lineage_payload(lineage_record)
         self.sync_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
+        await self._emit_lineage_event(tenant_id, entity_type, master_id, source_system, payload)
 
     async def _emit_audit_event(
         self,
@@ -729,6 +732,44 @@ class DataSyncAgent(BaseAgent):
         self.audit_records[audit_event["id"]] = audit_event
         self.sync_audit_store.upsert(tenant_id, audit_event["id"], audit_event)
         emit_audit_event(audit_event)
+
+    async def _emit_lineage_event(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        master_id: str,
+        source_system: str,
+        payload: dict[str, Any],
+    ) -> None:
+        base_url = os.getenv("DATA_LINEAGE_SERVICE_URL")
+        if not base_url:
+            return
+        token = os.getenv("DATA_LINEAGE_SERVICE_TOKEN")
+        headers = {"X-Tenant-ID": tenant_id}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        lineage_payload = {
+            "tenant_id": tenant_id,
+            "connector": "data-sync-agent",
+            "source": {
+                "system": source_system,
+                "object": entity_type,
+                "record_id": payload.get("id"),
+            },
+            "target": {
+                "schema": entity_type,
+                "record_id": master_id,
+            },
+            "transformations": [f"{source_system}.{entity_type} -> {entity_type}"],
+            "entity_type": entity_type,
+            "entity_payload": payload,
+            "classification": "internal",
+        }
+        try:
+            async with httpx.AsyncClient(base_url=base_url, timeout=5.0) as client:
+                await client.post("/lineage/events", json=lineage_payload, headers=headers)
+        except httpx.RequestError:
+            self.logger.warning("lineage_service_unavailable", extra={"base_url": base_url})
 
     async def _detect_update_conflicts(
         self, master_record: dict[str, Any], new_data: dict[str, Any], source_system: str

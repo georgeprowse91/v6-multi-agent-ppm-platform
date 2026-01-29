@@ -1,5 +1,6 @@
 import json
 import sys
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 import httpx
@@ -9,9 +10,14 @@ from fastapi.testclient import TestClient
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
-
-import main  # noqa: E402
+MODULE_PATH = SRC_DIR / "main.py"
+spec = spec_from_file_location("web_main", MODULE_PATH)
+assert spec and spec.loader
+main = module_from_spec(spec)
+sys.modules[spec.name] = main
+spec.loader.exec_module(main)
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
+from lineage_proxy import LineageServiceClient  # noqa: E402
 
 
 @pytest.fixture
@@ -32,6 +38,15 @@ def _wire_client(monkeypatch, transport: httpx.AsyncBaseTransport) -> None:
         )
 
     monkeypatch.setattr(main, "_analytics_client", _client)
+
+
+def _wire_lineage_client(monkeypatch, transport: httpx.AsyncBaseTransport) -> None:
+    def _client() -> LineageServiceClient:
+        return LineageServiceClient(
+            base_url="http://data-lineage-service:8080", transport=transport
+        )
+
+    monkeypatch.setattr(main, "_lineage_client", _client)
 
 
 def test_health_proxy_forwards_headers(client, monkeypatch):
@@ -73,6 +88,26 @@ def test_trends_proxy_forwards_headers(client, monkeypatch):
 
     assert response.status_code == 200
     assert captured["path"] == "/api/projects/demo-1/health/trends"
+    assert captured["headers"]["authorization"] == "Bearer dev-token"
+    assert captured["headers"]["x-tenant-id"] == "tenant-a"
+
+
+def test_quality_proxy_forwards_headers(client, monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["headers"] = dict(request.headers)
+        captured["path"] = request.url.path
+        return httpx.Response(200, json={"average_score": 0.91, "total_events": 3})
+
+    transport = httpx.MockTransport(handler)
+    _wire_lineage_client(monkeypatch, transport)
+    _set_tenant(monkeypatch, "tenant-a")
+
+    response = client.get("/api/dashboard/demo-1/quality")
+
+    assert response.status_code == 200
+    assert captured["path"] == "/quality/summary"
     assert captured["headers"]["authorization"] == "Bearer dev-token"
     assert captured["headers"]["x-tenant-id"] == "tenant-a"
 
