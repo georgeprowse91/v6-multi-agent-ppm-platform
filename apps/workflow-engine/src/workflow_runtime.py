@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from agent_client import AgentClient
 from approval_workflow_agent import ApprovalWorkflowAgent
 
+from circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerRegistry
 from workflow_storage import WorkflowApproval, WorkflowInstance, WorkflowStore
 
 
@@ -14,10 +16,12 @@ class WorkflowRuntime:
         store: WorkflowStore,
         approval_agent: ApprovalWorkflowAgent,
         agent_client: AgentClient | None = None,
+        circuit_breakers: CircuitBreakerRegistry | None = None,
     ) -> None:
         self.store = store
         self.approval_agent = approval_agent
         self.agent_client = agent_client
+        self.circuit_breakers = circuit_breakers or CircuitBreakerRegistry()
 
     async def start(
         self, instance: WorkflowInstance, definition: dict[str, Any], actor: dict[str, Any]
@@ -160,14 +164,33 @@ class WorkflowRuntime:
                 return self.store.get(instance.run_id)
 
             step_output = {}
-            attempts = 1
             existing = self.store.get_step_state(instance.run_id, current_step_id)
-            if existing:
-                attempts = existing.attempts + 1
+            previous_attempts = existing.attempts if existing else 0
+            attempts = previous_attempts + 1
             retry_policy = step.get("retry", {})
-            max_attempts = retry_policy.get("max_attempts", 1)
+            max_attempts = max(1, retry_policy.get("max_attempts", 1))
+            delay_seconds = max(0, retry_policy.get("delay_seconds", 0))
             failures_before_success = step.get("config", {}).get("failures_before_success", 0)
             simulate_timeout = step.get("config", {}).get("simulate_timeout", False)
+            breaker = self._get_circuit_breaker(step, instance)
+
+            if breaker and not breaker.allow():
+                self.store.upsert_step_state(
+                    instance.run_id,
+                    current_step_id,
+                    "paused",
+                    previous_attempts,
+                    step_output,
+                )
+                self.store.update_status(instance.run_id, "paused", current_step_id)
+                self.store.add_event(
+                    instance.run_id,
+                    "paused",
+                    f"Circuit open for step {current_step_id}; retry after "
+                    f"{breaker.time_until_retry():.0f}s",
+                    current_step_id,
+                )
+                return self.store.get(instance.run_id)
 
             if simulate_timeout and step.get("timeout_seconds"):
                 self.store.update_step_error(
@@ -185,17 +208,20 @@ class WorkflowRuntime:
                 return self.store.get(instance.run_id)
 
             if failures_before_success and attempts <= failures_before_success:
-                if attempts < max_attempts:
-                    self.store.upsert_step_state(
-                        instance.run_id, current_step_id, "retrying", attempts, step_output
-                    )
-                    self.store.add_event(
-                        instance.run_id,
-                        "retrying",
-                        f"Retrying step {current_step_id} ({attempts}/{max_attempts})",
-                        current_step_id,
-                    )
+                retry_action = await self._handle_retry(
+                    instance,
+                    current_step_id,
+                    attempts,
+                    max_attempts,
+                    delay_seconds,
+                    step_output,
+                    breaker,
+                    failure_message="Simulated failure before success",
+                )
+                if retry_action == "retry":
                     continue
+                if retry_action == "pause":
+                    return self.store.get(instance.run_id)
                 self.store.update_step_error(
                     instance.run_id,
                     current_step_id,
@@ -269,6 +295,20 @@ class WorkflowRuntime:
                         },
                     )
                 except Exception as exc:
+                    retry_action = await self._handle_retry(
+                        instance,
+                        current_step_id,
+                        attempts,
+                        max_attempts,
+                        delay_seconds,
+                        step_output,
+                        breaker,
+                        failure_message=f"Agent call failed: {exc}",
+                    )
+                    if retry_action == "retry":
+                        continue
+                    if retry_action == "pause":
+                        return self.store.get(instance.run_id)
                     self.store.upsert_step_state(
                         instance.run_id, current_step_id, "failed", attempts, step_output
                     )
@@ -288,6 +328,8 @@ class WorkflowRuntime:
                     "action": action,
                     "response": agent_response,
                 }
+                if breaker:
+                    breaker.record_success()
 
             self.store.upsert_step_state(
                 instance.run_id, current_step_id, "completed", attempts, step_output
@@ -305,6 +347,61 @@ class WorkflowRuntime:
         self.store.update_status(instance.run_id, "completed", None)
         self.store.add_event(instance.run_id, "completed", "Workflow completed")
         return self.store.get(instance.run_id)
+
+    def _get_circuit_breaker(
+        self, step: dict[str, Any], instance: WorkflowInstance
+    ) -> CircuitBreaker | None:
+        config = step.get("config", {}).get("circuit_breaker", {})
+        failure_threshold = int(config.get("failure_threshold", 0))
+        if failure_threshold <= 0:
+            return None
+        recovery_timeout = int(config.get("recovery_timeout_seconds", 30))
+        breaker_config = CircuitBreakerConfig(
+            failure_threshold=failure_threshold,
+            recovery_timeout_seconds=recovery_timeout,
+        )
+        key = f"{instance.tenant_id}:{instance.workflow_id}:{step['id']}"
+        return self.circuit_breakers.get(key, breaker_config)
+
+    async def _handle_retry(
+        self,
+        instance: WorkflowInstance,
+        step_id: str,
+        attempts: int,
+        max_attempts: int,
+        delay_seconds: int,
+        step_output: dict[str, Any],
+        breaker: CircuitBreaker | None,
+        failure_message: str,
+    ) -> str:
+        if breaker:
+            breaker.record_failure()
+            if breaker.is_open():
+                self.store.upsert_step_state(
+                    instance.run_id, step_id, "paused", attempts, step_output
+                )
+                self.store.update_status(instance.run_id, "paused", step_id)
+                self.store.add_event(
+                    instance.run_id,
+                    "paused",
+                    f"Circuit opened for step {step_id} after failure",
+                    step_id,
+                )
+                return "pause"
+        if attempts < max_attempts:
+            self.store.upsert_step_state(
+                instance.run_id, step_id, "retrying", attempts, step_output
+            )
+            self.store.add_event(
+                instance.run_id,
+                "retrying",
+                f"{failure_message}. Retrying step {step_id} ({attempts}/{max_attempts})",
+                step_id,
+            )
+            if delay_seconds:
+                await asyncio.sleep(delay_seconds * (2 ** (attempts - 1)))
+            return "retry"
+        return "fail"
 
     def _next_step_id(self, step: dict[str, Any], payload: dict[str, Any]) -> str | None:
         if step["type"] != "decision":
