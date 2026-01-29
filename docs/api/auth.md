@@ -10,6 +10,7 @@ Describe authentication and authorization flows for API consumers.
 - **Tenant headers** (`X-Tenant-ID`) must be present and match the tenant claim in the JWT.
 - **Identity Access service** (`services/identity-access`) can validate tokens via `/auth/validate` when `IDENTITY_ACCESS_URL` is set.
 - **Direct JWT validation** is supported via `IDENTITY_JWKS_URL` (public JWKS) or `IDENTITY_JWT_SECRET` (HMAC).
+- **OIDC discovery** is supported via `IDENTITY_OIDC_DISCOVERY_URL` or `IDENTITY_ISSUER` (fetches `.well-known/openid-configuration` and JWKS).
 - **Web console OIDC** uses `/login` + `/oidc/callback` to establish a tenant-aware session cookie.
 - **SCIM provisioning** requires `Authorization: Bearer <SCIM_SERVICE_TOKEN>` and `X-Tenant-ID` for tenant isolation.
 
@@ -18,6 +19,8 @@ Describe authentication and authorization flows for API consumers.
 - **RBAC enforcement**: Roles and permissions are defined in `config/rbac/roles.yaml` and `config/rbac/permissions.yaml`.
 - **Classification-based checks**: Requests with a `classification` field are validated against allowed roles and field-level rules in `config/rbac/field-level.yaml`.
 - **Policy engine optional**: When `POLICY_ENGINE_URL` is set, authorization checks are delegated to the policy engine service.
+- **ABAC evaluation**: When `ABAC_ENFORCEMENT=true`, the gateway evaluates attribute-based policies using the policy engine (`/abac/evaluate`) or local policies in `config/abac/policies.yaml`.
+- **Field masking**: JSON responses are redacted using `config/rbac/field-level.yaml`, including nested fields defined with dot notation.
 
 ## Local development mode
 
@@ -65,6 +68,14 @@ Required configuration (web):
 - `OIDC_TENANT_CLAIM` (default `tenant_id`)
 - `OIDC_ROLES_CLAIM` (default `roles`)
 - `AUTH_SESSION_SIGNING_KEY` (env/file reference)
+
+Gateway configuration for IdP/ABAC:
+
+- `IDENTITY_OIDC_DISCOVERY_URL` (optional) or `IDENTITY_ISSUER` (issuer for OIDC discovery)
+- `IDENTITY_TENANT_CLAIM` (default `tenant_id`)
+- `IDENTITY_ROLES_CLAIM` (default `roles`, supports dot notation and space-delimited values)
+- `ABAC_ENFORCEMENT` (set to `true` to enforce ABAC decisions)
+- `ABAC_POLICY_PATH` (optional override for ABAC policy file)
 
 ## SCIM v2 provisioning (identity-access)
 

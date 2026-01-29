@@ -32,6 +32,7 @@ class AuthConfig:
     jwks_url: str | None
     audience: str | None
     issuer: str | None
+    oidc_discovery_url: str | None
     tenant_claim: str
     roles_claim: str
 
@@ -43,15 +44,25 @@ def _load_config() -> AuthConfig:
         jwks_url=os.getenv("IDENTITY_JWKS_URL"),
         audience=os.getenv("IDENTITY_AUDIENCE"),
         issuer=os.getenv("IDENTITY_ISSUER"),
+        oidc_discovery_url=os.getenv("IDENTITY_OIDC_DISCOVERY_URL"),
         tenant_claim=os.getenv("IDENTITY_TENANT_CLAIM", "tenant_id"),
         roles_claim=os.getenv("IDENTITY_ROLES_CLAIM", "roles"),
     )
 
 
+def _get_claim(claims: dict[str, Any], path: str) -> Any:
+    current: Any = claims
+    for part in path.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+    return current
+
+
 def _normalize_roles(claims: dict[str, Any], roles_claim: str) -> list[str]:
-    roles = claims.get(roles_claim) or claims.get("role") or []
+    roles = _get_claim(claims, roles_claim) or claims.get("role") or claims.get("groups") or []
     if isinstance(roles, str):
-        roles = [roles]
+        roles = [role.strip() for role in roles.replace(",", " ").split() if role.strip()]
     return list(roles)
 
 
@@ -74,6 +85,20 @@ def _dev_claims_from_jwt(token: str) -> dict[str, Any] | None:
         return None
 
 
+_OIDC_CONFIG_CACHE: dict[str, dict[str, Any]] = {}
+
+
+async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
+    if discovery_url in _OIDC_CONFIG_CACHE:
+        return _OIDC_CONFIG_CACHE[discovery_url]
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        response = await client.get(discovery_url)
+        response.raise_for_status()
+        data = response.json()
+    _OIDC_CONFIG_CACHE[discovery_url] = data
+    return data
+
+
 async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
     if config.identity_access_url:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -87,9 +112,22 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
             return data.get("claims") or {}
 
     try:
-        if config.jwks_url:
+        jwks_url = config.jwks_url
+        issuer = config.issuer
+        if not jwks_url and (config.oidc_discovery_url or issuer):
+            discovery_url = config.oidc_discovery_url or (
+                f"{issuer.rstrip('/')}/.well-known/openid-configuration"
+                if issuer
+                else None
+            )
+            if discovery_url:
+                oidc_config = await _load_oidc_config(discovery_url)
+                jwks_url = oidc_config.get("jwks_uri")
+                issuer = issuer or oidc_config.get("issuer")
+
+        if jwks_url:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(config.jwks_url)
+                response = await client.get(jwks_url)
                 response.raise_for_status()
                 jwks = response.json()
             unverified_header = jwt.get_unverified_header(token)
@@ -105,10 +143,10 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
                     public_key,
                     algorithms=[unverified_header.get("alg", "RS256")],
                     audience=config.audience,
-                    issuer=config.issuer,
+                    issuer=issuer,
                     options={
                         "verify_aud": bool(config.audience),
-                        "verify_iss": bool(config.issuer),
+                        "verify_iss": bool(issuer),
                     },
                 ),
             )
@@ -178,7 +216,7 @@ async def authenticate_request(request: Request, config: AuthConfig | None = Non
     config = config or _load_config()
     claims = await _validate_jwt(token, config)
 
-    claim_tenant = claims.get(config.tenant_claim)
+    claim_tenant = _get_claim(claims, config.tenant_claim)
     if not claim_tenant:
         raise HTTPException(status_code=403, detail="Tenant claim missing")
     if claim_tenant != tenant_id:

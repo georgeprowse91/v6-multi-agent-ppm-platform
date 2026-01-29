@@ -1,0 +1,21 @@
+default_decision: allow
+policies:
+  - id: abac-001
+    name: Allow project access within business unit
+    description: Permit access when requester and resource share the same business unit.
+    effect: allow
+    rules:
+      - field: resource.business_unit
+        operator: equals
+        value_from: subject.business_unit
+  - id: abac-002
+    name: Deny restricted resources for contractors
+    description: Block restricted resources for contractor accounts.
+    effect: deny
+    rules:
+      - field: subject.employment_type
+        operator: equals
+        value: contractor
+      - field: resource.classification
+        operator: equals
+        value: restricted

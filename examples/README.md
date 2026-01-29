@@ -12,6 +12,7 @@ Provide example artifacts that demonstrate how to use the platform assets.
 - `examples/schema`: Schemas or validation rules for component assets.
 - `examples/workflows`: Workflow definitions and examples.
 - `examples/portfolio-intake-request.json`: JSON data asset or configuration.
+- `examples/abac-evaluation.json`: Sample ABAC evaluation request payload.
 
 ## How it's used
 

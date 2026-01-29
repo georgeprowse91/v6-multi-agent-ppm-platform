@@ -7,6 +7,11 @@ fields:
         - "tenant_owner"
         - "portfolio_admin"
         - "project_manager"
+    financials.approval_limit:
+      allowed_roles:
+        - "PMO_ADMIN"
+        - "tenant_owner"
+        - "portfolio_admin"
     risk_rating:
       allowed_roles:
         - "PMO_ADMIN"

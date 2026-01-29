@@ -1,0 +1,19 @@
+{
+  "tenant_id": "tenant-alpha",
+  "subject": {
+    "sub": "user-123",
+    "roles": ["portfolio_admin"],
+    "business_unit": "finance",
+    "employment_type": "employee"
+  },
+  "action": "project.read",
+  "resource": {
+    "id": "proj-1",
+    "business_unit": "finance",
+    "classification": "internal"
+  },
+  "context": {
+    "path": "/api/v1/projects/proj-1",
+    "method": "GET"
+  }
+}

@@ -8,6 +8,7 @@ Document the policies assets owned by the Policy Engine service.
 
 - `services/policy-engine/policies/bundles`: Subdirectory containing bundles assets for this area.
 - `services/policy-engine/policies/schema`: Schemas or validation rules for component assets.
+- `config/abac/policies.yaml`: ABAC policy definitions consumed by the `/abac/evaluate` endpoint.
 
 ## How it's used
 

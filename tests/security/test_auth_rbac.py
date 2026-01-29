@@ -86,7 +86,18 @@ def test_rbac_allows_portfolio_admin(monkeypatch) -> None:
 
     mock_orchestrator = MagicMock()
     mock_orchestrator.initialized = True
-    mock_orchestrator.process_query = AsyncMock(return_value={"success": True})
+    mock_orchestrator.process_query = AsyncMock(
+        return_value={
+            "success": True,
+            "data": {"message": "ok"},
+            "metadata": {
+                "agent_id": "router",
+                "catalog_id": "intent-router",
+                "timestamp": "2024-01-01T00:00:00Z",
+                "correlation_id": "corr-123",
+            },
+        }
+    )
 
     with patch("api.main.orchestrator", mock_orchestrator):
         response = client.post(
@@ -107,3 +118,47 @@ def test_tenant_mismatch(monkeypatch) -> None:
         headers={"Authorization": f"Bearer {token}", "X-Tenant-ID": "tenant-beta"},
     )
     assert response.status_code == 403
+
+
+def test_identity_access_validation(monkeypatch) -> None:
+    monkeypatch.setenv("IDENTITY_ACCESS_URL", "https://idp.example.com")
+    client = _client()
+
+    class MockResponse:
+        def __init__(self, payload: dict) -> None:
+            self._payload = payload
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return self._payload
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs) -> None:
+            return None
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def post(self, *args, **kwargs):
+            return MockResponse(
+                {
+                    "active": True,
+                    "claims": {
+                        "sub": "user-123",
+                        "roles": ["portfolio_admin"],
+                        "tenant_id": "tenant-alpha",
+                    },
+                }
+            )
+
+    with patch("api.middleware.security.httpx.AsyncClient", MockAsyncClient):
+        response = client.get(
+            "/api/v1/status",
+            headers={"Authorization": "Bearer oidc-token", "X-Tenant-ID": "tenant-alpha"},
+        )
+    assert response.status_code == 200

@@ -58,6 +58,19 @@ class RBACEvaluationResponse(BaseModel):
     reasons: list[str]
 
 
+class ABACEvaluationRequest(BaseModel):
+    tenant_id: str
+    subject: dict[str, Any]
+    action: str
+    resource: dict[str, Any] | None = None
+    context: dict[str, Any] | None = None
+
+
+class ABACEvaluationResponse(BaseModel):
+    decision: str
+    reasons: list[str]
+
+
 app = FastAPI(title="Policy Engine", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 configure_tracing("policy-engine")
@@ -119,6 +132,14 @@ def _load_rbac_config() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]
     )
 
 
+def _load_abac_config() -> dict[str, Any]:
+    repo_root = Path(__file__).resolve().parents[3]
+    policy_path = Path(os.getenv("ABAC_POLICY_PATH", repo_root / "config" / "abac" / "policies.yaml"))
+    if not policy_path.exists():
+        return {"policies": [], "default_decision": "allow"}
+    return yaml.safe_load(policy_path.read_text())
+
+
 def _build_role_permissions(roles_cfg: dict[str, Any]) -> dict[str, set[str]]:
     role_permissions: dict[str, set[str]] = {}
     for role in roles_cfg.get("roles", []):
@@ -149,10 +170,56 @@ def _apply_rule(bundle: dict[str, Any], rule: dict[str, Any]) -> bool:
     value = _get_field(bundle, rule.get("field", ""))
     operator = rule.get("operator")
     expected = rule.get("value")
+    if operator == "equals":
+        return value == expected
+    if operator == "not_equals":
+        return value != expected
     if operator == "contains":
+        if isinstance(value, list):
+            return expected in value
         return expected in str(value or "")
     if operator == "not_contains":
+        if isinstance(value, list):
+            return expected not in value
         return expected not in str(value or "")
+    if operator == "gte":
+        return value is not None and expected is not None and value >= expected
+    if operator == "lte":
+        return value is not None and expected is not None and value <= expected
+    if operator == "in":
+        return value in (expected or [])
+    if operator == "not_in":
+        return value not in (expected or [])
+    return False
+
+
+def _apply_abac_rule(payload: dict[str, Any], rule: dict[str, Any]) -> bool:
+    value = _get_field(payload, rule.get("field", ""))
+    expected = rule.get("value")
+    value_from = rule.get("value_from")
+    if value_from:
+        expected = _get_field(payload, value_from)
+    operator = rule.get("operator")
+    if operator == "equals":
+        return value == expected
+    if operator == "not_equals":
+        return value != expected
+    if operator == "contains":
+        if isinstance(value, list):
+            return expected in value
+        return expected in str(value or "")
+    if operator == "not_contains":
+        if isinstance(value, list):
+            return expected not in value
+        return expected not in str(value or "")
+    if operator == "gte":
+        return value is not None and expected is not None and value >= expected
+    if operator == "lte":
+        return value is not None and expected is not None and value <= expected
+    if operator == "in":
+        return value in (expected or [])
+    if operator == "not_in":
+        return value not in (expected or [])
     return False
 
 
@@ -172,6 +239,27 @@ def _evaluate(bundle: dict[str, Any], policy_bundle: dict[str, Any]) -> PolicyEv
 
     return PolicyEvaluationResponse(decision=decision, reasons=reasons)
 
+
+def _evaluate_abac(
+    request_payload: dict[str, Any], policy_cfg: dict[str, Any]
+) -> ABACEvaluationResponse:
+    reasons: list[str] = []
+    allow_match = False
+    default_decision = policy_cfg.get("default_decision", "allow")
+
+    for policy in policy_cfg.get("policies", []):
+        rules = policy.get("rules", [])
+        if not rules:
+            continue
+        if all(_apply_abac_rule(request_payload, rule) for rule in rules):
+            reasons.append(f"{policy.get('id')}: {policy.get('name')}")
+            if policy.get("effect") == "deny":
+                return ABACEvaluationResponse(decision="deny", reasons=reasons)
+            allow_match = True
+
+    if allow_match:
+        return ABACEvaluationResponse(decision="allow", reasons=reasons)
+    return ABACEvaluationResponse(decision=default_decision, reasons=reasons)
 
 @app.post("/policies/evaluate", response_model=PolicyEvaluationResponse)
 async def evaluate_policies(request: PolicyEvaluationRequest) -> PolicyEvaluationResponse:
@@ -209,6 +297,20 @@ async def evaluate_rbac(request: RBACEvaluationRequest) -> RBACEvaluationRespons
     decision = "allow" if allowed else "deny"
     logger.info("rbac_evaluated", extra={"decision": decision, "permission": request.permission})
     return RBACEvaluationResponse(decision=decision, reasons=reasons)
+
+
+@app.post("/abac/evaluate", response_model=ABACEvaluationResponse)
+async def evaluate_abac(request: ABACEvaluationRequest) -> ABACEvaluationResponse:
+    policy_cfg = _load_abac_config()
+    payload = {
+        "subject": request.subject,
+        "resource": request.resource or {},
+        "context": request.context or {},
+        "action": request.action,
+    }
+    response = _evaluate_abac(payload, policy_cfg)
+    logger.info("abac_evaluated", extra={"decision": response.decision, "action": request.action})
+    return response
 
 
 if __name__ == "__main__":

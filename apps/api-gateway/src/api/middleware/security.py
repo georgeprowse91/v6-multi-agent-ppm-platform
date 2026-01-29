@@ -72,6 +72,15 @@ def _classification_from_body(body: bytes) -> str | None:
     return None
 
 
+def _get_claim(claims: dict[str, Any], path: str) -> Any:
+    current: Any = claims
+    for part in path.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+    return current
+
+
 def _is_classification_allowed(
     field_cfg: dict[str, Any], classification: str, roles: list[str]
 ) -> bool:
@@ -89,20 +98,51 @@ def _mask_fields(
     if not isinstance(payload, dict):
         return payload
 
+    def _apply_mask(target: Any, path_parts: list[str]) -> None:
+        if not path_parts:
+            return
+        if isinstance(target, list):
+            for item in target:
+                _apply_mask(item, path_parts)
+            return
+        if not isinstance(target, dict):
+            return
+        key = path_parts[0]
+        if key not in target:
+            return
+        if len(path_parts) == 1:
+            target[key] = mask
+            return
+        _apply_mask(target[key], path_parts[1:])
+
     fields_cfg = field_cfg.get("fields", {})
     for resource, resource_fields in fields_cfg.items():
         resource_data = payload.get(resource)
-        if isinstance(resource_data, dict):
+        if isinstance(resource_data, (dict, list)):
             for field_name, rule in resource_fields.items():
                 allowed_roles = set(rule.get("allowed_roles", []))
-                if field_name in resource_data and not allowed_roles.intersection(roles):
-                    resource_data[field_name] = mask
+                if not allowed_roles.intersection(roles):
+                    _apply_mask(resource_data, field_name.split("."))
 
     for key, value in payload.items():
         if isinstance(value, (dict, list)):
             payload[key] = _mask_fields(value, field_cfg, roles, mask)
 
     return payload
+
+
+_OIDC_CONFIG_CACHE: dict[str, dict[str, Any]] = {}
+
+
+async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
+    if discovery_url in _OIDC_CONFIG_CACHE:
+        return _OIDC_CONFIG_CACHE[discovery_url]
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        response = await client.get(discovery_url)
+        response.raise_for_status()
+        data = response.json()
+    _OIDC_CONFIG_CACHE[discovery_url] = data
+    return data
 
 
 async def _validate_jwt(token: str) -> dict[str, Any]:
@@ -118,9 +158,18 @@ async def _validate_jwt(token: str) -> dict[str, Any]:
 
     jwt_secret = os.getenv("IDENTITY_JWT_SECRET")
     jwks_url = os.getenv("IDENTITY_JWKS_URL")
+    discovery_url = os.getenv("IDENTITY_OIDC_DISCOVERY_URL")
     audience = os.getenv("IDENTITY_AUDIENCE")
     issuer = os.getenv("IDENTITY_ISSUER")
     try:
+        if not jwks_url and (discovery_url or issuer):
+            discovery_endpoint = discovery_url or (
+                f"{issuer.rstrip('/')}/.well-known/openid-configuration" if issuer else None
+            )
+            if discovery_endpoint:
+                oidc_config = await _load_oidc_config(discovery_endpoint)
+                jwks_url = oidc_config.get("jwks_uri")
+                issuer = issuer or oidc_config.get("issuer")
         if jwks_url:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.get(jwks_url)
@@ -215,6 +264,126 @@ async def _evaluate_rbac(auth: AuthContext, permission: str, classification: str
         raise HTTPException(status_code=403, detail="RBAC denied")
 
 
+def _load_abac_config() -> dict[str, Any]:
+    repo_root = Path(__file__).resolve().parents[5]
+    policy_path = Path(os.getenv("ABAC_POLICY_PATH", repo_root / "config" / "abac" / "policies.yaml"))
+    if not policy_path.exists():
+        return {"policies": [], "default_decision": "allow"}
+    return _load_yaml(policy_path)
+
+
+def _get_field(data: dict[str, Any], path: str) -> Any:
+    current: Any = data
+    for part in path.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+    return current
+
+
+def _evaluate_abac_policy(
+    request_payload: dict[str, Any], policies: list[dict[str, Any]], default_decision: str
+) -> tuple[str, list[str]]:
+    reasons: list[str] = []
+    allow_match = False
+
+    for policy in policies:
+        rules = policy.get("rules", [])
+        effect = policy.get("effect", "allow")
+        if not rules:
+            continue
+        matches = True
+        for rule in rules:
+            actual = _get_field(request_payload, rule.get("field", ""))
+            expected = rule.get("value")
+            value_from = rule.get("value_from")
+            if value_from:
+                expected = _get_field(request_payload, value_from)
+            operator = rule.get("operator")
+            if operator == "equals":
+                matches = actual == expected
+            elif operator == "not_equals":
+                matches = actual != expected
+            elif operator == "contains":
+                if isinstance(actual, list):
+                    matches = expected in actual
+                else:
+                    matches = expected in str(actual or "")
+            elif operator == "not_contains":
+                if isinstance(actual, list):
+                    matches = expected not in actual
+                else:
+                    matches = expected not in str(actual or "")
+            elif operator == "gte":
+                matches = actual is not None and expected is not None and actual >= expected
+            elif operator == "lte":
+                matches = actual is not None and expected is not None and actual <= expected
+            elif operator == "in":
+                matches = actual in (expected or [])
+            elif operator == "not_in":
+                matches = actual not in (expected or [])
+            else:
+                matches = False
+            if not matches:
+                break
+        if matches:
+            reasons.append(f"{policy.get('id')}: {policy.get('name')}")
+            if effect == "deny":
+                return "deny", reasons
+            allow_match = True
+
+    if allow_match:
+        return "allow", reasons
+    return default_decision, reasons
+
+
+async def _evaluate_abac(
+    auth: AuthContext, permission: str, resource: dict[str, Any] | None, request: Request
+) -> None:
+    if os.getenv("ABAC_ENFORCEMENT", "false").lower() not in {"1", "true", "yes"}:
+        return
+
+    payload = {
+        "subject": auth.claims,
+        "resource": resource or {},
+        "context": {
+            "tenant_id": auth.tenant_id,
+            "roles": auth.roles,
+            "permission": permission,
+            "path": request.url.path,
+            "method": request.method,
+        },
+        "action": permission,
+    }
+
+    policy_engine = os.getenv("POLICY_ENGINE_URL")
+    if policy_engine:
+        service_token = os.getenv("POLICY_ENGINE_SERVICE_TOKEN")
+        if not service_token:
+            raise HTTPException(status_code=500, detail="Policy engine token missing")
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(
+                f"{policy_engine}/abac/evaluate",
+                json={"tenant_id": auth.tenant_id, **payload},
+                headers={
+                    "Authorization": f"Bearer {service_token}",
+                    "X-Tenant-ID": auth.tenant_id,
+                },
+            )
+            response.raise_for_status()
+            decision = response.json().get("decision")
+            if decision != "allow":
+                raise HTTPException(status_code=403, detail="ABAC denied")
+        return
+
+    abac_cfg = _load_abac_config()
+    decision, _ = _evaluate_abac_policy(
+        payload, abac_cfg.get("policies", []), abac_cfg.get("default_decision", "allow")
+    )
+    if decision != "allow":
+        raise HTTPException(status_code=403, detail="ABAC denied")
+
+
 class AuthTenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         exempt_paths = {
@@ -269,6 +438,13 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
             permission = _required_permission(request)
             try:
                 await _evaluate_rbac(auth_context, permission, classification)
+                resource = None
+                if body:
+                    try:
+                        resource = json.loads(body.decode("utf-8"))
+                    except json.JSONDecodeError:
+                        return JSONResponse(status_code=400, content={"detail": "Invalid JSON payload"})
+                await _evaluate_abac(auth_context, permission, resource, request)
             except HTTPException as exc:
                 return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
             response = await call_next(request)
@@ -288,12 +464,13 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         except HTTPException as exc:
             return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
-        roles = claims.get("roles") or claims.get("role") or []
+        roles_claim = os.getenv("IDENTITY_ROLES_CLAIM", "roles")
+        roles = _get_claim(claims, roles_claim) or claims.get("role") or claims.get("groups") or []
         if isinstance(roles, str):
-            roles = [roles]
+            roles = [role.strip() for role in roles.replace(",", " ").split() if role.strip()]
 
         tenant_claim = os.getenv("IDENTITY_TENANT_CLAIM", "tenant_id")
-        claim_tenant = claims.get(tenant_claim)
+        claim_tenant = _get_claim(claims, tenant_claim)
         if not claim_tenant:
             return JSONResponse(status_code=403, content={"detail": "Tenant claim missing"})
         if claim_tenant != tenant_id:
@@ -314,8 +491,12 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
 
         try:
             await _evaluate_rbac(auth_context, permission, classification)
-        except HTTPException as exc:
-            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+            resource = json.loads(body.decode("utf-8")) if body else None
+            await _evaluate_abac(auth_context, permission, resource, request)
+        except (HTTPException, json.JSONDecodeError) as exc:
+            if isinstance(exc, HTTPException):
+                return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+            return JSONResponse(status_code=400, content={"detail": "Invalid JSON payload"})
 
         response = await call_next(request)
         return response

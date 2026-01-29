@@ -45,6 +45,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RBACEvaluationResponse"
+  /abac/evaluate:
+    post:
+      summary: Evaluate attribute-based access decision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ABACEvaluationRequest"
+      responses:
+        "200":
+          description: ABAC decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ABACEvaluationResponse"
 components:
   schemas:
     HealthResponse:
@@ -87,6 +103,33 @@ components:
           type: string
       required: [tenant_id, roles, permission]
     RBACEvaluationResponse:
+      type: object
+      properties:
+        decision:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+      required: [decision, reasons]
+    ABACEvaluationRequest:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+        subject:
+          type: object
+          additionalProperties: true
+        action:
+          type: string
+        resource:
+          type: object
+          additionalProperties: true
+        context:
+          type: object
+          additionalProperties: true
+      required: [tenant_id, subject, action]
+    ABACEvaluationResponse:
       type: object
       properties:
         decision:

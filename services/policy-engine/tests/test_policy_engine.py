@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -11,6 +12,7 @@ SERVICE_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = SERVICE_ROOT / "src" / "main.py"
 
 sys.path.insert(0, str(SERVICE_ROOT / "src"))
+os.environ.setdefault("IDENTITY_JWT_SECRET", "test-secret")
 
 spec = spec_from_file_location("policy_engine_main", MODULE_PATH)
 assert spec and spec.loader
@@ -47,8 +49,23 @@ def test_policy_evaluate_allow(monkeypatch) -> None:
     bundle = {
         "apiVersion": "ppm.policies/v1",
         "kind": "PolicyBundle",
-        "metadata": {"name": "demo", "version": "1.0.0", "owner": "qa"},
-        "policies": [],
+        "metadata": {"name": "demo", "version": "1.0.0", "owner": "qa", "scope": "test"},
+        "policies": [
+            {
+                "id": "test-001",
+                "name": "Require owner",
+                "description": "Ensure metadata owner is set",
+                "severity": "low",
+                "enforcement": "advisory",
+                "rules": [
+                    {
+                        "field": "metadata.owner",
+                        "operator": "contains",
+                        "value": "qa",
+                    }
+                ],
+            }
+        ],
     }
     response = client.post(
         "/policies/evaluate", json={"bundle": bundle}, headers=_auth_headers(monkeypatch)
@@ -68,3 +85,28 @@ def test_rbac_evaluate_allow(monkeypatch) -> None:
     response = client.post("/rbac/evaluate", json=payload, headers=_auth_headers(monkeypatch))
     assert response.status_code == 200
     assert response.json()["decision"] == "allow"
+
+
+def test_abac_evaluate_allow(monkeypatch) -> None:
+    payload = {
+        "tenant_id": "tenant-alpha",
+        "subject": {"sub": "user-123", "business_unit": "finance"},
+        "action": "project.read",
+        "resource": {"id": "proj-1", "business_unit": "finance", "classification": "internal"},
+        "context": {"path": "/api/v1/projects/proj-1"},
+    }
+    response = client.post("/abac/evaluate", json=payload, headers=_auth_headers(monkeypatch))
+    assert response.status_code == 200
+    assert response.json()["decision"] == "allow"
+
+
+def test_abac_evaluate_deny(monkeypatch) -> None:
+    payload = {
+        "tenant_id": "tenant-alpha",
+        "subject": {"sub": "user-123", "employment_type": "contractor"},
+        "action": "project.read",
+        "resource": {"id": "proj-1", "classification": "restricted"},
+    }
+    response = client.post("/abac/evaluate", json=payload, headers=_auth_headers(monkeypatch))
+    assert response.status_code == 200
+    assert response.json()["decision"] == "deny"
