@@ -20,3 +20,6 @@ mappings:
   - source: "project"
     target: "project"
     mapping_file: "mappings/project.yaml"
+  - source: "work_item"
+    target: "work-item"
+    mapping_file: "mappings/work-item.yaml"

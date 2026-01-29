@@ -69,6 +69,102 @@ def _fetch_projects(client: HttpClient) -> list[dict[str, Any]]:
     return projects
 
 
+def _work_item_status(state: str | None) -> str:
+    if not state:
+        return "todo"
+    normalized = state.lower()
+    if any(token in normalized for token in ["done", "closed", "resolved", "completed"]):
+        return "done"
+    if any(token in normalized for token in ["active", "in progress", "implementing", "committed"]):
+        return "in_progress"
+    if any(token in normalized for token in ["blocked", "removed"]):
+        return "blocked"
+    return "todo"
+
+
+def _work_item_type(name: str | None) -> str:
+    if not name:
+        return "task"
+    normalized = name.lower()
+    if "milestone" in normalized:
+        return "milestone"
+    if "epic" in normalized or "feature" in normalized:
+        return "deliverable"
+    return "task"
+
+
+def _chunked(values: list[int], size: int) -> list[list[int]]:
+    return [values[i : i + size] for i in range(0, len(values), size)]
+
+
+def _fetch_work_items(client: HttpClient, projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    work_items: list[dict[str, Any]] = []
+    project_lookup = {
+        project["name"]: project["id"] for project in projects if project.get("source") == "project"
+    }
+    wiql_query = (
+        "SELECT [System.Id] FROM WorkItems "
+        "WHERE [System.TeamProject] = @project "
+        "ORDER BY [System.ChangedDate] DESC"
+    )
+    batch_fields = [
+        "System.Id",
+        "System.Title",
+        "System.WorkItemType",
+        "System.State",
+        "System.AssignedTo",
+        "System.TeamProject",
+        "System.CreatedDate",
+        "System.ChangedDate",
+        "System.AreaPath",
+        "Microsoft.VSTS.Scheduling.DueDate",
+    ]
+
+    for project in projects:
+        if project.get("source") != "project":
+            continue
+        project_name = project.get("name")
+        if not project_name:
+            continue
+        response = client.post(
+            f"/{project_name}/_apis/wit/wiql",
+            params={"api-version": "7.0"},
+            json={"query": wiql_query},
+        )
+        data = response.json()
+        work_item_refs = data.get("workItems") or []
+        ids = [item.get("id") for item in work_item_refs if item.get("id") is not None]
+        for chunk in _chunked(ids, 200):
+            batch_response = client.post(
+                "/_apis/wit/workitemsbatch",
+                params={"api-version": "7.0"},
+                json={"ids": chunk, "fields": batch_fields, "errorPolicy": "Omit"},
+            )
+            batch_data = batch_response.json()
+            for item in batch_data.get("value", []):
+                fields = item.get("fields") or {}
+                assigned_to = fields.get("System.AssignedTo")
+                if isinstance(assigned_to, dict):
+                    assigned_to = assigned_to.get("displayName") or assigned_to.get("uniqueName")
+                team_project = fields.get("System.TeamProject") or project_name
+                work_items.append(
+                    {
+                        "source": "work_item",
+                        "id": item.get("id"),
+                        "project_id": project_lookup.get(team_project, team_project),
+                        "title": fields.get("System.Title") or f"Work Item {item.get('id')}",
+                        "type": _work_item_type(fields.get("System.WorkItemType")),
+                        "status": _work_item_status(fields.get("System.State")),
+                        "assigned_to": assigned_to or "unassigned",
+                        "due_date": fields.get("Microsoft.VSTS.Scheduling.DueDate"),
+                        "classification": fields.get("System.AreaPath") or "internal",
+                        "created_at": fields.get("System.CreatedDate") or "1970-01-01T00:00:00Z",
+                        "updated_at": fields.get("System.ChangedDate"),
+                    }
+                )
+    return work_items
+
+
 def run_sync(
     fixture_path: Path | None,
     tenant_id: str,
@@ -86,6 +182,7 @@ def run_sync(
     config = config or AzureDevOpsConfig.from_env(rate_limit)
     client = client or _build_client(config)
     records = _fetch_projects(client)
+    records.extend(_fetch_work_items(client, records))
     return runtime.apply_mappings(records, tenant_id, include_schema=include_schema)
 
 
