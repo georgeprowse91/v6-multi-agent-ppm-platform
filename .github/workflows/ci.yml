@@ -250,11 +250,66 @@ jobs:
       - name: Run quickstart smoke scenario
         run: python scripts/quickstart_smoke.py
 
-  # Build Docker Image
-  build:
-    name: Build Docker Image
+  # Build Docker Images
+  build-images:
+    name: Build Docker Images (${{ matrix.service }})
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api-gateway
+            dockerfile: apps/api-gateway/Dockerfile
+            context: .
+          - service: admin-console
+            dockerfile: apps/admin-console/Dockerfile
+            context: .
+          - service: analytics-service
+            dockerfile: apps/analytics-service/Dockerfile
+            context: .
+          - service: connector-hub
+            dockerfile: apps/connector-hub/Dockerfile
+            context: .
+          - service: document-service
+            dockerfile: apps/document-service/Dockerfile
+            context: .
+          - service: orchestration-service
+            dockerfile: apps/orchestration-service/Dockerfile
+            context: .
+          - service: workflow-engine
+            dockerfile: apps/workflow-engine/Dockerfile
+            context: .
+          - service: web
+            dockerfile: apps/web/Dockerfile
+            context: apps/web
+          - service: audit-log
+            dockerfile: services/audit-log/Dockerfile
+            context: .
+          - service: data-lineage-service
+            dockerfile: services/data-lineage-service/Dockerfile
+            context: .
+          - service: data-service
+            dockerfile: services/data-service/Dockerfile
+            context: .
+          - service: data-sync-service
+            dockerfile: services/data-sync-service/Dockerfile
+            context: .
+          - service: identity-access
+            dockerfile: services/identity-access/Dockerfile
+            context: .
+          - service: notification-service
+            dockerfile: services/notification-service/Dockerfile
+            context: .
+          - service: policy-engine
+            dockerfile: services/policy-engine/Dockerfile
+            context: .
+          - service: telemetry-service
+            dockerfile: services/telemetry-service/Dockerfile
+            context: .
     steps:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -262,21 +317,25 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d8919ed109b86fb1f4e041a5b
 
-      - name: Build Docker image
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@0a5a6d36f066a97d04b98b4dffda7d1f7f1a4a3a
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
         uses: docker/build-push-action@4a22e7d1270e7d10e1acfe4da8df1c1e8d9f9a2a
         with:
-          context: .
-          file: apps/api-gateway/Dockerfile
-          push: false
-          load: true
-          tags: multi-agent-ppm:${{ github.sha }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository }}-${{ matrix.service }}:latest
+            ghcr.io/${{ github.repository }}-${{ matrix.service }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Test Docker image
-        run: |
-          docker image inspect multi-agent-ppm:${{ github.sha }}
-          docker run --rm multi-agent-ppm:${{ github.sha }} python -c "import sys; sys.path.insert(0, '/app/apps/api-gateway/src'); import api; print('Import successful')"
 
   # Security Scanning
   security:
@@ -310,7 +369,7 @@ jobs:
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
-    needs: [test, build]
+    needs: [test, build-images]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: development
