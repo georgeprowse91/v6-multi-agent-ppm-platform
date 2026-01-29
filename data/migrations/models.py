@@ -169,3 +169,53 @@ class OrchestrationState(Base):
     version = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
+
+
+class Demand(Base):
+    __tablename__ = "demands"
+
+    id = Column(String(64), primary_key=True)
+    tenant_id = Column(String(64), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    business_objective = Column(Text, nullable=False)
+    requester = Column(String(255), nullable=True)
+    business_unit = Column(String(255), nullable=True)
+    urgency = Column(String(32), nullable=True)
+    source = Column(String(255), nullable=True)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=True)
+
+
+class Resource(Base):
+    __tablename__ = "resources"
+
+    id = Column(String(64), primary_key=True)
+    tenant_id = Column(String(64), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    role = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=True)
+    status = Column(String(32), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    metadata_payload = Column("metadata", JSON, nullable=True)
+
+
+class Roi(Base):
+    __tablename__ = "rois"
+
+    id = Column(String(64), primary_key=True)
+    tenant_id = Column(String(64), nullable=False, index=True)
+    roi = Column(JSON, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=True)
+
+
+class AgentConfig(Base):
+    __tablename__ = "agent_configs"
+
+    tenant_id = Column(String(64), primary_key=True)
+    agents = Column(JSON, nullable=False)
+    project_configs = Column(JSON, nullable=False)
+    dev_users = Column(JSON, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=True)
