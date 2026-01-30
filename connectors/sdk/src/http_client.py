@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 
 import httpx
+from opentelemetry import trace
+from opentelemetry.trace import SpanKind, Status, StatusCode
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -20,6 +22,7 @@ if str(SECURITY_ROOT) not in sys.path:
 from security.dlp import redact_payload  # noqa: E402
 
 logger = logging.getLogger("connector-http")
+tracer = trace.get_tracer("connector-http")
 
 
 @dataclass
@@ -167,20 +170,30 @@ class HttpClient:
         attempt = 0
         while True:
             self._rate_limiter.wait()
+            span = tracer.start_span("connector.http.request", kind=SpanKind.CLIENT)
+            span.set_attribute("http.method", method)
+            span.set_attribute("http.url", url)
+            span.set_attribute("http.retry_attempt", attempt)
             try:
-                if logger.isEnabledFor(logging.DEBUG):
-                    payload = _payload_for_log(kwargs)
-                    if payload is not None:
-                        logger.debug(
-                            "connector_http_request",
-                            extra={
-                                "method": method,
-                                "url": url,
-                                "payload": redact_payload(payload),
-                            },
-                        )
-                response = self._client.request(method, url, **kwargs)
+                with trace.use_span(span, end_on_exit=True):
+                    if logger.isEnabledFor(logging.DEBUG):
+                        payload = _payload_for_log(kwargs)
+                        if payload is not None:
+                            logger.debug(
+                                "connector_http_request",
+                                extra={
+                                    "method": method,
+                                    "url": url,
+                                    "payload": redact_payload(payload),
+                                },
+                            )
+                    response = self._client.request(method, url, **kwargs)
+                    span.set_attribute("http.status_code", response.status_code)
+                    if response.status_code >= 500 or response.is_error:
+                        span.set_status(Status(StatusCode.ERROR))
             except httpx.RequestError as exc:
+                span.record_exception(exc)
+                span.set_status(Status(StatusCode.ERROR))
                 if attempt >= self._retry.max_retries:
                     raise HttpClientError(
                         "HTTP request failed",

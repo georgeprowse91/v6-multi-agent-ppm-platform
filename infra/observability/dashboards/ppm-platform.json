@@ -12,12 +12,52 @@
       ]
     },
     {
+      "type": "timeseries",
+      "title": "API Gateway Throughput",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service=\"api-gateway\"}[5m]))",
+          "legendFormat": "requests/sec"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "API Gateway Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service=\"api-gateway\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{service=\"api-gateway\"}[5m]))",
+          "legendFormat": "error_rate"
+        }
+      ]
+    },
+    {
       "type": "stat",
       "title": "Workflow Success Rate",
       "targets": [
         {
           "expr": "sum(rate(workflow_completed_total{status=\"success\"}[5m])) / sum(rate(workflow_completed_total[5m]))",
           "legendFormat": "success_rate"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Connector Sync Duration (p95)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(connector_sync_duration_seconds_bucket[15m])) by (le, connector_id))",
+          "legendFormat": "{{connector_id}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Connector Sync Throughput",
+      "targets": [
+        {
+          "expr": "sum(rate(connector_sync_records_total[15m])) by (connector_id)",
+          "legendFormat": "{{connector_id}}"
         }
       ]
     },

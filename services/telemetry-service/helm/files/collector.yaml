@@ -7,17 +7,29 @@ receivers:
 exporters:
   azuremonitor:
     connection_string: "${AZURE_MONITOR_CONNECTION_STRING}"
+  jaeger:
+    endpoint: "${JAEGER_COLLECTOR_ENDPOINT}"
+    tls:
+      insecure: true
+  loki:
+    endpoint: "${LOKI_ENDPOINT}"
+    tls:
+      insecure: true
   logging:
     loglevel: info
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    resource_to_telemetry_conversion:
+      enabled: true
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [azuremonitor, logging]
+      exporters: [jaeger, azuremonitor, logging]
     metrics:
       receivers: [otlp]
-      exporters: [azuremonitor, logging]
+      exporters: [prometheus, azuremonitor, logging]
     logs:
       receivers: [otlp]
-      exporters: [azuremonitor, logging]
+      exporters: [loki, azuremonitor, logging]

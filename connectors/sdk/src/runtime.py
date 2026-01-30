@@ -11,6 +11,7 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 from connectors.sdk.src.data_service_client import DataLineageClient, DataServiceClient, LineageEventEmitter
+from connectors.sdk.src.telemetry import get_connector_telemetry
 
 
 @dataclass
@@ -38,6 +39,7 @@ class ConnectorRuntime:
     def __init__(self, connector_root: Path) -> None:
         self.connector_root = connector_root
         self.manifest = self._load_manifest(connector_root / "manifest.yaml")
+        self.telemetry = get_connector_telemetry(self.manifest.id)
 
     def _load_manifest(self, path: Path) -> ConnectorManifest:
         data = yaml.safe_load(path.read_text())
@@ -82,37 +84,44 @@ class ConnectorRuntime:
         *,
         emit_lineage: bool = True,
     ) -> list[dict[str, Any]]:
-        results: list[dict[str, Any]] = []
-        mapping_specs = [
-            self._load_mapping(self.connector_root / mapping["mapping_file"])
-            for mapping in self.manifest.mappings
-        ]
-        emitter = self._get_lineage_emitter(tenant_id) if emit_lineage else None
-        for record in records:
-            for spec in mapping_specs:
-                if record.get("source") and record.get("source") != spec.source:
-                    continue
-                mapped = self._apply_mapping(record, spec, tenant_id)
-                if include_schema:
-                    mapped["schema_name"] = spec.schema or spec.target
-                results.append(mapped)
-                if emitter:
-                    emitter.emit_event(
-                        source=self._source_entity(record, spec),
-                        target=self._target_entity(mapped, spec),
-                        transformations=self._transformation_steps(spec),
-                        entity_type=spec.schema or spec.target,
-                        entity_payload=mapped,
-                        metadata={
-                            "connector_version": self.manifest.version,
-                            "mapping_source": spec.source,
-                            "mapping_target": spec.target,
-                        },
-                        timestamp=datetime.now(timezone.utc).isoformat(),
-                    )
-        if emitter:
-            emitter.client.close()
-        return results
+        attributes = {
+            "connector_version": self.manifest.version,
+            "connector_name": self.manifest.name,
+            "tenant_id": tenant_id,
+        }
+        with self.telemetry.track_sync("apply_mappings", attributes) as span_attributes:
+            results: list[dict[str, Any]] = []
+            mapping_specs = [
+                self._load_mapping(self.connector_root / mapping["mapping_file"])
+                for mapping in self.manifest.mappings
+            ]
+            emitter = self._get_lineage_emitter(tenant_id) if emit_lineage else None
+            for record in records:
+                for spec in mapping_specs:
+                    if record.get("source") and record.get("source") != spec.source:
+                        continue
+                    mapped = self._apply_mapping(record, spec, tenant_id)
+                    if include_schema:
+                        mapped["schema_name"] = spec.schema or spec.target
+                    results.append(mapped)
+                    if emitter:
+                        emitter.emit_event(
+                            source=self._source_entity(record, spec),
+                            target=self._target_entity(mapped, spec),
+                            transformations=self._transformation_steps(spec),
+                            entity_type=spec.schema or spec.target,
+                            entity_payload=mapped,
+                            metadata={
+                                "connector_version": self.manifest.version,
+                                "mapping_source": spec.source,
+                                "mapping_target": spec.target,
+                            },
+                            timestamp=datetime.now(timezone.utc).isoformat(),
+                        )
+            if emitter:
+                emitter.client.close()
+            self.telemetry.record_records(len(results), span_attributes)
+            return results
 
     def run_sync(
         self,

@@ -14,6 +14,9 @@ env:
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   AZURE_MONITOR_CONNECTION_STRING: "InstrumentationKey=00000000-0000-0000-0000-000000000000"
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
+  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "http://otel-collector:4318/v1/logs"
+  JAEGER_COLLECTOR_ENDPOINT: "jaeger-collector:14250"
+  LOKI_ENDPOINT: "http://loki:3100/loki/api/v1/push"
 
 livenessProbe:
   path: /healthz

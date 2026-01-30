@@ -30,6 +30,7 @@ for path_root in (REPO_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT):
     if str(path_root) not in sys.path:
         sys.path.insert(0, str(path_root))
 
+from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 
@@ -86,6 +87,7 @@ app.add_middleware(AuthTenantMiddleware)
 app.add_middleware(FieldMaskingMiddleware)
 configure_tracing("api-gateway")
 configure_metrics("api-gateway")
+configure_logging("api-gateway")
 app.add_middleware(TraceMiddleware, service_name="api-gateway")
 app.add_middleware(RequestMetricsMiddleware, service_name="api-gateway")
 

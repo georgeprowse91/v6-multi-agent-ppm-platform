@@ -1,0 +1,22 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#0b0f19" />
+  <text x="40" y="50" fill="#ffffff" font-size="28" font-family="Arial">PPM Platform Observability Dashboard (Grafana)</text>
+
+  <rect x="40" y="90" width="540" height="250" fill="#111827" stroke="#334155" stroke-width="2" />
+  <text x="60" y="125" fill="#e2e8f0" font-size="18" font-family="Arial">API Gateway Latency (p95)</text>
+  <polyline points="70,300 140,260 220,270 300,230 380,240 460,210 540,220" fill="none" stroke="#22d3ee" stroke-width="3" />
+
+  <rect x="620" y="90" width="540" height="250" fill="#111827" stroke="#334155" stroke-width="2" />
+  <text x="640" y="125" fill="#e2e8f0" font-size="18" font-family="Arial">API Gateway Throughput</text>
+  <polyline points="650,300 720,260 800,280 880,240 960,220 1040,250 1120,230" fill="none" stroke="#38bdf8" stroke-width="3" />
+
+  <rect x="40" y="380" width="540" height="250" fill="#111827" stroke="#334155" stroke-width="2" />
+  <text x="60" y="415" fill="#e2e8f0" font-size="18" font-family="Arial">API Gateway Error Rate</text>
+  <polyline points="70,590 140,580 220,570 300,560 380,565 460,555 540,550" fill="none" stroke="#f97316" stroke-width="3" />
+
+  <rect x="620" y="380" width="540" height="250" fill="#111827" stroke="#334155" stroke-width="2" />
+  <text x="640" y="415" fill="#e2e8f0" font-size="18" font-family="Arial">Connector Sync Duration (p95)</text>
+  <polyline points="650,590 720,560 800,570 880,540 960,555 1040,535 1120,520" fill="none" stroke="#34d399" stroke-width="3" />
+
+  <text x="40" y="670" fill="#94a3b8" font-size="14" font-family="Arial">Rendered from Grafana dashboard definitions in infra/observability/dashboards/ppm-platform.json</text>
+</svg>

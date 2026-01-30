@@ -97,6 +97,22 @@ groups:
         annotations:
           summary: "Connector health degraded"
           description: "Connector health checks reporting degraded/unhealthy."
+      - alert: ConnectorSyncErrorRate
+        expr: sum(rate(connector_sync_errors_total[15m])) / sum(rate(connector_sync_total[15m])) > 0.05
+        for: 20m
+        labels:
+          severity: page
+        annotations:
+          summary: "Connector sync error rate above SLO"
+          description: "Connector sync error rate exceeds 5% for 20 minutes."
+      - alert: ConnectorSyncHighLatency
+        expr: histogram_quantile(0.95, sum(rate(connector_sync_duration_seconds_bucket[15m])) by (le)) > 300
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connector sync latency above SLO"
+          description: "p95 connector sync duration exceeds 5 minutes for 20 minutes."
       - alert: ConnectorDisabledSpike
         expr: sum(rate(connectors_disabled_total[10m])) > 5
         for: 15m

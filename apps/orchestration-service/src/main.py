@@ -14,6 +14,7 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from orchestrator import AgentOrchestrator  # noqa: E402
@@ -27,6 +28,7 @@ app = FastAPI(title="Orchestration Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/health/ready"})
 configure_tracing("orchestration-service")
 configure_metrics("orchestration-service")
+configure_logging("orchestration-service")
 app.add_middleware(TraceMiddleware, service_name="orchestration-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="orchestration-service")
 

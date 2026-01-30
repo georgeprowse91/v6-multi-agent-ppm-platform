@@ -29,13 +29,29 @@ config:
   exporters:
     azuremonitor:
       connection_string: ${AZURE_MONITOR_CONNECTION_STRING}
+    jaeger:
+      endpoint: ${JAEGER_COLLECTOR_ENDPOINT}
+      tls:
+        insecure: true
+    loki:
+      endpoint: ${LOKI_ENDPOINT}
+      tls:
+        insecure: true
+    prometheus:
+      endpoint: 0.0.0.0:8889
+      resource_to_telemetry_conversion:
+        enabled: true
   service:
     pipelines:
       traces:
         receivers: [otlp]
         processors: [batch]
-        exporters: [azuremonitor]
+        exporters: [jaeger, azuremonitor]
       metrics:
         receivers: [otlp]
         processors: [batch]
-        exporters: [azuremonitor]
+        exporters: [prometheus, azuremonitor]
+      logs:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [loki, azuremonitor]
