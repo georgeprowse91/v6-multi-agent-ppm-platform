@@ -12,6 +12,7 @@ Catalog backend services that power data sync, policy enforcement, and telemetry
 - `services/data-service`: Subdirectory containing data service assets for this area.
 - `services/identity-access`: Subdirectory containing identity access assets for this area.
 - `services/notification-service`: Subdirectory containing notification service assets for this area.
+- `services/agent-runtime`: Subdirectory containing agent runtime assets for this area.
 - `services/policy-engine`: Subdirectory containing policy engine assets for this area.
 - `services/telemetry-service`: Subdirectory containing telemetry service assets for this area.
 
@@ -22,6 +23,7 @@ Each service runs a FastAPI application (default port `8080`) with health checks
 | Service | Description | Primary endpoints |
 | --- | --- | --- |
 | Audit Log | Immutable audit trail with retention and WORM storage enforcement. | `POST /audit/events`, `GET /audit/events/{event_id}` |
+| Agent Runtime | Hosts agent registry, orchestration, and connector integration for the platform. | `GET /agents`, `POST /agents/{agent_id}/execute`, `POST /orchestration/run` |
 | Data Sync Service | Runs connector sync jobs, tracks status, and manages conflicts. | `POST /sync/run`, `GET /sync/status/{job_id}`, `GET /sync/conflicts` |
 | Data Lineage Service | Captures lineage events and quality summaries. | `POST /lineage/events`, `GET /lineage/graph`, `GET /quality/summary` |
 | Data Service | Manages schemas and canonical entities. | `POST /schemas`, `GET /schemas`, `POST /entities/{schema_name}` |

@@ -58,9 +58,8 @@ Expected output: a line referencing Agent 25.
 
 ## Implementation status
 
-- **Implemented**: catalog and orchestration documentation.
-- **Partially implemented**: agent runtime scaffolding in `agents/`.
-- **Planned**: domain agent logic and connector-backed actions.
+- **Implemented**: catalog documentation, agent runtime framework, domain agent logic, and connector-backed actions via `services/agent-runtime/`.
+- **Available**: orchestration APIs for configuring agent execution plans and runtime routing.
 
 ## Related docs
 
