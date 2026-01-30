@@ -42,8 +42,8 @@ export function App() {
           element={<ConfigPage type="connectors" />}
         />
         <Route
-          path="/config/templates"
-          element={<ConfigPage type="templates" />}
+          path="/config/workflows"
+          element={<ConfigPage type="workflows" />}
         />
 
         {/* Workflow pages */}

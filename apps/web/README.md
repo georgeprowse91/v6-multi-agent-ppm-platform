@@ -201,7 +201,7 @@ This outputs to `apps/web/static/dist/`. The FastAPI backend can then serve the 
 | `/project/:id` | Project workspace |
 | `/config/agents` | AI agent configuration |
 | `/config/connectors` | Integration connector settings |
-| `/config/templates` | Project/workflow templates |
+| `/config/workflows` | Workflow routing configuration |
 
 ## Workspace State APIs
 

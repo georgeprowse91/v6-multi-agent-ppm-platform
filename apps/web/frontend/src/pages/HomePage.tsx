@@ -51,9 +51,9 @@ const configLinks = [
     path: '/config/connectors',
   },
   {
-    title: 'Templates',
-    description: 'Define reusable project templates',
-    path: '/config/templates',
+    title: 'Workflows',
+    description: 'Adjust workflow routing and orchestration settings',
+    path: '/config/workflows',
   },
 ];
 

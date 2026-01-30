@@ -1,125 +1,570 @@
-import { AgentGallery } from '@/components/agentConfig';
-import { ConnectorGallery } from '@/components/connectors';
-import { TemplateGallery } from '@/components/templates';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ConfigForm } from '@/components/config';
+import type { AgentConfig, AgentParameter } from '@/store/agentConfig/types';
+import type { ConfigField, Connector } from '@/store/connectors/types';
 import styles from './ConfigPage.module.css';
 
-type ConfigType = 'agents' | 'connectors' | 'templates';
+const API_BASE = '/api/v1';
+
+type ConfigType = 'agents' | 'connectors' | 'workflows';
 
 interface ConfigPageProps {
   type: ConfigType;
 }
 
-const configInfo: Record<
-  ConfigType,
-  { title: string; description: string; features: string[] }
-> = {
+interface OrchestrationRoutingEntry {
+  agent_id: string;
+  action?: string | null;
+  depends_on?: string[];
+  intent?: string | null;
+  priority?: number | null;
+}
+
+interface OrchestrationConfig {
+  default_routing: OrchestrationRoutingEntry[];
+  last_updated_by: string;
+}
+
+const configTabs: Record<ConfigType, { label: string; description: string }> = {
   agents: {
-    title: 'AI Agents',
-    description:
-      'Configure and manage the AI agents that power your PPM workflows.',
-    features: [
-      'View available agents and their capabilities',
-      'Configure agent parameters and thresholds',
-      'Monitor agent performance and activity',
-      'Manage agent permissions and access',
-    ],
+    label: 'Agents',
+    description: 'Tune agent enablement and parameters for your orchestration layer.',
   },
   connectors: {
-    title: 'Connectors',
-    description:
-      'Manage integrations with external systems and data sources.',
-    features: [
-      'Connect to project management tools (Jira, Azure DevOps, etc.)',
-      'Integrate with enterprise systems (ServiceNow, SAP)',
-      'Configure data synchronization schedules',
-      'Monitor connection health and status',
-    ],
+    label: 'Connectors',
+    description: 'Configure integration endpoints, sync settings, and custom fields.',
   },
-  templates: {
-    title: 'Templates',
-    description:
-      'Define reusable templates for projects, programs, and workflows.',
-    features: [
-      'Create project templates with predefined phases',
-      'Define workflow templates for common processes',
-      'Set up document templates and standards',
-      'Share templates across the organization',
-    ],
+  workflows: {
+    label: 'Workflows',
+    description: 'Maintain orchestration routing rules for workflow execution.',
   },
 };
 
+const syncDirectionOptions = ['inbound', 'outbound', 'bidirectional'];
+const syncFrequencyOptions = [
+  'realtime',
+  'hourly',
+  'every_4_hours',
+  'daily',
+  'weekly',
+  'manual',
+];
+
+const toConfigFieldType = (
+  type: ConfigField['type'] | AgentParameter['param_type']
+) => {
+  switch (type) {
+    case 'number':
+      return 'number';
+    case 'boolean':
+      return 'boolean';
+    case 'select':
+      return 'select';
+    case 'multiselect':
+      return 'multiselect';
+    case 'url':
+      return 'url';
+    default:
+      return 'text';
+  }
+};
+
 export function ConfigPage({ type }: ConfigPageProps) {
-  const info = configInfo[type];
+  const [activeTab, setActiveTab] = useState<ConfigType>(type);
 
-  // Render AgentGallery for agents type
-  if (type === 'agents') {
-    return <AgentGallery />;
-  }
+  const [agents, setAgents] = useState<AgentConfig[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(true);
+  const [agentsError, setAgentsError] = useState<string | null>(null);
 
-  // Render ConnectorGallery for connectors type
-  if (type === 'connectors') {
-    return <ConnectorGallery />;
-  }
+  const [connectors, setConnectors] = useState<Connector[]>([]);
+  const [connectorsLoading, setConnectorsLoading] = useState(true);
+  const [connectorsError, setConnectorsError] = useState<string | null>(null);
 
-  if (type === 'templates') {
-    return <TemplateGallery />;
-  }
+  const [workflowConfig, setWorkflowConfig] = useState<OrchestrationConfig | null>(null);
+  const [routingEntries, setRoutingEntries] = useState<OrchestrationRoutingEntry[]>([]);
+  const [workflowsLoading, setWorkflowsLoading] = useState(true);
+  const [workflowsError, setWorkflowsError] = useState<string | null>(null);
 
-  // Placeholder for other config types
+  useEffect(() => {
+    setActiveTab(type);
+  }, [type]);
+
+  const fetchAgents = useCallback(async () => {
+    setAgentsLoading(true);
+    setAgentsError(null);
+    try {
+      const response = await fetch(`${API_BASE}/agents/config`);
+      if (!response.ok) {
+        throw new Error(`Failed to load agents: ${response.statusText}`);
+      }
+      const data = (await response.json()) as AgentConfig[];
+      setAgents(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load agents.';
+      setAgentsError(message);
+      setAgents([]);
+    } finally {
+      setAgentsLoading(false);
+    }
+  }, []);
+
+  const fetchConnectors = useCallback(async () => {
+    setConnectorsLoading(true);
+    setConnectorsError(null);
+    try {
+      const response = await fetch(`${API_BASE}/connectors`);
+      if (!response.ok) {
+        throw new Error(`Failed to load connectors: ${response.statusText}`);
+      }
+      const data = (await response.json()) as Connector[];
+      setConnectors(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load connectors.';
+      setConnectorsError(message);
+      setConnectors([]);
+    } finally {
+      setConnectorsLoading(false);
+    }
+  }, []);
+
+  const fetchWorkflows = useCallback(async () => {
+    setWorkflowsLoading(true);
+    setWorkflowsError(null);
+    try {
+      const response = await fetch(`${API_BASE}/orchestration/config`);
+      if (!response.ok) {
+        throw new Error(`Failed to load workflows: ${response.statusText}`);
+      }
+      const data = (await response.json()) as OrchestrationConfig;
+      setWorkflowConfig(data);
+      setRoutingEntries(data.default_routing ?? []);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load workflows.';
+      setWorkflowsError(message);
+      setWorkflowConfig(null);
+      setRoutingEntries([]);
+    } finally {
+      setWorkflowsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAgents();
+    fetchConnectors();
+    fetchWorkflows();
+  }, [fetchAgents, fetchConnectors, fetchWorkflows]);
+
+  const tabs = useMemo(
+    () =>
+      (Object.keys(configTabs) as ConfigType[]).map((key) => ({
+        key,
+        ...configTabs[key],
+      })),
+    []
+  );
+
+  const handleAgentSubmit = async (agent: AgentConfig, values: Record<string, unknown>) => {
+    const updatedParameters = agent.parameters.map((parameter) => ({
+      ...parameter,
+      current_value: values[parameter.name],
+    }));
+
+    const payload = {
+      enabled: Boolean(values.enabled),
+      parameters: updatedParameters,
+    };
+
+    const response = await fetch(`${API_BASE}/agents/config/${agent.catalog_id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update ${agent.display_name}.`);
+    }
+
+    let updatedAgent: AgentConfig | null = null;
+    try {
+      updatedAgent = (await response.json()) as AgentConfig;
+    } catch {
+      updatedAgent = null;
+    }
+
+    setAgents((prev) =>
+      prev.map((entry) =>
+        entry.catalog_id === agent.catalog_id
+          ? updatedAgent ?? { ...agent, ...payload }
+          : entry
+      )
+    );
+  };
+
+  const handleConnectorSubmit = async (connector: Connector, values: Record<string, unknown>) => {
+    const customFields = connector.config_fields.reduce<Record<string, unknown>>(
+      (acc, field) => {
+        const value = values[field.name];
+        if (value !== undefined && value !== '') {
+          acc[field.name] = value;
+        }
+        return acc;
+      },
+      {}
+    );
+
+    const payload: Record<string, unknown> = {
+      instance_url: values.instance_url || undefined,
+      project_key: values.project_key || undefined,
+      sync_direction: values.sync_direction || undefined,
+      sync_frequency: values.sync_frequency || undefined,
+      custom_fields: Object.keys(customFields).length ? customFields : undefined,
+    };
+
+    const response = await fetch(`${API_BASE}/connectors/${connector.connector_id}/config`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update ${connector.name}.`);
+    }
+
+    setConnectors((prev) =>
+      prev.map((entry) =>
+        entry.connector_id === connector.connector_id
+          ? {
+              ...entry,
+              instance_url: String(values.instance_url ?? entry.instance_url),
+              project_key: String(values.project_key ?? entry.project_key),
+              sync_direction: (values.sync_direction as Connector['sync_direction']) ??
+                entry.sync_direction,
+              sync_frequency: (values.sync_frequency as Connector['sync_frequency']) ??
+                entry.sync_frequency,
+            }
+          : entry
+      )
+    );
+  };
+
+  const handleWorkflowSubmit = async (
+    index: number,
+    values: Record<string, unknown>
+  ) => {
+    const nextEntries = routingEntries.map((entry, entryIndex) => {
+      if (entryIndex !== index) return entry;
+
+      const dependsOnValue = String(values.depends_on ?? '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      return {
+        agent_id: String(values.agent_id ?? '').trim(),
+        action: values.action ? String(values.action) : null,
+        intent: values.intent ? String(values.intent) : null,
+        priority:
+          values.priority === '' || values.priority === undefined
+            ? null
+            : Number(values.priority),
+        depends_on: dependsOnValue,
+      };
+    });
+
+    const payload: OrchestrationConfig = {
+      default_routing: nextEntries,
+      last_updated_by: 'web-ui',
+    };
+
+    const response = await fetch(`${API_BASE}/orchestration/config`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update workflow routing.');
+    }
+
+    const updated = (await response.json()) as OrchestrationConfig;
+    setWorkflowConfig(updated);
+    setRoutingEntries(updated.default_routing ?? []);
+  };
+
+  const handleAddRoutingEntry = () => {
+    setRoutingEntries((prev) => [
+      ...prev,
+      { agent_id: '', action: null, intent: null, depends_on: [], priority: null },
+    ]);
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>{info.title}</h1>
-        <p className={styles.description}>{info.description}</p>
+        <h1 className={styles.title}>Configuration Center</h1>
+        <p className={styles.description}>
+          Update connector settings, agent parameters, and workflow routing without leaving the
+          console.
+        </p>
       </header>
 
-      <div className={styles.content}>
-        <section className={styles.placeholder}>
-          <svg
-            className={styles.placeholderIcon}
-            width="64"
-            height="64"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+      <div className={styles.tabs} role="tablist" aria-label="Configuration tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            role="tab"
+            id={`tab-${tab.key}`}
+            aria-selected={activeTab === tab.key}
+            aria-controls={`tab-panel-${tab.key}`}
+            className={`${styles.tabButton} ${
+              activeTab === tab.key ? styles.tabActive : ''
+            }`}
+            onClick={() => setActiveTab(tab.key)}
+            type="button"
           >
-            <path
-              fillRule="evenodd"
-              d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <h2 className={styles.placeholderTitle}>
-            {info.title} Configuration
-          </h2>
-          <p className={styles.placeholderDescription}>
-            This configuration page is under development.
-          </p>
-        </section>
-
-        <section className={styles.features}>
-          <h3 className={styles.featuresTitle}>Planned Features</h3>
-          <ul className={styles.featureList}>
-            {info.features.map((feature, index) => (
-              <li key={index} className={styles.featureItem}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className={styles.featureIcon}
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </section>
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      <section
+        id={`tab-panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        className={styles.tabPanel}
+      >
+        <p className={styles.tabDescription}>{configTabs[activeTab].description}</p>
+
+        {activeTab === 'agents' && (
+          <div className={styles.section}>
+            {agentsLoading && <div className={styles.state}>Loading agents…</div>}
+            {agentsError && (
+              <div className={styles.errorState}>
+                <span>{agentsError}</span>
+                <button type="button" onClick={fetchAgents}>
+                  Retry
+                </button>
+              </div>
+            )}
+            {!agentsLoading && !agentsError && agents.length === 0 && (
+              <div className={styles.state}>No agent configurations available.</div>
+            )}
+            {!agentsLoading && !agentsError && agents.length > 0 && (
+              <div className={styles.forms}>
+                {agents.map((agent) => {
+                  const fields = [
+                    {
+                      name: 'enabled',
+                      label: 'Enabled',
+                      type: 'boolean' as const,
+                      description: 'Toggle global availability for this agent.',
+                    },
+                    ...agent.parameters.map((parameter) => ({
+                      name: parameter.name,
+                      label: parameter.display_name,
+                      type: toConfigFieldType(parameter.param_type),
+                      description: parameter.description,
+                      required: parameter.required,
+                      options: parameter.options,
+                      min: parameter.min_value,
+                      max: parameter.max_value,
+                    })),
+                  ];
+
+                  const initialValues = agent.parameters.reduce<Record<string, unknown>>(
+                    (acc, parameter) => {
+                      acc[parameter.name] =
+                        parameter.current_value ?? parameter.default_value ?? '';
+                      return acc;
+                    },
+                    { enabled: agent.enabled }
+                  );
+
+                  return (
+                    <ConfigForm
+                      key={agent.catalog_id}
+                      title={agent.display_name}
+                      description={agent.description}
+                      fields={fields}
+                      initialValues={initialValues}
+                      submitLabel="Update agent"
+                      onSubmit={(values) => handleAgentSubmit(agent, values)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'connectors' && (
+          <div className={styles.section}>
+            {connectorsLoading && <div className={styles.state}>Loading connectors…</div>}
+            {connectorsError && (
+              <div className={styles.errorState}>
+                <span>{connectorsError}</span>
+                <button type="button" onClick={fetchConnectors}>
+                  Retry
+                </button>
+              </div>
+            )}
+            {!connectorsLoading && !connectorsError && connectors.length === 0 && (
+              <div className={styles.state}>No connector configurations available.</div>
+            )}
+            {!connectorsLoading && !connectorsError && connectors.length > 0 && (
+              <div className={styles.forms}>
+                {connectors.map((connector) => {
+                  const fields = [
+                    {
+                      name: 'instance_url',
+                      label: 'Instance URL',
+                      type: 'url' as const,
+                      required: false,
+                      placeholder: 'https://your-instance.example.com',
+                    },
+                    {
+                      name: 'project_key',
+                      label: 'Project Key',
+                      type: 'text' as const,
+                      required: false,
+                      placeholder: 'PPM',
+                    },
+                    {
+                      name: 'sync_direction',
+                      label: 'Sync Direction',
+                      type: 'select' as const,
+                      options: syncDirectionOptions,
+                    },
+                    {
+                      name: 'sync_frequency',
+                      label: 'Sync Frequency',
+                      type: 'select' as const,
+                      options: syncFrequencyOptions,
+                    },
+                    ...connector.config_fields.map((field) => ({
+                      name: field.name,
+                      label: field.label,
+                      type: toConfigFieldType(field.type),
+                      required: field.required,
+                    })),
+                  ];
+
+                  const initialValues: Record<string, unknown> = {
+                    instance_url: connector.instance_url,
+                    project_key: connector.project_key,
+                    sync_direction: connector.sync_direction,
+                    sync_frequency: connector.sync_frequency,
+                  };
+
+                  return (
+                    <ConfigForm
+                      key={connector.connector_id}
+                      title={connector.name}
+                      description={connector.description}
+                      fields={fields}
+                      initialValues={initialValues}
+                      submitLabel="Update connector"
+                      onSubmit={(values) => handleConnectorSubmit(connector, values)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'workflows' && (
+          <div className={styles.section}>
+            {workflowsLoading && <div className={styles.state}>Loading workflows…</div>}
+            {workflowsError && (
+              <div className={styles.errorState}>
+                <span>{workflowsError}</span>
+                <button type="button" onClick={fetchWorkflows}>
+                  Retry
+                </button>
+              </div>
+            )}
+            {!workflowsLoading && !workflowsError && (
+              <div className={styles.workflowHeader}>
+                <div>
+                  <h2 className={styles.workflowTitle}>Default Routing Rules</h2>
+                  <p className={styles.workflowHint}>
+                    Update routing entries to define how workflow requests are orchestrated.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={handleAddRoutingEntry}
+                >
+                  Add routing entry
+                </button>
+              </div>
+            )}
+            {!workflowsLoading && !workflowsError && routingEntries.length === 0 && (
+              <div className={styles.state}>No workflow routing entries defined.</div>
+            )}
+            {!workflowsLoading && !workflowsError && routingEntries.length > 0 && (
+              <div className={styles.forms}>
+                {routingEntries.map((entry, index) => (
+                  <ConfigForm
+                    key={`${entry.agent_id || 'entry'}-${index}`}
+                    title={`Routing entry ${index + 1}`}
+                    description={
+                      workflowConfig
+                        ? `Last updated by ${workflowConfig.last_updated_by}.`
+                        : undefined
+                    }
+                    fields={[
+                      {
+                        name: 'agent_id',
+                        label: 'Agent ID',
+                        type: 'text',
+                        required: true,
+                        placeholder: 'intent-router',
+                      },
+                      {
+                        name: 'action',
+                        label: 'Action',
+                        type: 'text',
+                        placeholder: 'route',
+                      },
+                      {
+                        name: 'intent',
+                        label: 'Intent',
+                        type: 'text',
+                        placeholder: 'portfolio_intake',
+                      },
+                      {
+                        name: 'priority',
+                        label: 'Priority',
+                        type: 'number',
+                        min: 0,
+                        placeholder: '1',
+                      },
+                      {
+                        name: 'depends_on',
+                        label: 'Depends On',
+                        type: 'text',
+                        placeholder: 'agent-1, agent-2',
+                      },
+                    ]}
+                    initialValues={{
+                      agent_id: entry.agent_id,
+                      action: entry.action ?? '',
+                      intent: entry.intent ?? '',
+                      priority: entry.priority ?? '',
+                      depends_on: (entry.depends_on ?? []).join(', '),
+                    }}
+                    submitLabel="Update routing"
+                    onSubmit={(values) => handleWorkflowSubmit(index, values)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

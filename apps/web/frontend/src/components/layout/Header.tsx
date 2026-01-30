@@ -27,8 +27,8 @@ function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
       crumbs.push({ label: 'Agents', path: '/config/agents' });
     } else if (parts[1] === 'connectors') {
       crumbs.push({ label: 'Connectors', path: '/config/connectors' });
-    } else if (parts[1] === 'templates') {
-      crumbs.push({ label: 'Templates', path: '/config/templates' });
+    } else if (parts[1] === 'workflows') {
+      crumbs.push({ label: 'Workflows', path: '/config/workflows' });
     }
   }
 
