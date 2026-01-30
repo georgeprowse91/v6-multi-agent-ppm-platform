@@ -1,0 +1,21 @@
+host: "http://localhost:8000"
+users: 25
+spawn_rate: 5
+run_time: "1m"
+request_rate_per_user: 2
+endpoints:
+  - name: api_health
+    method: GET
+    path: /api/health
+    weight: 3
+  - name: connectors_list
+    method: GET
+    path: /api/connectors
+    weight: 2
+  - name: connector_sync
+    method: POST
+    path: /api/connectors/sync
+    weight: 1
+    json:
+      connector_id: demo-connector
+      run_id: demo-run

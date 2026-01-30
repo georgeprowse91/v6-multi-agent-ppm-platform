@@ -42,10 +42,17 @@ rg -n "API p95" docs/architecture/performance-architecture.md
 
 Expected output: performance target entries.
 
+## Performance test harness
+
+The performance test harness lives under `tests/performance/` and uses Locust to drive concurrent API and connector traffic based on a YAML configuration. The harness supports configurable user counts, spawn rates, request pacing, and test duration, plus CSV exports for latency, throughput, and error rates. Locust results are summarized in CI for pull requests so reviewers can see baseline metrics before merging.
+
+## Test results
+
+CI runs the harness against a lightweight mock API server to validate the load workflow and to capture baseline stats. The workflow publishes a markdown summary that includes total requests, failures, requests per second, average latency, and p95 latency for each configured endpoint. Teams should update `tests/performance/config.yaml` to target staging or production-like environments when running deeper performance validations.
+
 ## Implementation status
 
-- **Planned**: performance test harness and load testing.
-- **Implemented**: documented targets and runbook references.
+- **Implemented**: performance test harness, CI summary reporting, documented targets, and runbook references.
 
 ## Related docs
 

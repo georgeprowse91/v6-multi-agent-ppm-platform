@@ -90,3 +90,44 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           mkdocs build --strict
+
+  performance:
+    name: Performance Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Start mock performance server
+        run: |
+          python tests/performance/mock_server.py --port 8000 --latency-ms 15 &
+          sleep 2
+
+      - name: Run performance harness
+        run: |
+          python tests/performance/run_locust.py \
+            --config tests/performance/config.yaml \
+            --csv-prefix tests/performance/results/perf
+
+      - name: Publish performance summary
+        run: |
+          python tests/performance/report_summary.py \
+            --csv-prefix tests/performance/results/perf \
+            --output "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload performance artifacts
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2c3
+        with:
+          name: performance-results
+          path: tests/performance/results
