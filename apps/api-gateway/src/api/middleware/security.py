@@ -440,6 +440,10 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         }
         if request.url.path in exempt_paths:
             return await call_next(request)
+        if request.method == "POST" and request.url.path.startswith(
+            "/api/v1/connectors/"
+        ) and request.url.path.endswith("/webhook"):
+            return await call_next(request)
 
         auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
         environment = os.getenv("ENVIRONMENT", "development").lower()

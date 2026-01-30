@@ -11,7 +11,11 @@ Provides endpoints for connector management:
 from __future__ import annotations
 
 import importlib.util
+import json
+import hashlib
+import hmac
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -46,6 +50,7 @@ from connector_registry import (
     get_connectors_by_category,
 )
 from security.audit_log import build_event, get_audit_log_store
+from api.webhook_storage import WebhookEvent, WebhookEventStore
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -53,6 +58,7 @@ router = APIRouter()
 # Initialize connector config store
 # In production, this path should come from environment
 _config_store: ConnectorConfigStore | None = None
+_webhook_store: WebhookEventStore | None = None
 
 
 def get_config_store() -> ConnectorConfigStore:
@@ -62,6 +68,14 @@ def get_config_store() -> ConnectorConfigStore:
         storage_path = REPO_ROOT / "data" / "connectors" / "config.json"
         _config_store = ConnectorConfigStore(storage_path)
     return _config_store
+
+
+def get_webhook_store() -> WebhookEventStore:
+    global _webhook_store
+    if _webhook_store is None:
+        storage_path = REPO_ROOT / "data" / "connectors" / "webhooks.json"
+        _webhook_store = WebhookEventStore(storage_path)
+    return _webhook_store
 
 
 def get_webhook_handler(connector_id: str):
@@ -74,6 +88,18 @@ def get_webhook_handler(connector_id: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return getattr(module, "handle_webhook", None)
+
+
+def get_webhook_registrar(connector_id: str):
+    webhook_path = CONNECTORS_ROOT / connector_id / "src" / "webhooks.py"
+    if not webhook_path.exists():
+        return None
+    spec = importlib.util.spec_from_file_location(f"{connector_id}_webhooks_register", webhook_path)
+    if not spec or not spec.loader:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return getattr(module, "register_webhook", None)
 
 
 def get_connector_class(connector_id: str):
@@ -107,6 +133,48 @@ def get_connector_class(connector_id: str):
     module_name, class_name = module_info
     module = __import__(module_name, fromlist=[class_name])
     return getattr(module, class_name, None)
+
+
+def _webhook_secret_env_var(connector_id: str) -> str:
+    safe_id = connector_id.upper().replace("-", "_")
+    return f"CONNECTOR_{safe_id}_WEBHOOK_SECRET"
+
+
+def _get_webhook_secret(connector_id: str) -> str | None:
+    return os.getenv(_webhook_secret_env_var(connector_id))
+
+
+def _validate_webhook_signature(
+    connector_id: str, body: bytes, headers: dict[str, str]
+) -> None:
+    secret = _get_webhook_secret(connector_id)
+    if not secret:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Webhook secret not configured for connector '{connector_id}'",
+        )
+    header_secret = headers.get("x-webhook-secret")
+    header_signature = headers.get("x-webhook-signature")
+    if header_secret:
+        if not hmac.compare_digest(header_secret, secret):
+            raise HTTPException(status_code=401, detail="Invalid webhook secret")
+        return
+    if header_signature:
+        computed = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
+        candidate = header_signature.removeprefix("sha256=").strip()
+        if not hmac.compare_digest(candidate, computed):
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+        return
+    raise HTTPException(status_code=401, detail="Missing webhook signature or secret")
+
+
+def _sanitize_headers(headers: dict[str, str]) -> dict[str, str]:
+    filtered = {}
+    for key, value in headers.items():
+        if key.lower() in {"x-webhook-secret", "x-webhook-signature"}:
+            continue
+        filtered[key] = value
+    return filtered
 
 
 # =============================================================================
@@ -486,6 +554,38 @@ async def enable_connector(connector_id: str, http_request: Request):
     store.enable_connector(connector_id)
     config = store.get(connector_id)
 
+    registrar = get_webhook_registrar(connector_id)
+    if registrar and config:
+        webhook_url = f"{http_request.base_url}api/v1/connectors/{connector_id}/webhook"
+        secret = _get_webhook_secret(connector_id)
+        registration_payload: dict[str, Any] = {
+            "url": webhook_url,
+            "status": "skipped",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if not secret:
+            registration_payload["status"] = "skipped"
+            registration_payload["reason"] = "missing_secret"
+            logger.warning(
+                "Webhook registration skipped; secret not configured for %s", connector_id
+            )
+        else:
+            try:
+                registration_response = registrar(webhook_url, secret, config)
+                registration_payload["status"] = "registered"
+                if isinstance(registration_response, dict):
+                    registration_payload.update(
+                        {key: value for key, value in registration_response.items() if key != "secret"}
+                    )
+            except Exception as exc:  # pragma: no cover - defensive guard
+                registration_payload["status"] = "failed"
+                registration_payload["reason"] = str(exc)
+                logger.exception("Webhook registration failed for %s", connector_id)
+
+        config.custom_fields = config.custom_fields or {}
+        config.custom_fields["webhook"] = registration_payload
+        store.save(config)
+
     return ConnectorConfigResponse(
         connector_id=config.connector_id,
         name=config.name,
@@ -612,11 +712,52 @@ async def handle_connector_webhook(connector_id: str, request: Request):
     """
     Receive webhook notifications from external systems.
     """
+    definition = get_connector_definition(connector_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
+
+    config = get_config_store().get(connector_id)
+    if not config or not config.enabled:
+        raise HTTPException(status_code=403, detail="Connector not enabled")
+
     handler = get_webhook_handler(connector_id)
     if not handler:
         raise HTTPException(status_code=404, detail="Webhook handler not registered")
-    payload = await request.json()
-    result = handler(payload, dict(request.headers))
+
+    body = await request.body()
+    headers = {key.lower(): value for key, value in request.headers.items()}
+    _validate_webhook_signature(connector_id, body, headers)
+    try:
+        payload = json.loads(body.decode("utf-8")) if body else {}
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
+
+    result = handler(payload, headers)
+    tenant_id = request.headers.get("X-Tenant-ID")
+    sanitized_headers = _sanitize_headers(headers)
+    get_webhook_store().record_event(
+        WebhookEvent.from_payload(
+            connector_id=connector_id,
+            payload=payload,
+            headers=sanitized_headers,
+            result=result if isinstance(result, dict) else {"result": result},
+            tenant_id=tenant_id,
+        )
+    )
+    if tenant_id:
+        get_audit_log_store().record_event(
+            build_event(
+                tenant_id=tenant_id,
+                actor_id="webhook",
+                actor_type="system",
+                roles=["system"],
+                action="connector.webhook.received",
+                resource_type="connector",
+                resource_id=connector_id,
+                outcome="success",
+                metadata={"connector_id": connector_id},
+            )
+        )
     return {"status": "received", "connector_id": connector_id, "result": result}
 
 
