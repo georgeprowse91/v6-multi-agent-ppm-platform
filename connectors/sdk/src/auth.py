@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from connectors.sdk.src.http_client import HttpClient, HttpClientError
+from http_client import HttpClient, HttpClientError
 
 
 @dataclass

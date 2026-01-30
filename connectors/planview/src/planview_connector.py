@@ -42,6 +42,10 @@ class PlanviewConnector(BaseConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.PPM
     SUPPORTS_WRITE = False
+    SCHEMA = {
+        "portfolios": {"id": "string", "name": "string"},
+        "projects": {"id": "string", "name": "string", "status": "string"},
+    }
 
     def __init__(
         self,
@@ -189,6 +193,9 @@ class PlanviewConnector(BaseConnector):
         if resource_type != "projects":
             raise ValueError(f"Unsupported resource type: {resource_type}")
         return self._read_projects(limit=limit, offset=offset)
+
+    def get_schema(self) -> dict[str, Any]:
+        return self.SCHEMA
 
     def _read_projects(self, *, limit: int, offset: int) -> list[dict[str, Any]]:
         client = self._build_client()

@@ -1,0 +1,63 @@
+"""
+Zoom Connector Implementation.
+
+Supports:
+- OAuth2 authentication
+- Reading meetings and webinars
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
+if str(SDK_PATH) not in sys.path:
+    sys.path.insert(0, str(SDK_PATH))
+
+from base_connector import ConnectorCategory, ConnectorConfig
+from rest_connector import OAuth2RestConnector
+from secrets import resolve_secret
+
+
+class ZoomConnector(OAuth2RestConnector):
+    CONNECTOR_ID = "zoom"
+    CONNECTOR_NAME = "Zoom"
+    CONNECTOR_VERSION = "1.0.0"
+    CONNECTOR_CATEGORY = ConnectorCategory.COLLABORATION
+    SUPPORTS_WRITE = False
+
+    INSTANCE_URL_ENV = "ZOOM_API_URL"
+    CLIENT_ID_ENV = "ZOOM_CLIENT_ID"
+    CLIENT_SECRET_ENV = "ZOOM_CLIENT_SECRET"
+    REFRESH_TOKEN_ENV = "ZOOM_REFRESH_TOKEN"
+    TOKEN_URL_ENV = "ZOOM_TOKEN_URL"
+    DEFAULT_TOKEN_URL = "https://zoom.us/oauth/token"
+    SCOPES_ENV = "ZOOM_SCOPES"
+
+    AUTH_TEST_ENDPOINT = "/users/me"
+    RESOURCE_PATHS = {
+        "meetings": {"path": "/users/me/meetings", "items_path": "meetings"},
+        "webinars": {"path": "/users/me/webinars", "items_path": "webinars"},
+    }
+    SCHEMA = {
+        "meetings": {"id": "string", "topic": "string"},
+        "webinars": {"id": "string", "topic": "string"},
+    }
+
+    def _get_credentials(self) -> tuple[str, str, str, str]:
+        instance_url = resolve_secret(os.getenv(self.INSTANCE_URL_ENV)) or self.config.instance_url
+        if not instance_url:
+            instance_url = "https://api.zoom.us/v2"
+        client_id = resolve_secret(os.getenv(self.CLIENT_ID_ENV))
+        client_secret = resolve_secret(os.getenv(self.CLIENT_SECRET_ENV))
+        refresh_token = resolve_secret(os.getenv(self.REFRESH_TOKEN_ENV))
+        if not client_id or not client_secret or not refresh_token:
+            raise ValueError(
+                f"{self.CLIENT_ID_ENV}, {self.CLIENT_SECRET_ENV}, and {self.REFRESH_TOKEN_ENV} are required"
+            )
+        return instance_url, client_id, client_secret, refresh_token
+
+    def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
+        super().__init__(config, **kwargs)

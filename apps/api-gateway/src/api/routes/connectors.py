@@ -10,6 +10,7 @@ Provides endpoints for connector management:
 
 from __future__ import annotations
 
+import importlib.util
 import logging
 import sys
 from datetime import datetime, timezone
@@ -22,8 +23,11 @@ from pydantic import BaseModel, Field
 # Add connector SDK to path
 REPO_ROOT = Path(__file__).resolve().parents[5]
 CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
-JIRA_CONNECTOR_PATH = REPO_ROOT / "connectors" / "jira" / "src"
-for path in (CONNECTOR_SDK_PATH, JIRA_CONNECTOR_PATH):
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
+connector_src_paths = [
+    path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()
+]
+for path in [CONNECTOR_SDK_PATH, *connector_src_paths]:
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
@@ -60,6 +64,51 @@ def get_config_store() -> ConnectorConfigStore:
     return _config_store
 
 
+def get_webhook_handler(connector_id: str):
+    webhook_path = CONNECTORS_ROOT / connector_id / "src" / "webhooks.py"
+    if not webhook_path.exists():
+        return None
+    spec = importlib.util.spec_from_file_location(f"{connector_id}_webhooks", webhook_path)
+    if not spec or not spec.loader:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return getattr(module, "handle_webhook", None)
+
+
+def get_connector_class(connector_id: str):
+    connector_map = {
+        "jira": ("jira_connector", "JiraConnector"),
+        "planview": ("planview_connector", "PlanviewConnector"),
+        "clarity": ("clarity_connector", "ClarityConnector"),
+        "ms_project_server": ("ms_project_server_connector", "MsProjectServerConnector"),
+        "azure_devops": ("azure_devops_connector", "AzureDevOpsConnector"),
+        "monday": ("monday_connector", "MondayConnector"),
+        "asana": ("asana_connector", "AsanaConnector"),
+        "sharepoint": ("sharepoint_connector", "SharePointConnector"),
+        "confluence": ("confluence_connector", "ConfluenceConnector"),
+        "google_drive": ("google_drive_connector", "GoogleDriveConnector"),
+        "sap": ("sap_connector", "SapConnector"),
+        "oracle": ("oracle_connector", "OracleConnector"),
+        "netsuite": ("netsuite_connector", "NetSuiteConnector"),
+        "workday": ("workday_connector", "WorkdayConnector"),
+        "sap_successfactors": ("sap_successfactors_connector", "SapSuccessFactorsConnector"),
+        "adp": ("adp_connector", "AdpConnector"),
+        "teams": ("teams_connector", "TeamsConnector"),
+        "slack": ("slack_connector", "SlackConnector"),
+        "zoom": ("zoom_connector", "ZoomConnector"),
+        "servicenow_grc": ("servicenow_grc_connector", "ServiceNowGrcConnector"),
+        "archer": ("archer_connector", "ArcherConnector"),
+        "logicgate": ("logicgate_connector", "LogicGateConnector"),
+    }
+    module_info = connector_map.get(connector_id)
+    if not module_info:
+        return None
+    module_name, class_name = module_info
+    module = __import__(module_name, fromlist=[class_name])
+    return getattr(module, class_name, None)
+
+
 # =============================================================================
 # Request/Response Models
 # =============================================================================
@@ -77,6 +126,7 @@ class ConnectorDefinitionResponse(BaseModel):
     supported_sync_directions: list[str]
     auth_type: str
     config_fields: list[dict[str, Any]]
+    config_schema: list[dict[str, Any]]
     env_vars: list[str]
 
 
@@ -124,6 +174,7 @@ class ConnectorListItemResponse(BaseModel):
     supported_sync_directions: list[str]
     auth_type: str
     config_fields: list[dict[str, Any]]
+    config_schema: list[dict[str, Any]]
     env_vars: list[str]
 
     # Config fields (if configured)
@@ -268,6 +319,7 @@ async def list_connectors(category: str | None = None):
             supported_sync_directions=[d.value for d in definition.supported_sync_directions],
             auth_type=definition.auth_type,
             config_fields=definition.config_fields,
+            config_schema=definition.config_schema or definition.config_fields,
             env_vars=definition.env_vars,
             enabled=config.enabled if config else False,
             configured=config is not None,
@@ -305,6 +357,7 @@ async def get_connector(connector_id: str):
         supported_sync_directions=[d.value for d in definition.supported_sync_directions],
         auth_type=definition.auth_type,
         config_fields=definition.config_fields,
+        config_schema=definition.config_schema or definition.config_fields,
         env_vars=definition.env_vars,
         enabled=config.enabled if config else False,
         configured=config is not None,
@@ -528,33 +581,43 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
         project_key=request.project_key or (config.project_key if config else ""),
     )
 
-    # Currently only Jira is implemented
-    if connector_id == "jira":
-        from jira_connector import JiraConnector
-
-        connector = JiraConnector(test_config)
-        result = connector.test_connection()
-
-        # Update health status in stored config
-        if config:
-            config.health_status = (
-                "healthy" if result.status == ConnectionStatus.CONNECTED else "unhealthy"
-            )
-            config.updated_at = datetime.now(timezone.utc)
-            store.save(config)
-
-        return TestConnectionResponse(
-            status=result.status.value,
-            message=result.message,
-            details=result.details,
-            tested_at=result.tested_at.isoformat(),
-        )
-    else:
-        # Stub for other connectors
+    connector_class = get_connector_class(connector_id)
+    if not connector_class:
         raise HTTPException(
             status_code=501,
             detail=f"Connection testing not implemented for connector: {connector_id}",
         )
+
+    connector = connector_class(test_config)
+    result = connector.test_connection()
+
+    # Update health status in stored config
+    if config:
+        config.health_status = (
+            "healthy" if result.status == ConnectionStatus.CONNECTED else "unhealthy"
+        )
+        config.updated_at = datetime.now(timezone.utc)
+        store.save(config)
+
+    return TestConnectionResponse(
+        status=result.status.value,
+        message=result.message,
+        details=result.details,
+        tested_at=result.tested_at.isoformat(),
+    )
+
+
+@router.post("/connectors/{connector_id}/webhook")
+async def handle_connector_webhook(connector_id: str, request: Request):
+    """
+    Receive webhook notifications from external systems.
+    """
+    handler = get_webhook_handler(connector_id)
+    if not handler:
+        raise HTTPException(status_code=404, detail="Webhook handler not registered")
+    payload = await request.json()
+    result = handler(payload, dict(request.headers))
+    return {"status": "received", "connector_id": connector_id, "result": result}
 
 
 @router.delete("/connectors/{connector_id}/config")
