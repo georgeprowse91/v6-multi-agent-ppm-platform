@@ -4,160 +4,265 @@
     "name": "ADP",
     "manifest_path": "connectors/adp/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "hris",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "archer",
     "name": "RSA Archer",
     "manifest_path": "connectors/archer/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "grc",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "asana",
     "name": "Asana",
     "manifest_path": "connectors/asana/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "pm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "azure_devops",
     "name": "Azure DevOps",
     "manifest_path": "connectors/azure_devops/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "pm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "clarity",
     "name": "Clarity PPM",
     "manifest_path": "connectors/clarity/manifest.yaml",
     "status": "production",
-    "certification": "automated"
+    "certification": "automated",
+    "category": "ppm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "confluence",
     "name": "Confluence",
     "manifest_path": "connectors/confluence/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "doc_mgmt",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "google_drive",
     "name": "Google Drive",
     "manifest_path": "connectors/google_drive/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "doc_mgmt",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "jira",
-    "name": "Atlassian Jira Cloud",
+    "name": "Jira",
     "manifest_path": "connectors/jira/manifest.yaml",
     "status": "production",
-    "certification": "certified"
+    "certification": "certified",
+    "category": "pm",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "logicgate",
     "name": "LogicGate",
     "manifest_path": "connectors/logicgate/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "grc",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "monday",
     "name": "Monday.com",
     "manifest_path": "connectors/monday/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "pm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "ms_project_server",
     "name": "Microsoft Project Server",
     "manifest_path": "connectors/ms_project_server/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "ppm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "netsuite",
     "name": "NetSuite",
     "manifest_path": "connectors/netsuite/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "erp",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "oracle",
-    "name": "Oracle EPM",
+    "name": "Oracle ERP Cloud",
     "manifest_path": "connectors/oracle/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "erp",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "planview",
     "name": "Planview",
     "manifest_path": "connectors/planview/manifest.yaml",
     "status": "production",
-    "certification": "automated"
+    "certification": "automated",
+    "category": "ppm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "salesforce",
     "name": "Salesforce",
     "manifest_path": "connectors/salesforce/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "crm",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "sap",
-    "name": "SAP S/4HANA",
+    "name": "SAP",
     "manifest_path": "connectors/sap/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "erp",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "sap_successfactors",
     "name": "SAP SuccessFactors",
     "manifest_path": "connectors/sap_successfactors/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "hris",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "servicenow",
-    "name": "ServiceNow",
+    "name": "ServiceNow GRC",
     "manifest_path": "connectors/servicenow/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "grc",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "sharepoint",
     "name": "SharePoint",
     "manifest_path": "connectors/sharepoint/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "doc_mgmt",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "slack",
     "name": "Slack",
     "manifest_path": "connectors/slack/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "outbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "teams",
     "name": "Microsoft Teams",
     "manifest_path": "connectors/teams/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "outbound",
+      "bidirectional"
+    ]
   },
   {
     "id": "workday",
     "name": "Workday",
     "manifest_path": "connectors/workday/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "hris",
+    "supported_sync_directions": [
+      "inbound"
+    ]
   },
   {
     "id": "zoom",
     "name": "Zoom",
     "manifest_path": "connectors/zoom/manifest.yaml",
     "status": "beta",
-    "certification": "not-started"
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "inbound",
+      "outbound"
+    ]
   }
 ]

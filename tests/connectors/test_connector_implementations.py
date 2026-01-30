@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import sys
 import types
 from dataclasses import dataclass
@@ -30,7 +31,7 @@ for path in [SDK_PATH, *connector_src_paths]:
     if path_str not in sys.path:
         sys.path.insert(0, path_str)
 
-from base_connector import ConnectorCategory, ConnectorConfig
+from base_connector import ConnectorCategory, ConnectorConfig, ConnectionStatus
 
 from adp_connector import AdpConnector
 from archer_connector import ArcherConnector
@@ -54,6 +55,33 @@ from slack_connector import SlackConnector
 from teams_connector import TeamsConnector
 from workday_connector import WorkdayConnector
 from zoom_connector import ZoomConnector
+import http_client as http_client_module
+
+
+class DummySpan:
+    def set_attribute(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def set_status(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def record_exception(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+
+class DummyTracer:
+    def start_span(self, *_args: object, **_kwargs: object) -> DummySpan:
+        return DummySpan()
+
+
+@contextlib.contextmanager
+def _noop_use_span(span: DummySpan, end_on_exit: bool = True) -> DummySpan:
+    yield span
+
+
+http_client_module.tracer = DummyTracer()
+http_client_module.trace.use_span = _noop_use_span
+http_client_module.SpanKind = types.SimpleNamespace(CLIENT="client")
 
 
 @dataclass
@@ -511,6 +539,42 @@ def test_connector_write_success(case: ConnectorCase, monkeypatch: pytest.Monkey
 
 
 @pytest.mark.parametrize("case", CONNECTOR_CASES)
+def test_connector_test_connection_success(case: ConnectorCase, monkeypatch: pytest.MonkeyPatch) -> None:
+    for key, value in case.env_vars.items():
+        monkeypatch.setenv(key, value)
+
+    routes = {
+        ("GET", case.auth_path): (200, build_response(case.items_path, [{"id": "1"}])),
+    }
+    transport = make_transport(routes)
+    config = ConnectorConfig(
+        connector_id=case.connector_id,
+        name=case.connector_id,
+        category=case.category,
+        instance_url=case.env_vars.get("AZURE_DEVOPS_ORG_URL", "https://api.example.com"),
+    )
+
+    token_manager = DummyTokenManager() if case.use_token_manager else None
+    if case.connector_id in {"planview", "clarity"}:
+        client = HttpClient(base_url="https://api.example.com", transport=transport)
+        connector = case.connector_class(
+            config,
+            client=client,
+            transport=transport,
+            token_manager=token_manager,
+        )
+        response = httpx.Response(200, json=build_response(case.items_path, [{"id": "1"}]))
+        connector._request = lambda *_args, **_kwargs: response
+    elif token_manager:
+        connector = case.connector_class(config, transport=transport, token_manager=token_manager)
+    else:
+        connector = case.connector_class(config, transport=transport)
+
+    result = connector.test_connection()
+    assert result.status == ConnectionStatus.CONNECTED
+
+
+@pytest.mark.parametrize("case", CONNECTOR_CASES)
 def test_connector_missing_credentials(case: ConnectorCase, monkeypatch: pytest.MonkeyPatch) -> None:
     for key in case.env_vars.keys():
         monkeypatch.delenv(key, raising=False)
@@ -529,3 +593,49 @@ def test_connector_missing_credentials(case: ConnectorCase, monkeypatch: pytest.
 
     with pytest.raises(RuntimeError):
         connector.read(case.resource_type)
+
+
+@pytest.mark.parametrize("case", CONNECTOR_CASES)
+def test_connector_read_unsupported_resource(case: ConnectorCase, monkeypatch: pytest.MonkeyPatch) -> None:
+    for key, value in case.env_vars.items():
+        monkeypatch.setenv(key, value)
+
+    config = ConnectorConfig(
+        connector_id=case.connector_id,
+        name=case.connector_id,
+        category=case.category,
+        instance_url=case.env_vars.get("AZURE_DEVOPS_ORG_URL", "https://api.example.com"),
+    )
+    token_manager = DummyTokenManager() if case.use_token_manager else None
+    if token_manager:
+        connector = case.connector_class(config, token_manager=token_manager)
+    else:
+        connector = case.connector_class(config)
+    connector._authenticated = True
+
+    with pytest.raises(ValueError):
+        connector.read("unsupported-resource")
+
+
+@pytest.mark.parametrize(
+    "case",
+    [case for case in CONNECTOR_CASES if not case.connector_class.SUPPORTS_WRITE],
+)
+def test_connector_write_unsupported(case: ConnectorCase, monkeypatch: pytest.MonkeyPatch) -> None:
+    for key, value in case.env_vars.items():
+        monkeypatch.setenv(key, value)
+
+    config = ConnectorConfig(
+        connector_id=case.connector_id,
+        name=case.connector_id,
+        category=case.category,
+        instance_url=case.env_vars.get("AZURE_DEVOPS_ORG_URL", "https://api.example.com"),
+    )
+    token_manager = DummyTokenManager() if case.use_token_manager else None
+    if token_manager:
+        connector = case.connector_class(config, token_manager=token_manager)
+    else:
+        connector = case.connector_class(config)
+
+    with pytest.raises(NotImplementedError):
+        connector.write("projects", [{"id": "1"}])
