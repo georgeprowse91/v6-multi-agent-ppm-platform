@@ -17,7 +17,7 @@ The platform needs traceability for data flowing from connectors through agents 
 
 - Local development can rely on example lineage artifacts and local encrypted WORM storage.
 - Production deployments can use Azure Blob WORM storage via environment configuration.
-- Automated lineage emission by connector runtime remains planned.
+- Data sync services emit lineage events to the data-lineage service for supported connectors (for example, Jira sync jobs).
 
 ## References
 

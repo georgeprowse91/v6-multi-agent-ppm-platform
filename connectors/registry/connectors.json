@@ -24,14 +24,14 @@
     "id": "servicenow",
     "name": "ServiceNow",
     "manifest_path": "connectors/servicenow/manifest.yaml",
-    "status": "planned",
+    "status": "beta",
     "certification": "not-started"
   },
   {
     "id": "sap",
     "name": "SAP S/4HANA",
     "manifest_path": "connectors/sap/manifest.yaml",
-    "status": "planned",
+    "status": "beta",
     "certification": "not-started"
   }
 ]

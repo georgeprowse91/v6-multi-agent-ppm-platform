@@ -6,7 +6,7 @@ The Multi‑Agent PPM Platform is an AI‑powered Project Portfolio Management (
 
 ## Implementation alignment
 
-This overview blends target-state capabilities with the current repository implementation. The repo provides a working API gateway, orchestration service, workflow engine, agent scaffolding, connector manifests/mappings, and a lightweight web console (`apps/web`). Rich UI canvas features, connector marketplace enablement, and advanced analytics are planned and should be validated against the [Solution Index](../../solution-index.md) before customer commitments.
+This overview maps to the current repository implementation. The repo provides a working API gateway, orchestration service, workflow engine, agent runtime and configuration, connector registry, data sync service, analytics service, data-lineage service, and a lightweight web console (`apps/web`). The web console ships with methodology navigation, a workspace canvas with document/timeline/dashboard tabs, an assistant panel, and a connector gallery backed by the connector hub. The connector gallery supports instance lifecycle and health updates, while credentials and sync scheduling remain managed through configuration and secrets.
 
 ## Core Concepts
 
@@ -24,11 +24,11 @@ The platform uses a network of specialised agents to handle each domain process�
 
 ### Interactive Canvas
 
-The central canvas is the workspace where content and data from multiple sources are assembled. Users can drag and drop tasks, view timelines, edit project charters, update risks or issues, and visualise program roadmaps. The canvas supports both structured artefacts (e.g., tables, charts, stage‑gates) and unstructured collaboration (e.g., adding notes or attachments). It also displays data from underlying systems in real time: for example, a timeline block might show schedule tasks from Microsoft Project, while a financial block shows SAP actuals. This “single pane of glass” reduces context switching and ensures project artefacts stay in sync with the source of truth.
+The central canvas is the workspace where content and data from multiple sources are assembled. The current web console provides a three‑panel layout: a methodology map on the left, a tabbed workspace canvas in the center, and an assistant/context panel on the right. Canvas tabs include Documents (create and classify project artefacts), Timeline (track milestones and export schedules), and Dashboard (portfolio health KPIs sourced from the analytics service). These panels provide a “single pane of glass” while keeping source‑of‑truth updates flowing through connectors and agent workflows.
 
 ### Connector Marketplace
 
-**Integration is not an afterthought:** the platform includes a marketplace of connectors for popular PPM, ERP, HR and collaboration systems. Each connector encapsulates authentication, data mapping and error handling for an external system, and exposes consistent APIs to the agents. The architecture document stresses that organisations can choose which connectors to enable and how data flows (read‑only, read/write, one‑way or bi‑directional). This approach acknowledges that different clients may use different tools for the same function (e.g., Planview vs. Clarity vs. Asana) and ensures interoperability.
+**Integration is not an afterthought:** the platform includes a connector registry and connector hub that power the web console’s connector gallery. Each connector encapsulates authentication, data mapping and error handling for an external system, and exposes consistent APIs to agents and workflows. Operators can enable or disable connector instances and track health status in the gallery, while auth secrets and sync schedules are managed through `config/connectors/integrations.yaml` and environment-specific secret stores.
 
 ## Key Capabilities
 

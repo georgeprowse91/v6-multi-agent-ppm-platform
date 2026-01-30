@@ -73,8 +73,8 @@ Expected output: a JSON entry for Jira with a manifest path.
 
 ## Implementation status
 
-- **Implemented**: connector runtime logic, OAuth2 refresh handling, and certification automation baseline.
-- **In progress**: expand connector coverage beyond Jira and Planview with additional contract tests.
+- **Implemented**: connector runtime logic, OAuth2 refresh handling, and registry coverage for Jira, Planview, Clarity, ServiceNow, and SAP.
+- **In progress**: register and certify the remaining packaged connectors (Azure DevOps, Salesforce, SharePoint, Slack, Teams, Workday).
 
 ## Related docs
 
