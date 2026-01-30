@@ -1,0 +1,34 @@
+{
+  "title": "PPM Error Budget",
+  "timezone": "browser",
+  "schemaVersion": 37,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "API Gateway Error Budget Remaining",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(http_requests_total{service=\"api-gateway\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{service=\"api-gateway\"}[5m])))",
+          "legendFormat": "availability"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "percentunit"}},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Workflow Error Budget Remaining",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(workflow_completed_total{status=\"failure\"}[5m])) / sum(rate(workflow_completed_total[5m])))",
+          "legendFormat": "workflow availability"
+        }
+      ],
+      "fieldConfig": {"defaults": {"unit": "percentunit"}},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    }
+  ]
+}

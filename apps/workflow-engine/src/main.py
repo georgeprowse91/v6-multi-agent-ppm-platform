@@ -121,6 +121,20 @@ class WorkflowApprovalDecisionRequest(BaseModel):
     comments: str | None = None
 
 
+def _enforce_methodology_gates(definition: dict[str, Any], payload: dict[str, Any]) -> None:
+    gates = definition.get("gates", {})
+    required = set(gates.get("required_activities", []))
+    if not required:
+        return
+    completed = set(payload.get("completed_activities", []))
+    missing = required.difference(completed)
+    if missing:
+        raise HTTPException(
+            status_code=409,
+            detail={"message": "Methodology gates not satisfied", "missing": sorted(missing)},
+        )
+
+
 def _get_definition(workflow_id: str) -> dict[str, Any]:
     stored = store.get_definition(workflow_id)
     if stored:
@@ -180,6 +194,7 @@ async def start_workflow(
     if request.tenant_id != http_request.state.auth.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
     definition = _get_definition(request.workflow_id)
+    _enforce_methodology_gates(definition, request.payload)
     run_id = str(uuid4())
     instance = store.create(run_id, request.workflow_id, request.tenant_id, request.payload)
     instance = await runtime.start(instance, definition, request.actor)
@@ -246,6 +261,7 @@ async def resume_workflow(run_id: str, http_request: Request) -> WorkflowRunResp
     if instance.tenant_id != http_request.state.auth.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
     definition = _get_definition(instance.workflow_id)
+    _enforce_methodology_gates(definition, instance.payload)
     instance = await runtime.resume(instance, definition, {"id": http_request.state.auth.subject})
     return WorkflowRunResponse(
         run_id=instance.run_id,

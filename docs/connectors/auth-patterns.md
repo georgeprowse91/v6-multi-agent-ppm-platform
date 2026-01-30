@@ -41,7 +41,7 @@ Document the authentication patterns supported by connector manifests and config
 ## Implementation status
 
 - **Implemented:** Manifest auth definitions, environment configuration structure.
-- **Planned:** Automated secret rotation and OAuth token refresh workflows.
+- **Implemented:** OAuth refresh token management with optional Key Vault rotation support.
 
 ## Related docs
 

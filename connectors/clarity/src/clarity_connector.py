@@ -80,12 +80,16 @@ class ClarityConnector(BaseConnector):
         self._instance_url = instance_url
         token_url = resolve_secret(os.getenv("CLARITY_TOKEN_URL")) or DEFAULT_TOKEN_URL
         scope = resolve_secret(os.getenv("CLARITY_SCOPES"))
+        keyvault_url = resolve_secret(os.getenv("CLARITY_KEYVAULT_URL"))
+        refresh_secret = resolve_secret(os.getenv("CLARITY_REFRESH_TOKEN_SECRET"))
         return OAuth2TokenManager(
             token_url=token_url,
             client_id=client_id,
             client_secret=client_secret,
             refresh_token=refresh_token,
             scope=scope,
+            keyvault_url=keyvault_url,
+            refresh_token_secret_name=refresh_secret,
         )
 
     def _build_client(self) -> HttpClient:

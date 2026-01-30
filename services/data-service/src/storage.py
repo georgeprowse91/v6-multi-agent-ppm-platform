@@ -6,7 +6,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, Integer, MetaData, String, Table, func, select
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    delete,
+    func,
+    select,
+)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -41,6 +52,15 @@ CANONICAL_ENTITIES_TABLE = Table(
     ),
 )
 
+SCHEMA_PROMOTIONS_TABLE = Table(
+    "schema_promotions",
+    metadata,
+    Column("name", String(128), primary_key=True),
+    Column("version", Integer, primary_key=True),
+    Column("environment", String(32), primary_key=True),
+    Column("promoted_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
+)
+
 
 @dataclass
 class SchemaRecord:
@@ -55,6 +75,14 @@ class SchemaSummary:
     name: str
     latest_version: int
     versions: int
+
+
+@dataclass
+class SchemaPromotion:
+    name: str
+    version: int
+    environment: str
+    promoted_at: datetime
 
 
 @dataclass
@@ -146,6 +174,33 @@ class DataServiceStore:
             )
             rows = result.fetchall()
         return [self._schema_from_row(row) for row in rows]
+
+    async def list_schema_promotions(self, name: str) -> list[SchemaPromotion]:
+        async with self.session_factory() as session:
+            result = await session.execute(
+                select(SCHEMA_PROMOTIONS_TABLE)
+                .where(SCHEMA_PROMOTIONS_TABLE.c.name == name)
+                .order_by(SCHEMA_PROMOTIONS_TABLE.c.promoted_at.desc())
+            )
+            rows = result.fetchall()
+        return [self._promotion_from_row(row) for row in rows]
+
+    async def promote_schema(self, name: str, version: int, environment: str) -> SchemaPromotion:
+        async with self.session_factory() as session:
+            async with session.begin():
+                await session.execute(
+                    SCHEMA_PROMOTIONS_TABLE.insert().values(
+                        name=name,
+                        version=version,
+                        environment=environment,
+                    )
+                )
+        return SchemaPromotion(
+            name=name,
+            version=version,
+            environment=environment,
+            promoted_at=datetime.now(timezone.utc),
+        )
 
     async def get_schema(self, name: str, version: int) -> SchemaRecord | None:
         async with self.session_factory() as session:
@@ -246,6 +301,16 @@ class DataServiceStore:
             rows = result.fetchall()
         return [self._entity_from_row(row) for row in rows]
 
+    async def prune_entities(self, older_than: datetime) -> int:
+        async with self.session_factory() as session:
+            async with session.begin():
+                result = await session.execute(
+                    delete(CANONICAL_ENTITIES_TABLE).where(
+                        CANONICAL_ENTITIES_TABLE.c.updated_at < older_than
+                    )
+                )
+        return int(result.rowcount or 0)
+
     async def seed_schemas(self, schema_dir: Path) -> int:
         if not schema_dir.exists():
             logger.warning("schema_directory_missing", extra={"path": str(schema_dir)})
@@ -284,6 +349,16 @@ class DataServiceStore:
             payload=record.payload,
             created_at=created_at,
             updated_at=updated_at,
+        )
+
+    def _promotion_from_row(self, row: Any) -> SchemaPromotion:
+        record = row[0] if isinstance(row, tuple) else row
+        promoted_at = record.promoted_at or datetime.now(timezone.utc)
+        return SchemaPromotion(
+            name=record.name,
+            version=record.version,
+            environment=record.environment,
+            promoted_at=promoted_at,
         )
 
 

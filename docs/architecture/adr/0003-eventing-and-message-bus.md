@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (partial implementation).
+Accepted.
 
 ## Context
 
@@ -16,7 +16,8 @@ Adopt Azure Service Bus as the primary queueing mechanism for sync and event wor
 
 - Production deployments can use Service Bus for durable queueing.
 - Local development does not require cloud dependencies.
-- A broader event bus (topics, fanout, event contracts) remains planned.
+- Agent orchestration and runtime now use Service Bus topics with fan-out subscriptions.
+- In-memory event bus remains available for local development and tests.
 
 ## References
 

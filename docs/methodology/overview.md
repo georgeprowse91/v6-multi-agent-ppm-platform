@@ -96,7 +96,7 @@ Expected output: map.yaml files for agile, waterfall, and hybrid.
 ## Implementation status
 
 - **Implemented**: methodology YAMLs and templates.
-- **Planned**: runtime enforcement in the workflow engine.
+- **Implemented**: runtime enforcement in the workflow engine through gate checks on workflow start/resume.
 
 ## Related docs
 

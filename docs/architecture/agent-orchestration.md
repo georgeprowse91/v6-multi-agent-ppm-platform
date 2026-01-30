@@ -48,8 +48,7 @@ Expected output: a link to `docs/agents/agent-catalog.md`.
 
 ## Implementation status
 
-- **Partially implemented**: runtime scaffolding in `agents/`.
-- **Planned**: full orchestration engine with policy enforcement.
+- **Implemented**: orchestration service manages agent lifecycle, dependency checks, and policy enforcement.
 
 ## Related docs
 

@@ -4,10 +4,14 @@ Agent Orchestrator - Manages agent lifecycle and routing
 
 import logging
 import os
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
 from agents.runtime import AgentResponse
+
+import httpx
 
 from persistence import WorkflowState, build_state_store, make_state_key
 
@@ -18,6 +22,20 @@ logger = logging.getLogger(__name__)
 DEFAULT_POLICY_BUNDLE_PATH = (
     Path(__file__).resolve().parents[1] / "policies" / "bundles" / "default-policy-bundle.yaml"
 )
+
+
+@dataclass
+class AgentDependency:
+    agent_id: str
+    depends_on: list[str]
+
+
+@dataclass
+class AgentLifecycleState:
+    agent_id: str
+    status: str
+    updated_at: str
+    reason: str | None = None
 
 
 class AgentOrchestrator:
@@ -34,6 +52,8 @@ class AgentOrchestrator:
         self.intent_router = None
         self.response_orchestrator = None
         self.policy_bundle_path = DEFAULT_POLICY_BUNDLE_PATH
+        self.dependencies: dict[str, list[str]] = {}
+        self.agent_states: dict[str, AgentLifecycleState] = {}
         self.workflow_states: dict[str, WorkflowState] = {}
         self.workflow_client = workflow_client or WorkflowClient()
         state_path = Path(
@@ -77,6 +97,58 @@ class AgentOrchestrator:
 
         self.initialized = True
         logger.info(f"Orchestrator initialized with {len(self.agents)} agents")
+
+    def register_dependency(self, agent_id: str, depends_on: list[str]) -> None:
+        self.dependencies[agent_id] = depends_on
+
+    def list_dependencies(self) -> list[AgentDependency]:
+        return [
+            AgentDependency(agent_id=agent_id, depends_on=deps)
+            for agent_id, deps in self.dependencies.items()
+        ]
+
+    def set_agent_state(self, agent_id: str, status: str, reason: str | None = None) -> None:
+        self.agent_states[agent_id] = AgentLifecycleState(
+            agent_id=agent_id,
+            status=status,
+            updated_at=datetime.utcnow().isoformat(),
+            reason=reason,
+        )
+
+    def get_agent_state(self, agent_id: str) -> AgentLifecycleState | None:
+        return self.agent_states.get(agent_id)
+
+    def _dependencies_satisfied(self, agent_id: str) -> bool:
+        deps = self.dependencies.get(agent_id, [])
+        for dep in deps:
+            state = self.agent_states.get(dep)
+            if not state or state.status != "running":
+                return False
+        return True
+
+    def dependencies_satisfied(self, agent_id: str) -> bool:
+        return self._dependencies_satisfied(agent_id)
+
+    async def enforce_policy(self, tenant_id: str, agent_id: str, roles: list[str]) -> None:
+        policy_engine = os.getenv("POLICY_ENGINE_URL")
+        if not policy_engine:
+            return
+        service_token = os.getenv("POLICY_ENGINE_SERVICE_TOKEN")
+        if not service_token:
+            raise RuntimeError("Policy engine token missing")
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(
+                f"{policy_engine}/rbac/evaluate",
+                json={
+                    "tenant_id": tenant_id,
+                    "roles": roles,
+                    "permission": f\"agent.execute.{agent_id}\",
+                },
+                headers={"Authorization": f"Bearer {service_token}", "X-Tenant-ID": tenant_id},
+            )
+            response.raise_for_status()
+            if response.json().get("decision") != "allow":
+                raise PermissionError("Policy denied agent execution")
 
     async def persist_workflow_state(
         self, tenant_id: str, run_id: str, status: str, checkpoint: str, payload: dict[str, Any]

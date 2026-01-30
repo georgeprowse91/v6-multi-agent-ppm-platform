@@ -1,17 +1,31 @@
 [
   {
-    "id": "jira",
-    "name": "Atlassian Jira Cloud",
-    "manifest_path": "connectors/jira/manifest.yaml",
-    "status": "production",
-    "certification": "certified"
+    "id": "adp",
+    "name": "ADP",
+    "manifest_path": "connectors/adp/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
   },
   {
-    "id": "planview",
-    "name": "Planview",
-    "manifest_path": "connectors/planview/manifest.yaml",
-    "status": "production",
-    "certification": "automated"
+    "id": "archer",
+    "name": "RSA Archer",
+    "manifest_path": "connectors/archer/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "asana",
+    "name": "Asana",
+    "manifest_path": "connectors/asana/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "azure_devops",
+    "name": "Azure DevOps",
+    "manifest_path": "connectors/azure_devops/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
   },
   {
     "id": "clarity",
@@ -21,9 +35,72 @@
     "certification": "automated"
   },
   {
-    "id": "servicenow",
-    "name": "ServiceNow",
-    "manifest_path": "connectors/servicenow/manifest.yaml",
+    "id": "confluence",
+    "name": "Confluence",
+    "manifest_path": "connectors/confluence/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "google_drive",
+    "name": "Google Drive",
+    "manifest_path": "connectors/google_drive/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "jira",
+    "name": "Atlassian Jira Cloud",
+    "manifest_path": "connectors/jira/manifest.yaml",
+    "status": "production",
+    "certification": "certified"
+  },
+  {
+    "id": "logicgate",
+    "name": "LogicGate",
+    "manifest_path": "connectors/logicgate/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "monday",
+    "name": "Monday.com",
+    "manifest_path": "connectors/monday/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "ms_project_server",
+    "name": "Microsoft Project Server",
+    "manifest_path": "connectors/ms_project_server/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "netsuite",
+    "name": "NetSuite",
+    "manifest_path": "connectors/netsuite/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "oracle",
+    "name": "Oracle EPM",
+    "manifest_path": "connectors/oracle/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "planview",
+    "name": "Planview",
+    "manifest_path": "connectors/planview/manifest.yaml",
+    "status": "production",
+    "certification": "automated"
+  },
+  {
+    "id": "salesforce",
+    "name": "Salesforce",
+    "manifest_path": "connectors/salesforce/manifest.yaml",
     "status": "beta",
     "certification": "not-started"
   },
@@ -31,6 +108,55 @@
     "id": "sap",
     "name": "SAP S/4HANA",
     "manifest_path": "connectors/sap/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "sap_successfactors",
+    "name": "SAP SuccessFactors",
+    "manifest_path": "connectors/sap_successfactors/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "servicenow",
+    "name": "ServiceNow",
+    "manifest_path": "connectors/servicenow/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "sharepoint",
+    "name": "SharePoint",
+    "manifest_path": "connectors/sharepoint/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "slack",
+    "name": "Slack",
+    "manifest_path": "connectors/slack/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "teams",
+    "name": "Microsoft Teams",
+    "manifest_path": "connectors/teams/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "workday",
+    "name": "Workday",
+    "manifest_path": "connectors/workday/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started"
+  },
+  {
+    "id": "zoom",
+    "name": "Zoom",
+    "manifest_path": "connectors/zoom/manifest.yaml",
     "status": "beta",
     "certification": "not-started"
   }

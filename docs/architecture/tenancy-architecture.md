@@ -54,7 +54,7 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 ## Implementation status
 
 - **Implemented:** Tenant headers, JWT validation, RBAC enforcement, and tenant-scoped data records.
-- **Planned:** Per-tenant infrastructure segmentation and automated tenant provisioning workflows.
+- **Implemented:** Namespace-per-tenant isolation and automated provisioning scripts in `infra/tenancy/`.
 
 ## Related docs
 

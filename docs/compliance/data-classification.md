@@ -62,7 +62,7 @@ Classification levels are configured in `config/data-classification/levels.yaml`
 ## Implementation status
 
 - **Implemented:** Classification config, RBAC enforcement, audit log retention mapping.
-- **Planned:** Automated classification tagging for inbound connector data.
+- **Implemented:** Automated classification tagging in the connector ingestion pipeline.
 
 ## Related docs
 

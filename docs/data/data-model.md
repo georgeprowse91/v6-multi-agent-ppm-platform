@@ -63,7 +63,7 @@ Expected output: canonical schema JSON files.
 ## Implementation status
 
 - **Implemented:** Base schemas in `data/schemas/` and validation in the audit log service.
-- **Planned:** Centralized schema registry APIs and schema version promotion workflows.
+- **Implemented:** Schema registry APIs with versioning and promotion workflows in the data service.
 
 ## Related docs
 

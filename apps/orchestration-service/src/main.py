@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -38,6 +38,18 @@ orchestrator = AgentOrchestrator()
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "orchestration-service"
+
+
+class DependencyRequest(BaseModel):
+    agent_id: str
+    depends_on: list[str] = Field(default_factory=list)
+
+
+class AgentStateResponse(BaseModel):
+    agent_id: str
+    status: str
+    updated_at: str
+    reason: str | None = None
 
 
 @app.on_event("startup")
@@ -75,6 +87,49 @@ async def readiness(request: Request) -> dict[str, bool | dict[str, bool]]:
 @app.get("/agents", response_model=list[str])
 async def list_agents() -> list[str]:
     return sorted(orchestrator.agents.keys())
+
+
+@app.get("/dependencies", response_model=list[DependencyRequest])
+async def list_dependencies() -> list[DependencyRequest]:
+    return [
+        DependencyRequest(agent_id=dep.agent_id, depends_on=dep.depends_on)
+        for dep in orchestrator.list_dependencies()
+    ]
+
+
+@app.post("/dependencies", response_model=DependencyRequest)
+async def register_dependency(payload: DependencyRequest) -> DependencyRequest:
+    orchestrator.register_dependency(payload.agent_id, payload.depends_on)
+    return payload
+
+
+@app.get("/agents/{agent_id}/state", response_model=AgentStateResponse)
+async def get_agent_state(agent_id: str) -> AgentStateResponse:
+    state = orchestrator.get_agent_state(agent_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Agent state not found")
+    return AgentStateResponse(**state.__dict__)
+
+
+@app.post("/agents/{agent_id}/activate", response_model=AgentStateResponse)
+async def activate_agent(agent_id: str, request: Request) -> AgentStateResponse:
+    auth = request.state.auth
+    if not orchestrator.dependencies_satisfied(agent_id):
+        raise HTTPException(status_code=409, detail="Agent dependencies not satisfied")
+    try:
+        await orchestrator.enforce_policy(auth.tenant_id, agent_id, auth.roles)
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    orchestrator.set_agent_state(agent_id, "running")
+    state = orchestrator.get_agent_state(agent_id)
+    return AgentStateResponse(**state.__dict__)
+
+
+@app.post("/agents/{agent_id}/deactivate", response_model=AgentStateResponse)
+async def deactivate_agent(agent_id: str) -> AgentStateResponse:
+    orchestrator.set_agent_state(agent_id, "stopped")
+    state = orchestrator.get_agent_state(agent_id)
+    return AgentStateResponse(**state.__dict__)
 
 
 if __name__ == "__main__":

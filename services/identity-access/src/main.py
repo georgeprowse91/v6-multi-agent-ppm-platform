@@ -13,7 +13,7 @@ from typing import Any
 import httpx
 import jwt
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from jwt import InvalidTokenError
 from pydantic import BaseModel
 from sqlite3 import IntegrityError
@@ -42,6 +42,13 @@ from scim_models import (  # noqa: E402
     ScimUserCreate,
 )
 from scim_store import ScimStore  # noqa: E402
+from saml import (  # noqa: E402
+    SamlUnavailableError,
+    build_auth,
+    build_saml_settings,
+    load_saml_config,
+    prepare_fastapi_request,
+)
 
 logger = logging.getLogger("identity-access")
 logging.basicConfig(level=logging.INFO)
@@ -60,6 +67,12 @@ class AuthValidateResponse(BaseModel):
     active: bool
     subject: str | None = None
     claims: dict[str, Any] | None = None
+
+
+class SamlTokenResponse(BaseModel):
+    token: str
+    subject: str
+    attributes: dict[str, Any]
 
 
 class JwksCache:
@@ -101,6 +114,8 @@ async def auth_tenant_middleware(request: Request, call_next):
     if request.url.path in {"/healthz", "/auth/validate"} or request.url.path.startswith(
         "/scim/"
     ):
+        return await call_next(request)
+    if request.url.path.startswith("/auth/saml/"):
         return await call_next(request)
     try:
         auth_context = await authenticate_request(request)
@@ -196,6 +211,70 @@ async def validate_token(request: AuthValidateRequest) -> AuthValidateResponse:
         return AuthValidateResponse(active=False)
 
     return AuthValidateResponse(active=True, subject=claims.get("sub"), claims=claims)
+
+
+@app.get("/auth/saml/metadata")
+async def saml_metadata() -> Response:
+    try:
+        config = load_saml_config()
+        settings = build_saml_settings(config)
+    except SamlUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    metadata = settings.get_sp_metadata()
+    errors = settings.validate_metadata(metadata)
+    if errors:
+        raise HTTPException(status_code=500, detail=f"SAML metadata invalid: {errors}")
+    return Response(content=metadata, media_type="application/xml")
+
+
+@app.get("/auth/saml/login")
+async def saml_login(request: Request) -> RedirectResponse:
+    try:
+        config = load_saml_config()
+        settings = build_saml_settings(config)
+    except SamlUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    request_data = prepare_fastapi_request(request)
+    auth = build_auth({**request_data, "post_data": {}}, old_settings=settings)
+    redirect_url = auth.login()
+    return RedirectResponse(url=redirect_url)
+
+
+@app.post("/auth/saml/acs", response_model=SamlTokenResponse)
+async def saml_acs(request: Request) -> SamlTokenResponse:
+    try:
+        config = load_saml_config()
+        settings = build_saml_settings(config)
+    except SamlUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    form = await request.form()
+    request_data = prepare_fastapi_request(request)
+    auth = build_auth({**request_data, "post_data": dict(form)}, old_settings=settings)
+    auth.process_response()
+    errors = auth.get_errors()
+    if errors:
+        raise HTTPException(status_code=401, detail=f"SAML response invalid: {errors}")
+    if not auth.is_authenticated():
+        raise HTTPException(status_code=401, detail="SAML authentication failed")
+    attributes = auth.get_attributes() or {}
+    subject = auth.get_nameid() or attributes.get("email", ["saml-user"])[0]
+    jwt_secret = _get_env("IDENTITY_JWT_SECRET")
+    if not jwt_secret:
+        raise HTTPException(status_code=500, detail="JWT configuration missing")
+    issuer = _get_env("IDENTITY_ISSUER")
+    audience = _get_env("IDENTITY_AUDIENCE")
+    now = int(time.time())
+    claims = {
+        "sub": subject,
+        "iat": now,
+        "exp": now + 3600,
+        "aud": audience,
+        "iss": issuer,
+        "roles": attributes.get("roles", []),
+        "tenant_id": attributes.get("tenant_id", [None])[0],
+    }
+    token = jwt.encode({k: v for k, v in claims.items() if v is not None}, jwt_secret, algorithm="HS256")
+    return SamlTokenResponse(token=token, subject=subject, attributes=attributes)
 
 
 @app.post("/scim/v2/Users", status_code=201)

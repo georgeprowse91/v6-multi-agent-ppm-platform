@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from security.iam import map_groups_to_roles
 logger = logging.getLogger("security-auth")
 
 
@@ -63,7 +64,9 @@ def _normalize_roles(claims: dict[str, Any], roles_claim: str) -> list[str]:
     roles = _get_claim(claims, roles_claim) or claims.get("role") or claims.get("groups") or []
     if isinstance(roles, str):
         roles = [role.strip() for role in roles.replace(",", " ").split() if role.strip()]
-    return list(roles)
+    iam_roles = map_groups_to_roles(claims)
+    combined = list(roles) + iam_roles
+    return list(dict.fromkeys(combined))
 
 
 def _dev_claims_from_jwt(token: str) -> dict[str, Any] | None:

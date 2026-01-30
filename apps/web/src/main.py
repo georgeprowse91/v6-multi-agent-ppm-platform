@@ -20,6 +20,7 @@ from fastapi.responses import (
     JSONResponse,
     RedirectResponse,
     Response,
+    StreamingResponse,
 )
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -108,6 +109,7 @@ from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
+FRONTEND_DIST_DIR = WEB_ROOT / "frontend" / "dist"
 DATA_DIR = WEB_ROOT / "data"
 STORAGE_DIR = WEB_ROOT / "storage"
 TEMPLATES_PATH = DATA_DIR / "templates.json"
@@ -127,6 +129,8 @@ OIDC_HTTP_TRANSPORT: httpx.BaseTransport | None = None
 
 app = FastAPI(title="PPM Web Console", version="1.0.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+if FRONTEND_DIST_DIR.exists():
+    app.mount("/app", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
 configure_tracing("web-ui")
 configure_metrics("web-ui")
 app.add_middleware(TraceMiddleware, service_name="web-ui")
@@ -172,6 +176,7 @@ class WorkflowStartResponse(BaseModel):
     status: str
     created_at: str
     updated_at: str
+
 
 
 class ActivityAccessSummary(BaseModel):
@@ -2801,8 +2806,33 @@ async def get_document_canvas_document(
     return body
 
 
+@app.get("/api/audit/evidence/export")
+async def export_audit_evidence(request: Request) -> Response:
+    session = _require_session(request)
+    audit_url = os.getenv("AUDIT_LOG_SERVICE_URL")
+    if not audit_url:
+        raise HTTPException(status_code=503, detail="Audit log service unavailable")
+    headers = {}
+    auth_header = request.headers.get("Authorization")
+    if auth_header:
+        headers["Authorization"] = auth_header
+    headers["X-Tenant-ID"] = session.get("tenant_id") or "unknown"
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(f"{audit_url}/audit/evidence/export", headers=headers)
+    if response.status_code >= 400:
+        _raise_upstream_error(response)
+    filename = f"audit-evidence-{session.get('tenant_id', 'tenant')}.zip"
+    return Response(
+        content=response.content,
+        media_type=response.headers.get("content-type", "application/zip"),
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
 @app.get("/")
 async def index() -> FileResponse:
+    if FRONTEND_DIST_DIR.exists():
+        return FileResponse(FRONTEND_DIST_DIR / "index.html")
     return FileResponse(STATIC_DIR / "index.html")
 
 

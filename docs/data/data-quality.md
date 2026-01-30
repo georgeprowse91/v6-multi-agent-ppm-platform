@@ -48,7 +48,7 @@ Expected output: the YAML rules file path.
 ## Implementation status
 
 - **Implemented**: baseline rules and scoring weights.
-- **Planned**: automated remediation workflows.
+- **Implemented**: automated remediation workflows with API-triggered fixes in the lineage service.
 
 ## Related docs
 

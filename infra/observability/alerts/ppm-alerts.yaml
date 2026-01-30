@@ -153,3 +153,11 @@ groups:
         annotations:
           summary: "Telemetry ingest stalled"
           description: "No telemetry ingested for 20 minutes."
+      - alert: PlatformErrorBudgetBurn
+        expr: (1 - (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])))) < 0.995
+        for: 30m
+        labels:
+          severity: page
+        annotations:
+          summary: "Platform error budget burn detected"
+          description: "Global availability below 99.5% for 30 minutes."

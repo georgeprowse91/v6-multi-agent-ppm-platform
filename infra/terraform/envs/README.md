@@ -7,6 +7,7 @@ Document infrastructure resources under infra/terraform/envs.
 ## What's inside
 
 - `infra/terraform/envs/dev`: Subdirectory containing dev assets for this area.
+- `infra/terraform/envs/stage`: Subdirectory containing stage assets for this area.
 - `infra/terraform/envs/prod`: Subdirectory containing prod assets for this area.
 - `infra/terraform/envs/test`: Subdirectory containing test assets for this area.
 

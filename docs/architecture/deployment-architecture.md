@@ -13,7 +13,7 @@ The deployment architecture maps the logical components into Azure environments 
 | Environment | Purpose | Data handling | Infra path |
 | --- | --- | --- | --- |
 | Dev | Engineer experimentation | Synthetic/seed data only | `infra/terraform/envs/dev/` |
-| Staging | Pre-prod validation | Sanitized data | `infra/terraform/envs/test/` |
+| Staging | Pre-prod validation | Sanitized data | `infra/terraform/envs/stage/` |
 | Production | Customer workloads | Live data with retention policies | `infra/terraform/envs/prod/` |
 
 ## Release flow
@@ -28,9 +28,9 @@ The deployment architecture maps the logical components into Azure environments 
 PlantUML: docs/architecture/diagrams/deployment-overview.puml
 ```
 
-## DR strategy (planned)
+## DR strategy
 
-- Active-passive failover in a paired Azure region.
+- Active-passive failover in a paired Azure region with scripted region flips.
 - RPO target: 15 minutes; RTO target: 2 hours.
 - Backups stored in geo-redundant storage with quarterly restore drills.
 
@@ -54,8 +54,7 @@ Expected output: deployment spec with container image and env vars.
 
 ## Implementation status
 
-- **Partially implemented**: CI pipeline and Dockerfiles.
-- **Planned**: production-grade Terraform modules per environment.
+- **Implemented**: CI pipeline, Dockerfiles, Terraform environment overlays, and DR failover scripts.
 
 ## Related docs
 

@@ -25,11 +25,13 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from retention_scheduler import RetentionScheduler  # noqa: E402
 from storage import (  # noqa: E402
     DataServiceStore,
     EntityRecord,
     SchemaExistsError,
     SchemaRecord,
+    SchemaPromotion,
     to_async_database_url,
 )
 
@@ -61,6 +63,17 @@ class SchemaSummaryResponse(BaseModel):
     name: str
     latest_version: int
     versions: int
+
+
+class SchemaPromotionRequest(BaseModel):
+    environment: str
+
+
+class SchemaPromotionResponse(BaseModel):
+    name: str
+    version: int
+    environment: str
+    promoted_at: datetime
 
 
 class EntityIngestRequest(BaseModel):
@@ -95,6 +108,13 @@ class ConnectorIngestResponse(BaseModel):
     ingested_at: datetime
 
 
+class RetentionStatusResponse(BaseModel):
+    interval_seconds: int
+    retention_days: int
+    last_pruned_at: str | None
+    last_pruned_count: int
+
+
 app = FastAPI(title="Data Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 configure_tracing("data-service")
@@ -115,15 +135,45 @@ async def startup() -> None:
         seeded = await store.seed_schemas(SCHEMA_DIR)
         logger.info("seed_schemas", extra={"count": seeded})
     app.state.store = store
+    interval = int(os.getenv("DATA_SERVICE_RETENTION_INTERVAL_SECONDS", "3600"))
+    retention_days = int(os.getenv("DATA_SERVICE_RETENTION_DAYS", "365"))
+    scheduler = RetentionScheduler(store, interval_seconds=interval, retention_days=retention_days)
+    scheduler.start()
+    app.state.retention_scheduler = scheduler
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    scheduler = get_retention_scheduler()
+    if scheduler:
+        scheduler.stop()
 
 
 def get_store() -> DataServiceStore:
     return app.state.store
 
 
+def get_retention_scheduler() -> RetentionScheduler | None:
+    return getattr(app.state, "retention_scheduler", None)
+
+
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
     return HealthResponse()
+
+
+@app.get("/retention/status", response_model=RetentionStatusResponse)
+async def retention_status() -> RetentionStatusResponse:
+    scheduler = get_retention_scheduler()
+    if not scheduler:
+        raise HTTPException(status_code=404, detail="Retention scheduler not configured")
+    snapshot = scheduler.snapshot()
+    return RetentionStatusResponse(
+        interval_seconds=int(snapshot["interval_seconds"]),
+        retention_days=int(snapshot["retention_days"]),
+        last_pruned_at=snapshot.get("last_pruned_at") or None,
+        last_pruned_count=int(snapshot["last_pruned_count"]),
+    )
 
 
 @app.post("/schemas", response_model=SchemaResponse)
@@ -175,6 +225,31 @@ async def get_schema_version(
     if not record:
         raise HTTPException(status_code=404, detail="Schema not found")
     return _schema_response(record)
+
+
+@app.get("/schemas/{schema_name}/promotions", response_model=list[SchemaPromotionResponse])
+async def list_schema_promotions(
+    schema_name: str, store: DataServiceStore = Depends(get_store)
+) -> list[SchemaPromotionResponse]:
+    promotions = await store.list_schema_promotions(schema_name)
+    return [SchemaPromotionResponse(**promo.__dict__) for promo in promotions]
+
+
+@app.post(
+    "/schemas/{schema_name}/versions/{version}/promote",
+    response_model=SchemaPromotionResponse,
+)
+async def promote_schema_version(
+    schema_name: str,
+    version: int,
+    request: SchemaPromotionRequest,
+    store: DataServiceStore = Depends(get_store),
+) -> SchemaPromotionResponse:
+    record = await store.get_schema(schema_name, version)
+    if not record:
+        raise HTTPException(status_code=404, detail="Schema version not found")
+    promotion = await store.promote_schema(schema_name, version, request.environment)
+    return SchemaPromotionResponse(**promotion.__dict__)
 
 
 @app.post("/entities/{schema_name}", response_model=EntityResponse)

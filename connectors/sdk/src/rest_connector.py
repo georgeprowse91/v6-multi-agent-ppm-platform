@@ -256,6 +256,8 @@ class OAuth2RestConnector(RestConnector):
     TOKEN_URL_ENV: str = ""
     DEFAULT_TOKEN_URL: str = ""
     SCOPES_ENV: str = ""
+    KEYVAULT_URL_ENV: str = "CONNECTOR_KEYVAULT_URL"
+    REFRESH_TOKEN_SECRET_ENV: str = "CONNECTOR_REFRESH_TOKEN_SECRET"
 
     def __init__(
         self,
@@ -287,12 +289,16 @@ class OAuth2RestConnector(RestConnector):
         instance_url, client_id, client_secret, refresh_token = self._get_credentials()
         token_url = resolve_secret(os.getenv(self.TOKEN_URL_ENV)) or self.DEFAULT_TOKEN_URL
         scope = resolve_secret(os.getenv(self.SCOPES_ENV)) if self.SCOPES_ENV else None
+        keyvault_url = resolve_secret(os.getenv(self.KEYVAULT_URL_ENV))
+        refresh_token_secret = resolve_secret(os.getenv(self.REFRESH_TOKEN_SECRET_ENV))
         self._token_manager = OAuth2TokenManager(
             token_url=token_url,
             client_id=client_id,
             client_secret=client_secret,
             refresh_token=refresh_token,
             scope=scope,
+            keyvault_url=keyvault_url,
+            refresh_token_secret_name=refresh_token_secret,
         )
         self._instance_url = instance_url
         return self._token_manager

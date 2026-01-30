@@ -37,6 +37,9 @@ class WORMStorage:
     def fetch_event(self, event_id: str) -> dict[str, Any] | None:
         raise NotImplementedError
 
+    def list_events(self) -> list[dict[str, Any]]:
+        raise NotImplementedError
+
     def prune_expired(self, now: datetime | None = None) -> int:
         raise NotImplementedError
 
@@ -74,6 +77,16 @@ class LocalEncryptedWORMStorage(WORMStorage):
             return None
         decrypted = self.fernet.decrypt(path.read_bytes())
         return cast(dict[str, Any], json.loads(decrypted))
+
+    def list_events(self) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        for path in self.root.glob("*.json.enc"):
+            try:
+                decrypted = self.fernet.decrypt(path.read_bytes())
+                events.append(cast(dict[str, Any], json.loads(decrypted)))
+            except Exception:
+                continue
+        return events
 
     def prune_expired(self, now: datetime | None = None) -> int:
         now = now or datetime.now(timezone.utc)
@@ -130,6 +143,14 @@ class AzureBlobWORMStorage(WORMStorage):
             return None
         data = blob_client.download_blob().readall()
         return cast(dict[str, Any], json.loads(data))
+
+    def list_events(self) -> list[dict[str, Any]]:
+        container_client = self.client.get_container_client(self.container)
+        events: list[dict[str, Any]] = []
+        for blob in container_client.list_blobs():
+            data = container_client.get_blob_client(blob.name).download_blob().readall()
+            events.append(cast(dict[str, Any], json.loads(data)))
+        return events
 
     def prune_expired(self, now: datetime | None = None) -> int:
         now = now or datetime.now(timezone.utc)

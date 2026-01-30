@@ -16,41 +16,29 @@ The authoritative registry list lives in `connectors/registry/connectors.json`.
 
 | Connector ID | Name | Status | Certification |
 | --- | --- | --- | --- |
-| jira | Atlassian Jira Cloud | production | certified |
-| planview | Planview | production | automated |
+| adp | ADP | beta | not-started |
+| archer | RSA Archer | beta | not-started |
+| asana | Asana | beta | not-started |
+| azure_devops | Azure DevOps | beta | not-started |
 | clarity | Clarity PPM | production | automated |
-| servicenow | ServiceNow | beta | not-started |
+| confluence | Confluence | beta | not-started |
+| google_drive | Google Drive | beta | not-started |
+| jira | Atlassian Jira Cloud | production | certified |
+| logicgate | LogicGate | beta | not-started |
+| monday | Monday.com | beta | not-started |
+| ms_project_server | Microsoft Project Server | beta | not-started |
+| netsuite | NetSuite | beta | not-started |
+| oracle | Oracle EPM | beta | not-started |
+| planview | Planview | production | automated |
+| salesforce | Salesforce | beta | not-started |
 | sap | SAP S/4HANA | beta | not-started |
-
-## Packaged connectors (manifested, ready for registration)
-
-These connectors include manifests, mappings, and runtime entrypoints but are not yet registered in the registry:
-
-| Connector ID | Name | Status |
-| --- | --- | --- |
-| azure_devops | Azure DevOps | preview |
-| salesforce | Salesforce | preview |
-| sharepoint | SharePoint | preview |
-| slack | Slack | preview |
-| teams | Microsoft Teams | preview |
-| workday | Workday | preview |
-
-## Scaffolded directories (structure only)
-
-Connector directories exist without manifests for future additions:
-
-- adp
-- archer
-- asana
-- confluence
-- google_drive
-- logicgate
-- monday
-- ms_project_server
-- netsuite
-- oracle
-- sap_successfactors
-- zoom
+| sap_successfactors | SAP SuccessFactors | beta | not-started |
+| servicenow | ServiceNow | beta | not-started |
+| sharepoint | SharePoint | beta | not-started |
+| slack | Slack | beta | not-started |
+| teams | Microsoft Teams | beta | not-started |
+| workday | Workday | beta | not-started |
+| zoom | Zoom | beta | not-started |
 
 ## Verification steps
 
@@ -65,9 +53,8 @@ Connector directories exist without manifests for future additions:
 
 ## Implementation status
 
-- **Implemented:** Jira, Planview, Clarity connectors in the registry with runtime packages.
-- **Implemented:** ServiceNow and SAP connector packages with registry entries and manifest-backed runtime configuration.
-- **In progress:** Register and certify the remaining packaged connectors.
+- **Implemented:** Connector registry now includes every packaged connector.
+- **Implemented:** All listed connector packages include manifests and runtime mappings.
 
 ## Related docs
 

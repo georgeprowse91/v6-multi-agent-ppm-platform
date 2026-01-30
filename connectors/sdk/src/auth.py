@@ -2,9 +2,22 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from pathlib import Path
+import sys
 from typing import Any
 
 from http_client import HttpClient, HttpClientError
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+if str(SECURITY_ROOT) not in sys.path:
+    sys.path.insert(0, str(SECURITY_ROOT))
+
+try:
+    from security.keyvault import KeyVaultClient, KeyVaultConfig
+except ImportError:  # pragma: no cover - optional dependency
+    KeyVaultClient = None
+    KeyVaultConfig = None
 
 
 @dataclass
@@ -25,6 +38,8 @@ class OAuth2TokenManager:
         scope: str | None = None,
         http_client: HttpClient | None = None,
         expiry_buffer_seconds: int = 60,
+        keyvault_url: str | None = None,
+        refresh_token_secret_name: str | None = None,
     ) -> None:
         self._token_url = token_url
         self._client_id = client_id
@@ -34,6 +49,12 @@ class OAuth2TokenManager:
         self._http_client = http_client
         self._expiry_buffer_seconds = expiry_buffer_seconds
         self._token: OAuthToken | None = None
+        self._keyvault_client = (
+            KeyVaultClient(KeyVaultConfig(vault_url=keyvault_url))
+            if keyvault_url and KeyVaultClient and KeyVaultConfig
+            else None
+        )
+        self._refresh_token_secret_name = refresh_token_secret_name
 
     def _build_payload(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -68,6 +89,8 @@ class OAuth2TokenManager:
             expires_at=expires_at,
         )
         self._token = token
+        if self._keyvault_client and refresh_token and self._refresh_token_secret_name:
+            self._keyvault_client.set_secret(self._refresh_token_secret_name, refresh_token)
         return token
 
     def get_access_token(self) -> str:

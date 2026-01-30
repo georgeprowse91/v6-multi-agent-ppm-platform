@@ -51,7 +51,7 @@ Expected output: the PlantUML file path.
 ## Implementation status
 
 - **Implemented**: documentation and diagram source.
-- **Planned**: full connector coverage across all listed external systems.
+- **Implemented**: connector registry includes the full set of documented external systems.
 
 ## Related docs
 

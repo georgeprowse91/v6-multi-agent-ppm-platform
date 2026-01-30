@@ -52,6 +52,8 @@ class ServiceNowConfig:
 def _build_token_manager(
     config: ServiceNowConfig, token_client: HttpClient | None = None
 ) -> OAuth2TokenManager:
+    keyvault_url = resolve_secret(os.getenv("SERVICENOW_KEYVAULT_URL"))
+    refresh_secret = resolve_secret(os.getenv("SERVICENOW_REFRESH_TOKEN_SECRET"))
     return OAuth2TokenManager(
         token_url=config.token_url,
         client_id=config.client_id,
@@ -59,6 +61,8 @@ def _build_token_manager(
         refresh_token=config.refresh_token,
         scope=config.scope,
         http_client=token_client,
+        keyvault_url=keyvault_url,
+        refresh_token_secret_name=refresh_secret,
     )
 
 

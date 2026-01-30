@@ -27,7 +27,7 @@ for path in [
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from agents.runtime import AGENT_CATALOG, BaseAgent, InMemoryEventBus  # noqa: E402
+from agents.runtime import AGENT_CATALOG, BaseAgent, InMemoryEventBus, ServiceBusEventBus  # noqa: E402
 from agents.runtime.src.agent_catalog import get_catalog_entry  # noqa: E402
 
 
@@ -106,13 +106,13 @@ class AgentRuntime:
         self,
         *,
         data_dir: Path | None = None,
-        event_bus: InMemoryEventBus | None = None,
+        event_bus: InMemoryEventBus | ServiceBusEventBus | None = None,
     ) -> None:
         self._data_dir = data_dir or Path(
             os.getenv("AGENT_RUNTIME_DATA_DIR", "/tmp/agent-runtime-data")
         )
         self._data_dir.mkdir(parents=True, exist_ok=True)
-        self._event_bus = event_bus or InMemoryEventBus()
+        self._event_bus = event_bus or self._build_event_bus()
         self._connector_registry = ConnectorRegistry()
         self._connector_client = ConnectorActionClient(self._connector_registry)
         self._agent_registry: dict[str, BaseAgent] = {}
@@ -123,8 +123,23 @@ class AgentRuntime:
         self._initialize_agents()
         self._event_bus.subscribe("agent.requested", self._handle_agent_request)
 
+    def _build_event_bus(self) -> InMemoryEventBus | ServiceBusEventBus:
+        backend = os.getenv("EVENT_BUS_BACKEND", "memory").lower()
+        connection_string = os.getenv("AZURE_SERVICEBUS_CONNECTION_STRING")
+        if backend == "servicebus" or connection_string:
+            if not connection_string:
+                return InMemoryEventBus()
+            topic = os.getenv("EVENT_BUS_TOPIC", "ppm-events")
+            subscription = os.getenv("EVENT_BUS_SUBSCRIPTION")
+            return ServiceBusEventBus(
+                connection_string=connection_string or "",
+                topic=topic,
+                subscription_name=subscription,
+            )
+        return InMemoryEventBus()
+
     @property
-    def event_bus(self) -> InMemoryEventBus:
+    def event_bus(self) -> InMemoryEventBus | ServiceBusEventBus:
         return self._event_bus
 
     @property

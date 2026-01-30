@@ -16,7 +16,8 @@ from pydantic import BaseModel, Field
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
+DATA_QUALITY_ROOT = REPO_ROOT / "packages" / "data-quality" / "src"
+for root in (SECURITY_ROOT, OBSERVABILITY_ROOT, DATA_QUALITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -24,7 +25,10 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
+from data_quality.remediation import RemediationResult, remediate_payload  # noqa: E402
+from data_quality.rules import evaluate_quality_rules  # noqa: E402
 from quality import QualityResult, compute_quality  # noqa: E402
+from retention_scheduler import RetentionScheduler  # noqa: E402
 from storage import LineageRecord, LineageStore  # noqa: E402
 
 logger = logging.getLogger("data-lineage-service")
@@ -110,6 +114,28 @@ class QualitySummaryResponse(BaseModel):
     by_entity: dict[str, float]
 
 
+class QualityRemediationRequest(BaseModel):
+    record_type: str
+    record: dict[str, Any]
+    apply_fixes: bool = True
+
+
+class QualityRemediationResponse(BaseModel):
+    record_type: str
+    record_id: str | None
+    remediated: bool
+    actions: list[dict[str, Any]]
+    original_payload: dict[str, Any]
+    remediated_payload: dict[str, Any]
+    quality: QualityPayload | None = None
+
+
+class RetentionStatusResponse(BaseModel):
+    interval_seconds: int
+    last_pruned_at: str | None
+    last_pruned_count: int
+
+
 app = FastAPI(title="Data Lineage Service", version="0.1.0")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
 configure_tracing("data-lineage-service")
@@ -122,6 +148,17 @@ app.add_middleware(RequestMetricsMiddleware, service_name="data-lineage-service"
 async def startup() -> None:
     store_path = Path(os.getenv("DATA_LINEAGE_STORE_PATH", DEFAULT_STORE_PATH))
     app.state.store = LineageStore(store_path)
+    interval = int(os.getenv("DATA_LINEAGE_RETENTION_INTERVAL_SECONDS", "3600"))
+    scheduler = RetentionScheduler(app.state.store, interval_seconds=interval)
+    scheduler.start()
+    app.state.retention_scheduler = scheduler
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    scheduler = getattr(app.state, "retention_scheduler", None)
+    if scheduler:
+        scheduler.stop()
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -131,6 +168,10 @@ async def healthz() -> HealthResponse:
 
 def get_store() -> LineageStore:
     return app.state.store
+
+
+def _get_retention_scheduler(request: Request) -> RetentionScheduler | None:
+    return getattr(request.app.state, "retention_scheduler", None)
 
 
 def _load_rules() -> dict[str, Any]:
@@ -198,6 +239,18 @@ def _record_to_response(record: LineageRecord) -> LineageEventOut:
         classification=record.classification,
         metadata=record.metadata,
         timestamp=datetime.fromisoformat(record.timestamp),
+    )
+
+
+def _remediation_response(result: RemediationResult, quality: QualityResult | None) -> QualityRemediationResponse:
+    return QualityRemediationResponse(
+        record_type=result.record_type,
+        record_id=result.record_id,
+        remediated=bool(result.actions),
+        actions=[action.__dict__ for action in result.actions],
+        original_payload=result.original_payload,
+        remediated_payload=result.remediated_payload,
+        quality=QualityPayload(**quality.__dict__) if quality else None,
     )
 
 
@@ -377,4 +430,74 @@ async def get_quality_summary(
         average_score=average_score,
         total_events=total_events,
         by_entity=by_entity,
+    )
+
+
+@app.post("/quality/remediate", response_model=QualityRemediationResponse)
+async def remediate_quality(
+    payload: QualityRemediationRequest, request: Request
+) -> QualityRemediationResponse:
+    auth = request.state.auth
+    if payload.record.get("tenant_id") and payload.record.get("tenant_id") != auth.tenant_id:
+        raise HTTPException(status_code=403, detail="Tenant mismatch")
+    report = evaluate_quality_rules(payload.record_type, payload.record)
+    result = remediate_payload(payload.record_type, payload.record, report)
+    quality = None
+    if payload.apply_fixes and result.remediated_payload:
+        quality = compute_quality(
+            entity_type=payload.record_type,
+            entity_payload=result.remediated_payload,
+            rules_config=_load_rules(),
+        )
+    return _remediation_response(result, quality)
+
+
+@app.post("/quality/remediate/{lineage_id}", response_model=QualityRemediationResponse)
+async def remediate_lineage_record(
+    lineage_id: str,
+    request: Request,
+    store: LineageStore = Depends(get_store),
+) -> QualityRemediationResponse:
+    auth = request.state.auth
+    record = store.get(auth.tenant_id, lineage_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Lineage event not found")
+    _ensure_access(auth, record.classification)
+    if not record.entity_type or not record.entity_payload:
+        raise HTTPException(status_code=400, detail="No entity payload available")
+    report = evaluate_quality_rules(record.entity_type, record.entity_payload)
+    result = remediate_payload(record.entity_type, record.entity_payload, report)
+    quality = compute_quality(
+        entity_type=record.entity_type,
+        entity_payload=result.remediated_payload,
+        rules_config=_load_rules(),
+    )
+    if result.actions:
+        metadata = dict(record.metadata or {})
+        metadata["remediation"] = {
+            "actions": [action.__dict__ for action in result.actions],
+            "remediated_at": datetime.utcnow().isoformat(),
+        }
+        updated = LineageRecord(
+            **{
+                **record.__dict__,
+                "entity_payload": result.remediated_payload,
+                "quality": quality.__dict__ if quality else None,
+                "metadata": metadata,
+            }
+        )
+        store.upsert(updated)
+    return _remediation_response(result, quality)
+
+
+@app.get("/retention/status", response_model=RetentionStatusResponse)
+async def retention_status(request: Request) -> RetentionStatusResponse:
+    scheduler = _get_retention_scheduler(request)
+    if not scheduler:
+        raise HTTPException(status_code=404, detail="Retention scheduler not configured")
+    snapshot = scheduler.snapshot()
+    return RetentionStatusResponse(
+        interval_seconds=int(snapshot["interval_seconds"]),
+        last_pruned_at=snapshot["last_pruned_at"],
+        last_pruned_count=int(snapshot["last_pruned_count"]),
     )

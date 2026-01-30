@@ -8,7 +8,9 @@ from typing import Any
 from uuid import uuid4
 
 import yaml
-from fastapi import FastAPI, HTTPException
+import io
+import zipfile
+from fastapi import FastAPI, HTTPException, Request
 from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
@@ -30,6 +32,7 @@ from audit_storage import AuditRetentionPolicy, get_worm_storage  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from fastapi.responses import StreamingResponse
 
 
 def _load_schema() -> dict[str, Any]:
@@ -78,6 +81,7 @@ class AuditIngestResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "audit-log"
+
 
 
 app = FastAPI(title="Audit Log Service", version="0.1.0")
@@ -162,6 +166,25 @@ async def get_event(event_id: str) -> AuditEventOut:
             data["timestamp"] = datetime.fromisoformat(data["timestamp"])
         return AuditEventOut(**data)
     raise HTTPException(status_code=404, detail="Audit event not found")
+
+
+@app.get("/audit/evidence/export")
+async def export_evidence(request: Request) -> StreamingResponse:
+    auth = request.state.auth
+    storage = get_worm_storage()
+    events = [event for event in storage.list_events() if event.get("tenant_id") == auth.tenant_id]
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for event in events:
+            event_id = event.get("id", "unknown")
+            archive.writestr(f"events/{event_id}.json", yaml.safe_dump(event))
+    buffer.seek(0)
+    headers = {"X-Event-Count": str(len(events))}
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers=headers,
+    )
 
 
 if __name__ == "__main__":

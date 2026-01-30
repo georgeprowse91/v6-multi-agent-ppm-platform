@@ -73,7 +73,7 @@ Built to integrate with existing enterprise systems rather than replace them:
 │                    Presentation Layer                            │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
 │  │  Web UI      │  │  Mobile UI   │  │  API Clients │          │
-│  │  (React)     │  │  (Future)    │  │              │          │
+│  │  (React)     │  │  (Roadmap)   │  │              │          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
 └───────────────────────┬─────────────────────────────────────────┘
                         │
@@ -270,10 +270,9 @@ Initialize → Validate → Process → Respond → Cleanup
 - **NLP**: Azure Cognitive Services
 - **ML Training**: Azure Machine Learning
 
-### Frontend (Prototype)
+### Frontend
 
-- **Framework**: FastAPI-served static web console (production UI)
-- **Planned**: React with TypeScript
+- **Framework**: React with TypeScript (built in `apps/web/frontend` and served via FastAPI)
 
 ## Security Architecture
 

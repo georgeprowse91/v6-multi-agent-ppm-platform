@@ -48,7 +48,7 @@ python -m connectors.jira.src.main connectors/jira/tests/fixtures/projects.json 
 ## Implementation status
 
 - **Implemented:** Connector SDK runtime, manifest validation, mapping application, and automated mapping coverage checks.
-- **Planned:** Advanced transformations (lookups, enums, date conversions) and quality scoring integration.
+- **Implemented:** Advanced transformations (lookups, enums, date conversions) and quality scoring integration.
 
 ## Related docs
 

@@ -1,0 +1,10 @@
+# Azure AD group-to-role mapping
+# groups:
+#   <azure-ad-group-id>:
+#     - PMO_ADMIN
+#     - PORTFOLIO_MANAGER
+# roles:
+#   - PMO_ADMIN
+#   - PORTFOLIO_MANAGER
+groups: {}
+roles: []

@@ -43,7 +43,7 @@ Retention policies are defined in `config/retention/policies.yaml` and reference
 ## Implementation status
 
 - **Implemented:** Retention policies, audit log enforcement, document policy checks.
-- **Planned:** Automated lifecycle management for non-audit data stores.
+- **Implemented:** Automated lifecycle management for non-audit data stores via retention schedulers.
 
 ## Related docs
 

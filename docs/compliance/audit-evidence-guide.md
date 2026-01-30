@@ -37,7 +37,7 @@ Enumerate auditable evidence sources and how to collect them for compliance revi
 ## Implementation status
 
 - **Implemented:** Audit log service, retention policies, RBAC configuration.
-- **Planned:** Automated evidence pack export and compliance reporting.
+- **Implemented:** Automated evidence pack export via `/audit/evidence/export` and web console trigger.
 
 ## Related docs
 

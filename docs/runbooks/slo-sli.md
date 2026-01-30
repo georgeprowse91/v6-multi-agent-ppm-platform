@@ -57,7 +57,7 @@ These targets are aligned with the SLO template in `docs/templates/shared/slo-al
 ## Implementation status
 
 - **Implemented:** Metrics middleware in services and apps.
-- **Planned:** Centralized SLO dashboards and automated error budget reporting.
+- **Implemented:** Grafana dashboards and error budget alerts in `infra/observability/dashboards` and `infra/observability/alerts`.
 
 ## Related docs
 

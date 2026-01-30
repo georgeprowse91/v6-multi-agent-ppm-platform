@@ -48,7 +48,24 @@ Set `AUTH_DEV_MODE=true` and use the following environment variables for determi
 
 - **Implemented:** JWT validation, tenant header enforcement, RBAC checks, optional policy engine integration.
 - **Implemented:** OIDC login flow for the web console and SCIM v2 provisioning.
-- **Planned:** SAML federation brokers.
+- **Implemented:** SAML federation broker endpoints in identity-access for metadata, login redirects, and ACS token issuance.
+
+## SAML federation (identity-access)
+
+| Endpoint | Method | Description |
+| --- | --- | --- |
+| `/auth/saml/metadata` | GET | Returns SP metadata XML for IdP registration. |
+| `/auth/saml/login` | GET | Initiates SAML login and redirects to the IdP. |
+| `/auth/saml/acs` | POST | Assertion consumer service that issues a JWT on success. |
+
+Required configuration:
+
+- `SAML_IDP_ENTITY_ID`
+- `SAML_IDP_SSO_URL`
+- `SAML_IDP_X509_CERT`
+- `SAML_SP_ENTITY_ID`
+- `SAML_SP_ACS_URL`
+- `SAML_SP_SLS_URL` (optional; defaults to ACS URL)
 
 ## Web console OIDC endpoints
 

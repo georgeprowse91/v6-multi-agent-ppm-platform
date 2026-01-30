@@ -70,7 +70,7 @@ Expected output includes `retention-policy.md` and `threat-model.md`.
 ## Implementation status
 
 - **Implemented**: documentation, audit schema, retention and DPIA templates.
-- **Planned**: production-grade IAM integration and automated policy enforcement.
+- **Implemented**: IAM role mapping with Azure AD group ingestion and automated policy enforcement via the policy engine.
 
 ## Related docs
 

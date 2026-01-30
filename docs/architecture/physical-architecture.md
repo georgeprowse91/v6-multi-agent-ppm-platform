@@ -42,8 +42,7 @@ Expected output: the PlantUML file path.
 
 ## Implementation status
 
-- **Planned**: Azure infrastructure deployment in `infra/`.
-- **Partially implemented**: container build assets in `apps/`.
+- **Implemented**: Azure infrastructure deployment scripts in `infra/terraform` and `infra/kubernetes`.
 
 ## Related docs
 

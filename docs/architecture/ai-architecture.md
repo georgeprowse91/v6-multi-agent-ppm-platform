@@ -50,7 +50,7 @@ Prompt YAML files include metadata and redaction rules. The prompt registry load
 ## Implementation status
 
 - **Implemented:** LLM client abstraction, mock/OpenAI/Azure providers, prompt registry with schema validation.
-- **Planned:** Prompt version promotion workflows and managed prompt deployments.
+- **Implemented:** Prompt version promotion workflows and registry CLI tooling in `packages/llm`.
 
 ## Related docs
 

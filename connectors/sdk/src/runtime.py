@@ -10,7 +10,14 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
-from connectors.sdk.src.data_service_client import DataLineageClient, DataServiceClient, LineageEventEmitter
+from connectors.sdk.src.classification import infer_classification
+from connectors.sdk.src.data_service_client import (
+    DataLineageClient,
+    DataServiceClient,
+    LineageEventEmitter,
+)
+from connectors.sdk.src.quality import evaluate_quality
+from connectors.sdk.src.transformations import apply_transformation
 from connectors.sdk.src.telemetry import get_connector_telemetry
 
 
@@ -31,8 +38,9 @@ class ConnectorManifest:
 class MappingSpec:
     source: str
     target: str
-    fields: list[dict[str, str]]
+    fields: list[dict[str, Any]]
     schema: str | None = None
+    transformations: list[dict[str, Any]] | None = None
 
 
 class ConnectorRuntime:
@@ -65,6 +73,7 @@ class ConnectorRuntime:
             target=data["target"],
             fields=data.get("fields", []),
             schema=data.get("schema") or data.get("target"),
+            transformations=data.get("transformations"),
         )
 
     def _apply_mapping(self, record: dict[str, Any], mapping: MappingSpec, tenant_id: str) -> dict[str, Any]:
@@ -72,8 +81,17 @@ class ConnectorRuntime:
         for entry in mapping.fields:
             source_field = entry.get("source")
             target_field = entry.get("target")
-            if source_field and target_field:
-                mapped[target_field] = record.get(source_field)
+            if not source_field or not target_field:
+                continue
+            value = record.get(source_field)
+            value = apply_transformation(value, entry.get("transform"))
+            mapped[target_field] = value
+        if mapping.transformations:
+            for transform in mapping.transformations:
+                field = transform.get("field")
+                if not field:
+                    continue
+                mapped[field] = apply_transformation(mapped.get(field), transform)
         return mapped
 
     def apply_mappings(
@@ -104,6 +122,10 @@ class ConnectorRuntime:
                     if include_schema:
                         mapped["schema_name"] = spec.schema or spec.target
                     results.append(mapped)
+                    quality = None
+                    if spec.schema or spec.target:
+                        quality = evaluate_quality(spec.schema or spec.target, mapped)
+                    classification = infer_classification(record, mapped)
                     if emitter:
                         emitter.emit_event(
                             source=self._source_entity(record, spec),
@@ -111,6 +133,8 @@ class ConnectorRuntime:
                             transformations=self._transformation_steps(spec),
                             entity_type=spec.schema or spec.target,
                             entity_payload=mapped,
+                            quality=quality,
+                            classification=classification,
                             metadata={
                                 "connector_version": self.manifest.version,
                                 "mapping_source": spec.source,
@@ -184,5 +208,17 @@ class ConnectorRuntime:
             source_field = entry.get("source")
             target_field = entry.get("target")
             if source_field and target_field:
-                steps.append(f"map {source_field} -> {target_field}")
+                transform = entry.get("transform")
+                if transform:
+                    steps.append(
+                        f"map {source_field} -> {target_field} ({transform.get('type', 'transform')})"
+                    )
+                else:
+                    steps.append(f"map {source_field} -> {target_field}")
+        if spec.transformations:
+            for transform in spec.transformations:
+                if transform.get("field"):
+                    steps.append(
+                        f"transform {transform.get('field')} ({transform.get('type', 'transform')})"
+                    )
         return steps
