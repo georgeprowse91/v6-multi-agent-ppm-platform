@@ -1,0 +1,9 @@
+{{- if .Values.leaderElection.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.leaderElection.configMapName }}
+  labels:
+    app.kubernetes.io/name: {{ include "name" . }}
+    app.kubernetes.io/component: leader-election
+{{- end }}

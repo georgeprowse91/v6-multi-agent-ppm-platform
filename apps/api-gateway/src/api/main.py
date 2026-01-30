@@ -19,6 +19,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
+from api.leader_election import build_leader_elector
 from api.routes import agents, health, agent_config, analytics, connectors, workflows, audit, lineage
 from api.runtime_bootstrap import bootstrap_runtime_paths
 
@@ -106,6 +107,9 @@ async def startup_event():
     await orchestrator.initialize()
     app.state.orchestrator = orchestrator
 
+    app.state.leader_elector = build_leader_elector("api-gateway")
+    app.state.leader_elector.start()
+
     logger.info("Application started successfully")
 
 
@@ -117,6 +121,10 @@ async def shutdown_event():
 
     if orchestrator:
         await orchestrator.cleanup()
+
+    leader_elector = getattr(app.state, "leader_elector", None)
+    if leader_elector:
+        leader_elector.stop()
 
     logger.info("Application shut down successfully")
 

@@ -4,7 +4,7 @@ Health Check API Routes
 
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request
 
 from api.limiter import limiter
 
@@ -29,7 +29,7 @@ async def health_check():
 
 @limiter.exempt
 @router.get("/health/ready")
-async def readiness_check():
+async def readiness_check(request: Request):
     """
     Readiness check - indicates if the service is ready to accept traffic.
 
@@ -38,12 +38,24 @@ async def readiness_check():
     """
     from api.main import orchestrator
 
+    leader_elector = getattr(request.app.state, "leader_elector", None)
+    leader_ready = leader_elector.is_leader if leader_elector else True
     checks = {
         "api": True,
         "orchestrator": orchestrator is not None and orchestrator.initialized,
+        "leader": leader_ready,
     }
 
     all_ready = all(checks.values())
+    if not all_ready:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "ready": all_ready,
+                "checks": checks,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
     return {
         "ready": all_ready,

@@ -24,6 +24,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from api.circuit_breaker import CircuitBreaker
+
 # Add connector SDK to path
 REPO_ROOT = Path(__file__).resolve().parents[5]
 CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
@@ -59,6 +61,7 @@ router = APIRouter()
 # In production, this path should come from environment
 _config_store: ConnectorConfigStore | None = None
 _webhook_store: WebhookEventStore | None = None
+_circuit_breaker: CircuitBreaker | None = None
 
 
 def get_config_store() -> ConnectorConfigStore:
@@ -76,6 +79,13 @@ def get_webhook_store() -> WebhookEventStore:
         storage_path = REPO_ROOT / "data" / "connectors" / "webhooks.json"
         _webhook_store = WebhookEventStore(storage_path)
     return _webhook_store
+
+
+def get_circuit_breaker() -> CircuitBreaker:
+    global _circuit_breaker
+    if _circuit_breaker is None:
+        _circuit_breaker = CircuitBreaker.from_env()
+    return _circuit_breaker
 
 
 def get_webhook_handler(connector_id: str):
@@ -688,8 +698,29 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
             detail=f"Connection testing not implemented for connector: {connector_id}",
         )
 
+    circuit_breaker = get_circuit_breaker()
+    if not circuit_breaker.allow_request(connector_id):
+        return TestConnectionResponse(
+            status="circuit_open",
+            message="Connector circuit is open; skipping test and returning fallback response.",
+            details={"connector_id": connector_id},
+            tested_at=datetime.now(timezone.utc).isoformat(),
+        )
+
     connector = connector_class(test_config)
-    result = connector.test_connection()
+    try:
+        result = connector.test_connection()
+    except Exception as exc:
+        circuit_breaker.record_failure(connector_id)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Connector test failed: {connector_id}",
+        ) from exc
+    else:
+        if result.status == ConnectionStatus.CONNECTED:
+            circuit_breaker.record_success(connector_id)
+        else:
+            circuit_breaker.record_failure(connector_id)
 
     # Update health status in stored config
     if config:
@@ -724,6 +755,14 @@ async def handle_connector_webhook(connector_id: str, request: Request):
     if not handler:
         raise HTTPException(status_code=404, detail="Webhook handler not registered")
 
+    circuit_breaker = get_circuit_breaker()
+    if not circuit_breaker.allow_request(connector_id):
+        return {
+            "status": "circuit_open",
+            "message": "Connector circuit is open; webhook buffered for later processing.",
+            "connector_id": connector_id,
+        }
+
     body = await request.body()
     headers = {key.lower(): value for key, value in request.headers.items()}
     _validate_webhook_signature(connector_id, body, headers)
@@ -732,7 +771,13 @@ async def handle_connector_webhook(connector_id: str, request: Request):
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
 
-    result = handler(payload, headers)
+    try:
+        result = handler(payload, headers)
+    except Exception as exc:
+        circuit_breaker.record_failure(connector_id)
+        raise HTTPException(status_code=502, detail="Connector webhook processing failed") from exc
+    else:
+        circuit_breaker.record_success(connector_id)
     tenant_id = request.headers.get("X-Tenant-ID")
     sanitized_headers = _sanitize_headers(headers)
     get_webhook_store().record_event(

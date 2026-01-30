@@ -23,6 +23,9 @@ env:
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
   RATE_LIMIT_DEFAULT: "100/minute"
   RATE_LIMIT_STORAGE: "memory://"
+  CONNECTOR_CIRCUIT_FAILURE_THRESHOLD: "3"
+  CONNECTOR_CIRCUIT_RECOVERY_SECONDS: "60"
+  CONNECTOR_CIRCUIT_HALF_OPEN_SUCCESSES: "1"
 
 keyVault:
   enabled: false
@@ -33,6 +36,18 @@ keyVault:
   secrets:
     identityJwtSecret: "identity-jwt-secret"
     policyEngineServiceToken: "policy-engine-service-token"
+
+leaderElection:
+  enabled: true
+  configMapName: "api-gateway-leader"
+  leaseDurationSeconds: 30
+  renewDeadlineSeconds: 20
+  retryPeriodSeconds: 10
+  failOpen: true
+
+serviceAccount:
+  create: true
+  name: ""
 
 livenessProbe:
   path: /healthz

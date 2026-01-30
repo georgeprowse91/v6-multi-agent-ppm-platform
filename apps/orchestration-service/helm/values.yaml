@@ -15,6 +15,18 @@ env:
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
 
+leaderElection:
+  enabled: true
+  configMapName: "orchestration-service-leader"
+  leaseDurationSeconds: 30
+  renewDeadlineSeconds: 20
+  retryPeriodSeconds: 10
+  failOpen: true
+
+serviceAccount:
+  create: true
+  name: ""
+
 livenessProbe:
   path: /health
   initialDelaySeconds: 15

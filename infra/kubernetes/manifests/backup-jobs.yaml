@@ -1,0 +1,217 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app.kubernetes.io/name: postgres-backup
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: postgres-backup
+        spec:
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-data
+              emptyDir: {}
+          initContainers:
+            - name: pg-dump
+              image: postgres:15
+              env:
+                - name: PGHOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: host
+                - name: PGPORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: port
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: database
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: username
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: password
+              command:
+                - sh
+                - -c
+                - |
+                  pg_dump --format=custom --file=/backup/ppm-platform.dump
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
+          containers:
+            - name: upload
+              image: rclone/rclone:1.65
+              env:
+                - name: RCLONE_CONFIG_S3_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_S3_PROVIDER
+                  value: Other
+                - name: RCLONE_CONFIG_S3_ENV_AUTH
+                  value: "true"
+                - name: RCLONE_CONFIG_S3_ENDPOINT
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: s3_endpoint
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: access_key_id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: secret_access_key
+                - name: AWS_DEFAULT_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: region
+                - name: BACKUP_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: bucket
+                - name: BACKUP_PREFIX
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: prefix
+                - name: BACKUP_SSE
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: sse
+              command:
+                - sh
+                - -c
+                - |
+                  rclone copy /backup s3:${BACKUP_BUCKET}/${BACKUP_PREFIX}/postgres/$(date +%F) \
+                    --s3-server-side-encryption ${BACKUP_SSE:-AES256}
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-backup
+  labels:
+    app.kubernetes.io/name: redis-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: redis-backup
+        spec:
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-data
+              emptyDir: {}
+          initContainers:
+            - name: redis-dump
+              image: redis:7
+              env:
+                - name: REDIS_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: redis-credentials
+                      key: host
+                - name: REDIS_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: redis-credentials
+                      key: port
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: redis-credentials
+                      key: password
+              command:
+                - sh
+                - -c
+                - |
+                  redis-cli -h ${REDIS_HOST} -p ${REDIS_PORT} -a ${REDIS_PASSWORD} --rdb /backup/redis.rdb
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
+          containers:
+            - name: upload
+              image: rclone/rclone:1.65
+              env:
+                - name: RCLONE_CONFIG_S3_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_S3_PROVIDER
+                  value: Other
+                - name: RCLONE_CONFIG_S3_ENV_AUTH
+                  value: "true"
+                - name: RCLONE_CONFIG_S3_ENDPOINT
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: s3_endpoint
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: access_key_id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: secret_access_key
+                - name: AWS_DEFAULT_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: region
+                - name: BACKUP_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: bucket
+                - name: BACKUP_PREFIX
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: prefix
+                - name: BACKUP_SSE
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: sse
+              command:
+                - sh
+                - -c
+                - |
+                  rclone copy /backup s3:${BACKUP_BUCKET}/${BACKUP_PREFIX}/redis/$(date +%F) \
+                    --s3-server-side-encryption ${BACKUP_SSE:-AES256}
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup

@@ -15,6 +15,9 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "name" . }}
     spec:
+      {{- if .Values.leaderElection.enabled }}
+      serviceAccountName: {{ default (include "name" .) .Values.serviceAccount.name }}
+      {{- end }}
       containers:
         - name: {{ include "name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -30,9 +33,31 @@ spec:
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
             - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
+            {{- if .Values.leaderElection.enabled }}
+            - name: LEADER_ELECTION_ENABLED
+              value: "true"
+            - name: LEADER_ELECTION_CONFIGMAP
+              value: {{ .Values.leaderElection.configMapName | quote }}
+            - name: LEADER_ELECTION_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LEADER_ELECTION_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: LEADER_ELECTION_LEASE_SECONDS
+              value: {{ .Values.leaderElection.leaseDurationSeconds | quote }}
+            - name: LEADER_ELECTION_RENEW_SECONDS
+              value: {{ .Values.leaderElection.renewDeadlineSeconds | quote }}
+            - name: LEADER_ELECTION_RETRY_SECONDS
+              value: {{ .Values.leaderElection.retryPeriodSeconds | quote }}
+            - name: LEADER_ELECTION_FAIL_OPEN
+              value: {{ .Values.leaderElection.failOpen | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ready
               port: {{ .Values.service.port }}
             initialDelaySeconds: 5
             periodSeconds: 10

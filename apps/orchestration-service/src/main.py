@@ -4,7 +4,7 @@ import logging
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -18,12 +18,13 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from orchestrator import AgentOrchestrator  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from leader_election import build_leader_elector  # noqa: E402
 
 logger = logging.getLogger("orchestration-service")
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Orchestration Service", version="0.1.0")
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/health/ready"})
 configure_tracing("orchestration-service")
 configure_metrics("orchestration-service")
 app.add_middleware(TraceMiddleware, service_name="orchestration-service")
@@ -40,13 +41,33 @@ class HealthResponse(BaseModel):
 @app.on_event("startup")
 async def startup() -> None:
     await orchestrator.initialize()
+    app.state.leader_elector = build_leader_elector("orchestration-service")
+    app.state.leader_elector.start()
     logger.info("orchestrator_ready", extra={"agents": len(orchestrator.agents)})
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    leader_elector = getattr(app.state, "leader_elector", None)
+    if leader_elector:
+        leader_elector.stop()
 
 
 @app.get("/health", response_model=HealthResponse)
 @app.get("/healthz", response_model=HealthResponse)
 async def health() -> HealthResponse:
     return HealthResponse()
+
+
+@app.get("/health/ready")
+async def readiness(request: Request) -> dict[str, bool | dict[str, bool]]:
+    leader_elector = getattr(request.app.state, "leader_elector", None)
+    leader_ready = leader_elector.is_leader if leader_elector else True
+    checks = {"orchestrator": orchestrator.initialized, "leader": leader_ready}
+    ready = all(checks.values())
+    if not ready:
+        raise HTTPException(status_code=503, detail={"ready": ready, "checks": checks})
+    return {"ready": ready, "checks": checks}
 
 
 @app.get("/agents", response_model=list[str])
