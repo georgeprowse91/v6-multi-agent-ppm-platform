@@ -87,3 +87,15 @@ variable "azure_monitor_connection_string" {
   type      = string
   sensitive = true
 }
+
+variable "ops_email" {
+  description = "Email address for platform operations notifications"
+  type        = string
+  default     = "platform-ops@example.com"
+}
+
+variable "rotation_webhook_url" {
+  description = "Webhook URL for secret rotation automation"
+  type        = string
+  default     = ""
+}

@@ -168,9 +168,44 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
         raise HTTPException(status_code=401, detail="Invalid token") from exc
 
 
+def _validate_auth_dev_mode_safety() -> None:
+    """Validate that AUTH_DEV_MODE is not enabled in production environments.
+
+    This function should be called at application startup to fail fast if
+    AUTH_DEV_MODE is misconfigured.
+    """
+    auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    production_environments = {"production", "prod", "staging", "stg"}
+
+    if auth_dev_mode and environment in production_environments:
+        logger.critical(
+            "SECURITY_VIOLATION: AUTH_DEV_MODE is enabled in a production environment. "
+            "This is a critical security misconfiguration. Refusing to start.",
+            extra={"environment": environment, "auth_dev_mode": auth_dev_mode},
+        )
+        raise RuntimeError(
+            f"AUTH_DEV_MODE cannot be enabled in '{environment}' environment. "
+            "This would bypass authentication and is a critical security risk."
+        )
+
+
 async def authenticate_request(request: Request, config: AuthConfig | None = None) -> AuthContext:
     auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
     environment = os.getenv("ENVIRONMENT", "development").lower()
+    production_environments = {"production", "prod", "staging", "stg"}
+
+    # Double-check at runtime - defense in depth
+    if auth_dev_mode and environment in production_environments:
+        logger.error(
+            "AUTH_DEV_MODE enabled in production - rejecting request",
+            extra={"environment": environment},
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Authentication system misconfigured"
+        )
+
     if auth_dev_mode and environment in {"dev", "development", "local", "test"}:
         auth_header = request.headers.get("Authorization", "")
         token = (

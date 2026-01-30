@@ -337,10 +337,27 @@ def _evaluate_abac_policy(
     return default_decision, reasons
 
 
+def _is_abac_enforcement_enabled() -> bool:
+    """Determine if ABAC enforcement is enabled.
+
+    In production environments, ABAC enforcement defaults to enabled.
+    In development environments, it defaults to disabled unless explicitly set.
+    """
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    production_environments = {"production", "prod", "staging", "stg"}
+
+    abac_env = os.getenv("ABAC_ENFORCEMENT")
+    if abac_env is not None:
+        return abac_env.lower() in {"1", "true", "yes"}
+
+    # Default to enabled in production, disabled elsewhere
+    return environment in production_environments
+
+
 async def _evaluate_abac(
     auth: AuthContext, permission: str, resource: dict[str, Any] | None, request: Request
 ) -> None:
-    if os.getenv("ABAC_ENFORCEMENT", "false").lower() not in {"1", "true", "yes"}:
+    if not _is_abac_enforcement_enabled():
         return
 
     payload = {
@@ -384,7 +401,34 @@ async def _evaluate_abac(
         raise HTTPException(status_code=403, detail="ABAC denied")
 
 
+def validate_auth_dev_mode_safety() -> None:
+    """Validate that AUTH_DEV_MODE is not enabled in production environments.
+
+    This function should be called at application startup to fail fast if
+    AUTH_DEV_MODE is misconfigured.
+    """
+    auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    production_environments = {"production", "prod", "staging", "stg"}
+
+    if auth_dev_mode and environment in production_environments:
+        logger.critical(
+            "SECURITY_VIOLATION: AUTH_DEV_MODE is enabled in a production environment. "
+            "This is a critical security misconfiguration. Refusing to start.",
+            extra={"environment": environment, "auth_dev_mode": auth_dev_mode},
+        )
+        raise RuntimeError(
+            f"AUTH_DEV_MODE cannot be enabled in '{environment}' environment. "
+            "This would bypass authentication and is a critical security risk."
+        )
+
+
 class AuthTenantMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, *args, **kwargs) -> None:
+        super().__init__(app, *args, **kwargs)
+        # Validate at middleware initialization
+        validate_auth_dev_mode_safety()
+
     async def dispatch(self, request: Request, call_next):
         exempt_paths = {
             "/",
@@ -399,6 +443,19 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
 
         auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
         environment = os.getenv("ENVIRONMENT", "development").lower()
+        production_environments = {"production", "prod", "staging", "stg"}
+
+        # Defense in depth - reject requests if misconfigured
+        if auth_dev_mode and environment in production_environments:
+            logger.error(
+                "AUTH_DEV_MODE enabled in production - rejecting request",
+                extra={"environment": environment},
+            )
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Authentication system misconfigured"}
+            )
+
         if auth_dev_mode and environment in {"dev", "development", "local", "test"}:
             auth_header = request.headers.get("Authorization", "")
             token = (

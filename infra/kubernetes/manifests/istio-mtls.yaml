@@ -1,0 +1,119 @@
+# Istio mTLS Configuration for Service-to-Service Communication
+# This enforces mutual TLS for all services within the ppm-platform namespace
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default-mtls
+  namespace: ppm-platform
+spec:
+  mtls:
+    mode: STRICT
+---
+# Allow permissive mode for health checks from load balancers
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: health-check-permissive
+  namespace: ppm-platform
+spec:
+  selector:
+    matchLabels:
+      app: ppm-api
+  portLevelMtls:
+    8000:
+      mode: PERMISSIVE
+---
+# Destination rule to enforce mTLS for all services
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: default-mtls-destination
+  namespace: ppm-platform
+spec:
+  host: "*.ppm-platform.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+# Authorization policy - deny all by default
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: ppm-platform
+spec:
+  {}
+---
+# Allow internal service-to-service communication
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-internal-services
+  namespace: ppm-platform
+spec:
+  rules:
+    - from:
+        - source:
+            namespaces: ["ppm-platform"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+---
+# Allow health check traffic from ingress
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-health-checks
+  namespace: ppm-platform
+spec:
+  selector:
+    matchLabels:
+      app: ppm-api
+  rules:
+    - to:
+        - operation:
+            paths: ["/healthz", "/api/v1/health/*"]
+            methods: ["GET"]
+---
+# Service-specific authorization: API Gateway can reach all services
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway
+  namespace: ppm-platform
+spec:
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/ppm-platform/sa/ppm-api-gateway"]
+---
+# Service-specific authorization: Workflow engine can reach orchestration and agents
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-workflow-engine
+  namespace: ppm-platform
+spec:
+  selector:
+    matchLabels:
+      component: orchestration
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/ppm-platform/sa/ppm-workflow-engine"]
+---
+# Service-specific authorization: Data service can reach database services
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-data-service
+  namespace: ppm-platform
+spec:
+  selector:
+    matchLabels:
+      component: data-layer
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/ppm-platform/sa/ppm-data-service"]

@@ -122,23 +122,61 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: ppm-api-hpa
+  labels:
+    app: ppm-api
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: ppm-api
-  minReplicas: 2
-  maxReplicas: 10
+  minReplicas: 3
+  maxReplicas: 15
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 70
+          averageUtilization: 65
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: 80
+          averageUtilization: 75
+  behavior:
+    scaleDown:
+      # Conservative scale-down to prevent flapping
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      # Aggressive scale-up for quick response to load
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+      selectPolicy: Max
+---
+# Pod Disruption Budget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ppm-api-pdb
+  labels:
+    app: ppm-api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: ppm-api
