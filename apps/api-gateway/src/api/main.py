@@ -112,6 +112,21 @@ async def startup_event():
     app.state.leader_elector = build_leader_elector("api-gateway")
     app.state.leader_elector.start()
 
+    rotation_enabled = os.getenv("CONNECTOR_ROTATION_ENABLED", "false").lower() == "true"
+    if rotation_enabled:
+        from api.routes.connectors import get_config_store
+        from api.secret_rotation import ConnectorSecretRotationScheduler
+
+        interval = int(os.getenv("CONNECTOR_ROTATION_INTERVAL_SECONDS", "3600"))
+        webhook_url = os.getenv("AZURE_AUTOMATION_WEBHOOK_URL")
+        scheduler = ConnectorSecretRotationScheduler(
+            get_config_store(),
+            interval_seconds=interval,
+            automation_webhook_url=webhook_url,
+        )
+        scheduler.start()
+        app.state.rotation_scheduler = scheduler
+
     logger.info("Application started successfully")
 
 
@@ -127,6 +142,10 @@ async def shutdown_event():
     leader_elector = getattr(app.state, "leader_elector", None)
     if leader_elector:
         leader_elector.stop()
+
+    rotation_scheduler = getattr(app.state, "rotation_scheduler", None)
+    if rotation_scheduler:
+        rotation_scheduler.stop()
 
     logger.info("Application shut down successfully")
 

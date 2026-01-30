@@ -60,6 +60,38 @@ class ConnectorDefinition:
         }
 
 
+OAUTH_ROTATION_FIELDS: list[dict[str, Any]] = [
+    {
+        "name": "rotation_enabled",
+        "type": "boolean",
+        "required": False,
+        "label": "Enable secret rotation",
+    },
+    {
+        "name": "rotation_provider",
+        "type": "string",
+        "required": False,
+        "label": "Rotation provider (azure_automation or background_job)",
+    },
+    {
+        "name": "refresh_token_rotation_days",
+        "type": "number",
+        "required": False,
+        "label": "Refresh token rotation (days)",
+    },
+    {
+        "name": "client_secret_rotation_days",
+        "type": "number",
+        "required": False,
+        "label": "Client secret rotation (days)",
+    },
+]
+
+
+def _with_rotation_fields(fields: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    return [*(fields or []), *OAUTH_ROTATION_FIELDS]
+
+
 # =============================================================================
 # CONNECTOR DEFINITIONS
 # =============================================================================
@@ -74,10 +106,12 @@ PLANVIEW_CONNECTOR = ConnectorDefinition(
     icon="planview",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
-        {"name": "portfolio_id", "type": "string", "required": False, "label": "Portfolio ID"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
+            {"name": "portfolio_id", "type": "string", "required": False, "label": "Portfolio ID"},
+        ]
+    ),
     env_vars=[
         "PLANVIEW_INSTANCE_URL",
         "PLANVIEW_CLIENT_ID",
@@ -95,9 +129,11 @@ CLARITY_CONNECTOR = ConnectorDefinition(
     icon="clarity",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
+        ]
+    ),
     env_vars=[
         "CLARITY_INSTANCE_URL",
         "CLARITY_CLIENT_ID",
@@ -115,10 +151,12 @@ MS_PROJECT_SERVER_CONNECTOR = ConnectorDefinition(
     icon="microsoft",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "tenant_id", "type": "string", "required": True, "label": "Azure Tenant ID"},
-        {"name": "site_url", "type": "url", "required": True, "label": "Project Web App URL"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "tenant_id", "type": "string", "required": True, "label": "Azure Tenant ID"},
+            {"name": "site_url", "type": "url", "required": True, "label": "Project Web App URL"},
+        ]
+    ),
     env_vars=[
         "MS_PROJECT_TENANT_ID",
         "MS_PROJECT_SITE_URL",
@@ -186,10 +224,12 @@ ASANA_CONNECTOR = ConnectorDefinition(
     icon="asana",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
-        {"name": "workspace_gid", "type": "string", "required": True, "label": "Workspace GID"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
+            {"name": "workspace_gid", "type": "string", "required": True, "label": "Workspace GID"},
+        ]
+    ),
     env_vars=["ASANA_ACCESS_TOKEN"],
 )
 
@@ -203,10 +243,17 @@ SHAREPOINT_CONNECTOR = ConnectorDefinition(
     icon="sharepoint",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "site_url", "type": "url", "required": True, "label": "SharePoint Site URL"},
-        {"name": "document_library", "type": "string", "required": False, "label": "Document Library"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "site_url", "type": "url", "required": True, "label": "SharePoint Site URL"},
+            {
+                "name": "document_library",
+                "type": "string",
+                "required": False,
+                "label": "Document Library",
+            },
+        ]
+    ),
     env_vars=[
         "SHAREPOINT_SITE_URL",
         "SHAREPOINT_CLIENT_ID",
@@ -240,10 +287,12 @@ GOOGLE_DRIVE_CONNECTOR = ConnectorDefinition(
     icon="google",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
-        {"name": "folder_id", "type": "string", "required": False, "label": "Root Folder ID"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
+            {"name": "folder_id", "type": "string", "required": False, "label": "Root Folder ID"},
+        ]
+    ),
     env_vars=[
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
@@ -277,9 +326,11 @@ ORACLE_CONNECTOR = ConnectorDefinition(
     icon="oracle",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": True, "label": "Oracle Cloud URL"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": True, "label": "Oracle Cloud URL"},
+        ]
+    ),
     env_vars=[
         "ORACLE_URL",
         "ORACLE_CLIENT_ID",
@@ -297,10 +348,12 @@ NETSUITE_CONNECTOR = ConnectorDefinition(
     icon="netsuite",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": False, "label": "REST Base URL"},
-        {"name": "account_id", "type": "string", "required": True, "label": "Account ID"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "REST Base URL"},
+            {"name": "account_id", "type": "string", "required": True, "label": "Account ID"},
+        ]
+    ),
     env_vars=[
         "NETSUITE_ACCOUNT_ID",
         "NETSUITE_CONSUMER_KEY",
@@ -319,10 +372,12 @@ WORKDAY_CONNECTOR = ConnectorDefinition(
     icon="workday",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
-        {"name": "tenant_name", "type": "string", "required": True, "label": "Tenant Name"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
+            {"name": "tenant_name", "type": "string", "required": True, "label": "Tenant Name"},
+        ]
+    ),
     env_vars=[
         "WORKDAY_API_URL",
         "WORKDAY_CLIENT_ID",
@@ -340,10 +395,12 @@ SAP_SUCCESSFACTORS_CONNECTOR = ConnectorDefinition(
     icon="sap",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "api_server", "type": "url", "required": True, "label": "API Server URL"},
-        {"name": "company_id", "type": "string", "required": True, "label": "Company ID"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "api_server", "type": "url", "required": True, "label": "API Server URL"},
+            {"name": "company_id", "type": "string", "required": True, "label": "Company ID"},
+        ]
+    ),
     env_vars=[
         "SF_API_SERVER",
         "SF_COMPANY_ID",
@@ -362,7 +419,7 @@ ADP_CONNECTOR = ConnectorDefinition(
     icon="adp",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
-    config_fields=[],
+    config_fields=_with_rotation_fields([]),
     env_vars=["ADP_API_URL", "ADP_CLIENT_ID", "ADP_CLIENT_SECRET", "ADP_REFRESH_TOKEN"],
 )
 
@@ -376,11 +433,13 @@ TEAMS_CONNECTOR = ConnectorDefinition(
     icon="teams",
     supported_sync_directions=[SyncDirection.OUTBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": False, "label": "Graph API Base URL"},
-        {"name": "team_id", "type": "string", "required": False, "label": "Team ID"},
-        {"name": "channel_id", "type": "string", "required": False, "label": "Channel ID"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "Graph API Base URL"},
+            {"name": "team_id", "type": "string", "required": False, "label": "Team ID"},
+            {"name": "channel_id", "type": "string", "required": False, "label": "Channel ID"},
+        ]
+    ),
     env_vars=[
         "TEAMS_CLIENT_ID",
         "TEAMS_CLIENT_SECRET",
@@ -398,11 +457,18 @@ SLACK_CONNECTOR = ConnectorDefinition(
     icon="slack",
     supported_sync_directions=[SyncDirection.OUTBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
-        {"name": "workspace_id", "type": "string", "required": False, "label": "Workspace ID"},
-        {"name": "default_channel", "type": "string", "required": False, "label": "Default Channel"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
+            {"name": "workspace_id", "type": "string", "required": False, "label": "Workspace ID"},
+            {
+                "name": "default_channel",
+                "type": "string",
+                "required": False,
+                "label": "Default Channel",
+            },
+        ]
+    ),
     env_vars=["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"],
 )
 
@@ -415,7 +481,7 @@ ZOOM_CONNECTOR = ConnectorDefinition(
     icon="zoom",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.OUTBOUND],
     auth_type="oauth2",
-    config_fields=[],
+    config_fields=_with_rotation_fields([]),
     env_vars=[
         "ZOOM_CLIENT_ID",
         "ZOOM_CLIENT_SECRET",
@@ -433,9 +499,11 @@ SERVICENOW_GRC_CONNECTOR = ConnectorDefinition(
     icon="servicenow",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
-    config_fields=[
-        {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
-    ],
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
+        ]
+    ),
     env_vars=[
         "SERVICENOW_URL",
         "SERVICENOW_CLIENT_ID",

@@ -29,7 +29,7 @@ from base_connector import (
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
-from secrets import resolve_secret
+from secrets import fetch_keyvault_secret, resolve_secret
 
 DEFAULT_TOKEN_URL = "https://api.planview.com/oauth2/token"
 
@@ -63,9 +63,26 @@ class PlanviewConnector(BaseConnector):
 
     def _get_credentials(self) -> tuple[str, str, str, str]:
         instance_url = resolve_secret(os.getenv("PLANVIEW_INSTANCE_URL")) or self.config.instance_url
+        keyvault_url = resolve_secret(os.getenv("PLANVIEW_KEYVAULT_URL"))
         client_id = resolve_secret(os.getenv("PLANVIEW_CLIENT_ID"))
         client_secret = resolve_secret(os.getenv("PLANVIEW_CLIENT_SECRET"))
         refresh_token = resolve_secret(os.getenv("PLANVIEW_REFRESH_TOKEN"))
+        client_id_secret = resolve_secret(os.getenv("PLANVIEW_CLIENT_ID_SECRET"))
+        client_secret_secret = resolve_secret(os.getenv("PLANVIEW_CLIENT_SECRET_SECRET"))
+        refresh_token_secret = resolve_secret(os.getenv("PLANVIEW_REFRESH_TOKEN_SECRET"))
+        client_id = (
+            fetch_keyvault_secret(keyvault_url, client_id_secret) if client_id_secret else client_id
+        ) or client_id
+        client_secret = (
+            fetch_keyvault_secret(keyvault_url, client_secret_secret)
+            if client_secret_secret
+            else client_secret
+        ) or client_secret
+        refresh_token = (
+            fetch_keyvault_secret(keyvault_url, refresh_token_secret)
+            if refresh_token_secret
+            else refresh_token
+        ) or refresh_token
         if not instance_url:
             raise ValueError("PLANVIEW_INSTANCE_URL environment variable is required")
         if not client_id or not client_secret or not refresh_token:
@@ -83,6 +100,7 @@ class PlanviewConnector(BaseConnector):
         scope = resolve_secret(os.getenv("PLANVIEW_SCOPES"))
         keyvault_url = resolve_secret(os.getenv("PLANVIEW_KEYVAULT_URL"))
         refresh_secret = resolve_secret(os.getenv("PLANVIEW_REFRESH_TOKEN_SECRET"))
+        client_secret_secret = resolve_secret(os.getenv("PLANVIEW_CLIENT_SECRET_SECRET"))
         return OAuth2TokenManager(
             token_url=token_url,
             client_id=client_id,
@@ -91,6 +109,7 @@ class PlanviewConnector(BaseConnector):
             scope=scope,
             keyvault_url=keyvault_url,
             refresh_token_secret_name=refresh_secret,
+            client_secret_secret_name=client_secret_secret,
         )
 
     def _build_client(self) -> HttpClient:
@@ -122,6 +141,7 @@ class PlanviewConnector(BaseConnector):
     def _request(self, method: str, url: str, **kwargs: Any) -> Any:
         client = self._build_client()
         token_manager = self._build_token_manager()
+        client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
         try:
             return client.request(method, url, **kwargs)
         except HttpClientError as exc:
@@ -130,6 +150,12 @@ class PlanviewConnector(BaseConnector):
         token_manager.refresh()
         client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
         return client.request(method, url, **kwargs)
+
+    def refresh_tokens(self) -> None:
+        token_manager = self._build_token_manager()
+        token_manager.refresh()
+        if self._client:
+            self._client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
 
     def authenticate(self) -> bool:
         try:

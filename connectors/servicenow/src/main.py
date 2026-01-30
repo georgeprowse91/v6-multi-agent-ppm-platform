@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Any
 
 from connectors.sdk.src.auth import OAuth2TokenManager
-from connectors.sdk.src.http_client import HttpClient
+from connectors.sdk.src.http_client import HttpClient, HttpClientError
 from connectors.sdk.src.runtime import ConnectorRuntime
-from connectors.sdk.src.secrets import resolve_secret
+from connectors.sdk.src.secrets import fetch_keyvault_secret, resolve_secret
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,9 +26,26 @@ class ServiceNowConfig:
     @classmethod
     def from_env(cls, manifest: dict[str, Any], rate_limit_per_minute: int) -> "ServiceNowConfig":
         instance_url = resolve_secret(os.getenv("SERVICENOW_INSTANCE_URL"))
+        keyvault_url = resolve_secret(os.getenv("SERVICENOW_KEYVAULT_URL"))
         client_id = resolve_secret(os.getenv("SERVICENOW_CLIENT_ID"))
         client_secret = resolve_secret(os.getenv("SERVICENOW_CLIENT_SECRET"))
         refresh_token = resolve_secret(os.getenv("SERVICENOW_REFRESH_TOKEN"))
+        client_id_secret = resolve_secret(os.getenv("SERVICENOW_CLIENT_ID_SECRET"))
+        client_secret_secret = resolve_secret(os.getenv("SERVICENOW_CLIENT_SECRET_SECRET"))
+        refresh_token_secret = resolve_secret(os.getenv("SERVICENOW_REFRESH_TOKEN_SECRET"))
+        client_id = (
+            fetch_keyvault_secret(keyvault_url, client_id_secret) if client_id_secret else client_id
+        ) or client_id
+        client_secret = (
+            fetch_keyvault_secret(keyvault_url, client_secret_secret)
+            if client_secret_secret
+            else client_secret
+        ) or client_secret
+        refresh_token = (
+            fetch_keyvault_secret(keyvault_url, refresh_token_secret)
+            if refresh_token_secret
+            else refresh_token
+        ) or refresh_token
         token_url = resolve_secret(os.getenv("SERVICENOW_TOKEN_URL")) or manifest.get(
             "token_url"
         )
@@ -54,6 +71,7 @@ def _build_token_manager(
 ) -> OAuth2TokenManager:
     keyvault_url = resolve_secret(os.getenv("SERVICENOW_KEYVAULT_URL"))
     refresh_secret = resolve_secret(os.getenv("SERVICENOW_REFRESH_TOKEN_SECRET"))
+    client_secret_secret = resolve_secret(os.getenv("SERVICENOW_CLIENT_SECRET_SECRET"))
     return OAuth2TokenManager(
         token_url=config.token_url,
         client_id=config.client_id,
@@ -63,6 +81,7 @@ def _build_token_manager(
         http_client=token_client,
         keyvault_url=keyvault_url,
         refresh_token_secret_name=refresh_secret,
+        client_secret_secret_name=client_secret_secret,
     )
 
 
@@ -81,21 +100,45 @@ def _build_api_client(
     )
 
 
-def _fetch_projects(client: HttpClient) -> list[dict[str, Any]]:
+def _request_with_refresh(
+    client: HttpClient,
+    token_manager: OAuth2TokenManager,
+    method: str,
+    url: str,
+    **kwargs: Any,
+) -> Any:
+    client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
+    try:
+        return client.request(method, url, **kwargs)
+    except HttpClientError as exc:
+        if exc.status_code != 401:
+            raise
+    token_manager.refresh()
+    client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
+    return client.request(method, url, **kwargs)
+
+
+def _fetch_projects(client: HttpClient, token_manager: OAuth2TokenManager) -> list[dict[str, Any]]:
     projects: list[dict[str, Any]] = []
-    params = {
-        "sysparm_limit": 100,
-        "sysparm_offset": 0,
-        "sysparm_fields": "sys_id,short_description,state,start_date,end_date,manager",
-    }
-    for page in client.paginate_offset(
-        "/api/now/table/pm_project",
-        params=params,
-        items_path="result",
-        offset_param="sysparm_offset",
-        limit_param="sysparm_limit",
-        limit=100,
-    ):
+    offset = 0
+    limit = 100
+    while True:
+        params = {
+            "sysparm_limit": limit,
+            "sysparm_offset": offset,
+            "sysparm_fields": "sys_id,short_description,state,start_date,end_date,manager",
+        }
+        response = _request_with_refresh(
+            client,
+            token_manager,
+            "GET",
+            "/api/now/table/pm_project",
+            params=params,
+        )
+        data = response.json()
+        page = data.get("result", []) if isinstance(data, dict) else []
+        if not isinstance(page, list):
+            break
         for item in page:
             projects.append(
                 {
@@ -110,6 +153,9 @@ def _fetch_projects(client: HttpClient) -> list[dict[str, Any]]:
                     else item.get("manager"),
                 }
             )
+        if len(page) < limit:
+            break
+        offset += limit
     return projects
 
 
@@ -140,7 +186,7 @@ def run_sync(
     token_manager = _build_token_manager(config, token_client=token_client)
     access_token = token_manager.get_access_token()
     api_client = client or _build_api_client(config, access_token, transport=transport)
-    records = _fetch_projects(api_client)
+    records = _fetch_projects(api_client, token_manager)
     return runtime.apply_mappings(records, tenant_id, include_schema=include_schema)
 
 

@@ -90,6 +90,7 @@ export interface Connector extends ConnectorDefinition {
   sync_frequency: SyncFrequency;
   health_status: HealthStatus;
   last_sync_at: string | null;
+  custom_fields?: Record<string, unknown>;
 }
 
 /**

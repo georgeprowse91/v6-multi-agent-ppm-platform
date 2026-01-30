@@ -241,6 +241,9 @@ export function ConfigPage({ type }: ConfigPageProps) {
                 entry.sync_direction,
               sync_frequency: (values.sync_frequency as Connector['sync_frequency']) ??
                 entry.sync_frequency,
+              custom_fields: Object.keys(customFields).length
+                ? customFields
+                : entry.custom_fields,
             }
           : entry
       )
@@ -454,6 +457,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                     project_key: connector.project_key,
                     sync_direction: connector.sync_direction,
                     sync_frequency: connector.sync_frequency,
+                    ...(connector.custom_fields ?? {}),
                   };
 
                   return (

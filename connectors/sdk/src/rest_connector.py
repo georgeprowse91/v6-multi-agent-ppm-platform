@@ -11,14 +11,14 @@ import base64
 import os
 from typing import Any
 
-from auth import OAuth2TokenManager
+from auth import OAuth2TokenManager, OAuthToken
 from base_connector import (
     BaseConnector,
     ConnectionStatus,
     ConnectionTestResult,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
-from secrets import resolve_secret
+from secrets import fetch_keyvault_secret, resolve_secret
 
 
 class RestConnector(BaseConnector):
@@ -258,6 +258,8 @@ class OAuth2RestConnector(RestConnector):
     SCOPES_ENV: str = ""
     KEYVAULT_URL_ENV: str = "CONNECTOR_KEYVAULT_URL"
     REFRESH_TOKEN_SECRET_ENV: str = "CONNECTOR_REFRESH_TOKEN_SECRET"
+    CLIENT_SECRET_SECRET_ENV: str = "CONNECTOR_CLIENT_SECRET_SECRET"
+    CLIENT_ID_SECRET_ENV: str = "CONNECTOR_CLIENT_ID_SECRET"
 
     def __init__(
         self,
@@ -272,9 +274,26 @@ class OAuth2RestConnector(RestConnector):
 
     def _get_credentials(self) -> tuple[str, str, str, str]:
         instance_url = resolve_secret(os.getenv(self.INSTANCE_URL_ENV)) or self.config.instance_url
+        keyvault_url = resolve_secret(os.getenv(self.KEYVAULT_URL_ENV))
         client_id = resolve_secret(os.getenv(self.CLIENT_ID_ENV))
         client_secret = resolve_secret(os.getenv(self.CLIENT_SECRET_ENV))
         refresh_token = resolve_secret(os.getenv(self.REFRESH_TOKEN_ENV))
+        client_id_secret = resolve_secret(os.getenv(self.CLIENT_ID_SECRET_ENV))
+        client_secret_secret = resolve_secret(os.getenv(self.CLIENT_SECRET_SECRET_ENV))
+        refresh_token_secret = resolve_secret(os.getenv(self.REFRESH_TOKEN_SECRET_ENV))
+        client_id = (
+            fetch_keyvault_secret(keyvault_url, client_id_secret) if client_id_secret else client_id
+        ) or client_id
+        client_secret = (
+            fetch_keyvault_secret(keyvault_url, client_secret_secret)
+            if client_secret_secret
+            else client_secret
+        ) or client_secret
+        refresh_token = (
+            fetch_keyvault_secret(keyvault_url, refresh_token_secret)
+            if refresh_token_secret
+            else refresh_token
+        ) or refresh_token
         if not instance_url:
             raise ValueError(f"{self.INSTANCE_URL_ENV} environment variable is required")
         if not client_id or not client_secret or not refresh_token:
@@ -291,6 +310,7 @@ class OAuth2RestConnector(RestConnector):
         scope = resolve_secret(os.getenv(self.SCOPES_ENV)) if self.SCOPES_ENV else None
         keyvault_url = resolve_secret(os.getenv(self.KEYVAULT_URL_ENV))
         refresh_token_secret = resolve_secret(os.getenv(self.REFRESH_TOKEN_SECRET_ENV))
+        client_secret_secret = resolve_secret(os.getenv(self.CLIENT_SECRET_SECRET_ENV))
         self._token_manager = OAuth2TokenManager(
             token_url=token_url,
             client_id=client_id,
@@ -299,6 +319,7 @@ class OAuth2RestConnector(RestConnector):
             scope=scope,
             keyvault_url=keyvault_url,
             refresh_token_secret_name=refresh_token_secret,
+            client_secret_secret_name=client_secret_secret,
         )
         self._instance_url = instance_url
         return self._token_manager
@@ -330,6 +351,7 @@ class OAuth2RestConnector(RestConnector):
     def _request(self, method: str, url: str, **kwargs: Any) -> Any:
         client = self._build_client()
         token_manager = self._build_token_manager()
+        client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
         try:
             return client.request(method, url, **kwargs)
         except HttpClientError as exc:
@@ -338,3 +360,10 @@ class OAuth2RestConnector(RestConnector):
         token_manager.refresh()
         client.set_header("Authorization", f"Bearer {token_manager.get_access_token()}")
         return client.request(method, url, **kwargs)
+
+    def refresh_tokens(self) -> OAuthToken:
+        token_manager = self._build_token_manager()
+        token = token_manager.refresh()
+        if self._client:
+            self._client.set_header("Authorization", f"Bearer {token.access_token}")
+        return token

@@ -34,12 +34,13 @@ class OAuth2TokenManager:
         token_url: str,
         client_id: str,
         client_secret: str,
-        refresh_token: str,
+        refresh_token: str | None,
         scope: str | None = None,
         http_client: HttpClient | None = None,
         expiry_buffer_seconds: int = 60,
         keyvault_url: str | None = None,
         refresh_token_secret_name: str | None = None,
+        client_secret_secret_name: str | None = None,
     ) -> None:
         self._token_url = token_url
         self._client_id = client_id
@@ -55,8 +56,25 @@ class OAuth2TokenManager:
             else None
         )
         self._refresh_token_secret_name = refresh_token_secret_name
+        self._client_secret_secret_name = client_secret_secret_name
+        self._sync_keyvault_secrets()
+
+    def _sync_keyvault_secrets(self) -> None:
+        if not self._keyvault_client:
+            return
+        if self._client_secret_secret_name:
+            secret = self._keyvault_client.get_secret(self._client_secret_secret_name)
+            if secret:
+                self._client_secret = secret
+        if self._refresh_token_secret_name:
+            secret = self._keyvault_client.get_secret(self._refresh_token_secret_name)
+            if secret:
+                self._refresh_token = secret
 
     def _build_payload(self) -> dict[str, Any]:
+        self._sync_keyvault_secrets()
+        if not self._refresh_token:
+            raise ValueError("Refresh token is required to request an OAuth access token")
         payload: dict[str, Any] = {
             "grant_type": "refresh_token",
             "refresh_token": self._refresh_token,

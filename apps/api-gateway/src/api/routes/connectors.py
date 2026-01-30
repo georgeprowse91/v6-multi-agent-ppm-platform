@@ -25,6 +25,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from api.circuit_breaker import CircuitBreaker
+from api.connector_loader import get_connector_class
 
 # Add connector SDK to path
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -110,39 +111,6 @@ def get_webhook_registrar(connector_id: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return getattr(module, "register_webhook", None)
-
-
-def get_connector_class(connector_id: str):
-    connector_map = {
-        "jira": ("jira_connector", "JiraConnector"),
-        "planview": ("planview_connector", "PlanviewConnector"),
-        "clarity": ("clarity_connector", "ClarityConnector"),
-        "ms_project_server": ("ms_project_server_connector", "MsProjectServerConnector"),
-        "azure_devops": ("azure_devops_connector", "AzureDevOpsConnector"),
-        "monday": ("monday_connector", "MondayConnector"),
-        "asana": ("asana_connector", "AsanaConnector"),
-        "sharepoint": ("sharepoint_connector", "SharePointConnector"),
-        "confluence": ("confluence_connector", "ConfluenceConnector"),
-        "google_drive": ("google_drive_connector", "GoogleDriveConnector"),
-        "sap": ("sap_connector", "SapConnector"),
-        "oracle": ("oracle_connector", "OracleConnector"),
-        "netsuite": ("netsuite_connector", "NetSuiteConnector"),
-        "workday": ("workday_connector", "WorkdayConnector"),
-        "sap_successfactors": ("sap_successfactors_connector", "SapSuccessFactorsConnector"),
-        "adp": ("adp_connector", "AdpConnector"),
-        "teams": ("teams_connector", "TeamsConnector"),
-        "slack": ("slack_connector", "SlackConnector"),
-        "zoom": ("zoom_connector", "ZoomConnector"),
-        "servicenow_grc": ("servicenow_grc_connector", "ServiceNowGrcConnector"),
-        "archer": ("archer_connector", "ArcherConnector"),
-        "logicgate": ("logicgate_connector", "LogicGateConnector"),
-    }
-    module_info = connector_map.get(connector_id)
-    if not module_info:
-        return None
-    module_name, class_name = module_info
-    module = __import__(module_name, fromlist=[class_name])
-    return getattr(module, class_name, None)
 
 
 def _webhook_secret_env_var(connector_id: str) -> str:
@@ -264,6 +232,7 @@ class ConnectorListItemResponse(BaseModel):
     sync_frequency: str = "daily"
     health_status: str = "unknown"
     last_sync_at: str | None = None
+    custom_fields: dict[str, Any] = Field(default_factory=dict)
 
 
 class TestConnectionRequest(BaseModel):
@@ -407,6 +376,7 @@ async def list_connectors(category: str | None = None):
             sync_frequency=config.sync_frequency.value if config else "daily",
             health_status=config.health_status if config else "unknown",
             last_sync_at=config.last_sync_at.isoformat() if config and config.last_sync_at else None,
+            custom_fields=config.custom_fields if config else {},
         )
         result.append(item)
 
@@ -445,6 +415,7 @@ async def get_connector(connector_id: str):
         sync_frequency=config.sync_frequency.value if config else "daily",
         health_status=config.health_status if config else "unknown",
         last_sync_at=config.last_sync_at.isoformat() if config and config.last_sync_at else None,
+        custom_fields=config.custom_fields if config else {},
     )
 
 

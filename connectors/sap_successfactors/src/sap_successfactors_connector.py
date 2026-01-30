@@ -33,6 +33,10 @@ class SapSuccessFactorsConnector(OAuth2RestConnector):
     TOKEN_URL_ENV = "SF_TOKEN_URL"
     DEFAULT_TOKEN_URL = "https://api.successfactors.com/oauth/token"
     SCOPES_ENV = "SF_SCOPES"
+    KEYVAULT_URL_ENV = "SF_KEYVAULT_URL"
+    REFRESH_TOKEN_SECRET_ENV = "SF_REFRESH_TOKEN_SECRET"
+    CLIENT_SECRET_SECRET_ENV = "SF_CLIENT_SECRET_SECRET"
+    CLIENT_ID_SECRET_ENV = "SF_CLIENT_ID_SECRET"
 
     AUTH_TEST_ENDPOINT = "/odata/v2/User"
     AUTH_TEST_PARAMS = {"$top": 1}
