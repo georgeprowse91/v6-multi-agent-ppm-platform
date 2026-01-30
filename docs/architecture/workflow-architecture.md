@@ -6,14 +6,16 @@ Explain how durable workflows are defined, executed, and audited across the plat
 
 ## Architecture-level context
 
-Workflows are the backbone for stage-gate execution, approvals, and multi-step orchestration. The platform uses a dedicated workflow engine (`apps/workflow-engine`) that stores workflow instances, exposes REST endpoints, and emits audit entries to the audit log service. Orchestration services and agents call the workflow engine to start, resume, and inspect workflow runs.
+Workflows are the backbone for stage-gate execution, approvals, and multi-step orchestration. The platform uses a dedicated workflow engine (`apps/workflow-engine`) and the orchestration workflow engine agent (`agents/operations-management/agent-24-workflow-process-engine`) to execute workflow instances, persist state in an external database, and emit audit entries to the audit log service. Orchestration services and agents call the workflow engine to start, resume, and inspect workflow runs while worker nodes pull tasks from a shared queue.
 
 ## Core components
 
 | Component | Location | Responsibility |
 | --- | --- | --- |
 | Workflow engine API | `apps/workflow-engine/src/main.py` | REST API for workflow lifecycle (start/status/resume). |
-| Workflow storage | `apps/workflow-engine/src/workflow_storage.py` | Durable state store for workflow instances. |
+| Distributed workflow engine | `agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py` | Orchestrates workflow execution across worker nodes. |
+| Workflow storage | `agents/operations-management/agent-24-workflow-process-engine/src/workflow_state_store.py` | External database-backed state store for workflow definitions, instances, and tasks. |
+| Workflow task queue | `agents/operations-management/agent-24-workflow-process-engine/src/workflow_task_queue.py` | Queue-backed coordination for distributing workflow tasks to workers. |
 | Workflow definitions | `apps/workflow-engine/workflows/definitions/*.workflow.yaml` | Declarative workflow definitions. |
 | Workflow registry | `apps/workflow-engine/workflow_registry.py` | Discovery of workflow definitions. |
 | Orchestration service | `apps/orchestration-service/src/main.py` | Calls workflow engine and coordinates agent plans. |
@@ -21,19 +23,21 @@ Workflows are the backbone for stage-gate execution, approvals, and multi-step o
 ## Workflow lifecycle
 
 1. **Start**: Clients POST to `/workflows/start` with a workflow ID and payload.
-2. **Persist**: The workflow engine stores a `run_id`, `workflow_id`, `tenant_id`, status, and payload in SQLite.
-3. **Resume**: Orchestration services call `/workflows/resume/{run_id}` to continue execution.
-4. **Audit**: Workflow changes are emitted to the audit log for retention and compliance.
+2. **Persist**: The workflow engine stores a `run_id`, `workflow_id`, `tenant_id`, status, and payload in PostgreSQL (or another external database).
+3. **Distribute**: Workflow tasks are enqueued to a shared message queue for worker nodes.
+4. **Resume**: Orchestration services call `/workflows/resume/{run_id}` or workers resume from persisted state after failures.
+5. **Audit**: Workflow changes are emitted to the audit log for retention and compliance.
 
 ## Failure handling and retries
 
-- Workflows persist state in SQLite by default, allowing the system to resume after process restarts.
+- Workflows persist state in an external database, allowing the system to resume across nodes after process restarts.
 - Retry policies are enforced by orchestration logic and the workflow engine status transitions.
-- Long-running workflows should checkpoint through the orchestration service and record progress metadata.
+- Worker failures are handled by marking tasks failed and leaving state in the database for retry or manual intervention.
 
 ## Operational guidance
 
-- **Storage path**: Set `WORKFLOW_DB_PATH` to override the default SQLite location.
+- **State backend**: Set `WORKFLOW_DATABASE_URL` and `WORKFLOW_STATE_BACKEND=db` to enable PostgreSQL persistence.
+- **Queue backend**: Set `WORKFLOW_QUEUE_BACKEND=rabbitmq` and `WORKFLOW_QUEUE_URL` to enable task distribution.
 - **Tenant enforcement**: The workflow engine enforces tenant ownership on reads and resumes.
 - **Workflow updates**: Version workflow definitions as new YAML files and update registry usage in orchestration services.
 
@@ -54,8 +58,7 @@ Workflows are the backbone for stage-gate execution, approvals, and multi-step o
 
 ## Implementation status
 
-- **Implemented:** Workflow engine API, SQLite-backed storage, YAML workflow definitions.
-- **Planned:** Distributed workflow orchestration and external state backends.
+- **Implemented:** Workflow engine API, external database-backed storage, queue-driven task distribution, YAML workflow definitions.
 
 ## Related docs
 

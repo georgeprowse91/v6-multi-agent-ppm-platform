@@ -1,15 +1,20 @@
 import pytest
+
 from workflow_engine_agent import WorkflowEngineAgent
+from workflow_task_queue import InMemoryWorkflowTaskQueue
 
 
 @pytest.mark.asyncio
 async def test_workflow_engine_persists_and_handles_events(tmp_path):
+    task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
             "workflow_definition_store_path": tmp_path / "definitions.json",
             "workflow_instance_store_path": tmp_path / "instances.json",
             "workflow_event_store_path": tmp_path / "events.json",
             "workflow_subscription_store_path": tmp_path / "subscriptions.json",
+            "workflow_task_store_path": tmp_path / "tasks.json",
+            "workflow_task_queue": task_queue,
         }
     )
     await agent.initialize()
@@ -40,20 +45,23 @@ async def test_workflow_engine_persists_and_handles_events(tmp_path):
         }
     )
 
-    instances = agent.workflow_instance_store.list("tenant-workflow")
+    instances = await agent.state_store.list_instances("tenant-workflow")
     assert instances
-    events = agent.workflow_event_store.list("tenant-workflow")
+    events = await agent.state_store.list_events("tenant-workflow")
     assert events
 
 
 @pytest.mark.asyncio
 async def test_workflow_engine_instances_success(tmp_path):
+    task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
             "workflow_definition_store_path": tmp_path / "definitions.json",
             "workflow_instance_store_path": tmp_path / "instances.json",
             "workflow_event_store_path": tmp_path / "events.json",
             "workflow_subscription_store_path": tmp_path / "subscriptions.json",
+            "workflow_task_store_path": tmp_path / "tasks.json",
+            "workflow_task_queue": task_queue,
         }
     )
     await agent.initialize()
@@ -67,12 +75,15 @@ async def test_workflow_engine_instances_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_workflow_engine_trigger_task_event_executes_automated_task(tmp_path):
+    task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
             "workflow_definition_store_path": tmp_path / "definitions.json",
             "workflow_instance_store_path": tmp_path / "instances.json",
             "workflow_event_store_path": tmp_path / "events.json",
             "workflow_subscription_store_path": tmp_path / "subscriptions.json",
+            "workflow_task_store_path": tmp_path / "tasks.json",
+            "workflow_task_queue": task_queue,
         }
     )
     await agent.initialize()
@@ -118,17 +129,22 @@ async def test_workflow_engine_trigger_task_event_executes_automated_task(tmp_pa
         }
     )
 
-    assignment = agent.task_assignments.get("auto-task")
+    await agent.run_worker_once()
+
+    assignment = await agent.state_store.get_task("tenant-workflow", "auto-task")
     assert assignment is not None
     assert assignment["status"] == "completed"
 
 
 @pytest.mark.asyncio
 async def test_workflow_engine_validation_rejects_invalid_action(tmp_path):
+    task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
             "workflow_definition_store_path": tmp_path / "definitions.json",
             "workflow_instance_store_path": tmp_path / "instances.json",
+            "workflow_task_store_path": tmp_path / "tasks.json",
+            "workflow_task_queue": task_queue,
         }
     )
     await agent.initialize()
@@ -140,10 +156,13 @@ async def test_workflow_engine_validation_rejects_invalid_action(tmp_path):
 
 @pytest.mark.asyncio
 async def test_workflow_engine_validation_rejects_missing_fields(tmp_path):
+    task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
             "workflow_definition_store_path": tmp_path / "definitions.json",
             "workflow_instance_store_path": tmp_path / "instances.json",
+            "workflow_task_store_path": tmp_path / "tasks.json",
+            "workflow_task_queue": task_queue,
         }
     )
     await agent.initialize()

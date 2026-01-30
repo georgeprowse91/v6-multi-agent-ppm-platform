@@ -9,14 +9,16 @@ Specification: agents/operations-management/agent-24-workflow-process-engine/REA
 """
 
 from datetime import datetime
-from pathlib import Path
+import os
 from typing import Any
 
 from observability.tracing import get_trace_id
 
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.state_store import TenantStateStore
+
+from workflow_state_store import WorkflowStateStore, build_workflow_state_store
+from workflow_task_queue import WorkflowTaskQueue, build_task_message, build_task_queue
 
 
 class WorkflowEngineAgent(BaseAgent):
@@ -37,42 +39,27 @@ class WorkflowEngineAgent(BaseAgent):
     def __init__(self, agent_id: str = "agent_024", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
+        config = config or {}
+
         # Configuration parameters
-        self.default_timeout_minutes = config.get("default_timeout_minutes", 60) if config else 60
-        self.max_retry_attempts = config.get("max_retry_attempts", 3) if config else 3
-        self.max_parallel_tasks = config.get("max_parallel_tasks", 10) if config else 10
+        self.default_timeout_minutes = config.get("default_timeout_minutes", 60)
+        self.max_retry_attempts = config.get("max_retry_attempts", 3)
+        self.max_parallel_tasks = config.get("max_parallel_tasks", 10)
+        self.worker_id = config.get("worker_id", os.getenv("WORKFLOW_WORKER_ID", self.agent_id))
 
-        definition_store_path = (
-            Path(config.get("workflow_definition_store_path", "data/workflows.json"))
-            if config
-            else Path("data/workflows.json")
+        self.state_store: WorkflowStateStore = config.get("workflow_state_store") or (
+            build_workflow_state_store(config)
         )
-        instance_store_path = (
-            Path(config.get("workflow_instance_store_path", "data/workflow_instances.json"))
-            if config
-            else Path("data/workflow_instances.json")
+        self.task_queue: WorkflowTaskQueue = config.get("workflow_task_queue") or (
+            build_task_queue(config)
         )
-        event_store_path = (
-            Path(config.get("workflow_event_store_path", "data/workflow_events.json"))
-            if config
-            else Path("data/workflow_events.json")
-        )
-        subscription_store_path = (
-            Path(config.get("workflow_subscription_store_path", "data/workflow_subscriptions.json"))
-            if config
-            else Path("data/workflow_subscriptions.json")
-        )
-        self.workflow_definition_store = TenantStateStore(definition_store_path)
-        self.workflow_instance_store = TenantStateStore(instance_store_path)
-        self.workflow_event_store = TenantStateStore(event_store_path)
-        self.workflow_subscription_store = TenantStateStore(subscription_store_path)
 
-        # Data stores (will be replaced with database)
+        # Cached state
         self.workflow_definitions = {}  # type: ignore
         self.workflow_instances = {}  # type: ignore
         self.task_assignments = {}  # type: ignore
         self.event_subscriptions = {}  # type: ignore
-        self.event_bus = config.get("event_bus") if config else None
+        self.event_bus = config.get("event_bus")
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
 
@@ -80,12 +67,11 @@ class WorkflowEngineAgent(BaseAgent):
         """Initialize workflow engine, orchestration services, and integrations."""
         await super().initialize()
         self.logger.info("Initializing Workflow & Process Engine Agent...")
+        await self.state_store.initialize()
 
         # Future work: Initialize Azure Durable Functions for orchestration
         # Future work: Set up Azure Logic Apps for workflow execution
-        # Future work: Connect to Azure SQL Database for workflow state
         # Future work: Initialize Azure Service Bus for event-driven triggers
-        # Future work: Set up Azure Table Storage or Cosmos DB for instance state
         # Future work: Connect to BPMN modeling tools (Camunda Modeler)
         # Future work: Initialize Azure Functions for task execution
         # Future work: Set up Azure Monitor for workflow monitoring
@@ -193,7 +179,9 @@ class WorkflowEngineAgent(BaseAgent):
             )
 
         elif action == "assign_task":
-            return await self._assign_task(input_data.get("task_id"), input_data.get("assignee"))  # type: ignore
+            return await self._assign_task(
+                tenant_id, input_data.get("task_id"), input_data.get("assignee")  # type: ignore
+            )
 
         elif action == "complete_task":
             return await self._complete_task(
@@ -213,13 +201,15 @@ class WorkflowEngineAgent(BaseAgent):
             return await self._handle_event(tenant_id, input_data.get("event", {}))
 
         elif action == "retry_failed_task":
-            return await self._retry_failed_task(input_data.get("task_id"))  # type: ignore
+            return await self._retry_failed_task(tenant_id, input_data.get("task_id"))  # type: ignore
 
         elif action == "get_workflow_instances":
-            return await self._get_workflow_instances(input_data.get("filters", {}))
+            return await self._get_workflow_instances(
+                tenant_id, input_data.get("filters", {})
+            )
 
         elif action == "get_task_inbox":
-            return await self._get_task_inbox(input_data.get("user_id"))  # type: ignore
+            return await self._get_task_inbox(tenant_id, input_data.get("user_id"))  # type: ignore
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -263,7 +253,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Store workflow definition
         self.workflow_definitions[workflow_id] = workflow
-        self.workflow_definition_store.upsert(tenant_id, workflow_id, workflow.copy())
+        await self.state_store.save_definition(tenant_id, workflow_id, workflow.copy())
 
         await self._register_event_triggers(
             tenant_id, workflow_id, workflow_config.get("event_triggers", [])
@@ -297,11 +287,7 @@ class WorkflowEngineAgent(BaseAgent):
         self.logger.info(f"Starting workflow instance: {workflow_id}")
 
         # Get workflow definition
-        workflow = self.workflow_definitions.get(workflow_id)
-        if not workflow:
-            workflow = self.workflow_definition_store.get(tenant_id, workflow_id)
-            if workflow:
-                self.workflow_definitions[workflow_id] = workflow
+        workflow = await self._load_definition(tenant_id, workflow_id)
         if not workflow:
             raise ValueError(f"Workflow not found: {workflow_id}")
 
@@ -325,7 +311,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Store instance
         self.workflow_instances[instance_id] = instance
-        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
 
         await self._emit_workflow_event(
             tenant_id,
@@ -357,17 +343,13 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Getting workflow status: {instance_id}")
 
-        instance = self.workflow_instances.get(instance_id)
-        if not instance:
-            instance = self.workflow_instance_store.get(tenant_id, instance_id)
-            if instance:
-                self.workflow_instances[instance_id] = instance
+        instance = await self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
         # Calculate progress
         workflow_id = instance.get("workflow_id")
-        workflow = self.workflow_definitions.get(workflow_id)
+        workflow = await self._load_definition(tenant_id, workflow_id) if workflow_id else None
         total_tasks = len(workflow.get("tasks", [])) if workflow else 0
         completed_tasks = len(instance.get("completed_tasks", []))
         progress_pct = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
@@ -384,7 +366,7 @@ class WorkflowEngineAgent(BaseAgent):
             "completed_at": instance.get("completed_at"),
         }
 
-    async def _assign_task(self, task_id: str, assignee: str) -> dict[str, Any]:
+    async def _assign_task(self, tenant_id: str, task_id: str, assignee: str) -> dict[str, Any]:
         """
         Assign task to user.
 
@@ -393,20 +375,13 @@ class WorkflowEngineAgent(BaseAgent):
         self.logger.info(f"Assigning task {task_id} to {assignee}")
 
         # Find task assignment
-        assignment = self.task_assignments.get(task_id)
+        assignment = await self._load_task_assignment(tenant_id, task_id)
         if not assignment:
-            # Create new assignment
-            assignment = {
-                "task_id": task_id,
-                "assignee": assignee,
-                "assigned_at": datetime.utcnow().isoformat(),
-                "status": "assigned",
-            }
-            self.task_assignments[task_id] = assignment
-        else:
-            # Update assignment
-            assignment["assignee"] = assignee
-            assignment["assigned_at"] = datetime.utcnow().isoformat()
+            assignment = {"task_id": task_id, "status": "assigned"}
+        assignment["assignee"] = assignee
+        assignment["assigned_at"] = datetime.utcnow().isoformat()
+        self.task_assignments[task_id] = assignment
+        await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         # Future work: Store in database
         # Future work: Send notification to assignee
@@ -425,7 +400,7 @@ class WorkflowEngineAgent(BaseAgent):
         self.logger.info(f"Completing task: {task_id}")
 
         # Find task assignment
-        assignment = self.task_assignments.get(task_id)
+        assignment = await self._load_task_assignment(tenant_id, task_id)
         if not assignment:
             raise ValueError(f"Task assignment not found: {task_id}")
 
@@ -433,6 +408,7 @@ class WorkflowEngineAgent(BaseAgent):
         assignment["status"] = "completed"
         assignment["completed_at"] = datetime.utcnow().isoformat()
         assignment["result"] = task_result
+        await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         # Find workflow instance
         instance_id = assignment.get("instance_id")
@@ -459,7 +435,7 @@ class WorkflowEngineAgent(BaseAgent):
                 instance["completed_at"] = datetime.utcnow().isoformat()
 
         if instance_id and instance:
-            self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+            await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
             await self._emit_workflow_event(
                 tenant_id,
                 "workflow.task.completed",
@@ -484,7 +460,7 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Canceling workflow: {instance_id}")
 
-        instance = self._load_instance(tenant_id, instance_id)
+        instance = await self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
@@ -494,15 +470,19 @@ class WorkflowEngineAgent(BaseAgent):
         # Update instance status
         instance["status"] = "cancelled"
         instance["cancelled_at"] = datetime.utcnow().isoformat()
-        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(
             tenant_id, "workflow.cancelled", {"instance_id": instance_id}
         )
 
         # Cancel pending tasks
         for task_id in instance.get("current_tasks", []):
-            if task_id in self.task_assignments:
-                self.task_assignments[task_id]["status"] = "cancelled"
+            assignment = await self._load_task_assignment(tenant_id, task_id)
+            if assignment:
+                assignment["status"] = "cancelled"
+                assignment["cancelled_at"] = datetime.utcnow().isoformat()
+                self.task_assignments[task_id] = assignment
+                await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         # Future work: Store in database
         # Future work: Publish workflow.cancelled event
@@ -521,13 +501,13 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Pausing workflow: {instance_id}")
 
-        instance = self._load_instance(tenant_id, instance_id)
+        instance = await self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
         instance["status"] = "paused"
         instance["paused_at"] = datetime.utcnow().isoformat()
-        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(tenant_id, "workflow.paused", {"instance_id": instance_id})
 
         # Future work: Store in database
@@ -543,7 +523,7 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Resuming workflow: {instance_id}")
 
-        instance = self._load_instance(tenant_id, instance_id)
+        instance = await self._load_instance(tenant_id, instance_id)
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
@@ -552,7 +532,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         instance["status"] = "running"
         instance["resumed_at"] = datetime.utcnow().isoformat()
-        self.workflow_instance_store.upsert(tenant_id, instance_id, instance.copy())
+        await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(tenant_id, "workflow.resumed", {"instance_id": instance_id})
 
         # Future work: Store in database
@@ -577,7 +557,7 @@ class WorkflowEngineAgent(BaseAgent):
         event_data = event.get("data", {})
 
         # Find subscribed workflows
-        subscribed_workflows = await self._find_event_subscriptions(event_type)  # type: ignore
+        subscribed_workflows = await self._find_event_subscriptions(tenant_id, event_type)  # type: ignore
 
         triggered_instances = []
         for subscription in subscribed_workflows:
@@ -594,13 +574,11 @@ class WorkflowEngineAgent(BaseAgent):
                     task_id = event_data.get("task_id") or subscription.get("task_id")
                     if not instance_id or not task_id:
                         continue
-                    instance = self._load_instance(tenant_id, instance_id)
+                    instance = await self._load_instance(tenant_id, instance_id)
                     if not instance:
                         continue
                     workflow_id = instance.get("workflow_id") or subscription.get("workflow_id")
-                    workflow = self.workflow_definitions.get(workflow_id)
-                    if not workflow:
-                        workflow = self.workflow_definition_store.get(tenant_id, workflow_id)
+                    workflow = await self._load_definition(tenant_id, workflow_id)
                     if not workflow:
                         continue
                     task = next(
@@ -625,7 +603,7 @@ class WorkflowEngineAgent(BaseAgent):
             "triggered_instances": triggered_instances,
         }
 
-    async def _retry_failed_task(self, task_id: str) -> dict[str, Any]:
+    async def _retry_failed_task(self, tenant_id: str, task_id: str) -> dict[str, Any]:
         """
         Retry failed task.
 
@@ -633,7 +611,7 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Retrying failed task: {task_id}")
 
-        assignment = self.task_assignments.get(task_id)
+        assignment = await self._load_task_assignment(tenant_id, task_id)
         if not assignment:
             raise ValueError(f"Task assignment not found: {task_id}")
 
@@ -650,6 +628,7 @@ class WorkflowEngineAgent(BaseAgent):
         assignment["status"] = "assigned"
         assignment["retry_count"] = retry_count + 1
         assignment["retried_at"] = datetime.utcnow().isoformat()
+        await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         # Re-execute task
         assignment.get("instance_id")
@@ -657,7 +636,9 @@ class WorkflowEngineAgent(BaseAgent):
 
         return {"task_id": task_id, "status": "retrying", "retry_count": assignment["retry_count"]}
 
-    async def _get_workflow_instances(self, filters: dict[str, Any]) -> dict[str, Any]:
+    async def _get_workflow_instances(
+        self, tenant_id: str, filters: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Get workflow instances with filters.
 
@@ -667,7 +648,9 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Filter instances
         filtered = []
-        for instance_id, instance in self.workflow_instances.items():
+        instances = await self.state_store.list_instances(tenant_id)
+        for instance in instances:
+            instance_id = instance.get("instance_id")
             if await self._matches_instance_filters(instance, filters):
                 filtered.append(
                     {
@@ -684,7 +667,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         return {"total_instances": len(filtered), "instances": filtered, "filters": filters}
 
-    async def _get_task_inbox(self, user_id: str) -> dict[str, Any]:
+    async def _get_task_inbox(self, tenant_id: str, user_id: str) -> dict[str, Any]:
         """
         Get user's pending tasks.
 
@@ -694,11 +677,12 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Find tasks assigned to user
         user_tasks = []
-        for task_id, assignment in self.task_assignments.items():
+        tasks = await self.state_store.list_tasks(tenant_id, assignee=user_id, status="assigned")
+        for assignment in tasks:
             if assignment.get("assignee") == user_id and assignment.get("status") == "assigned":
                 user_tasks.append(
                     {
-                        "task_id": task_id,
+                        "task_id": assignment.get("task_id"),
                         "instance_id": assignment.get("instance_id"),
                         "assigned_at": assignment.get("assigned_at"),
                         "task_type": assignment.get("task_type"),
@@ -756,22 +740,32 @@ class WorkflowEngineAgent(BaseAgent):
         task_id = task.get("task_id")
 
         # Create task assignment
-        self.task_assignments[task_id] = {
+        assignment = {
             "task_id": task_id,
             "instance_id": instance_id,
             "task_type": task.get("type"),
-            "status": "pending",
+            "status": "queued",
             "created_at": datetime.utcnow().isoformat(),
+            "task_payload": task,
         }
+        self.task_assignments[task_id] = assignment
+        await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         # Add to instance current tasks
-        instance = self.workflow_instances.get(instance_id)
+        instance = await self._load_instance(tenant_id, instance_id)
         if instance:
             instance.get("current_tasks", []).append(task_id)
+            await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
 
-        # If automated task, execute immediately
-        if task.get("type") == "automated":
-            await self._complete_task(tenant_id, task_id, {"status": "auto_completed"})
+        await self.task_queue.publish_task(
+            build_task_message(
+                tenant_id=tenant_id,
+                instance_id=instance_id,
+                task_id=task_id,
+                task_type=task.get("type"),
+                payload={"workflow_id": instance.get("workflow_id") if instance else None},
+            )
+        )
 
     async def _determine_next_tasks(
         self, instance: dict[str, Any], completed_task_id: str
@@ -784,12 +778,14 @@ class WorkflowEngineAgent(BaseAgent):
         """Check if workflow is complete."""
         return len(instance.get("current_tasks", [])) == 0 and instance.get("status") == "running"
 
-    async def _find_event_subscriptions(self, event_type: str) -> list[dict[str, Any]]:
+    async def _find_event_subscriptions(
+        self, tenant_id: str, event_type: str
+    ) -> list[dict[str, Any]]:
         """Find workflows subscribed to event type."""
-        subscriptions = []
-        for sub_id, subscription in self.event_subscriptions.items():
-            if subscription.get("event_type") == event_type:
-                subscriptions.append(subscription)
+        subscriptions = await self.state_store.list_subscriptions(tenant_id, event_type=event_type)
+        for subscription in subscriptions:
+            if subscription.get("subscription_id"):
+                self.event_subscriptions[subscription["subscription_id"]] = subscription
         return subscriptions
 
     async def _register_event_triggers(
@@ -805,9 +801,10 @@ class WorkflowEngineAgent(BaseAgent):
                 "criteria": trigger.get("criteria", {}),
                 "action": trigger.get("action", "start"),
                 "created_at": datetime.utcnow().isoformat(),
+                "task_id": trigger.get("task_id"),
             }
             self.event_subscriptions[subscription_id] = subscription
-            self.workflow_subscription_store.upsert(tenant_id, subscription_id, subscription.copy())
+            await self.state_store.save_subscription(tenant_id, subscription_id, subscription.copy())
 
     async def _emit_workflow_event(
         self, tenant_id: str, event_type: str, payload: dict[str, Any]
@@ -820,7 +817,7 @@ class WorkflowEngineAgent(BaseAgent):
             "payload": payload,
             "timestamp": datetime.utcnow().isoformat(),
         }
-        self.workflow_event_store.upsert(tenant_id, event_id, event_record)
+        await self.state_store.save_event(tenant_id, event_id, event_record)
         audit_event = build_audit_event(
             tenant_id=tenant_id,
             action=event_type,
@@ -856,14 +853,96 @@ class WorkflowEngineAgent(BaseAgent):
 
         return True
 
-    def _load_instance(self, tenant_id: str, instance_id: str) -> dict[str, Any] | None:
+    async def _load_definition(self, tenant_id: str, workflow_id: str) -> dict[str, Any] | None:
+        workflow = self.workflow_definitions.get(workflow_id)
+        if workflow:
+            return workflow
+        stored = await self.state_store.get_definition(tenant_id, workflow_id)
+        if stored:
+            self.workflow_definitions[workflow_id] = stored
+        return stored
+
+    async def _load_instance(self, tenant_id: str, instance_id: str) -> dict[str, Any] | None:
         instance = self.workflow_instances.get(instance_id)
         if instance:
             return instance
-        stored = self.workflow_instance_store.get(tenant_id, instance_id)
+        stored = await self.state_store.get_instance(tenant_id, instance_id)
         if stored:
             self.workflow_instances[instance_id] = stored
         return stored
+
+    async def _load_task_assignment(self, tenant_id: str, task_id: str) -> dict[str, Any] | None:
+        assignment = self.task_assignments.get(task_id)
+        if assignment:
+            return assignment
+        stored = await self.state_store.get_task(tenant_id, task_id)
+        if stored:
+            self.task_assignments[task_id] = stored
+        return stored
+
+    async def run_worker_once(self) -> dict[str, Any] | None:
+        message = await self.task_queue.reserve_task()
+        if not message:
+            return None
+        result: dict[str, Any]
+        try:
+            result = await self._handle_task_message(message)
+            await self.task_queue.ack_task(message.message_id)
+        except Exception as exc:
+            await self._mark_task_failed(
+                message.tenant_id,
+                message.task_id,
+                message.instance_id,
+                reason=str(exc),
+            )
+            await self.task_queue.fail_task(message.message_id, str(exc))
+            result = {
+                "task_id": message.task_id,
+                "instance_id": message.instance_id,
+                "status": "failed",
+                "error": str(exc),
+            }
+        return result
+
+    async def _handle_task_message(self, message: Any) -> dict[str, Any]:
+        tenant_id = message.tenant_id
+        task_id = message.task_id
+        assignment = await self._load_task_assignment(tenant_id, task_id)
+        if not assignment:
+            raise ValueError(f"Task assignment not found: {task_id}")
+        assignment["status"] = "in_progress"
+        assignment["worker_id"] = self.worker_id
+        assignment["started_at"] = datetime.utcnow().isoformat()
+        await self.state_store.save_task(tenant_id, task_id, assignment.copy())
+
+        task_payload = assignment.get("task_payload", {})
+        if task_payload.get("simulate_failure"):
+            raise RuntimeError("Simulated task failure")
+
+        if assignment.get("task_type") == "automated":
+            result = await self._complete_task(tenant_id, task_id, {"status": "auto_completed"})
+            return result
+
+        assignment["status"] = "assigned"
+        assignment["assigned_at"] = datetime.utcnow().isoformat()
+        await self.state_store.save_task(tenant_id, task_id, assignment.copy())
+        return {"task_id": task_id, "status": "assigned"}
+
+    async def _mark_task_failed(
+        self, tenant_id: str, task_id: str, instance_id: str, reason: str
+    ) -> None:
+        assignment = await self._load_task_assignment(tenant_id, task_id)
+        if assignment:
+            assignment["status"] = "failed"
+            assignment["failed_at"] = datetime.utcnow().isoformat()
+            assignment["failure_reason"] = reason
+            await self.state_store.save_task(tenant_id, task_id, assignment.copy())
+
+        instance = await self._load_instance(tenant_id, instance_id)
+        if instance:
+            instance.setdefault("failed_tasks", []).append(task_id)
+            instance["status"] = "failed"
+            await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
