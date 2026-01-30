@@ -2,7 +2,7 @@
 Connector Registry
 
 Defines all available connectors in the platform, organized by category.
-Only Jira is fully functional; others are stubs for future implementation.
+Connector implementations are available for the listed integrations.
 """
 
 from __future__ import annotations
@@ -37,7 +37,12 @@ class ConnectorDefinition:
     )
     auth_type: str = "api_key"  # api_key, oauth2, basic
     config_fields: list[dict[str, Any]] = field(default_factory=list)
+    config_schema: list[dict[str, Any]] | None = None
     env_vars: list[str] = field(default_factory=list)  # Required environment variables
+
+    def __post_init__(self) -> None:
+        if self.config_schema is None:
+            self.config_schema = list(self.config_fields)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -50,6 +55,7 @@ class ConnectorDefinition:
             "supported_sync_directions": [d.value for d in self.supported_sync_directions],
             "auth_type": self.auth_type,
             "config_fields": self.config_fields,
+            "config_schema": self.config_schema or self.config_fields,
             "env_vars": self.env_vars,
         }
 
@@ -64,15 +70,20 @@ PLANVIEW_CONNECTOR = ConnectorDefinition(
     name="Planview",
     description="Enterprise PPM platform for portfolio and resource management",
     category=ConnectorCategory.PPM,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="planview",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
-    auth_type="api_key",
+    auth_type="oauth2",
     config_fields=[
         {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
         {"name": "portfolio_id", "type": "string", "required": False, "label": "Portfolio ID"},
     ],
-    env_vars=["PLANVIEW_API_URL", "PLANVIEW_API_TOKEN"],
+    env_vars=[
+        "PLANVIEW_INSTANCE_URL",
+        "PLANVIEW_CLIENT_ID",
+        "PLANVIEW_CLIENT_SECRET",
+        "PLANVIEW_REFRESH_TOKEN",
+    ],
 )
 
 CLARITY_CONNECTOR = ConnectorDefinition(
@@ -80,14 +91,19 @@ CLARITY_CONNECTOR = ConnectorDefinition(
     name="Clarity PPM",
     description="Broadcom Clarity PPM for enterprise project and portfolio management",
     category=ConnectorCategory.PPM,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="clarity",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
-    auth_type="basic",
+    auth_type="oauth2",
     config_fields=[
         {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
     ],
-    env_vars=["CLARITY_URL", "CLARITY_USERNAME", "CLARITY_PASSWORD"],
+    env_vars=[
+        "CLARITY_INSTANCE_URL",
+        "CLARITY_CLIENT_ID",
+        "CLARITY_CLIENT_SECRET",
+        "CLARITY_REFRESH_TOKEN",
+    ],
 )
 
 MS_PROJECT_SERVER_CONNECTOR = ConnectorDefinition(
@@ -95,7 +111,7 @@ MS_PROJECT_SERVER_CONNECTOR = ConnectorDefinition(
     name="Microsoft Project Server",
     description="Microsoft Project Server/Project Online for enterprise project management",
     category=ConnectorCategory.PPM,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="microsoft",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
@@ -103,7 +119,13 @@ MS_PROJECT_SERVER_CONNECTOR = ConnectorDefinition(
         {"name": "tenant_id", "type": "string", "required": True, "label": "Azure Tenant ID"},
         {"name": "site_url", "type": "url", "required": True, "label": "Project Web App URL"},
     ],
-    env_vars=["MS_PROJECT_TENANT_ID", "MS_PROJECT_CLIENT_ID", "MS_PROJECT_CLIENT_SECRET"],
+    env_vars=[
+        "MS_PROJECT_TENANT_ID",
+        "MS_PROJECT_SITE_URL",
+        "MS_PROJECT_CLIENT_ID",
+        "MS_PROJECT_CLIENT_SECRET",
+        "MS_PROJECT_REFRESH_TOKEN",
+    ],
 )
 
 # PM Tools Category
@@ -128,7 +150,7 @@ AZURE_DEVOPS_CONNECTOR = ConnectorDefinition(
     name="Azure DevOps",
     description="Microsoft Azure DevOps for source control, CI/CD, and work tracking",
     category=ConnectorCategory.PM,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="azure",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="api_key",
@@ -144,11 +166,12 @@ MONDAY_CONNECTOR = ConnectorDefinition(
     name="Monday.com",
     description="Monday.com work management platform",
     category=ConnectorCategory.PM,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="monday",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="api_key",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
         {"name": "board_ids", "type": "string", "required": False, "label": "Board IDs (comma-separated)"},
     ],
     env_vars=["MONDAY_API_TOKEN"],
@@ -159,11 +182,12 @@ ASANA_CONNECTOR = ConnectorDefinition(
     name="Asana",
     description="Asana project and task management",
     category=ConnectorCategory.PM,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="asana",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
         {"name": "workspace_gid", "type": "string", "required": True, "label": "Workspace GID"},
     ],
     env_vars=["ASANA_ACCESS_TOKEN"],
@@ -175,7 +199,7 @@ SHAREPOINT_CONNECTOR = ConnectorDefinition(
     name="SharePoint",
     description="Microsoft SharePoint for document management and collaboration",
     category=ConnectorCategory.DOC_MGMT,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="sharepoint",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
@@ -183,7 +207,12 @@ SHAREPOINT_CONNECTOR = ConnectorDefinition(
         {"name": "site_url", "type": "url", "required": True, "label": "SharePoint Site URL"},
         {"name": "document_library", "type": "string", "required": False, "label": "Document Library"},
     ],
-    env_vars=["SHAREPOINT_TENANT_ID", "SHAREPOINT_CLIENT_ID", "SHAREPOINT_CLIENT_SECRET"],
+    env_vars=[
+        "SHAREPOINT_SITE_URL",
+        "SHAREPOINT_CLIENT_ID",
+        "SHAREPOINT_CLIENT_SECRET",
+        "SHAREPOINT_REFRESH_TOKEN",
+    ],
 )
 
 CONFLUENCE_CONNECTOR = ConnectorDefinition(
@@ -191,10 +220,10 @@ CONFLUENCE_CONNECTOR = ConnectorDefinition(
     name="Confluence",
     description="Atlassian Confluence for team documentation and knowledge management",
     category=ConnectorCategory.DOC_MGMT,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="confluence",
     supported_sync_directions=[SyncDirection.INBOUND],
-    auth_type="api_key",
+    auth_type="basic",
     config_fields=[
         {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
         {"name": "space_key", "type": "string", "required": False, "label": "Space Key"},
@@ -207,14 +236,19 @@ GOOGLE_DRIVE_CONNECTOR = ConnectorDefinition(
     name="Google Drive",
     description="Google Drive for cloud document storage and collaboration",
     category=ConnectorCategory.DOC_MGMT,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="google",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
         {"name": "folder_id", "type": "string", "required": False, "label": "Root Folder ID"},
     ],
-    env_vars=["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"],
+    env_vars=[
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_REFRESH_TOKEN",
+    ],
 )
 
 # ERP Category
@@ -223,7 +257,7 @@ SAP_CONNECTOR = ConnectorDefinition(
     name="SAP",
     description="SAP ERP for enterprise resource planning and financials",
     category=ConnectorCategory.ERP,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="sap",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="basic",
@@ -239,14 +273,19 @@ ORACLE_CONNECTOR = ConnectorDefinition(
     name="Oracle ERP Cloud",
     description="Oracle ERP Cloud for enterprise resource planning",
     category=ConnectorCategory.ERP,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="oracle",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
     config_fields=[
         {"name": "instance_url", "type": "url", "required": True, "label": "Oracle Cloud URL"},
     ],
-    env_vars=["ORACLE_URL", "ORACLE_CLIENT_ID", "ORACLE_CLIENT_SECRET"],
+    env_vars=[
+        "ORACLE_URL",
+        "ORACLE_CLIENT_ID",
+        "ORACLE_CLIENT_SECRET",
+        "ORACLE_REFRESH_TOKEN",
+    ],
 )
 
 NETSUITE_CONNECTOR = ConnectorDefinition(
@@ -254,14 +293,20 @@ NETSUITE_CONNECTOR = ConnectorDefinition(
     name="NetSuite",
     description="Oracle NetSuite for ERP and financials",
     category=ConnectorCategory.ERP,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="netsuite",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "REST Base URL"},
         {"name": "account_id", "type": "string", "required": True, "label": "Account ID"},
     ],
-    env_vars=["NETSUITE_ACCOUNT_ID", "NETSUITE_CONSUMER_KEY", "NETSUITE_CONSUMER_SECRET"],
+    env_vars=[
+        "NETSUITE_ACCOUNT_ID",
+        "NETSUITE_CONSUMER_KEY",
+        "NETSUITE_CONSUMER_SECRET",
+        "NETSUITE_REFRESH_TOKEN",
+    ],
 )
 
 # HRIS Category
@@ -270,14 +315,20 @@ WORKDAY_CONNECTOR = ConnectorDefinition(
     name="Workday",
     description="Workday HCM for human capital management",
     category=ConnectorCategory.HRIS,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="workday",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
         {"name": "tenant_name", "type": "string", "required": True, "label": "Tenant Name"},
     ],
-    env_vars=["WORKDAY_TENANT", "WORKDAY_CLIENT_ID", "WORKDAY_CLIENT_SECRET"],
+    env_vars=[
+        "WORKDAY_API_URL",
+        "WORKDAY_CLIENT_ID",
+        "WORKDAY_CLIENT_SECRET",
+        "WORKDAY_REFRESH_TOKEN",
+    ],
 )
 
 SAP_SUCCESSFACTORS_CONNECTOR = ConnectorDefinition(
@@ -285,7 +336,7 @@ SAP_SUCCESSFACTORS_CONNECTOR = ConnectorDefinition(
     name="SAP SuccessFactors",
     description="SAP SuccessFactors for human capital management",
     category=ConnectorCategory.HRIS,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="sap",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
@@ -293,7 +344,13 @@ SAP_SUCCESSFACTORS_CONNECTOR = ConnectorDefinition(
         {"name": "api_server", "type": "url", "required": True, "label": "API Server URL"},
         {"name": "company_id", "type": "string", "required": True, "label": "Company ID"},
     ],
-    env_vars=["SF_API_SERVER", "SF_COMPANY_ID", "SF_CLIENT_ID", "SF_CLIENT_SECRET"],
+    env_vars=[
+        "SF_API_SERVER",
+        "SF_COMPANY_ID",
+        "SF_CLIENT_ID",
+        "SF_CLIENT_SECRET",
+        "SF_REFRESH_TOKEN",
+    ],
 )
 
 ADP_CONNECTOR = ConnectorDefinition(
@@ -301,12 +358,12 @@ ADP_CONNECTOR = ConnectorDefinition(
     name="ADP",
     description="ADP Workforce Now for payroll and HR",
     category=ConnectorCategory.HRIS,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="adp",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="oauth2",
     config_fields=[],
-    env_vars=["ADP_CLIENT_ID", "ADP_CLIENT_SECRET", "ADP_CERT_PATH"],
+    env_vars=["ADP_API_URL", "ADP_CLIENT_ID", "ADP_CLIENT_SECRET", "ADP_REFRESH_TOKEN"],
 )
 
 # Collaboration Category
@@ -315,15 +372,21 @@ TEAMS_CONNECTOR = ConnectorDefinition(
     name="Microsoft Teams",
     description="Microsoft Teams for collaboration and communication",
     category=ConnectorCategory.COLLABORATION,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="teams",
     supported_sync_directions=[SyncDirection.OUTBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "Graph API Base URL"},
         {"name": "team_id", "type": "string", "required": False, "label": "Team ID"},
         {"name": "channel_id", "type": "string", "required": False, "label": "Channel ID"},
     ],
-    env_vars=["TEAMS_TENANT_ID", "TEAMS_CLIENT_ID", "TEAMS_CLIENT_SECRET"],
+    env_vars=[
+        "TEAMS_CLIENT_ID",
+        "TEAMS_CLIENT_SECRET",
+        "TEAMS_REFRESH_TOKEN",
+        "TEAMS_TENANT_ID",
+    ],
 )
 
 SLACK_CONNECTOR = ConnectorDefinition(
@@ -331,11 +394,12 @@ SLACK_CONNECTOR = ConnectorDefinition(
     name="Slack",
     description="Slack for team messaging and collaboration",
     category=ConnectorCategory.COLLABORATION,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="slack",
     supported_sync_directions=[SyncDirection.OUTBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
         {"name": "workspace_id", "type": "string", "required": False, "label": "Workspace ID"},
         {"name": "default_channel", "type": "string", "required": False, "label": "Default Channel"},
     ],
@@ -347,12 +411,16 @@ ZOOM_CONNECTOR = ConnectorDefinition(
     name="Zoom",
     description="Zoom for video conferencing",
     category=ConnectorCategory.COLLABORATION,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="zoom",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.OUTBOUND],
     auth_type="oauth2",
     config_fields=[],
-    env_vars=["ZOOM_CLIENT_ID", "ZOOM_CLIENT_SECRET", "ZOOM_ACCOUNT_ID"],
+    env_vars=[
+        "ZOOM_CLIENT_ID",
+        "ZOOM_CLIENT_SECRET",
+        "ZOOM_REFRESH_TOKEN",
+    ],
 )
 
 # GRC Category
@@ -361,14 +429,19 @@ SERVICENOW_GRC_CONNECTOR = ConnectorDefinition(
     name="ServiceNow GRC",
     description="ServiceNow Governance, Risk, and Compliance",
     category=ConnectorCategory.GRC,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="servicenow",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="oauth2",
     config_fields=[
         {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
     ],
-    env_vars=["SERVICENOW_URL", "SERVICENOW_CLIENT_ID", "SERVICENOW_CLIENT_SECRET"],
+    env_vars=[
+        "SERVICENOW_URL",
+        "SERVICENOW_CLIENT_ID",
+        "SERVICENOW_CLIENT_SECRET",
+        "SERVICENOW_REFRESH_TOKEN",
+    ],
 )
 
 ARCHER_CONNECTOR = ConnectorDefinition(
@@ -376,14 +449,14 @@ ARCHER_CONNECTOR = ConnectorDefinition(
     name="RSA Archer",
     description="RSA Archer for integrated risk management",
     category=ConnectorCategory.GRC,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="archer",
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="api_key",
     config_fields=[
         {"name": "instance_url", "type": "url", "required": True, "label": "Instance URL"},
     ],
-    env_vars=["ARCHER_URL", "ARCHER_INSTANCE", "ARCHER_USERNAME", "ARCHER_PASSWORD"],
+    env_vars=["ARCHER_URL", "ARCHER_API_KEY"],
 )
 
 LOGICGATE_CONNECTOR = ConnectorDefinition(
@@ -391,14 +464,15 @@ LOGICGATE_CONNECTOR = ConnectorDefinition(
     name="LogicGate",
     description="LogicGate for risk and compliance management",
     category=ConnectorCategory.GRC,
-    status=ConnectorStatus.COMING_SOON,
+    status=ConnectorStatus.AVAILABLE,
     icon="logicgate",
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="api_key",
     config_fields=[
+        {"name": "instance_url", "type": "url", "required": False, "label": "API Base URL"},
         {"name": "subdomain", "type": "string", "required": True, "label": "Subdomain"},
     ],
-    env_vars=["LOGICGATE_API_KEY"],
+    env_vars=["LOGICGATE_API_URL", "LOGICGATE_API_KEY"],
 )
 
 

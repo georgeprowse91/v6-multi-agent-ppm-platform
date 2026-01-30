@@ -42,6 +42,9 @@ class ClarityConnector(BaseConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.PPM
     SUPPORTS_WRITE = False
+    SCHEMA = {
+        "projects": {"id": "string", "name": "string", "status": "string"},
+    }
 
     def __init__(
         self,
@@ -223,6 +226,9 @@ class ClarityConnector(BaseConnector):
                     }
                 )
         return projects
+
+    def get_schema(self) -> dict[str, Any]:
+        return self.SCHEMA
 
 
 def create_clarity_connector(
