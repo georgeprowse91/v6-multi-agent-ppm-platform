@@ -6,11 +6,21 @@ Describe the agents documentation set and link the narrative to the repo assets 
 
 ## What's inside
 
-- `docs/agents/agent-catalog.md`: Markdown documentation for this area.
+- `docs/agents/agent-catalog.md`: Canonical inventory of platform agents and their responsibilities.
 
 ## How it's used
 
 These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
+
+## Agent configuration reference
+
+Agent runtime behavior is configured in `config/agents/` and loaded by the agent runtime service.
+
+| File | Purpose | Key fields |
+| --- | --- | --- |
+| `config/agents/orchestration.yaml` | Intent routing + response orchestration settings. | `intent_router.model.*`, `intent_router.intents`, `response_orchestration.max_concurrency`, `response_orchestration.retry_policy.*` |
+| `config/agents/intent-routing.yaml` | Intent definitions and routing targets. | `intents[].name`, `intents[].routes[].agent_id`, `intents[].routes[].action` |
+| `config/agents/portfolio.yaml` | Domain agent configuration for demand, business case, portfolio strategy, and program management. | `demand_intake.*`, `business_case.*`, `portfolio_strategy.*`, `program_management.*` |
 
 ## How to run / develop / test
 

@@ -2,31 +2,55 @@
 
 ## Purpose
 
-List connector coverage and maturity based on the current connector registry and configuration assets.
+List connector coverage and maturity based on the current connector registry and packaged connector assets.
 
-## Registry status
+## Status definitions
 
-The authoritative list of connectors lives in `connectors/registry/connectors.json`.
+- **production**: Certified connector with automated tests and runtime support.
+- **beta**: Functional connector package with runtime support and in-progress certification.
+- **preview**: Packaged connector (manifest + mappings + runner entrypoint) awaiting registry registration and certification evidence.
+
+## Registry status (runtime-ready)
+
+The authoritative registry list lives in `connectors/registry/connectors.json`.
 
 | Connector ID | Name | Status | Certification |
 | --- | --- | --- | --- |
 | jira | Atlassian Jira Cloud | production | certified |
-| planview | Planview | beta | automated |
-| servicenow | ServiceNow | planned | not-started |
-| sap | SAP S/4HANA | planned | not-started |
+| planview | Planview | production | automated |
+| clarity | Clarity PPM | production | automated |
+| servicenow | ServiceNow | beta | not-started |
+| sap | SAP S/4HANA | beta | not-started |
 
-## Available connector scaffolding
+## Packaged connectors (manifested, ready for registration)
 
-Connector folders exist for additional systems with manifests, mappings, and tests but are not yet registered in the connector registry:
+These connectors include manifests, mappings, and runtime entrypoints but are not yet registered in the registry:
 
-- Azure DevOps (`connectors/azure_devops`)
-- Salesforce (`connectors/salesforce`)
-- SharePoint (`connectors/sharepoint`)
-- Slack (`connectors/slack`)
-- Teams (`connectors/teams`)
-- Workday (`connectors/workday`)
+| Connector ID | Name | Status |
+| --- | --- | --- |
+| azure_devops | Azure DevOps | preview |
+| salesforce | Salesforce | preview |
+| sharepoint | SharePoint | preview |
+| slack | Slack | preview |
+| teams | Microsoft Teams | preview |
+| workday | Workday | preview |
 
-To enable these connectors, add registry entries and complete certification evidence per `docs/connectors/certification.md`.
+## Scaffolded directories (structure only)
+
+Connector directories exist without manifests for future additions:
+
+- adp
+- archer
+- asana
+- confluence
+- google_drive
+- logicgate
+- monday
+- ms_project_server
+- netsuite
+- oracle
+- sap_successfactors
+- zoom
 
 ## Verification steps
 
@@ -41,8 +65,9 @@ To enable these connectors, add registry entries and complete certification evid
 
 ## Implementation status
 
-- **Implemented:** Jira production connector with certification automation evidence; Planview connector in beta with OAuth2 runtime support.
-- **Planned:** Add remaining connector registry entries and certification evidence.
+- **Implemented:** Jira, Planview, Clarity connectors in the registry with runtime packages.
+- **Implemented:** ServiceNow and SAP connector packages with registry entries and manifest-backed runtime configuration.
+- **In progress:** Register and certify the remaining packaged connectors.
 
 ## Related docs
 

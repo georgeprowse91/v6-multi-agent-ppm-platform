@@ -1210,7 +1210,7 @@ const initWorkspace = () => {
     status.classList.toggle("is-error", isError);
   };
 
-  const formatTimestamp = (value) => {
+  const formatConnectorTimestamp = (value) => {
     if (!value) {
       return "—";
     }
@@ -1319,7 +1319,7 @@ const initWorkspace = () => {
           instance.health_status || "unknown",
         )}</strong></div>
               <div><span>Last checked</span><strong>${escapeHtml(
-          formatTimestamp(instance.last_checked),
+          formatConnectorTimestamp(instance.last_checked),
         )}</strong></div>
             </div>
             <div class="connector-instance-actions">

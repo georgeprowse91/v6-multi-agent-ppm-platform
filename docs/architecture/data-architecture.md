@@ -19,7 +19,7 @@ Data architecture ties together canonical schemas (`data/schemas/`), quality rul
 
 - **Connector sync** updates canonical records and emits lineage.
 - **Agent writes** validate against schemas and publish domain events.
-- **Analytics pipeline** consumes events for reporting (planned).
+- **Analytics pipeline** consumes events for reporting via the analytics service and KPI scheduler.
 
 ## Diagram
 
@@ -47,8 +47,8 @@ Expected output: `example-lineage.json` and `README.md`.
 
 ## Implementation status
 
-- **Implemented**: canonical schemas, example lineage artifacts, quality rules.
-- **Planned**: automated lineage generation and analytics warehouse.
+- **Implemented**: canonical schemas, lineage artifacts, quality rules, analytics service, and data-lineage service.
+- **In progress**: expanded automated lineage generation across all connectors and analytics warehouse exports.
 
 ## Related docs
 

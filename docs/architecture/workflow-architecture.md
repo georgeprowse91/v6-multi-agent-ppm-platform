@@ -28,6 +28,33 @@ Workflows are the backbone for stage-gate execution, approvals, and multi-step o
 4. **Resume**: Orchestration services call `/workflows/resume/{run_id}` or workers resume from persisted state after failures.
 5. **Audit**: Workflow changes are emitted to the audit log for retention and compliance.
 
+## Workflow definitions and fields
+
+Workflow definitions live in `apps/workflow-engine/workflows/definitions/*.workflow.yaml` and follow the schema below.
+
+| Field | Description |
+| --- | --- |
+| `apiVersion` | Workflow API version (currently `ppm.workflows/v1`). |
+| `kind` | Resource kind (`Workflow`). |
+| `metadata.name` | Workflow identifier used by `/workflows/start`. |
+| `metadata.version` | Version string for the workflow. |
+| `metadata.owner` | Owning service or agent. |
+| `metadata.description` | Human-readable description. |
+| `steps[].id` | Unique step identifier. |
+| `steps[].type` | Step type (`task`, `decision`, `approval`, `notification`). |
+| `steps[].next` | Next step ID (null ends the workflow). |
+| `steps[].config` | Step-specific config (agent/action or channel/message). |
+| `steps[].branches` | Decision branches with conditions and next steps. |
+| `steps[].default_next` | Fallback next step for decisions. |
+| `steps[].timeout_seconds` | Timeout window for approvals. |
+
+### Available workflows
+
+| Workflow | Purpose | Key steps |
+| --- | --- | --- |
+| `intake-triage` | Route new intake requests to the appropriate agent and notify owners. | `capture-intake` → `evaluate-risk` → `notify-owner` |
+| `Publish Charter` | Draft and approve a project charter before publishing. | `draft_charter` → `approval_gate` → `publish_charter` |
+
 ## Failure handling and retries
 
 - Workflows persist state in an external database, allowing the system to resume across nodes after process restarts.

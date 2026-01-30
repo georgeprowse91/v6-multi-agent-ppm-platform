@@ -54,8 +54,8 @@ Expected output: a reference to `docs/agents/agent-catalog.md`.
 
 ## Implementation status
 
-- **Partially implemented**: agent runtime scaffolding and API gateway.
-- **Planned**: full orchestration workflows and domain agent logic.
+- **Implemented**: agent runtime scaffolding, API gateway, and orchestration service.
+- **Implemented**: workflow engine integration and domain agent registrations in `services/agent-runtime/`.
 
 ## Related docs
 

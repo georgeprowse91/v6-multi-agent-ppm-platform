@@ -6,12 +6,23 @@ Provide the integration layer for synchronizing external systems with the platfo
 
 ## What's inside
 
-- `connectors/azure_devops`: Subdirectory containing azure devops assets for this area.
-- `connectors/jira`: Subdirectory containing jira assets for this area.
-- `connectors/planview`: Subdirectory containing planview assets for this area.
-- `connectors/registry`: Registry assets and indexes.
-- `connectors/salesforce`: Subdirectory containing salesforce assets for this area.
-- `connectors/sap`: Subdirectory containing sap assets for this area.
+Registered and packaged connectors include:
+
+- `connectors/jira`: Jira Cloud sync + webhook scaffolding.
+- `connectors/planview`: Planview portfolio integration.
+- `connectors/clarity`: Clarity PPM integration.
+- `connectors/azure_devops`: Azure DevOps work item sync.
+- `connectors/servicenow`: ServiceNow project and change data sync.
+- `connectors/sap`: SAP finance and portfolio sync.
+- `connectors/workday`: Workday HR and cost center sync.
+- `connectors/salesforce`: Salesforce demand and CRM sync.
+- `connectors/sharepoint`: SharePoint document sync.
+- `connectors/slack`: Slack notifications and commands.
+- `connectors/teams`: Microsoft Teams notifications and cards.
+
+Additional connector folders exist for future expansion (e.g., Asana, Monday.com, Oracle, NetSuite) and can be promoted by adding manifests, mappings, and registry entries.
+
+Connector metadata is stored in `connectors/registry/connectors.json` and each connector includes a `manifest.yaml` plus mapping definitions under `mappings/`.
 
 ## How it's used
 
@@ -28,7 +39,7 @@ python -m tools.connector_runner run-connector --name jira --dry-run
 
 ## Configuration
 
-Connector credentials are supplied via `.env` (see `.env.example`) or secret managers, and connector-specific settings are stored in each `manifest.yaml`.
+Connector credentials are supplied via `.env` (see `.env.example`) or secret managers, and connector-specific settings are stored in each `manifest.yaml` and in `config/connectors/integrations.yaml`.
 
 ## Troubleshooting
 
