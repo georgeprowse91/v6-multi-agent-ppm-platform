@@ -1,0 +1,107 @@
+from __future__ import annotations
+
+import contextlib
+import sys
+import types
+from pathlib import Path
+from typing import Any
+
+import httpx
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
+if str(SDK_PATH) not in sys.path:
+    sys.path.insert(0, str(SDK_PATH))
+
+import http_client as http_client_module
+from base_connector import ConnectionStatus, ConnectorCategory, ConnectorConfig
+from regulatory_compliance_connector import RegulatoryComplianceConnector
+
+
+class DummySpan:
+    def set_attribute(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def set_status(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def record_exception(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+
+class DummyTracer:
+    def start_span(self, *_args: object, **_kwargs: object) -> DummySpan:
+        return DummySpan()
+
+
+@contextlib.contextmanager
+def _noop_use_span(span: DummySpan, end_on_exit: bool = True) -> DummySpan:
+    yield span
+
+
+http_client_module.tracer = DummyTracer()
+http_client_module.trace.use_span = _noop_use_span
+http_client_module.SpanKind = types.SimpleNamespace(CLIENT="client")
+
+
+def _build_transport(routes: dict[tuple[str, str], tuple[int, Any]]) -> httpx.MockTransport:
+    def handler(request: httpx.Request) -> httpx.Response:
+        key = (request.method, request.url.path)
+        if key in routes:
+            status, payload = routes[key]
+            return httpx.Response(status, json=payload)
+        return httpx.Response(404, json={"error": "not found"})
+
+    return httpx.MockTransport(handler)
+
+
+@pytest.fixture(autouse=True)
+def _set_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("REGULATORY_COMPLIANCE_ENDPOINT", "https://api.example.com")
+    monkeypatch.setenv("REGULATORY_COMPLIANCE_API_KEY", "test-token")
+
+
+def test_regulatory_compliance_authenticate_success() -> None:
+    transport = _build_transport({("GET", "/health"): (200, {"status": "ok"})})
+    config = ConnectorConfig(
+        connector_id="regulatory_compliance",
+        name="Regulatory Compliance",
+        category=ConnectorCategory.COMPLIANCE,
+    )
+    connector = RegulatoryComplianceConnector(config, transport=transport)
+
+    assert connector.authenticate() is True
+
+
+def test_regulatory_compliance_test_connection_unauthorized() -> None:
+    transport = _build_transport({("GET", "/health"): (401, {"error": "unauthorized"})})
+    config = ConnectorConfig(
+        connector_id="regulatory_compliance",
+        name="Regulatory Compliance",
+        category=ConnectorCategory.COMPLIANCE,
+    )
+    connector = RegulatoryComplianceConnector(config, transport=transport)
+
+    result = connector.test_connection()
+
+    assert result.status == ConnectionStatus.UNAUTHORIZED
+
+
+def test_regulatory_compliance_read_audit_logs() -> None:
+    transport = _build_transport(
+        {
+            ("GET", "/health"): (200, {"status": "ok"}),
+            ("GET", "/audit-logs"): (200, {"items": [{"id": "log-1"}] }),
+        }
+    )
+    config = ConnectorConfig(
+        connector_id="regulatory_compliance",
+        name="Regulatory Compliance",
+        category=ConnectorCategory.COMPLIANCE,
+    )
+    connector = RegulatoryComplianceConnector(config, transport=transport)
+
+    result = connector.read("audit_logs")
+
+    assert result == [{"id": "log-1"}]

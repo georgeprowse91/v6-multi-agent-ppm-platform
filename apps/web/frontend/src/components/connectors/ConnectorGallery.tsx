@@ -68,6 +68,7 @@ export function ConnectorGallery() {
       hris: [],
       collaboration: [],
       grc: [],
+      compliance: [],
     };
     filteredConnectors.forEach((connector) => {
       if (grouped[connector.category]) {

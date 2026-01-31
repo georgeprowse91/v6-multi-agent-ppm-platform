@@ -546,6 +546,31 @@ function getMockConnectors(): Connector[] {
       health_status: 'unknown',
       last_sync_at: null,
     },
+    // Compliance
+    {
+      connector_id: 'regulatory_compliance',
+      name: 'Regulatory Compliance',
+      description: 'Regulatory compliance APIs for HIPAA and FDA CFR 21 Part 11 audit trails',
+      category: 'compliance',
+      status: 'beta',
+      icon: 'shield-check',
+      supported_sync_directions: ['inbound', 'outbound'],
+      auth_type: 'api_key',
+      config_fields: [
+        { name: 'endpoint_url', type: 'url', required: true, label: 'Compliance API Endpoint' },
+        { name: 'api_key', type: 'string', required: true, label: 'API Key' },
+        { name: 'supported_regulations', type: 'string', required: false, label: 'Supported Regulations (comma-separated)' },
+      ],
+      env_vars: ['REGULATORY_COMPLIANCE_ENDPOINT', 'REGULATORY_COMPLIANCE_API_KEY'],
+      enabled: false,
+      configured: false,
+      instance_url: '',
+      project_key: '',
+      sync_direction: 'inbound',
+      sync_frequency: 'daily',
+      health_status: 'unknown',
+      last_sync_at: null,
+    },
   ];
 }
 
@@ -561,6 +586,7 @@ function getDefaultCategories(): CategoryInfo[] {
     { value: 'hris', label: 'HRIS', icon: 'users', description: 'Human resource information systems', connector_count: 3, enabled_connector: null },
     { value: 'collaboration', label: 'Collaboration', icon: 'chat-bubble-left-right', description: 'Team communication and collaboration tools', connector_count: 3, enabled_connector: null },
     { value: 'grc', label: 'GRC', icon: 'shield-check', description: 'Governance, Risk, and Compliance platforms', connector_count: 3, enabled_connector: null },
+    { value: 'compliance', label: 'Compliance', icon: 'shield-check', description: 'Specialised regulatory compliance platforms', connector_count: 1, enabled_connector: null },
   ];
 }
 

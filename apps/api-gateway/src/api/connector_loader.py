@@ -25,6 +25,10 @@ _CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = {
     "servicenow_grc": ("servicenow_grc_connector", "ServiceNowGrcConnector"),
     "archer": ("archer_connector", "ArcherConnector"),
     "logicgate": ("logicgate_connector", "LogicGateConnector"),
+    "regulatory_compliance": (
+        "regulatory_compliance_connector",
+        "RegulatoryComplianceConnector",
+    ),
 }
 
 

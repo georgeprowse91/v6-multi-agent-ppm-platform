@@ -53,6 +53,7 @@ from connector_registry import (
     get_connector_definition,
     get_connectors_by_category,
 )
+from regulatory_compliance_connector import RegulatoryComplianceConnector
 from security.audit_log import build_event, get_audit_log_store
 
 from api.webhook_storage import WebhookEvent, WebhookEventStore
@@ -278,6 +279,12 @@ class CategoryInfo(BaseModel):
     enabled_connector: str | None = None
 
 
+class RegulatoryComplianceConfigRequest(BaseModel):
+    endpoint_url: str = ""
+    api_key: str = ""
+    supported_regulations: list[str] = Field(default_factory=list)
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
@@ -323,6 +330,11 @@ async def list_categories():
             "label": "GRC",
             "icon": "shield-check",
             "description": "Governance, Risk, and Compliance platforms",
+        },
+        ConnectorCategory.COMPLIANCE: {
+            "label": "Compliance",
+            "icon": "shield-check",
+            "description": "Specialised regulatory compliance integrations",
         },
     }
 
@@ -466,6 +478,76 @@ async def update_connector_config(
         instance_url=request.instance_url,
         project_key=request.project_key,
         custom_fields=request.custom_fields,
+        created_at=existing.created_at if existing else now,
+        updated_at=now,
+        last_sync_at=existing.last_sync_at if existing else None,
+        health_status=existing.health_status if existing else "unknown",
+    )
+
+    store.save(config)
+
+    auth = http_request.state.auth
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=auth.tenant_id,
+            actor_id=auth.subject,
+            actor_type="user",
+            roles=auth.roles,
+            action="connector.config.updated",
+            resource_type="connector",
+            resource_id=connector_id,
+            outcome="success",
+            metadata={"enabled": config.enabled},
+        )
+    )
+
+    return ConnectorConfigResponse(
+        connector_id=config.connector_id,
+        name=config.name,
+        category=config.category.value,
+        enabled=config.enabled,
+        sync_direction=config.sync_direction.value,
+        sync_frequency=config.sync_frequency.value,
+        instance_url=config.instance_url,
+        project_key=config.project_key,
+        custom_fields=config.custom_fields,
+        health_status=config.health_status,
+        created_at=config.created_at.isoformat(),
+        updated_at=config.updated_at.isoformat(),
+        last_sync_at=config.last_sync_at.isoformat() if config.last_sync_at else None,
+    )
+
+
+@router.put("/connectors/regulatory_compliance/config", response_model=ConnectorConfigResponse)
+async def update_regulatory_compliance_config(
+    request: RegulatoryComplianceConfigRequest, http_request: Request
+):
+    connector_id = "regulatory_compliance"
+    definition = get_connector_definition(connector_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
+
+    store = get_config_store()
+    existing = store.get(connector_id)
+    now = datetime.now(timezone.utc)
+    custom_fields = dict(existing.custom_fields) if existing else {}
+    if request.endpoint_url:
+        custom_fields["endpoint_url"] = request.endpoint_url
+    if request.supported_regulations:
+        custom_fields["supported_regulations"] = request.supported_regulations
+    if request.api_key:
+        custom_fields["api_key"] = request.api_key
+
+    config = ConnectorConfig(
+        connector_id=connector_id,
+        name=definition.name,
+        category=definition.category,
+        enabled=existing.enabled if existing else False,
+        sync_direction=SyncDirection.INBOUND,
+        sync_frequency=SyncFrequency.DAILY,
+        instance_url=request.endpoint_url or (existing.instance_url if existing else ""),
+        project_key=existing.project_key if existing else "",
+        custom_fields=custom_fields,
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -736,6 +818,73 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
         details=result.details,
         tested_at=result.tested_at.isoformat(),
     )
+
+
+@router.post("/connectors/regulatory_compliance/test", response_model=TestConnectionResponse)
+async def test_regulatory_compliance_connection(request: RegulatoryComplianceConfigRequest):
+    connector_id = "regulatory_compliance"
+    definition = get_connector_definition(connector_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
+
+    store = get_config_store()
+    existing = store.get(connector_id)
+    custom_fields = dict(existing.custom_fields) if existing else {}
+    if request.endpoint_url:
+        custom_fields["endpoint_url"] = request.endpoint_url
+    if request.api_key:
+        custom_fields["api_key"] = request.api_key
+    if request.supported_regulations:
+        custom_fields["supported_regulations"] = request.supported_regulations
+
+    test_config = ConnectorConfig(
+        connector_id=connector_id,
+        name=definition.name,
+        category=definition.category,
+        instance_url=request.endpoint_url or (existing.instance_url if existing else ""),
+        custom_fields=custom_fields,
+    )
+
+    connector = RegulatoryComplianceConnector(test_config)
+    result = connector.test_connection()
+
+    if existing:
+        existing.health_status = (
+            "healthy" if result.status == ConnectionStatus.CONNECTED else "unhealthy"
+        )
+        existing.updated_at = datetime.now(timezone.utc)
+        store.save(existing)
+
+    return TestConnectionResponse(
+        status=result.status.value,
+        message=result.message,
+        details=result.details,
+        tested_at=result.tested_at.isoformat(),
+    )
+
+
+@router.get("/connectors/regulatory_compliance/audit-logs")
+async def get_regulatory_audit_logs(
+    regulation: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+):
+    connector_id = "regulatory_compliance"
+    definition = get_connector_definition(connector_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
+
+    store = get_config_store()
+    config = store.get(connector_id)
+    if not config:
+        raise HTTPException(
+            status_code=404, detail=f"Connector configuration not found: {connector_id}"
+        )
+
+    connector = RegulatoryComplianceConnector(config)
+    filters = {"regulation": regulation} if regulation else None
+    items = connector.read("audit_logs", filters=filters, limit=limit, offset=offset)
+    return {"items": items, "count": len(items)}
 
 
 @router.post("/connectors/{connector_id}/webhook")

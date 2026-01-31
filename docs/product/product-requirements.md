@@ -164,6 +164,8 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Compliance Reporting:** Generate reports for auditors and regulators, showing policy compliance status, audit logs and remediation actions.
 
+**Specialised Industry Regulations:** Support HIPAA and FDA CFR 21 Part 11 compliance modules, including configurable audit trails, electronic signatures, and evidence capture aligned to each regulation.
+
 ### 14. Change & Configuration Management
 
 **Template & Methodology Management:** Store templates for charters, plans, reports and generate them on demand. Version control for methodologies (Agile, Waterfall, hybrid) to accommodate organisational changes. Track usage and update history.
@@ -301,8 +303,6 @@ Adoption of AI agents will require data quality initiatives and integration with
 Regulatory requirements may vary by jurisdiction; compliance features will need to be configured accordingly.
 
 ## Out‑of‑Scope
-
-Support for highly specialised industry regulations (e.g., HIPAA, FDA CFR 21 Part 11) is not included in the initial release.
 
 Development of custom hardware or IoT integrations beyond common enterprise systems is excluded.
 

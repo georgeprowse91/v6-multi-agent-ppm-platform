@@ -32,6 +32,7 @@ class ConnectorCategory(str, Enum):
     HRIS = "hris"  # HRIS (Workday, SAP SuccessFactors, ADP)
     COLLABORATION = "collaboration"  # Collaboration (Teams, Slack, Zoom)
     GRC = "grc"  # GRC (ServiceNow GRC, Archer, LogicGate)
+    COMPLIANCE = "compliance"  # Compliance (Regulatory compliance platforms)
 
 
 class SyncDirection(str, Enum):

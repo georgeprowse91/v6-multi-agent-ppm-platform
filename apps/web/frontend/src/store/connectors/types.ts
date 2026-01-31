@@ -14,7 +14,8 @@ export type ConnectorCategory =
   | 'erp'
   | 'hris'
   | 'collaboration'
-  | 'grc';
+  | 'grc'
+  | 'compliance';
 
 /**
  * Connector implementation status
@@ -171,6 +172,12 @@ export const CATEGORY_INFO: Record<ConnectorCategory, Omit<CategoryInfo, 'connec
     label: 'GRC',
     icon: 'shield-check',
     description: 'Governance, Risk, and Compliance platforms',
+  },
+  compliance: {
+    value: 'compliance',
+    label: 'Compliance',
+    icon: 'shield-check',
+    description: 'Specialised regulatory compliance platforms',
   },
 };
 

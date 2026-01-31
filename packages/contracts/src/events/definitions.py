@@ -200,6 +200,38 @@ class ApprovalCreatedEvent(EventEnvelope):
     payload: ApprovalCreatedPayload
 
 
+class HipaaAuditLogCreatedPayload(BaseModel):
+    audit_log_id: str
+    regulation: Literal["HIPAA"]
+    resource_type: str
+    resource_id: str
+    action: str
+    actor_id: str
+    created_at: datetime
+    details: dict | None = None
+
+
+class HipaaAuditLogCreatedEvent(EventEnvelope):
+    event_name: Literal["hipaa.audit_log.created"]
+    payload: HipaaAuditLogCreatedPayload
+
+
+class FdaCfrPart11AuditLogCreatedPayload(BaseModel):
+    audit_log_id: str
+    regulation: Literal["FDA_CFR_21_PART_11"]
+    resource_type: str
+    resource_id: str
+    action: str
+    actor_id: str
+    created_at: datetime
+    details: dict | None = None
+
+
+class FdaCfrPart11AuditLogCreatedEvent(EventEnvelope):
+    event_name: Literal["fda_cfr_21_part_11.audit_log.created"]
+    payload: FdaCfrPart11AuditLogCreatedPayload
+
+
 class ApprovalDecisionPayload(BaseModel):
     approval_id: str
     decision: Literal["approved", "rejected", "deferred"]

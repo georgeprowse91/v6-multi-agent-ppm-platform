@@ -543,6 +543,38 @@ LOGICGATE_CONNECTOR = ConnectorDefinition(
     env_vars=["LOGICGATE_API_URL", "LOGICGATE_API_KEY"],
 )
 
+REGULATORY_COMPLIANCE_CONNECTOR = ConnectorDefinition(
+    connector_id="regulatory_compliance",
+    name="Regulatory Compliance",
+    description="Regulatory compliance APIs for HIPAA and FDA CFR 21 Part 11 audit trails",
+    category=ConnectorCategory.COMPLIANCE,
+    status=ConnectorStatus.BETA,
+    icon="shield-check",
+    supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.OUTBOUND],
+    auth_type="api_key",
+    config_fields=[
+        {
+            "name": "endpoint_url",
+            "type": "url",
+            "required": True,
+            "label": "Compliance API Endpoint",
+        },
+        {
+            "name": "api_key",
+            "type": "string",
+            "required": True,
+            "label": "API Key",
+        },
+        {
+            "name": "supported_regulations",
+            "type": "string",
+            "required": False,
+            "label": "Supported Regulations (comma-separated)",
+        },
+    ],
+    env_vars=["REGULATORY_COMPLIANCE_ENDPOINT", "REGULATORY_COMPLIANCE_API_KEY"],
+)
+
 
 # =============================================================================
 # REGISTRY
@@ -578,6 +610,8 @@ ALL_CONNECTORS: list[ConnectorDefinition] = [
     SERVICENOW_GRC_CONNECTOR,
     ARCHER_CONNECTOR,
     LOGICGATE_CONNECTOR,
+    # Compliance
+    REGULATORY_COMPLIANCE_CONNECTOR,
 ]
 
 CONNECTORS_BY_ID: dict[str, ConnectorDefinition] = {c.connector_id: c for c in ALL_CONNECTORS}
