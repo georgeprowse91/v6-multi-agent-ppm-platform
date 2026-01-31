@@ -8,20 +8,58 @@ consistent, up-to-date and accurate through master data management and event-dri
 Specification: agents/operations-management/agent-23-data-synchronisation-quality/README.md
 """
 
+import hashlib
+import json
 import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+import yaml
 from observability.tracing import get_trace_id
 from security.lineage import mask_lineage_payload
 
 from agents.common.connector_integration import DatabaseStorageService
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.event_bus import EventBus, ServiceBusEventBus
 from agents.runtime.src.state_store import TenantStateStore
 from jsonschema import ValidationError, validate
+
+try:
+    from rapidfuzz import fuzz
+except ImportError:  # pragma: no cover - optional dependency
+    fuzz = None
+
+try:
+    from azure.core.credentials import AzureKeyCredential
+    from azure.cosmos import CosmosClient
+    from azure.eventgrid import EventGridPublisherClient
+    from azure.identity import DefaultAzureCredential
+    from azure.keyvault.secrets import SecretClient
+    from azure.mgmt.datafactory import DataFactoryManagementClient
+    from azure.monitor.ingestion import LogsIngestionClient
+    from azure.servicebus.aio import ServiceBusClient
+except ImportError:  # pragma: no cover - optional dependencies
+    AzureKeyCredential = None
+    CosmosClient = None
+    EventGridPublisherClient = None
+    DefaultAzureCredential = None
+    SecretClient = None
+    DataFactoryManagementClient = None
+    LogsIngestionClient = None
+    ServiceBusClient = None
+
+try:
+    import azure.functions as azure_functions
+except ImportError:  # pragma: no cover - optional dependencies
+    azure_functions = None
+
+try:
+    from sqlalchemy import create_engine
+except ImportError:  # pragma: no cover - optional dependencies
+    create_engine = None
 
 
 class DataSyncAgent(BaseAgent):
@@ -118,23 +156,39 @@ class DataSyncAgent(BaseAgent):
         self.duplicates = {}  # type: ignore
         self.audit_records = {}  # type: ignore
         self.db_service: DatabaseStorageService | None = None
+        self.event_bus: EventBus | None = None
+        self.service_bus_client: Any | None = None
+        self.service_bus_topic_name = os.getenv("AZURE_SERVICE_BUS_TOPIC_NAME", "ppm-events")
+        self.service_bus_queue_name = os.getenv("AZURE_SERVICE_BUS_QUEUE_NAME", "ppm-sync-queue")
+        self.event_grid_client: Any | None = None
+        self.sql_engine: Any | None = None
+        self.cosmos_client: Any | None = None
+        self.data_factory_client: Any | None = None
+        self.data_factory_pipelines: list[str] = []
+        self.function_app: Any | None = None
+        self.function_names: list[str] = []
+        self.validation_rules: dict[str, list[dict[str, Any]]] = {}
+        self.seen_record_hashes: dict[str, set[str]] = {}
+        self.latency_records: list[dict[str, Any]] = []
+        self.log_analytics_client: Any | None = None
+        self.connectors: dict[str, Any] = {}
 
     async def initialize(self) -> None:
         """Initialize data sync infrastructure and integrations."""
         await super().initialize()
         self.logger.info("Initializing Data Synchronization & Consistency Agent...")
 
-        # Future work: Initialize Azure Service Bus for event-driven sync
-        # Future work: Set up Azure Event Grid for publish/subscribe patterns
-        # Future work: Connect to Azure SQL Database or Cosmos DB for master records
-        # Future work: Initialize Azure Data Factory for transformation pipelines
-        # Future work: Set up Azure Functions for sync orchestration
-        # Future work: Connect to external systems (Planview, SAP, Jira, Workday)
-        # Future work: Initialize Azure Durable Functions for multi-step transformations
-        # Future work: Set up Azure Monitor for sync pipeline monitoring
-        # Future work: Connect to all domain agents for data collection
-        # Future work: Initialize fuzzy matching algorithms for duplicate detection
-        # Future work: Set up Azure Key Vault for external system credentials
+        self.validation_rules = self._load_validation_rules()
+        self.data_factory_pipelines, self.function_names = self._load_pipeline_config()
+
+        await self._initialize_key_vault_secrets()
+        await self._initialize_connectors()
+        await self._initialize_service_bus()
+        await self._initialize_event_grid()
+        await self._initialize_datastores()
+        await self._initialize_data_factory()
+        await self._initialize_functions()
+        await self._initialize_monitoring()
 
         db_config = self.config.get("database_storage", {}) if self.config else {}
         self.db_service = DatabaseStorageService(db_config)
@@ -162,6 +216,7 @@ class DataSyncAgent(BaseAgent):
             "define_mapping",
             "get_sync_status",
             "get_master_record",
+            "metrics",
         ]
 
         if action not in valid_actions:
@@ -266,6 +321,9 @@ class DataSyncAgent(BaseAgent):
                 tenant_id, input_data.get("master_id")  # type: ignore
             )
 
+        elif action == "metrics":
+            return await self._get_metrics(tenant_id)
+
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -277,58 +335,135 @@ class DataSyncAgent(BaseAgent):
 
         Returns sync status and master record ID.
         """
+        sync_started_at = datetime.utcnow()
         self.logger.info(f"Synchronizing {entity_type} from {source_system}")
+        await self._publish_event(
+            "sync.started",
+            {
+                "tenant_id": tenant_id,
+                "entity_type": entity_type,
+                "source_system": source_system,
+                "started_at": sync_started_at.isoformat(),
+            },
+        )
+
+        if self._is_duplicate_record(tenant_id, entity_type, data):
+            await self._publish_event(
+                "sync.duplicate.discarded",
+                {
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "source_system": source_system,
+                    "started_at": sync_started_at.isoformat(),
+                },
+            )
+            return {
+                "status": "duplicate",
+                "reason": "Duplicate record discarded",
+                "entity_type": entity_type,
+                "source_system": source_system,
+                "latency_seconds": 0.0,
+            }
 
         # Validate data
         validation_result = await self._validate_data(entity_type, data)
         if not validation_result.get("valid"):
+            await self._publish_event(
+                "sync.failed",
+                {
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "source_system": source_system,
+                    "error": "validation_failed",
+                    "errors": validation_result.get("errors"),
+                    "started_at": sync_started_at.isoformat(),
+                },
+            )
             return {
                 "status": "failed",
                 "error": "Data validation failed",
                 "validation_errors": validation_result.get("errors"),
             }
 
-        # Transform data using mapping rules
-        transformed_data = await self._transform_data(entity_type, data, source_system)
+        try:
+            # Transform data using mapping rules
+            transformed_data = await self._transform_data(entity_type, data, source_system)
 
-        # Check for existing master record
-        existing_master = await self._find_existing_master(entity_type, transformed_data)
+            # Check for existing master record
+            existing_master = await self._find_existing_master(entity_type, transformed_data)
 
-        if existing_master:
-            # Update existing record
-            result = await self._update_master_record(
-                tenant_id,
-                existing_master.get("master_id"),  # type: ignore
-                transformed_data,
-                source_system,
+            if existing_master:
+                # Update existing record
+                result = await self._update_master_record(
+                    tenant_id,
+                    existing_master.get("master_id"),  # type: ignore
+                    transformed_data,
+                    source_system,
+                )
+                master_id = existing_master.get("master_id")
+            else:
+                # Create new master record
+                result = await self._create_master_record(
+                    tenant_id, entity_type, transformed_data
+                )
+                master_id = result.get("master_id")
+
+            # Record sync event
+            sync_event_id = await self._record_sync_event(
+                tenant_id, entity_type, master_id, source_system, "success"  # type: ignore
             )
-            master_id = existing_master.get("master_id")
-        else:
-            # Create new master record
-            result = await self._create_master_record(tenant_id, entity_type, transformed_data)
-            master_id = result.get("master_id")
 
-        # Record sync event
-        sync_event_id = await self._record_sync_event(
-            tenant_id, entity_type, master_id, source_system, "success"  # type: ignore
-        )
+            await self._record_sync_lineage(
+                tenant_id, entity_type, master_id, source_system, transformed_data
+            )
 
-        await self._record_sync_lineage(
-            tenant_id, entity_type, master_id, source_system, transformed_data
-        )
+            # Publish sync event
+            await self._publish_sync_event(
+                tenant_id, entity_type, master_id, source_system, transformed_data
+            )
 
-        # Publish sync event
-        await self._publish_sync_event(
-            tenant_id, entity_type, master_id, source_system, transformed_data
-        )
+            sync_finished_at = datetime.utcnow()
+            latency_seconds = (sync_finished_at - sync_started_at).total_seconds()
+            await self._record_sync_metrics(
+                tenant_id,
+                entity_type,
+                source_system,
+                latency_seconds,
+                sync_started_at,
+                sync_finished_at,
+            )
+            await self._publish_event(
+                "sync.succeeded",
+                {
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "source_system": source_system,
+                    "master_id": master_id,
+                    "started_at": sync_started_at.isoformat(),
+                    "finished_at": sync_finished_at.isoformat(),
+                    "latency_seconds": latency_seconds,
+                },
+            )
 
-        return {
-            "status": "success",
-            "master_id": master_id,
-            "sync_event_id": sync_event_id,
-            "action": "updated" if existing_master else "created",
-            "latency_seconds": 0.5,  # Future work: Calculate actual latency
-        }
+            return {
+                "status": "success",
+                "master_id": master_id,
+                "sync_event_id": sync_event_id,
+                "action": "updated" if existing_master else "created",
+                "latency_seconds": latency_seconds,
+            }
+        except Exception as exc:
+            await self._publish_event(
+                "sync.failed",
+                {
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "source_system": source_system,
+                    "error": str(exc),
+                    "started_at": sync_started_at.isoformat(),
+                },
+            )
+            raise
 
     async def _create_master_record(
         self, tenant_id: str, entity_type: str, data: dict[str, Any]
@@ -471,7 +606,16 @@ class DataSyncAgent(BaseAgent):
             self.master_records[master_id]["data"][field] = resolved_value
 
         await self._store_record("conflicts", conflict_id, conflict)
-        # Future work: Publish conflict.resolved event
+        await self._publish_event(
+            "conflict.resolved",
+            {
+                "conflict_id": conflict_id,
+                "master_id": master_id,
+                "resolved_value": resolved_value,
+                "resolved_by": conflict.get("resolved_by"),
+                "resolved_at": conflict.get("resolved_at"),
+            },
+        )
 
         return {
             "conflict_id": conflict_id,
@@ -642,6 +786,12 @@ class DataSyncAgent(BaseAgent):
         pending_conflicts = sum(
             1 for conflict in self.conflicts.values() if conflict.get("status") == "pending"
         )
+        avg_latency = (
+            sum(record["latency_seconds"] for record in self.latency_records)
+            / len(self.latency_records)
+            if self.latency_records
+            else 0.0
+        )
 
         return {
             "total_sync_events": total_events,
@@ -650,7 +800,22 @@ class DataSyncAgent(BaseAgent):
             "success_rate": (successful_syncs / total_events * 100) if total_events > 0 else 0,
             "pending_conflicts": pending_conflicts,
             "recent_events": recent_events,
-            "avg_latency_seconds": 0.8,  # Future work: Calculate actual average
+            "avg_latency_seconds": avg_latency,
+        }
+
+    async def _get_metrics(self, tenant_id: str) -> dict[str, Any]:
+        """Expose latency metrics and event bus statistics."""
+        records = [record for record in self.latency_records if record["tenant_id"] == tenant_id]
+        avg_latency = (
+            sum(record["latency_seconds"] for record in records) / len(records)
+            if records
+            else 0.0
+        )
+        return {
+            "tenant_id": tenant_id,
+            "latency_records": records[-25:],
+            "average_latency_seconds": avg_latency,
+            "event_bus_metrics": self.event_bus.get_metrics() if self.event_bus else {},
         }
 
     async def _get_master_record(self, tenant_id: str, master_id: str) -> dict[str, Any]:
@@ -680,6 +845,253 @@ class DataSyncAgent(BaseAgent):
         }
 
     # Helper methods
+
+    def _load_validation_rules(self) -> dict[str, list[dict[str, Any]]]:
+        rules_path = Path(self.config.get("validation_rules_path", "config/agent-23/validation_rules.yaml")) if self.config else Path("config/agent-23/validation_rules.yaml")
+        if not rules_path.exists():
+            return {}
+        try:
+            with rules_path.open("r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle) or {}
+        except (OSError, yaml.YAMLError) as exc:
+            self.logger.warning("validation_rules_load_failed", extra={"error": str(exc)})
+            return {}
+        return {
+            key: value if isinstance(value, list) else []
+            for key, value in payload.items()
+        }
+
+    def _load_pipeline_config(self) -> tuple[list[str], list[str]]:
+        config_path = Path(self.config.get("pipeline_config_path", "config/agent-23/pipelines.yaml")) if self.config else Path("config/agent-23/pipelines.yaml")
+        if not config_path.exists():
+            return [], []
+        try:
+            with config_path.open("r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle) or {}
+        except (OSError, yaml.YAMLError) as exc:
+            self.logger.warning("pipeline_config_load_failed", extra={"error": str(exc)})
+            return [], []
+        pipelines = [
+            entry.get("name")
+            for entry in payload.get("pipelines", [])
+            if isinstance(entry, dict) and entry.get("name")
+        ]
+        functions = [
+            entry.get("name")
+            for entry in payload.get("functions", [])
+            if isinstance(entry, dict) and entry.get("name")
+        ]
+        return pipelines, functions
+
+    async def _initialize_key_vault_secrets(self) -> None:
+        key_vault_url = os.getenv("AZURE_KEY_VAULT_URL")
+        if not key_vault_url or not DefaultAzureCredential or not SecretClient:
+            return
+        credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=key_vault_url, credential=credential)
+        secret_names = [
+            "PLANVIEW_CLIENT_ID",
+            "PLANVIEW_CLIENT_SECRET",
+            "PLANVIEW_REFRESH_TOKEN",
+            "PLANVIEW_INSTANCE_URL",
+            "SAP_USERNAME",
+            "SAP_PASSWORD",
+            "SAP_URL",
+            "JIRA_EMAIL",
+            "JIRA_API_TOKEN",
+            "JIRA_INSTANCE_URL",
+            "WORKDAY_CLIENT_ID",
+            "WORKDAY_CLIENT_SECRET",
+            "WORKDAY_REFRESH_TOKEN",
+            "WORKDAY_API_URL",
+        ]
+        for secret_name in secret_names:
+            if os.getenv(secret_name):
+                continue
+            try:
+                secret = client.get_secret(secret_name)
+            except Exception as exc:  # pragma: no cover - network dependent
+                self.logger.warning(
+                    "keyvault_secret_unavailable",
+                    extra={"secret": secret_name, "error": str(exc)},
+                )
+                continue
+            if secret and secret.value:
+                os.environ[secret_name] = secret.value
+
+    async def _initialize_connectors(self) -> None:
+        try:
+            from base_connector import ConnectorCategory, ConnectorConfig
+            from jira_connector import JiraConnector
+            from planview_connector import PlanviewConnector
+            from sap_connector import SapConnector
+            from workday_connector import WorkdayConnector
+        except Exception as exc:
+            self.logger.warning("connector_import_failed", extra={"error": str(exc)})
+            return
+
+        self.connectors: dict[str, Any] = {}
+        try:
+            planview_config = ConnectorConfig(
+                connector_id="planview",
+                name="Planview",
+                category=ConnectorCategory.PPM,
+                instance_url=os.getenv("PLANVIEW_INSTANCE_URL", ""),
+            )
+            self.connectors["planview"] = PlanviewConnector(planview_config)
+        except Exception as exc:
+            self.logger.warning("planview_connector_failed", extra={"error": str(exc)})
+        try:
+            sap_config = ConnectorConfig(
+                connector_id="sap",
+                name="SAP",
+                category=ConnectorCategory.ERP,
+                instance_url=os.getenv("SAP_URL", ""),
+            )
+            self.connectors["sap"] = SapConnector(sap_config)
+        except Exception as exc:
+            self.logger.warning("sap_connector_failed", extra={"error": str(exc)})
+        try:
+            jira_config = ConnectorConfig(
+                connector_id="jira",
+                name="Jira",
+                category=ConnectorCategory.PM,
+                instance_url=os.getenv("JIRA_INSTANCE_URL", ""),
+            )
+            self.connectors["jira"] = JiraConnector(jira_config)
+        except Exception as exc:
+            self.logger.warning("jira_connector_failed", extra={"error": str(exc)})
+        try:
+            workday_config = ConnectorConfig(
+                connector_id="workday",
+                name="Workday",
+                category=ConnectorCategory.HRIS,
+                instance_url=os.getenv("WORKDAY_API_URL", ""),
+            )
+            self.connectors["workday"] = WorkdayConnector(workday_config)
+        except Exception as exc:
+            self.logger.warning("workday_connector_failed", extra={"error": str(exc)})
+
+    async def _initialize_service_bus(self) -> None:
+        if self.config and self.config.get("event_bus"):
+            self.event_bus = self.config["event_bus"]
+            return
+        connection_string = os.getenv("AZURE_SERVICE_BUS_CONNECTION_STRING")
+        if not connection_string:
+            return
+        self.event_bus = ServiceBusEventBus(
+            connection_string=connection_string,
+            topic_name=self.service_bus_topic_name,
+        )
+        if ServiceBusClient is None:
+            return
+        self.service_bus_client = ServiceBusClient.from_connection_string(connection_string)
+
+    async def _initialize_event_grid(self) -> None:
+        endpoint = os.getenv("EVENT_GRID_ENDPOINT")
+        key = os.getenv("EVENT_GRID_KEY")
+        if not endpoint or not key or not EventGridPublisherClient or not AzureKeyCredential:
+            return
+        self.event_grid_client = EventGridPublisherClient(endpoint, AzureKeyCredential(key))
+
+    async def _initialize_datastores(self) -> None:
+        sql_connection_string = os.getenv("SQL_CONNECTION_STRING")
+        if sql_connection_string and create_engine:
+            self.sql_engine = create_engine(sql_connection_string)
+        cosmos_endpoint = os.getenv("COSMOS_ENDPOINT")
+        cosmos_key = os.getenv("COSMOS_KEY")
+        if cosmos_endpoint and cosmos_key and CosmosClient:
+            self.cosmos_client = CosmosClient(cosmos_endpoint, credential=cosmos_key)
+
+    async def _initialize_data_factory(self) -> None:
+        if not DataFactoryManagementClient or not DefaultAzureCredential:
+            return
+        subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
+        if not subscription_id:
+            return
+        credential = DefaultAzureCredential()
+        self.data_factory_client = DataFactoryManagementClient(credential, subscription_id)
+        resource_group = os.getenv("AZURE_RESOURCE_GROUP")
+        factory_name = os.getenv("AZURE_DATA_FACTORY_NAME")
+        if resource_group and factory_name and self.data_factory_pipelines:
+            for pipeline_name in self.data_factory_pipelines:
+                try:  # pragma: no cover - network dependent
+                    self.data_factory_client.pipelines.get(
+                        resource_group_name=resource_group,
+                        factory_name=factory_name,
+                        pipeline_name=pipeline_name,
+                    )
+                except Exception as exc:  # pragma: no cover - network dependent
+                    self.logger.warning(
+                        "data_factory_pipeline_unavailable",
+                        extra={"pipeline": pipeline_name, "error": str(exc)},
+                    )
+
+    async def _initialize_functions(self) -> None:
+        if not azure_functions:
+            return
+        self.function_app = azure_functions.FunctionApp()
+
+    async def _initialize_monitoring(self) -> None:
+        endpoint = os.getenv("LOG_ANALYTICS_ENDPOINT")
+        if not endpoint or not LogsIngestionClient or not DefaultAzureCredential:
+            return
+        credential = DefaultAzureCredential()
+        self.log_analytics_client = LogsIngestionClient(endpoint=endpoint, credential=credential)
+
+    async def _publish_event(self, topic: str, payload: dict[str, Any]) -> None:
+        if not self.event_bus:
+            return
+        await self.event_bus.publish(topic, payload)
+
+    def _is_duplicate_record(self, tenant_id: str, entity_type: str, data: dict[str, Any]) -> bool:
+        normalized_payload = json.dumps(
+            {"entity_type": entity_type, "data": data},
+            sort_keys=True,
+            default=str,
+        )
+        record_hash = hashlib.sha256(normalized_payload.encode("utf-8")).hexdigest()
+        seen_hashes = self.seen_record_hashes.setdefault(tenant_id, set())
+        if record_hash in seen_hashes:
+            return True
+        seen_hashes.add(record_hash)
+        return False
+
+    async def _record_sync_metrics(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        source_system: str,
+        latency_seconds: float,
+        started_at: datetime,
+        finished_at: datetime,
+    ) -> None:
+        record = {
+            "tenant_id": tenant_id,
+            "entity_type": entity_type,
+            "source_system": source_system,
+            "latency_seconds": latency_seconds,
+            "started_at": started_at.isoformat(),
+            "finished_at": finished_at.isoformat(),
+        }
+        self.latency_records.append(record)
+        await self._ingest_latency_metric(record)
+
+    async def _ingest_latency_metric(self, record: dict[str, Any]) -> None:
+        if not self.log_analytics_client:
+            return
+        rule_id = os.getenv("LOG_ANALYTICS_RULE_ID")
+        stream_name = os.getenv("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency")
+        if not rule_id:
+            return
+        try:
+            await self.log_analytics_client.upload(
+                rule_id=rule_id,
+                stream_name=stream_name,
+                logs=[record],
+            )
+        except Exception as exc:  # pragma: no cover - network dependent
+            self.logger.warning("log_analytics_upload_failed", extra={"error": str(exc)})
 
     async def _generate_master_id(self, entity_type: str) -> str:
         """Generate unique master ID."""
@@ -891,11 +1303,15 @@ class DataSyncAgent(BaseAgent):
 
     async def _get_validation_rules(self, entity_type: str) -> list[dict[str, Any]]:
         """Get validation rules for entity type."""
-        # Future work: Load from configuration
-        return [
-            {"field": "id", "required": True, "severity": "error"},
-            {"field": "name", "required": True, "severity": "error"},
-        ]
+        if entity_type in self.validation_rules:
+            return self.validation_rules[entity_type]
+        return self.validation_rules.get(
+            "default",
+            [
+                {"field": "id", "required": True, "severity": "error"},
+                {"field": "name", "required": True, "severity": "error"},
+            ],
+        )
 
     async def _apply_validation_rule(
         self, data: dict[str, Any], rule: dict[str, Any]
@@ -916,9 +1332,16 @@ class DataSyncAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Data Synchronization & Consistency Agent...")
-        # Future work: Close database connections
-        # Future work: Close event bus connections
-        # Future work: Flush pending sync events
+        if self.event_bus and hasattr(self.event_bus, "stop"):
+            await self.event_bus.stop()
+        if self.service_bus_client and hasattr(self.service_bus_client, "close"):
+            await self.service_bus_client.close()
+        if self.sql_engine and hasattr(self.sql_engine, "dispose"):
+            self.sql_engine.dispose()
+        if self.cosmos_client and hasattr(self.cosmos_client, "close"):
+            self.cosmos_client.close()
+        if self.log_analytics_client and hasattr(self.log_analytics_client, "close"):
+            await self.log_analytics_client.close()
 
     async def _store_record(self, table: str, record_id: str, payload: dict[str, Any]) -> None:
         if not self.db_service:
@@ -1102,9 +1525,10 @@ class DataSyncAgent(BaseAgent):
     def _calculate_similarity(self, left: str, right: str) -> float:
         if not left or not right:
             return 0.0
+        fuzz_ratio = fuzz.token_set_ratio(left, right) / 100.0 if fuzz else 0.0
         token_similarity = self._token_similarity(left, right)
         levenshtein_similarity = self._levenshtein_similarity(left, right)
-        return max(token_similarity, levenshtein_similarity)
+        return max(fuzz_ratio, token_similarity, levenshtein_similarity)
 
     def _token_similarity(self, left: str, right: str) -> float:
         left_tokens = set(left.split())

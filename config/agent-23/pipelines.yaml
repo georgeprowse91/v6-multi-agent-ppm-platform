@@ -1,0 +1,11 @@
+pipelines:
+  - name: sync-projects
+    description: "ETL pipeline for project master data."
+  - name: sync-resources
+    description: "ETL pipeline for resource master data."
+
+functions:
+  - name: normalize-projects
+    description: "Normalize project payloads before persistence."
+  - name: enrich-resources
+    description: "Enrich resource records with derived attributes."

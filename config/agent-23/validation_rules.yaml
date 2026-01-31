@@ -1,0 +1,26 @@
+default:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+
+project:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: false
+    severity: warning
+
+resource:
+  - field: id
+    required: true
+    severity: error
+  - field: email
+    required: true
+    severity: warning
