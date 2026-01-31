@@ -314,12 +314,89 @@ function createSampleArtifacts(): Record<string, CanvasArtifact> {
     status: 'draft',
   };
 
+  const qualityDashboard: CanvasArtifact<DashboardContent> = {
+    id: 'artifact-quality-dashboard-1',
+    type: 'dashboard',
+    title: 'Quality Dashboard',
+    projectId: 'project-demo',
+    content: {
+      widgets: [
+        {
+          id: 'quality-widget-1',
+          type: 'metric',
+          title: 'Defect Density',
+          x: 0,
+          y: 0,
+          width: 3,
+          height: 2,
+          config: { value: 0.04, unit: 'defects/kloc', change: -0.01 },
+        },
+        {
+          id: 'quality-widget-2',
+          type: 'metric',
+          title: 'Test Coverage',
+          x: 3,
+          y: 0,
+          width: 3,
+          height: 2,
+          config: { value: 87, unit: '%', change: 3 },
+        },
+        {
+          id: 'quality-widget-3',
+          type: 'metric',
+          title: 'Pass Rate',
+          x: 6,
+          y: 0,
+          width: 3,
+          height: 2,
+          config: { value: 94, unit: '%', change: 2 },
+        },
+        {
+          id: 'quality-widget-4',
+          type: 'metric',
+          title: 'Open Defects',
+          x: 9,
+          y: 0,
+          width: 3,
+          height: 2,
+          config: { value: 12, unit: '', change: -4 },
+        },
+        {
+          id: 'quality-widget-5',
+          type: 'chart',
+          title: 'Defect Trends',
+          x: 0,
+          y: 2,
+          width: 6,
+          height: 3,
+          config: { chartType: 'line' },
+        },
+        {
+          id: 'quality-widget-6',
+          type: 'chart',
+          title: 'Coverage by Module',
+          x: 6,
+          y: 2,
+          width: 6,
+          height: 3,
+          config: { chartType: 'bar' },
+        },
+      ],
+      gridColumns: 12,
+      gridRows: 8,
+    },
+    metadata: { createdAt: now, updatedAt: now },
+    version: 1,
+    status: 'draft',
+  };
+
   return {
     [charterDoc.id]: charterDoc,
     [wbsTree.id]: wbsTree,
     [timeline.id]: timeline,
     [spreadsheet.id]: spreadsheet,
     [dashboard.id]: dashboard,
+    [qualityDashboard.id]: qualityDashboard,
   };
 }
 
@@ -550,4 +627,5 @@ export const SAMPLE_ARTIFACT_IDS = {
   timeline: 'artifact-timeline-1',
   spreadsheet: 'artifact-spreadsheet-1',
   dashboard: 'artifact-dashboard-1',
+  qualityDashboard: 'artifact-quality-dashboard-1',
 };

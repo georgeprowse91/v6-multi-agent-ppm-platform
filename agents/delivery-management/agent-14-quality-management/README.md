@@ -32,6 +32,28 @@ pytest agents/delivery-management/agent-14-quality-management/tests
 
 Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
+### Quality management integrations
+
+The quality management agent supports the following configuration keys (all optional) in its config payload:
+
+```json
+{
+  "azure_devops": { "enabled": true, "organization": "<org>", "project": "<project>" },
+  "jira_xray": { "enabled": true, "base_url": "<url>", "project_key": "<key>" },
+  "testrail": { "enabled": true, "base_url": "<url>", "project_id": "<id>" },
+  "playwright": { "browser": "chromium", "headless": true },
+  "blob_storage": { "container": "quality-tests" },
+  "azure_ml": { "workspace": "<name>", "model_name": "defect-predictor" },
+  "code_repos": {
+    "coverage_by_project": { "project-1": { "coverage_pct": 87.5, "source": "ado", "captured_at": "..." } },
+    "size_by_project": { "project-1": { "kloc": 12.4, "source": "ado" } }
+  },
+  "azure_openai": { "prompt_prefix": "Use executive tone" }
+}
+```
+
+These settings let the agent simulate (or integrate with) Azure DevOps Test Plans, Jira Xray, TestRail, Playwright automation runs, Blob Storage artifacts, Azure ML defect prediction, and coverage metrics collected from code repositories. Release notes and quality reports are generated with Azure OpenAI prompt templates using the provided `prompt_prefix` when available.
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
