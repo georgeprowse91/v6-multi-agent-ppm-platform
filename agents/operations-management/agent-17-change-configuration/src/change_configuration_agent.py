@@ -18,6 +18,8 @@ from approval_workflow_agent import ApprovalWorkflowAgent
 
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
+from agents.common.connector_integration import DatabaseStorageService, ITSMIntegrationService
+from agents.common.integration_services import NaiveBayesTextClassifier
 
 
 class ChangeConfigurationAgent(BaseAgent):
@@ -92,8 +94,35 @@ class ChangeConfigurationAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Change & Configuration Management Agent...")
 
-        # Future work: Initialize Azure Cosmos DB or SQL Database for change requests and CMDB
-        # Future work: Connect to ITSM tools (ServiceNow, Jira Service Management, Azure DevOps, BMC Remedy)
+        # Initialize Database Storage Service (Azure SQL, Cosmos DB, or JSON fallback)
+        db_config = self.config.get("database_storage", {}) if self.config else {}
+        self.db_service = DatabaseStorageService(db_config)
+        self.logger.info("Database Storage Service initialized")
+
+        # Initialize ITSM Integration Service (ServiceNow, Jira Service Management, BMC Remedy)
+        itsm_config = self.config.get("itsm_integration", {}) if self.config else {}
+        self.itsm_service = ITSMIntegrationService(itsm_config)
+        self.logger.info("ITSM Integration Service initialized")
+
+        # Initialize change classification model
+        self.change_classifier = NaiveBayesTextClassifier(labels=self.change_types)
+        training_samples = (
+            self.config.get("change_classification_samples", [])
+            if self.config
+            else []
+        )
+        if not training_samples:
+            training_samples = [
+                ("emergency fix for production outage", "emergency"),
+                ("critical security patch rollout", "emergency"),
+                ("routine maintenance window update", "standard"),
+                ("standard patching for monthly updates", "standard"),
+                ("feature enhancement request", "normal"),
+                ("configuration change for new capability", "normal"),
+            ]
+        self.change_classifier.fit(training_samples)
+        self.logger.info("Change classification model initialized")
+
         # Future work: Integrate with Git repositories (GitHub, GitLab, Azure Repos)
         # Future work: Connect to infrastructure as code tools (Terraform, Azure Blueprint)
         # Future work: Set up Azure Durable Functions or Logic Apps for workflow orchestration
@@ -279,7 +308,15 @@ class ChangeConfigurationAgent(BaseAgent):
         self.change_requests[change_id] = change
         self.change_store.upsert(tenant_id, change_id, change)
 
-        # Future work: Store in database
+        itsm_payload = {
+            "title": change.get("title"),
+            "description": change.get("description"),
+            "priority": change.get("priority"),
+            "requester": change.get("requester"),
+            "status": change.get("status"),
+        }
+        change["itsm_record"] = await self.itsm_service.create_change_request(itsm_payload)
+        await self.db_service.store("change_requests", change_id, change)
 
         return {
             "change_id": change_id,
@@ -299,17 +336,21 @@ class ChangeConfigurationAgent(BaseAgent):
         if not change:
             raise ValueError(f"Change request not found: {change_id}")
 
-        # Use NLP to classify
-        # Future work: Use Azure ML for classification
-        classification = await self._auto_classify_change_type(
-            {"description": change.get("description")}
-        )
+        description = f"{change.get('title', '')} {change.get('description', '')}".strip()
+        classification, confidence = self.change_classifier.predict(description)
 
         # Update change
         change["type"] = classification
         change["routing"] = await self._determine_routing(classification)
+        change["classification_confidence"] = confidence.get(classification, 0.0)
+        await self.db_service.store("change_requests", change_id, change)
 
-        return {"change_id": change_id, "type": classification, "routing": change["routing"]}
+        return {
+            "change_id": change_id,
+            "type": classification,
+            "routing": change["routing"],
+            "confidence": change["classification_confidence"],
+        }
 
     async def _assess_impact(self, change_id: str) -> dict[str, Any]:
         """Assess change impact."""
@@ -349,7 +390,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Update change
         change["impact_assessment"] = impact_assessment
 
-        # Future work: Store in database
+        await self.db_service.store("change_requests", change_id, change)
 
         return {
             "change_id": change_id,
@@ -382,7 +423,15 @@ class ChangeConfigurationAgent(BaseAgent):
         else:
             change["status"] = "Rejected"
 
-        # Future work: Store in database
+        await self.db_service.store("change_requests", change_id, change)
+
+        itsm_record = change.get("itsm_record", {})
+        itsm_id = itsm_record.get("change_id") if isinstance(itsm_record, dict) else None
+        if itsm_id:
+            await self.itsm_service.update_ticket(
+                itsm_id,
+                {"status": change["status"], "approval_status": change["approval_status"]},
+            )
         # Future work: Publish change.approved or change.rejected event
 
         return {
@@ -425,7 +474,7 @@ class ChangeConfigurationAgent(BaseAgent):
         self.cmdb[ci_id] = ci
         self.cmdb_store.upsert(tenant_id, ci_id, ci)
 
-        # Future work: Store in database with graph features
+        await self.db_service.store("configuration_items", ci_id, ci)
 
         return {"ci_id": ci_id, "name": ci["name"], "type": ci["type"], "version": ci["version"]}
 
@@ -462,7 +511,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Store baseline
         self.baselines[baseline_id] = baseline
 
-        # Future work: Store in database
+        await self.db_service.store("baselines", baseline_id, baseline)
 
         return {
             "baseline_id": baseline_id,
@@ -661,13 +710,66 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _analyze_dependency_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Analyze CI dependency impact."""
-        # Future work: Use graph analysis
-        return {"dependent_cis": [], "cascading_impact": False}
+        impacted_cis = change.get("impacted_cis", [])
+        if not impacted_cis:
+            return {"dependent_cis": [], "cascading_impact": False, "dependency_depth": 0}
+
+        adjacency: dict[str, list[str]] = {}
+        for ci_id, ci in self.cmdb.items():
+            adjacency.setdefault(ci_id, [])
+            for rel in ci.get("relationships", []):
+                target_id = rel.get("target_ci_id")
+                if target_id:
+                    adjacency.setdefault(ci_id, []).append(target_id)
+
+        visited: set[str] = set()
+        queue: list[tuple[str, int]] = [(ci_id, 0) for ci_id in impacted_cis]
+        dependent_cis: set[str] = set()
+        max_depth = 0
+
+        while queue:
+            current, depth = queue.pop(0)
+            if current in visited:
+                continue
+            visited.add(current)
+            max_depth = max(max_depth, depth)
+            for neighbor in adjacency.get(current, []):
+                if neighbor not in impacted_cis:
+                    dependent_cis.add(neighbor)
+                if neighbor not in visited:
+                    queue.append((neighbor, depth + 1))
+
+        return {
+            "dependent_cis": sorted(dependent_cis),
+            "cascading_impact": len(dependent_cis) > 0,
+            "dependency_depth": max_depth,
+        }
 
     async def _predict_change_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Predict change impact using ML."""
-        # Future work: Use Azure ML
-        return {"success_probability": 0.8, "predicted_duration": 5}
+        impacted_cis = change.get("impacted_cis", [])
+        base_score = 1.0
+        weighted_score = 0.0
+        criticality_weights = {"low": 0.5, "medium": 1.0, "high": 1.5, "critical": 2.0}
+
+        for ci_id in impacted_cis:
+            ci = self.cmdb.get(ci_id, {})
+            criticality = str(ci.get("attributes", {}).get("criticality", "medium")).lower()
+            ci_weight = criticality_weights.get(criticality, 1.0)
+            relationship_weight = len(ci.get("relationships", [])) * 0.2
+            weighted_score += base_score + ci_weight + relationship_weight
+
+        change_size = max(len(impacted_cis), 1)
+        impact_score = weighted_score / change_size
+        predicted_duration = max(1, int(impact_score * 3 + change_size))
+        success_probability = max(0.1, min(0.95, 0.95 - (impact_score / 10)))
+
+        return {
+            "success_probability": round(success_probability, 2),
+            "predicted_duration": predicted_duration,
+            "impact_score": round(impact_score, 2),
+            "impacted_ci_count": len(impacted_cis),
+        }
 
     async def _calculate_overall_risk(
         self,
