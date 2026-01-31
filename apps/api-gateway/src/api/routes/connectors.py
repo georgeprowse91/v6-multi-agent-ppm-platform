@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import importlib
 import importlib.util
 import json
 import logging
@@ -112,6 +113,22 @@ def get_webhook_registrar(connector_id: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return getattr(module, "register_webhook", None)
+
+
+def get_test_connection_handler(connector_id: str):
+    connector_class = get_connector_class(connector_id)
+    if connector_class and callable(getattr(connector_class, "test_connection", None)):
+        return ("class", connector_class)
+
+    module_name = f"{connector_id}_connector"
+    try:
+        module = importlib.import_module(module_name)
+    except ModuleNotFoundError:
+        return (None, None)
+    handler = getattr(module, "test_connection", None)
+    if callable(handler):
+        return ("function", handler)
+    return (None, None)
 
 
 def _webhook_secret_env_var(connector_id: str) -> str:
@@ -669,11 +686,13 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
         project_key=request.project_key or (config.project_key if config else ""),
     )
 
-    connector_class = get_connector_class(connector_id)
-    if not connector_class:
-        raise HTTPException(
-            status_code=501,
-            detail=f"Connection testing not implemented for connector: {connector_id}",
+    handler_type, handler = get_test_connection_handler(connector_id)
+    if not handler:
+        return TestConnectionResponse(
+            status=ConnectionStatus.FAILED.value,
+            message=f"Connection testing is not supported for connector '{connector_id}'.",
+            details={"connector_id": connector_id, "reason": "unsupported"},
+            tested_at=datetime.now(timezone.utc).isoformat(),
         )
 
     circuit_breaker = get_circuit_breaker()
@@ -685,9 +704,12 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
             tested_at=datetime.now(timezone.utc).isoformat(),
         )
 
-    connector = connector_class(test_config)
     try:
-        result = connector.test_connection()
+        if handler_type == "class":
+            connector = handler(test_config)
+            result = connector.test_connection()
+        else:
+            result = handler(test_config)
     except Exception as exc:
         circuit_breaker.record_failure(connector_id)
         raise HTTPException(
