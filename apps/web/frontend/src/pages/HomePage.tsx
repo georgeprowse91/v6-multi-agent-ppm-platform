@@ -51,6 +51,11 @@ const configLinks = [
     path: '/config/connectors',
   },
   {
+    title: 'Connector Marketplace',
+    description: 'Enable, configure, and track connector availability',
+    path: '/marketplace/connectors',
+  },
+  {
     title: 'Workflows',
     description: 'Adjust workflow routing and orchestration settings',
     path: '/config/workflows',

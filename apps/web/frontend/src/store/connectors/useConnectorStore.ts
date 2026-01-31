@@ -94,15 +94,19 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     try {
       const response = await fetch(`${API_BASE}/connectors`);
       if (!response.ok) {
-        throw new Error(`Failed to fetch connectors: ${response.statusText}`);
+        const message = `Failed to fetch connectors: ${response.statusText}`;
+        set({ connectorsError: message, connectorsLoading: false });
+        return;
       }
       const data = await response.json();
       set({ connectors: data, connectorsLoading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       set({ connectorsError: message, connectorsLoading: false });
-      // Fall back to mock data for development
-      set({ connectors: getMockConnectors() });
+      // Fall back to mock data only when the API is unreachable
+      if (error instanceof TypeError && message.includes('Failed to fetch')) {
+        set({ connectors: getMockConnectors() });
+      }
     }
   },
 
@@ -358,7 +362,7 @@ function getMockConnectors(): Connector[] {
       name: 'Jira',
       description: 'Atlassian Jira for agile project tracking and issue management',
       category: 'pm',
-      status: 'available',
+      status: 'production',
       icon: 'jira',
       supported_sync_directions: ['inbound'],
       auth_type: 'api_key',
@@ -381,7 +385,7 @@ function getMockConnectors(): Connector[] {
       name: 'Azure DevOps',
       description: 'Microsoft Azure DevOps for source control, CI/CD, and work tracking',
       category: 'pm',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'azure',
       supported_sync_directions: ['inbound', 'bidirectional'],
       auth_type: 'api_key',
@@ -402,7 +406,7 @@ function getMockConnectors(): Connector[] {
       name: 'Planview',
       description: 'Enterprise PPM platform for portfolio and resource management',
       category: 'ppm',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'planview',
       supported_sync_directions: ['inbound', 'bidirectional'],
       auth_type: 'api_key',
@@ -423,7 +427,7 @@ function getMockConnectors(): Connector[] {
       name: 'Slack',
       description: 'Slack for team messaging and collaboration',
       category: 'collaboration',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'slack',
       supported_sync_directions: ['outbound', 'bidirectional'],
       auth_type: 'oauth2',
@@ -443,7 +447,7 @@ function getMockConnectors(): Connector[] {
       name: 'Microsoft Teams',
       description: 'Microsoft Teams for collaboration and communication',
       category: 'collaboration',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'teams',
       supported_sync_directions: ['outbound', 'bidirectional'],
       auth_type: 'oauth2',
@@ -464,7 +468,7 @@ function getMockConnectors(): Connector[] {
       name: 'SharePoint',
       description: 'Microsoft SharePoint for document management and collaboration',
       category: 'doc_mgmt',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'sharepoint',
       supported_sync_directions: ['inbound', 'bidirectional'],
       auth_type: 'oauth2',
@@ -485,7 +489,7 @@ function getMockConnectors(): Connector[] {
       name: 'SAP',
       description: 'SAP ERP for enterprise resource planning and financials',
       category: 'erp',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'sap',
       supported_sync_directions: ['inbound'],
       auth_type: 'basic',
@@ -506,7 +510,7 @@ function getMockConnectors(): Connector[] {
       name: 'Workday',
       description: 'Workday HCM for human capital management',
       category: 'hris',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'workday',
       supported_sync_directions: ['inbound'],
       auth_type: 'oauth2',
@@ -527,7 +531,7 @@ function getMockConnectors(): Connector[] {
       name: 'ServiceNow GRC',
       description: 'ServiceNow Governance, Risk, and Compliance',
       category: 'grc',
-      status: 'coming_soon',
+      status: 'beta',
       icon: 'servicenow',
       supported_sync_directions: ['inbound', 'bidirectional'],
       auth_type: 'oauth2',

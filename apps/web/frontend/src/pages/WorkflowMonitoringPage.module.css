@@ -15,6 +15,54 @@
   margin-bottom: 12px;
 }
 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.streamStatus {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 12px;
+  min-width: 220px;
+}
+
+.streamDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #cbd5f5;
+}
+
+.streamLive {
+  background: #22c55e;
+}
+
+.streamConnecting {
+  background: #f59e0b;
+}
+
+.streamError {
+  background: #ef4444;
+}
+
+.streamLabel {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.streamMeta {
+  font-size: 12px;
+  color: #64748b;
+}
+
 .primaryButton {
   background: #2563eb;
   color: white;
