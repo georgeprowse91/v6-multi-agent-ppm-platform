@@ -958,6 +958,7 @@
           "content": [
             "Project charter generation: Creates complete charters detailing objectives, stakeholders, governance and high\u2011level scope.",
             "Scope management: Drafts and maintains scope statements, WBS and deliverable definitions, supporting change control.",
+            "External research augmentation: Enriches scope, requirements and WBS proposals with trustworthy public sources when enabled.",
             "Requirements management: Captures, documents and tracks requirements; builds traceability matrices linking requirements to user stories and test cases.",
             "Scope baseline management: Establishes and manages scope baselines, including change control for scope creep.",
             "Stakeholder analysis & RACI matrices: Identifies stakeholders, analyses influence and accountability, and generates RACI matrices.",
@@ -991,6 +992,8 @@
             "Portfolio Strategy Agent (Agent\u00a06): Provides strategic alignment context and priority ranking.",
             "Resource Management Agent (Agent\u00a011): Supplies assigned project manager and key resource availability for charter creation.",
             "Knowledge & Document Management Agent (Agent\u00a019): Provides templates, prior project artefacts and lessons learned to inform charter and WBS.",
+            "Web Search Service: Retrieves external best-practice and regulatory snippets for scope refinement when enabled.",
+            "LLM Summarisation Module: Condenses external research into actionable scope inputs.",
             "Schedule & Planning Agent (Agent\u00a010): Consumes WBS and requirements to generate schedules; provides feedback on dependency mapping.",
             "Approval Workflow Agent (Agent\u00a03): Manages approval of charters, scope baselines and traceability matrices."
           ]
@@ -1040,7 +1043,9 @@
             "Requirement Priority Thresholds: Default thresholds for categorising requirements (e.g., critical, high, medium, low).",
             "Traceability Enforcement Rules: Minimum percentage of requirements that must be linked to user stories/test cases before approval.",
             "Scope Change Policies: Rules for when scope changes require formal approval vs. automatic update (e.g., changes above 10% effort require sponsor sign\u2011off).",
-            "Stakeholder Classification Rules: Criteria for categorising stakeholders by influence and interest."
+            "Stakeholder Classification Rules: Criteria for categorising stakeholders by influence and interest.",
+            "External Research Toggle: Enable or disable web-based scope enrichment.",
+            "Search Result Limit: Caps the number of external snippets used for scope generation."
           ]
         },
         {

@@ -322,6 +322,24 @@ class AgentConfigStore:
             category=AgentCategory.DELIVERY,
             enabled=True,
             capabilities=["scope_definition", "wbs_creation", "deliverable_tracking"],
+            parameters=[
+                AgentParameter(
+                    name="enable_external_research",
+                    display_name="Enable External Scope Research",
+                    description="Allow the agent to call external search APIs for scope refinement",
+                    param_type="boolean",
+                    default_value=False,
+                ),
+                AgentParameter(
+                    name="search_result_limit",
+                    display_name="External Search Result Limit",
+                    description="Maximum number of external search snippets to use",
+                    param_type="number",
+                    default_value=5,
+                    min_value=1,
+                    max_value=10,
+                ),
+            ],
         ).to_dict()
 
         agents["agent-09-lifecycle-governance"] = AgentConfig(

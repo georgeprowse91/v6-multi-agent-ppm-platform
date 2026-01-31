@@ -39,6 +39,7 @@ export type ActionType =
   | 'generate_template'  // Generate content based on context
   | 'show_prerequisites' // Show what's blocking
   | 'complete_activity'  // Mark activity as complete
+  | 'scope_research'     // Trigger external scope research
   | 'custom';            // Custom action with callback
 
 /**
@@ -83,6 +84,7 @@ export type ActionPayload =
   | GenerateTemplatePayload
   | ShowPrerequisitesPayload
   | CompleteActivityPayload
+  | ScopeResearchPayload
   | CustomActionPayload;
 
 export interface OpenActivityPayload {
@@ -116,6 +118,11 @@ export interface ShowPrerequisitesPayload {
 export interface CompleteActivityPayload {
   type: 'complete_activity';
   activityId: string;
+}
+
+export interface ScopeResearchPayload {
+  type: 'scope_research';
+  objective?: string;
 }
 
 export interface CustomActionPayload {

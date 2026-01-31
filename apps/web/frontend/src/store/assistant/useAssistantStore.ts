@@ -381,6 +381,19 @@ function generateActivitySuggestions(
         });
       }
       chips.push({
+        id: 'research-scope',
+        label: 'Research scope with web sources',
+        category: 'analyse',
+        priority: 'medium',
+        icon: '🔍',
+        actionType: 'scope_research',
+        payload: {
+          type: 'scope_research',
+        },
+        enabled: true,
+        description: 'Gather external references to refine scope and WBS items',
+      });
+      chips.push({
         id: 'create-wbs',
         label: 'Create WBS structure',
         category: 'create',

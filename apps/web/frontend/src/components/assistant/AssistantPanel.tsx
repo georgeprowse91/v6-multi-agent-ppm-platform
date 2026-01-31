@@ -24,6 +24,24 @@ import {
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import styles from './AssistantPanel.module.css';
 
+type ScopeResearchStatus = 'pending' | 'accepted' | 'rejected';
+type ScopeResearchSection = 'scope' | 'requirements' | 'wbs';
+
+interface ScopeResearchItem {
+  id: string;
+  text: string;
+  status: ScopeResearchStatus;
+}
+
+interface ScopeResearchResult {
+  scope: ScopeResearchItem[];
+  requirements: ScopeResearchItem[];
+  wbs: ScopeResearchItem[];
+  sources: string[];
+  notice?: string;
+  usedExternalResearch: boolean;
+}
+
 export function AssistantPanel() {
   const { rightPanelCollapsed, toggleRightPanel } = useAppStore();
   const {
@@ -48,6 +66,13 @@ export function AssistantPanel() {
   } = useAssistantStore();
 
   const [inputValue, setInputValue] = useState('');
+  const [scopeResearchOpen, setScopeResearchOpen] = useState(false);
+  const [scopeResearchObjective, setScopeResearchObjective] = useState('');
+  const [scopeResearchLoading, setScopeResearchLoading] = useState(false);
+  const [scopeResearchError, setScopeResearchError] = useState<string | null>(null);
+  const [scopeResearchResult, setScopeResearchResult] = useState<ScopeResearchResult | null>(
+    null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevActivityIdRef = useRef<string | null>(null);
 
@@ -137,6 +162,122 @@ export function AssistantPanel() {
     clearActionChips,
     projectMethodology.methodology.stages,
   ]);
+
+  const buildScopeItems = (items: string[], prefix: string): ScopeResearchItem[] =>
+    items.map((text, index) => ({
+      id: `${prefix}-${index}`,
+      text,
+      status: 'pending',
+    }));
+
+  const updateScopeItem = (
+    section: ScopeResearchSection,
+    id: string,
+    updates: Partial<ScopeResearchItem>
+  ) => {
+    setScopeResearchResult((prev) => {
+      if (!prev) return prev;
+      const updatedSection = (prev[section] as ScopeResearchItem[]).map((item) =>
+        item.id === id ? { ...item, ...updates } : item
+      );
+      return { ...prev, [section]: updatedSection } as ScopeResearchResult;
+    });
+  };
+
+  const handleScopeResearchSubmit = async () => {
+    if (!context?.projectId) {
+      addAssistantMessage('Select a project before running scope research.');
+      return;
+    }
+    if (!scopeResearchObjective.trim()) {
+      setScopeResearchError('Please enter a high-level objective.');
+      return;
+    }
+
+    setScopeResearchLoading(true);
+    setScopeResearchError(null);
+    setScopeResearchResult(null);
+
+    try {
+      const response = await fetch(`/api/v1/projects/${context.projectId}/scope/research`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objective: scopeResearchObjective.trim() }),
+      });
+      if (!response.ok) {
+        throw new Error('Scope research failed.');
+      }
+      const data = await response.json();
+      setScopeResearchResult({
+        scope: buildScopeItems(
+          [
+            ...(data.scope?.in_scope ?? []),
+            ...(data.scope?.out_of_scope ?? []).map((item: string) => `Out of scope: ${item}`),
+            ...(data.scope?.deliverables ?? []).map((item: string) => `Deliverable: ${item}`),
+          ],
+          'scope'
+        ),
+        requirements: buildScopeItems(data.requirements ?? [], 'req'),
+        wbs: buildScopeItems(data.wbs ?? [], 'wbs'),
+        sources: data.sources ?? [],
+        notice: data.notice,
+        usedExternalResearch: data.used_external_research ?? false,
+      });
+      if (data.notice) {
+        addAssistantMessage(data.notice);
+      }
+    } catch (error) {
+      setScopeResearchError('Unable to complete scope research. Please try again.');
+      addAssistantMessage('Scope research failed. Please try again.', undefined, true);
+    } finally {
+      setScopeResearchLoading(false);
+    }
+  };
+
+  const renderResearchSection = (
+    title: string,
+    section: ScopeResearchSection,
+    items: ScopeResearchItem[]
+  ) => (
+    <div className={styles.researchSection}>
+      <h4 className={styles.researchSectionTitle}>{title}</h4>
+      {items.length === 0 ? (
+        <p className={styles.researchEmpty}>No suggestions yet.</p>
+      ) : (
+        items.map((item) => (
+          <div key={item.id} className={styles.researchItem}>
+            <input
+              className={styles.researchInput}
+              value={item.text}
+              onChange={(event) =>
+                updateScopeItem(section, item.id, { text: event.target.value })
+              }
+            />
+            <div className={styles.researchActions}>
+              <button
+                type="button"
+                className={`${styles.researchAction} ${
+                  item.status === 'accepted' ? styles.researchActionActive : ''
+                }`}
+                onClick={() => updateScopeItem(section, item.id, { status: 'accepted' })}
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                className={`${styles.researchAction} ${
+                  item.status === 'rejected' ? styles.researchActionReject : ''
+                }`}
+                onClick={() => updateScopeItem(section, item.id, { status: 'rejected' })}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
 
   // Handle chip click
   const handleChipClick = useCallback(
@@ -302,6 +443,14 @@ export function AssistantPanel() {
           break;
         }
 
+        case 'scope_research': {
+          setScopeResearchObjective(chip.payload.objective ?? '');
+          setScopeResearchResult(null);
+          setScopeResearchError(null);
+          setScopeResearchOpen(true);
+          break;
+        }
+
         default:
           addAssistantMessage('Action executed.');
       }
@@ -316,6 +465,7 @@ export function AssistantPanel() {
       projectMethodology.projectId,
       addAssistantMessage,
       currentActivityId,
+      setScopeResearchObjective,
     ]
   );
 
@@ -611,6 +761,93 @@ export function AssistantPanel() {
           </svg>
         </button>
       </form>
+
+      {scopeResearchOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <h3>Scope research</h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => setScopeResearchOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <p className={styles.modalHint}>
+              Enter a high-level objective to research scope, requirements, and WBS proposals.
+            </p>
+            <textarea
+              className={styles.modalTextarea}
+              value={scopeResearchObjective}
+              onChange={(event) => setScopeResearchObjective(event.target.value)}
+              placeholder="e.g., Launch a compliant customer self-service portal."
+            />
+            {scopeResearchError && (
+              <p className={styles.researchError}>{scopeResearchError}</p>
+            )}
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalPrimary}
+                onClick={handleScopeResearchSubmit}
+                disabled={scopeResearchLoading}
+              >
+                {scopeResearchLoading ? 'Researching…' : 'Run research'}
+              </button>
+            </div>
+
+            {scopeResearchResult && (
+              <div className={styles.researchResults}>
+                {scopeResearchResult.notice && (
+                  <p className={styles.researchNotice}>{scopeResearchResult.notice}</p>
+                )}
+                {renderResearchSection(
+                  'Scope statements',
+                  'scope',
+                  scopeResearchResult.scope
+                )}
+                {renderResearchSection(
+                  'Requirements',
+                  'requirements',
+                  scopeResearchResult.requirements
+                )}
+                {renderResearchSection('WBS items', 'wbs', scopeResearchResult.wbs)}
+                {scopeResearchResult.sources.length > 0 && (
+                  <div className={styles.researchSources}>
+                    <h4>Sources</h4>
+                    <ul>
+                      {scopeResearchResult.sources.map((source) => (
+                        <li key={source}>{source}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.modalSecondary}
+                    onClick={() => {
+                      const acceptedCount = [
+                        ...scopeResearchResult.scope,
+                        ...scopeResearchResult.requirements,
+                        ...scopeResearchResult.wbs,
+                      ].filter((item) => item.status === 'accepted').length;
+                      addAssistantMessage(
+                        `Captured ${acceptedCount} scope items for review in the project workspace.`
+                      );
+                      setScopeResearchOpen(false);
+                    }}
+                  >
+                    Apply selections
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

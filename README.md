@@ -73,6 +73,29 @@ their primary endpoints when run locally (each service defaults to port `8080` u
 | Policy Engine | RBAC/ABAC and policy evaluation. | `GET /healthz`, `POST /policies/evaluate`, `POST /rbac/evaluate`, `POST /abac/evaluate` |
 | Telemetry Service | Ingests platform metrics/events for observability. | `GET /healthz`, `POST /telemetry/ingest` |
 
+## External scope research (optional)
+
+The Project Definition & Scope agent can augment scope, requirements, and WBS proposals with external web
+research. This feature uses a configured search API to retrieve short, public snippets (vendor guidance,
+best-practice articles, regulatory summaries) and blends them with internal templates via the LLM. The goal
+is to help project managers gather relevant information faster while preserving the organization's existing
+scope baselines.
+
+**Configuration**
+- Set `SEARCH_API_ENDPOINT` and `SEARCH_API_KEY` in your environment (see `.env.example`).
+- Optional controls:
+  - `SEARCH_API_MIN_INTERVAL` to throttle external requests.
+  - `SEARCH_RESULT_LIMIT` to cap snippet volume.
+- Enable the agent flag `enable_external_research` (per project) only when you are ready for outbound calls.
+
+**Security & compliance safeguards**
+- Only high-level objectives should be sent to external search providers; the agent masks sensitive data
+  before issuing queries and logs outbound requests for auditability.
+- If external search fails or returns no useful results, the agent automatically falls back to internal
+  templates.
+- External results may be subject to third-party licenses. Review and validate suggested scope items
+  before acceptance or inclusion in project artefacts.
+
 ## Testing
 
 ```bash

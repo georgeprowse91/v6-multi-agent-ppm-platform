@@ -8,6 +8,7 @@ work breakdown structure (WBS) and requirements. Guides teams through initiation
 Specification: agents/delivery-management/agent-08-project-definition-scope/README.md
 """
 
+import re
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +20,8 @@ from observability.tracing import get_trace_id
 
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
+from scope_research import generate_scope_from_search
+from web_search import search_web
 
 
 class ProjectDefinitionAgent(BaseAgent):
@@ -48,6 +51,12 @@ class ProjectDefinitionAgent(BaseAgent):
         )
         self.traceability_threshold = config.get("traceability_threshold", 0.90) if config else 0.90
         self.scope_change_threshold = config.get("scope_change_threshold", 0.10) if config else 0.10
+        self.enable_external_research = (
+            config.get("enable_external_research", False) if config else False
+        )
+        self.search_result_limit = (
+            int(config.get("search_result_limit", 5)) if config else 5
+        )
 
         charter_store_path = (
             Path(config.get("charter_store_path", "data/project_charters.json"))
@@ -113,6 +122,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "get_charter",
             "get_wbs",
             "get_requirements",
+            "generate_scope_research",
         ]
 
         if action not in valid_actions:
@@ -130,6 +140,10 @@ class ProjectDefinitionAgent(BaseAgent):
         elif action == "generate_wbs":
             if "project_id" not in input_data or "scope_statement" not in input_data:
                 self.logger.warning("Missing project_id or scope_statement")
+                return False
+        elif action == "generate_scope_research":
+            if "project_id" not in input_data or "objective" not in input_data:
+                self.logger.warning("Missing project_id or objective")
                 return False
 
         return True
@@ -225,6 +239,17 @@ class ProjectDefinitionAgent(BaseAgent):
 
         elif action == "get_requirements":
             return await self._get_requirements(input_data.get("project_id"))  # type: ignore
+
+        elif action == "generate_scope_research":
+            return await self._generate_scope_research(
+                input_data.get("project_id"),
+                input_data.get("objective", ""),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                requester=input_data.get("requester", "unknown"),
+                enable_external_research=input_data.get("enable_external_research"),
+                search_result_limit=input_data.get("search_result_limit"),
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -409,6 +434,108 @@ class ProjectDefinitionAgent(BaseAgent):
             "total_work_packages": await self._count_work_packages(wbs_with_details),
             "next_steps": "Review and refine WBS, then pass to Schedule & Planning Agent",
             "approval": approval,
+        }
+
+    async def _generate_scope_research(
+        self,
+        project_id: str,
+        objective: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        requester: str,
+        enable_external_research: bool | None = None,
+        search_result_limit: int | None = None,
+    ) -> dict[str, Any]:
+        self.logger.info(
+            "Generating scope research proposals",
+            extra={"project_id": project_id, "tenant_id": tenant_id},
+        )
+
+        baseline_scope = await self._generate_scope_overview(
+            {"in_scope": [objective], "out_of_scope": [], "deliverables": []}
+        )
+        baseline_requirements = await self._extract_high_level_requirements(
+            {"high_level_requirements": []}
+        )
+        baseline_wbs = await self._generate_wbs_structure({}, baseline_scope, [])
+        baseline_wbs_items = [
+            f"{code} {node.get('name', '')}".strip()
+            for code, node in baseline_wbs.items()
+            if isinstance(node, dict)
+        ]
+
+        use_external = (
+            self.enable_external_research
+            if enable_external_research is None
+            else enable_external_research
+        )
+        result_limit = search_result_limit or self.search_result_limit
+
+        snippets: list[str] = []
+        notice: str | None = None
+        if use_external:
+            safe_query = self._sanitize_search_query(objective)
+            if safe_query:
+                self.logger.info(
+                    "External scope research request",
+                    extra={
+                        "project_id": project_id,
+                        "tenant_id": tenant_id,
+                        "query": safe_query,
+                        "result_limit": result_limit,
+                    },
+                )
+                try:
+                    snippets = await search_web(safe_query, result_limit=result_limit)
+                except Exception as exc:  # pragma: no cover - defensive
+                    self.logger.warning(
+                        "Search failed; falling back to templates", extra={"error": str(exc)}
+                    )
+                    snippets = []
+            else:
+                notice = "Objective was too sensitive for external research; using templates."
+        else:
+            notice = "External research disabled; using internal templates."
+
+        if not snippets:
+            if notice is None:
+                notice = "No external information found; falling back to templates."
+            return {
+                "project_id": project_id,
+                "objective": objective,
+                "scope": baseline_scope,
+                "requirements": baseline_requirements,
+                "wbs": baseline_wbs_items,
+                "sources": [],
+                "used_external_research": False,
+                "notice": notice,
+                "requested_by": requester,
+                "generated_at": datetime.utcnow().isoformat(),
+                "correlation_id": correlation_id,
+            }
+
+        generated = await generate_scope_from_search(
+            objective,
+            snippets,
+            baseline_scope,
+            baseline_requirements,
+            baseline_wbs_items,
+        )
+
+        return {
+            "project_id": project_id,
+            "objective": objective,
+            "scope": generated.get("scope", baseline_scope),
+            "requirements": generated.get("requirements", baseline_requirements),
+            "wbs": generated.get("wbs", baseline_wbs_items),
+            "sources": snippets,
+            "summary": generated.get("summary", ""),
+            "used_external_research": True,
+            "notice": notice,
+            "requested_by": requester,
+            "generated_at": datetime.utcnow().isoformat(),
+            "correlation_id": correlation_id,
         }
 
     async def _manage_requirements(
@@ -797,6 +924,21 @@ class ProjectDefinitionAgent(BaseAgent):
             "out_of_scope": charter_data.get("out_of_scope", []),
             "deliverables": charter_data.get("deliverables", []),
         }
+
+    def _sanitize_search_query(self, objective: str) -> str:
+        sanitized = objective.strip()
+        if not sanitized:
+            return ""
+
+        sanitized = re.sub(
+            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}",
+            "[REDACTED_EMAIL]",
+            sanitized,
+        )
+        sanitized = re.sub(r"\\b\\d{4,}\\b", "[REDACTED_ID]", sanitized)
+        sanitized = re.sub(r"\\b[A-Z0-9]{10,}\\b", "[REDACTED_TOKEN]", sanitized)
+        sanitized = sanitized.split("\\n", maxsplit=1)[0]
+        return sanitized[:240]
 
     async def _generate_governance_structure(self, charter_data: dict[str, Any]) -> dict[str, Any]:
         """Generate governance structure."""

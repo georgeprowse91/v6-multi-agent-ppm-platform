@@ -238,6 +238,20 @@ Initialize → Validate → Process → Respond → Cleanup
 5. Results Stored / Notifications Sent
 ```
 
+### External Research Augmentation Flow
+
+```
+1. User requests scope research from the Project Definition & Scope Agent
+   ↓
+2. Agent sanitises high-level objectives and checks external research settings
+   ↓
+3. Search API call retrieves public snippets (rate limited, logged)
+   ↓
+4. LLM summarises snippets and merges them with internal templates
+   ↓
+5. Proposed scope, requirements, and WBS returned for human review
+```
+
 ## Technology Stack
 
 ### Backend

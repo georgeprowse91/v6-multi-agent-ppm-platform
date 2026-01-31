@@ -146,6 +146,30 @@ paths:
                 $ref: "#/components/schemas/AgentDetails"
         "404":
           description: Agent not found
+  /api/v1/projects/{project_id}/scope/research:
+    post:
+      summary: Generate scope, requirements, and WBS proposals with external research
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScopeResearchRequest"
+      responses:
+        "200":
+          description: Scope research response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScopeResearchResponse"
+        "503":
+          description: Orchestrator not initialized
 components:
   schemas:
     ApiRoot:
@@ -198,6 +222,56 @@ components:
         timestamp:
           type: string
           format: date-time
+    ScopeResearchRequest:
+      type: object
+      required:
+        - objective
+      properties:
+        objective:
+          type: string
+          description: High-level objective used for scope research.
+        enable_external_research:
+          type: boolean
+          description: Override to enable or disable external research for this call.
+        search_result_limit:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Optional cap on external search results.
+    ScopeResearchResponse:
+      type: object
+      properties:
+        project_id:
+          type: string
+        objective:
+          type: string
+        scope:
+          type: object
+        requirements:
+          type: array
+          items:
+            type: string
+        wbs:
+          type: array
+          items:
+            type: string
+        sources:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+        used_external_research:
+          type: boolean
+        notice:
+          type: string
+        requested_by:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        correlation_id:
+          type: string
     QueryRequest:
       type: object
       required:

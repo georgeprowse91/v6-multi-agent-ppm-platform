@@ -1,4 +1,5 @@
 import pytest
+import project_definition_agent as project_definition_module
 from project_definition_agent import ProjectDefinitionAgent
 
 
@@ -132,3 +133,82 @@ async def test_project_definition_validation_rejects_missing_fields(tmp_path):
     )
 
     assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_project_definition_scope_research_uses_external_search(monkeypatch, tmp_path):
+    calls = {"search": 0}
+
+    async def fake_search(query: str, *, result_limit: int | None = None) -> list[str]:
+        calls["search"] += 1
+        return ["Vendor guidance snippet"]
+
+    async def fake_generate(*_args, **_kwargs):
+        return {
+            "scope": {"in_scope": ["A"], "out_of_scope": [], "deliverables": []},
+            "requirements": ["Req 1"],
+            "wbs": ["1.0 Discovery"],
+            "summary": "Summary",
+        }
+
+    monkeypatch.setattr(project_definition_module, "search_web", fake_search)
+    monkeypatch.setattr(project_definition_module, "generate_scope_from_search", fake_generate)
+
+    agent = ProjectDefinitionAgent(
+        config={
+            "enable_external_research": True,
+            "search_result_limit": 2,
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    result = await agent.process(
+        {
+            "action": "generate_scope_research",
+            "tenant_id": "tenant-a",
+            "project_id": "proj-1",
+            "objective": "Launch a new compliance reporting portal.",
+            "requester": "pm-1",
+        }
+    )
+
+    assert calls["search"] == 1
+    assert result["used_external_research"] is True
+    assert result["requirements"] == ["Req 1"]
+
+
+@pytest.mark.asyncio
+async def test_project_definition_scope_research_falls_back_without_results(
+    monkeypatch, tmp_path
+):
+    async def fake_search(*_args, **_kwargs):
+        return []
+
+    async def fail_generate(*_args, **_kwargs):
+        raise AssertionError("Should not call generate_scope_from_search")
+
+    monkeypatch.setattr(project_definition_module, "search_web", fake_search)
+    monkeypatch.setattr(project_definition_module, "generate_scope_from_search", fail_generate)
+
+    agent = ProjectDefinitionAgent(
+        config={
+            "enable_external_research": True,
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    result = await agent.process(
+        {
+            "action": "generate_scope_research",
+            "tenant_id": "tenant-a",
+            "project_id": "proj-2",
+            "objective": "Modernize the HR onboarding process.",
+            "requester": "pm-1",
+        }
+    )
+
+    assert result["used_external_research"] is False
