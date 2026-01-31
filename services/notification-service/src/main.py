@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -70,8 +71,7 @@ def _load_template(name: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _deliver(rendered: str, recipient: str | None, channel: str) -> str:
-    delivery_id = str(uuid4())
+def _deliver(rendered: str, recipient: str | None, channel: str, delivery_id: str) -> str:
     destination = recipient or "stdout"
     if channel == "stdout":
         logger.info("notification_delivered", extra={"delivery_id": delivery_id, "to": destination})
@@ -85,6 +85,151 @@ def _deliver(rendered: str, recipient: str | None, channel: str) -> str:
     return delivery_id, destination
 
 
+def _parse_channel_priority() -> list[str]:
+    configured = os.getenv("NOTIFICATION_CHANNEL_PRIORITY", "teams,slack,acs,stdout")
+    channels: list[str] = []
+    for name in configured.split(","):
+        channel = name.strip().lower()
+        if channel and channel not in channels:
+            channels.append(channel)
+    return channels
+
+
+def _coerce_recipient_to_target(recipient: str | None, fallback: str | None) -> str | None:
+    return recipient or fallback
+
+
+async def _fetch_graph_token() -> str:
+    token = os.getenv("NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN")
+    if token:
+        return token
+
+    tenant_id = os.getenv("NOTIFICATION_TEAMS_TENANT_ID")
+    client_id = os.getenv("NOTIFICATION_TEAMS_CLIENT_ID")
+    client_secret = os.getenv("NOTIFICATION_TEAMS_CLIENT_SECRET")
+    if not all([tenant_id, client_id, client_secret]):
+        raise ValueError("Teams Graph API credentials are not configured")
+
+    token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "scope": "https://graph.microsoft.com/.default",
+    }
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.post(token_url, data=data)
+        response.raise_for_status()
+        payload = response.json()
+    return payload["access_token"]
+
+
+def _resolve_teams_target(recipient: str | None) -> tuple[str | None, str | None, str | None]:
+    chat_id = os.getenv("NOTIFICATION_TEAMS_CHAT_ID")
+    team_id = os.getenv("NOTIFICATION_TEAMS_TEAM_ID")
+    channel_id = os.getenv("NOTIFICATION_TEAMS_CHANNEL_ID")
+
+    if recipient:
+        if recipient.startswith("chat:"):
+            chat_id = recipient.removeprefix("chat:")
+        elif recipient.startswith("channel:"):
+            channel_id = recipient.removeprefix("channel:")
+        elif not chat_id and not team_id:
+            chat_id = recipient
+        elif team_id and not channel_id:
+            channel_id = recipient
+
+    return chat_id, team_id, channel_id
+
+
+async def _send_teams_notification(rendered: str, recipient: str | None) -> str:
+    webhook_url = os.getenv("NOTIFICATION_TEAMS_WEBHOOK_URL")
+    if webhook_url:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(webhook_url, json={"text": rendered})
+            response.raise_for_status()
+        return "teams:webhook"
+
+    token = await _fetch_graph_token()
+    base_url = os.getenv("NOTIFICATION_TEAMS_GRAPH_BASE_URL", "https://graph.microsoft.com/v1.0")
+    chat_id, team_id, channel_id = _resolve_teams_target(recipient)
+    if chat_id:
+        path = f"/chats/{chat_id}/messages"
+        target = f"teams:chat:{chat_id}"
+    elif team_id and channel_id:
+        path = f"/teams/{team_id}/channels/{channel_id}/messages"
+        target = f"teams:channel:{team_id}/{channel_id}"
+    else:
+        raise ValueError("Teams Graph target is not configured")
+
+    payload = {"body": {"content": rendered}}
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.post(
+            f"{base_url}{path}",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        response.raise_for_status()
+    return target
+
+
+async def _send_slack_notification(rendered: str, recipient: str | None) -> str:
+    webhook_url = os.getenv("NOTIFICATION_SLACK_WEBHOOK_URL")
+    if webhook_url:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(webhook_url, json={"text": rendered})
+            response.raise_for_status()
+        return "slack:webhook"
+
+    token = os.getenv("NOTIFICATION_SLACK_BOT_TOKEN")
+    channel = _coerce_recipient_to_target(recipient, os.getenv("NOTIFICATION_SLACK_CHANNEL"))
+    if not token or not channel:
+        raise ValueError("Slack API credentials are not configured")
+
+    base_url = os.getenv("NOTIFICATION_SLACK_API_BASE_URL", "https://slack.com/api")
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.post(
+            f"{base_url}/chat.postMessage",
+            json={"channel": channel, "text": rendered},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        response.raise_for_status()
+        payload = response.json()
+    if not payload.get("ok", False):
+        raise ValueError(f"Slack API error: {payload.get('error', 'unknown')}")
+    return f"slack:channel:{channel}"
+
+
+async def _send_acs_notification(rendered: str, recipient: str | None) -> str:
+    endpoint = os.getenv("NOTIFICATION_ACS_ENDPOINT")
+    token = os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN")
+    target = _coerce_recipient_to_target(recipient, os.getenv("NOTIFICATION_ACS_DEVICE_TOKEN"))
+    if not endpoint or not token or not target:
+        raise ValueError("ACS push notification configuration is incomplete")
+
+    api_version = os.getenv("NOTIFICATION_ACS_API_VERSION", "2023-03-31")
+    if "api-version=" not in endpoint:
+        separator = "&" if "?" in endpoint else "?"
+        endpoint = f"{endpoint}{separator}api-version={api_version}"
+
+    payload = {
+        "to": target,
+        "message": rendered,
+    }
+    application_id = os.getenv("NOTIFICATION_ACS_APPLICATION_ID")
+    if application_id:
+        payload["applicationId"] = application_id
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.post(
+            endpoint,
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        response.raise_for_status()
+    return f"acs:device:{target}"
+
+
 @app.post("/notifications/send", response_model=NotificationResponse)
 async def send_notification(request: NotificationRequest) -> NotificationResponse:
     template = _load_template(request.template)
@@ -93,7 +238,39 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
     except KeyError as exc:
         raise HTTPException(status_code=422, detail=f"Missing template variable: {exc}") from exc
 
-    delivery_id, destination = _deliver(rendered, request.recipient, request.channel)
+    delivery_id = str(uuid4())
+    priority = _parse_channel_priority()
+    requested_channel = request.channel.lower().strip() if request.channel else ""
+    channels_to_try: list[str] = []
+    if requested_channel and requested_channel != "auto":
+        channels_to_try.append(requested_channel)
+    for channel in priority:
+        if channel not in channels_to_try:
+            channels_to_try.append(channel)
+
+    last_error: Exception | None = None
+    destination = ""
+    for channel in channels_to_try:
+        try:
+            if channel == "teams":
+                destination = await _send_teams_notification(rendered, request.recipient)
+            elif channel == "slack":
+                destination = await _send_slack_notification(rendered, request.recipient)
+            elif channel == "acs":
+                destination = await _send_acs_notification(rendered, request.recipient)
+            else:
+                _, destination = _deliver(rendered, request.recipient, channel, delivery_id)
+            break
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            logger.warning(
+                "notification_channel_failed",
+                extra={"channel": channel, "error": str(exc), "delivery_id": delivery_id},
+            )
+    else:
+        detail = f"Notification delivery failed: {last_error}" if last_error else "No channel available"
+        raise HTTPException(status_code=502, detail=detail)
+
     timestamp = datetime.now(timezone.utc)
     return NotificationResponse(
         delivery_id=delivery_id,
