@@ -79,6 +79,16 @@ else:
     EventData = None
     EventHubProducerClient = None
 
+_HAS_AZURE_AUTOMATION = _HAS_AZURE and importlib.util.find_spec("azure.mgmt.automation") is not None
+if _HAS_AZURE_AUTOMATION:
+    from azure.identity import DefaultAzureCredential
+    from azure.mgmt.automation import AutomationClient
+    from azure.mgmt.automation.models import JobCreateParameters, RunbookAssociationProperty
+else:
+    AutomationClient = None
+    JobCreateParameters = None
+    RunbookAssociationProperty = None
+
 _HAS_PROMETHEUS = importlib.util.find_spec("prometheus_client") is not None
 if _HAS_PROMETHEUS:
     from prometheus_client import CollectorRegistry, Counter, Gauge, start_http_server
@@ -125,6 +135,11 @@ class SystemHealthAgent(BaseAgent):
             if config and config.get("appinsights_instrumentation_key")
             else os.getenv("APPINSIGHTS_INSTRUMENTATION_KEY")
         )
+        self.app_insights_resource_id = (
+            config.get("appinsights_resource_id")
+            if config and config.get("appinsights_resource_id")
+            else os.getenv("APPINSIGHTS_RESOURCE_ID")
+        )
         self.azure_monitor_connection_string = (
             config.get("azure_monitor_connection_string")
             if config and config.get("azure_monitor_connection_string")
@@ -168,6 +183,31 @@ class SystemHealthAgent(BaseAgent):
             config.get("scaling_webhook_url")
             if config and config.get("scaling_webhook_url")
             else os.getenv("SCALING_WEBHOOK_URL")
+        )
+        self.automation_webhook_url = (
+            config.get("automation_webhook_url")
+            if config and config.get("automation_webhook_url")
+            else os.getenv("AUTOMATION_WEBHOOK_URL")
+        )
+        self.automation_subscription_id = (
+            config.get("automation_subscription_id")
+            if config and config.get("automation_subscription_id")
+            else os.getenv("AUTOMATION_SUBSCRIPTION_ID")
+        )
+        self.automation_resource_group = (
+            config.get("automation_resource_group")
+            if config and config.get("automation_resource_group")
+            else os.getenv("AUTOMATION_RESOURCE_GROUP")
+        )
+        self.automation_account_name = (
+            config.get("automation_account_name")
+            if config and config.get("automation_account_name")
+            else os.getenv("AUTOMATION_ACCOUNT_NAME")
+        )
+        self.automation_runbook_name = (
+            config.get("automation_runbook_name")
+            if config and config.get("automation_runbook_name")
+            else os.getenv("AUTOMATION_RUNBOOK_NAME")
         )
         self.scaling_thresholds = {
             "cpu": float(
@@ -261,6 +301,7 @@ class SystemHealthAgent(BaseAgent):
         self._logs_query_client = None
         self._metrics_query_client = None
         self._event_hub_producer = None
+        self._automation_client = None
         self._health_probe_task: asyncio.Task | None = None
         self._prometheus_registry = None
         self._prometheus_metrics: dict[str, Any] = {}
@@ -283,6 +324,7 @@ class SystemHealthAgent(BaseAgent):
         await self._initialize_azure_monitoring()
         await self._configure_opentelemetry_exporters()
         await self._initialize_event_hub()
+        await self._initialize_automation_client()
         await self._initialize_prometheus_metrics()
         await self._configure_alert_rules()
         await self._initialize_health_probes()
@@ -308,6 +350,9 @@ class SystemHealthAgent(BaseAgent):
             "get_metrics",
             "get_alerts",
             "get_capacity_recommendations",
+            "get_health_endpoints",
+            "query_historical_metrics",
+            "forecast_capacity",
             "acknowledge_alert",
             "resolve_incident",
         ]
@@ -399,6 +444,19 @@ class SystemHealthAgent(BaseAgent):
 
         elif action == "get_capacity_recommendations":
             return await self._get_capacity_recommendations(input_data.get("service_name"))
+
+        elif action == "get_health_endpoints":
+            return await self._get_health_endpoints()
+
+        elif action == "query_historical_metrics":
+            return await self._query_historical_metrics(
+                input_data.get("service_name"),  # type: ignore
+                input_data.get("metric_name"),  # type: ignore
+                input_data.get("time_range", {}),
+            )
+
+        elif action == "forecast_capacity":
+            return await self._forecast_capacity(input_data.get("service_name"))
 
         elif action == "acknowledge_alert":
             return await self._acknowledge_alert(
@@ -567,6 +625,26 @@ class SystemHealthAgent(BaseAgent):
                 "severity": anomaly.get("severity"),
                 "detected_at": datetime.utcnow().isoformat(),
             }
+            if anomaly.get("severity") == "critical":
+                await self._create_servicenow_incident(
+                    {
+                        "title": f"{service_name} anomaly detected",
+                        "description": f"{anomaly.get('metric')} value {anomaly.get('value')}",
+                        "severity": "critical",
+                        "affected_services": [service_name],
+                    }
+                )
+
+        if anomalies:
+            await self._emit_event_hub_event(
+                {
+                    "type": "anomaly",
+                    "service_name": service_name,
+                    "time_range": time_range,
+                    "anomalies": anomalies,
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            )
 
         return {
             "service_name": service_name,
@@ -607,6 +685,7 @@ class SystemHealthAgent(BaseAgent):
         self.incident_store.upsert(tenant_id, incident_id, incident.copy())
 
         await self._create_servicenow_incident(incident)
+        await self._notify_incident_integrations(incident)
         if incident.get("servicenow_sys_id"):
             self.incident_store.upsert(tenant_id, incident_id, incident.copy())
 
@@ -851,14 +930,18 @@ class SystemHealthAgent(BaseAgent):
         }
 
     async def _initialize_azure_monitoring(self) -> None:
-        if _HAS_AZURE_MONITOR_QUERY and self.monitor_workspace_id:
+        if _HAS_AZURE_MONITOR_QUERY and (self.monitor_workspace_id or self.app_insights_resource_id):
             from azure.identity import DefaultAzureCredential
 
             credential = DefaultAzureCredential()
             self._logs_query_client = LogsQueryClient(credential)
             self._metrics_query_client = MetricsQueryClient(credential)
             self.logger.info(
-                "Log Analytics clients configured", extra={"workspace_id": self.monitor_workspace_id}
+                "Azure Monitor clients configured",
+                extra={
+                    "workspace_id": self.monitor_workspace_id,
+                    "app_insights_resource_id": self.app_insights_resource_id,
+                },
             )
 
     async def _configure_opentelemetry_exporters(self) -> None:
@@ -922,6 +1005,24 @@ class SystemHealthAgent(BaseAgent):
                 "event_hub": self.event_hub_name,
                 "partitions": self.event_hub_partitions,
                 "throughput_units": self.event_hub_throughput_units,
+            },
+        )
+
+    async def _initialize_automation_client(self) -> None:
+        if (
+            not _HAS_AZURE_AUTOMATION
+            or not self.automation_subscription_id
+            or not self.automation_resource_group
+            or not self.automation_account_name
+        ):
+            return
+        credential = DefaultAzureCredential()
+        self._automation_client = AutomationClient(credential, self.automation_subscription_id)
+        self.logger.info(
+            "Azure Automation client initialized",
+            extra={
+                "automation_account": self.automation_account_name,
+                "resource_group": self.automation_resource_group,
             },
         )
 
@@ -1075,6 +1176,21 @@ class SystemHealthAgent(BaseAgent):
                 }
             )
 
+    async def _notify_incident_integrations(self, incident: dict[str, Any]) -> None:
+        payload = {
+            "event_type": "incident",
+            "incident": incident,
+            "priority": "high" if incident.get("severity") == "critical" else "normal",
+        }
+        await self._trigger_incident_webhook(self.pagerduty_webhook_url, payload)
+        await self._trigger_incident_webhook(self.opsgenie_webhook_url, payload)
+
+    async def _trigger_incident_webhook(self, url: str | None, payload: dict[str, Any]) -> None:
+        if not url:
+            return
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(url, json=payload)
+
     async def _trigger_webhook_notification(self, url: str | None, alert: dict[str, Any]) -> None:
         if not url:
             return
@@ -1087,8 +1203,6 @@ class SystemHealthAgent(BaseAgent):
             await client.post(url, json=payload)
 
     async def _trigger_scaling_actions(self, service_name: str, metrics_data: dict[str, Any]) -> None:
-        if not self.scaling_webhook_url:
-            return
         scaling_payload = {
             "service_name": service_name,
             "cpu": metrics_data.get("cpu_usage"),
@@ -1119,8 +1233,30 @@ class SystemHealthAgent(BaseAgent):
             ]
             if exceeded
         ]
-        async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(self.scaling_webhook_url, json=scaling_payload)
+        if self.scaling_webhook_url or self.automation_webhook_url:
+            target_url = self.scaling_webhook_url or self.automation_webhook_url
+            async with httpx.AsyncClient(timeout=10) as client:
+                await client.post(target_url, json=scaling_payload)
+        if self._automation_client and self.automation_runbook_name:
+            await self._start_automation_runbook(service_name, scaling_payload)
+
+    async def _start_automation_runbook(
+        self, service_name: str, scaling_payload: dict[str, Any]
+    ) -> None:
+        if not (self._automation_client and self.automation_runbook_name):
+            return
+        job_name = f"scale-{service_name}-{uuid.uuid4().hex[:6]}"
+        parameters = JobCreateParameters(
+            runbook=RunbookAssociationProperty(name=self.automation_runbook_name),
+            parameters={key: str(value) for key, value in scaling_payload.items() if value is not None},
+        )
+        await asyncio.to_thread(
+            self._automation_client.job.create,
+            self.automation_resource_group,
+            self.automation_account_name,
+            job_name,
+            parameters,
+        )
 
     async def _create_servicenow_incident(self, incident: dict[str, Any]) -> None:
         if not self.servicenow_instance_url:
@@ -1394,6 +1530,34 @@ class SystemHealthAgent(BaseAgent):
         metrics.extend(query_metrics)
         return metrics
 
+    async def _get_health_endpoints(self) -> dict[str, Any]:
+        return {
+            "total_endpoints": len(self.health_endpoints),
+            "endpoints": self.health_endpoints,
+        }
+
+    async def _query_historical_metrics(
+        self, service_name: str, metric_name: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
+        values = await self._query_metrics(service_name, metric_name, time_range)
+        return {
+            "service_name": service_name,
+            "metric_name": metric_name,
+            "time_range": time_range,
+            "values": values,
+            "retrieved_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _forecast_capacity(self, service_name: str | None) -> dict[str, Any]:
+        utilization_trends = await self._analyze_utilization_trends(service_name)
+        forecasts = await self._forecast_capacity_needs(utilization_trends)
+        return {
+            "service_name": service_name,
+            "trends": utilization_trends,
+            "forecasts": forecasts,
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+
     async def _apply_anomaly_detection(self, metrics: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Apply anomaly detection to metrics."""
         if not metrics:
@@ -1482,7 +1646,7 @@ class SystemHealthAgent(BaseAgent):
         self, service_name: str, metric_name: str, time_range: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Query metrics from store."""
-        if not (self._logs_query_client and self.monitor_workspace_id):
+        if not self._logs_query_client:
             return []
 
         start_time, end_time = self._parse_time_range(time_range)
@@ -1495,12 +1659,22 @@ class SystemHealthAgent(BaseAgent):
             "| project timestamp, name, value"
             "| order by timestamp asc"
         )
-        response = await asyncio.to_thread(
-            self._logs_query_client.query_workspace,
-            workspace_id=self.monitor_workspace_id,
-            query=query,
-            timespan=(start_time, end_time),
-        )
+        if self.monitor_workspace_id:
+            response = await asyncio.to_thread(
+                self._logs_query_client.query_workspace,
+                workspace_id=self.monitor_workspace_id,
+                query=query,
+                timespan=(start_time, end_time),
+            )
+        elif self.app_insights_resource_id:
+            response = await asyncio.to_thread(
+                self._logs_query_client.query_resource,
+                resource_id=self.app_insights_resource_id,
+                query=query,
+                timespan=(start_time, end_time),
+            )
+        else:
+            return []
         if response.status != LogsQueryStatus.SUCCESS:
             self.logger.warning("Log Analytics query returned partial results")
 
