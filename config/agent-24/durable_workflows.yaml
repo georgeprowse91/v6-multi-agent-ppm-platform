@@ -1,0 +1,46 @@
+workflows:
+  - workflow_id: durable-incident-response
+    name: Incident Response Orchestration
+    description: Durable workflow for incident triage and resolution.
+    version: 1
+    steps:
+      - task_id: capture-intake
+        name: Capture Intake
+        type: human
+        retry_policy:
+          max_attempts: 2
+          backoff_seconds: 30
+      - task_id: triage-incident
+        name: Triage Incident
+        type: automated
+        retry_policy:
+          max_attempts: 3
+          backoff_seconds: 60
+        compensation_task_id: rollback-triage
+      - task_id: notify-stakeholders
+        name: Notify Stakeholders
+        type: logic_app
+  - workflow_id: durable-change-control
+    name: Change Control Orchestration
+    description: Durable workflow for change advisory board approvals.
+    version: 1
+    steps:
+      - task_id: change-request
+        name: Collect Change Request
+        type: human
+      - task_id: cab-approval
+        name: CAB Approval
+        type: human
+        retry_policy:
+          max_attempts: 2
+          backoff_seconds: 120
+      - task_id: execute-change
+        name: Execute Change
+        type: automated
+        compensation_task_id: rollback-change
+      - task_id: rollback-change
+        name: Rollback Change
+        type: automated
+      - task_id: rollback-triage
+        name: Rollback Triage
+        type: automated
