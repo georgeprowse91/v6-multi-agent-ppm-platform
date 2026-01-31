@@ -22,6 +22,13 @@ Agent orchestration sits between the experience layer (`apps/`) and domain agent
 - **Safety gates**: approvals required for high-impact actions (budget changes, scope changes).
 - **Escalation**: if confidence is low or data is missing, the Approval Workflow agent (Agent 03) requests human input.
 
+## Event bus
+
+Agent coordination relies on an event bus abstraction that can publish/subscribe to orchestration
+topics. Production deployments use Azure Service Bus topics via the shared
+`packages/event_bus` package, which exposes an async API for publishing messages and listening on
+subscriptions. The in-memory bus remains available for local development and unit testing.
+
 ## Sequence diagram (example flow)
 
 ```text
@@ -48,7 +55,8 @@ Expected output: a link to `docs/agents/agent-catalog.md`.
 
 ## Implementation status
 
-- **Implemented**: orchestration service manages agent lifecycle, dependency checks, and policy enforcement.
+- **Implemented**: orchestration service manages agent lifecycle, dependency checks, policy enforcement,
+  and Azure Service Bus-backed event distribution.
 
 ## Related docs
 
