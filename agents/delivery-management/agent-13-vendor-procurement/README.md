@@ -32,6 +32,20 @@ pytest agents/delivery-management/agent-13-vendor-procurement/tests
 
 Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
+Additional vendor procurement configuration (set via agent config or environment variables) includes:
+
+- `vendor_store_path`, `contract_store_path`, `invoice_store_path`, `vendor_performance_store_path`, `event_store_path`: JSON-backed state paths for tenant-scoped storage.
+- `procurement_connectors.enabled_connectors`: list of procurement connectors (`sap_ariba`, `coupa`, `oracle_procurement`, `dynamics_365`).
+- `procurement_connectors.connectors`: per-connector configuration payloads for SAP Ariba, Coupa, Oracle Procurement, and Dynamics 365 integrations.
+- `erp_ap_connectors.enabled_connectors`: enable ERP/AP connectors for payment initiation.
+- `ml_config.azure_ml_enabled`: toggles Azure ML training mode for vendor recommendations and risk scoring.
+- `use_external_approval_agent`: enable the centralized approval workflow agent instead of the local auto-approval fallback.
+- `enable_openai_rfp`: enable OpenAI-based RFP generation.
+- `enable_ai_scoring`: enable AI-based proposal scoring.
+- `enable_ai_vendor_ranking`: enable ML-based vendor ranking for search results.
+- `enable_ml_recommendations`: enable ML-based vendor recommendations for procurement requests.
+- `form_recognizer.endpoint` / `form_recognizer.api_key` or environment variables `AZURE_FORM_RECOGNIZER_ENDPOINT` / `AZURE_FORM_RECOGNIZER_KEY`: Azure Form Recognizer configuration for contract clause extraction.
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.

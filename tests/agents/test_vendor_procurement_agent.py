@@ -21,6 +21,8 @@ async def test_vendor_procurement_persists_and_requests_approval(tmp_path):
             "vendor_store_path": tmp_path / "vendors.json",
             "contract_store_path": tmp_path / "contracts.json",
             "invoice_store_path": tmp_path / "invoices.json",
+            "vendor_performance_store_path": tmp_path / "vendor_performance.json",
+            "event_store_path": tmp_path / "events.json",
         }
     )
     await agent.initialize()
@@ -85,6 +87,10 @@ async def test_vendor_procurement_persists_and_requests_approval(tmp_path):
         }
     )
     assert agent.invoice_store.get("tenant-x", invoice_response["invoice_id"])
+    events = agent.event_store.list("tenant-x")
+    event_types = {event["event_type"] for event in events}
+    assert "vendor.onboarded" in event_types
+    assert "invoice.received" in event_types
 
 
 @pytest.mark.asyncio
@@ -94,6 +100,8 @@ async def test_vendor_procurement_status_success(tmp_path):
             "vendor_store_path": tmp_path / "vendors.json",
             "contract_store_path": tmp_path / "contracts.json",
             "invoice_store_path": tmp_path / "invoices.json",
+            "vendor_performance_store_path": tmp_path / "vendor_performance.json",
+            "event_store_path": tmp_path / "events.json",
         }
     )
     await agent.initialize()
@@ -169,6 +177,8 @@ async def test_vendor_procurement_research_enriches_scorecard(tmp_path, monkeypa
             "vendor_store_path": tmp_path / "vendors.json",
             "contract_store_path": tmp_path / "contracts.json",
             "invoice_store_path": tmp_path / "invoices.json",
+            "vendor_performance_store_path": tmp_path / "vendor_performance.json",
+            "event_store_path": tmp_path / "events.json",
         }
     )
     await agent.initialize()
@@ -196,3 +206,72 @@ async def test_vendor_procurement_research_enriches_scorecard(tmp_path, monkeypa
     )
 
     assert scorecard["external_research"]
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_rfp_and_performance_updates(tmp_path):
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+            "contract_store_path": tmp_path / "contracts.json",
+            "invoice_store_path": tmp_path / "invoices.json",
+            "vendor_performance_store_path": tmp_path / "vendor_performance.json",
+            "event_store_path": tmp_path / "events.json",
+            "enable_openai_rfp": False,
+            "enable_ai_scoring": False,
+            "rfp_templates": {
+                "software": {"template_id": "custom-soft", "sections": ["Overview", "Pricing"]},
+            },
+        }
+    )
+    await agent.initialize()
+
+    vendor_response = await agent.process(
+        {
+            "action": "onboard_vendor",
+            "tenant_id": "tenant-x",
+            "vendor": {
+                "legal_name": "Skyline Apps",
+                "contact_email": "vendor@example.com",
+                "category": "software",
+                "owner": "procurement",
+                "requester": "procurement",
+            },
+        }
+    )
+
+    request_response = await agent.process(
+        {
+            "action": "create_procurement_request",
+            "tenant_id": "tenant-x",
+            "request": {
+                "requester": "procurement",
+                "description": "New SaaS tools",
+                "estimated_cost": 9000,
+            },
+        }
+    )
+
+    rfp_response = await agent.process(
+        {
+            "action": "generate_rfp",
+            "tenant_id": "tenant-x",
+            "request_id": request_response["request_id"],
+            "rfp": {"template_id": "custom-soft", "requirements": ["SOC2", "SSO"]},
+        }
+    )
+
+    assert rfp_response["rfp_id"] in agent.rfps
+    assert "Template Sections" in agent.rfps[rfp_response["rfp_id"]]["content"]
+
+    performance = await agent.process(
+        {
+            "action": "track_vendor_performance",
+            "tenant_id": "tenant-x",
+            "vendor_id": vendor_response["vendor_id"],
+        }
+    )
+
+    stored = agent.vendor_performance_store.get("tenant-x", vendor_response["vendor_id"])
+    assert stored
+    assert performance["ml_analysis"]
