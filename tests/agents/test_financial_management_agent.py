@@ -5,7 +5,10 @@ from financial_management_agent import FinancialManagementAgent
 @pytest.mark.asyncio
 async def test_financial_exchange_rates_and_profitability():
     agent = FinancialManagementAgent(
-        config={"exchange_rate_fixture": "data/fixtures/exchange_rates.json"}
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
+        }
     )
     await agent.initialize()
 
@@ -22,7 +25,14 @@ async def test_financial_exchange_rates_and_profitability():
 @pytest.mark.asyncio
 async def test_financial_forecast_normalizes_currency(monkeypatch):
     agent = FinancialManagementAgent(
-        config={"exchange_rate_fixture": "data/fixtures/exchange_rates.json"}
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
+            "related_agent_fixtures": {
+                "resource_plan": {"forecast_periods": 2},
+                "schedule_progress": {"percent_complete": 0.4, "planned_percent": 0.5},
+            },
+        }
     )
     await agent.initialize()
 
@@ -53,6 +63,7 @@ async def test_financial_budget_persistence_and_approvals(tmp_path):
     agent = FinancialManagementAgent(
         config={
             "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
             "budget_store_path": tmp_path / "budgets.json",
             "approval_agent": approval_stub,
         }
@@ -102,7 +113,10 @@ async def test_financial_budget_persistence_and_approvals(tmp_path):
 @pytest.mark.asyncio
 async def test_financial_validation_rejects_invalid_action():
     agent = FinancialManagementAgent(
-        config={"exchange_rate_fixture": "data/fixtures/exchange_rates.json"}
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
+        }
     )
     await agent.initialize()
 
@@ -114,10 +128,79 @@ async def test_financial_validation_rejects_invalid_action():
 @pytest.mark.asyncio
 async def test_financial_validation_rejects_missing_budget_fields():
     agent = FinancialManagementAgent(
-        config={"exchange_rate_fixture": "data/fixtures/exchange_rates.json"}
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
+        }
     )
     await agent.initialize()
 
     valid = await agent.validate_input({"action": "create_budget", "budget": {"project_id": "X"}})
 
     assert valid is False
+
+
+class EventBusStub:
+    def __init__(self) -> None:
+        self.events: list[tuple[str, dict]] = []
+
+    async def publish(self, topic: str, payload: dict) -> None:
+        self.events.append((topic, payload))
+
+
+@pytest.mark.asyncio
+async def test_financial_cost_classification_and_accruals(monkeypatch):
+    event_bus = EventBusStub()
+    agent = FinancialManagementAgent(
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
+            "event_bus": event_bus,
+            "related_agent_fixtures": {
+                "schedule_progress": {"percent_complete": 0.5, "planned_percent": 0.6},
+                "resource_plan": {"baseline_cost": 1000, "current_cost": 1200},
+            },
+        }
+    )
+    await agent.initialize()
+
+    async def _mock_transactions(project_id):
+        return [
+            {"amount": 500, "description": "vendor contract invoice", "project_id": project_id},
+            {
+                "amount": 200,
+                "description": "flight and hotel",
+                "project_id": project_id,
+                "tax_region": "US",
+            },
+        ]
+
+    async def _mock_budget(project_id, tenant_id):
+        return {"project_id": project_id, "total_amount": 1000, "cost_breakdown": {"contracts": 500}}
+
+    monkeypatch.setattr(agent, "_import_cost_transactions", _mock_transactions)
+    monkeypatch.setattr(agent, "_get_budget_for_project", _mock_budget)
+
+    response = await agent._track_costs(
+        {"project_id": "proj-2"}, tenant_id="tenant-a", actor_id="user-1"
+    )
+
+    assert response["transactions_imported"] == 2
+    assert "contracts" in response["by_category"]
+    assert response["accruals"]["total_accruals"] >= 0
+    assert event_bus.events
+
+
+@pytest.mark.asyncio
+async def test_financial_payback_period_calculation():
+    agent = FinancialManagementAgent(
+        config={
+            "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
+            "tax_rate_fixture": "data/fixtures/tax_rates.json",
+        }
+    )
+    await agent.initialize()
+
+    payback = await agent._calculate_payback_period(500, [100, 150, 300])
+
+    assert payback == 3

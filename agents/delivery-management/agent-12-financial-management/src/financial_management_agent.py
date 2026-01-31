@@ -15,15 +15,15 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-from approval_workflow_agent import ApprovalWorkflowAgent
 from data_quality.rules import evaluate_quality_rules
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import DatabaseStorageService, ERPIntegrationService
-from agents.common.integration_services import ForecastingModel
-from agents.runtime import BaseAgent
+from agents.common.integration_services import ForecastingModel, NaiveBayesTextClassifier
+from agents.runtime import BaseAgent, ServiceBusEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
+from connectors.sdk.src.secrets import fetch_keyvault_secret
 
 
 class FinancialManagementAgent(BaseAgent):
@@ -90,9 +90,12 @@ class FinancialManagementAgent(BaseAgent):
         self.forecasts = {}  # type: ignore
         self.variances = {}  # type: ignore
         self.approval_agent = config.get("approval_agent") if config else None
-        if self.approval_agent is None:
-            approval_config = config.get("approval_agent_config", {}) if config else {}
-            self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
+        self.approval_agent_config = config.get("approval_agent_config", {}) if config else {}
+        self.approval_agent_enabled = (
+            config.get("approval_agent_enabled", True) if config else True
+        )
+        self.key_vault_config = config.get("key_vault", {}) if config else {}
+        self.key_vault_secrets = config.get("key_vault_secrets", {}) if config else {}
         self.exchange_rate_provider = ExchangeRateProvider(
             fixture_path=Path(
                 config.get("exchange_rate_fixture", "data/fixtures/exchange_rates.json")
@@ -102,12 +105,32 @@ class FinancialManagementAgent(BaseAgent):
             ttl_seconds=config.get("exchange_rate_ttl", 3600) if config else 3600,
             api_url=config.get("exchange_rate_api_url") if config else None,
         )
+        self.tax_rate_provider = TaxRateProvider(
+            fixture_path=Path(
+                config.get("tax_rate_fixture", "data/fixtures/tax_rates.json")
+                if config
+                else "data/fixtures/tax_rates.json"
+            ),
+            ttl_seconds=config.get("tax_rate_ttl", 3600) if config else 3600,
+            api_url=config.get("tax_rate_api_url") if config else None,
+        )
         self.forecasting_model = ForecastingModel()
+        self.cost_classifier = NaiveBayesTextClassifier(labels=self.cost_categories)
+        self.event_bus = config.get("event_bus") if config else None
+        data_factory_client = config.get("data_factory_client") if config else None
+        self.data_factory_manager = DataFactoryPipelineManager(data_factory_client)
+        self.erp_pipeline_runs: list[dict[str, Any]] = []
+        self.related_agent_endpoints = config.get("related_agent_endpoints", {}) if config else {}
+        self.related_agent_fixtures = config.get("related_agent_fixtures", {}) if config else {}
+        self.related_agent_timeout = config.get("related_agent_timeout", 5) if config else 5
+        self.http_client = httpx.AsyncClient(timeout=self.related_agent_timeout)
 
     async def initialize(self) -> None:
         """Initialize database connections, ERP integrations, and ML models."""
         await super().initialize()
         self.logger.info("Initializing Financial Management Agent...")
+
+        self._load_keyvault_secrets()
 
         # Initialize Database Storage Service (Azure SQL, Cosmos DB, or JSON fallback)
         db_config = self.config.get("database_storage", {}) if self.config else {}
@@ -116,15 +139,30 @@ class FinancialManagementAgent(BaseAgent):
 
         # Initialize ERP Integration Service (SAP, Oracle, Workday Financials, Dynamics 365)
         erp_config = self.config.get("erp_integration", {}) if self.config else {}
+        erp_config = {**erp_config, **self._resolve_secret_config("erp_integration")}
         self.erp_service = ERPIntegrationService(erp_config)
         self.logger.info("ERP Integration Service initialized")
 
-        # Future work: Set up Azure Data Factory pipelines for ERP integration
-        # Future work: Connect to timesheet systems (Planview, Jira, Azure DevOps)
-        # Future work: Set up currency exchange rate API connections
-        # Future work: Connect to tax service APIs
-        # Future work: Initialize Azure Service Bus for event publishing
-        # Future work: Set up Azure Key Vault for storing credentials
+        exchange_config = self._resolve_secret_config("exchange_rate")
+        if exchange_config.get("api_url"):
+            self.exchange_rate_provider.api_url = exchange_config["api_url"]
+        tax_config = self._resolve_secret_config("tax_rate")
+        if tax_config.get("api_url"):
+            self.tax_rate_provider.api_url = tax_config["api_url"]
+
+        service_bus_config = self._resolve_secret_config("service_bus")
+        if self.event_bus is None:
+            connection_string = service_bus_config.get("connection_string")
+            topic_name = service_bus_config.get("topic_name", "ppm-events")
+            if connection_string:
+                self.event_bus = ServiceBusEventBus(
+                    connection_string=connection_string, topic_name=topic_name
+                )
+            else:
+                self.event_bus = None
+
+        await self._configure_erp_pipelines()
+        self._train_cost_classifier()
 
         self.logger.info("Financial Management Agent initialized")
 
@@ -345,6 +383,17 @@ class FinancialManagementAgent(BaseAgent):
             actor_id=actor_id,
         )
 
+        await self._publish_financial_event(
+            "finance.budget.created",
+            {
+                "budget_id": budget_id,
+                "project_id": budget.get("project_id"),
+                "total_amount": total_amount,
+                "currency": budget.get("currency"),
+                "status": budget.get("status"),
+            },
+        )
+
         await self.db_service.store("budgets", budget_id, budget)
         # Future work: Validate funding availability with ERP
 
@@ -373,24 +422,27 @@ class FinancialManagementAgent(BaseAgent):
         # Import cost transactions from ERP
         transactions = await self._import_cost_transactions(cost_data.get("project_id"))  # type: ignore
 
-        # Match costs to WBS elements
+        # Match costs to WBS elements and classify costs
         matched_costs = await self._match_costs_to_wbs(transactions)
+        enriched_costs = await self._enrich_cost_transactions(matched_costs)
 
         # Calculate accrued expenses
-        accruals = await self._calculate_accruals(cost_data.get("project_id"))  # type: ignore
+        accruals = await self._calculate_accruals(
+            cost_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+        )
 
         # Update actuals
         project_id = cost_data.get("project_id")
         if project_id not in self.actuals:
             self.actuals[project_id] = {"transactions": [], "total_actual": 0, "by_category": {}}
 
-        total_actual = sum(t.get("amount", 0) for t in matched_costs)
-        self.actuals[project_id]["transactions"].extend(matched_costs)
+        total_actual = sum(t.get("amount", 0) for t in enriched_costs)
+        self.actuals[project_id]["transactions"].extend(enriched_costs)
         self.actuals[project_id]["total_actual"] = total_actual
 
         # Calculate by category
         by_category = {}
-        for transaction in matched_costs:
+        for transaction in enriched_costs:
             category = transaction.get("category", "other")
             if category not in by_category:
                 by_category[category] = 0
@@ -413,11 +465,19 @@ class FinancialManagementAgent(BaseAgent):
             actor_id=actor_id,
         )
 
-        # Future work: Trigger variance alerts if thresholds exceeded
+        await self._publish_financial_event(
+            "finance.costs.tracked",
+            {
+                "project_id": project_id,
+                "total_actual": total_actual,
+                "currency": self.default_currency,
+                "accruals": accruals,
+            },
+        )
 
         return {
             "project_id": project_id,
-            "transactions_imported": len(matched_costs),
+            "transactions_imported": len(enriched_costs),
             "total_actual": total_actual,
             "by_category": by_category,
             "accruals": accruals,
@@ -449,7 +509,7 @@ class FinancialManagementAgent(BaseAgent):
         )
 
         # Calculate Estimate at Completion (EAC)
-        eac = await self._calculate_eac(project_id, forecast)
+        eac = await self._calculate_eac(project_id, forecast, tenant_id=tenant_id)
 
         # Store forecast
         self.forecasts[project_id] = {
@@ -461,7 +521,16 @@ class FinancialManagementAgent(BaseAgent):
         self.forecast_store.upsert(tenant_id, project_id, self.forecasts[project_id])
 
         await self.db_service.store("forecasts", project_id, self.forecasts[project_id])
-        # Future work: Publish forecast.updated event
+
+        await self._publish_financial_event(
+            "finance.forecast.generated",
+            {
+                "project_id": project_id,
+                "eac": eac,
+                "time_period": time_period,
+                "generated_at": self.forecasts[project_id]["generated_at"],
+            },
+        )
 
         return {
             "project_id": project_id,
@@ -514,7 +583,11 @@ class FinancialManagementAgent(BaseAgent):
         )
 
         # Identify variance drivers
-        drivers = await self._identify_variance_drivers(project_id, variance_by_category)
+        resource_plans = await self._get_resource_plans(project_id)
+        schedule_progress = await self._get_schedule_progress(project_id)
+        drivers = await self._identify_variance_drivers(
+            project_id, variance_by_category, resource_plans, schedule_progress
+        )
 
         # Generate alerts if thresholds exceeded
         alerts = []
@@ -536,6 +609,16 @@ class FinancialManagementAgent(BaseAgent):
         # Future work: Generate contextual narrative using Azure OpenAI
         narrative = await self._generate_variance_narrative(
             budget_variance_pct, forecast_variance_pct, drivers
+        )
+
+        await self._publish_financial_event(
+            "finance.variance.analyzed",
+            {
+                "project_id": project_id,
+                "budget_variance": budget_variance,
+                "forecast_variance": forecast_variance,
+                "variance_drivers": drivers,
+            },
         )
 
         return {
@@ -729,6 +812,15 @@ class FinancialManagementAgent(BaseAgent):
             actor_id=actor_id,
         )
 
+        await self._publish_financial_event(
+            "finance.budget.updated",
+            {
+                "budget_id": budget_id,
+                "status": budget["status"],
+                "updated_at": budget["last_updated"],
+            },
+        )
+
         return {
             "budget_id": budget_id,
             "status": budget["status"],
@@ -764,6 +856,14 @@ class FinancialManagementAgent(BaseAgent):
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             actor_id=actor_id,
+        )
+
+        await self._publish_financial_event(
+            "finance.budget.approved",
+            {
+                "budget_id": budget_id,
+                "baseline_date": budget["baseline_date"],
+            },
         )
 
         return {
@@ -886,6 +986,69 @@ class FinancialManagementAgent(BaseAgent):
             "issues": [issue.__dict__ for issue in report.issues],
         }
 
+    def _load_keyvault_secrets(self) -> None:
+        vault_url = self.key_vault_config.get("vault_url")
+        secret_map = self.key_vault_config.get("secrets", {})
+        resolved: dict[str, str] = {}
+        for key, secret_name in secret_map.items():
+            secret = fetch_keyvault_secret(vault_url, secret_name)
+            if secret:
+                resolved[key] = secret
+        self.key_vault_secrets = {**self.key_vault_secrets, **resolved}
+
+    def _resolve_secret_config(self, prefix: str) -> dict[str, Any]:
+        resolved: dict[str, Any] = {}
+        for key, value in self.key_vault_secrets.items():
+            if key.startswith(f"{prefix}."):
+                resolved[key.split(".", 1)[1]] = value
+        return resolved
+
+    def _train_cost_classifier(self) -> None:
+        training_samples = self.config.get("cost_classification_samples", []) if self.config else []
+        if not training_samples:
+            training_samples = [
+                ("contractor services and vendor invoices", "contracts"),
+                ("licensing and software subscriptions", "software"),
+                ("cloud hosting and infrastructure", "overhead"),
+                ("internal engineering labor", "labor"),
+                ("airfare hotels and travel expenses", "travel"),
+                ("materials and hardware purchases", "materials"),
+                ("miscellaneous fees", "other"),
+            ]
+        self.cost_classifier.fit(training_samples)
+
+    async def _configure_erp_pipelines(self) -> None:
+        pipeline_config = self.config.get("erp_pipelines", []) if self.config else []
+        for pipeline in pipeline_config:
+            name = pipeline.get("name")
+            if not name:
+                continue
+            params = pipeline.get("parameters", {})
+            run_id = await self.data_factory_manager.schedule_pipeline(name, params)
+            self.erp_pipeline_runs.append({"pipeline_name": name, "run_id": run_id})
+
+    async def _publish_financial_event(self, event_type: str, payload: dict[str, Any]) -> None:
+        if not self.event_bus:
+            return
+        await self.event_bus.publish(event_type, payload)
+
+    async def _query_related_agent(
+        self, agent_key: str, payload: dict[str, Any], *, default: dict[str, Any]
+    ) -> dict[str, Any]:
+        fixture = self.related_agent_fixtures.get(agent_key)
+        if fixture:
+            return fixture
+        endpoint = self.related_agent_endpoints.get(agent_key)
+        if not endpoint:
+            return default
+        try:
+            response = await self.http_client.post(endpoint, json=payload)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError:
+            self.logger.warning("Related agent request failed for %s", agent_key)
+            return default
+
     async def _request_budget_approval(
         self,
         *,
@@ -895,6 +1058,10 @@ class FinancialManagementAgent(BaseAgent):
         correlation_id: str,
         requester: str,
     ) -> dict[str, Any]:
+        if not self.approval_agent and self.approval_agent_enabled:
+            from approval_workflow_agent import ApprovalWorkflowAgent
+
+            self.approval_agent = ApprovalWorkflowAgent(config=self.approval_agent_config)
         if not self.approval_agent:
             return {"status": "skipped", "reason": "approval_agent_not_configured"}
         return await self.approval_agent.process(
@@ -946,10 +1113,55 @@ class FinancialManagementAgent(BaseAgent):
         # Future work: Use AI classification when codes are missing
         return transactions
 
-    async def _calculate_accruals(self, project_id: str) -> dict[str, Any]:
+    async def _enrich_cost_transactions(
+        self, transactions: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Enrich transactions with classification and tax details."""
+        tax_rates = await self.tax_rate_provider.get_rates()
+        enriched: list[dict[str, Any]] = []
+        for transaction in transactions:
+            updated = dict(transaction)
+            if not updated.get("category"):
+                description = " ".join(
+                    str(updated.get(field, ""))
+                    for field in ("description", "memo", "vendor", "category_hint")
+                ).strip()
+                label, scores = self.cost_classifier.predict(description or "other")
+                updated["category"] = label
+                updated["classification_scores"] = scores
+            tax_region = (
+                updated.get("tax_region")
+                or updated.get("country")
+                or updated.get("region")
+                or tax_rates.get("default_region")
+            )
+            tax_rate = tax_rates.get("rates", {}).get(tax_region, tax_rates.get("default_rate", 0))
+            amount = float(updated.get("amount", 0))
+            tax_amount = amount * tax_rate
+            updated.setdefault("tax_rate", tax_rate)
+            updated.setdefault("tax_amount", tax_amount)
+            updated.setdefault("gross_amount", amount + tax_amount)
+            enriched.append(updated)
+        return enriched
+
+    async def _calculate_accruals(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Calculate accrued expenses based on percent complete."""
-        # Future work: Calculate accruals
-        return {"total_accruals": 0}
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
+        actuals = self.actuals.get(project_id, {})
+        actual_cost = actuals.get("total_actual", 0)
+        schedule = await self._get_schedule_progress(project_id)
+        percent_complete = schedule.get("percent_complete", 0)
+        baseline = budget.get("total_amount", 0) if budget else 0
+        expected_cost = baseline * percent_complete
+        accrual = max(0.0, expected_cost - actual_cost)
+        return {
+            "project_id": project_id,
+            "baseline_amount": baseline,
+            "percent_complete": percent_complete,
+            "expected_cost": expected_cost,
+            "actual_cost": actual_cost,
+            "total_accruals": accrual,
+        }
 
     async def _get_historical_spending(self, project_id: str) -> list[dict[str, Any]]:
         """Get historical spending data."""
@@ -958,13 +1170,19 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _get_resource_plans(self, project_id: str) -> dict[str, Any]:
         """Get resource allocation plans from Resource Agent."""
-        # Future work: Call Resource Management Agent
-        return {}
+        return await self._query_related_agent(
+            "resource_plan",
+            {"project_id": project_id},
+            default={"forecast_periods": 3, "baseline_cost": 0, "current_cost": 0},
+        )
 
     async def _get_schedule_progress(self, project_id: str) -> dict[str, Any]:
         """Get schedule progress from Schedule Agent."""
-        # Future work: Call Schedule & Planning Agent
-        return {"percent_complete": 0.5, "planned_percent": 0.5}
+        return await self._query_related_agent(
+            "schedule_progress",
+            {"project_id": project_id},
+            default={"percent_complete": 0.5, "planned_percent": 0.5},
+        )
 
     async def _run_forecasting_model(
         self,
@@ -1001,10 +1219,34 @@ class FinancialManagementAgent(BaseAgent):
             "rate_as_of": exchange_rates["as_of"],
         }
 
-    async def _calculate_eac(self, project_id: str, forecast: dict[str, Any]) -> float:
+    async def _calculate_eac(
+        self, project_id: str, forecast: dict[str, Any], *, tenant_id: str
+    ) -> float:
         """Calculate Estimate at Completion."""
-        # Future work: More sophisticated EAC calculation
-        return forecast.get("total_forecast", 0)  # type: ignore
+        budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
+        actuals = self.actuals.get(project_id, {})
+        schedule = await self._get_schedule_progress(project_id)
+        resource_plan = await self._get_resource_plans(project_id)
+
+        budget_at_completion = budget.get("total_amount", 0) if budget else 0
+        actual_cost = actuals.get("total_actual", 0)
+        percent_complete = schedule.get("percent_complete", 0)
+        earned_value = budget_at_completion * percent_complete
+        planned_value = budget_at_completion * schedule.get("planned_percent", percent_complete)
+
+        cpi = earned_value / actual_cost if actual_cost > 0 else 1.0
+        spi = earned_value / planned_value if planned_value > 0 else 1.0
+        remaining_budget = max(0.0, budget_at_completion - earned_value)
+
+        performance_factor = cpi * spi if cpi > 0 and spi > 0 else 1.0
+        etc = remaining_budget / performance_factor if performance_factor else remaining_budget
+        resource_etc = resource_plan.get("estimate_to_complete")
+        if resource_etc is not None:
+            etc = (etc + float(resource_etc)) / 2
+
+        eac_from_performance = actual_cost + etc
+        forecast_total = forecast.get("total_forecast", eac_from_performance)
+        return (eac_from_performance + forecast_total) / 2
 
     async def _calculate_forecast_variance(
         self, project_id: str, eac: float, *, tenant_id: str
@@ -1072,16 +1314,19 @@ class FinancialManagementAgent(BaseAgent):
         return variance_by_category
 
     async def _identify_variance_drivers(
-        self, project_id: str, variance_by_category: dict[str, dict[str, Any]]
+        self,
+        project_id: str,
+        variance_by_category: dict[str, dict[str, Any]],
+        resource_plans: dict[str, Any],
+        schedule_progress: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Identify key drivers of cost variance."""
-        # Future work: Use regression and clustering to determine drivers
-
-        drivers = []
+        drivers: list[dict[str, Any]] = []
         for category, data in variance_by_category.items():
-            if abs(data["variance_pct"]) > 0.15:  # More than 15% variance
+            if abs(data["variance_pct"]) > 0.15:
                 drivers.append(
                     {
+                        "driver": "cost_category",
                         "category": category,
                         "impact": data["variance"],
                         "variance_pct": data["variance_pct"],
@@ -1089,6 +1334,33 @@ class FinancialManagementAgent(BaseAgent):
                     }
                 )
 
+        resource_variance = resource_plans.get("current_cost", 0) - resource_plans.get(
+            "baseline_cost", 0
+        )
+        if abs(resource_variance) > 0:
+            drivers.append(
+                {
+                    "driver": "resource_plan",
+                    "impact": resource_variance,
+                    "variance_pct": resource_variance
+                    / max(resource_plans.get("baseline_cost", 1), 1),
+                    "explanation": "Resource plan adjustments are driving variance.",
+                }
+            )
+
+        planned = schedule_progress.get("planned_percent", 0)
+        actual = schedule_progress.get("percent_complete", 0)
+        if actual < planned:
+            drivers.append(
+                {
+                    "driver": "schedule_slippage",
+                    "impact": planned - actual,
+                    "variance_pct": planned - actual,
+                    "explanation": "Schedule slippage is delaying value realization.",
+                }
+            )
+
+        drivers.sort(key=lambda item: abs(item.get("impact", 0)), reverse=True)
         return drivers
 
     async def _suggest_corrective_actions(self, variance_pct: float) -> list[str]:
@@ -1268,8 +1540,11 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _get_project_benefits(self, project_id: str) -> dict[str, Any]:
         """Get project benefits and cash flows."""
-        # Future work: Query Business Case Agent
-        return {"cash_flows": [], "total_benefits": 0}
+        return await self._query_related_agent(
+            "benefits",
+            {"project_id": project_id},
+            default={"cash_flows": [], "total_benefits": 0},
+        )
 
     async def _calculate_npv(self, total_cost: float, cash_flows: list[float]) -> float:
         """Calculate Net Present Value."""
@@ -1300,24 +1575,21 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _calculate_payback_period(self, total_cost: float, cash_flows: list[float]) -> int:
         """Calculate payback period in months."""
-        # Future work: Implement proper payback period calculation
-        if not cash_flows or sum(cash_flows) == 0:
+        if not cash_flows:
             return 999
-
-        annual_cash_flow = sum(cash_flows) / len(cash_flows)
-        if annual_cash_flow == 0:
-            return 999
-
-        payback_years = total_cost / annual_cash_flow
-        return int(payback_years * 12)
+        cumulative = 0.0
+        for index, cash_flow in enumerate(cash_flows, start=1):
+            cumulative += cash_flow
+            if cumulative >= total_cost:
+                return index
+        return 999
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Financial Management Agent...")
-        # Future work: Close database connections
-        # Future work: Close ERP connections
-        # Future work: Flush any pending events
-        # Future work: Save any unsaved data
+        if isinstance(self.event_bus, ServiceBusEventBus):
+            await self.event_bus.stop()
+        await self.http_client.aclose()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
@@ -1376,3 +1648,52 @@ class ExchangeRateProvider:
         }
         self._last_loaded = datetime.utcnow()
         return self._cache
+
+
+class TaxRateProvider:
+    """Tax rate provider with caching and optional API fetch."""
+
+    def __init__(self, fixture_path: Path, ttl_seconds: int, api_url: str | None = None):
+        self.fixture_path = fixture_path
+        self.ttl_seconds = ttl_seconds
+        self.api_url = api_url
+        self._cache: dict[str, Any] | None = None
+        self._last_loaded: datetime | None = None
+
+    async def get_rates(self) -> dict[str, Any]:
+        if self._cache and self._last_loaded:
+            age = (datetime.utcnow() - self._last_loaded).total_seconds()
+            if age < self.ttl_seconds:
+                return self._cache
+
+        if self.api_url:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(self.api_url)
+                response.raise_for_status()
+                data = response.json()
+        else:
+            data = json.loads(self.fixture_path.read_text())
+
+        self._cache = {
+            "default_rate": data.get("default_rate", 0),
+            "default_region": data.get("default_region", "US"),
+            "rates": data.get("rates", {}),
+            "as_of": data.get("as_of", datetime.utcnow().isoformat()),
+        }
+        self._last_loaded = datetime.utcnow()
+        return self._cache
+
+
+class DataFactoryPipelineManager:
+    """Lightweight wrapper to schedule Data Factory pipelines."""
+
+    def __init__(self, data_factory_client: Any | None = None) -> None:
+        self.data_factory_client = data_factory_client
+
+    async def schedule_pipeline(self, pipeline_name: str, parameters: dict[str, Any]) -> str:
+        if self.data_factory_client and hasattr(self.data_factory_client, "pipelines"):
+            response = self.data_factory_client.pipelines.create_run(
+                pipeline_name, parameters=parameters
+            )
+            return getattr(response, "run_id", "unknown")
+        return f"run-{pipeline_name}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"

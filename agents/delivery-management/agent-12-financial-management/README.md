@@ -32,6 +32,16 @@ pytest agents/delivery-management/agent-12-financial-management/tests
 
 Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
+Additional configuration options supported by the Financial Management Agent:
+
+- `exchange_rate_fixture`, `exchange_rate_api_url`: currency exchange sources.
+- `tax_rate_fixture`, `tax_rate_api_url`: tax rate lookup configuration.
+- `erp_pipelines`: list of Azure Data Factory pipelines to run for ERP ingestion.
+- `service_bus`: `{ "connection_string": "...", "topic_name": "ppm-events" }` for financial event publishing.
+- `key_vault`: `{ "vault_url": "...", "secrets": { "service_bus.connection_string": "secret-name" } }` to resolve credentials.
+- `related_agent_endpoints`: `{ "resource_plan": "http://...", "schedule_progress": "http://...", "benefits": "http://..." }`.
+- `related_agent_fixtures`: inline fixtures for local development and tests.
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
