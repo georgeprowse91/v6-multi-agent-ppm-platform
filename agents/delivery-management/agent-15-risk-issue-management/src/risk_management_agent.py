@@ -9,14 +9,18 @@ strategies and continuously tracks risk status.
 Specification: agents/delivery-management/agent-15-risk-issue-management/README.md
 """
 
+import importlib.util
 import json
+import os
+import random
 import re
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib import error as url_error
+from urllib import request as url_request
 
-import numpy as np
 from data_quality.helpers import validate_against_schema
 from data_quality.rules import evaluate_quality_rules
 
@@ -28,18 +32,166 @@ from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
 from agents.common.connector_integration import (  # noqa: E402
     DatabaseStorageService,
+    DocumentationPublishingService,
     DocumentManagementService,
     DocumentMetadata,
     GRCIntegrationService,
     GRCRisk,
+    MLPredictionService,
+    ProjectManagementService,
 )
+from analytics_insights_agent import DataLakeManager, SynapseManager  # noqa: E402
 from agents.common.web_search import (  # noqa: E402
     build_search_query,
     search_web,
     summarize_snippets,
 )
-from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
+
+
+class CognitiveSearchService:
+    """Lightweight Azure Cognitive Search helper for risk extraction."""
+
+    def __init__(
+        self,
+        endpoint: str | None,
+        api_key: str | None,
+        index_name: str | None,
+        api_version: str = "2023-11-01",
+    ) -> None:
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.index_name = index_name
+        self.api_version = api_version
+
+    def is_configured(self) -> bool:
+        return bool(self.endpoint and self.api_key and self.index_name)
+
+    def search(self, query: str, *, top: int = 5, filter_expression: str | None = None) -> list[dict[str, Any]]:
+        if not self.is_configured():
+            return []
+        url = (
+            f"{self.endpoint}/indexes/{self.index_name}/docs/search?api-version={self.api_version}"
+        )
+        payload: dict[str, Any] = {"search": query, "top": top}
+        if filter_expression:
+            payload["filter"] = filter_expression
+        data = json.dumps(payload).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": self.api_key or "",
+        }
+        req = url_request.Request(url, data=data, headers=headers, method="POST")
+        try:
+            with url_request.urlopen(req) as response:
+                body = response.read().decode("utf-8")
+                parsed = json.loads(body)
+                return parsed.get("value", [])
+        except (url_error.URLError, json.JSONDecodeError, ValueError):
+            return []
+
+    def extract_risks(self, documents: list[dict[str, Any] | str]) -> list[dict[str, Any]]:
+        extracted: list[dict[str, Any]] = []
+        if not documents:
+            return extracted
+        if self.is_configured():
+            queries = []
+            for document in documents:
+                if isinstance(document, dict):
+                    queries.append(
+                        str(document.get("title") or document.get("query") or document.get("content") or "")
+                    )
+                else:
+                    queries.append(str(document))
+            for query in [q.strip() for q in queries if q.strip()]:
+                results = self.search(f"{query} risk", top=3)
+                for result in results:
+                    title = result.get("title") or result.get("id") or "Risk signal"
+                    description = result.get("content") or result.get("description") or str(result)
+                    extracted.append(
+                        {
+                            "title": title,
+                            "description": description,
+                            "category": "document",
+                            "source": result.get("source") or "cognitive_search",
+                        }
+                    )
+            if extracted:
+                return extracted
+        for document in documents:
+            text = (
+                document.get("content")
+                if isinstance(document, dict)
+                else str(document)
+            )
+            for line in str(text).splitlines():
+                if "risk" in line.lower():
+                    extracted.append(
+                        {
+                            "title": line.strip()[:80] or "Document risk",
+                            "description": line.strip(),
+                            "category": "document",
+                            "source": "heuristic",
+                        }
+                    )
+        return extracted
+
+
+class KnowledgeBaseQueryService:
+    """Query SharePoint/Confluence for mitigation guidance."""
+
+    def __init__(
+        self,
+        document_service: DocumentManagementService,
+        documentation_service: DocumentationPublishingService,
+    ) -> None:
+        self.document_service = document_service
+        self.documentation_service = documentation_service
+
+    async def query_mitigations(self, risk: dict[str, Any]) -> list[dict[str, Any]]:
+        query = f"{risk.get('category', '')} mitigation {risk.get('title', '')}".strip()
+        results: list[dict[str, Any]] = []
+
+        confluence_connector = self.documentation_service._get_confluence_connector()
+        if confluence_connector and hasattr(confluence_connector, "read"):
+            try:
+                pages = confluence_connector.read(
+                    "pages",
+                    filters={"query": query},
+                    limit=5,
+                )
+                for page in pages or []:
+                    results.append(
+                        {
+                            "title": page.get("title"),
+                            "strategy": page.get("excerpt") or page.get("title"),
+                            "source": "confluence",
+                        }
+                    )
+            except Exception:
+                results = results
+
+        sharepoint_connector = self.document_service._get_connector()
+        if sharepoint_connector and hasattr(sharepoint_connector, "read"):
+            try:
+                documents = sharepoint_connector.read(
+                    "documents",
+                    filters={"search": query},
+                    limit=5,
+                )
+                for document in documents or []:
+                    results.append(
+                        {
+                            "title": document.get("Title") or document.get("title"),
+                            "strategy": document.get("Description") or document.get("summary"),
+                            "source": "sharepoint",
+                        }
+                    )
+            except Exception:
+                results = results
+
+        return [item for item in results if item.get("strategy")]
 
 
 class RiskManagementAgent(BaseAgent):
@@ -126,6 +278,15 @@ class RiskManagementAgent(BaseAgent):
         self.db_service: DatabaseStorageService | None = None
         self.grc_service: GRCIntegrationService | None = None
         self.document_service: DocumentManagementService | None = None
+        self.documentation_service: DocumentationPublishingService | None = None
+        self.ml_service: MLPredictionService | None = None
+        self.project_management_services: dict[str, ProjectManagementService] = {}
+        self.cognitive_search_service: CognitiveSearchService | None = None
+        self.knowledge_base_service: KnowledgeBaseQueryService | None = None
+        self.data_lake_manager: DataLakeManager | None = None
+        self.synapse_manager: SynapseManager | None = None
+        self.event_bus = None
+        self.risk_events: list[dict[str, Any]] = []
 
     async def initialize(self) -> None:
         """Initialize database connections, analytics tools, and AI models."""
@@ -135,17 +296,42 @@ class RiskManagementAgent(BaseAgent):
         self.db_service = DatabaseStorageService(self.config)
         self.grc_service = GRCIntegrationService(self.config)
         self.document_service = DocumentManagementService(self.config)
+        self.documentation_service = DocumentationPublishingService(self.config)
+        self.ml_service = self.config.get("ml_service") or MLPredictionService(self.config)
+        self.cognitive_search_service = self.config.get("cognitive_search_service") or CognitiveSearchService(
+            endpoint=self.config.get("cognitive_search_endpoint")
+            or os.getenv("AZURE_COG_SEARCH_ENDPOINT"),
+            api_key=self.config.get("cognitive_search_key")
+            or os.getenv("AZURE_COG_SEARCH_API_KEY"),
+            index_name=self.config.get("cognitive_search_index")
+            or os.getenv("AZURE_COG_SEARCH_INDEX"),
+        )
+        self.knowledge_base_service = self.config.get("knowledge_base_service") or KnowledgeBaseQueryService(
+            self.document_service,
+            self.documentation_service,
+        )
+        self.project_management_services = self._initialize_project_management_services()
+        self.data_lake_manager = self.config.get("data_lake_manager") or DataLakeManager(
+            file_system_name=self.config.get("data_lake_file_system")
+            or os.getenv("AZURE_DATA_LAKE_FILE_SYSTEM"),
+            service_client=self.config.get("data_lake_client"),
+        )
+        self.synapse_manager = self.config.get("synapse_manager") or SynapseManager(
+            workspace_name=self.config.get("synapse_workspace") or os.getenv("AZURE_SYNAPSE_WORKSPACE"),
+            sql_pool_name=self.config.get("synapse_sql_pool") or os.getenv("AZURE_SYNAPSE_SQL_POOL"),
+            spark_pool_name=self.config.get("synapse_spark_pool")
+            or os.getenv("AZURE_SYNAPSE_SPARK_POOL"),
+            synapse_client=self.config.get("synapse_client"),
+        )
+        self.event_bus = self.config.get("event_bus")
+        if not self.event_bus:
+            try:
+                self.event_bus = get_event_bus()
+            except Exception:
+                self.event_bus = None
 
-        # Future work: Initialize Azure Cosmos DB for flexible risk register storage
-        # Future work: Set up Azure Data Lake or Synapse Analytics for simulation results
-        # Future work: Initialize Azure Machine Learning for predictive risk models
-        # Future work: Connect to Azure Cognitive Search for risk extraction from documents
-        # Future work: Set up Azure Batch or parallelized functions for Monte Carlo simulation
-        # Future work: Connect to project management systems (Planview, MS Project, Jira, Azure DevOps)
-        # Future work: Integrate with document repositories (SharePoint, Confluence)
-        # Future work: Set up Azure Logic Apps or Data Factory for external data integration
-        # Future work: Initialize Power BI for risk dashboards
-        # Future work: Set up Azure Service Bus for risk event publishing
+        if self.synapse_manager:
+            self.synapse_manager.ensure_pools()
 
         self.logger.info("Risk Management Agent initialized")
 
@@ -361,9 +547,12 @@ class RiskManagementAgent(BaseAgent):
         # Store risk
         self.risk_register[risk_id] = risk
         self.risk_store.upsert(tenant_id, risk_id, risk)
+        if risk.get("triggers"):
+            await self._register_triggers(risk_id, risk.get("triggers") or [])
 
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
+        await self._store_risk_dataset("risks", [risk], domain="risk_register")
         # Future work: Publish risk.identified event
         grc_sync = None
         if self.grc_service:
@@ -404,6 +593,10 @@ class RiskManagementAgent(BaseAgent):
                 )
                 document_results.append(result)
             risk["document_refs"] = document_results
+        await self._publish_risk_event(
+            "risk.identified",
+            {"risk_id": risk_id, "title": risk["title"], "category": risk["category"]},
+        )
 
         return {
             "risk_id": risk_id,
@@ -448,6 +641,16 @@ class RiskManagementAgent(BaseAgent):
 
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
+        await self._store_risk_dataset("risks", [risk], domain="risk_register")
+        await self._publish_risk_event(
+            "risk.assessed",
+            {
+                "risk_id": risk_id,
+                "score": risk["score"],
+                "probability": risk["probability"],
+                "impact": risk["impact"],
+            },
+        )
 
         return {
             "risk_id": risk_id,
@@ -560,6 +763,11 @@ class RiskManagementAgent(BaseAgent):
         if self.db_service:
             await self.db_service.store("mitigation_plans", plan_id, mitigation_plan)
             await self.db_service.store("risks", risk_id, risk)
+        await self._store_risk_dataset("mitigation_plans", [mitigation_plan], domain="mitigation")
+        await self._publish_risk_event(
+            "risk.mitigation_plan_created",
+            {"risk_id": risk_id, "plan_id": plan_id, "strategy": mitigation_plan["strategy"]},
+        )
         # Future work: Create tasks in task management system
         # Future work: Publish mitigation_plan.created event
 
@@ -618,6 +826,10 @@ class RiskManagementAgent(BaseAgent):
                     "checked_at": datetime.utcnow().isoformat(),
                 },
             )
+        if triggered_risks:
+            await self._store_risk_dataset("risk_triggers", triggered_risks, domain="triggers")
+            for triggered in triggered_risks:
+                await self._publish_risk_event("risk.triggered", triggered)
         # Future work: Publish risk.trigger_activated events
 
         return {
@@ -666,6 +878,11 @@ class RiskManagementAgent(BaseAgent):
 
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
+        await self._store_risk_dataset("risks", [risk], domain="risk_register")
+        await self._publish_risk_event(
+            "risk.status_updated",
+            {"risk_id": risk_id, "status": risk["status"], "score": risk["score"]},
+        )
 
         return {
             "risk_id": risk_id,
@@ -702,6 +919,22 @@ class RiskManagementAgent(BaseAgent):
         cost_p80 = await self._calculate_percentile(simulation_results["cost"], 80)
         cost_p95 = await self._calculate_percentile(simulation_results["cost"], 95)
 
+        await self._store_risk_dataset(
+            "monte_carlo",
+            [
+                {
+                    "project_id": project_id,
+                    "iterations": iterations,
+                    "schedule": simulation_results["schedule"][:100],
+                    "cost": simulation_results["cost"][:100],
+                }
+            ],
+            domain="simulation",
+        )
+        await self._publish_risk_event(
+            "risk.simulation_completed",
+            {"project_id": project_id, "iterations": iterations},
+        )
         return {
             "project_id": project_id,
             "iterations": iterations,
@@ -814,6 +1047,9 @@ class RiskManagementAgent(BaseAgent):
 
         # Get mitigation status
         mitigation_status = await self._get_mitigation_status(project_id)
+        external_risk_signals = []
+        if project_id:
+            external_risk_signals = await self._collect_external_risk_signals(project_id)
 
         return {
             "project_id": project_id,
@@ -828,6 +1064,7 @@ class RiskManagementAgent(BaseAgent):
             "risk_matrix": risk_matrix,
             "mitigation_status": mitigation_status,
             "external_risk_research": external_risk_research,
+            "external_risk_signals": external_risk_signals,
             "dashboard_generated_at": datetime.utcnow().isoformat(),
         }
 
@@ -1167,9 +1404,12 @@ class RiskManagementAgent(BaseAgent):
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"MIT-{timestamp}"
 
-    async def _extract_risks_from_documents(self, documents: list[str]) -> list[dict[str, Any]]:
+    async def _extract_risks_from_documents(
+        self, documents: list[dict[str, Any] | str]
+    ) -> list[dict[str, Any]]:
         """Extract potential risks from documents using NLP."""
-        # Future work: Use Azure Cognitive Services for text analysis
+        if self.cognitive_search_service:
+            return self.cognitive_search_service.extract_risks(documents)
         return []
 
     async def _initial_risk_assessment(self, risk_data: dict[str, Any]) -> dict[str, Any]:
@@ -1192,6 +1432,26 @@ class RiskManagementAgent(BaseAgent):
 
     async def _predict_risk_metrics(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Use ML to predict risk probability and impact."""
+        if self.ml_service:
+            prediction = await self.ml_service.predict_classification(
+                {
+                    "title": risk.get("title"),
+                    "description": risk.get("description"),
+                    "category": risk.get("category"),
+                    "score": risk.get("score"),
+                }
+            )
+            if prediction.get("status") == "predicted":
+                result = prediction.get("result", {}) or {}
+                probability = result.get("probability") or result.get("likelihood")
+                impact = result.get("impact")
+                if probability or impact:
+                    return {
+                        "probability": self._coerce_rating(probability, fallback=risk.get("probability", 3)),
+                        "impact": self._coerce_rating(impact, fallback=risk.get("impact", 3)),
+                        "severity_score": result.get("severity_score"),
+                    }
+
         history = self.risk_histories.get(risk.get("risk_id"), [])
         if history:
             probabilities = [
@@ -1238,12 +1498,17 @@ class RiskManagementAgent(BaseAgent):
 
     async def _recommend_mitigation_strategies(self, risk: dict[str, Any]) -> list[str]:
         """Recommend mitigation strategies from knowledge base."""
-        # Future work: Use knowledge graph and similarity algorithms
-        return [
+        base_strategies = [
             "Regular monitoring and reviews",
             "Allocate contingency reserves",
             "Implement early warning system",
         ]
+        if self.knowledge_base_service:
+            guidance = await self.knowledge_base_service.query_mitigations(risk)
+            guidance_strategies = [item["strategy"] for item in guidance if item.get("strategy")]
+            if guidance_strategies:
+                return list(dict.fromkeys(guidance_strategies + base_strategies))
+        return base_strategies
 
     async def _calculate_residual_risk(
         self, risk: dict[str, Any], mitigation_plan: dict[str, Any]
@@ -1261,7 +1526,24 @@ class RiskManagementAgent(BaseAgent):
 
     async def _check_risk_triggers(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Check if risk triggers have been activated."""
-        # Future work: Monitor data sources for trigger conditions
+        triggers = risk.get("triggers") or []
+        for trigger in triggers:
+            threshold = trigger.get("threshold")
+            current_value = trigger.get("current_value")
+            status = trigger.get("status")
+            if status == "triggered":
+                return {
+                    "triggered": True,
+                    "trigger": trigger,
+                    "new_score": min(25, risk.get("score", 0) + 2),
+                }
+            if threshold is not None and current_value is not None and current_value >= threshold:
+                trigger["status"] = "triggered"
+                return {
+                    "triggered": True,
+                    "trigger": trigger,
+                    "new_score": min(25, risk.get("score", 0) + 2),
+                }
         return {"triggered": False, "trigger": None, "new_score": risk.get("score")}
 
     async def _update_risk_from_trigger(
@@ -1281,30 +1563,49 @@ class RiskManagementAgent(BaseAgent):
 
         baseline_schedule_days = 100.0
         baseline_cost = 1_000_000.0
+        numpy_spec = importlib.util.find_spec("numpy")
+        if numpy_spec:
+            import numpy as np
 
-        probabilities = np.array(
-            [min(1.0, max(0.0, (risk.get("probability", 3) / 5))) for risk in risks], dtype=float
-        )
-        impact_levels = np.array([risk.get("impact", 3) for risk in risks], dtype=float)
+            probabilities = np.array(
+                [min(1.0, max(0.0, (risk.get("probability", 3) / 5))) for risk in risks], dtype=float
+            )
+            impact_levels = np.array([risk.get("impact", 3) for risk in risks], dtype=float)
 
-        schedule_impact_days = impact_levels * 5.0
-        cost_impact = impact_levels * 50_000.0
+            schedule_impact_days = impact_levels * 5.0
+            cost_impact = impact_levels * 50_000.0
 
-        rng = np.random.default_rng()
-        if risks:
-            occurrences = rng.random((iterations, len(risks))) < probabilities
-            schedule_adjustments = occurrences * schedule_impact_days
-            cost_adjustments = occurrences * cost_impact
-            schedule_results = baseline_schedule_days + schedule_adjustments.sum(axis=1)
-            cost_results = baseline_cost + cost_adjustments.sum(axis=1)
-        else:
-            schedule_results = np.full(iterations, baseline_schedule_days, dtype=float)
-            cost_results = np.full(iterations, baseline_cost, dtype=float)
+            rng = np.random.default_rng()
+            if risks:
+                occurrences = rng.random((iterations, len(risks))) < probabilities
+                schedule_adjustments = occurrences * schedule_impact_days
+                cost_adjustments = occurrences * cost_impact
+                schedule_results = baseline_schedule_days + schedule_adjustments.sum(axis=1)
+                cost_results = baseline_cost + cost_adjustments.sum(axis=1)
+            else:
+                schedule_results = np.full(iterations, baseline_schedule_days, dtype=float)
+                cost_results = np.full(iterations, baseline_cost, dtype=float)
 
-        return {
-            "schedule": schedule_results.tolist(),
-            "cost": cost_results.tolist(),
-        }
+            return {
+                "schedule": schedule_results.tolist(),
+                "cost": cost_results.tolist(),
+            }
+
+        schedule_results = []
+        cost_results = []
+        for _ in range(iterations):
+            schedule = baseline_schedule_days
+            cost = baseline_cost
+            for risk in risks:
+                probability = min(1.0, max(0.0, (risk.get("probability", 3) / 5)))
+                impact = risk.get("impact", 3)
+                if random.random() < probability:
+                    schedule += impact * 5.0
+                    cost += impact * 50_000.0
+            schedule_results.append(schedule)
+            cost_results.append(cost)
+
+        return {"schedule": schedule_results, "cost": cost_results}
 
     async def _calculate_percentile(self, data: list[float], percentile: int) -> float:
         """Calculate percentile value."""
@@ -1395,9 +1696,16 @@ class RiskManagementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Risk Management Agent...")
-        # Future work: Close database connections
-        # Future work: Cancel monitoring tasks
-        # Future work: Flush any pending events
+        if self.event_bus and hasattr(self.event_bus, "stop"):
+            await self.event_bus.stop()
+        if self.data_lake_manager and hasattr(self.data_lake_manager, "service_client"):
+            service_client = getattr(self.data_lake_manager, "service_client")
+            if service_client and hasattr(service_client, "close"):
+                service_client.close()
+        if self.synapse_manager and hasattr(self.synapse_manager, "synapse_client"):
+            synapse_client = getattr(self.synapse_manager, "synapse_client")
+            if synapse_client and hasattr(synapse_client, "close"):
+                synapse_client.close()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
@@ -1419,4 +1727,91 @@ class RiskManagementAgent(BaseAgent):
             "risk_reporting",
             "quantitative_risk_analysis",
             "external_risk_research",
+            "risk_event_publishing",
+            "knowledge_base_guidance",
+            "pm_connector_risk_signals",
         ]
+
+    def _initialize_project_management_services(self) -> dict[str, ProjectManagementService]:
+        services: dict[str, ProjectManagementService] = {}
+        connector_types = ["planview", "ms_project", "jira", "azure_devops"]
+        for connector_type in connector_types:
+            env_map = {
+                "planview": "PLANVIEW_INSTANCE_URL",
+                "ms_project": "MS_PROJECT_SITE_URL",
+                "jira": "JIRA_INSTANCE_URL",
+                "azure_devops": "AZURE_DEVOPS_ORG_URL",
+            }
+            if not (self.config.get("enable_all_pm_connectors") or os.getenv(env_map[connector_type])):
+                continue
+            services[connector_type] = ProjectManagementService(
+                {"connector_type": connector_type}
+            )
+        return services
+
+    async def _register_triggers(self, risk_id: str, triggers: list[dict[str, Any]]) -> None:
+        normalized = []
+        for trigger in triggers:
+            trigger_id = trigger.get("trigger_id") or f"TRG-{uuid.uuid4().hex[:8]}"
+            trigger_record = {
+                "trigger_id": trigger_id,
+                "risk_id": risk_id,
+                "type": trigger.get("type", "threshold"),
+                "threshold": trigger.get("threshold"),
+                "current_value": trigger.get("current_value"),
+                "status": trigger.get("status", "monitoring"),
+                "created_at": trigger.get("created_at") or datetime.utcnow().isoformat(),
+            }
+            normalized.append(trigger_record)
+            self.triggers[trigger_id] = trigger_record
+            if self.db_service:
+                await self.db_service.store("risk_trigger_definitions", trigger_id, trigger_record)
+        if normalized:
+            await self._store_risk_dataset("risk_trigger_definitions", normalized, domain="triggers")
+
+    async def _store_risk_dataset(
+        self, dataset_type: str, payload: list[dict[str, Any]], *, domain: str
+    ) -> dict[str, Any]:
+        details: dict[str, Any] = {"dataset_type": dataset_type, "stored": False}
+        if not payload:
+            return details
+        if self.data_lake_manager:
+            details["data_lake"] = self.data_lake_manager.store_dataset(dataset_type, domain, payload)
+        if self.synapse_manager:
+            details["synapse"] = {
+                "workspace": self.synapse_manager.workspace_name,
+                "sql_pool": self.synapse_manager.sql_pool_name,
+                "spark_pool": self.synapse_manager.spark_pool_name,
+                "status": "queued",
+            }
+        details["stored"] = bool(details.get("data_lake") or details.get("synapse"))
+        return details
+
+    async def _publish_risk_event(self, event_type: str, payload: dict[str, Any]) -> None:
+        event = {
+            "event_type": event_type,
+            "payload": payload,
+            "published_at": datetime.utcnow().isoformat(),
+        }
+        self.risk_events.append(event)
+        if self.event_bus:
+            await self.event_bus.publish(event_type, payload)
+
+    async def _collect_external_risk_signals(self, project_id: str) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
+        for connector_type, service in self.project_management_services.items():
+            try:
+                tasks = await service.get_tasks(project_id, filters={"labels": ["risk"]}, limit=25)
+            except Exception:
+                tasks = []
+            for task in tasks:
+                signals.append(
+                    {
+                        "source": connector_type,
+                        "item_id": task.get("id") or task.get("key") or task.get("work_item_id"),
+                        "summary": task.get("summary") or task.get("title") or task.get("name"),
+                        "status": task.get("status"),
+                        "risk_level": task.get("priority") or task.get("severity"),
+                    }
+                )
+        return signals
