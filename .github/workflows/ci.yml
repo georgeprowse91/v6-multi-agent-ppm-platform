@@ -42,6 +42,38 @@ jobs:
       - name: Run MyPy
         run: mypy agents/ apps/ packages/ --ignore-missing-imports
 
+  security-scan-code:
+    name: Static Security Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install security tools
+        run: |
+          pip install bandit safety checkov
+          pip install -r requirements.txt
+
+      - name: Bandit scan
+        run: bandit -r agents/ apps/ packages/ -x tests/ -ll
+
+      - name: Safety scan
+        run: safety check -r requirements.txt
+
+      - name: Checkov scan
+        run: checkov -d infra/terraform
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config: .gitleaks.toml
+
   terraform:
     name: Terraform Validate
     runs-on: ubuntu-latest
