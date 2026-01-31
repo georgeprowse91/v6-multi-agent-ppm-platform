@@ -15,6 +15,8 @@ import os
 import smtplib
 import ssl
 import sys
+import importlib
+import importlib.util
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.message import EmailMessage
@@ -1736,12 +1738,151 @@ class DatabaseStorageService:
             return True
         return False
 
-    # Azure SQL implementation (placeholder - requires pyodbc)
+    def _normalize_collection_name(self, collection: str) -> str:
+        normalized = "".join(
+            char if char.isalnum() or char == "_" else "_" for char in collection
+        )
+        return normalized[:128] if normalized else "ppm_records"
+
+    def _get_azure_sql_connection(self):
+        spec = importlib.util.find_spec("pyodbc")
+        if spec is None:
+            raise RuntimeError(
+                "pyodbc is required for Azure SQL operations but is not installed."
+            )
+        pyodbc = importlib.import_module("pyodbc")
+
+        connection_string = (
+            self.config.get("azure_sql_connection_string")
+            or os.getenv("AZURE_SQL_CONNECTION_STRING")
+        )
+        if connection_string:
+            return pyodbc.connect(connection_string)
+
+        server = self.config.get("azure_sql_server") or os.getenv("AZURE_SQL_SERVER")
+        database = self.config.get("azure_sql_database") or os.getenv("AZURE_SQL_DATABASE")
+        driver = (
+            self.config.get("azure_sql_driver")
+            or os.getenv("AZURE_SQL_DRIVER")
+            or "{ODBC Driver 18 for SQL Server}"
+        )
+        if not server or not database:
+            raise ValueError(
+                "Azure SQL configuration requires AZURE_SQL_CONNECTION_STRING or "
+                "AZURE_SQL_SERVER/AZURE_SQL_DATABASE."
+            )
+
+        credential_spec = importlib.util.find_spec("azure.identity")
+        if credential_spec is None:
+            raise RuntimeError(
+                "azure-identity is required for token-based Azure SQL authentication."
+            )
+        credential_module = importlib.import_module("azure.identity")
+        credential = credential_module.DefaultAzureCredential()
+        token = credential.get_token("https://database.windows.net/.default").token
+        access_token = token.encode("utf-16-le")
+        access_token_key = getattr(pyodbc, "SQL_COPT_SS_ACCESS_TOKEN", 1256)
+        conn_str = (
+            f"Driver={driver};Server={server};Database={database};Encrypt=yes;"
+            "TrustServerCertificate=no;"
+        )
+        return pyodbc.connect(conn_str, attrs_before={access_token_key: access_token})
+
+    def _ensure_azure_sql_table(self, cursor, table_name: str) -> None:
+        cursor.execute(
+            f"""
+            IF OBJECT_ID(N'{table_name}', N'U') IS NULL
+            CREATE TABLE {table_name} (
+                record_id NVARCHAR(255) NOT NULL PRIMARY KEY,
+                data NVARCHAR(MAX) NOT NULL,
+                updated_at DATETIME2 NOT NULL
+            )
+            """
+        )
+
+    def _get_cosmos_container_client(self, collection: str):
+        spec = importlib.util.find_spec("azure.cosmos")
+        if spec is None:
+            raise RuntimeError(
+                "azure-cosmos is required for Cosmos DB operations but is not installed."
+            )
+        cosmos_module = importlib.import_module("azure.cosmos")
+
+        connection_string = (
+            self.config.get("cosmos_connection_string")
+            or os.getenv("COSMOS_DB_CONNECTION_STRING")
+        )
+        if not connection_string:
+            raise ValueError("COSMOS_DB_CONNECTION_STRING is required for Cosmos DB.")
+
+        database_name = (
+            self.config.get("cosmos_database")
+            or os.getenv("COSMOS_DB_DATABASE")
+        )
+        if not database_name:
+            raise ValueError("COSMOS_DB_DATABASE is required for Cosmos DB.")
+
+        client = cosmos_module.CosmosClient.from_connection_string(connection_string)
+        database = client.get_database_client(database_name)
+        container = database.get_container_client(collection)
+        return container
+
+    def _get_cosmos_partition_key(self) -> str:
+        partition_key = (
+            self.config.get("cosmos_partition_key")
+            or os.getenv("COSMOS_DB_PARTITION_KEY")
+        )
+        if partition_key and partition_key.startswith("/"):
+            partition_key = partition_key[1:]
+        return partition_key or "id"
+
+    # Azure SQL implementation
     async def _store_azure_sql(
         self, collection: str, record_id: str, data: dict[str, Any]
     ) -> dict[str, Any]:
-        logger.info(f"Azure SQL store: {collection}/{record_id}")
-        # Implementation would use pyodbc to connect to Azure SQL
+        import json
+
+        table_name = self._normalize_collection_name(collection)
+        payload = dict(data)
+        payload["_id"] = record_id
+        payload["_updated_at"] = datetime.now(timezone.utc).isoformat()
+        updated_at = datetime.now(timezone.utc)
+        serialized = json.dumps(payload, default=str)
+
+        try:
+            connection = self._get_azure_sql_connection()
+            cursor = connection.cursor()
+            try:
+                self._ensure_azure_sql_table(cursor, table_name)
+                cursor.execute(
+                    f"""
+                    MERGE {table_name} AS target
+                    USING (SELECT ? AS record_id, ? AS data, ? AS updated_at) AS source
+                    ON target.record_id = source.record_id
+                    WHEN MATCHED THEN
+                        UPDATE SET data = source.data, updated_at = source.updated_at
+                    WHEN NOT MATCHED THEN
+                        INSERT (record_id, data, updated_at)
+                        VALUES (source.record_id, source.data, source.updated_at);
+                    """,
+                    (record_id, serialized, updated_at),
+                )
+                connection.commit()
+            finally:
+                cursor.close()
+                connection.close()
+        except Exception as exc:
+            logger.exception(
+                "Azure SQL store failed for %s/%s: %s", collection, record_id, exc
+            )
+            return {
+                "record_id": record_id,
+                "collection": collection,
+                "status": "error",
+                "storage_type": "azure_sql",
+                "error": str(exc),
+            }
+
         return {
             "record_id": record_id,
             "collection": collection,
@@ -1752,23 +1893,114 @@ class DatabaseStorageService:
     async def _retrieve_azure_sql(
         self, collection: str, record_id: str
     ) -> dict[str, Any] | None:
-        logger.info(f"Azure SQL retrieve: {collection}/{record_id}")
-        return None
+        import json
+
+        table_name = self._normalize_collection_name(collection)
+        try:
+            connection = self._get_azure_sql_connection()
+            cursor = connection.cursor()
+            try:
+                self._ensure_azure_sql_table(cursor, table_name)
+                cursor.execute(
+                    f"SELECT data FROM {table_name} WHERE record_id = ?",
+                    (record_id,),
+                )
+                row = cursor.fetchone()
+            finally:
+                cursor.close()
+                connection.close()
+        except Exception as exc:
+            logger.exception(
+                "Azure SQL retrieve failed for %s/%s: %s", collection, record_id, exc
+            )
+            return None
+
+        if not row:
+            return None
+        try:
+            return json.loads(row[0])
+        except json.JSONDecodeError:
+            logger.warning(
+                "Azure SQL retrieve returned non-JSON data for %s/%s",
+                collection,
+                record_id,
+            )
+            return {"record_id": record_id, "data": row[0]}
 
     async def _query_azure_sql(
         self, collection: str, filters: dict[str, Any] | None, limit: int
     ) -> list[dict[str, Any]]:
-        logger.info(f"Azure SQL query: {collection}")
-        return []
+        import json
 
-    # Cosmos DB implementation (placeholder - requires azure-cosmos)
+        table_name = self._normalize_collection_name(collection)
+        filter_clauses = []
+        params: list[Any] = []
+        if filters:
+            for key, value in filters.items():
+                if key.replace("_", "").isalnum():
+                    filter_clauses.append("JSON_VALUE(data, ?) = ?")
+                    params.extend([f"$.{key}", value])
+                else:
+                    logger.warning(
+                        "Skipping unsupported Azure SQL filter key: %s", key
+                    )
+
+        where_clause = f"WHERE {' AND '.join(filter_clauses)}" if filter_clauses else ""
+        params_with_limit = [limit, *params]
+
+        try:
+            connection = self._get_azure_sql_connection()
+            cursor = connection.cursor()
+            try:
+                self._ensure_azure_sql_table(cursor, table_name)
+                cursor.execute(
+                    f"SELECT TOP (?) data FROM {table_name} {where_clause}",
+                    params_with_limit,
+                )
+                rows = cursor.fetchall()
+            finally:
+                cursor.close()
+                connection.close()
+        except Exception as exc:
+            logger.exception("Azure SQL query failed for %s: %s", collection, exc)
+            return []
+
+        results = []
+        for row in rows:
+            try:
+                results.append(json.loads(row[0]))
+            except json.JSONDecodeError:
+                results.append({"data": row[0]})
+        return results
+
+    # Cosmos DB implementation
     async def _store_cosmos_db(
         self, collection: str, record_id: str, data: dict[str, Any]
     ) -> dict[str, Any]:
-        logger.info(f"Cosmos DB store: {collection}/{record_id}")
-        # Implementation would use azure-cosmos SDK
+        payload = dict(data)
+        payload["id"] = record_id
+        payload["_updated_at"] = datetime.now(timezone.utc).isoformat()
+        partition_key = self._get_cosmos_partition_key()
+        if partition_key not in payload:
+            payload[partition_key] = record_id
+
+        try:
+            container = self._get_cosmos_container_client(collection)
+            result = container.upsert_item(payload)
+        except Exception as exc:
+            logger.exception(
+                "Cosmos DB store failed for %s/%s: %s", collection, record_id, exc
+            )
+            return {
+                "record_id": record_id,
+                "collection": collection,
+                "status": "error",
+                "storage_type": "cosmos_db",
+                "error": str(exc),
+            }
+
         return {
-            "record_id": record_id,
+            "record_id": result.get("id", record_id),
             "collection": collection,
             "status": "stored",
             "storage_type": "cosmos_db",
@@ -1777,11 +2009,53 @@ class DatabaseStorageService:
     async def _retrieve_cosmos_db(
         self, collection: str, record_id: str
     ) -> dict[str, Any] | None:
-        logger.info(f"Cosmos DB retrieve: {collection}/{record_id}")
-        return None
+        partition_key = self._get_cosmos_partition_key()
+        try:
+            container = self._get_cosmos_container_client(collection)
+            item = container.read_item(item=record_id, partition_key=record_id)
+        except Exception as exc:
+            logger.exception(
+                "Cosmos DB retrieve failed for %s/%s: %s", collection, record_id, exc
+            )
+            return None
+
+        if partition_key != "id" and item.get(partition_key) != record_id:
+            logger.warning(
+                "Cosmos DB partition key mismatch for %s/%s", collection, record_id
+            )
+        return item
 
     async def _query_cosmos_db(
         self, collection: str, filters: dict[str, Any] | None, limit: int
     ) -> list[dict[str, Any]]:
-        logger.info(f"Cosmos DB query: {collection}")
-        return []
+        query = "SELECT * FROM c"
+        parameters = []
+        if filters:
+            clauses = []
+            for index, (key, value) in enumerate(filters.items()):
+                if key.replace("_", "").isalnum():
+                    param_name = f"@p{index}"
+                    clauses.append(f"c.{key} = {param_name}")
+                    parameters.append({"name": param_name, "value": value})
+                else:
+                    logger.warning("Skipping unsupported Cosmos filter key: %s", key)
+            if clauses:
+                query = f"{query} WHERE {' AND '.join(clauses)}"
+
+        try:
+            container = self._get_cosmos_container_client(collection)
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True,
+                max_item_count=limit,
+            )
+            results = []
+            for item in items:
+                results.append(item)
+                if len(results) >= limit:
+                    break
+            return results
+        except Exception as exc:
+            logger.exception("Cosmos DB query failed for %s: %s", collection, exc)
+            return []
