@@ -1,0 +1,38 @@
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { I18nProvider } from '@/i18n';
+import { AppLayout } from './AppLayout';
+
+describe('AppLayout', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('renders the assistant panel in the layout', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ authenticated: false }), { status: 200 })
+        )
+      )
+    );
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      value: vi.fn(),
+      writable: true,
+    });
+
+    render(
+      <I18nProvider>
+        <MemoryRouter>
+          <AppLayout>
+            <div>Workspace</div>
+          </AppLayout>
+        </MemoryRouter>
+      </I18nProvider>
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Assistant' })).toBeInTheDocument();
+  });
+});
