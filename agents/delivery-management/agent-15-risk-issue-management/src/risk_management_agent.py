@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from data_quality.helpers import validate_against_schema
 from data_quality.rules import evaluate_quality_rules
 

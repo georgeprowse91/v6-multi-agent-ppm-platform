@@ -29,6 +29,14 @@ bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
+from agents.common.connector_integration import (  # noqa: E402
+    DatabaseStorageService,
+    DocumentManagementService,
+    DocumentMetadata,
+    GRCControl,
+    GRCIntegrationService,
+    NotificationService,
+)
 from agents.common.web_search import (  # noqa: E402
     build_search_query,
     search_web,
@@ -41,14 +49,6 @@ from agents.runtime.src.policy import (  # noqa: E402
     load_default_policy_bundle,
 )
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
-from agents.common.connector_integration import (  # noqa: E402
-    DatabaseStorageService,
-    DocumentManagementService,
-    DocumentMetadata,
-    GRCControl,
-    GRCIntegrationService,
-    NotificationService,
-)
 
 
 class ComplianceRegulatoryAgent(BaseAgent):

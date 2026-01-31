@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-from jsonschema import ValidationError, validate
 from observability.tracing import get_trace_id
 from security.lineage import mask_lineage_payload
 
@@ -22,6 +21,7 @@ from agents.common.connector_integration import DatabaseStorageService
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
+from jsonschema import ValidationError, validate
 
 
 class DataSyncAgent(BaseAgent):

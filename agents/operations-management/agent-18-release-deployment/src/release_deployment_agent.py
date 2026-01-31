@@ -15,12 +15,12 @@ from typing import Any, cast
 
 from approval_workflow_agent import ApprovalWorkflowAgent
 
+from agents.common.connector_integration import (
+    DatabaseStorageService,
+    DocumentationPublishingService,
+)
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from agents.common.connector_integration import (
-    DocumentationPublishingService,
-    DatabaseStorageService,
-)
 
 
 class ReleaseDeploymentAgent(BaseAgent):
