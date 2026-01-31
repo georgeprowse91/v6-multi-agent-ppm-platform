@@ -17,6 +17,8 @@ from data_quality.rules import evaluate_quality_rules
 from events import ResourceAllocationCreatedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.connector_integration import DatabaseStorageService
+from agents.common.integration_services import ForecastingModel
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
@@ -55,6 +57,20 @@ class ResourceCapacityAgent(BaseAgent):
         self.forecast_horizon_months = config.get("forecast_horizon_months", 12) if config else 12
         self.utilization_target = config.get("utilization_target", 0.85) if config else 0.85
         self.scenario_engine = ScenarioEngine()
+        self.skill_match_weights = (
+            config.get(
+                "skill_match_weights",
+                {"skills": 0.7, "availability": 0.2, "cost": 0.1},
+            )
+            if config
+            else {"skills": 0.7, "availability": 0.2, "cost": 0.1}
+        )
+        self.default_working_hours_per_day = (
+            config.get("working_hours_per_day", 8) if config else 8
+        )
+        self.default_working_days = (
+            config.get("working_days", [0, 1, 2, 3, 4]) if config else [0, 1, 2, 3, 4]
+        )
 
         resource_store_path = (
             Path(config.get("resource_store_path", "data/resource_pool.json"))
@@ -66,8 +82,14 @@ class ResourceCapacityAgent(BaseAgent):
             if config
             else Path("data/resource_allocations.json")
         )
+        calendar_store_path = (
+            Path(config.get("calendar_store_path", "data/resource_calendars.json"))
+            if config
+            else Path("data/resource_calendars.json")
+        )
         self.resource_store = TenantStateStore(resource_store_path)
         self.allocation_store = TenantStateStore(allocation_store_path)
+        self.calendar_store = TenantStateStore(calendar_store_path)
 
         # Data stores (will be replaced with database connections)
         self.resource_pool: dict[str, Any] = {}
@@ -78,19 +100,29 @@ class ResourceCapacityAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
+        self.db_service: DatabaseStorageService | None = None
+        self.forecasting_model: ForecastingModel | None = None
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
         await super().initialize()
         self.logger.info("Initializing Resource & Capacity Management Agent...")
 
-        # Future work: Initialize Azure SQL Database for resource profiles and allocations
+        db_config = self.config.get("database_storage", {}) if self.config else {}
+        self.db_service = DatabaseStorageService(db_config)
+        self.logger.info("Database Storage Service initialized")
+
+        self.forecasting_model = ForecastingModel()
+        self.logger.info("Forecasting model initialized")
+
         # Future work: Connect to Azure Active Directory for employee data
         # Future work: Initialize SAP SuccessFactors/Workday integration for HR data
         # Future work: Connect to Planview Enterprise One/Jira Tempo for timesheet data
         # Future work: Initialize Azure Machine Learning for capacity forecasting models
         # Future work: Connect to Azure Cognitive Search for skill matching
-        # Future work: Initialize Outlook/HR calendar integration for leave management
+        self.logger.info(
+            "Using local calendar storage for working hours and leave tracking"
+        )
         # Future work: Set up Azure Service Bus/Event Grid for resource event notifications
         # Future work: Initialize Azure Redis Cache for real-time availability queries
         # Future work: Connect to learning management systems for training/certifications
@@ -279,13 +311,17 @@ class ResourceCapacityAgent(BaseAgent):
         }
 
         # Initialize capacity calendar
-        self.capacity_calendar[resource_id] = {
+        calendar_entry = {
             "resource_id": resource_id,
-            "available_hours_per_day": 8,
-            "working_days": [0, 1, 2, 3, 4],  # Monday-Friday
-            "planned_leave": [],
-            "holidays": [],
+            "available_hours_per_day": resource_data.get(
+                "available_hours_per_day", self.default_working_hours_per_day
+            ),
+            "working_days": resource_data.get("working_days", self.default_working_days),
+            "planned_leave": resource_data.get("planned_leave", []),
+            "holidays": resource_data.get("holidays", []),
         }
+        self.capacity_calendar[resource_id] = calendar_entry
+        self.calendar_store.upsert(tenant_id, resource_id, calendar_entry)
 
         validation = await self._validate_resource_record(resource_profile, tenant_id=tenant_id)
 
@@ -293,7 +329,8 @@ class ResourceCapacityAgent(BaseAgent):
         self.resource_pool[resource_id] = resource_profile
         self.resource_store.upsert(tenant_id, resource_id, resource_profile)
 
-        # Future work: Store in Azure SQL Database
+        if self.db_service:
+            await self.db_service.store("resource_profiles", resource_id, resource_profile)
         # Future work: Sync with Azure AD
         # Future work: Publish resource.added event
 
@@ -362,7 +399,8 @@ class ResourceCapacityAgent(BaseAgent):
         # Route to approver
         approver = await self._determine_approver(request)
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("resource_requests", request_id, request)
         # Future work: Send notification to approver
         # Future work: Publish resource_request.created event
 
@@ -474,6 +512,60 @@ class ResourceCapacityAgent(BaseAgent):
             "search_criteria": search_criteria,
         }
 
+    async def _find_matching_resources(
+        self, skills_required: list[str], *, availability_floor: float = 0.0
+    ) -> list[dict[str, Any]]:
+        """Find matching resources using weighted scoring."""
+        required_skills = {skill.lower() for skill in skills_required if skill}
+        max_cost = max(
+            (float(resource.get("cost_rate", 0)) for resource in self.resource_pool.values()),
+            default=0.0,
+        )
+        weights = {
+            "skills": float(self.skill_match_weights.get("skills", 0.7)),
+            "availability": float(self.skill_match_weights.get("availability", 0.2)),
+            "cost": float(self.skill_match_weights.get("cost", 0.1)),
+        }
+        total_weight = sum(weights.values()) or 1.0
+        normalized_weights = {key: value / total_weight for key, value in weights.items()}
+
+        matches: list[dict[str, Any]] = []
+        for resource_id, resource in self.resource_pool.items():
+            resource_skills = {
+                skill.lower() for skill in resource.get("skills", []) if skill
+            }
+            skill_score = (
+                len(resource_skills.intersection(required_skills)) / len(required_skills)
+                if required_skills
+                else 1.0
+            )
+            availability_score = float(resource.get("availability", 0.0))
+            if availability_score < availability_floor:
+                continue
+            cost_rate = float(resource.get("cost_rate", 0.0))
+            cost_score = 1.0 - (cost_rate / max_cost) if max_cost else 1.0
+
+            weighted_score = (
+                normalized_weights["skills"] * skill_score
+                + normalized_weights["availability"] * availability_score
+                + normalized_weights["cost"] * cost_score
+            )
+            matches.append(
+                {
+                    "resource_id": resource_id,
+                    "resource_name": resource.get("name"),
+                    "role": resource.get("role"),
+                    "skills": list(resource_skills),
+                    "match_score": skill_score,
+                    "availability_score": availability_score,
+                    "cost_score": cost_score,
+                    "weighted_score": weighted_score,
+                }
+            )
+
+        matches.sort(key=lambda item: item["weighted_score"], reverse=True)
+        return matches
+
     async def _match_skills(
         self, skills_required: list[str], project_context: dict[str, Any]
     ) -> dict[str, Any]:
@@ -488,32 +580,27 @@ class ResourceCapacityAgent(BaseAgent):
         # Future work: Use NLP to parse skill descriptions
 
         candidates = []
+        matches = await self._find_matching_resources(skills_required)
 
-        for resource_id, resource in self.resource_pool.items():
-            resource_skills = set(resource.get("skills", []))
-            required_skills = set(skills_required)
-
-            # Calculate skill match score
-            match_score = await self._calculate_skill_match_score(resource_skills, required_skills)
-
-            # Get historical performance on similar projects
-            # Future work: Query historical project data
+        for match in matches:
+            resource_id = match["resource_id"]
             performance_score = await self._get_performance_score(resource_id, project_context)
-
-            # Combined score
-            combined_score = (match_score * 0.7) + (performance_score * 0.3)
+            combined_score = (match["weighted_score"] * 0.7) + (performance_score * 0.3)
 
             if combined_score >= self.skill_matching_threshold:
                 candidates.append(
                     {
                         "resource_id": resource_id,
-                        "resource_name": resource.get("name"),
-                        "role": resource.get("role"),
-                        "skills": list(resource_skills),
-                        "match_score": match_score,
+                        "resource_name": match.get("resource_name"),
+                        "role": match.get("role"),
+                        "skills": match.get("skills", []),
+                        "match_score": match.get("match_score"),
+                        "weighted_score": match.get("weighted_score"),
+                        "availability_score": match.get("availability_score"),
+                        "cost_score": match.get("cost_score"),
                         "performance_score": performance_score,
                         "combined_score": combined_score,
-                        "cost_rate": resource.get("cost_rate"),
+                        "cost_rate": self.resource_pool.get(resource_id, {}).get("cost_rate"),
                     }
                 )
 
@@ -534,19 +621,27 @@ class ResourceCapacityAgent(BaseAgent):
         """
         self.logger.info("Forecasting capacity")
 
-        # Future work: Use time-series ML model for forecasting (ARIMA, Prophet, LSTM)
-
         # Calculate current capacity
         current_capacity = await self._calculate_total_capacity()
 
         # Get current demand
         current_demand = await self._calculate_total_demand()
 
-        # Forecast future capacity (accounting for attrition, hiring, etc.)
-        future_capacity = await self._forecast_future_capacity(self.forecast_horizon_months)
-
-        # Forecast future demand (from project pipeline)
-        future_demand = await self._forecast_future_demand(self.forecast_horizon_months)
+        history_months = int(filters.get("history_months", 6))
+        capacity_series, demand_series = await self._build_capacity_demand_history(history_months)
+        forecasting_model = self.forecasting_model or ForecastingModel()
+        capacity_forecast = forecasting_model.forecast(
+            capacity_series, self.forecast_horizon_months
+        )
+        demand_forecast = forecasting_model.forecast(demand_series, self.forecast_horizon_months)
+        future_capacity = [
+            {"month": index + 1, "capacity": max(0.0, value)}
+            for index, value in enumerate(capacity_forecast)
+        ]
+        future_demand = [
+            {"month": index + 1, "demand": max(0.0, value)}
+            for index, value in enumerate(demand_forecast)
+        ]
 
         # Identify bottlenecks
         bottlenecks = await self._identify_capacity_bottlenecks(future_capacity, future_demand)
@@ -559,6 +654,11 @@ class ResourceCapacityAgent(BaseAgent):
             "current_capacity": current_capacity,
             "current_demand": current_demand,
             "current_utilization": current_demand / current_capacity if current_capacity > 0 else 0,
+            "history": {
+                "months": history_months,
+                "capacity_series": capacity_series,
+                "demand_series": demand_series,
+            },
             "future_capacity": future_capacity,
             "future_demand": future_demand,
             "bottlenecks": bottlenecks,
@@ -581,6 +681,7 @@ class ResourceCapacityAgent(BaseAgent):
 
         # Generate mitigation strategies
         strategies = await self._generate_mitigation_strategies(gaps)
+        optimization = await self._optimize_resource_allocations(planning_horizon)
 
         # Create capacity plan
         plan = {
@@ -588,6 +689,7 @@ class ResourceCapacityAgent(BaseAgent):
             "forecast": forecast,
             "gaps": gaps,
             "mitigation_strategies": strategies,
+            "optimization": optimization,
             "hiring_recommendations": await self._generate_hiring_recommendations(gaps),
             "training_recommendations": await self._generate_training_recommendations(gaps),
             "created_at": datetime.utcnow().isoformat(),
@@ -705,6 +807,10 @@ class ResourceCapacityAgent(BaseAgent):
             raise ValueError(f"Resource not found: {resource_id}")
 
         calendar = self.capacity_calendar.get(resource_id, {})
+        if not calendar:
+            calendar = self.calendar_store.get(tenant_id, resource_id) or {}
+            if calendar:
+                self.capacity_calendar[resource_id] = calendar
         allocations = self.allocations.get(resource_id, [])
 
         start_date_str = date_range.get("start_date")
@@ -925,11 +1031,40 @@ class ResourceCapacityAgent(BaseAgent):
         self, resource_id: str, start_date: str, end_date: str, effort: float
     ) -> dict[str, Any]:
         """Check if resource is available for given period."""
-        # Future work: Implement availability checking logic
-        return {
-            "is_available": True,
-            "windows": [{"start": start_date, "end": end_date, "capacity": effort}],
-        }
+        calendar = self.capacity_calendar.get(resource_id, {})
+        allocations = self.allocations.get(resource_id, [])
+        if not calendar:
+            calendar = {
+                "available_hours_per_day": self.default_working_hours_per_day,
+                "working_days": self.default_working_days,
+                "planned_leave": [],
+                "holidays": [],
+            }
+
+        start = datetime.fromisoformat(start_date)
+        end = datetime.fromisoformat(end_date)
+        required_hours = calendar.get("available_hours_per_day", 8) * effort
+
+        windows = []
+        is_available = True
+        current_date = start
+        while current_date <= end:
+            day_availability = await self._calculate_day_availability(
+                resource_id, current_date, calendar, allocations
+            )
+            if day_availability.get("available_hours", 0) >= required_hours:
+                windows.append(
+                    {
+                        "start": current_date.isoformat(),
+                        "end": current_date.isoformat(),
+                        "capacity": effort,
+                    }
+                )
+            else:
+                is_available = False
+            current_date += timedelta(days=1)
+
+        return {"is_available": is_available, "windows": windows}
 
     async def _determine_approver(self, request: dict[str, Any]) -> str:
         """Determine who should approve the request."""
@@ -966,6 +1101,48 @@ class ResourceCapacityAgent(BaseAgent):
                 if alloc.get("status") == "Active":
                     total_demand += alloc.get("allocation_percentage", 0) / 100
         return total_demand
+
+    async def _build_capacity_demand_history(self, months: int) -> tuple[list[float], list[float]]:
+        """Build historical capacity and demand series."""
+        if months <= 0:
+            return [], []
+        now = datetime.utcnow()
+        capacity_value = await self._calculate_total_capacity()
+        capacity_series: list[float] = []
+        demand_series: list[float] = []
+        for offset in range(-months + 1, 1):
+            month_start = self._month_start(now, offset)
+            month_end = self._month_start(now, offset + 1) - timedelta(days=1)
+            month_days = max((month_end - month_start).days + 1, 1)
+            month_demand = 0.0
+            for allocations_list in self.allocations.values():
+                for alloc in allocations_list:
+                    if alloc.get("status") != "Active":
+                        continue
+                    alloc_start_str = alloc.get("start_date")
+                    alloc_end_str = alloc.get("end_date")
+                    if not isinstance(alloc_start_str, str) or not isinstance(alloc_end_str, str):
+                        continue
+                    alloc_start = datetime.fromisoformat(alloc_start_str)
+                    alloc_end = datetime.fromisoformat(alloc_end_str)
+                    if alloc_end < month_start or alloc_start > month_end:
+                        continue
+                    overlap_start = max(alloc_start, month_start)
+                    overlap_end = min(alloc_end, month_end)
+                    overlap_days = max((overlap_end - overlap_start).days + 1, 0)
+                    allocation_fte = float(alloc.get("allocation_percentage", 0)) / 100
+                    month_demand += allocation_fte * (overlap_days / month_days)
+            capacity_series.append(capacity_value)
+            demand_series.append(month_demand)
+        return capacity_series, demand_series
+
+    @staticmethod
+    def _month_start(base: datetime, offset: int) -> datetime:
+        """Return the first day of the month offset from base."""
+        month_index = base.month - 1 + offset
+        year = base.year + month_index // 12
+        month = month_index % 12 + 1
+        return datetime(year, month, 1)
 
     async def _forecast_future_capacity(self, months: int) -> list[dict[str, Any]]:
         """Forecast future capacity."""
@@ -1134,8 +1311,32 @@ class ResourceCapacityAgent(BaseAgent):
         if weekday not in calendar.get("working_days", []):
             return {"date": date.isoformat(), "available_hours": 0, "reason": "Non-working day"}
 
-        # Check for leave or holidays
-        # Future work: Implement leave/holiday checking
+        total_hours = calendar.get("available_hours_per_day", self.default_working_hours_per_day)
+        date_str = date.date().isoformat()
+        holidays = {str(day) for day in calendar.get("holidays", [])}
+        if date_str in holidays:
+            return {
+                "date": date.isoformat(),
+                "total_hours": total_hours,
+                "available_hours": 0,
+                "reason": "Holiday",
+            }
+        for leave in calendar.get("planned_leave", []):
+            start_str = leave.get("start_date")
+            end_str = leave.get("end_date")
+            if not isinstance(start_str, str) or not isinstance(end_str, str):
+                continue
+            leave_start = datetime.fromisoformat(start_str)
+            leave_end = datetime.fromisoformat(end_str)
+            if leave_start.date() <= date.date() <= leave_end.date():
+                leave_hours = float(leave.get("hours", total_hours))
+                available_hours = max(0.0, total_hours - leave_hours)
+                return {
+                    "date": date.isoformat(),
+                    "total_hours": total_hours,
+                    "available_hours": available_hours,
+                    "reason": leave.get("reason", "Planned leave"),
+                }
 
         # Calculate allocated hours
         allocated_hours = 0
@@ -1152,7 +1353,7 @@ class ResourceCapacityAgent(BaseAgent):
                 allocated_hours += daily_hours * (alloc.get("allocation_percentage", 0) / 100)
 
         # Calculate available hours
-        total_hours = calendar.get("available_hours_per_day", 8)
+        total_hours = calendar.get("available_hours_per_day", self.default_working_hours_per_day)
         available_hours = max(0, total_hours - allocated_hours)
 
         return {
@@ -1231,6 +1432,66 @@ class ResourceCapacityAgent(BaseAgent):
                     "Consider reallocating or adding resources."
                 )
         return recommendations
+
+    async def _optimize_resource_allocations(
+        self, planning_horizon: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Optimize resource allocations using a greedy assignment strategy."""
+        pending_requests = [
+            request
+            for request in self.demand_requests.values()
+            if request.get("status") == "Pending"
+        ]
+        pending_requests.extend(planning_horizon.get("requests", []))
+        pending_requests.sort(
+            key=lambda req: (-(req.get("effort", 1.0)), req.get("start_date", ""))
+        )
+
+        availability = {
+            resource_id: float(resource.get("availability", 0.0))
+            for resource_id, resource in self.resource_pool.items()
+        }
+        allocations: list[dict[str, Any]] = []
+        unfilled: list[dict[str, Any]] = []
+
+        for request in pending_requests:
+            required_skills = request.get("required_skills", [])
+            effort = float(request.get("effort", 1.0))
+            request_id = request.get("request_id") or request.get("id") or "pending"
+            matches = await self._find_matching_resources(
+                required_skills, availability_floor=effort
+            )
+            assigned = False
+            for match in matches:
+                resource_id = match["resource_id"]
+                if availability.get(resource_id, 0.0) >= effort:
+                    availability[resource_id] = max(
+                        0.0, availability.get(resource_id, 0.0) - effort
+                    )
+                    allocations.append(
+                        {
+                            "request_id": request_id,
+                            "resource_id": resource_id,
+                            "score": match.get("weighted_score"),
+                            "effort": effort,
+                        }
+                    )
+                    assigned = True
+                    break
+            if not assigned:
+                unfilled.append(
+                    {
+                        "request_id": request_id,
+                        "required_skills": required_skills,
+                        "effort": effort,
+                    }
+                )
+
+        return {
+            "proposed_allocations": allocations,
+            "unfilled_requests": unfilled,
+            "remaining_capacity": availability,
+        }
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
