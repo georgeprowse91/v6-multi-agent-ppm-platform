@@ -9,13 +9,18 @@ audits and evidence collection.
 Specification: agents/delivery-management/agent-16-compliance-regulatory/README.md
 """
 
+import asyncio
 import json
+import math
+import os
 import re
 import uuid
+from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import requests
 from observability.tracing import get_trace_id
 
 from tools.runtime_paths import bootstrap_runtime_paths
@@ -29,7 +34,7 @@ from agents.common.web_search import (  # noqa: E402
     search_web,
     summarize_snippets,
 )
-from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime import BaseAgent, InMemoryEventBus, ServiceBusEventBus  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from agents.runtime.src.policy import (  # noqa: E402
     evaluate_policy_bundle,
@@ -42,6 +47,7 @@ from agents.common.connector_integration import (  # noqa: E402
     DocumentMetadata,
     GRCControl,
     GRCIntegrationService,
+    NotificationService,
 )
 
 
@@ -110,6 +116,31 @@ class ComplianceRegulatoryAgent(BaseAgent):
         )
         self.evidence_store = TenantStateStore(evidence_store_path)
 
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            service_bus_connection = (
+                config.get("service_bus_connection_string")
+                if config
+                else os.getenv("SERVICE_BUS_CONNECTION_STRING")
+            )
+            if service_bus_connection:
+                try:
+                    self.event_bus = ServiceBusEventBus(
+                        connection_string=service_bus_connection
+                    )
+                except RuntimeError as exc:
+                    self.logger.warning(
+                        "Service bus event bus unavailable, falling back to in-memory",
+                        extra={"error": str(exc)},
+                    )
+                    self.event_bus = InMemoryEventBus()
+            else:
+                self.event_bus = InMemoryEventBus()
+
+        self.notification_service = NotificationService(
+            config.get("notifications") if config else None
+        )
+
         # Data stores (will be replaced with database)
         self.regulation_library: dict[str, Any] = {}
         self.control_registry: dict[str, Any] = {}
@@ -118,6 +149,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.audits: dict[str, Any] = {}
         self.evidence: dict[str, Any] = {}
         self.regulatory_changes: dict[str, Any] = {}
+        self.control_embeddings: dict[str, dict[str, float]] = {}
 
     async def initialize(self) -> None:
         """Initialize database connections, GRC integrations, and AI models."""
@@ -299,12 +331,16 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Generate regulation ID
         regulation_id = await self._generate_regulation_id()
 
-        # Parse regulation using NLP
-        # Future work: Use Azure Cognitive Services to extract obligations
-        parsed_obligations = await self._parse_regulation_text(regulation_data.get("text", ""))
+        # Parse regulation using Azure Cognitive Services
+        regulation_metadata = await self._extract_regulation_metadata(regulation_data)
+        parsed_obligations = regulation_metadata.get("obligations", [])
 
         # Determine applicability
         applicability = await self._determine_applicability(regulation_data)
+
+        effective_date = regulation_data.get("effective_date") or regulation_metadata.get(
+            "effective_date"
+        )
 
         # Create regulation entry
         regulation = {
@@ -313,10 +349,11 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "description": regulation_data.get("description"),
             "jurisdiction": regulation_data.get("jurisdiction", []),
             "industry": regulation_data.get("industry", []),
-            "effective_date": regulation_data.get("effective_date"),
+            "effective_date": effective_date,
             "obligations": parsed_obligations,
             "related_controls": [],
             "applicability_rules": applicability,
+            "metadata": regulation_metadata.get("metadata", {}),
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -346,7 +383,6 @@ class ComplianceRegulatoryAgent(BaseAgent):
         control_id = await self._generate_control_id()
 
         # Recommend similar controls using AI
-        # Future work: Use knowledge graphs and similarity algorithms
         similar_controls = await self._recommend_similar_controls(control_data)
 
         # Create control
@@ -454,7 +490,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Store mapping
         self.compliance_mappings[project_id] = mapping
 
-        # Future work: Store in database
+        # Persist to database
+        await self.db_service.store("compliance_mappings", mapping_id, mapping)
 
         return {
             "mapping_id": mapping_id,
@@ -528,7 +565,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         compliant_controls = sum(1 for a in control_assessments if a["compliant"])
         compliance_score = (compliant_controls / total_controls * 100) if total_controls > 0 else 0
 
-        return {
+        assessment = {
             "project_id": project_id,
             "compliance_score": compliance_score,
             "total_controls": total_controls,
@@ -538,6 +575,11 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "control_assessments": control_assessments,
             "assessment_date": datetime.utcnow().isoformat(),
         }
+
+        assessment_id = f"ASM-{project_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        await self.db_service.store("compliance_assessments", assessment_id, assessment)
+
+        return assessment
 
     async def _test_control(self, control_id: str, test_data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -567,7 +609,17 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 mapping["control_status"][control_id]["last_tested"] = control["last_test_date"]
                 mapping["control_status"][control_id]["test_result"] = test_result
 
-        # Future work: Store in database
+        # Persist control test result
+        test_record_id = f"TST-{control_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        test_record = {
+            "test_id": test_record_id,
+            "control_id": control_id,
+            "result": test_result,
+            "notes": test_notes,
+            "tester": tester,
+            "tested_at": control["last_test_date"],
+        }
+        await self.db_service.store("control_tests", test_record_id, test_record)
 
         return {
             "control_id": control_id,
@@ -709,7 +761,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         # Store audit
         self.audits[audit_id] = audit
 
-        # Future work: Store in database
+        # Persist to database
+        await self.db_service.store("audits", audit_id, audit)
         # Future work: Grant read-only access to auditors
 
         return {
@@ -773,8 +826,28 @@ class ComplianceRegulatoryAgent(BaseAgent):
         audit["status"] = "Completed"
         audit["completion_date"] = datetime.utcnow().isoformat()
 
-        # Future work: Store in database
-        # Future work: Publish audit.completed event
+        # Persist audit results
+        await self.db_service.store("audits", audit_id, audit)
+
+        await self._publish_event(
+            "compliance.audit.completed",
+            {
+                "audit_id": audit_id,
+                "project_id": audit.get("project_id"),
+                "audit_score": audit_score,
+                "controls_reviewed": controls_reviewed,
+                "controls_passed": controls_passed,
+                "findings_count": len(findings),
+                "completion_date": audit["completion_date"],
+            },
+        )
+        await self._notify_stakeholders(
+            subject=f"Audit completed: {audit.get('title', audit_id)}",
+            message=(
+                f"Audit {audit_id} completed with score {audit_score:.1f}. "
+                f"Findings: {len(findings)}."
+            ),
+        )
 
         return {
             "audit_id": audit_id,
@@ -962,14 +1035,40 @@ class ComplianceRegulatoryAgent(BaseAgent):
                     "used_external_research": False,
                 }
 
-        # Future work: Create tasks for updates
-        # Future work: Notify stakeholders
+        external_updates = external_monitoring.get("updates", []) if external_monitoring else []
+        all_updates = [
+            *changes,
+            *external_updates,
+        ]
+
+        new_obligations = [
+            update
+            for update in all_updates
+            if update.get("description") or update.get("obligation")
+        ]
+        tasks_created = await self._create_stakeholder_tasks(new_obligations, tenant_id)
+
+        if new_obligations:
+            await self._publish_event(
+                "compliance.regulation.change_detected",
+                {
+                    "changes": new_obligations,
+                    "impacted_regulations": impacted_regulations,
+                    "tenant_id": tenant_id,
+                    "correlation_id": correlation_id,
+                },
+            )
+            await self._notify_stakeholders(
+                subject="Regulatory updates detected",
+                message=f"{len(new_obligations)} regulatory updates require review.",
+            )
 
         return {
             "changes_detected": len(changes),
             "regulations_impacted": len(impacted_regulations),
             "impacted_regulations": impacted_regulations,
             "external_monitoring": external_monitoring,
+            "tasks_created": tasks_created,
             "last_check": datetime.utcnow().isoformat(),
         }
 
@@ -1155,8 +1254,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _parse_regulation_text(self, text: str) -> list[dict[str, Any]]:
         """Parse regulation text to extract obligations."""
-        # Future work: Use Azure Cognitive Services
-        return [{"obligation": "Sample obligation", "deadline": None}]
+        metadata = await self._extract_regulation_metadata({"text": text})
+        return metadata.get("obligations", [])
 
     async def _determine_applicability(self, regulation_data: dict[str, Any]) -> dict[str, Any]:
         """Determine regulation applicability rules."""
@@ -1168,8 +1267,29 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _recommend_similar_controls(self, control_data: dict[str, Any]) -> list[str]:
         """Recommend similar controls."""
-        # Future work: Use knowledge graphs and similarity algorithms
-        return []
+        query_text = " ".join(
+            filter(
+                None,
+                [
+                    control_data.get("description", ""),
+                    control_data.get("regulation", ""),
+                    control_data.get("control_type", ""),
+                ],
+            )
+        ).strip()
+        if not query_text:
+            return []
+
+        embeddings = await self._build_control_embeddings()
+        query_vector = self._embed_text(query_text)
+        scores: list[tuple[str, float]] = []
+        for control_id, vector in embeddings.items():
+            score = self._cosine_similarity(query_vector, vector)
+            if score > 0:
+                scores.append((control_id, score))
+
+        scores.sort(key=lambda item: item[1], reverse=True)
+        return [control_id for control_id, _ in scores[:5]]
 
     async def _determine_applicable_regulations(self, project_id: str) -> list[str]:
         """Determine which regulations apply to project."""
@@ -1292,8 +1412,48 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _check_regulatory_feeds(self) -> list[dict[str, Any]]:
         """Check regulatory feeds for updates."""
-        # Future work: Query external regulatory feeds
-        return []
+        feeds = self.config.get("regulatory_feeds", []) if self.config else []
+        if not feeds:
+            return []
+
+        updates: list[dict[str, Any]] = []
+        for feed in feeds:
+            feed_config = feed if isinstance(feed, dict) else {"url": str(feed)}
+            url = feed_config.get("url")
+            if not url:
+                continue
+            headers = feed_config.get("headers", {})
+            api_key = feed_config.get("api_key") or os.getenv(feed_config.get("api_key_env", ""))
+            if api_key:
+                headers = {**headers, "Authorization": f"Bearer {api_key}"}
+            params = feed_config.get("params", {})
+            timeout = float(feed_config.get("timeout", 10))
+
+            try:
+                response = await asyncio.to_thread(
+                    requests.get,
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=timeout,
+                )
+                response.raise_for_status()
+                payload = response.json()
+            except (requests.RequestException, ValueError) as exc:
+                self.logger.warning("Regulatory feed fetch failed", extra={"error": str(exc)})
+                continue
+
+            feed_updates = payload
+            if isinstance(payload, dict):
+                feed_updates = payload.get("updates") or payload.get("items") or []
+
+            if isinstance(feed_updates, list):
+                for entry in feed_updates:
+                    normalized = self._normalize_regulatory_update(entry, feed_config)
+                    if normalized:
+                        updates.append(normalized)
+
+        return updates
 
     async def _assess_regulatory_change_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess impact of regulatory change."""
@@ -1346,6 +1506,324 @@ class ComplianceRegulatoryAgent(BaseAgent):
     async def _generate_audit_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate audit report."""
         return {"report_type": "audit", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+
+    async def _extract_regulation_metadata(
+        self, regulation_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        text = regulation_data.get("text") or ""
+        document_url = regulation_data.get("document_url")
+        document_content = regulation_data.get("document_content")
+
+        extracted_text = text
+        metadata: dict[str, Any] = {}
+        if document_url or document_content:
+            document_result = await self._analyze_document_intelligence(
+                document_url=document_url,
+                document_content=document_content,
+            )
+            extracted_text = document_result.get("content") or extracted_text
+            metadata["document_intelligence"] = document_result
+
+        text_analytics_result = await self._analyze_text_analytics(extracted_text)
+        metadata["text_analytics"] = text_analytics_result
+
+        obligations = self._extract_obligations_from_text(
+            extracted_text,
+            text_analytics_result.get("key_phrases", []),
+        )
+        effective_date = self._extract_effective_date(
+            text_analytics_result.get("entities", [])
+        )
+
+        return {
+            "obligations": obligations,
+            "effective_date": effective_date,
+            "metadata": metadata,
+        }
+
+    async def _analyze_text_analytics(self, text: str) -> dict[str, Any]:
+        endpoint = self.config.get("text_analytics_endpoint") if self.config else None
+        api_key = self.config.get("text_analytics_key") if self.config else None
+        endpoint = endpoint or os.getenv("AZURE_TEXT_ANALYTICS_ENDPOINT")
+        api_key = api_key or os.getenv("AZURE_TEXT_ANALYTICS_KEY")
+        if not endpoint or not api_key or not text:
+            return {"key_phrases": [], "entities": []}
+
+        text_payload = {
+            "documents": [
+                {
+                    "id": "1",
+                    "language": "en",
+                    "text": text[:5000],
+                }
+            ]
+        }
+
+        headers = {
+            "Ocp-Apim-Subscription-Key": api_key,
+            "Content-Type": "application/json",
+        }
+
+        async def _post(path: str) -> dict[str, Any]:
+            response = await asyncio.to_thread(
+                requests.post,
+                f"{endpoint.rstrip('/')}/{path}",
+                headers=headers,
+                json=text_payload,
+                timeout=10,
+            )
+            response.raise_for_status()
+            return response.json()
+
+        try:
+            key_phrases_response = await _post("text/analytics/v3.1/keyPhrases")
+            entities_response = await _post("text/analytics/v3.1/entities/recognition/general")
+        except requests.RequestException as exc:
+            self.logger.warning("Text analytics failed", extra={"error": str(exc)})
+            return {"key_phrases": [], "entities": []}
+
+        key_phrases = (
+            key_phrases_response.get("documents", [{}])[0].get("keyPhrases", [])
+            if isinstance(key_phrases_response, dict)
+            else []
+        )
+        entities = (
+            entities_response.get("documents", [{}])[0].get("entities", [])
+            if isinstance(entities_response, dict)
+            else []
+        )
+
+        return {"key_phrases": key_phrases, "entities": entities}
+
+    async def _analyze_document_intelligence(
+        self,
+        *,
+        document_url: str | None,
+        document_content: str | bytes | None,
+    ) -> dict[str, Any]:
+        endpoint = self.config.get("document_intelligence_endpoint") if self.config else None
+        api_key = self.config.get("document_intelligence_key") if self.config else None
+        endpoint = endpoint or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
+        api_key = api_key or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+        if not endpoint or not api_key or (not document_url and not document_content):
+            return {"content": ""}
+
+        headers = {"Ocp-Apim-Subscription-Key": api_key}
+        analyze_url = f"{endpoint.rstrip('/')}/formrecognizer/documentModels/prebuilt-layout:analyze"
+        params = {"api-version": "2023-07-31"}
+
+        if document_url:
+            request_body = {"urlSource": document_url}
+            headers["Content-Type"] = "application/json"
+            response = await asyncio.to_thread(
+                requests.post,
+                analyze_url,
+                params=params,
+                headers=headers,
+                json=request_body,
+                timeout=15,
+            )
+        else:
+            if isinstance(document_content, str):
+                document_bytes = document_content.encode("utf-8")
+            else:
+                document_bytes = document_content
+            headers["Content-Type"] = "application/octet-stream"
+            response = await asyncio.to_thread(
+                requests.post,
+                analyze_url,
+                params=params,
+                headers=headers,
+                data=document_bytes,
+                timeout=15,
+            )
+
+        try:
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            self.logger.warning("Document intelligence call failed", extra={"error": str(exc)})
+            return {"content": ""}
+
+        operation_location = response.headers.get("operation-location")
+        if not operation_location:
+            return {"content": ""}
+
+        try:
+            result_response = await asyncio.to_thread(
+                requests.get,
+                operation_location,
+                headers={"Ocp-Apim-Subscription-Key": api_key},
+                timeout=15,
+            )
+            result_response.raise_for_status()
+            result_payload = result_response.json()
+        except (requests.RequestException, ValueError) as exc:
+            self.logger.warning("Document intelligence result failed", extra={"error": str(exc)})
+            return {"content": ""}
+
+        content = result_payload.get("analyzeResult", {}).get("content", "")
+        return {"content": content, "raw": result_payload}
+
+    def _extract_obligations_from_text(
+        self, text: str, key_phrases: list[str]
+    ) -> list[dict[str, Any]]:
+        obligations: list[dict[str, Any]] = []
+        if not text:
+            return obligations
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        obligation_patterns = re.compile(
+            r"\b(shall|must|required|requires|obligated|ensure|prohibit|mandate)\b",
+            re.IGNORECASE,
+        )
+        for sentence in sentences:
+            if obligation_patterns.search(sentence):
+                obligation = sentence.strip()
+                if obligation:
+                    obligations.append({"obligation": obligation, "deadline": None})
+
+        for phrase in key_phrases[:10]:
+            obligations.append({"obligation": phrase, "deadline": None, "source": "key_phrase"})
+
+        return obligations
+
+    def _extract_effective_date(self, entities: list[dict[str, Any]]) -> str | None:
+        for entity in entities:
+            if entity.get("category") in {"DateTime", "Date"}:
+                return entity.get("text")
+        return None
+
+    async def _build_control_embeddings(self) -> dict[str, dict[str, float]]:
+        if not self.control_registry:
+            return {}
+        corpus_tokens = {
+            control_id: self._tokenize_text(
+                " ".join(
+                    filter(
+                        None,
+                        [
+                            control.get("description", ""),
+                            control.get("regulation", ""),
+                            control.get("control_type", ""),
+                        ],
+                    )
+                )
+            )
+            for control_id, control in self.control_registry.items()
+        }
+
+        document_frequencies: Counter[str] = Counter()
+        for tokens in corpus_tokens.values():
+            document_frequencies.update(set(tokens))
+
+        total_docs = len(corpus_tokens)
+        embeddings: dict[str, dict[str, float]] = {}
+        for control_id, tokens in corpus_tokens.items():
+            token_counts = Counter(tokens)
+            vector: dict[str, float] = {}
+            for token, count in token_counts.items():
+                idf = math.log((total_docs + 1) / (1 + document_frequencies[token])) + 1
+                vector[token] = count * idf
+            embeddings[control_id] = vector
+
+        self.control_embeddings = embeddings
+        return embeddings
+
+    def _embed_text(self, text: str) -> dict[str, float]:
+        tokens = self._tokenize_text(text)
+        token_counts = Counter(tokens)
+        return {token: float(count) for token, count in token_counts.items()}
+
+    def _tokenize_text(self, text: str) -> list[str]:
+        return re.findall(r"[a-zA-Z0-9]+", text.lower())
+
+    def _cosine_similarity(self, vector_a: dict[str, float], vector_b: dict[str, float]) -> float:
+        if not vector_a or not vector_b:
+            return 0.0
+        intersection = set(vector_a) & set(vector_b)
+        dot_product = sum(vector_a[token] * vector_b[token] for token in intersection)
+        magnitude_a = math.sqrt(sum(value * value for value in vector_a.values()))
+        magnitude_b = math.sqrt(sum(value * value for value in vector_b.values()))
+        if magnitude_a == 0 or magnitude_b == 0:
+            return 0.0
+        return dot_product / (magnitude_a * magnitude_b)
+
+    def _normalize_regulatory_update(
+        self, entry: Any, feed_config: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        if not isinstance(entry, dict):
+            return None
+        regulation = entry.get("regulation") or entry.get("title") or entry.get("name")
+        description = entry.get("description") or entry.get("summary") or entry.get("details")
+        if not regulation and not description:
+            return None
+        return {
+            "regulation": regulation,
+            "description": description,
+            "effective_date": entry.get("effective_date") or entry.get("effectiveDate"),
+            "region": entry.get("region"),
+            "source_url": entry.get("source_url") or entry.get("url") or feed_config.get("url"),
+            "feed": feed_config.get("name") or feed_config.get("url"),
+            "raw": entry,
+        }
+
+    async def _create_stakeholder_tasks(
+        self, updates: list[dict[str, Any]], tenant_id: str
+    ) -> list[dict[str, Any]]:
+        stakeholders = self.config.get("stakeholders", []) if self.config else []
+        recipients = [
+            stakeholder.get("email")
+            for stakeholder in stakeholders
+            if isinstance(stakeholder, dict) and stakeholder.get("email")
+        ]
+        if not recipients:
+            recipients = [self.config.get("default_stakeholder_email", "compliance@example.com")]
+
+        tasks = []
+        for update in updates:
+            task_id = f"TASK-{uuid.uuid4().hex[:8]}"
+            task = {
+                "task_id": task_id,
+                "tenant_id": tenant_id,
+                "title": f"Review regulatory update: {update.get('regulation', 'Update')}",
+                "description": update.get("description"),
+                "regulation": update.get("regulation"),
+                "effective_date": update.get("effective_date"),
+                "assigned_to": recipients,
+                "status": "open",
+                "created_at": datetime.utcnow().isoformat(),
+                "source_url": update.get("source_url"),
+            }
+            tasks.append(task)
+            await self.db_service.store("compliance_tasks", task_id, task)
+            await self._publish_event("compliance.task.created", task)
+
+        return tasks
+
+    async def _notify_stakeholders(self, *, subject: str, message: str) -> list[dict[str, Any]]:
+        stakeholders = self.config.get("stakeholders", []) if self.config else []
+        recipients = [
+            stakeholder.get("email")
+            for stakeholder in stakeholders
+            if isinstance(stakeholder, dict) and stakeholder.get("email")
+        ]
+        if not recipients:
+            recipients = [self.config.get("default_stakeholder_email", "compliance@example.com")]
+
+        results = []
+        for recipient in recipients:
+            result = await self.notification_service.send_email(
+                to=recipient,
+                subject=subject,
+                body=message,
+                metadata={"category": "compliance"},
+            )
+            results.append(result)
+        return results
+
+    async def _publish_event(self, topic: str, payload: dict[str, Any]) -> None:
+        if not self.event_bus:
+            return
+        await self.event_bus.publish(topic, payload)
 
     async def _evaluate_control_mapping_policy(
         self,
