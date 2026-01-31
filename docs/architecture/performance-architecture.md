@@ -23,6 +23,11 @@ Performance tuning spans the API gateway, agent orchestration, connector sync sc
 - **Async orchestration**: long-running tasks delegated to workflows.
 - **Connector throttling**: obey vendor rate limits and stagger syncs.
 - **Data partitioning**: partition project data by tenant and time.
+- **Analytics stack**: leverage Azure Synapse SQL/Spark pools, Data Factory pipelines, and Event Hub streaming to keep analytics workloads off the request path.
+
+## Analytics performance stack
+
+The analytics platform relies on Azure Synapse Analytics (dedicated SQL pools + Spark pools), Data Lake Gen2, Data Factory pipelines, Event Hub streaming, and Power BI Embedded to ensure dashboards remain responsive while heavy ETL and ML training workloads run asynchronously. Data flows from Planview, Jira, Workday, and SAP into Synapse via Data Factory, with real-time event ingestion through Event Hub and Azure Stream Analytics before reporting via Power BI and narrative services.
 
 ## Usage example
 

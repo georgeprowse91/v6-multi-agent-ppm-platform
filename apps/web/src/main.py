@@ -2622,6 +2622,21 @@ async def get_dashboard_narrative(project_id: str, request: Request) -> Response
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
+@app.get("/api/analytics/powerbi/{report_type}")
+async def get_powerbi_embed(report_type: str, request: Request) -> Response:
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.get_powerbi_report(report_type, headers=headers)
+    logger.info(
+        "dashboard.powerbi.embed.fetch",
+        extra={"tenant_id": session.get("tenant_id"), "report_type": report_type},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
 @app.get("/api/connector-gallery/types")
 async def list_connector_types(request: Request) -> list[dict[str, Any]]:
     session = _require_session(request)

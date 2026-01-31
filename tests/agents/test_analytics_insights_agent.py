@@ -1,4 +1,5 @@
 import json
+from unittest.mock import AsyncMock
 
 import pytest
 from analytics_insights_agent import AnalyticsInsightsAgent
@@ -172,3 +173,107 @@ async def test_analytics_kpi_threshold_alerts(tmp_path):
     alerts = agent.analytics_alert_store.list("tenant-analytics")
     assert alerts
     assert events
+
+
+@pytest.mark.asyncio
+async def test_analytics_initializes_synapse_pools(tmp_path):
+    class SynapseStub:
+        def __init__(self) -> None:
+            self.called = False
+
+        def create_sql_pool(self, workspace: str, pool: str) -> None:
+            self.called = True
+
+        def create_spark_pool(self, workspace: str, pool: str) -> None:
+            self.called = True
+
+    synapse_stub = SynapseStub()
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "synapse_workspace_name": "synapse-ws",
+            "synapse_sql_pool_name": "sql-pool",
+            "synapse_client": synapse_stub,
+        }
+    )
+    await agent.initialize()
+
+    assert synapse_stub.called is True
+
+
+@pytest.mark.asyncio
+async def test_analytics_prediction_uses_ml_manager(tmp_path):
+    ml_manager = AsyncMock()
+    ml_manager.load_model.return_value = {"model_type": "cost_overrun", "version": "1.0"}
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "ml_manager": ml_manager,
+        }
+    )
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "run_prediction",
+            "tenant_id": "tenant-analytics",
+            "model_type": "cost_overrun",
+            "input_data": {"project_id": "proj-123", "current_cost": 100},
+        }
+    )
+
+    ml_manager.load_model.assert_awaited_with("cost_overrun")
+
+
+@pytest.mark.asyncio
+async def test_analytics_narrative_generation_uses_service(tmp_path):
+    narrative_service = AsyncMock()
+    narrative_service.generate_narrative.return_value = "Narrative summary"
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "narrative_service": narrative_service,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {"action": "generate_narrative", "tenant_id": "tenant-analytics", "data": {}}
+    )
+
+    assert response["content"] == "Narrative summary"
+    narrative_service.generate_narrative.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_analytics_scenario_analysis_uses_predictions(tmp_path):
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+        }
+    )
+    agent._run_prediction = AsyncMock(
+        return_value={"prediction": 0.3, "confidence": 0.8}
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "scenario_analysis",
+            "tenant_id": "tenant-analytics",
+            "scenario": {
+                "name": "Budget Increase",
+                "parameters": {
+                    "assumptions": {"budget": 100000},
+                    "kpi_models": [{"model_type": "schedule_slip", "input_data": {}}],
+                },
+            },
+        }
+    )
+
+    assert response["scenario_metrics"]["schedule_slip"] == 0.3
+    agent._run_prediction.assert_awaited()
