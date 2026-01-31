@@ -766,9 +766,3 @@ class ApprovalWorkflowAgent(BaseAgent):
             correlation_id=correlation_id,
         )
         emit_audit_event(event)
-
-    async def cleanup(self) -> None:
-        """Cleanup resources."""
-        self.logger.info("Cleaning up Approval Workflow Agent resources...")
-        # Future work: Close Service Bus connections
-        # Future work: Cancel pending escalation timers

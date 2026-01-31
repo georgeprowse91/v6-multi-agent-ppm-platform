@@ -36,8 +36,25 @@ def strip_code_blocks(text: str) -> str:
     return "\n".join(output)
 
 
+SKIP_DIRS = {
+    ".git",
+    ".mypy_cache",
+    ".pnpm-store",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+}
+
+
 def iter_markdown_files(root: Path) -> Iterable[Path]:
-    return root.rglob("*.md")
+    for path in root.rglob("*.md"):
+        if any(part in SKIP_DIRS for part in path.parts):
+            continue
+        yield path
 
 
 def parse_link_destination(raw: str) -> str:
