@@ -18,7 +18,12 @@ export type AgentCategory =
 /**
  * User roles for permission checks
  */
-export type UserRole = 'PMO_ADMIN' | 'PM' | 'TEAM_MEMBER' | 'AUDITOR';
+export type UserRole =
+  | 'PMO_ADMIN'
+  | 'PM'
+  | 'TEAM_MEMBER'
+  | 'AUDITOR'
+  | 'COLLABORATOR';
 
 /**
  * Parameter types for agent configuration

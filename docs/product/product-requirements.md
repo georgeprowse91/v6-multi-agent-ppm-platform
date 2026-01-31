@@ -196,6 +196,8 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Lessons Learned & Knowledge Base:** Capture lessons learned at the end of stages or sprints. Categorise them by topic (requirements, scheduling, vendor management, etc.) and make them searchable. Provide AI‑powered recommendation of relevant lessons when similar situations arise.
 
+**Real‑Time Collaborative Editing:** Enable multiple users to co‑edit documents simultaneously with live cursors, presence indicators and change tracking. The system shall resolve conflicts using Operational Transform (OT) or CRDT‑style merging strategies, preserving intent and preventing data loss during concurrent edits.
+
 **Document Retention & Disposal:** Enforce retention schedules based on classification. Support archival and secure disposal of documents.
 
 ### 17. Continuous Improvement & Process Mining
@@ -305,8 +307,6 @@ Regulatory requirements may vary by jurisdiction; compliance features will need 
 ## Out‑of‑Scope
 
 Development of custom hardware or IoT integrations beyond common enterprise systems is excluded.
-
-Real‑time collaboration features such as co‑editing documents (e.g., Google Docs style) are out of scope for phase 1.
 
 This product requirements document establishes a comprehensive foundation for designing, building and delivering the Multi‑Agent PPM Platform. It captures core functional domains, user needs, acceptance criteria and non‑functional requirements. Additional detailed specifications (agent specifications, connector specs, data model and security architecture) complement this document.
 

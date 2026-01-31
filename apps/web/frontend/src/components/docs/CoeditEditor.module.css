@@ -1,0 +1,97 @@
+.container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 16px;
+}
+
+.editorPane {
+  border: 1px solid #d0d7de;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.connectionBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.connected {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.editor {
+  min-height: 260px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.editor:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.4);
+  border-color: #93c5fd;
+}
+
+.sidebar {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f9fafb;
+}
+
+.sidebar h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.participants {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  display: grid;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.participantItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cursorMeta {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.conflicts {
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.8rem;
+  color: #92400e;
+}
+
+.error {
+  margin-top: 12px;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
