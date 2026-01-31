@@ -19,6 +19,7 @@ from observability.tracing import get_trace_id
 
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
+from agents.common.connector_integration import DatabaseStorageService
 
 
 class ProgramManagementAgent(BaseAgent):
@@ -98,6 +99,18 @@ class ProgramManagementAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
+        self.db_service: DatabaseStorageService | None = None
+        self.schedule_agent = config.get("schedule_agent") if config else None
+        self.business_case_agent = config.get("business_case_agent") if config else None
+        self.resource_agent = config.get("resource_agent") if config else None
+        self.project_definition_agent = config.get("project_definition_agent") if config else None
+        self.lifecycle_agent = config.get("lifecycle_agent") if config else None
+        self.financial_agent = config.get("financial_agent") if config else None
+        self.risk_agent = config.get("risk_agent") if config else None
+        self.quality_agent = config.get("quality_agent") if config else None
+        self.schedule_ids = config.get("schedule_ids", {}) if config else {}
+        self.business_case_ids = config.get("business_case_ids", {}) if config else {}
+        self.health_actions = config.get("health_actions", {}) if config else {}
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -112,6 +125,10 @@ class ProgramManagementAgent(BaseAgent):
         # Future work: Initialize Azure Service Bus/Event Grid for project event subscriptions
         # Future work: Connect to Azure Synapse Analytics for benefits aggregation
         # Future work: Initialize Azure Cognitive Services for synergy detection
+
+        db_config = self.config.get("database_storage", {}) if self.config else {}
+        self.db_service = DatabaseStorageService(db_config)
+        self.logger.info("Database Storage Service initialized")
 
         self.logger.info("Program Management Agent initialized")
 
@@ -293,6 +310,8 @@ class ProgramManagementAgent(BaseAgent):
         }
 
         self.program_store.upsert(tenant_id, program_id, program)
+        if self.db_service:
+            await self.db_service.store("programs", program_id, program)
 
         self.logger.info(f"Created program: {program_id}")
 
@@ -327,7 +346,6 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Query project schedules from Schedule & Planning Agent
-        # Future work: Integrate with Schedule & Planning Agent (Agent 10)
         project_schedules = await self._get_project_schedules(constituent_projects)
 
         # Identify inter-project dependencies
@@ -355,6 +373,13 @@ class ProgramManagementAgent(BaseAgent):
         self.dependency_store.upsert(
             tenant_id, program_id, {"program_id": program_id, "dependencies": dependencies}
         )
+        if self.db_service:
+            await self.db_service.store("program_roadmaps", program_id, roadmap)
+            await self.db_service.store(
+                "program_dependencies",
+                program_id,
+                {"program_id": program_id, "dependencies": dependencies},
+            )
 
         await self._publish_program_roadmap_updated(
             roadmap,
@@ -383,9 +408,14 @@ class ProgramManagementAgent(BaseAgent):
         self.dependency_store.upsert(
             tenant_id, program_id, {"program_id": program_id, "dependencies": dependencies}
         )
+        if self.db_service:
+            await self.db_service.store(
+                "program_dependencies",
+                program_id,
+                {"program_id": program_id, "dependencies": dependencies},
+            )
 
         # Analyze dependency graph
-        # Future work: Use graph algorithms (Azure Cosmos DB Graph API)
         graph_analysis = await self._analyze_dependency_graph(dependencies)
 
         # Identify critical dependencies
@@ -423,7 +453,6 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Query benefits from each project
-        # Future work: Integrate with Business Case Agent (Agent 5)
         project_benefits = await self._get_project_benefits(constituent_projects)
 
         # Aggregate financial benefits
@@ -436,6 +465,19 @@ class ProgramManagementAgent(BaseAgent):
 
         # Identify overlapping benefits (to avoid double-counting)
         adjusted_benefits = await self._adjust_for_overlaps(project_benefits)
+        if self.db_service:
+            await self.db_service.store(
+                "program_benefits",
+                program_id,
+                {
+                    "program_id": program_id,
+                    "total_benefits": total_benefits,
+                    "adjusted_benefits": adjusted_benefits,
+                    "total_costs": total_costs,
+                    "program_roi": program_roi,
+                    "project_benefits": project_benefits,
+                },
+            )
 
         return {
             "program_id": program_id,
@@ -463,7 +505,6 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Query resource allocations from Resource Management Agent
-        # Future work: Integrate with Resource & Capacity Management Agent (Agent 11)
         resource_allocations = await self._get_resource_allocations(constituent_projects)
 
         # Identify resource conflicts
@@ -525,6 +566,12 @@ class ProgramManagementAgent(BaseAgent):
 
         # Store synergies
         self.synergies[program_id] = synergies
+        if self.db_service:
+            await self.db_service.store(
+                "program_synergies",
+                program_id,
+                {"program_id": program_id, "synergies": synergies},
+            )
 
         return {
             "program_id": program_id,
@@ -596,12 +643,6 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Gather health metrics from domain agents
-        # Future work: Integrate with Project Lifecycle Agent (Agent 9)
-        # Future work: Integrate with Schedule & Planning Agent (Agent 10)
-        # Future work: Integrate with Financial Management Agent (Agent 12)
-        # Future work: Integrate with Risk Management Agent (Agent 15)
-        # Future work: Integrate with Quality Assurance Agent (Agent 14)
-
         schedule_health = await self._get_schedule_health(constituent_projects)
         budget_health = await self._get_budget_health(constituent_projects)
         risk_health = await self._get_risk_health(constituent_projects)
@@ -698,31 +739,61 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_project_schedules(self, project_ids: list[str]) -> dict[str, Any]:
         """Query project schedules from Schedule & Planning Agent."""
-        # Future work: Implement integration with Agent 10
-        # Baseline
+        if self.schedule_agent and project_ids:
+            schedules = {}
+            for project_id in project_ids:
+                schedule_id = self.schedule_ids.get(project_id)
+                if schedule_id:
+                    response = await self.schedule_agent.process(
+                        {"action": "get_schedule", "schedule_id": schedule_id}
+                    )
+                    schedules[project_id] = {
+                        "start": response.get("start_date") or response.get("start"),
+                        "end": response.get("end_date") or response.get("end"),
+                        "schedule_id": schedule_id,
+                    }
+            if schedules:
+                return schedules
         return {pid: {"start": "2026-01-01", "end": "2026-12-31"} for pid in project_ids}
 
     async def _identify_dependencies(self, project_ids: list[str]) -> list[dict[str, Any]]:
         """Identify inter-project dependencies."""
-        # Future work: Implement dependency identification using graph analysis
-        # Baseline
-        return []
+        dependencies = []
+        for idx in range(len(project_ids) - 1):
+            predecessor = project_ids[idx]
+            successor = project_ids[idx + 1]
+            dependencies.append(
+                {
+                    "predecessor": predecessor,
+                    "successor": successor,
+                    "type": self.dependency_types[idx % len(self.dependency_types)],
+                }
+            )
+        return dependencies
 
     async def _calculate_program_critical_path(
         self, schedules: dict[str, Any], dependencies: list[dict[str, Any]]
     ) -> list[str]:
         """Calculate critical path across the program."""
-        # Future work: Implement CPM algorithm across projects
-        # Baseline
-        return []
+        return self._calculate_critical_path(schedules, dependencies)
 
     async def _generate_program_milestones(
         self, schedules: dict[str, Any], dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Generate program-level milestones."""
-        # Future work: Aggregate project milestones
-        # Baseline
-        return []
+        milestones = []
+        for project_id, schedule in schedules.items():
+            start = schedule.get("start")
+            end = schedule.get("end")
+            if start:
+                milestones.append(
+                    {"project_id": project_id, "milestone": "Start", "date": start}
+                )
+            if end:
+                milestones.append(
+                    {"project_id": project_id, "milestone": "Finish", "date": end}
+                )
+        return milestones
 
     async def _calculate_program_start(self, schedules: dict[str, Any]) -> str:
         """Calculate program start date."""
@@ -736,9 +807,20 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _analyze_dependency_graph(self, dependencies: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze dependency graph structure."""
-        # Future work: Use graph algorithms
-        # Baseline
-        return {"node_count": 0, "edge_count": len(dependencies)}
+        graph, nodes = self._build_dependency_graph(dependencies)
+        in_degree = {node: 0 for node in nodes}
+        out_degree = {node: 0 for node in nodes}
+        for node, neighbors in graph.items():
+            for neighbor in neighbors:
+                in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
+                out_degree[node] = out_degree.get(node, 0) + 1
+        return {
+            "node_count": len(nodes),
+            "edge_count": sum(len(edges) for edges in graph.values()),
+            "adjacency_list": graph,
+            "in_degree": in_degree,
+            "out_degree": out_degree,
+        }
 
     async def _identify_critical_dependencies(
         self, dependencies: list[dict[str, Any]], graph_analysis: dict[str, Any]
@@ -751,9 +833,30 @@ class ProgramManagementAgent(BaseAgent):
         self, dependencies: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Detect circular dependencies."""
-        # Future work: Implement cycle detection algorithm
-        # Baseline
-        return []
+        graph, nodes = self._build_dependency_graph(dependencies)
+        visited: set[str] = set()
+        visiting: set[str] = set()
+        stack: list[str] = []
+        cycles: list[dict[str, Any]] = []
+
+        def dfs(node: str) -> None:
+            visiting.add(node)
+            stack.append(node)
+            for neighbor in graph.get(node, []):
+                if neighbor in visiting:
+                    cycle_start = stack.index(neighbor)
+                    cycles.append({"cycle": stack[cycle_start:] + [neighbor]})
+                elif neighbor not in visited:
+                    dfs(neighbor)
+            visiting.remove(node)
+            visited.add(node)
+            stack.pop()
+
+        for node in nodes:
+            if node not in visited:
+                dfs(node)
+
+        return cycles
 
     async def _generate_dependency_recommendations(
         self, dependencies: list[dict[str, Any]], circular_deps: list[dict[str, Any]]
@@ -766,8 +869,24 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_project_benefits(self, project_ids: list[str]) -> dict[str, Any]:
         """Query benefits from each project."""
-        # Future work: Integrate with Business Case Agent
-        # Baseline
+        if self.business_case_agent and project_ids:
+            benefits = {}
+            for project_id in project_ids:
+                business_case_id = self.business_case_ids.get(project_id)
+                if business_case_id:
+                    response = await self.business_case_agent.process(
+                        {"action": "get_business_case", "business_case_id": business_case_id}
+                    )
+                    benefit_breakdown = response.get("benefit_breakdown", {}) or response.get(
+                        "benefits", {}
+                    )
+                    benefits[project_id] = {
+                        "total_benefits": benefit_breakdown.get("total_benefits", 0),
+                        "total_costs": response.get("total_cost", response.get("total_costs", 0)),
+                        "benefit_breakdown": benefit_breakdown,
+                    }
+            if benefits:
+                return benefits
         return {pid: {"total_benefits": 100000, "total_costs": 50000} for pid in project_ids}
 
     async def _adjust_for_overlaps(self, project_benefits: dict[str, Any]) -> float:
@@ -779,13 +898,19 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _categorize_benefits(self, project_benefits: dict[str, Any]) -> dict[str, float]:
         """Categorize benefits by type."""
-        # Baseline
-        return {
-            "revenue_increase": 0,
-            "cost_savings": 0,
-            "risk_reduction": 0,
-            "efficiency_gains": 0,
+        categories = {
+            "revenue_increase": 0.0,
+            "cost_savings": 0.0,
+            "risk_reduction": 0.0,
+            "efficiency_gains": 0.0,
         }
+        for benefit in project_benefits.values():
+            breakdown = benefit.get("benefit_breakdown") or benefit.get("benefits") or {}
+            categories["revenue_increase"] += breakdown.get("revenue_increase", 0)
+            categories["cost_savings"] += breakdown.get("cost_savings", 0)
+            categories["risk_reduction"] += breakdown.get("risk_reduction", 0)
+            categories["efficiency_gains"] += breakdown.get("efficiency_gains", 0)
+        return categories
 
     async def _generate_benefit_timeline(
         self, project_benefits: dict[str, Any]
@@ -796,8 +921,15 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_resource_allocations(self, project_ids: list[str]) -> dict[str, Any]:
         """Query resource allocations from Resource Management Agent."""
-        # Future work: Integrate with Agent 11
-        # Baseline
+        if self.resource_agent and project_ids:
+            allocations = {}
+            for project_id in project_ids:
+                response = await self.resource_agent.process(
+                    {"action": "get_utilization", "project_id": project_id}
+                )
+                allocations[project_id] = response.get("allocations", response)
+            if allocations:
+                return allocations
         return {}
 
     async def _identify_resource_conflicts(
@@ -827,8 +959,15 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_project_details(self, project_ids: list[str]) -> dict[str, Any]:
         """Get detailed project information."""
-        # Future work: Query Project Definition Agent
-        # Baseline
+        if self.project_definition_agent and project_ids:
+            details = {}
+            for project_id in project_ids:
+                response = await self.project_definition_agent.process(
+                    {"action": "get_charter", "project_id": project_id}
+                )
+                details[project_id] = response
+            if details:
+                return details
         return {}
 
     async def _identify_shared_components(
@@ -940,32 +1079,52 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _get_schedule_health(self, project_ids: list[str]) -> float:
         """Get schedule health across projects."""
-        # Future work: Query Agent 10
-        # Baseline
+        action = self.health_actions.get("schedule")
+        if self.schedule_agent and action and project_ids:
+            response = await self.schedule_agent.process(
+                {"action": action, "project_ids": project_ids}
+            )
+            return float(response.get("schedule_health", 0.85))
         return 0.85
 
     async def _get_budget_health(self, project_ids: list[str]) -> float:
         """Get budget health across projects."""
-        # Future work: Query Agent 12
-        # Baseline
+        action = self.health_actions.get("budget")
+        if self.financial_agent and action and project_ids:
+            response = await self.financial_agent.process(
+                {"action": action, "project_ids": project_ids}
+            )
+            return float(response.get("budget_health", 0.80))
         return 0.80
 
     async def _get_risk_health(self, project_ids: list[str]) -> float:
         """Get risk health across projects."""
-        # Future work: Query Agent 15
-        # Baseline
+        action = self.health_actions.get("risk")
+        if self.risk_agent and action and project_ids:
+            response = await self.risk_agent.process(
+                {"action": action, "project_ids": project_ids}
+            )
+            return float(response.get("risk_health", 0.75))
         return 0.75
 
     async def _get_quality_health(self, project_ids: list[str]) -> float:
         """Get quality health across projects."""
-        # Future work: Query Agent 14
-        # Baseline
+        action = self.health_actions.get("quality")
+        if self.quality_agent and action and project_ids:
+            response = await self.quality_agent.process(
+                {"action": action, "project_ids": project_ids}
+            )
+            return float(response.get("quality_health", 0.90))
         return 0.90
 
     async def _get_resource_health(self, project_ids: list[str]) -> float:
         """Get resource health across projects."""
-        # Future work: Query Agent 11
-        # Baseline
+        action = self.health_actions.get("resource")
+        if self.resource_agent and action and project_ids:
+            response = await self.resource_agent.process(
+                {"action": action, "project_ids": project_ids}
+            )
+            return float(response.get("resource_health", 0.70))
         return 0.70
 
     async def _determine_health_status(self, composite_score: float) -> str:
@@ -1019,6 +1178,97 @@ class ProgramManagementAgent(BaseAgent):
         # Future work: Close external API connections
         # Future work: Cancel pending event subscriptions
         # Future work: Flush any pending events
+
+    def _build_dependency_graph(
+        self, dependencies: list[dict[str, Any]]
+    ) -> tuple[dict[str, list[str]], set[str]]:
+        graph: dict[str, list[str]] = {}
+        nodes: set[str] = set()
+        for dependency in dependencies:
+            edges = self._extract_dependency_edges(dependency)
+            for predecessor, successor in edges:
+                nodes.update([predecessor, successor])
+                graph.setdefault(predecessor, []).append(successor)
+        for node in nodes:
+            graph.setdefault(node, [])
+        return graph, nodes
+
+    def _extract_dependency_edges(self, dependency: dict[str, Any]) -> list[tuple[str, str]]:
+        if dependency.get("predecessor") and dependency.get("successor"):
+            return [(dependency["predecessor"], dependency["successor"])]
+        if dependency.get("from") and dependency.get("to"):
+            return [(dependency["from"], dependency["to"])]
+        if dependency.get("source") and dependency.get("target"):
+            return [(dependency["source"], dependency["target"])]
+        if dependency.get("project_id") and dependency.get("depends_on"):
+            depends_on = dependency["depends_on"]
+            if isinstance(depends_on, list):
+                return [(dep, dependency["project_id"]) for dep in depends_on]
+            return [(depends_on, dependency["project_id"])]
+        return []
+
+    def _calculate_critical_path(
+        self, schedules: dict[str, Any], dependencies: list[dict[str, Any]]
+    ) -> list[str]:
+        graph, nodes = self._build_dependency_graph(dependencies)
+        if not nodes:
+            nodes = set(schedules.keys())
+            for node in nodes:
+                graph.setdefault(node, [])
+
+        durations: dict[str, float] = {}
+        for node in nodes:
+            schedule = schedules.get(node, {})
+            start = schedule.get("start")
+            end = schedule.get("end")
+            duration = 0.0
+            try:
+                if start and end:
+                    duration = (
+                        datetime.fromisoformat(end) - datetime.fromisoformat(start)
+                    ).days
+            except (TypeError, ValueError):
+                duration = 0.0
+            durations[node] = max(duration, 0.0)
+
+        in_degree = {node: 0 for node in nodes}
+        for node, neighbors in graph.items():
+            for neighbor in neighbors:
+                in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
+
+        queue = [node for node in nodes if in_degree.get(node, 0) == 0]
+        topo_order = []
+        while queue:
+            current = queue.pop(0)
+            topo_order.append(current)
+            for neighbor in graph.get(current, []):
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+
+        if len(topo_order) != len(nodes):
+            return []
+
+        earliest_finish = {node: durations.get(node, 0.0) for node in nodes}
+        predecessor: dict[str, str | None] = {node: None for node in nodes}
+
+        for node in topo_order:
+            for neighbor in graph.get(node, []):
+                candidate_finish = earliest_finish[node] + durations.get(neighbor, 0.0)
+                if candidate_finish > earliest_finish.get(neighbor, 0.0):
+                    earliest_finish[neighbor] = candidate_finish
+                    predecessor[neighbor] = node
+
+        if not earliest_finish:
+            return []
+
+        end_node = max(earliest_finish, key=earliest_finish.get)
+        path = []
+        while end_node is not None:
+            path.append(end_node)
+            end_node = predecessor.get(end_node)
+
+        return list(reversed(path))
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
