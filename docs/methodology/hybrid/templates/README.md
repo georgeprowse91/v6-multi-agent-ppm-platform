@@ -13,6 +13,7 @@ Provide a registry of hybrid artefact templates used by governance and iterative
 | Integrated risk register (hybrid view) | Track sprint and phase risks together. | Agent 15 (Risk Management) | `integrated-risk-register.md` |
 | Hybrid resource plan | Align phase and sprint resources. | Agent 11 (Resource & Capacity) | `hybrid-resource-plan.md` |
 | Decision log | Track cross-phase decisions. | Agent 09 (Lifecycle & Governance) | `decision-log.md` |
+| Roles & responsibilities matrix | Define hybrid roles and shared responsibilities. | Agent 09 (Lifecycle & Governance) | `roles-responsibilities.md` |
 
 ## Related References
 - Hybrid methodology map (`docs/methodology/hybrid/map.yaml`).

@@ -59,6 +59,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Artefact | Agile | Waterfall | Hybrid |
 | --- | --- | --- | --- |
 | Charter |  | [Project charter](../methodology/waterfall/templates/project-charter.md) | [Hybrid charter](../methodology/hybrid/templates/hybrid-charter.md) |
+| Roles & responsibilities matrix | [Roles & responsibilities](../methodology/agile/templates/roles-responsibilities.md) — Defines the key roles and responsibilities for Agile projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../methodology/waterfall/templates/roles-responsibilities.md) — Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../methodology/hybrid/templates/roles-responsibilities.md) — Defines hybrid roles and shared responsibilities where governance and Agile delivery overlap. |
 | Backlog | [Backlog](../methodology/agile/templates/backlog.csv) |  |  |
 | Risk-adjusted backlog | [Risk-adjusted backlog](../methodology/agile/templates/risk-adjusted-backlog.csv) |  |  |
 | Sprint plan | [Sprint plan](../methodology/agile/templates/sprint-plan.md) |  | [Sprint plan](../methodology/agile/templates/sprint-plan.md) |

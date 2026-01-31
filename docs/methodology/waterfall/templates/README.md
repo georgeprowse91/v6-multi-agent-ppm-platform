@@ -21,6 +21,7 @@ Provide a registry of waterfall artefact templates used by planning and governan
 | Procurement management plan | Define sourcing strategy. | Agent 13 (Vendor Procurement) | `procurement-management-plan.md` |
 | Project management plan | Integrate subsidiary plans. | Agent 09 (Lifecycle & Governance) | `project-management-plan.md` |
 | Closure report | Document outcomes and handover. | Agent 18 (Project Closure) | `closure-report.md` |
+| Roles & responsibilities matrix | Define Waterfall roles, responsibilities, and decision rights. | Agent 09 (Lifecycle & Governance) | `roles-responsibilities.md` |
 
 ## Related References
 - Waterfall methodology map (`docs/methodology/waterfall/map.yaml`).

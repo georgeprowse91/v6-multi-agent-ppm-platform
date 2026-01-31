@@ -13,6 +13,7 @@ Provide a registry of agile artefact templates used by delivery and governance w
 | Burndown tracking | Track remaining work and progress. | Agent 11 (Agile Delivery) | `burndown.xlsx` |
 | Release plan | Document release scope and readiness. | Agent 14 (Release Management) | `release-plan.md` |
 | Retrospective notes | Capture lessons learned and actions. | Agent 20 (Continuous Improvement) | `retro-notes.md` |
+| Roles & responsibilities matrix | Define Agile roles, responsibilities, and decision rights. | Agent 09 (Lifecycle & Governance) | `roles-responsibilities.md` |
 
 ## Related References
 - Agile methodology map (`docs/methodology/agile/map.yaml`).

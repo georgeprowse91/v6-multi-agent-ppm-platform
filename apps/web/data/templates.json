@@ -635,6 +635,23 @@
       "path": "docs/methodology/agile/templates/risk-adjusted-backlog.csv"
     },
     {
+      "id": "roles-responsibilities-agile",
+      "title": "Roles & Responsibilities Matrix",
+      "description": "Defines Agile roles, responsibilities, and decision rights (Product Owner, Scrum Master, Team, Stakeholders).",
+      "category": "Agile",
+      "methodologies": [
+        "agile"
+      ],
+      "file": "docs/methodology/agile/templates/roles-responsibilities.md",
+      "path": "docs/methodology/agile/templates/roles-responsibilities.md",
+      "methodology": "agile",
+      "stage": "sprint-0",
+      "agents": [
+        "agile-delivery",
+        "lifecycle-governance"
+      ]
+    },
+    {
       "id": "waterfall-risk-management-plan",
       "title": "Risk Management Plan (Waterfall)",
       "category": "Waterfall",
@@ -642,6 +659,23 @@
         "waterfall"
       ],
       "path": "docs/methodology/waterfall/templates/risk-management-plan.md"
+    },
+    {
+      "id": "roles-responsibilities-waterfall",
+      "title": "Roles & Responsibilities Matrix",
+      "description": "Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.).",
+      "category": "Waterfall",
+      "methodologies": [
+        "waterfall"
+      ],
+      "file": "docs/methodology/waterfall/templates/roles-responsibilities.md",
+      "path": "docs/methodology/waterfall/templates/roles-responsibilities.md",
+      "methodology": "waterfall",
+      "stage": "initiation",
+      "agents": [
+        "project-definition",
+        "lifecycle-governance"
+      ]
     },
     {
       "id": "waterfall-resource-management-plan",
@@ -723,6 +757,24 @@
         "hybrid"
       ],
       "path": "docs/methodology/hybrid/templates/hybrid-resource-plan.md"
+    },
+    {
+      "id": "roles-responsibilities-hybrid",
+      "title": "Roles & Responsibilities Matrix",
+      "description": "Defines hybrid roles and shared responsibilities when governance and Agile delivery overlap.",
+      "category": "Hybrid",
+      "methodologies": [
+        "hybrid"
+      ],
+      "file": "docs/methodology/hybrid/templates/roles-responsibilities.md",
+      "path": "docs/methodology/hybrid/templates/roles-responsibilities.md",
+      "methodology": "hybrid",
+      "stage": "initiation",
+      "agents": [
+        "project-definition",
+        "agile-delivery",
+        "lifecycle-governance"
+      ]
     },
     {
       "id": "integrated-risk-register-hybrid",
