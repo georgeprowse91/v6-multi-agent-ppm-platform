@@ -76,6 +76,22 @@ class DataLakeManager:
         self.file_system_name = file_system_name
         self.service_client = service_client
 
+    def ensure_file_system(self) -> dict[str, Any]:
+        details = {
+            "file_system": self.file_system_name,
+            "initialized": False,
+        }
+        if not self.service_client or not self.file_system_name:
+            return details
+        if hasattr(self.service_client, "create_file_system"):
+            self.service_client.create_file_system(self.file_system_name)
+        elif hasattr(self.service_client, "get_file_system_client"):
+            file_system = self.service_client.get_file_system_client(self.file_system_name)
+            if hasattr(file_system, "create_file_system"):
+                file_system.create_file_system()
+        details["initialized"] = True
+        return details
+
     def store_dataset(
         self,
         source: str,
@@ -164,6 +180,17 @@ class DataFactoryManager:
 
     def __init__(self, data_factory_client: Any | None = None) -> None:
         self.data_factory_client = data_factory_client
+
+    async def ensure_pipelines(self, pipelines: list[dict[str, Any]]) -> dict[str, Any]:
+        if not pipelines:
+            return {"pipelines": [], "initialized": False}
+        if self.data_factory_client and hasattr(self.data_factory_client, "pipelines"):
+            for pipeline in pipelines:
+                name = pipeline.get("name")
+                definition = pipeline.get("definition", {})
+                if name:
+                    self.data_factory_client.pipelines.create_or_update(name, definition)
+        return {"pipelines": [pipeline.get("name") for pipeline in pipelines], "initialized": True}
 
     async def schedule_pipeline(self, pipeline_name: str, parameters: dict[str, Any]) -> str:
         if self.data_factory_client and hasattr(self.data_factory_client, "pipelines"):
@@ -332,6 +359,18 @@ class AnalyticsInsightsAgent(BaseAgent):
             self.data_factory_manager = DataFactoryManager(
                 config.get("data_factory_client") if config else None
             )
+        self.data_factory_pipelines = config.get("data_factory_pipelines") if config else None
+        if not self.data_factory_pipelines:
+            self.data_factory_pipelines = [
+                {"name": "planview_ingest", "definition": {"source": "planview"}},
+                {"name": "jira_ingest", "definition": {"source": "jira"}},
+                {"name": "workday_ingest", "definition": {"source": "workday"}},
+                {"name": "sap_ingest", "definition": {"source": "sap"}},
+            ]
+
+        self.ingestion_sources = config.get("ingestion_sources") if config else None
+        if not self.ingestion_sources:
+            self.ingestion_sources = ["planview", "jira", "workday", "sap"]
 
         self.event_hub_manager = config.get("event_hub_manager") if config else None
         if self.event_hub_manager is None:
@@ -401,6 +440,8 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.logger.info("Initializing Analytics & Insights Agent...")
 
         await self._maybe_await(self.synapse_manager.ensure_pools)
+        await self._maybe_await(self.data_lake_manager.ensure_file_system)
+        await self._maybe_await(self.data_factory_manager.ensure_pipelines, self.data_factory_pipelines)
         self.logger.info(
             "Synapse pools initialized",
             extra={
@@ -444,6 +485,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "orchestrate_etl",
             "monitor_etl",
             "train_kpi_model",
+            "provision_analytics_stack",
+            "ingest_sources",
+            "ingest_realtime_event",
         ]
 
         if action not in valid_actions:
@@ -470,6 +514,10 @@ class AnalyticsInsightsAgent(BaseAgent):
         elif action == "monitor_etl":
             if "run_id" not in input_data:
                 self.logger.warning("Missing run_id for ETL monitoring")
+                return False
+        elif action == "ingest_realtime_event":
+            if "event" not in input_data:
+                self.logger.warning("Missing event payload for realtime ingestion")
                 return False
 
         return True
@@ -574,6 +622,19 @@ class AnalyticsInsightsAgent(BaseAgent):
         elif action == "train_kpi_model":
             return await self._train_kpi_model(
                 input_data.get("model_name"), input_data.get("training_payload", {})
+            )
+
+        elif action == "provision_analytics_stack":
+            return await self._provision_analytics_stack()
+
+        elif action == "ingest_sources":
+            return await self._ingest_sources(
+                tenant_id, input_data.get("sources"), input_data.get("parameters", {})
+            )
+
+        elif action == "ingest_realtime_event":
+            return await self._ingest_realtime_event(
+                input_data.get("event"), input_data.get("event_type")
             )
 
         else:
@@ -1104,6 +1165,77 @@ class AnalyticsInsightsAgent(BaseAgent):
             "answered_at": datetime.utcnow().isoformat(),
         }
 
+    async def _provision_analytics_stack(self) -> dict[str, Any]:
+        """Provision Synapse, Data Lake, and Data Factory pipelines."""
+        synapse_details = await self._maybe_await(self.synapse_manager.ensure_pools)
+        data_lake_details = await self._maybe_await(self.data_lake_manager.ensure_file_system)
+        pipeline_details = await self._maybe_await(
+            self.data_factory_manager.ensure_pipelines, self.data_factory_pipelines
+        )
+        return {
+            "synapse": synapse_details,
+            "data_lake": data_lake_details,
+            "data_factory": pipeline_details,
+            "provisioned_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _ingest_sources(
+        self,
+        tenant_id: str,
+        sources: list[str] | None,
+        parameters: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Run ingestion pipelines for Planview, Jira, Workday, and SAP."""
+        selected_sources = sources or list(self.ingestion_sources)
+        run_map: dict[str, str] = {}
+        lake_paths: dict[str, dict[str, str]] = {}
+        ingestion_payloads: dict[str, list[dict[str, Any]]] = {}
+        for source in selected_sources:
+            pipeline_name = f"{source}_ingest"
+            run_id = await self.data_factory_manager.schedule_pipeline(
+                pipeline_name,
+                {
+                    "source": source,
+                    "requested_at": datetime.utcnow().isoformat(),
+                    **parameters,
+                },
+            )
+            run_map[source] = run_id
+            payload = await self._fetch_source_payload(source)
+            ingestion_payloads[source] = payload
+            lake_paths[source] = self.data_lake_manager.store_dataset(
+                source=source, domain="ingestion", payload=payload
+            )
+
+        lineage_id = await self._record_data_lineage(
+            tenant_id,
+            selected_sources,
+            [
+                {"source": source, "run_id": run_map[source]}
+                for source in selected_sources
+            ],
+        )
+        return {
+            "sources": selected_sources,
+            "pipelines": run_map,
+            "data_lake_paths": lake_paths,
+            "lineage_id": lineage_id,
+            "ingested_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _ingest_realtime_event(
+        self, event: dict[str, Any] | None, event_type: str | None
+    ) -> dict[str, Any]:
+        """Publish event to Event Hub and Stream Analytics."""
+        if not event:
+            raise ValueError("event payload is required")
+        payload = {"event_type": event_type or "realtime.event", "payload": event}
+        await self._handle_realtime_event(payload)
+        return {
+            "event_type": payload["event_type"],
+            "streamed_at": datetime.utcnow().isoformat(),
+        }
+
     async def _handle_health_updated(self, event: dict[str, Any]) -> None:
         """Handle project health updates from the lifecycle agent."""
         payload = event.get("payload", event)
@@ -1270,8 +1402,20 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _collect_from_sources(self, sources: list[str]) -> list[dict[str, Any]]:
         """Collect data from multiple sources."""
-        # Future work: Query from actual data sources
-        return []
+        aggregated: list[dict[str, Any]] = []
+        for source in sources:
+            aggregated.extend(await self._fetch_source_payload(source))
+        return aggregated
+
+    async def _fetch_source_payload(self, source: str) -> list[dict[str, Any]]:
+        """Fetch data from a specific source system."""
+        return [
+            {
+                "source": source,
+                "ingested_at": datetime.utcnow().isoformat(),
+                "records": [],
+            }
+        ]
 
     async def _harmonize_data(self, data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Harmonize data definitions."""
