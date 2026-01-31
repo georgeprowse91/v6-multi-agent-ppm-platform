@@ -6,3 +6,4 @@ export { WorkflowMonitoringPage } from './WorkflowMonitoringPage';
 export { DocumentSearchPage } from './DocumentSearchPage';
 export { LessonsLearnedPage } from './LessonsLearnedPage';
 export { AuditLogPage } from './AuditLogPage';
+export { ConnectorMarketplacePage } from './ConnectorMarketplacePage';

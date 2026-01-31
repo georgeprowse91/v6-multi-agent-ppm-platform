@@ -41,6 +41,13 @@ export function ConnectorGallery() {
   } = useConnectorStore();
   const { session } = useAppStore();
   const canManage = canManageConfig(session.user?.roles);
+  const statusOptions: { value: Connector['status'] | 'all'; label: string }[] = [
+    { value: 'all', label: 'All Status' },
+    { value: 'production', label: 'Production' },
+    { value: 'available', label: 'Available' },
+    { value: 'beta', label: 'Beta' },
+    { value: 'coming_soon', label: 'Coming Soon' },
+  ];
 
   // Initialize store
   useEffect(() => {
@@ -79,7 +86,7 @@ export function ConnectorGallery() {
 
   const handleToggleEnabled = async (connector: Connector) => {
     if (!canManage) return;
-    if (connector.status !== 'available') return;
+    if (!isConnectorToggleable(connector.status)) return;
     if (connector.enabled) {
       await disableConnector(connector.connector_id);
     } else {
@@ -166,12 +173,17 @@ export function ConnectorGallery() {
         <select
           className={styles.statusSelect}
           value={filter.statusFilter}
-          onChange={(e) => setFilter({ statusFilter: e.target.value as 'all' | 'available' | 'coming_soon' | 'beta' })}
+          onChange={(e) =>
+            setFilter({
+              statusFilter: e.target.value as Connector['status'] | 'all',
+            })
+          }
         >
-          <option value="all">All Status</option>
-          <option value="available">Available</option>
-          <option value="coming_soon">Coming Soon</option>
-          <option value="beta">Beta</option>
+          {statusOptions.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
         </select>
 
         <label className={styles.enabledFilter}>
@@ -300,25 +312,29 @@ function ConnectorCard({
   onOpenConfig,
   canManage,
 }: ConnectorCardProps) {
-  const isAvailable = connector.status === 'available';
-  const isComingSoon = connector.status === 'coming_soon';
-  const canToggle = canManage && isAvailable;
+  const statusLabel = STATUS_LABELS[connector.status];
+  const statusClassName = STATUS_BADGE_CLASSES[connector.status];
+  const isToggleable = isConnectorToggleable(connector.status);
+  const canToggle = canManage && isToggleable;
 
   return (
-    <div className={`${styles.connectorCard} ${!isAvailable ? styles.comingSoon : ''} ${connector.enabled ? styles.enabled : ''}`}>
+    <div
+      className={`${styles.connectorCard} ${
+        !isToggleable ? styles.unavailable : ''
+      } ${connector.enabled ? styles.enabled : ''}`}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.connectorIcon}>
           <ConnectorIcon name={connector.icon} />
         </div>
         <div className={styles.connectorTitle}>
           <h3 className={styles.connectorName}>{connector.name}</h3>
-          {isComingSoon && <span className={styles.statusBadge}>Coming Soon</span>}
-          {connector.status === 'beta' && <span className={styles.statusBadgeBeta}>Beta</span>}
+          <span className={`${styles.statusBadge} ${statusClassName}`}>{statusLabel}</span>
         </div>
         <label
           className={styles.toggleSwitch}
           title={
-            !isAvailable
+            !isToggleable
               ? 'Not available yet'
               : canManage
               ? 'Toggle enabled'
@@ -359,7 +375,7 @@ function ConnectorCard({
           onClick={onOpenConfig}
           disabled={!canToggle}
           title={
-            !isAvailable
+            !isToggleable
               ? 'Not available yet'
               : canManage
               ? 'Configure connector'
@@ -609,3 +625,20 @@ function ConnectorConfigModal({
 }
 
 export default ConnectorGallery;
+
+const STATUS_LABELS: Record<Connector['status'], string> = {
+  available: 'Available',
+  coming_soon: 'Coming Soon',
+  beta: 'Beta',
+  production: 'Production',
+};
+
+const STATUS_BADGE_CLASSES: Record<Connector['status'], string> = {
+  available: styles.statusBadgeAvailable,
+  coming_soon: styles.statusBadgeComingSoon,
+  beta: styles.statusBadgeBeta,
+  production: styles.statusBadgeProduction,
+};
+
+const isConnectorToggleable = (status: Connector['status']) =>
+  status === 'available' || status === 'production';

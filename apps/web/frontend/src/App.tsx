@@ -9,6 +9,7 @@ import {
   DocumentSearchPage,
   LessonsLearnedPage,
   AuditLogPage,
+  ConnectorMarketplacePage,
 } from '@/pages';
 
 export function App() {
@@ -49,6 +50,7 @@ export function App() {
         {/* Workflow pages */}
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
+        <Route path="/marketplace/connectors" element={<ConnectorMarketplacePage />} />
 
         {/* Knowledge pages */}
         <Route path="/knowledge/documents" element={<DocumentSearchPage />} />

@@ -19,7 +19,7 @@ export type ConnectorCategory =
 /**
  * Connector implementation status
  */
-export type ConnectorStatus = 'available' | 'coming_soon' | 'beta';
+export type ConnectorStatus = 'available' | 'coming_soon' | 'beta' | 'production';
 
 /**
  * Sync direction options

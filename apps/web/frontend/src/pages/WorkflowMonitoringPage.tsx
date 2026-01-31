@@ -34,9 +34,13 @@ export function WorkflowMonitoringPage() {
     useState<WorkflowInstance | null>(null);
   const [timeline, setTimeline] = useState<WorkflowEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [streamStatus, setStreamStatus] = useState<'connecting' | 'open' | 'error'>('connecting');
+  const [lastEventAt, setLastEventAt] = useState<string | null>(null);
 
-  const fetchInstances = async () => {
-    setLoading(true);
+  const fetchInstances = async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setLoading(true);
+    }
     try {
       const response = await fetch(`${API_BASE}/workflows/instances`);
       const data = await response.json();
@@ -44,7 +48,9 @@ export function WorkflowMonitoringPage() {
     } catch (error) {
       console.error('Failed to fetch workflow instances', error);
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -82,6 +88,70 @@ export function WorkflowMonitoringPage() {
   }, []);
 
   useEffect(() => {
+    let eventSource: EventSource | null = null;
+    let pollInterval: number | null = null;
+
+    const startPolling = () => {
+      if (pollInterval) return;
+      pollInterval = window.setInterval(() => {
+        fetchInstances({ silent: true });
+        if (selectedInstance) {
+          fetchTimeline(selectedInstance.run_id);
+        }
+      }, 15000);
+    };
+
+    const stopPolling = () => {
+      if (pollInterval) {
+        window.clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    };
+
+    try {
+      eventSource = new EventSource(`${API_BASE}/workflows/stream`);
+      eventSource.onopen = () => {
+        setStreamStatus('open');
+        stopPolling();
+      };
+      eventSource.onerror = () => {
+        setStreamStatus('error');
+        eventSource?.close();
+        startPolling();
+      };
+      eventSource.onmessage = (event) => {
+        setLastEventAt(new Date().toLocaleTimeString());
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.instances) {
+            setInstances(payload.instances);
+          } else if (payload.instance) {
+            setInstances((prev) => {
+              const next = prev.filter((item) => item.run_id !== payload.instance.run_id);
+              return [payload.instance, ...next];
+            });
+          } else if (payload.event && payload.event.run_id && selectedInstance?.run_id === payload.event.run_id) {
+            setTimeline((prev) => [payload.event, ...prev].slice(0, 50));
+          } else {
+            fetchInstances({ silent: true });
+          }
+        } catch {
+          fetchInstances({ silent: true });
+        }
+      };
+    } catch (error) {
+      console.error('Failed to open workflow stream', error);
+      setStreamStatus('error');
+      startPolling();
+    }
+
+    return () => {
+      eventSource?.close();
+      stopPolling();
+    };
+  }, [selectedInstance]);
+
+  useEffect(() => {
     if (selectedInstance) {
       fetchTimeline(selectedInstance.run_id);
     }
@@ -90,11 +160,39 @@ export function WorkflowMonitoringPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1>Workflow Monitoring</h1>
-        <p>
-          Track workflow instances and review their execution timelines in real
-          time.
-        </p>
+        <div className={styles.headerRow}>
+          <div>
+            <h1>Workflow Monitoring</h1>
+            <p>
+              Track workflow instances and review their execution timelines in real
+              time.
+            </p>
+          </div>
+          <div className={styles.streamStatus}>
+            <span
+              className={`${styles.streamDot} ${
+                streamStatus === 'open'
+                  ? styles.streamLive
+                  : streamStatus === 'connecting'
+                  ? styles.streamConnecting
+                  : styles.streamError
+              }`}
+              aria-hidden="true"
+            ></span>
+            <div>
+              <div className={styles.streamLabel}>
+                {streamStatus === 'open'
+                  ? 'Live updates'
+                  : streamStatus === 'connecting'
+                  ? 'Connecting…'
+                  : 'Realtime unavailable'}
+              </div>
+              <div className={styles.streamMeta}>
+                {lastEventAt ? `Last event at ${lastEventAt}` : 'Awaiting events'}
+              </div>
+            </div>
+          </div>
+        </div>
         <button className={styles.primaryButton} onClick={startSampleWorkflow}>
           Start “Publish Charter” workflow
         </button>
