@@ -3,7 +3,6 @@ from __future__ import annotations
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-
 from types import ModuleType
 
 from fastapi.testclient import TestClient
@@ -137,6 +136,7 @@ def _install_opentelemetry_stubs() -> None:
 
 def _install_security_stubs() -> None:
     import sys
+
     if "cryptography" in sys.modules:
         return
 
@@ -156,6 +156,7 @@ def _install_security_stubs() -> None:
     sys.modules["cryptography.hazmat.primitives"] = primitives_module
     sys.modules["cryptography.hazmat.primitives.asymmetric"] = asymmetric_module
     sys.modules["cryptography.hazmat.primitives.asymmetric.rsa"] = rsa_module
+
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = SERVICE_ROOT / "src" / "main.py"
@@ -193,17 +194,13 @@ def test_lineage_event_creation_and_lookup(monkeypatch, tmp_path: Path) -> None:
     }
 
     with TestClient(module.app) as client:
-        response = client.post(
-            "/lineage/events", json=payload, headers=_auth_headers(monkeypatch)
-        )
+        response = client.post("/lineage/events", json=payload, headers=_auth_headers(monkeypatch))
         assert response.status_code == 200
         event = response.json()
         assert event["connector"] == "jira"
         lineage_id = event["lineage_id"]
 
-        response = client.get(
-            f"/lineage/events/{lineage_id}", headers=_auth_headers(monkeypatch)
-        )
+        response = client.get(f"/lineage/events/{lineage_id}", headers=_auth_headers(monkeypatch))
         assert response.status_code == 200
         fetched = response.json()
         assert fetched["lineage_id"] == lineage_id

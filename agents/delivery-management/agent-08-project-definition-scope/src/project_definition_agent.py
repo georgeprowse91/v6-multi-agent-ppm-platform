@@ -17,11 +17,11 @@ from typing import Any
 from approval_workflow_agent import ApprovalWorkflowAgent
 from events import CharterCreatedEvent, WbsCreatedEvent
 from observability.tracing import get_trace_id
+from scope_research import generate_scope_from_search
+from web_search import search_web
 
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
-from scope_research import generate_scope_from_search
-from web_search import search_web
 
 
 class ProjectDefinitionAgent(BaseAgent):
@@ -54,9 +54,7 @@ class ProjectDefinitionAgent(BaseAgent):
         self.enable_external_research = (
             config.get("enable_external_research", False) if config else False
         )
-        self.search_result_limit = (
-            int(config.get("search_result_limit", 5)) if config else 5
-        )
+        self.search_result_limit = int(config.get("search_result_limit", 5)) if config else 5
 
         charter_store_path = (
             Path(config.get("charter_store_path", "data/project_charters.json"))

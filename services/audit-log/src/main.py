@@ -1,18 +1,20 @@
 from __future__ import annotations
 
+import io
 import logging
 import sys
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 import yaml
-import io
-import zipfile
 from fastapi import FastAPI, HTTPException, Request
-from jsonschema import Draft202012Validator, FormatChecker
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+
+from jsonschema import Draft202012Validator, FormatChecker
 
 logger = logging.getLogger("audit-log")
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +34,6 @@ from audit_storage import AuditRetentionPolicy, get_worm_storage  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from fastapi.responses import StreamingResponse
 
 
 def _load_schema() -> dict[str, Any]:
@@ -81,7 +82,6 @@ class AuditIngestResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "audit-log"
-
 
 
 app = FastAPI(title="Audit Log Service", version="0.1.0")

@@ -55,12 +55,21 @@ def _settings_dict(config: SamlConfig) -> dict[str, Any]:
         "strict": config.strict,
         "sp": {
             "entityId": config.sp_entity_id,
-            "assertionConsumerService": {"url": config.sp_acs_url, "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"},
-            "singleLogoutService": {"url": config.sp_sls_url, "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"},
+            "assertionConsumerService": {
+                "url": config.sp_acs_url,
+                "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+            },
+            "singleLogoutService": {
+                "url": config.sp_sls_url,
+                "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+            },
         },
         "idp": {
             "entityId": config.idp_entity_id,
-            "singleSignOnService": {"url": config.idp_sso_url, "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"},
+            "singleSignOnService": {
+                "url": config.idp_sso_url,
+                "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+            },
             "x509cert": config.idp_x509_cert,
         },
     }

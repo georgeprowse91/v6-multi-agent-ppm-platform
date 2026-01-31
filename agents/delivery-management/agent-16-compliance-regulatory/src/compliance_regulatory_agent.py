@@ -24,11 +24,18 @@ bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
-from agents.runtime import BaseAgent
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
-from agents.runtime.src.state_store import TenantStateStore
-from agents.common.web_search import build_search_query, search_web, summarize_snippets
+from agents.common.web_search import (  # noqa: E402
+    build_search_query,
+    search_web,
+    summarize_snippets,
+)
+from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from agents.runtime.src.policy import (  # noqa: E402
+    evaluate_policy_bundle,
+    load_default_policy_bundle,
+)
+from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 
 
 class ComplianceRegulatoryAgent(BaseAgent):

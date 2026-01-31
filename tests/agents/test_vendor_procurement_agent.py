@@ -188,7 +188,11 @@ async def test_vendor_procurement_research_enriches_scorecard(tmp_path, monkeypa
     )
 
     scorecard = await agent.process(
-        {"action": "get_vendor_scorecard", "tenant_id": "tenant-x", "vendor_id": vendor_response["vendor_id"]}
+        {
+            "action": "get_vendor_scorecard",
+            "tenant_id": "tenant-x",
+            "vendor_id": vendor_response["vendor_id"],
+        }
     )
 
     assert scorecard["external_research"]

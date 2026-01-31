@@ -409,7 +409,10 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Find workflow instance
         instance_id = assignment.get("instance_id")
-        instance = self.workflow_instances.get(instance_id)
+        instance = None
+        if instance_id:
+            instance = await self._load_instance(tenant_id, instance_id)
+        next_tasks: list[dict[str, Any]] = []
         if instance:
             # Move task from current to completed
             if task_id in instance.get("current_tasks", []):

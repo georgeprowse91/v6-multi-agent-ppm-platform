@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 import yaml
+
+pytest.importorskip("cryptography")
+
 from api.middleware.security import _mask_fields
 
 

@@ -4,8 +4,9 @@ import asyncio
 import logging
 import os
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Literal
+from typing import Any, Literal
 from urllib.parse import urlparse
 
 import httpx

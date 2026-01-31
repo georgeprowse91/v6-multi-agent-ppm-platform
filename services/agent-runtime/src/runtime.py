@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import importlib.util
 import json
 import os
@@ -27,7 +26,12 @@ for path in [
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from agents.runtime import AGENT_CATALOG, BaseAgent, InMemoryEventBus, ServiceBusEventBus  # noqa: E402
+from agents.runtime import (  # noqa: E402
+    AGENT_CATALOG,
+    BaseAgent,
+    InMemoryEventBus,
+    ServiceBusEventBus,
+)
 from agents.runtime.src.agent_catalog import get_catalog_entry  # noqa: E402
 
 
@@ -350,7 +354,9 @@ class AgentRuntime:
                 config={
                     **base_config,
                     "program_store_path": self._build_store_path("program_store.json"),
-                    "program_roadmap_store_path": self._build_store_path("program_roadmap_store.json"),
+                    "program_roadmap_store_path": self._build_store_path(
+                        "program_roadmap_store.json"
+                    ),
                     "program_dependency_store_path": self._build_store_path(
                         "program_dependency_store.json"
                     ),
@@ -557,7 +563,9 @@ class AgentRuntime:
                     **base_config,
                     "analytics_output_store_path": self._build_store_path("analytics_outputs.json"),
                     "analytics_alert_store_path": self._build_store_path("analytics_alerts.json"),
-                    "analytics_lineage_store_path": self._build_store_path("analytics_lineage.json"),
+                    "analytics_lineage_store_path": self._build_store_path(
+                        "analytics_lineage.json"
+                    ),
                     "health_snapshot_store_path": self._build_store_path("health_snapshots.json"),
                 },
             ),
@@ -586,7 +594,9 @@ class AgentRuntime:
                 config={
                     **base_config,
                     "workflow_definition_store_path": self._build_store_path("workflows.json"),
-                    "workflow_instance_store_path": self._build_store_path("workflow_instances.json"),
+                    "workflow_instance_store_path": self._build_store_path(
+                        "workflow_instances.json"
+                    ),
                     "workflow_task_store_path": self._build_store_path("workflow_tasks.json"),
                     "workflow_event_store_path": self._build_store_path("workflow_events.json"),
                     "workflow_subscription_store_path": self._build_store_path(

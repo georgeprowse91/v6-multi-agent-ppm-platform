@@ -19,8 +19,14 @@ from typing import Any, cast
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from agents.common.web_search import SearchPurpose, build_search_query, search_web, summarize_snippets
+from agents.common.web_search import (
+    SearchPurpose,
+    build_search_query,
+    search_web,
+    summarize_snippets,
+)
 from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
 
 OBSERVABILITY_ROOT = Path(__file__).resolve().parents[5] / "packages" / "observability" / "src"
 if str(OBSERVABILITY_ROOT) not in sys.path:
@@ -28,8 +34,6 @@ if str(OBSERVABILITY_ROOT) not in sys.path:
 
 from observability.metrics import configure_metrics  # noqa: E402
 from observability.tracing import get_trace_id, inject_trace_headers  # noqa: E402
-
-from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 
 
 class RoutingEntry(BaseModel):
@@ -181,9 +185,7 @@ class ResponseOrchestrationAgent(BaseAgent):
             payload["tags"] = list(prompt_tags)
         return payload
 
-    def _determine_research_purpose(
-        self, prompt_payload: dict[str, Any]
-    ) -> SearchPurpose | None:
+    def _determine_research_purpose(self, prompt_payload: dict[str, Any]) -> SearchPurpose | None:
         prompt_id = prompt_payload.get("id")
         tags = {str(tag).lower() for tag in prompt_payload.get("tags", [])}
         if prompt_id in VENDOR_RESEARCH_PROMPTS or "vendor" in tags or "procurement" in tags:

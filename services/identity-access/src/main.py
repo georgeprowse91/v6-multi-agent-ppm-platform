@@ -8,6 +8,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
+from sqlite3 import IntegrityError
 from typing import Any
 
 import httpx
@@ -16,7 +17,6 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from jwt import InvalidTokenError
 from pydantic import BaseModel
-from sqlite3 import IntegrityError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -27,8 +27,13 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from security.auth import authenticate_request  # noqa: E402
-from security.secrets import resolve_secret  # noqa: E402
+from saml import (  # noqa: E402
+    SamlUnavailableError,
+    build_auth,
+    build_saml_settings,
+    load_saml_config,
+    prepare_fastapi_request,
+)
 from scim_models import (  # noqa: E402
     SCIM_CORE_GROUP,
     SCIM_CORE_USER,
@@ -42,13 +47,8 @@ from scim_models import (  # noqa: E402
     ScimUserCreate,
 )
 from scim_store import ScimStore  # noqa: E402
-from saml import (  # noqa: E402
-    SamlUnavailableError,
-    build_auth,
-    build_saml_settings,
-    load_saml_config,
-    prepare_fastapi_request,
-)
+from security.auth import authenticate_request  # noqa: E402
+from security.secrets import resolve_secret  # noqa: E402
 
 logger = logging.getLogger("identity-access")
 logging.basicConfig(level=logging.INFO)
@@ -111,9 +111,7 @@ scim_store = ScimStore(Path(os.getenv("SCIM_DB_PATH", DEFAULT_SCIM_DB_PATH)))
 
 @app.middleware("http")
 async def auth_tenant_middleware(request: Request, call_next):
-    if request.url.path in {"/healthz", "/auth/validate"} or request.url.path.startswith(
-        "/scim/"
-    ):
+    if request.url.path in {"/healthz", "/auth/validate"} or request.url.path.startswith("/scim/"):
         return await call_next(request)
     if request.url.path.startswith("/auth/saml/"):
         return await call_next(request)
@@ -273,7 +271,9 @@ async def saml_acs(request: Request) -> SamlTokenResponse:
         "roles": attributes.get("roles", []),
         "tenant_id": attributes.get("tenant_id", [None])[0],
     }
-    token = jwt.encode({k: v for k, v in claims.items() if v is not None}, jwt_secret, algorithm="HS256")
+    token = jwt.encode(
+        {k: v for k, v in claims.items() if v is not None}, jwt_secret, algorithm="HS256"
+    )
     return SamlTokenResponse(token=token, subject=subject, attributes=attributes)
 
 
@@ -393,7 +393,9 @@ async def scim_create_group(
             members=members,
         )
     except IntegrityError as exc:
-        raise HTTPException(status_code=409, detail="Group already exists or member invalid") from exc
+        raise HTTPException(
+            status_code=409, detail="Group already exists or member invalid"
+        ) from exc
     return _scim_group_payload(group)
 
 

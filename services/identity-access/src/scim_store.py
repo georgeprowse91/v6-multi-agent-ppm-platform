@@ -265,10 +265,7 @@ class ScimStore:
         return ScimGroupRecord(
             id=row["id"],
             display_name=row["display_name"],
-            members=[
-                {"value": member["id"], "display": member["user_name"]}
-                for member in members
-            ],
+            members=[{"value": member["id"], "display": member["user_name"]} for member in members],
         )
 
     def list_groups(self, tenant_id: str) -> list[ScimGroupRecord]:

@@ -47,7 +47,8 @@ class AuditLogStore:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS audit_events (
                     event_id TEXT PRIMARY KEY,
                     timestamp TEXT NOT NULL,
@@ -62,7 +63,8 @@ class AuditLogStore:
                     outcome TEXT NOT NULL,
                     metadata TEXT
                 )
-                """)
+                """
+            )
             conn.commit()
 
     def record_event(self, event: AuditEvent) -> None:

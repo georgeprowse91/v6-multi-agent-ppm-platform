@@ -1,6 +1,5 @@
 import httpx
 import pytest
-
 from web_search import search_web
 
 

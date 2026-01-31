@@ -21,14 +21,14 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT, DATA_QUALITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
-from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
-from security.lineage import mask_lineage_payload  # noqa: E402
 from data_quality.remediation import RemediationResult, remediate_payload  # noqa: E402
 from data_quality.rules import evaluate_quality_rules  # noqa: E402
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from quality import QualityResult, compute_quality  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
+from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
+from security.lineage import mask_lineage_payload  # noqa: E402
 from storage import LineageRecord, LineageStore  # noqa: E402
 
 logger = logging.getLogger("data-lineage-service")
@@ -242,7 +242,9 @@ def _record_to_response(record: LineageRecord) -> LineageEventOut:
     )
 
 
-def _remediation_response(result: RemediationResult, quality: QualityResult | None) -> QualityRemediationResponse:
+def _remediation_response(
+    result: RemediationResult, quality: QualityResult | None
+) -> QualityRemediationResponse:
     return QualityRemediationResponse(
         record_type=result.record_type,
         record_id=result.record_id,
@@ -280,7 +282,9 @@ async def ingest_event(
 
     timestamp = payload.timestamp or datetime.now(timezone.utc)
     lineage_id = f"lin-{uuid4().hex}"
-    entity_type = payload.entity_type or payload.target.get("schema") or payload.target.get("entity")
+    entity_type = (
+        payload.entity_type or payload.target.get("schema") or payload.target.get("entity")
+    )
 
     quality_result: QualityResult | None = None
     if payload.quality:
@@ -356,7 +360,9 @@ async def get_event(
 
 
 @app.get("/lineage/graph", response_model=LineageGraphResponse)
-async def get_graph(request: Request, store: LineageStore = Depends(get_store)) -> LineageGraphResponse:
+async def get_graph(
+    request: Request, store: LineageStore = Depends(get_store)
+) -> LineageGraphResponse:
     auth = request.state.auth
     records = store.list(auth.tenant_id)
     nodes: dict[str, LineageGraphNode] = {}

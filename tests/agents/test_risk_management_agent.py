@@ -75,7 +75,9 @@ async def test_risk_management_external_research_merges(tmp_path, monkeypatch):
                 "category": "schedule",
                 "probability": 4,
                 "impact": 4,
-                "sources": [{"url": "https://example.com/risk", "citation": "Supply chain warning"}],
+                "sources": [
+                    {"url": "https://example.com/risk", "citation": "Supply chain warning"}
+                ],
             }
         ]
 

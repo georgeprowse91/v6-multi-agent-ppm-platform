@@ -65,19 +65,13 @@ def test_scim_user_group_role_mapping_and_tenant_isolation(scim_client: TestClie
     )
     assert patch_response.status_code == 200
 
-    role_response = scim_client.get(
-        f"/scim/internal/roles/{user_id}", headers=_headers(tenant_a)
-    )
+    role_response = scim_client.get(f"/scim/internal/roles/{user_id}", headers=_headers(tenant_a))
     assert role_response.status_code == 200
     assert role_response.json()["roles"] == ["PMO_ADMIN"]
 
-    user_response = scim_client.get(
-        f"/scim/v2/Users/{user_id}", headers=_headers(tenant_a)
-    )
+    user_response = scim_client.get(f"/scim/v2/Users/{user_id}", headers=_headers(tenant_a))
     assert user_response.status_code == 200
-    extension = user_response.json().get(
-        "urn:ietf:params:scim:schemas:extension:ppm:2.0:User"
-    )
+    extension = user_response.json().get("urn:ietf:params:scim:schemas:extension:ppm:2.0:User")
     assert extension["roles"] == ["PMO_ADMIN"]
 
     tenant_b_response = scim_client.post(
@@ -87,7 +81,7 @@ def test_scim_user_group_role_mapping_and_tenant_isolation(scim_client: TestClie
     assert tenant_b_response.json()["id"] != user_id
 
     list_response = scim_client.get(
-        "/scim/v2/Users?filter=userName eq \"alice@example.com\"", headers=_headers(tenant_a)
+        '/scim/v2/Users?filter=userName eq "alice@example.com"', headers=_headers(tenant_a)
     )
     assert list_response.status_code == 200
     assert list_response.json()["totalResults"] == 1

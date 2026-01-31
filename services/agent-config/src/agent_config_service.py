@@ -8,7 +8,7 @@ Uses a JSON-backed file store for persistence.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -17,6 +17,7 @@ from typing import Any, cast
 
 class AgentCategory(str, Enum):
     """Agent categories for grouping."""
+
     CORE = "core"
     PORTFOLIO = "portfolio"
     DELIVERY = "delivery"
@@ -27,6 +28,7 @@ class AgentCategory(str, Enum):
 
 class UserRole(str, Enum):
     """User roles for permission checks."""
+
     PMO_ADMIN = "PMO_ADMIN"
     PM = "PM"
     TEAM_MEMBER = "TEAM_MEMBER"
@@ -36,6 +38,7 @@ class UserRole(str, Enum):
 @dataclass
 class AgentParameter:
     """A configurable parameter for an agent."""
+
     name: str
     display_name: str
     description: str
@@ -43,21 +46,22 @@ class AgentParameter:
     default_value: Any
     current_value: Any | None = None
     options: list[str] | None = None  # For select/multiselect types
-    min_value: float | None = None    # For number type
-    max_value: float | None = None    # For number type
+    min_value: float | None = None  # For number type
+    max_value: float | None = None  # For number type
     required: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "AgentParameter":
+    def from_dict(cls, data: dict[str, Any]) -> AgentParameter:
         return cls(**data)
 
 
 @dataclass
 class AgentConfig:
     """Configuration for a single agent."""
+
     catalog_id: str
     agent_id: str
     display_name: str
@@ -75,7 +79,9 @@ class AgentConfig:
             "agent_id": self.agent_id,
             "display_name": self.display_name,
             "description": self.description,
-            "category": self.category.value if isinstance(self.category, AgentCategory) else self.category,
+            "category": (
+                self.category.value if isinstance(self.category, AgentCategory) else self.category
+            ),
             "enabled": self.enabled,
             "parameters": [p.to_dict() for p in self.parameters],
             "capabilities": self.capabilities,
@@ -84,7 +90,7 @@ class AgentConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "AgentConfig":
+    def from_dict(cls, data: dict[str, Any]) -> AgentConfig:
         params = [AgentParameter.from_dict(p) for p in data.get("parameters", [])]
         category = data.get("category", AgentCategory.CORE)
         if isinstance(category, str):
@@ -106,6 +112,7 @@ class AgentConfig:
 @dataclass
 class ProjectAgentConfig:
     """Project-specific agent configuration (enablement + parameter overrides)."""
+
     project_id: str
     agent_id: str
     enabled: bool = True
@@ -117,13 +124,14 @@ class ProjectAgentConfig:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ProjectAgentConfig":
+    def from_dict(cls, data: dict[str, Any]) -> ProjectAgentConfig:
         return cls(**data)
 
 
 @dataclass
 class DevUserProfile:
     """Development user profile for role-based access control stub."""
+
     user_id: str
     name: str
     email: str
@@ -140,7 +148,7 @@ class DevUserProfile:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "DevUserProfile":
+    def from_dict(cls, data: dict[str, Any]) -> DevUserProfile:
         role = data.get("role", UserRole.TEAM_MEMBER)
         if isinstance(role, str):
             legacy_map = {
@@ -360,7 +368,13 @@ class AgentConfigStore:
             description="Manages project schedules, timelines, and critical path analysis",
             category=AgentCategory.DELIVERY,
             enabled=True,
-            capabilities=["schedule_creation", "critical_path_analysis", "milestone_tracking", "dependency_management", "baseline_management"],
+            capabilities=[
+                "schedule_creation",
+                "critical_path_analysis",
+                "milestone_tracking",
+                "dependency_management",
+                "baseline_management",
+            ],
             parameters=[
                 AgentParameter(
                     name="default_task_duration",
@@ -425,7 +439,13 @@ class AgentConfigStore:
             description="Manages project finances, budgets, forecasts, and cost tracking",
             category=AgentCategory.PORTFOLIO,
             enabled=True,
-            capabilities=["budget_management", "cost_tracking", "forecasting", "variance_analysis", "evm_metrics"],
+            capabilities=[
+                "budget_management",
+                "cost_tracking",
+                "forecasting",
+                "variance_analysis",
+                "evm_metrics",
+            ],
             parameters=[
                 AgentParameter(
                     name="currency",
@@ -528,8 +548,22 @@ class AgentConfigStore:
                     display_name="Vendor Categories",
                     description="Default vendor categories for onboarding",
                     param_type="multiselect",
-                    default_value=["software", "hardware", "consulting", "materials", "services", "cloud"],
-                    options=["software", "hardware", "consulting", "materials", "services", "cloud"],
+                    default_value=[
+                        "software",
+                        "hardware",
+                        "consulting",
+                        "materials",
+                        "services",
+                        "cloud",
+                    ],
+                    options=[
+                        "software",
+                        "hardware",
+                        "consulting",
+                        "materials",
+                        "services",
+                        "cloud",
+                    ],
                 ),
             ],
         ).to_dict()
@@ -588,7 +622,13 @@ class AgentConfigStore:
             description="Identifies, assesses, and manages project risks and issues",
             category=AgentCategory.OPERATIONS,
             enabled=True,
-            capabilities=["risk_identification", "risk_assessment", "risk_mitigation", "issue_tracking", "escalation"],
+            capabilities=[
+                "risk_identification",
+                "risk_assessment",
+                "risk_mitigation",
+                "issue_tracking",
+                "escalation",
+            ],
             parameters=[
                 AgentParameter(
                     name="risk_assessment_method",
@@ -1107,7 +1147,9 @@ class AgentConfigStore:
             return None
         return AgentConfig.from_dict(agent_data)
 
-    def update_agent(self, catalog_id: str, updates: dict[str, Any], updated_by: str | None = None) -> AgentConfig | None:
+    def update_agent(
+        self, catalog_id: str, updates: dict[str, Any], updated_by: str | None = None
+    ) -> AgentConfig | None:
         """Update an agent configuration."""
         data = self._load()
         if catalog_id not in data.get("agents", {}):

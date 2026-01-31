@@ -57,7 +57,7 @@ class JiraRESTClient(JiraClient):
         self.auth = (username, api_token)
 
     def fetch_issues(self, project_key: str | None = None) -> list[JiraIssue]:
-        jql = 'order by updated DESC'
+        jql = "order by updated DESC"
         if project_key:
             jql = f'project = "{project_key}" order by updated DESC'
         with httpx.Client(timeout=10.0) as client:

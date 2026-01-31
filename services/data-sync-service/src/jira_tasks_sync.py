@@ -178,7 +178,12 @@ class JiraTasksSyncJob:
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"Failed to update {external_id}: {exc}")
         status = "success" if not errors else ("partial" if success_count else "error")
-        return {"status": status, "count": len(payloads), "updated": success_count, "errors": errors}
+        return {
+            "status": status,
+            "count": len(payloads),
+            "updated": success_count,
+            "errors": errors,
+        }
 
     def _emit_lineage_event(
         self,

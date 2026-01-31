@@ -84,9 +84,7 @@ def test_schema_registration_and_entity_storage(monkeypatch, tmp_path) -> None:
         stored = response.json()
         assert stored["schema_version"] == 2
 
-        response = client.get(
-            f"/entities/demo/{stored['id']}", headers=_auth_headers(monkeypatch)
-        )
+        response = client.get(f"/entities/demo/{stored['id']}", headers=_auth_headers(monkeypatch))
         assert response.status_code == 200
         fetched = response.json()
         assert fetched["data"] == entity_payload

@@ -6,11 +6,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import yaml
 import httpx
+import yaml
 from fastapi import FastAPI, HTTPException
-from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel, Field
+
+from jsonschema import Draft202012Validator, FormatChecker
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -134,7 +135,9 @@ def _load_rbac_config() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]
 
 def _load_abac_config() -> dict[str, Any]:
     repo_root = Path(__file__).resolve().parents[3]
-    policy_path = Path(os.getenv("ABAC_POLICY_PATH", repo_root / "config" / "abac" / "policies.yaml"))
+    policy_path = Path(
+        os.getenv("ABAC_POLICY_PATH", repo_root / "config" / "abac" / "policies.yaml")
+    )
     if not policy_path.exists():
         return {"policies": [], "default_decision": "allow"}
     return yaml.safe_load(policy_path.read_text())
@@ -260,6 +263,7 @@ def _evaluate_abac(
     if allow_match:
         return ABACEvaluationResponse(decision="allow", reasons=reasons)
     return ABACEvaluationResponse(decision=default_decision, reasons=reasons)
+
 
 @app.post("/policies/evaluate", response_model=PolicyEvaluationResponse)
 async def evaluate_policies(request: PolicyEvaluationRequest) -> PolicyEvaluationResponse:

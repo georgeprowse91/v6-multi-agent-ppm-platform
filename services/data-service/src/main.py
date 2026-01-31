@@ -5,15 +5,16 @@ import inspect
 import logging
 import os
 import sys
-from datetime import datetime, timezone
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Query
-from jsonschema import Draft202012Validator, FormatChecker, SchemaError
 from pydantic import BaseModel, Field
+
+from jsonschema import Draft202012Validator, FormatChecker, SchemaError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -24,14 +25,13 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from security.auth import AuthTenantMiddleware  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
+from security.auth import AuthTenantMiddleware  # noqa: E402
 from storage import (  # noqa: E402
     DataServiceStore,
     EntityRecord,
     SchemaExistsError,
     SchemaRecord,
-    SchemaPromotion,
     to_async_database_url,
 )
 
@@ -394,7 +394,9 @@ def _resolve_fixture_path(connector_name: str, fixture_path: str | None) -> Path
     return None
 
 
-def _invoke_connector(module, fixture_path: Path | None, tenant_id: str, *, live: bool) -> list[dict[str, Any]]:
+def _invoke_connector(
+    module, fixture_path: Path | None, tenant_id: str, *, live: bool
+) -> list[dict[str, Any]]:
     run_sync = getattr(module, "run_sync", None)
     if run_sync is None:
         raise HTTPException(status_code=400, detail="Connector missing run_sync entrypoint")

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from threading import Event, Thread
-from typing import Callable
 
 from storage import LineageStore
 

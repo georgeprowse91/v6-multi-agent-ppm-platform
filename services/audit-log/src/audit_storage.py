@@ -12,8 +12,8 @@ from typing import Any, cast
 from azure.core.exceptions import HttpResponseError, ResourceModifiedError
 from azure.storage.blob import BlobServiceClient
 from cryptography.fernet import Fernet
-
 from security.secrets import resolve_secret
+
 
 class WORMStorageError(RuntimeError):
     pass

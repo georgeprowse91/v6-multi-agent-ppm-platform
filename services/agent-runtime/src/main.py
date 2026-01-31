@@ -4,7 +4,6 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-
 from runtime import AgentRuntime
 
 app = FastAPI(title="Agent Runtime Service", version="0.1.0")
@@ -89,7 +88,8 @@ async def run_orchestration(request: OrchestrationRunRequest) -> dict[str, Any]:
     routing = request.routing
     if routing is None:
         routing = [
-            RoutingEntry(**entry) for entry in runtime.get_orchestration_config().get("default_routing", [])
+            RoutingEntry(**entry)
+            for entry in runtime.get_orchestration_config().get("default_routing", [])
         ]
     if not routing:
         raise HTTPException(status_code=400, detail="No routing entries provided")

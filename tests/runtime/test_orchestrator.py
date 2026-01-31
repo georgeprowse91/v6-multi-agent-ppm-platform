@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("redis")
+
 from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.event_bus import InMemoryEventBus
 from agents.runtime.src.memory_store import InMemoryConversationStore

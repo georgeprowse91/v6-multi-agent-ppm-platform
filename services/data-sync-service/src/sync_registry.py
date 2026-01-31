@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from threading import Event, Thread
-from typing import Any, Callable
+from typing import Any
 
 from jira_tasks_sync import JiraTasksSyncJob, SyncResult
 

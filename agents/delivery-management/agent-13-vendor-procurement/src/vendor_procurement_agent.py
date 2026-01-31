@@ -25,9 +25,13 @@ bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
-from agents.runtime import BaseAgent
-from agents.runtime.src.state_store import TenantStateStore
-from agents.common.web_search import build_search_query, search_web, summarize_snippets
+from agents.common.web_search import (  # noqa: E402
+    build_search_query,
+    search_web,
+    summarize_snippets,
+)
+from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 
 
 class VendorProcurementAgent(BaseAgent):
@@ -1034,7 +1038,9 @@ class VendorProcurementAgent(BaseAgent):
         )
 
         # NOTE: Only high-level vendor context should be sent to the search API.
-        snippets = await search_web(query, result_limit=result_limit or self.vendor_search_result_limit)
+        snippets = await search_web(
+            query, result_limit=result_limit or self.vendor_search_result_limit
+        )
         if not snippets:
             return {"summary": "", "insights": [], "sources": [], "used_external_research": False}
 

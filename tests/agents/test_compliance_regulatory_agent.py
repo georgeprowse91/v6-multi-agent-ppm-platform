@@ -1,5 +1,5 @@
-import pytest
 import compliance_regulatory_agent as compliance_regulatory_module
+import pytest
 from compliance_regulatory_agent import ComplianceRegulatoryAgent
 
 

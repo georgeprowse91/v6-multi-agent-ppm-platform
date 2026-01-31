@@ -304,8 +304,7 @@ async def get_sync_summary() -> list[SyncSummaryResponse]:
 async def list_conflicts(limit: int = 50) -> list[ConflictResponse]:
     conflict_store = get_conflict_store()
     return [
-        ConflictResponse(**record.__dict__)
-        for record in conflict_store.list_recent(limit=limit)
+        ConflictResponse(**record.__dict__) for record in conflict_store.list_recent(limit=limit)
     ]
 
 

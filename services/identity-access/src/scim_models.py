@@ -60,9 +60,7 @@ class ScimUser(BaseModel):
     active: bool | None = True
     emails: list[Email] | None = None
     groups: list[GroupRef] | None = None
-    roles_extension: dict[str, Any] | None = Field(
-        default=None, alias=SCIM_EXTENSION_ROLES
-    )
+    roles_extension: dict[str, Any] | None = Field(default=None, alias=SCIM_EXTENSION_ROLES)
 
 
 class ScimGroup(BaseModel):

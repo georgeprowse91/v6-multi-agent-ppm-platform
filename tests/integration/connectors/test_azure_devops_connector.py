@@ -1,8 +1,27 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+import pytest
+
+if not os.getenv("ENABLE_CONNECTOR_INTEGRATION_TESTS"):
+    pytest.skip(
+        "Connector integration tests require ENABLE_CONNECTOR_INTEGRATION_TESTS=1",
+        allow_module_level=True,
+    )
+
+pytest.importorskip("opentelemetry")
+
 import json
 
 import httpx
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+sys.modules.pop("connectors", None)
 
 from connectors.azure_devops.src.main import AzureDevOpsConfig, run_sync
 from connectors.sdk.src.http_client import HttpClient

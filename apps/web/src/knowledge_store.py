@@ -65,7 +65,8 @@ class KnowledgeStore:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS documents (
                     document_id TEXT PRIMARY KEY,
                     document_key TEXT NOT NULL UNIQUE,
@@ -76,8 +77,10 @@ class KnowledgeStore:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS document_versions (
                     version_id TEXT PRIMARY KEY,
                     document_id TEXT NOT NULL,
@@ -87,8 +90,10 @@ class KnowledgeStore:
                     created_at TEXT NOT NULL,
                     metadata TEXT NOT NULL
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS lessons (
                     lesson_id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL,
@@ -101,7 +106,8 @@ class KnowledgeStore:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-                """)
+                """
+            )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_documents_project ON documents(project_id)"
             )

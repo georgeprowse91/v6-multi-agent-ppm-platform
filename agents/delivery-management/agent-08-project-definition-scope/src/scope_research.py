@@ -67,8 +67,8 @@ async def generate_scope_from_search(
         "You are a PMO scope analyst. Combine organizational templates with external insights "
         "to propose scope statements, requirements, and WBS items. "
         "Respond ONLY with JSON in the following format: "
-        "{\"scope\": {\"in_scope\": [], \"out_of_scope\": [], \"deliverables\": []}, "
-        "\"requirements\": [], \"wbs\": []}."
+        '{"scope": {"in_scope": [], "out_of_scope": [], "deliverables": []}, '
+        '"requirements": [], "wbs": []}.'
     )
     user_prompt = json.dumps(
         {

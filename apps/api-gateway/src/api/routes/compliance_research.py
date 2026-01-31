@@ -21,7 +21,9 @@ class ComplianceResearchResponse(BaseModel):
     last_check: str
 
 
-@router.post("/projects/{project_id}/compliance/research", response_model=ComplianceResearchResponse)
+@router.post(
+    "/projects/{project_id}/compliance/research", response_model=ComplianceResearchResponse
+)
 async def research_compliance(project_id: str, request: ComplianceResearchRequest):
     """Trigger external regulatory monitoring using the Compliance agent."""
     from api.main import orchestrator

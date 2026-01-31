@@ -25,9 +25,13 @@ bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
-from agents.runtime import BaseAgent
-from agents.runtime.src.state_store import TenantStateStore
-from agents.common.web_search import build_search_query, search_web, summarize_snippets
+from agents.common.web_search import (  # noqa: E402
+    build_search_query,
+    search_web,
+    summarize_snippets,
+)
+from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 
 
 class RiskManagementAgent(BaseAgent):
@@ -849,7 +853,9 @@ class RiskManagementAgent(BaseAgent):
         )
 
         # NOTE: Only high-level, non-sensitive context should be sent to the search API.
-        snippets = await search_web(query, result_limit=result_limit or self.risk_search_result_limit)
+        snippets = await search_web(
+            query, result_limit=result_limit or self.risk_search_result_limit
+        )
         if not snippets:
             return []
 
@@ -887,7 +893,11 @@ class RiskManagementAgent(BaseAgent):
         except Exception as exc:
             self.logger.warning(
                 "Risk research failed",
-                extra={"error": str(exc), "project_id": project_id, "correlation_id": correlation_id},
+                extra={
+                    "error": str(exc),
+                    "project_id": project_id,
+                    "correlation_id": correlation_id,
+                },
             )
             return {
                 "project_id": project_id,
@@ -899,7 +909,10 @@ class RiskManagementAgent(BaseAgent):
             }
 
         added = await self._merge_external_risks(
-            external_risks, project_id=project_id, tenant_id=tenant_id, correlation_id=correlation_id
+            external_risks,
+            project_id=project_id,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
         )
 
         return {

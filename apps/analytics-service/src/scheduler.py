@@ -35,7 +35,8 @@ class AnalyticsScheduler:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS analytics_jobs (
                     job_id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -47,7 +48,8 @@ class AnalyticsScheduler:
                     last_run TEXT,
                     status TEXT NOT NULL
                 )
-                """)
+                """
+            )
 
     def _serialize_job(self, row: sqlite3.Row) -> ScheduledJob:
         return ScheduledJob(

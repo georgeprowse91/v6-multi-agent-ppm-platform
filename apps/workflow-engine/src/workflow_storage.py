@@ -80,7 +80,8 @@ class WorkflowStore:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS workflow_definitions (
                     workflow_id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -91,8 +92,10 @@ class WorkflowStore:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS workflow_instances (
                     run_id TEXT PRIMARY KEY,
                     workflow_id TEXT NOT NULL,
@@ -103,8 +106,10 @@ class WorkflowStore:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS workflow_step_runs (
                     run_id TEXT NOT NULL,
                     step_id TEXT NOT NULL,
@@ -116,8 +121,10 @@ class WorkflowStore:
                     output TEXT NOT NULL,
                     PRIMARY KEY (run_id, step_id)
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS workflow_events (
                     event_id TEXT PRIMARY KEY,
                     run_id TEXT NOT NULL,
@@ -126,8 +133,10 @@ class WorkflowStore:
                     message TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS workflow_approvals (
                     approval_id TEXT PRIMARY KEY,
                     run_id TEXT NOT NULL,
@@ -141,7 +150,8 @@ class WorkflowStore:
                     comments TEXT,
                     metadata TEXT NOT NULL
                 )
-                """)
+                """
+            )
 
             columns = self._columns(conn, "workflow_instances")
             if "current_step_id" not in columns:
@@ -231,10 +241,12 @@ class WorkflowStore:
 
     def list_definitions(self) -> list[WorkflowDefinition]:
         with self._connect() as conn:
-            rows = conn.execute("""
+            rows = conn.execute(
+                """
                 SELECT workflow_id, name, version, owner, description, definition, created_at, updated_at
                 FROM workflow_definitions ORDER BY name ASC
-                """).fetchall()
+                """
+            ).fetchall()
         return [
             WorkflowDefinition(
                 workflow_id=row[0],

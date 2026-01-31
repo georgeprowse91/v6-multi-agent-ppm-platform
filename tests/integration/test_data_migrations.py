@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from alembic import command
-from alembic.config import Config
+import pytest
 
-from sqlalchemy import create_engine, inspect
+import sqlalchemy as sa
+
+if not hasattr(sa, "create_engine"):
+    pytest.skip("SQLAlchemy package is not available", allow_module_level=True)
 
 
 def _database_url(tmp_path: Path) -> str:
@@ -14,6 +16,10 @@ def _database_url(tmp_path: Path) -> str:
 
 
 def _run_migrations(database_url: str) -> None:
+    pytest.importorskip("alembic")
+    from alembic import command
+    from alembic.config import Config
+
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", database_url)
     command.upgrade(config, "head")
@@ -23,8 +29,8 @@ def test_missing_tables_created(tmp_path) -> None:
     database_url = _database_url(tmp_path)
     _run_migrations(database_url)
 
-    engine = create_engine(database_url)
-    inspector = inspect(engine)
+    engine = sa.create_engine(database_url)
+    inspector = sa.inspect(engine)
 
     assert "demands" in inspector.get_table_names()
     assert "resources" in inspector.get_table_names()

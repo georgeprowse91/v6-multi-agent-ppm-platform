@@ -1,5 +1,5 @@
-import pytest
 import project_definition_agent as project_definition_module
+import pytest
 from project_definition_agent import ProjectDefinitionAgent
 
 
@@ -180,9 +180,7 @@ async def test_project_definition_scope_research_uses_external_search(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_project_definition_scope_research_falls_back_without_results(
-    monkeypatch, tmp_path
-):
+async def test_project_definition_scope_research_falls_back_without_results(monkeypatch, tmp_path):
     async def fake_search(*_args, **_kwargs):
         return []
 

@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from sqlalchemy.exc import IntegrityError
+
 from sqlalchemy import (
     JSON,
     Column,
@@ -18,7 +20,6 @@ from sqlalchemy import (
     func,
     select,
 )
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 logger = logging.getLogger("data-service")
@@ -131,9 +132,7 @@ class DataServiceStore:
                     )
                 )
                 if existing.first():
-                    raise SchemaExistsError(
-                        f"Schema {name} version {version} already registered"
-                    )
+                    raise SchemaExistsError(f"Schema {name} version {version} already registered")
                 try:
                     await session.execute(
                         SCHEMA_REGISTRY_TABLE.insert().values(
@@ -296,7 +295,9 @@ class DataServiceStore:
             )
             if tenant_id:
                 statement = statement.where(CANONICAL_ENTITIES_TABLE.c.tenant_id == tenant_id)
-            statement = statement.order_by(CANONICAL_ENTITIES_TABLE.c.updated_at.desc()).limit(limit)
+            statement = statement.order_by(CANONICAL_ENTITIES_TABLE.c.updated_at.desc()).limit(
+                limit
+            )
             result = await session.execute(statement)
             rows = result.fetchall()
         return [self._entity_from_row(row) for row in rows]

@@ -222,7 +222,7 @@ class IntentRouterAgent(BaseAgent):
         self._last_validation_error = None
         return True
 
-    async def process(self, input_data: dict[str, Any]) -> IntentRouterResponse:
+    async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """
         Classify intent and route to appropriate agents.
 
@@ -334,7 +334,7 @@ class IntentRouterAgent(BaseAgent):
             query=query,
             context=context,
         )
-        return response
+        return response.model_dump()
 
     def _load_routing_config(self) -> IntentRoutingConfig:
         config_path = Path(
