@@ -8,6 +8,8 @@ Maximizes strategic value and business outcomes while respecting resource and bu
 Specification: agents/portfolio-management/agent-06-portfolio-strategy-optimisation/README.md
 """
 
+import math
+import re
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +18,7 @@ from typing import Any
 from events import PortfolioPrioritizedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.connector_integration import DatabaseStorageService
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
@@ -87,6 +90,7 @@ class PortfolioStrategyAgent(BaseAgent):
         self.strategic_objectives = []  # type: ignore
         self.alignment_scores = {}  # type: ignore
         self.optimization_scenarios = {}  # type: ignore
+        self.db_service: DatabaseStorageService | None = None
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
@@ -97,7 +101,9 @@ class PortfolioStrategyAgent(BaseAgent):
         self.logger.info("Initializing Portfolio Strategy & Optimization Agent...")
 
         # Future work: Initialize Azure Machine Learning for multi-objective optimization
-        # Future work: Connect to database for portfolio data storage
+        db_config = self.config.get("database_storage", {}) if self.config else {}
+        self.db_service = DatabaseStorageService(db_config)
+        self.logger.info("Database Storage Service initialized")
         # Future work: Initialize connections to Planview/Clarity PPM
         # Future work: Connect to strategic planning tools (Cascade, AchieveIt)
         # Future work: Initialize Azure Cognitive Services for NLP of strategic documents
@@ -292,6 +298,8 @@ class PortfolioStrategyAgent(BaseAgent):
             "generated_at": datetime.utcnow().isoformat(),
         }
         self.portfolio_store.upsert(tenant_id, portfolio_id, portfolio_record)
+        if self.db_service:
+            await self.db_service.store("portfolio_strategy", portfolio_id, portfolio_record)
 
         await self._publish_portfolio_prioritized(
             portfolio_record,
@@ -375,10 +383,6 @@ class PortfolioStrategyAgent(BaseAgent):
         resource_capacity = constraints.get("resource_capacity", {})
         min_compliance_spend = constraints.get("min_compliance_spend", 0)
 
-        # Future work: Implement multi-objective optimization using Azure ML
-        # Future work: Use evolutionary algorithms (NSGA-II, MOGA) for Pareto optimization
-        # Future work: Apply constraint satisfaction programming
-
         prioritization = await self._prioritize_portfolio(
             projects,
             self.default_weights,
@@ -412,6 +416,9 @@ class PortfolioStrategyAgent(BaseAgent):
                 }
             )
 
+        if not math.isfinite(budget_ceiling):
+            budget_ceiling = sum(item["cost"] for item in scored_projects)
+
         selected_projects = await self._optimize_knapsack(
             scored_projects, budget_ceiling, min_compliance_spend, resource_capacity
         )
@@ -421,7 +428,8 @@ class PortfolioStrategyAgent(BaseAgent):
         # Calculate portfolio metrics
         portfolio_metrics = await self._calculate_portfolio_metrics(selected_projects)
 
-        return {
+        optimization_record = {
+            "optimization_id": f"OPT-{uuid.uuid4().hex}",
             "selected_projects": selected_projects,
             "total_projects": len(selected_projects),
             "total_cost": total_cost,
@@ -431,6 +439,13 @@ class PortfolioStrategyAgent(BaseAgent):
             "constraints_applied": constraints,
             "optimized_at": datetime.utcnow().isoformat(),
         }
+        if self.db_service:
+            await self.db_service.store(
+                "portfolio_optimization",
+                optimization_record["optimization_id"],
+                optimization_record,
+            )
+        return optimization_record
 
     async def _run_scenario_analysis(self, scenarios: list[dict[str, Any]]) -> dict[str, Any]:
         """
@@ -447,13 +462,19 @@ class PortfolioStrategyAgent(BaseAgent):
 
             # Extract scenario-specific parameters
             budget_multiplier = scenario.get("budget_multiplier", 1.0)
-            scenario.get("capacity_multiplier", 1.0)
+            capacity_multiplier = scenario.get("capacity_multiplier", 1.0)
             priority_shift = scenario.get("priority_shift", {})
+            parameter_multipliers = scenario.get("parameter_multipliers", {})
 
             # Adjust constraints based on scenario
+            base_resource_capacity = scenario.get("resource_capacity", {})
+            adjusted_resource_capacity = {
+                resource: value * capacity_multiplier
+                for resource, value in base_resource_capacity.items()
+            }
             adjusted_constraints = {
                 "budget_ceiling": scenario.get("budget_ceiling", 1000000) * budget_multiplier,
-                "resource_capacity": {},  # Future work: Apply capacity multiplier
+                "resource_capacity": adjusted_resource_capacity,
                 "min_compliance_spend": scenario.get("min_compliance_spend", 0),
             }
 
@@ -469,8 +490,14 @@ class PortfolioStrategyAgent(BaseAgent):
                 adjusted_weights = {k: v / total_weight for k, v in adjusted_weights.items()}
 
             # Run optimization for this scenario
+            scenario_projects = self._apply_scenario_multipliers(
+                scenario.get("projects", []), parameter_multipliers
+            )
             optimization_result = await self._optimize_portfolio(
-                scenario.get("projects", []), adjusted_constraints
+                scenario_projects,
+                adjusted_constraints,
+                tenant_id=scenario.get("tenant_id", "unknown"),
+                correlation_id=scenario.get("correlation_id", scenario_id),
             )
 
             result = {
@@ -487,6 +514,18 @@ class PortfolioStrategyAgent(BaseAgent):
                 "results": optimization_result,
                 "created_at": datetime.utcnow().isoformat(),
             }
+            if self.db_service:
+                await self.db_service.store(
+                    "portfolio_scenarios",
+                    scenario_id,
+                    {
+                        "scenario_id": scenario_id,
+                        "scenario_name": scenario_name,
+                        "parameters": scenario,
+                        "results": optimization_result,
+                        "created_at": datetime.utcnow().isoformat(),
+                    },
+                )
 
             return result
 
@@ -689,11 +728,40 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _score_strategic_alignment(self, project: dict[str, Any]) -> float:
         """Score project strategic alignment (0-1)."""
-        # Future work: Use ML model trained on historical outcomes
-        # Future work: Use NLP to analyze project description against strategic objectives
+        objectives = project.get("objectives") or self.strategic_objectives
+        if isinstance(objectives, list) and objectives:
+            alignment_scores = [
+                await self._calculate_objective_alignment(project, objective)
+                for objective in objectives
+                if isinstance(objective, dict)
+            ]
+            if alignment_scores:
+                return max(0.0, min(1.0, sum(alignment_scores) / len(alignment_scores)))
 
-        # Baseline scoring
-        return project.get("strategic_score", 0.7)  # type: ignore
+        project_text = " ".join(
+            [
+                str(project.get("name", "")),
+                str(project.get("description", "")),
+                " ".join(project.get("tags", []) or []),
+            ]
+        )
+        strategic_keywords = set(project.get("strategic_keywords", []) or [])
+        if strategic_keywords:
+            project_text = f"{project_text} {' '.join(strategic_keywords)}"
+
+        project_terms = self._extract_keywords(project_text)
+        if not project_terms:
+            return float(project.get("strategic_score", 0.7))
+
+        strategic_terms = self._extract_keywords(
+            " ".join(str(obj) for obj in self.strategic_objectives)
+        )
+        if not strategic_terms:
+            return float(project.get("strategic_score", 0.7))
+
+        overlap = len(project_terms & strategic_terms)
+        score = overlap / max(1, len(strategic_terms))
+        return max(0.0, min(1.0, score))
 
     async def _score_roi(self, project: dict[str, Any]) -> float:
         """Score project ROI (0-1)."""
@@ -812,10 +880,70 @@ class PortfolioStrategyAgent(BaseAgent):
         self, project: dict[str, Any], objective: dict[str, Any]
     ) -> float:
         """Calculate alignment between project and strategic objective."""
-        # Future work: Use Azure Cognitive Services for semantic similarity
+        objective_text = " ".join(
+            [
+                str(objective.get("name", "")),
+                str(objective.get("description", "")),
+                " ".join(objective.get("keywords", []) or []),
+            ]
+        )
+        project_text = " ".join(
+            [
+                str(project.get("name", "")),
+                str(project.get("description", "")),
+                " ".join(project.get("tags", []) or []),
+                " ".join(project.get("benefits", []) or []),
+            ]
+        )
+        objective_terms = self._extract_keywords(objective_text)
+        project_terms = self._extract_keywords(project_text)
+        if not objective_terms:
+            return 0.0
 
-        # Baseline
-        return 0.75
+        matched = len(project_terms & objective_terms)
+        score = matched / max(1, len(objective_terms))
+
+        objective_ids = {objective.get("id"), objective.get("name")}
+        project_objectives = set(project.get("strategic_objectives", []) or [])
+        if objective_ids & project_objectives:
+            score = max(score, 0.85)
+
+        return max(0.0, min(1.0, score))
+
+    def _extract_keywords(self, text: str) -> set[str]:
+        tokens = re.findall(r"[a-z0-9]+", text.lower())
+        return {token for token in tokens if len(token) > 3}
+
+    def _apply_scenario_multipliers(
+        self, projects: list[dict[str, Any]], multipliers: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        if not multipliers:
+            return list(projects)
+
+        adjusted_projects = []
+        for project in projects:
+            adjusted = dict(project)
+            for field, multiplier in multipliers.items():
+                if (
+                    field == "projections"
+                    and isinstance(project.get("projections"), dict)
+                    and isinstance(multiplier, dict)
+                ):
+                    projections = dict(project["projections"])
+                    for key, proj_multiplier in multiplier.items():
+                        if key in projections and isinstance(projections[key], (int, float)):
+                            projections[key] = projections[key] * proj_multiplier
+                    adjusted["projections"] = projections
+                    continue
+                if isinstance(adjusted.get(field), (int, float)) and isinstance(
+                    multiplier, (int, float)
+                ):
+                    adjusted[field] = adjusted[field] * multiplier
+                    if field in {"roi", "strategic_score"}:
+                        adjusted[field] = max(0.0, min(1.0, adjusted[field]))
+            adjusted_projects.append(adjusted)
+
+        return adjusted_projects
 
     async def _calculate_portfolio_metrics(
         self, selected_projects: list[dict[str, Any]]
