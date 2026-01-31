@@ -16,10 +16,10 @@ from typing import Any
 
 from approval_workflow_agent import ApprovalWorkflowAgent
 
-from agents.runtime import BaseAgent
-from agents.runtime.src.state_store import TenantStateStore
 from agents.common.connector_integration import DatabaseStorageService, ITSMIntegrationService
 from agents.common.integration_services import NaiveBayesTextClassifier
+from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class ChangeConfigurationAgent(BaseAgent):

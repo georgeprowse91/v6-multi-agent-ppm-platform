@@ -10,13 +10,13 @@ for use by agents. These services handle:
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
 import logging
 import os
 import smtplib
 import ssl
 import sys
-import importlib
-import importlib.util
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.message import EmailMessage
@@ -28,15 +28,25 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
 CONNECTORS_ROOT = REPO_ROOT / "connectors"
 
-for connector_dir in CONNECTORS_ROOT.iterdir():
-    src_path = connector_dir / "src"
-    if src_path.is_dir() and str(src_path) not in sys.path:
-        sys.path.insert(0, str(src_path))
 
-if str(CONNECTOR_SDK_PATH) not in sys.path:
-    sys.path.insert(0, str(CONNECTOR_SDK_PATH))
+def _ensure_connector_paths() -> None:
+    for connector_dir in CONNECTORS_ROOT.iterdir():
+        src_path = connector_dir / "src"
+        if src_path.is_dir() and str(src_path) not in sys.path:
+            sys.path.insert(0, str(src_path))
 
-from base_connector import ConnectorConfig, ConnectorCategory
+    if str(CONNECTOR_SDK_PATH) not in sys.path:
+        sys.path.insert(0, str(CONNECTOR_SDK_PATH))
+
+
+def _get_connector_types() -> tuple[type, type]:
+    _ensure_connector_paths()
+    from base_connector import ConnectorCategory, ConnectorConfig
+
+    return ConnectorConfig, ConnectorCategory
+
+
+ConnectorConfig, ConnectorCategory = _get_connector_types()
 
 logger = logging.getLogger(__name__)
 

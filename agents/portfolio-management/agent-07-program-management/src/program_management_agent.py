@@ -17,9 +17,9 @@ from typing import Any
 from events import ProgramCreatedEvent, ProgramRoadmapUpdatedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.connector_integration import DatabaseStorageService
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
-from agents.common.connector_integration import DatabaseStorageService
 
 
 class ProgramManagementAgent(BaseAgent):

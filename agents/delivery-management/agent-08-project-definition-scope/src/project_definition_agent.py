@@ -20,14 +20,14 @@ from observability.tracing import get_trace_id
 from scope_research import generate_scope_from_search
 from web_search import search_web
 
-from agents.runtime import BaseAgent, InMemoryEventBus
-from agents.runtime.src.state_store import TenantStateStore
 from agents.common.connector_integration import (
     DatabaseStorageService,
     DocumentManagementService,
     DocumentMetadata,
     ProjectManagementService,
 )
+from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class ProjectDefinitionAgent(BaseAgent):
