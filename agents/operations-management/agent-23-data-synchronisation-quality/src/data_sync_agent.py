@@ -11,6 +11,7 @@ Specification: agents/operations-management/agent-23-data-synchronisation-qualit
 import hashlib
 import json
 import os
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -20,7 +21,7 @@ import yaml
 from observability.tracing import get_trace_id
 from security.lineage import mask_lineage_payload
 
-from agents.common.connector_integration import DatabaseStorageService
+from agents.common.connector_integration import DatabaseStorageService, _ensure_connector_paths
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.event_bus import EventBus, ServiceBusEventBus
@@ -40,6 +41,7 @@ try:
     from azure.keyvault.secrets import SecretClient
     from azure.mgmt.datafactory import DataFactoryManagementClient
     from azure.monitor.ingestion import LogsIngestionClient
+    from azure.servicebus import ServiceBusMessage
     from azure.servicebus.aio import ServiceBusClient
 except ImportError:  # pragma: no cover - optional dependencies
     AzureKeyCredential = None
@@ -49,6 +51,7 @@ except ImportError:  # pragma: no cover - optional dependencies
     SecretClient = None
     DataFactoryManagementClient = None
     LogsIngestionClient = None
+    ServiceBusMessage = None
     ServiceBusClient = None
 
 try:
@@ -158,6 +161,8 @@ class DataSyncAgent(BaseAgent):
         self.db_service: DatabaseStorageService | None = None
         self.event_bus: EventBus | None = None
         self.service_bus_client: Any | None = None
+        self.service_bus_queue_sender: Any | None = None
+        self.service_bus_topic_sender: Any | None = None
         self.service_bus_topic_name = os.getenv("AZURE_SERVICE_BUS_TOPIC_NAME", "ppm-events")
         self.service_bus_queue_name = os.getenv("AZURE_SERVICE_BUS_QUEUE_NAME", "ppm-sync-queue")
         self.event_grid_client: Any | None = None
@@ -167,6 +172,10 @@ class DataSyncAgent(BaseAgent):
         self.data_factory_pipelines: list[str] = []
         self.function_app: Any | None = None
         self.function_names: list[str] = []
+        self.data_factory_resource_group = os.getenv("AZURE_RESOURCE_GROUP")
+        self.data_factory_name = os.getenv("AZURE_DATA_FACTORY_NAME")
+        self.function_base_url = os.getenv("AZURE_FUNCTION_BASE_URL")
+        self.function_key = os.getenv("AZURE_FUNCTION_KEY")
         self.validation_rules: dict[str, list[dict[str, Any]]] = {}
         self.seen_record_hashes: dict[str, set[str]] = {}
         self.latency_records: list[dict[str, Any]] = []
@@ -338,7 +347,7 @@ class DataSyncAgent(BaseAgent):
         sync_started_at = datetime.utcnow()
         self.logger.info(f"Synchronizing {entity_type} from {source_system}")
         await self._publish_event(
-            "sync.started",
+            "sync.start",
             {
                 "tenant_id": tenant_id,
                 "entity_type": entity_type,
@@ -349,12 +358,14 @@ class DataSyncAgent(BaseAgent):
 
         if self._is_duplicate_record(tenant_id, entity_type, data):
             await self._publish_event(
-                "sync.duplicate.discarded",
+                "sync.complete",
                 {
                     "tenant_id": tenant_id,
                     "entity_type": entity_type,
                     "source_system": source_system,
                     "started_at": sync_started_at.isoformat(),
+                    "finished_at": datetime.utcnow().isoformat(),
+                    "status": "duplicate",
                 },
             )
             return {
@@ -369,7 +380,7 @@ class DataSyncAgent(BaseAgent):
         validation_result = await self._validate_data(entity_type, data)
         if not validation_result.get("valid"):
             await self._publish_event(
-                "sync.failed",
+                "sync.complete",
                 {
                     "tenant_id": tenant_id,
                     "entity_type": entity_type,
@@ -377,6 +388,8 @@ class DataSyncAgent(BaseAgent):
                     "error": "validation_failed",
                     "errors": validation_result.get("errors"),
                     "started_at": sync_started_at.isoformat(),
+                    "finished_at": datetime.utcnow().isoformat(),
+                    "status": "failed",
                 },
             )
             return {
@@ -388,6 +401,7 @@ class DataSyncAgent(BaseAgent):
         try:
             # Transform data using mapping rules
             transformed_data = await self._transform_data(entity_type, data, source_system)
+            await self._run_etl_workflows(tenant_id, entity_type, transformed_data, source_system)
 
             # Check for existing master record
             existing_master = await self._find_existing_master(entity_type, transformed_data)
@@ -433,7 +447,7 @@ class DataSyncAgent(BaseAgent):
                 sync_finished_at,
             )
             await self._publish_event(
-                "sync.succeeded",
+                "sync.complete",
                 {
                     "tenant_id": tenant_id,
                     "entity_type": entity_type,
@@ -442,6 +456,7 @@ class DataSyncAgent(BaseAgent):
                     "started_at": sync_started_at.isoformat(),
                     "finished_at": sync_finished_at.isoformat(),
                     "latency_seconds": latency_seconds,
+                    "status": "success",
                 },
             )
 
@@ -454,13 +469,15 @@ class DataSyncAgent(BaseAgent):
             }
         except Exception as exc:
             await self._publish_event(
-                "sync.failed",
+                "sync.complete",
                 {
                     "tenant_id": tenant_id,
                     "entity_type": entity_type,
                     "source_system": source_system,
                     "error": str(exc),
                     "started_at": sync_started_at.isoformat(),
+                    "finished_at": datetime.utcnow().isoformat(),
+                    "status": "failed",
                 },
             )
             raise
@@ -920,6 +937,7 @@ class DataSyncAgent(BaseAgent):
                 os.environ[secret_name] = secret.value
 
     async def _initialize_connectors(self) -> None:
+        _ensure_connector_paths()
         try:
             from base_connector import ConnectorCategory, ConnectorConfig
             from jira_connector import JiraConnector
@@ -975,7 +993,6 @@ class DataSyncAgent(BaseAgent):
     async def _initialize_service_bus(self) -> None:
         if self.config and self.config.get("event_bus"):
             self.event_bus = self.config["event_bus"]
-            return
         connection_string = os.getenv("AZURE_SERVICE_BUS_CONNECTION_STRING")
         if not connection_string:
             return
@@ -986,6 +1003,15 @@ class DataSyncAgent(BaseAgent):
         if ServiceBusClient is None:
             return
         self.service_bus_client = ServiceBusClient.from_connection_string(connection_string)
+        try:
+            self.service_bus_queue_sender = self.service_bus_client.get_queue_sender(
+                queue_name=self.service_bus_queue_name
+            )
+            self.service_bus_topic_sender = self.service_bus_client.get_topic_sender(
+                topic_name=self.service_bus_topic_name
+            )
+        except Exception as exc:  # pragma: no cover - network dependent
+            self.logger.warning("service_bus_sender_unavailable", extra={"error": str(exc)})
 
     async def _initialize_event_grid(self) -> None:
         endpoint = os.getenv("EVENT_GRID_ENDPOINT")
@@ -1011,8 +1037,8 @@ class DataSyncAgent(BaseAgent):
             return
         credential = DefaultAzureCredential()
         self.data_factory_client = DataFactoryManagementClient(credential, subscription_id)
-        resource_group = os.getenv("AZURE_RESOURCE_GROUP")
-        factory_name = os.getenv("AZURE_DATA_FACTORY_NAME")
+        resource_group = self.data_factory_resource_group
+        factory_name = self.data_factory_name
         if resource_group and factory_name and self.data_factory_pipelines:
             for pipeline_name in self.data_factory_pipelines:
                 try:  # pragma: no cover - network dependent
@@ -1031,6 +1057,13 @@ class DataSyncAgent(BaseAgent):
         if not azure_functions:
             return
         self.function_app = azure_functions.FunctionApp()
+        if not self.function_names:
+            return
+        if not self.function_base_url:
+            self.logger.info(
+                "function_base_url_missing",
+                extra={"configured_functions": self.function_names},
+            )
 
     async def _initialize_monitoring(self) -> None:
         endpoint = os.getenv("LOG_ANALYTICS_ENDPOINT")
@@ -1040,9 +1073,48 @@ class DataSyncAgent(BaseAgent):
         self.log_analytics_client = LogsIngestionClient(endpoint=endpoint, credential=credential)
 
     async def _publish_event(self, topic: str, payload: dict[str, Any]) -> None:
-        if not self.event_bus:
+        if self.event_bus:
+            await self.event_bus.publish(topic, payload)
+        await self._publish_service_bus_message(topic, payload)
+        await self._publish_event_grid_event(topic, payload)
+
+    async def _publish_service_bus_message(self, topic: str, payload: dict[str, Any]) -> None:
+        if not self.service_bus_client or not ServiceBusMessage:
             return
-        await self.event_bus.publish(topic, payload)
+        message = ServiceBusMessage(
+            json.dumps(
+                {"topic": topic, "payload": payload, "published_at": datetime.utcnow().isoformat()},
+                default=str,
+            )
+        )
+        if self.service_bus_topic_sender:
+            try:  # pragma: no cover - network dependent
+                async with self.service_bus_topic_sender:
+                    await self.service_bus_topic_sender.send_messages(message)
+            except Exception as exc:  # pragma: no cover - network dependent
+                self.logger.warning("service_bus_topic_publish_failed", extra={"error": str(exc)})
+        if self.service_bus_queue_sender:
+            try:  # pragma: no cover - network dependent
+                async with self.service_bus_queue_sender:
+                    await self.service_bus_queue_sender.send_messages(message)
+            except Exception as exc:  # pragma: no cover - network dependent
+                self.logger.warning("service_bus_queue_publish_failed", extra={"error": str(exc)})
+
+    async def _publish_event_grid_event(self, topic: str, payload: dict[str, Any]) -> None:
+        if not self.event_grid_client:
+            return
+        event = {
+            "id": str(uuid.uuid4()),
+            "subject": f"data-sync/{topic}",
+            "eventType": topic,
+            "eventTime": datetime.utcnow().isoformat() + "Z",
+            "dataVersion": "1.0",
+            "data": payload,
+        }
+        try:  # pragma: no cover - network dependent
+            await self.event_grid_client.send([event])
+        except Exception as exc:  # pragma: no cover - network dependent
+            self.logger.warning("event_grid_publish_failed", extra={"error": str(exc)})
 
     def _is_duplicate_record(self, tenant_id: str, entity_type: str, data: dict[str, Any]) -> bool:
         normalized_payload = json.dumps(
@@ -1076,6 +1148,87 @@ class DataSyncAgent(BaseAgent):
         }
         self.latency_records.append(record)
         await self._ingest_latency_metric(record)
+
+    async def _run_etl_workflows(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        payload: dict[str, Any],
+        source_system: str,
+    ) -> None:
+        await self._trigger_data_factory_pipelines(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            payload=payload,
+            source_system=source_system,
+        )
+        await self._invoke_transformation_functions(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            payload=payload,
+            source_system=source_system,
+        )
+
+    async def _trigger_data_factory_pipelines(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        payload: dict[str, Any],
+        source_system: str,
+    ) -> None:
+        if not self.data_factory_client:
+            return
+        if not self.data_factory_resource_group or not self.data_factory_name:
+            return
+        for pipeline_name in self.data_factory_pipelines:
+            try:  # pragma: no cover - network dependent
+                self.data_factory_client.pipelines.create_run(
+                    resource_group_name=self.data_factory_resource_group,
+                    factory_name=self.data_factory_name,
+                    pipeline_name=pipeline_name,
+                    parameters={
+                        "tenant_id": tenant_id,
+                        "entity_type": entity_type,
+                        "source_system": source_system,
+                        "payload": payload,
+                    },
+                )
+            except Exception as exc:  # pragma: no cover - network dependent
+                self.logger.warning(
+                    "data_factory_pipeline_trigger_failed",
+                    extra={"pipeline": pipeline_name, "error": str(exc)},
+                )
+
+    async def _invoke_transformation_functions(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        payload: dict[str, Any],
+        source_system: str,
+    ) -> None:
+        if not self.function_names or not self.function_base_url:
+            return
+        headers = {"Content-Type": "application/json"}
+        if self.function_key:
+            headers["x-functions-key"] = self.function_key
+        for function_name in self.function_names:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    await client.post(
+                        f"{self.function_base_url.rstrip('/')}/api/{function_name}",
+                        json={
+                            "tenant_id": tenant_id,
+                            "entity_type": entity_type,
+                            "source_system": source_system,
+                            "payload": payload,
+                        },
+                        headers=headers,
+                    )
+            except httpx.RequestError:
+                self.logger.warning(
+                    "function_invocation_failed",
+                    extra={"function": function_name},
+                )
 
     async def _ingest_latency_metric(self, record: dict[str, Any]) -> None:
         if not self.log_analytics_client:
@@ -1279,6 +1432,15 @@ class DataSyncAgent(BaseAgent):
             "status": "pending",
             "detected_at": datetime.utcnow().isoformat(),
         }
+        await self._publish_event(
+            "conflict.detected",
+            {
+                "conflict_id": conflict_id,
+                "master_id": master_id,
+                "conflicts": conflicts,
+                "detected_at": self.conflicts[conflict_id]["detected_at"],
+            },
+        )
         return conflict_id
 
     async def _apply_conflict_resolution(
@@ -1334,6 +1496,10 @@ class DataSyncAgent(BaseAgent):
         self.logger.info("Cleaning up Data Synchronization & Consistency Agent...")
         if self.event_bus and hasattr(self.event_bus, "stop"):
             await self.event_bus.stop()
+        if self.service_bus_queue_sender and hasattr(self.service_bus_queue_sender, "close"):
+            await self.service_bus_queue_sender.close()
+        if self.service_bus_topic_sender and hasattr(self.service_bus_topic_sender, "close"):
+            await self.service_bus_topic_sender.close()
         if self.service_bus_client and hasattr(self.service_bus_client, "close"):
             await self.service_bus_client.close()
         if self.sql_engine and hasattr(self.sql_engine, "dispose"):

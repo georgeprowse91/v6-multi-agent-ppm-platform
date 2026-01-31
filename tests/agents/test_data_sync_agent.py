@@ -73,8 +73,8 @@ async def test_data_sync_persists_and_emits_audit(tmp_path, monkeypatch):
     )
     assert agent.sync_event_store.get("tenant-sync", sync["sync_event_id"])
     assert sync["latency_seconds"] >= 0
-    assert any(topic == "sync.started" for topic, _payload in event_bus.published)
-    assert any(topic == "sync.succeeded" for topic, _payload in event_bus.published)
+    assert any(topic == "sync.start" for topic, _payload in event_bus.published)
+    assert any(topic == "sync.complete" for topic, _payload in event_bus.published)
 
     lineage_records = agent.sync_lineage_store.list("tenant-sync")
     assert lineage_records
@@ -125,6 +125,56 @@ async def test_data_sync_validation_rejects_missing_fields(tmp_path):
     valid = await agent.validate_input({"action": "sync_data", "entity_type": "project"})
 
     assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_data_sync_loads_validation_rules_and_pipelines(tmp_path):
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+        }
+    )
+    await agent.initialize()
+
+    assert "project" in agent.validation_rules
+    assert "default" in agent.validation_rules
+    assert "sync-projects" in agent.data_factory_pipelines
+    assert "normalize-projects" in agent.function_names
+
+
+@pytest.mark.asyncio
+async def test_data_sync_emits_conflict_event(tmp_path):
+    event_bus = FakeEventBus()
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "create_master_record",
+            "tenant_id": "tenant-sync",
+            "entity_type": "project",
+            "data": {"id": "proj-1", "name": "Apollo", "owner": "alice"},
+        }
+    )
+
+    await agent.process(
+        {
+            "action": "update_master_record",
+            "tenant_id": "tenant-sync",
+            "master_id": created["master_id"],
+            "data": {"owner": "bob"},
+            "source_system": "jira",
+        }
+    )
+
+    assert any(topic == "conflict.detected" for topic, _payload in event_bus.published)
 
 
 @pytest.mark.asyncio

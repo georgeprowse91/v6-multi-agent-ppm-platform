@@ -52,6 +52,8 @@ Set the following variables to enable full integration:
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_RESOURCE_GROUP`
 - `AZURE_DATA_FACTORY_NAME`
+- `AZURE_FUNCTION_BASE_URL` (Function App base URL for ETL/transformations)
+- `AZURE_FUNCTION_KEY` (optional, function key for secured endpoints)
 - `AZURE_KEY_VAULT_URL`
 
 **Azure Monitor / Log Analytics**
@@ -71,7 +73,8 @@ Set the following variables to enable full integration:
 2. Ensure the validation rules and pipeline configuration files exist:
    - `config/agent-23/validation_rules.yaml`
    - `config/agent-23/pipelines.yaml`
-3. Run the agent locally:
+3. If you want to invoke Azure Functions locally, expose the Function App base URL and key in `.env`.
+4. Run the agent locally:
 
 ```bash
 python -m tools.agent_runner run-agent --name agent-23-data-synchronisation-quality --dry-run
@@ -89,3 +92,11 @@ python -m tools.agent_runner run-agent --name agent-23-data-synchronisation-qual
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
 - Runtime errors about missing secrets: populate the required env vars in `.env`.
 - Docker execution fails: verify Docker is running and the agent has a `Dockerfile`.
+
+## Events emitted
+
+The agent publishes the following Service Bus events during synchronization:
+
+- `sync.start` when a synchronization begins
+- `sync.complete` on success, failure, or duplicate detection
+- `conflict.detected` when update conflicts are recorded
