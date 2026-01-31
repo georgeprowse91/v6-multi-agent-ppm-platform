@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import logging
 import os
+import smtplib
+import ssl
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
 
@@ -1073,20 +1076,137 @@ class NotificationService:
         Returns:
             Send status
         """
-        connector = self._get_connector("email")
+        metadata = metadata or {}
 
-        if connector is None:
-            logger.info("Mock sending email")
+        def get_setting(key: str, default: Any | None = None) -> Any | None:
+            return self.config.get(key) or os.getenv(key, default)
+
+        provider = (get_setting("email_provider") or get_setting("EMAIL_PROVIDER") or "smtp").lower()
+        smtp_host = get_setting("smtp_host") or get_setting("EMAIL_SMTP_HOST")
+        sendgrid_key = get_setting("sendgrid_api_key") or get_setting("SENDGRID_API_KEY")
+
+        if provider == "sendgrid" and not sendgrid_key:
+            logger.error("SendGrid provider selected but SENDGRID_API_KEY is not configured")
             return {
-                "status": "sent_mock",
+                "status": "failed",
                 "to": to,
                 "subject": subject,
-                "sent_at": datetime.now(timezone.utc).isoformat(),
-                "metadata": metadata or {},
+                "error": "SendGrid API key not configured",
             }
 
-        logger.info("Email connector available but not implemented")
-        return {"status": "pending", "to": to, "subject": subject}
+        if provider == "smtp" and not smtp_host:
+            if sendgrid_key:
+                provider = "sendgrid"
+            else:
+                logger.info("Email not configured - using mock notification service")
+                return {
+                    "status": "sent_mock",
+                    "to": to,
+                    "subject": subject,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                    "metadata": metadata,
+                }
+
+        email_from = get_setting("email_from") or get_setting("EMAIL_FROM") or "no-reply@example.com"
+        reply_to = metadata.get("reply_to") or get_setting("EMAIL_REPLY_TO")
+        cc = metadata.get("cc")
+        bcc = metadata.get("bcc")
+        html_body = metadata.get("html_body")
+
+        try:
+            if provider == "sendgrid":
+                try:
+                    from sendgrid import SendGridAPIClient
+                    from sendgrid.helpers.mail import Mail
+                except ImportError as exc:
+                    logger.error("SendGrid library not installed")
+                    return {
+                        "status": "failed",
+                        "to": to,
+                        "subject": subject,
+                        "error": f"SendGrid library not installed: {exc}",
+                    }
+
+                message = Mail(
+                    from_email=email_from,
+                    to_emails=[to],
+                    subject=subject,
+                    plain_text_content=body,
+                )
+                if html_body:
+                    message.html_content = html_body
+                if cc:
+                    message.cc = cc if isinstance(cc, list) else [cc]
+                if bcc:
+                    message.bcc = bcc if isinstance(bcc, list) else [bcc]
+
+                client = SendGridAPIClient(sendgrid_key)
+                response = client.send(message)
+                status = "sent" if 200 <= response.status_code < 300 else "failed"
+                return {
+                    "status": status,
+                    "to": to,
+                    "subject": subject,
+                    "provider": "sendgrid",
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                    "metadata": metadata,
+                    "sendgrid_status": response.status_code,
+                }
+
+            smtp_port = int(get_setting("smtp_port") or get_setting("EMAIL_SMTP_PORT") or 587)
+            smtp_user = get_setting("smtp_user") or get_setting("EMAIL_SMTP_USER")
+            smtp_password = get_setting("smtp_password") or get_setting("EMAIL_SMTP_PASSWORD")
+            use_ssl = str(get_setting("smtp_use_ssl") or get_setting("EMAIL_SMTP_USE_SSL") or "").lower()
+            use_tls = str(get_setting("smtp_use_tls") or get_setting("EMAIL_SMTP_USE_TLS") or "").lower()
+
+            message = EmailMessage()
+            message["Subject"] = subject
+            message["From"] = email_from
+            message["To"] = to
+            if reply_to:
+                message["Reply-To"] = reply_to
+            if cc:
+                message["Cc"] = ", ".join(cc) if isinstance(cc, list) else cc
+            if bcc:
+                message["Bcc"] = ", ".join(bcc) if isinstance(bcc, list) else bcc
+            message.set_content(body)
+            if html_body:
+                message.add_alternative(html_body, subtype="html")
+
+            should_use_ssl = use_ssl in {"1", "true", "yes"} or smtp_port == 465
+            should_use_tls = use_tls in {"1", "true", "yes"} or smtp_port == 587
+
+            if should_use_ssl:
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context) as server:
+                    if smtp_user and smtp_password:
+                        server.login(smtp_user, smtp_password)
+                    server.send_message(message)
+            else:
+                with smtplib.SMTP(smtp_host, smtp_port) as server:
+                    if should_use_tls:
+                        server.starttls(context=ssl.create_default_context())
+                    if smtp_user and smtp_password:
+                        server.login(smtp_user, smtp_password)
+                    server.send_message(message)
+
+            return {
+                "status": "sent",
+                "to": to,
+                "subject": subject,
+                "provider": "smtp",
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+                "metadata": metadata,
+            }
+        except Exception as exc:
+            logger.error(f"Failed to send email: {exc}")
+            return {
+                "status": "failed",
+                "to": to,
+                "subject": subject,
+                "error": str(exc),
+                "provider": provider,
+            }
 
     async def send_teams_message(
         self, team_id: str, channel_id: str, message: str
