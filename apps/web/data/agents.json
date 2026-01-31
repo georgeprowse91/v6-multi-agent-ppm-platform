@@ -1726,6 +1726,7 @@
             "Purchase order (PO) creation & approval \u2013 convert approved procurement requests into POs; route for approval via the Approval Workflow agent; track PO status, delivery and invoicing.",
             "Invoice receipt & reconciliation \u2013 ingest vendor invoices; match against POs, receipts and contract terms; flag discrepancies; initiate payment processes in ERP.",
             "Vendor performance monitoring \u2013 collect data on vendor delivery, quality and compliance; generate performance dashboards and supplier scorecards; trigger improvement actions or debarment when necessary.",
+            "External vendor research \u2013 enrich vendor evaluations with public signals on financial health, disputes and supplier performance trends; attach source links for transparency.",
             "Compliance & audit support \u2013 enforce procurement policies, thresholds and segregation of duties; maintain audit trails for all procurement actions."
           ]
         },
@@ -1753,7 +1754,8 @@
             "Financial Management Agent (12) \u2013 provides budget availability and integrates invoice payments; updates cost actuals after invoices are reconciled.",
             "Approval Workflow Agent (3) \u2013 orchestrates approvals for procurement requests, vendor selection and contract sign\u2011off.",
             "Compliance & Regulatory Agent (16) \u2013 ensures procurement processes adhere to compliance policies (e.g., anti\u2011bribery, diversity quotas).",
-            "Risk Management Agent (15) \u2013 consumes vendor risk scores and communicates supply\u2011chain risk exposures."
+            "Risk Management Agent (15) \u2013 consumes vendor risk scores and communicates supply\u2011chain risk exposures.",
+            "Web search & summarisation services \u2013 gather public supplier signals (financial health, disputes, ratings) to inform scorecards."
           ]
         },
         {
@@ -1818,6 +1820,7 @@
           "content": [
             "Procurement policies & thresholds \u2013 define spending thresholds requiring competitive bidding, minimum number of proposals, diversity requirements and approval levels.",
             "Vendor scoring criteria \u2013 configure weights for cost, quality, risk, diversity and sustainability when ranking proposals.",
+            "External research toggles \u2013 enableVendorResearch and vendorSearchKeywords to control public supplier research queries.",
             "Contract templates \u2013 maintain approved contract templates and clause libraries; specify which templates apply to categories of procurements.",
             "Currency & tax handling \u2013 define tax rates by jurisdiction and currency conversion rules; align with Financial agent settings.",
             "Integration endpoints \u2013 configure connectors to ERP, procurement and contract management systems; specify authentication mechanisms and refresh schedules.",
@@ -2057,6 +2060,7 @@
             "Mitigation & response planning \u2013 recommend mitigation, avoidance, transfer or acceptance strategies; assign owners and budgets; track response actions and residual risk.",
             "Trigger & threshold monitoring \u2013 define triggers and early warning indicators; automatically monitor data sources to detect when risks may materialise or when thresholds are crossed.",
             "Risk reporting & dashboards \u2013 provide heat maps, risk matrices, bubble charts and timelines to visualise risk landscape; summarise top risks for management review.",
+            "External risk research \u2013 use public signals (market trends, regulatory updates, supplier news) to surface emerging risks with cited sources.",
             "Integration with other disciplines \u2013 link risks to WBS elements, requirements, test cases and compliance controls; propagate risk impacts to schedule, cost and quality forecasts."
           ]
         },
@@ -2086,7 +2090,8 @@
             "Quality Management Agent (14) \u2013 links quality issues to risks; uses defect trends to predict potential risks.",
             "Portfolio Strategy & Optimisation Agent (6) \u2013 considers risk exposure when prioritising projects.",
             "Vendor & Procurement Agent (13) \u2013 provides vendor risk assessments and supply chain vulnerabilities.",
-            "Compliance & Regulatory Agent (16) \u2013 monitors compliance risks and integrates them into the risk register."
+            "Compliance & Regulatory Agent (16) \u2013 monitors compliance risks and integrates them into the risk register.",
+            "Web search & summarisation services \u2013 ingest external risk indicators and condense them for categorisation."
           ]
         },
         {
@@ -2152,6 +2157,7 @@
             "Triggers & thresholds \u2013 specify metrics and conditions to monitor (e.g., variance thresholds, milestone dates, vendor delays); associate triggers with risks.",
             "Monte Carlo simulation settings \u2013 number of iterations, distribution types, correlation assumptions; configurable per project type.",
             "Notification & escalation rules \u2013 determine how alerts are routed (e.g., email, Teams) and which risk levels trigger escalations.",
+            "External research settings \u2013 enableExternalRiskResearch and riskSearchKeywords to control outbound risk research queries.",
             "Integration endpoints \u2013 configure connections to project management systems, document repositories and external risk data APIs.",
             "Azure Implementation Guidance",
             "Data storage: Use Azure Cosmos\u00a0DB for flexible storage of risk registers, triggers and mitigation tasks; store simulation results in Azure Data Lake or Synapse Analytics for analysis.",
@@ -2225,7 +2231,8 @@
             "Policy management & versioning \u2013 manage policies and procedures; route updates for approval; notify stakeholders of changes; maintain version history and audit trails.",
             "Audit preparation & management \u2013 coordinate internal and external audits; prepare documentation packages; provide auditors with read\u2011only access to evidence and control status; track audit findings and remediation.",
             "Compliance dashboards & reporting \u2013 visualise compliance status by requirement, project, program or portfolio; highlight overdue controls, failed tests and upcoming regulatory deadlines.",
-            "Regulatory change monitoring \u2013 monitor sources of regulatory updates (e.g., government websites) and notify relevant stakeholders when new rules or amendments are published."
+            "Regulatory change monitoring \u2013 monitor sources of regulatory updates (e.g., government websites) and notify relevant stakeholders when new rules or amendments are published.",
+            "External regulatory research \u2013 summarise new laws and standards from public sources and flag control mapping gaps with citations."
           ]
         },
         {
@@ -2252,7 +2259,8 @@
             "Quality Management Agent (14) \u2013 cross\u2011reference quality audits with compliance controls; manage overlaps between quality and compliance testing.",
             "Risk Management Agent (15) \u2013 integrate compliance risks into the risk register; adjust risk probability based on compliance status.",
             "Vendor & Procurement Agent (13) \u2013 verify that vendor contracts include required regulatory clauses and certifications; manage vendor compliance documents.",
-            "Security & Privacy (if separate) \u2013 coordinate security controls and privacy requirements to meet standards such as ISO\u00a027001 and GDPR."
+            "Security & Privacy (if separate) \u2013 coordinate security controls and privacy requirements to meet standards such as ISO\u00a027001 and GDPR.",
+            "Web search & summarisation services \u2013 monitor public regulatory feeds and condense updates for gap analysis."
           ]
         },
         {
@@ -2317,6 +2325,7 @@
             "Control testing frequencies \u2013 default test intervals for controls (monthly, quarterly, annually); override per project or control type.",
             "Escalation thresholds \u2013 define thresholds for overdue controls, failed tests and pending remediation tasks; configure escalation paths.",
             "Audit schedule \u2013 plan recurring internal audits by portfolio, program or control group; coordinate with external audit timelines.",
+            "External monitoring toggles \u2013 enableRegulatoryMonitoring and regulatorySearchKeywords to govern public regulatory research.",
             "Integration endpoints \u2013 set endpoints and authentication for GRC platforms, policy feeds and document repositories.",
             "Azure Implementation Guidance",
             "Data storage: Use Azure SQL Database or Cosmos\u00a0DB for structured compliance data (regulations, controls, mappings); store evidence in Azure Blob Storage with appropriate security labels.",

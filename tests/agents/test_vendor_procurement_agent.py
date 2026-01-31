@@ -1,4 +1,5 @@
 import pytest
+import vendor_procurement_agent as vendor_procurement_module
 from vendor_procurement_agent import VendorProcurementAgent
 
 
@@ -138,3 +139,56 @@ async def test_vendor_procurement_validation_rejects_missing_vendor_fields(tmp_p
     valid = await agent.validate_input({"action": "onboard_vendor", "vendor": {"legal_name": "X"}})
 
     assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_research_enriches_scorecard(tmp_path, monkeypatch):
+    async def fake_search(_query: str, *, result_limit: int | None = None) -> list[str]:
+        return ["Vendor health report (https://example.com/vendor)"]
+
+    async def fake_summary(_snippets, **_kwargs):
+        return "Positive financial outlook."
+
+    async def fake_extract(self, _summary, _snippets, *, llm_client=None):
+        return [
+            {
+                "category": "financial",
+                "sentiment": "positive",
+                "detail": "Strong balance sheet.",
+                "source_url": "https://example.com/vendor",
+            }
+        ]
+
+    monkeypatch.setattr(vendor_procurement_module, "search_web", fake_search)
+    monkeypatch.setattr(vendor_procurement_module, "summarize_snippets", fake_summary)
+    monkeypatch.setattr(VendorProcurementAgent, "_extract_vendor_insights", fake_extract)
+
+    agent = VendorProcurementAgent(
+        config={
+            "enable_vendor_research": True,
+            "vendor_store_path": tmp_path / "vendors.json",
+            "contract_store_path": tmp_path / "contracts.json",
+            "invoice_store_path": tmp_path / "invoices.json",
+        }
+    )
+    await agent.initialize()
+
+    vendor_response = await agent.process(
+        {
+            "action": "onboard_vendor",
+            "tenant_id": "tenant-x",
+            "vendor": {
+                "legal_name": "Brightline Labs",
+                "contact_email": "vendor@example.com",
+                "category": "software",
+                "owner": "procurement",
+                "requester": "procurement",
+            },
+        }
+    )
+
+    scorecard = await agent.process(
+        {"action": "get_vendor_scorecard", "tenant_id": "tenant-x", "vendor_id": vendor_response["vendor_id"]}
+    )
+
+    assert scorecard["external_research"]

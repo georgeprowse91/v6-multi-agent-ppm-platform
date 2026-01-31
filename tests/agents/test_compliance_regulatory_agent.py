@@ -1,4 +1,5 @@
 import pytest
+import compliance_regulatory_agent as compliance_regulatory_module
 from compliance_regulatory_agent import ComplianceRegulatoryAgent
 
 
@@ -93,3 +94,45 @@ async def test_compliance_validation_rejects_missing_control_fields(tmp_path):
     )
 
     assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_compliance_external_monitoring_adds_updates(tmp_path, monkeypatch):
+    async def fake_search(_query: str, *, result_limit: int | None = None) -> list[str]:
+        return ["New privacy regulation (https://example.com/regulation)"]
+
+    async def fake_summary(_snippets, **_kwargs):
+        return "New privacy regulation for healthcare."
+
+    async def fake_extract(self, _summary, _snippets, *, llm_client=None):
+        return [
+            {
+                "regulation": "Health Data Privacy Act",
+                "description": "New privacy rules for healthcare data.",
+                "effective_date": "2025-01-01",
+                "region": "US",
+                "source_url": "https://example.com/regulation",
+            }
+        ]
+
+    monkeypatch.setattr(compliance_regulatory_module, "search_web", fake_search)
+    monkeypatch.setattr(compliance_regulatory_module, "summarize_snippets", fake_summary)
+    monkeypatch.setattr(ComplianceRegulatoryAgent, "_extract_regulatory_updates", fake_extract)
+
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "enable_regulatory_monitoring": True,
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "monitor_regulatory_changes",
+            "tenant_id": "tenant-c",
+            "domain": "healthcare",
+        }
+    )
+
+    assert response["external_monitoring"]["updates"]

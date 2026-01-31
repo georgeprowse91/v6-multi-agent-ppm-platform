@@ -9,6 +9,8 @@ audits and evidence collection.
 Specification: agents/delivery-management/agent-16-compliance-regulatory/README.md
 """
 
+import json
+import re
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -16,10 +18,17 @@ from typing import Any
 
 from observability.tracing import get_trace_id
 
+from tools.runtime_paths import bootstrap_runtime_paths
+
+bootstrap_runtime_paths()
+
+from llm.client import LLMClient, LLMProviderError  # noqa: E402
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
 from agents.runtime.src.state_store import TenantStateStore
+from agents.common.web_search import build_search_query, search_web, summarize_snippets
 
 
 class ComplianceRegulatoryAgent(BaseAgent):
@@ -45,6 +54,20 @@ class ComplianceRegulatoryAgent(BaseAgent):
             config.get("regulations", ["GDPR", "SOX", "ISO 27001", "HIPAA", "PCI DSS"])
             if config
             else ["GDPR", "SOX", "ISO 27001", "HIPAA", "PCI DSS"]
+        )
+        self.enable_regulatory_monitoring = (
+            config.get("enable_regulatory_monitoring", False) if config else False
+        )
+        self.regulatory_search_keywords = (
+            config.get(
+                "regulatory_search_keywords",
+                ["law", "regulation", "standard", "guidance", "compliance update"],
+            )
+            if config
+            else ["law", "regulation", "standard", "guidance", "compliance update"]
+        )
+        self.regulatory_search_result_limit = (
+            int(config.get("regulatory_search_result_limit", 5)) if config else 5
         )
 
         self.control_test_frequencies = (
@@ -224,11 +247,19 @@ class ComplianceRegulatoryAgent(BaseAgent):
             )
 
         elif action == "monitor_regulatory_changes":
-            return await self._monitor_regulatory_changes()
+            return await self._monitor_regulatory_changes(
+                domain=input_data.get("domain"),
+                region=input_data.get("region"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "get_compliance_dashboard":
             return await self._get_compliance_dashboard(
-                input_data.get("project_id"), input_data.get("portfolio_id")
+                input_data.get("project_id"),
+                input_data.get("portfolio_id"),
+                domain=input_data.get("domain"),
+                region=input_data.get("region"),
             )
 
         elif action == "generate_compliance_report":
@@ -753,7 +784,65 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "storage_url": evidence_record["file_url"],
         }
 
-    async def _monitor_regulatory_changes(self) -> dict[str, Any]:
+    async def monitor_regulations(
+        self,
+        domain: str,
+        region: str | None,
+        *,
+        llm_client: LLMClient | None = None,
+        result_limit: int | None = None,
+    ) -> dict[str, Any]:
+        """Monitor external sources for new or changing regulations."""
+        if not self.enable_regulatory_monitoring:
+            return {
+                "summary": "",
+                "updates": [],
+                "gaps": [],
+                "sources": [],
+                "used_external_research": False,
+            }
+
+        context = f"{domain} {region or ''}".strip()
+        query = build_search_query(
+            context,
+            "compliance",
+            extra_keywords=self.regulatory_search_keywords,
+        )
+
+        # NOTE: Only high-level context should be sent to external search providers.
+        snippets = await search_web(
+            query, result_limit=result_limit or self.regulatory_search_result_limit
+        )
+        if not snippets:
+            return {
+                "summary": "",
+                "updates": [],
+                "gaps": [],
+                "sources": [],
+                "used_external_research": False,
+            }
+
+        summary = await summarize_snippets(snippets, llm_client=llm_client, purpose="compliance")
+        updates = await self._extract_regulatory_updates(summary, snippets, llm_client=llm_client)
+        gaps = self._identify_control_gaps(updates)
+        sources = self._extract_sources(snippets)
+
+        return {
+            "summary": summary,
+            "updates": updates,
+            "gaps": gaps,
+            "sources": sources,
+            "used_external_research": True,
+        }
+
+    async def _monitor_regulatory_changes(
+        self,
+        *,
+        domain: str | None,
+        region: str | None,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
         """
         Monitor regulatory changes and updates.
 
@@ -779,6 +868,23 @@ class ComplianceRegulatoryAgent(BaseAgent):
                     }
                 )
 
+        external_monitoring: dict[str, Any] | None = None
+        if self.enable_regulatory_monitoring and domain:
+            try:
+                external_monitoring = await self.monitor_regulations(domain, region)
+            except Exception as exc:
+                self.logger.warning(
+                    "External regulatory monitoring failed",
+                    extra={"error": str(exc), "correlation_id": correlation_id},
+                )
+                external_monitoring = {
+                    "summary": "",
+                    "updates": [],
+                    "gaps": [],
+                    "sources": [],
+                    "used_external_research": False,
+                }
+
         # Future work: Create tasks for updates
         # Future work: Notify stakeholders
 
@@ -786,11 +892,88 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "changes_detected": len(changes),
             "regulations_impacted": len(impacted_regulations),
             "impacted_regulations": impacted_regulations,
+            "external_monitoring": external_monitoring,
             "last_check": datetime.utcnow().isoformat(),
         }
 
+    async def _extract_regulatory_updates(
+        self,
+        summary: str,
+        snippets: list[str],
+        *,
+        llm_client: LLMClient | None = None,
+    ) -> list[dict[str, Any]]:
+        sources = self._extract_sources(snippets)
+        system_prompt = (
+            "You are a compliance analyst. Extract new or changing regulations from the "
+            "summary and snippets. Return ONLY JSON as an array of objects with fields: "
+            "regulation, description, effective_date, region, source_url."
+        )
+        user_prompt = json.dumps(
+            {"summary": summary, "snippets": snippets, "sources": sources},
+            indent=2,
+        )
+
+        llm = llm_client or LLMClient()
+        try:
+            response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
+            data = json.loads(response.content)
+        except (LLMProviderError, ValueError, json.JSONDecodeError) as exc:
+            self.logger.warning("Regulatory extraction failed", extra={"error": str(exc)})
+            return []
+
+        updates: list[dict[str, Any]] = []
+        if not isinstance(data, list):
+            return updates
+        for entry in data:
+            if not isinstance(entry, dict):
+                continue
+            regulation = str(entry.get("regulation", "")).strip()
+            description = str(entry.get("description", "")).strip()
+            if not regulation or not description:
+                continue
+            updates.append(
+                {
+                    "regulation": regulation,
+                    "description": description,
+                    "effective_date": str(entry.get("effective_date", "")).strip(),
+                    "region": str(entry.get("region", "")).strip(),
+                    "source_url": str(entry.get("source_url", "")).strip(),
+                }
+            )
+        return updates
+
+    def _identify_control_gaps(self, updates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        gaps: list[dict[str, Any]] = []
+        known_regulations = set(self.regulation_library.keys())
+        for update in updates:
+            regulation = update.get("regulation")
+            if regulation and regulation not in known_regulations:
+                gaps.append(
+                    {
+                        "regulation": regulation,
+                        "recommended_action": "Review control library and add mappings.",
+                    }
+                )
+        return gaps
+
+    def _extract_sources(self, snippets: list[str]) -> list[dict[str, str]]:
+        sources: list[dict[str, str]] = []
+        for snippet in snippets:
+            match = re.search(r"\((https?://[^)]+)\)", snippet)
+            url = match.group(1) if match else ""
+            if not url:
+                continue
+            sources.append({"url": url, "citation": snippet.strip()})
+        return sources
+
     async def _get_compliance_dashboard(
-        self, project_id: str | None, portfolio_id: str | None
+        self,
+        project_id: str | None,
+        portfolio_id: str | None,
+        *,
+        domain: str | None = None,
+        region: str | None = None,
     ) -> dict[str, Any]:
         """
         Get compliance dashboard.
@@ -800,6 +983,22 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.logger.info(
             f"Getting compliance dashboard for project={project_id}, portfolio={portfolio_id}"
         )
+
+        external_monitoring = None
+        if self.enable_regulatory_monitoring and domain:
+            try:
+                external_monitoring = await self.monitor_regulations(domain, region)
+            except Exception as exc:  # pragma: no cover - defensive
+                self.logger.warning(
+                    "External compliance monitoring failed", extra={"error": str(exc)}
+                )
+                external_monitoring = {
+                    "summary": "",
+                    "updates": [],
+                    "gaps": [],
+                    "sources": [],
+                    "used_external_research": False,
+                }
 
         # Get compliance assessment
         assessment = None
@@ -822,6 +1021,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "control_testing_status": control_status,
             "upcoming_audits": upcoming_audits,
             "recent_findings": recent_findings,
+            "external_monitoring": external_monitoring,
             "dashboard_generated_at": datetime.utcnow().isoformat(),
         }
 
@@ -1104,4 +1304,5 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "compliance_dashboards",
             "compliance_reporting",
             "automated_control_testing",
+            "external_regulatory_monitoring",
         ]

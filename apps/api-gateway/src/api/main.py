@@ -25,10 +25,13 @@ from api.routes import (
     agents,
     analytics,
     audit,
+    compliance_research,
     connectors,
     health,
     lineage,
+    risk_research,
     scope_research,
+    vendor_research,
     workflows,
 )
 from api.runtime_bootstrap import bootstrap_runtime_paths
@@ -210,6 +213,9 @@ app.include_router(workflows.router, prefix="/api/v1", tags=["workflows"])
 app.include_router(audit.router, prefix="/api/v1", tags=["audit"])
 app.include_router(lineage.router, prefix="/api/v1", tags=["lineage"])
 app.include_router(scope_research.router, prefix="/api/v1", tags=["scope-research"])
+app.include_router(risk_research.router, prefix="/api/v1", tags=["risk-research"])
+app.include_router(vendor_research.router, prefix="/api/v1", tags=["vendor-research"])
+app.include_router(compliance_research.router, prefix="/api/v1", tags=["compliance-research"])
 
 
 # Global exception handler

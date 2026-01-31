@@ -1160,6 +1160,56 @@
   color: #ffffff;
 }
 
+.assistant-research-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.assistant-research {
+  flex: 1;
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #1d4ed8;
+}
+
+.assistant-research:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.assistant-research-list,
+.assistant-source-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+}
+
+.assistant-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.assistant-meta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.assistant-gap h5 {
+  margin: 10px 0 4px;
+  font-size: 12px;
+}
+
 .assistant-status {
   margin: 0;
   font-size: 12px;

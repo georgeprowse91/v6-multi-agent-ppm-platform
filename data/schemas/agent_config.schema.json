@@ -231,6 +231,22 @@
               "param_type": "boolean",
               "default_value": true,
               "required": true
+            },
+            {
+              "name": "enable_external_risk_research",
+              "display_name": "Enable External Risk Research",
+              "description": "Allow the agent to call external search APIs for risk signals",
+              "param_type": "boolean",
+              "default_value": false,
+              "required": false
+            },
+            {
+              "name": "risk_search_keywords",
+              "display_name": "Risk Search Keywords",
+              "description": "Extra keywords appended to external risk queries",
+              "param_type": "string_list",
+              "default_value": ["risk", "incident", "supplier"],
+              "required": false
             }
           ],
           "capabilities": ["risk_identification", "risk_assessment", "issue_tracking"],

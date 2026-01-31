@@ -73,28 +73,35 @@ their primary endpoints when run locally (each service defaults to port `8080` u
 | Policy Engine | RBAC/ABAC and policy evaluation. | `GET /healthz`, `POST /policies/evaluate`, `POST /rbac/evaluate`, `POST /abac/evaluate` |
 | Telemetry Service | Ingests platform metrics/events for observability. | `GET /healthz`, `POST /telemetry/ingest` |
 
-## External scope research (optional)
+## External research (optional)
 
-The Project Definition & Scope agent can augment scope, requirements, and WBS proposals with external web
-research. This feature uses a configured search API to retrieve short, public snippets (vendor guidance,
-best-practice articles, regulatory summaries) and blends them with internal templates via the LLM. The goal
-is to help project managers gather relevant information faster while preserving the organization's existing
-scope baselines.
+Several agents can augment their outputs with external web research. The Project Definition & Scope agent
+uses public snippets to inform scope, requirements, and WBS proposals. The Risk, Vendor & Procurement, and
+Compliance agents can optionally enrich their registers with external signals (market trends, supplier
+news, regulatory updates). This feature uses a configured search API to retrieve short, public snippets and
+blends them with internal data via the LLM. The goal is to help project managers gather relevant
+information faster while preserving the organization's existing baselines and governance workflows.
 
 **Configuration**
 - Set `SEARCH_API_ENDPOINT` and `SEARCH_API_KEY` in your environment (see `.env.example`).
 - Optional controls:
   - `SEARCH_API_MIN_INTERVAL` to throttle external requests.
   - `SEARCH_RESULT_LIMIT` to cap snippet volume.
-- Enable the agent flag `enable_external_research` (per project) only when you are ready for outbound calls.
+- Enable the agent flags only when you are ready for outbound calls:
+  - Project Definition & Scope: `enable_external_research`
+  - Risk Management: `enable_external_risk_research`
+  - Vendor & Procurement: `enable_vendor_research`
+  - Compliance & Regulatory: `enable_regulatory_monitoring`
 
 **Security & compliance safeguards**
-- Only high-level objectives should be sent to external search providers; the agent masks sensitive data
-  before issuing queries and logs outbound requests for auditability.
+- Only high-level objectives should be sent to external search providers; never include confidential data,
+  personally identifiable information, or customer-specific details in search queries.
 - If external search fails or returns no useful results, the agent automatically falls back to internal
   templates.
 - External results may be subject to third-party licenses. Review and validate suggested scope items
-  before acceptance or inclusion in project artefacts.
+  or risk/compliance findings before acceptance or inclusion in project artefacts.
+- External research is meant to complement, not replace, internal knowledge and human judgment. It relies
+  on internet connectivity and third-party APIs, which may introduce latency or additional costs.
 
 ## Testing
 

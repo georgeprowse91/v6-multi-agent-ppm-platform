@@ -170,6 +170,78 @@ paths:
                 $ref: "#/components/schemas/ScopeResearchResponse"
         "503":
           description: Orchestrator not initialized
+  /api/v1/projects/{project_id}/risks/research:
+    post:
+      summary: Research emerging risks with external sources
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskResearchRequest"
+      responses:
+        "200":
+          description: Risk research response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskResearchResponse"
+        "503":
+          description: Orchestrator not initialized
+  /api/v1/vendors/{vendor_id}/research:
+    post:
+      summary: Research a vendor using external sources
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorResearchRequest"
+      responses:
+        "200":
+          description: Vendor research response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResearchResponse"
+        "503":
+          description: Orchestrator not initialized
+  /api/v1/projects/{project_id}/compliance/research:
+    post:
+      summary: Monitor regulatory updates with external sources
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplianceResearchRequest"
+      responses:
+        "200":
+          description: Compliance research response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceResearchResponse"
+        "503":
+          description: Orchestrator not initialized
 components:
   schemas:
     ApiRoot:
@@ -272,6 +344,102 @@ components:
           format: date-time
         correlation_id:
           type: string
+    RiskResearchRequest:
+      type: object
+      required:
+        - context
+      properties:
+        context:
+          type: string
+          description: Project domain or context for external risk research.
+        region:
+          type: string
+          description: Optional region for the project.
+        categories:
+          type: array
+          items:
+            type: string
+          description: Optional list of high-level risk categories.
+    RiskResearchResponse:
+      type: object
+      properties:
+        project_id:
+          type: string
+        external_risks:
+          type: array
+          items:
+            type: object
+        added_risks:
+          type: array
+          items:
+            type: object
+        used_external_research:
+          type: boolean
+        notice:
+          type: string
+        correlation_id:
+          type: string
+    VendorResearchRequest:
+      type: object
+      required:
+        - domain
+      properties:
+        domain:
+          type: string
+          description: Vendor domain or procurement category.
+        vendor_name:
+          type: string
+          description: Optional vendor name override.
+    VendorResearchResponse:
+      type: object
+      properties:
+        vendor_id:
+          type: string
+        vendor_name:
+          type: string
+        summary:
+          type: string
+        insights:
+          type: array
+          items:
+            type: object
+        sources:
+          type: array
+          items:
+            type: object
+        used_external_research:
+          type: boolean
+        notice:
+          type: string
+        correlation_id:
+          type: string
+    ComplianceResearchRequest:
+      type: object
+      required:
+        - domain
+      properties:
+        domain:
+          type: string
+          description: Project domain or industry for regulatory monitoring.
+        region:
+          type: string
+          description: Optional region for regulatory monitoring.
+    ComplianceResearchResponse:
+      type: object
+      properties:
+        changes_detected:
+          type: integer
+        regulations_impacted:
+          type: integer
+        impacted_regulations:
+          type: array
+          items:
+            type: object
+        external_monitoring:
+          type: object
+        last_check:
+          type: string
+          format: date-time
     QueryRequest:
       type: object
       required:

@@ -1,6 +1,751 @@
 {
   "components": {
     "schemas": {
+      "AgentConfigModel": {
+        "description": "API model for agent configuration.",
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "capabilities": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "catalog_id": {
+            "title": "Catalog Id",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "parameters": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AgentParameterModel"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "catalog_id",
+          "agent_id",
+          "display_name",
+          "description",
+          "category"
+        ],
+        "title": "AgentConfigModel",
+        "type": "object"
+      },
+      "AgentConfigUpdateModel": {
+        "description": "API model for updating agent configuration.",
+        "properties": {
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          }
+        },
+        "title": "AgentConfigUpdateModel",
+        "type": "object"
+      },
+      "AgentParameterModel": {
+        "description": "API model for agent parameter.",
+        "properties": {
+          "current_value": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Value"
+          },
+          "default_value": {
+            "title": "Default Value"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "max_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Value"
+          },
+          "min_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Value"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          },
+          "param_type": {
+            "title": "Param Type",
+            "type": "string"
+          },
+          "required": {
+            "default": true,
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "display_name",
+          "description",
+          "param_type",
+          "default_value"
+        ],
+        "title": "AgentParameterModel",
+        "type": "object"
+      },
+      "AgentPayload": {
+        "additionalProperties": true,
+        "description": "Typed agent payload envelope for arbitrary response data.",
+        "properties": {},
+        "title": "AgentPayload",
+        "type": "object"
+      },
+      "AgentResponse": {
+        "description": "Standard agent response contract.",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/AgentResponseMetadata"
+          },
+          "success": {
+            "title": "Success",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "metadata"
+        ],
+        "title": "AgentResponse",
+        "type": "object"
+      },
+      "AgentResponseMetadata": {
+        "description": "Standard agent response metadata.",
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "catalog_id": {
+            "title": "Catalog Id",
+            "type": "string"
+          },
+          "correlation_id": {
+            "title": "Correlation Id",
+            "type": "string"
+          },
+          "execution_time_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Time Seconds"
+          },
+          "policy_reasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Reasons"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          }
+        },
+        "required": [
+          "agent_id",
+          "catalog_id",
+          "timestamp",
+          "correlation_id"
+        ],
+        "title": "AgentResponseMetadata",
+        "type": "object"
+      },
+      "AuditEventResponse": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "title": "Actor",
+            "type": "object"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "resource": {
+            "title": "Resource",
+            "type": "object"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "timestamp",
+          "tenant_id",
+          "actor",
+          "action",
+          "resource",
+          "outcome"
+        ],
+        "title": "AuditEventResponse",
+        "type": "object"
+      },
+      "CategoryInfo": {
+        "description": "Information about a connector category.",
+        "properties": {
+          "connector_count": {
+            "title": "Connector Count",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "enabled_connector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled Connector"
+          },
+          "icon": {
+            "title": "Icon",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label",
+          "icon",
+          "description",
+          "connector_count"
+        ],
+        "title": "CategoryInfo",
+        "type": "object"
+      },
+      "ComplianceResearchRequest": {
+        "properties": {
+          "domain": {
+            "description": "Project domain or industry.",
+            "minLength": 2,
+            "title": "Domain",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Region for regulatory monitoring.",
+            "title": "Region"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "title": "ComplianceResearchRequest",
+        "type": "object"
+      },
+      "ComplianceResearchResponse": {
+        "properties": {
+          "changes_detected": {
+            "title": "Changes Detected",
+            "type": "integer"
+          },
+          "external_monitoring": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Monitoring"
+          },
+          "impacted_regulations": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Impacted Regulations",
+            "type": "array"
+          },
+          "last_check": {
+            "title": "Last Check",
+            "type": "string"
+          },
+          "regulations_impacted": {
+            "title": "Regulations Impacted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "changes_detected",
+          "regulations_impacted",
+          "impacted_regulations",
+          "last_check"
+        ],
+        "title": "ComplianceResearchResponse",
+        "type": "object"
+      },
+      "ConnectorConfigRequest": {
+        "description": "Request model for creating/updating connector configuration.",
+        "properties": {
+          "custom_fields": {
+            "title": "Custom Fields",
+            "type": "object"
+          },
+          "instance_url": {
+            "default": "",
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "project_key": {
+            "default": "",
+            "title": "Project Key",
+            "type": "string"
+          },
+          "sync_direction": {
+            "default": "inbound",
+            "pattern": "^(inbound|outbound|bidirectional)$",
+            "title": "Sync Direction",
+            "type": "string"
+          },
+          "sync_frequency": {
+            "default": "daily",
+            "pattern": "^(realtime|hourly|every_4_hours|daily|weekly|manual)$",
+            "title": "Sync Frequency",
+            "type": "string"
+          }
+        },
+        "title": "ConnectorConfigRequest",
+        "type": "object"
+      },
+      "ConnectorConfigResponse": {
+        "description": "Response model for connector configuration.",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "custom_fields": {
+            "title": "Custom Fields",
+            "type": "object"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "health_status": {
+            "title": "Health Status",
+            "type": "string"
+          },
+          "instance_url": {
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "last_sync_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_key": {
+            "title": "Project Key",
+            "type": "string"
+          },
+          "sync_direction": {
+            "title": "Sync Direction",
+            "type": "string"
+          },
+          "sync_frequency": {
+            "title": "Sync Frequency",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_id",
+          "name",
+          "category",
+          "enabled",
+          "sync_direction",
+          "sync_frequency",
+          "instance_url",
+          "project_key",
+          "custom_fields",
+          "health_status",
+          "created_at",
+          "updated_at",
+          "last_sync_at"
+        ],
+        "title": "ConnectorConfigResponse",
+        "type": "object"
+      },
+      "ConnectorListItemResponse": {
+        "description": "Response model for connector list items (combines definition and config).",
+        "properties": {
+          "auth_type": {
+            "title": "Auth Type",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "config_fields": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Config Fields",
+            "type": "array"
+          },
+          "config_schema": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Config Schema",
+            "type": "array"
+          },
+          "configured": {
+            "default": false,
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "custom_fields": {
+            "title": "Custom Fields",
+            "type": "object"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "env_vars": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Env Vars",
+            "type": "array"
+          },
+          "health_status": {
+            "default": "unknown",
+            "title": "Health Status",
+            "type": "string"
+          },
+          "icon": {
+            "title": "Icon",
+            "type": "string"
+          },
+          "instance_url": {
+            "default": "",
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "last_sync_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_key": {
+            "default": "",
+            "title": "Project Key",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "supported_sync_directions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Sync Directions",
+            "type": "array"
+          },
+          "sync_direction": {
+            "default": "inbound",
+            "title": "Sync Direction",
+            "type": "string"
+          },
+          "sync_frequency": {
+            "default": "daily",
+            "title": "Sync Frequency",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_id",
+          "name",
+          "description",
+          "category",
+          "status",
+          "icon",
+          "supported_sync_directions",
+          "auth_type",
+          "config_fields",
+          "config_schema",
+          "env_vars"
+        ],
+        "title": "ConnectorListItemResponse",
+        "type": "object"
+      },
+      "DevUserModel": {
+        "description": "API model for development user profile.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "tenant_id": {
+            "default": "default",
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "email",
+          "role"
+        ],
+        "title": "DevUserModel",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -12,6 +757,82 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ProjectAgentConfigModel": {
+        "description": "API model for project-specific agent configuration.",
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "parameter_overrides": {
+            "default": {},
+            "title": "Parameter Overrides",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "project_id",
+          "agent_id"
+        ],
+        "title": "ProjectAgentConfigModel",
+        "type": "object"
+      },
+      "ProjectAgentConfigUpdateModel": {
+        "description": "API model for updating project agent configuration.",
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "parameter_overrides": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameter Overrides"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "ProjectAgentConfigUpdateModel",
         "type": "object"
       },
       "QueryRequest": {
@@ -39,21 +860,30 @@
         "title": "QueryRequest",
         "type": "object"
       },
-      "QueryResponse": {
-        "description": "Response model for agent queries.",
+      "RiskResearchRequest": {
         "properties": {
-          "data": {
+          "categories": {
             "anyOf": [
               {
-                "type": "object"
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Data"
+            "description": "High-level risk categories.",
+            "title": "Categories"
           },
-          "error": {
+          "context": {
+            "description": "Project domain or context.",
+            "minLength": 3,
+            "title": "Context",
+            "type": "string"
+          },
+          "region": {
             "anyOf": [
               {
                 "type": "string"
@@ -62,28 +892,261 @@
                 "type": "null"
               }
             ],
-            "title": "Error"
+            "description": "Geographic region for the project.",
+            "title": "Region"
+          }
+        },
+        "required": [
+          "context"
+        ],
+        "title": "RiskResearchRequest",
+        "type": "object"
+      },
+      "RiskResearchResponse": {
+        "properties": {
+          "added_risks": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Added Risks",
+            "type": "array"
           },
-          "metadata": {
+          "correlation_id": {
             "anyOf": [
               {
-                "type": "object"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Metadata"
+            "title": "Correlation Id"
           },
-          "success": {
-            "title": "Success",
+          "external_risks": {
+            "items": {
+              "type": "object"
+            },
+            "title": "External Risks",
+            "type": "array"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "used_external_research": {
+            "title": "Used External Research",
             "type": "boolean"
           }
         },
         "required": [
-          "success"
+          "project_id",
+          "external_risks",
+          "added_risks",
+          "used_external_research"
         ],
-        "title": "QueryResponse",
+        "title": "RiskResearchResponse",
+        "type": "object"
+      },
+      "ScopeResearchRequest": {
+        "properties": {
+          "enable_external_research": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enable External Research"
+          },
+          "objective": {
+            "minLength": 3,
+            "title": "Objective",
+            "type": "string"
+          },
+          "search_result_limit": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Result Limit"
+          }
+        },
+        "required": [
+          "objective"
+        ],
+        "title": "ScopeResearchRequest",
+        "type": "object"
+      },
+      "ScopeResearchResponse": {
+        "properties": {
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "requested_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested By"
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Requirements",
+            "type": "array"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "object"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "used_external_research": {
+            "title": "Used External Research",
+            "type": "boolean"
+          },
+          "wbs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Wbs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "objective",
+          "scope",
+          "requirements",
+          "wbs",
+          "sources",
+          "used_external_research",
+          "generated_at"
+        ],
+        "title": "ScopeResearchResponse",
+        "type": "object"
+      },
+      "TestConnectionRequest": {
+        "description": "Request model for testing connection.",
+        "properties": {
+          "instance_url": {
+            "default": "",
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "project_key": {
+            "default": "",
+            "title": "Project Key",
+            "type": "string"
+          }
+        },
+        "title": "TestConnectionRequest",
+        "type": "object"
+      },
+      "TestConnectionResponse": {
+        "description": "Response model for connection test result.",
+        "properties": {
+          "details": {
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tested_at": {
+            "title": "Tested At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "tested_at"
+        ],
+        "title": "TestConnectionResponse",
         "type": "object"
       },
       "ValidationError": {
@@ -117,6 +1180,499 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VendorResearchRequest": {
+        "properties": {
+          "domain": {
+            "description": "Procurement domain or category.",
+            "minLength": 2,
+            "title": "Domain",
+            "type": "string"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional vendor name override.",
+            "title": "Vendor Name"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "title": "VendorResearchRequest",
+        "type": "object"
+      },
+      "VendorResearchResponse": {
+        "properties": {
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id"
+          },
+          "insights": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Insights",
+            "type": "array"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "sources": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "used_external_research": {
+            "title": "Used External Research",
+            "type": "boolean"
+          },
+          "vendor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Id"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name"
+          }
+        },
+        "required": [
+          "vendor_id",
+          "vendor_name",
+          "summary",
+          "insights",
+          "sources",
+          "used_external_research"
+        ],
+        "title": "VendorResearchResponse",
+        "type": "object"
+      },
+      "WorkflowApprovalDecisionRequest": {
+        "properties": {
+          "approver_id": {
+            "title": "Approver Id",
+            "type": "string"
+          },
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          },
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "approver_id"
+        ],
+        "title": "WorkflowApprovalDecisionRequest",
+        "type": "object"
+      },
+      "WorkflowApprovalDetailResponse": {
+        "properties": {
+          "approval_id": {
+            "title": "Approval Id",
+            "type": "string"
+          },
+          "approver_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Id"
+          },
+          "audit_trail": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Audit Trail",
+            "type": "array"
+          },
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approval_id",
+          "run_id",
+          "step_id",
+          "tenant_id",
+          "status",
+          "created_at",
+          "updated_at",
+          "decision",
+          "approver_id",
+          "comments",
+          "metadata",
+          "audit_trail"
+        ],
+        "title": "WorkflowApprovalDetailResponse",
+        "type": "object"
+      },
+      "WorkflowApprovalResponse": {
+        "properties": {
+          "approval_id": {
+            "title": "Approval Id",
+            "type": "string"
+          },
+          "approver_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Id"
+          },
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approval_id",
+          "run_id",
+          "step_id",
+          "tenant_id",
+          "status",
+          "created_at",
+          "updated_at",
+          "decision",
+          "approver_id",
+          "comments",
+          "metadata"
+        ],
+        "title": "WorkflowApprovalResponse",
+        "type": "object"
+      },
+      "WorkflowDefinitionCreateRequest": {
+        "properties": {
+          "definition": {
+            "title": "Definition",
+            "type": "object"
+          },
+          "workflow_id": {
+            "title": "Workflow Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workflow_id",
+          "definition"
+        ],
+        "title": "WorkflowDefinitionCreateRequest",
+        "type": "object"
+      },
+      "WorkflowDefinitionResponse": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner": {
+            "title": "Owner",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "workflow_id": {
+            "title": "Workflow Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workflow_id",
+          "name",
+          "version",
+          "owner",
+          "description"
+        ],
+        "title": "WorkflowDefinitionResponse",
+        "type": "object"
+      },
+      "WorkflowEventResponse": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "step_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Id"
+          }
+        },
+        "required": [
+          "event_id",
+          "run_id",
+          "step_id",
+          "status",
+          "message",
+          "created_at"
+        ],
+        "title": "WorkflowEventResponse",
+        "type": "object"
+      },
+      "WorkflowRunResponse": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_step_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Step Id"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workflow_id": {
+            "title": "Workflow Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "workflow_id",
+          "tenant_id",
+          "status",
+          "current_step_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "WorkflowRunResponse",
+        "type": "object"
+      },
+      "WorkflowStartRequest": {
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "object"
+          },
+          "classification": {
+            "default": "internal",
+            "title": "Classification",
+            "type": "string"
+          },
+          "payload": {
+            "title": "Payload",
+            "type": "object"
+          },
+          "workflow_id": {
+            "title": "Workflow Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workflow_id",
+          "payload",
+          "actor"
+        ],
+        "title": "WorkflowStartRequest",
         "type": "object"
       }
     }
@@ -165,6 +1721,206 @@
         ]
       }
     },
+    "/api/v1/agents/config": {
+      "get": {
+        "description": "List all agent configurations.\n\nOptionally filter by category and/or enabled status.",
+        "operationId": "list_agent_configs_api_v1_agents_config_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "enabled",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enabled"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentConfigModel"
+                  },
+                  "title": "Response List Agent Configs Api V1 Agents Config Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Agent Configs",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/agents/config/categories": {
+      "get": {
+        "description": "List all available agent categories.",
+        "operationId": "list_agent_categories_api_v1_agents_config_categories_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Agent Categories",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/agents/config/{catalog_id}": {
+      "get": {
+        "description": "Get configuration for a specific agent.",
+        "operationId": "get_agent_config_api_v1_agents_config__catalog_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "catalog_id",
+            "required": true,
+            "schema": {
+              "title": "Catalog Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentConfigModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Agent Config",
+        "tags": [
+          "agent-config"
+        ]
+      },
+      "patch": {
+        "description": "Update configuration for a specific agent.\n\nRequires admin or PM role.",
+        "operationId": "update_agent_config_api_v1_agents_config__catalog_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "catalog_id",
+            "required": true,
+            "schema": {
+              "title": "Catalog Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentConfigUpdateModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentConfigModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Agent Config",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
     "/api/v1/agents/{agent_id}": {
       "get": {
         "description": "Get information about a specific agent.",
@@ -203,6 +1959,458 @@
         "summary": "Get Agent Info",
         "tags": [
           "agents"
+        ]
+      }
+    },
+    "/api/v1/audit/events": {
+      "get": {
+        "operationId": "list_audit_events_api_v1_audit_events_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEventResponse"
+                  },
+                  "title": "Response List Audit Events Api V1 Audit Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Audit Events",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/api/v1/connectors": {
+      "get": {
+        "description": "List all available connectors with their configuration status.\n\nOptionally filter by category.",
+        "operationId": "list_connectors_api_v1_connectors_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConnectorListItemResponse"
+                  },
+                  "title": "Response List Connectors Api V1 Connectors Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Connectors",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/categories": {
+      "get": {
+        "description": "List all connector categories with their metadata.",
+        "operationId": "list_categories_api_v1_connectors_categories_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryInfo"
+                  },
+                  "title": "Response List Categories Api V1 Connectors Categories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Categories",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/{connector_id}": {
+      "get": {
+        "description": "Get a specific connector with its configuration.",
+        "operationId": "get_connector_api_v1_connectors__connector_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorListItemResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Connector",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/{connector_id}/config": {
+      "delete": {
+        "description": "Delete a connector configuration.",
+        "operationId": "delete_connector_config_api_v1_connectors__connector_id__config_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Connector Config",
+        "tags": [
+          "connectors"
+        ]
+      },
+      "put": {
+        "description": "Update connector configuration.\n\nNote: This only stores non-secret configuration.\nSecrets (API tokens, passwords) must be provided via environment variables.",
+        "operationId": "update_connector_config_api_v1_connectors__connector_id__config_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectorConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Connector Config",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/{connector_id}/disable": {
+      "post": {
+        "description": "Disable a connector.",
+        "operationId": "disable_connector_api_v1_connectors__connector_id__disable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Disable Connector",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/{connector_id}/enable": {
+      "post": {
+        "description": "Enable a connector.\n\nThis will disable any other connector in the same category (mutual exclusivity).",
+        "operationId": "enable_connector_api_v1_connectors__connector_id__enable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enable Connector",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/{connector_id}/test": {
+      "post": {
+        "description": "Test connection to the external system.\n\nFor Jira connector, requires environment variables:\n- JIRA_INSTANCE_URL (or use request.instance_url)\n- JIRA_EMAIL\n- JIRA_API_TOKEN",
+        "operationId": "test_connection_api_v1_connectors__connector_id__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestConnectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestConnectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test Connection",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/{connector_id}/webhook": {
+      "post": {
+        "description": "Receive webhook notifications from external systems.",
+        "operationId": "handle_connector_webhook_api_v1_connectors__connector_id__webhook_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Handle Connector Webhook",
+        "tags": [
+          "connectors"
         ]
       }
     },
@@ -266,6 +2474,633 @@
         ]
       }
     },
+    "/api/v1/lineage": {
+      "get": {
+        "operationId": "list_lineage_api_v1_lineage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "work_item_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Work Item Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "connector_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Connector Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Lineage",
+        "tags": [
+          "lineage"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/agents/config": {
+      "get": {
+        "description": "List all agent configurations for a specific project.",
+        "operationId": "list_project_agent_configs_api_v1_projects__project_id__agents_config_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectAgentConfigModel"
+                  },
+                  "title": "Response List Project Agent Configs Api V1 Projects  Project Id  Agents Config Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Project Agent Configs",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/agents/config/{agent_id}": {
+      "get": {
+        "description": "Get project-specific configuration for an agent.",
+        "operationId": "get_project_agent_config_api_v1_projects__project_id__agents_config__agent_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "title": "Agent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProjectAgentConfigModel"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Project Agent Config Api V1 Projects  Project Id  Agents Config  Agent Id  Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Project Agent Config",
+        "tags": [
+          "agent-config"
+        ]
+      },
+      "put": {
+        "description": "Set project-specific configuration for an agent.\n\nRequires admin or PM role.",
+        "operationId": "set_project_agent_config_api_v1_projects__project_id__agents_config__agent_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectAgentConfigUpdateModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectAgentConfigModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Project Agent Config",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/agents/enabled": {
+      "get": {
+        "description": "Get list of enabled agents for a specific project.",
+        "operationId": "get_enabled_agents_for_project_api_v1_projects__project_id__agents_enabled_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Enabled Agents For Project",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/agents/{agent_id}/enabled": {
+      "get": {
+        "description": "Check if a specific agent is enabled for a project.",
+        "operationId": "check_agent_enabled_for_project_api_v1_projects__project_id__agents__agent_id__enabled_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "agent_id",
+            "required": true,
+            "schema": {
+              "title": "Agent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Check Agent Enabled For Project",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/compliance/research": {
+      "post": {
+        "description": "Trigger external regulatory monitoring using the Compliance agent.",
+        "operationId": "research_compliance_api_v1_projects__project_id__compliance_research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComplianceResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceResearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research Compliance",
+        "tags": [
+          "compliance-research"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/health": {
+      "get": {
+        "operationId": "project_health_api_v1_projects__project_id__health_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Health",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/health/trends": {
+      "get": {
+        "operationId": "project_health_trends_api_v1_projects__project_id__health_trends_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Health Trends",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/health/what-if": {
+      "post": {
+        "operationId": "project_health_what_if_api_v1_projects__project_id__health_what_if_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Payload",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Health What If",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/risks/research": {
+      "post": {
+        "description": "Trigger external risk research using the Risk & Issue Management agent.",
+        "operationId": "research_project_risks_api_v1_projects__project_id__risks_research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskResearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research Project Risks",
+        "tags": [
+          "risk-research"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/scope/research": {
+      "post": {
+        "description": "Trigger scope research using the Project Definition & Scope agent.",
+        "operationId": "generate_scope_research_api_v1_projects__project_id__scope_research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopeResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeResearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Scope Research",
+        "tags": [
+          "scope-research"
+        ]
+      }
+    },
     "/api/v1/query": {
       "post": {
         "description": "Process a natural language query through the agent system.\n\nThis endpoint routes the query through the Intent Router and Response Orchestration agents.",
@@ -285,7 +3120,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QueryResponse"
+                  "$ref": "#/components/schemas/AgentResponse"
                 }
               }
             },
@@ -323,6 +3158,600 @@
           }
         },
         "summary": "Get Status"
+      }
+    },
+    "/api/v1/users/dev": {
+      "get": {
+        "description": "List all development user profiles (for testing RBAC).",
+        "operationId": "list_dev_users_api_v1_users_dev_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DevUserModel"
+                  },
+                  "title": "Response List Dev Users Api V1 Users Dev Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Dev Users",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/users/dev/{user_id}": {
+      "get": {
+        "description": "Get a specific development user profile.",
+        "operationId": "get_dev_user_api_v1_users_dev__user_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/DevUserModel"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Dev User Api V1 Users Dev  User Id  Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Dev User",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/users/dev/{user_id}/can-configure": {
+      "get": {
+        "description": "Check if a user can configure agents.",
+        "operationId": "check_user_can_configure_api_v1_users_dev__user_id__can_configure_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Check User Can Configure",
+        "tags": [
+          "agent-config"
+        ]
+      }
+    },
+    "/api/v1/vendors/{vendor_id}/research": {
+      "post": {
+        "description": "Trigger external vendor research using the Vendor & Procurement agent.",
+        "operationId": "research_vendor_api_v1_vendors__vendor_id__research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendor_id",
+            "required": true,
+            "schema": {
+              "title": "Vendor Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VendorResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorResearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research Vendor",
+        "tags": [
+          "vendor-research"
+        ]
+      }
+    },
+    "/api/v1/workflows/approvals": {
+      "get": {
+        "operationId": "list_approvals_api_v1_workflows_approvals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "approver_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Approver Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowApprovalResponse"
+                  },
+                  "title": "Response List Approvals Api V1 Workflows Approvals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Approvals",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/approvals/{approval_id}": {
+      "get": {
+        "operationId": "get_approval_api_v1_workflows_approvals__approval_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approval_id",
+            "required": true,
+            "schema": {
+              "title": "Approval Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowApprovalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Approval",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/approvals/{approval_id}/decision": {
+      "post": {
+        "operationId": "decide_approval_api_v1_workflows_approvals__approval_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approval_id",
+            "required": true,
+            "schema": {
+              "title": "Approval Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowApprovalDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Approval",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/definitions": {
+      "get": {
+        "operationId": "list_definitions_api_v1_workflows_definitions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowDefinitionResponse"
+                  },
+                  "title": "Response List Definitions Api V1 Workflows Definitions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Definitions",
+        "tags": [
+          "workflows"
+        ]
+      },
+      "post": {
+        "operationId": "create_definition_api_v1_workflows_definitions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowDefinitionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDefinitionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Definition",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/instances": {
+      "get": {
+        "operationId": "list_instances_api_v1_workflows_instances_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowRunResponse"
+                  },
+                  "title": "Response List Instances Api V1 Workflows Instances Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Instances",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/instances/{run_id}": {
+      "get": {
+        "operationId": "get_instance_api_v1_workflows_instances__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Instance",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/instances/{run_id}/resume": {
+      "post": {
+        "operationId": "resume_workflow_api_v1_workflows_instances__run_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume Workflow",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/instances/{run_id}/timeline": {
+      "get": {
+        "operationId": "workflow_timeline_api_v1_workflows_instances__run_id__timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowEventResponse"
+                  },
+                  "title": "Response Workflow Timeline Api V1 Workflows Instances  Run Id  Timeline Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Workflow Timeline",
+        "tags": [
+          "workflows"
+        ]
+      }
+    },
+    "/api/v1/workflows/start": {
+      "post": {
+        "operationId": "start_workflow_api_v1_workflows_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Workflow",
+        "tags": [
+          "workflows"
+        ]
       }
     },
     "/healthz": {

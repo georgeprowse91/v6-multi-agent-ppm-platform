@@ -77,6 +77,8 @@ locally, understand core services, and start contributing safely.
 - Local development uses an auth stub in docker-compose (`AUTH_DEV_MODE=true`).
 - Update `.env` for local overrides (LLM provider, credentials, feature flags).
 - Service-specific environment variables live in each service README.
+- External research features rely on `SEARCH_API_ENDPOINT`/`SEARCH_API_KEY` and per-agent flags such as
+  `enable_external_risk_research`, `enable_vendor_research`, and `enable_regulatory_monitoring`.
 
 ## Common issues
 

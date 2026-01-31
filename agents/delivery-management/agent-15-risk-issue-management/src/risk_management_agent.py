@@ -9,6 +9,8 @@ strategies and continuously tracks risk status.
 Specification: agents/delivery-management/agent-15-risk-issue-management/README.md
 """
 
+import json
+import re
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -17,8 +19,15 @@ from typing import Any
 from data_quality.helpers import validate_against_schema
 from data_quality.rules import evaluate_quality_rules
 
+from tools.runtime_paths import bootstrap_runtime_paths
+
+bootstrap_runtime_paths()
+
+from llm.client import LLMClient, LLMProviderError  # noqa: E402
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
+from agents.common.web_search import build_search_query, search_web, summarize_snippets
 
 
 class RiskManagementAgent(BaseAgent):
@@ -47,6 +56,34 @@ class RiskManagementAgent(BaseAgent):
             )
             if config
             else ["technical", "schedule", "financial", "compliance", "external", "resource"]
+        )
+        self.enable_external_risk_research = (
+            config.get("enable_external_risk_research", False) if config else False
+        )
+        self.risk_search_keywords = (
+            config.get(
+                "risk_search_keywords",
+                [
+                    "risk",
+                    "failure",
+                    "incident",
+                    "disruption",
+                    "regulatory change",
+                    "supplier",
+                ],
+            )
+            if config
+            else [
+                "risk",
+                "failure",
+                "incident",
+                "disruption",
+                "regulatory change",
+                "supplier",
+            ]
+        )
+        self.risk_search_result_limit = (
+            int(config.get("risk_search_result_limit", 5)) if config else 5
         )
 
         self.probability_scale = (
@@ -114,6 +151,7 @@ class RiskManagementAgent(BaseAgent):
             "generate_risk_report",
             "perform_sensitivity_analysis",
             "get_top_risks",
+            "research_risks",
         ]
 
         if action not in valid_actions:
@@ -127,6 +165,10 @@ class RiskManagementAgent(BaseAgent):
                 if field not in risk_data:
                     self.logger.warning(f"Missing required field: {field}")
                     return False
+        elif action == "research_risks":
+            if not input_data.get("domain"):
+                self.logger.warning("Missing required field: domain")
+                return False
 
         return True
 
@@ -212,7 +254,10 @@ class RiskManagementAgent(BaseAgent):
 
         elif action == "get_risk_dashboard":
             return await self._get_risk_dashboard(
-                input_data.get("project_id"), input_data.get("portfolio_id")
+                input_data.get("project_id"),
+                input_data.get("portfolio_id"),
+                tenant_id=tenant_id,
+                external_context=input_data.get("external_context"),
             )
 
         elif action == "generate_risk_report":
@@ -226,6 +271,16 @@ class RiskManagementAgent(BaseAgent):
         elif action == "get_top_risks":
             return await self._get_top_risks(  # type: ignore
                 input_data.get("project_id"), input_data.get("limit", 10)
+            )
+
+        elif action == "research_risks":
+            return await self._research_risks(
+                project_id=input_data.get("project_id"),
+                domain=input_data.get("domain", ""),
+                region=input_data.get("region"),
+                categories=input_data.get("categories", []),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         else:
@@ -637,7 +692,12 @@ class RiskManagementAgent(BaseAgent):
         }
 
     async def _get_risk_dashboard(
-        self, project_id: str | None, portfolio_id: str | None
+        self,
+        project_id: str | None,
+        portfolio_id: str | None,
+        *,
+        tenant_id: str,
+        external_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Get risk dashboard data.
@@ -647,6 +707,28 @@ class RiskManagementAgent(BaseAgent):
         self.logger.info(
             f"Getting risk dashboard for project={project_id}, portfolio={portfolio_id}"
         )
+
+        external_risk_research: dict[str, Any] | None = None
+        if (
+            self.enable_external_risk_research
+            and project_id
+            and external_context
+            and external_context.get("domain")
+        ):
+            try:
+                external_risk_research = await self._research_risks(
+                    project_id=project_id,
+                    domain=external_context.get("domain", ""),
+                    region=external_context.get("region"),
+                    categories=external_context.get("categories", []),
+                    tenant_id=tenant_id,
+                    correlation_id=external_context.get("correlation_id", "n/a"),
+                )
+            except Exception as exc:  # pragma: no cover - defensive
+                self.logger.warning(
+                    "External risk research failed",
+                    extra={"error": str(exc), "project_id": project_id},
+                )
 
         # Prioritize risks
         prioritization = await self._prioritize_risks(project_id, portfolio_id)
@@ -672,6 +754,7 @@ class RiskManagementAgent(BaseAgent):
             "top_risks": top_risks,
             "risk_matrix": risk_matrix,
             "mitigation_status": mitigation_status,
+            "external_risk_research": external_risk_research,
             "dashboard_generated_at": datetime.utcnow().isoformat(),
         }
 
@@ -743,6 +826,252 @@ class RiskManagementAgent(BaseAgent):
 
         # Return top N
         return prioritization["ranked_risks"][:limit]  # type: ignore
+
+    async def research_risks(
+        self,
+        domain: str,
+        region: str | None,
+        categories: list[str] | None,
+        *,
+        llm_client: LLMClient | None = None,
+        result_limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Research emerging risks using external sources."""
+        if not self.enable_external_risk_research:
+            return []
+
+        context_parts = [domain, region or "", ", ".join(categories or [])]
+        context = " ".join(part for part in context_parts if part)
+        query = build_search_query(
+            context,
+            "risk",
+            extra_keywords=self.risk_search_keywords,
+        )
+
+        # NOTE: Only high-level, non-sensitive context should be sent to the search API.
+        snippets = await search_web(query, result_limit=result_limit or self.risk_search_result_limit)
+        if not snippets:
+            return []
+
+        summary = await summarize_snippets(snippets, llm_client=llm_client, purpose="risk")
+        return await self._classify_external_risks(
+            summary,
+            snippets,
+            categories,
+            llm_client=llm_client,
+        )
+
+    async def _research_risks(
+        self,
+        *,
+        project_id: str | None,
+        domain: str,
+        region: str | None,
+        categories: list[str] | None,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        """Fetch and merge externally researched risks into the risk register."""
+        if not self.enable_external_risk_research:
+            return {
+                "project_id": project_id,
+                "external_risks": [],
+                "added_risks": [],
+                "used_external_research": False,
+                "notice": "External risk research is disabled.",
+                "correlation_id": correlation_id,
+            }
+
+        try:
+            external_risks = await self.research_risks(domain, region, categories)
+        except Exception as exc:
+            self.logger.warning(
+                "Risk research failed",
+                extra={"error": str(exc), "project_id": project_id, "correlation_id": correlation_id},
+            )
+            return {
+                "project_id": project_id,
+                "external_risks": [],
+                "added_risks": [],
+                "used_external_research": False,
+                "notice": "External risk research failed; internal risk processes continue.",
+                "correlation_id": correlation_id,
+            }
+
+        added = await self._merge_external_risks(
+            external_risks, project_id=project_id, tenant_id=tenant_id, correlation_id=correlation_id
+        )
+
+        return {
+            "project_id": project_id,
+            "external_risks": external_risks,
+            "added_risks": added,
+            "used_external_research": bool(external_risks),
+            "notice": None,
+            "correlation_id": correlation_id,
+        }
+
+    async def _classify_external_risks(
+        self,
+        summary: str,
+        snippets: list[str],
+        categories: list[str] | None,
+        *,
+        llm_client: LLMClient | None = None,
+    ) -> list[dict[str, Any]]:
+        allowed_categories = ["technical", "schedule", "cost", "compliance"]
+        category_context = categories or allowed_categories
+        sources = self._extract_sources(snippets)
+
+        system_prompt = (
+            "You are a PMO risk analyst. Use the external summary and snippets to identify "
+            "emerging risks. Return ONLY valid JSON as an array of objects with fields: "
+            "title, description, category (technical, schedule, cost, compliance), "
+            "probability (1-5), impact (1-5), sources (array of {url, citation})."
+        )
+        user_prompt = json.dumps(
+            {
+                "summary": summary,
+                "snippets": snippets,
+                "preferred_categories": category_context,
+                "sources": sources,
+            },
+            indent=2,
+        )
+
+        llm = llm_client or LLMClient()
+        try:
+            response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
+            data = json.loads(response.content)
+        except (LLMProviderError, ValueError, json.JSONDecodeError) as exc:
+            self.logger.warning("Risk classification failed", extra={"error": str(exc)})
+            return self._fallback_risk_classification(summary, sources)
+
+        risks: list[dict[str, Any]] = []
+        if not isinstance(data, list):
+            return self._fallback_risk_classification(summary, sources)
+
+        for entry in data:
+            if not isinstance(entry, dict):
+                continue
+            title = str(entry.get("title", "")).strip()
+            description = str(entry.get("description", "")).strip()
+            if not title or not description:
+                continue
+            category = self._normalize_risk_category(entry.get("category"), allowed_categories)
+            probability = self._coerce_rating(entry.get("probability"), fallback=3)
+            impact = self._coerce_rating(entry.get("impact"), fallback=3)
+            entry_sources = entry.get("sources")
+            if not isinstance(entry_sources, list) or not entry_sources:
+                entry_sources = sources
+            risks.append(
+                {
+                    "title": title,
+                    "description": description,
+                    "category": category,
+                    "probability": probability,
+                    "impact": impact,
+                    "sources": entry_sources,
+                }
+            )
+
+        return risks or self._fallback_risk_classification(summary, sources)
+
+    async def _merge_external_risks(
+        self,
+        external_risks: list[dict[str, Any]],
+        *,
+        project_id: str | None,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> list[dict[str, Any]]:
+        if not project_id or not external_risks:
+            return []
+
+        existing_signatures = {
+            self._risk_signature(risk)
+            for risk in self.risk_register.values()
+            if risk.get("project_id") == project_id
+        }
+        added: list[dict[str, Any]] = []
+        for risk in external_risks:
+            signature = self._risk_signature(risk)
+            if signature in existing_signatures:
+                continue
+            risk_data = {
+                "project_id": project_id,
+                "title": risk.get("title"),
+                "description": risk.get("description"),
+                "category": risk.get("category", "external"),
+                "probability": risk.get("probability", 3),
+                "impact": risk.get("impact", 3),
+                "classification": "external",
+                "created_by": "external_research",
+                "sources": risk.get("sources", []),
+            }
+            try:
+                created = await self._identify_risk(
+                    risk_data, tenant_id=tenant_id, correlation_id=correlation_id
+                )
+                added.append(created)
+                existing_signatures.add(signature)
+            except Exception as exc:
+                self.logger.warning(
+                    "Failed to merge external risk",
+                    extra={"error": str(exc), "project_id": project_id},
+                )
+        return added
+
+    def _extract_sources(self, snippets: list[str]) -> list[dict[str, str]]:
+        sources: list[dict[str, str]] = []
+        for snippet in snippets:
+            match = re.search(r"\((https?://[^)]+)\)", snippet)
+            url = match.group(1) if match else ""
+            citation = snippet.strip()
+            if not url:
+                continue
+            sources.append({"url": url, "citation": citation})
+        return sources
+
+    def _normalize_risk_category(self, value: Any, allowed: list[str]) -> str:
+        cleaned = str(value or "").strip().lower()
+        if cleaned in allowed:
+            return cleaned
+        if cleaned in {"financial", "budget", "cost"}:
+            return "cost"
+        if cleaned in {"regulatory", "legal"}:
+            return "compliance"
+        return "technical"
+
+    def _coerce_rating(self, value: Any, *, fallback: int) -> int:
+        try:
+            rating = int(float(value))
+        except (TypeError, ValueError):
+            return fallback
+        return max(1, min(5, rating))
+
+    def _risk_signature(self, risk: dict[str, Any]) -> str:
+        title = str(risk.get("title", "")).strip().lower()
+        description = str(risk.get("description", "")).strip().lower()
+        return f"{title}::{description}"
+
+    def _fallback_risk_classification(
+        self, summary: str, sources: list[dict[str, str]]
+    ) -> list[dict[str, Any]]:
+        risks: list[dict[str, Any]] = []
+        for line in [item.strip("- ").strip() for item in summary.splitlines() if item.strip()]:
+            category = "compliance" if "regulation" in line.lower() else "technical"
+            risks.append(
+                {
+                    "title": line[:80],
+                    "description": line,
+                    "category": category,
+                    "probability": 3,
+                    "impact": 3,
+                    "sources": sources,
+                }
+            )
+        return risks
 
     # Helper methods
 
@@ -945,4 +1274,5 @@ class RiskManagementAgent(BaseAgent):
             "risk_dashboards",
             "risk_reporting",
             "quantitative_risk_analysis",
+            "external_risk_research",
         ]

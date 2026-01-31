@@ -9,6 +9,8 @@ with organizational policies and supports vendor performance monitoring.
 Specification: agents/delivery-management/agent-13-vendor-procurement/README.md
 """
 
+import json
+import re
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -17,8 +19,15 @@ from typing import Any
 from approval_workflow_agent import ApprovalWorkflowAgent
 from data_quality.helpers import validate_against_schema
 
+from tools.runtime_paths import bootstrap_runtime_paths
+
+bootstrap_runtime_paths()
+
+from llm.client import LLMClient, LLMProviderError  # noqa: E402
+
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
+from agents.common.web_search import build_search_query, search_web, summarize_snippets
 
 
 class VendorProcurementAgent(BaseAgent):
@@ -79,6 +88,32 @@ class VendorProcurementAgent(BaseAgent):
             if config
             else ["software", "hardware", "consulting", "materials", "services", "cloud"]
         )
+        self.enable_vendor_research = (
+            config.get("enable_vendor_research", False) if config else False
+        )
+        self.vendor_search_keywords = (
+            config.get(
+                "vendor_search_keywords",
+                [
+                    "financial health",
+                    "performance issues",
+                    "contract dispute",
+                    "credit rating",
+                    "supplier review",
+                ],
+            )
+            if config
+            else [
+                "financial health",
+                "performance issues",
+                "contract dispute",
+                "credit rating",
+                "supplier review",
+            ]
+        )
+        self.vendor_search_result_limit = (
+            int(config.get("vendor_search_result_limit", 5)) if config else 5
+        )
 
         # Data stores (will be replaced with database)
         self.vendors: dict[str, Any] = {}
@@ -135,6 +170,7 @@ class VendorProcurementAgent(BaseAgent):
             "get_vendor_scorecard",
             "search_vendors",
             "get_procurement_status",
+            "research_vendor",
         ]
 
         if action not in valid_actions:
@@ -156,6 +192,10 @@ class VendorProcurementAgent(BaseAgent):
                 if field not in request_data:
                     self.logger.warning(f"Missing required field: {field}")
                     return False
+        elif action == "research_vendor":
+            if not input_data.get("vendor_id") and not input_data.get("vendor_name"):
+                self.logger.warning("Missing required field: vendor_id or vendor_name")
+                return False
 
         return True
 
@@ -271,6 +311,15 @@ class VendorProcurementAgent(BaseAgent):
 
         elif action == "get_vendor_scorecard":
             return await self._get_vendor_scorecard(input_data.get("vendor_id"))  # type: ignore
+
+        elif action == "research_vendor":
+            return await self._research_vendor(
+                vendor_id=input_data.get("vendor_id"),
+                vendor_name=input_data.get("vendor_name"),
+                domain=input_data.get("domain"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "search_vendors":
             return await self._search_vendors(input_data.get("criteria", {}))
@@ -965,6 +1014,85 @@ class VendorProcurementAgent(BaseAgent):
             "recommendations": await self._generate_vendor_recommendations(metrics),
         }
 
+    async def research_vendor(
+        self,
+        vendor_name: str,
+        domain: str,
+        *,
+        llm_client: LLMClient | None = None,
+        result_limit: int | None = None,
+    ) -> dict[str, Any]:
+        """Research external signals about a vendor using public sources."""
+        if not self.enable_vendor_research:
+            return {"summary": "", "insights": [], "sources": [], "used_external_research": False}
+
+        context = f"{vendor_name} {domain}".strip()
+        query = build_search_query(
+            context,
+            "vendor",
+            extra_keywords=self.vendor_search_keywords,
+        )
+
+        # NOTE: Only high-level vendor context should be sent to the search API.
+        snippets = await search_web(query, result_limit=result_limit or self.vendor_search_result_limit)
+        if not snippets:
+            return {"summary": "", "insights": [], "sources": [], "used_external_research": False}
+
+        summary = await summarize_snippets(snippets, llm_client=llm_client, purpose="vendor")
+        insights = await self._extract_vendor_insights(summary, snippets, llm_client=llm_client)
+        sources = self._extract_sources(snippets)
+        return {
+            "summary": summary,
+            "insights": insights,
+            "sources": sources,
+            "used_external_research": True,
+        }
+
+    async def _research_vendor(
+        self,
+        *,
+        vendor_id: str | None,
+        vendor_name: str | None,
+        domain: str | None,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        vendor = self.vendors.get(vendor_id) if vendor_id else None
+        resolved_name = vendor_name or (vendor.get("legal_name") if vendor else None)
+        resolved_domain = domain or (vendor.get("category") if vendor else "general")
+        if not resolved_name:
+            raise ValueError("Vendor name is required for research")
+
+        try:
+            research = await self.research_vendor(resolved_name, resolved_domain)
+        except Exception as exc:
+            self.logger.warning(
+                "Vendor research failed",
+                extra={"error": str(exc), "vendor_id": vendor_id, "correlation_id": correlation_id},
+            )
+            return {
+                "vendor_id": vendor_id,
+                "vendor_name": resolved_name,
+                "summary": "",
+                "insights": [],
+                "sources": [],
+                "used_external_research": False,
+                "notice": "External vendor research failed; internal evaluation is unchanged.",
+                "correlation_id": correlation_id,
+            }
+
+        if vendor_id and vendor:
+            vendor["external_research"] = research
+            self.vendor_store.upsert(tenant_id, vendor_id, vendor)
+
+        return {
+            "vendor_id": vendor_id,
+            "vendor_name": resolved_name,
+            **research,
+            "notice": None,
+            "correlation_id": correlation_id,
+        }
+
     async def _get_vendor_scorecard(self, vendor_id: str) -> dict[str, Any]:
         """
         Generate comprehensive vendor scorecard.
@@ -986,8 +1114,18 @@ class VendorProcurementAgent(BaseAgent):
         # Get recent issues
         recent_issues = await self._get_vendor_issues(vendor_id)
 
+        external_research = None
+        external_adjustment: dict[str, Any] | None = None
+        if self.enable_vendor_research:
+            external_research = await self.research_vendor(
+                vendor.get("legal_name", "vendor"), vendor.get("category", "general")
+            )
+            external_adjustment = self._score_vendor_research(external_research)
+
         # Calculate overall score
-        overall_score = await self._calculate_overall_vendor_score(vendor)
+        overall_score = await self._calculate_overall_vendor_score(
+            vendor, external_adjustment=external_adjustment
+        )
 
         return {
             "vendor_id": vendor_id,
@@ -1003,6 +1141,8 @@ class VendorProcurementAgent(BaseAgent):
             },
             "recent_issues": recent_issues,
             "recommendations": performance.get("recommendations"),
+            "external_research": external_research,
+            "external_research_adjustment": external_adjustment,
             "generated_at": datetime.utcnow().isoformat(),
         }
 
@@ -1344,10 +1484,70 @@ class VendorProcurementAgent(BaseAgent):
         # Future work: Query issue tracking system
         return []
 
-    async def _calculate_overall_vendor_score(self, vendor: dict[str, Any]) -> float:
+    async def _extract_vendor_insights(
+        self,
+        summary: str,
+        snippets: list[str],
+        *,
+        llm_client: LLMClient | None = None,
+    ) -> list[dict[str, Any]]:
+        sources = self._extract_sources(snippets)
+        system_prompt = (
+            "You are a procurement analyst. Extract insights about the vendor from the summary "
+            "and snippets. Return ONLY JSON as an array of objects with fields: "
+            "category (financial, performance, legal, sentiment), sentiment "
+            "(positive, negative, neutral), detail, source_url."
+        )
+        user_prompt = json.dumps(
+            {"summary": summary, "snippets": snippets, "sources": sources},
+            indent=2,
+        )
+
+        llm = llm_client or LLMClient()
+        try:
+            response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
+            data = json.loads(response.content)
+        except (LLMProviderError, ValueError, json.JSONDecodeError) as exc:
+            self.logger.warning("Vendor insight extraction failed", extra={"error": str(exc)})
+            return [
+                {
+                    "category": "sentiment",
+                    "sentiment": "neutral",
+                    "detail": summary,
+                    "source_url": sources[0]["url"] if sources else "",
+                }
+            ]
+
+        insights: list[dict[str, Any]] = []
+        if not isinstance(data, list):
+            return insights
+        for entry in data:
+            if not isinstance(entry, dict):
+                continue
+            category = str(entry.get("category", "sentiment")).strip().lower()
+            sentiment = str(entry.get("sentiment", "neutral")).strip().lower()
+            detail = str(entry.get("detail", "")).strip()
+            source_url = str(entry.get("source_url", "")).strip()
+            if not detail:
+                continue
+            insights.append(
+                {
+                    "category": category,
+                    "sentiment": sentiment,
+                    "detail": detail,
+                    "source_url": source_url,
+                }
+            )
+        return insights
+
+    async def _calculate_overall_vendor_score(
+        self, vendor: dict[str, Any], *, external_adjustment: dict[str, Any] | None = None
+    ) -> float:
         """Calculate overall vendor score."""
         metrics = vendor.get("performance_metrics", {})
         risk_score = vendor.get("risk_score", 50)
+        if external_adjustment:
+            risk_score = max(0, min(100, risk_score + external_adjustment.get("risk_delta", 0)))
 
         # Weighted average
         score = (
@@ -1359,6 +1559,28 @@ class VendorProcurementAgent(BaseAgent):
         ) / 100
 
         return min(100, max(0, score))  # type: ignore
+
+    def _extract_sources(self, snippets: list[str]) -> list[dict[str, str]]:
+        sources: list[dict[str, str]] = []
+        for snippet in snippets:
+            match = re.search(r"\((https?://[^)]+)\)", snippet)
+            url = match.group(1) if match else ""
+            if not url:
+                continue
+            sources.append({"url": url, "citation": snippet.strip()})
+        return sources
+
+    def _score_vendor_research(self, research: dict[str, Any]) -> dict[str, Any]:
+        insights = research.get("insights", []) if isinstance(research, dict) else []
+        negative = sum(1 for insight in insights if insight.get("sentiment") == "negative")
+        positive = sum(1 for insight in insights if insight.get("sentiment") == "positive")
+        risk_delta = max(-20, min(20, negative * 6 - positive * 4))
+        reliability_delta = max(-10, min(10, positive * 2 - negative))
+        return {
+            "risk_delta": risk_delta,
+            "reliability_delta": reliability_delta,
+            "signals": {"positive": positive, "negative": negative},
+        }
 
     async def _is_expiring_soon(self, contract: dict[str, Any]) -> bool:
         """Check if contract is expiring within 90 days."""
@@ -1442,4 +1664,5 @@ class VendorProcurementAgent(BaseAgent):
             "compliance_enforcement",
             "audit_trail_management",
             "spend_analysis",
+            "external_vendor_research",
         ]

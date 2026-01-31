@@ -10,6 +10,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
+from web_search import summarize_snippets  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -40,30 +41,6 @@ def _coerce_scope(value: Any, fallback: dict[str, list[str]]) -> dict[str, list[
     }
 
 
-async def summarize_snippets(snippets: list[str], llm_client: LLMClient | None = None) -> str:
-    if not snippets:
-        return ""
-
-    llm = llm_client or LLMClient()
-    system_prompt = (
-        "You are a PMO analyst. Summarize the external research snippets into concise "
-        "bullet points that can inform scope definition. Keep it under 6 bullets."  # noqa: E501
-    )
-    user_prompt = "\n".join(f"- {snippet}" for snippet in snippets)
-
-    try:
-        response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
-        summary = response.content.strip()
-        if summary:
-            return summary
-    except (LLMProviderError, ValueError) as exc:
-        logger.warning("LLM summary failed", extra={"error": str(exc)})
-    except Exception as exc:  # pragma: no cover - defensive
-        logger.warning("Unexpected summarization error", extra={"error": str(exc)})
-
-    return "\n".join(snippets[:3])
-
-
 async def generate_scope_from_search(
     objective: str,
     snippets: list[str],
@@ -84,7 +61,7 @@ async def generate_scope_from_search(
         return fallback
 
     llm = llm_client or LLMClient()
-    summary = await summarize_snippets(snippets, llm_client=llm)
+    summary = await summarize_snippets(snippets, llm_client=llm, purpose="scope")
 
     system_prompt = (
         "You are a PMO scope analyst. Combine organizational templates with external insights "

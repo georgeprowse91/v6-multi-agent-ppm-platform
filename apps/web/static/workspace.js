@@ -372,6 +372,25 @@ const initWorkspace = () => {
           )
           .join("")
       : "<p class=\"assistant-empty\">No prompts available for this activity.</p>";
+    const researchButtons = [];
+    if (activity.id === "monitoring-risks") {
+      researchButtons.push(
+        '<button type="button" id="research-risks" class="assistant-research">Research risks</button>',
+      );
+    }
+    if (activity.id === "monitoring-vendors") {
+      researchButtons.push(
+        '<button type="button" id="research-vendor" class="assistant-research">Research vendor</button>',
+      );
+    }
+    if (activity.id === "monitoring-compliance") {
+      researchButtons.push(
+        '<button type="button" id="research-compliance" class="assistant-research">Monitor regulations</button>',
+      );
+    }
+    const researchMarkup = researchButtons.length
+      ? `<div class="assistant-research-actions">${researchButtons.join("")}</div>`
+      : "";
 
     guidance.innerHTML = `
       <div class="workspace-guidance">
@@ -405,6 +424,7 @@ const initWorkspace = () => {
           <button type="button" id="assistant-clear">Clear</button>
           <button type="button" id="assistant-send" disabled>Send</button>
         </div>
+        ${researchMarkup}
         <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
         <div class="assistant-transcript">
           <div class="assistant-transcript-header">
@@ -3582,6 +3602,120 @@ const initWorkspace = () => {
       });
     }
 
+    const pushResearchEntry = (title, html, correlationId) => {
+      pushTranscriptEntry({
+        role: "assistant",
+        html: `<h5>${escapeHtml(title)}</h5>${html}`,
+        timestamp: new Date().toISOString(),
+        correlation_id: correlationId || null,
+      });
+    };
+
+    const researchRisksButton = document.getElementById("research-risks");
+    if (researchRisksButton) {
+      researchRisksButton.addEventListener("click", async () => {
+        const context =
+          promptBox?.value.trim() ||
+          activityIndex.get(workspaceState?.current_activity_id || "")?.description ||
+          "Project domain";
+        setAssistantStatus("Researching external risks...");
+        researchRisksButton.disabled = true;
+        try {
+          const response = await fetch(`/api/v1/projects/${projectId}/risks/research`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ context, categories: [] }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            setAssistantStatus(payload.detail || "Risk research failed.", true);
+            return;
+          }
+          pushResearchEntry(
+            "Risk research results",
+            buildRiskResearchHtml(payload),
+            payload.correlation_id,
+          );
+          setAssistantStatus("Risk research complete.");
+        } catch (error) {
+          setAssistantStatus("Unable to reach risk research endpoint.", true);
+        } finally {
+          researchRisksButton.disabled = false;
+        }
+      });
+    }
+
+    const researchVendorButton = document.getElementById("research-vendor");
+    if (researchVendorButton) {
+      researchVendorButton.addEventListener("click", async () => {
+        const vendorId = window.prompt("Enter vendor ID");
+        if (!vendorId) {
+          setAssistantStatus("Vendor ID is required to run research.", true);
+          return;
+        }
+        const domain = window.prompt("Enter vendor domain or category", "general") || "general";
+        setAssistantStatus("Researching vendor signals...");
+        researchVendorButton.disabled = true;
+        try {
+          const response = await fetch(`/api/v1/vendors/${vendorId}/research`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ domain }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            setAssistantStatus(payload.detail || "Vendor research failed.", true);
+            return;
+          }
+          pushResearchEntry(
+            "Vendor research results",
+            buildVendorResearchHtml(payload),
+            payload.correlation_id,
+          );
+          setAssistantStatus("Vendor research complete.");
+        } catch (error) {
+          setAssistantStatus("Unable to reach vendor research endpoint.", true);
+        } finally {
+          researchVendorButton.disabled = false;
+        }
+      });
+    }
+
+    const researchComplianceButton = document.getElementById("research-compliance");
+    if (researchComplianceButton) {
+      researchComplianceButton.addEventListener("click", async () => {
+        const domain = window.prompt("Enter project domain for monitoring", "general") || "general";
+        const region = window.prompt("Enter region (optional)", "") || null;
+        setAssistantStatus("Monitoring regulatory updates...");
+        researchComplianceButton.disabled = true;
+        try {
+          const response = await fetch(
+            `/api/v1/projects/${projectId}/compliance/research`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ domain, region }),
+            },
+          );
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            setAssistantStatus(payload.detail || "Compliance monitoring failed.", true);
+            return;
+          }
+          pushResearchEntry(
+            "Regulatory monitoring results",
+            buildComplianceResearchHtml(payload),
+            payload.correlation_id,
+          );
+          setAssistantStatus("Regulatory monitoring complete.");
+        } catch (error) {
+          setAssistantStatus("Unable to reach compliance research endpoint.", true);
+        } finally {
+          researchComplianceButton.disabled = false;
+        }
+      });
+    }
+
     updateSendState();
     renderAssistantTranscript();
   };
@@ -3658,6 +3792,94 @@ const initWorkspace = () => {
     return null;
   };
 
+  const renderSourceLinks = (sources) => {
+    if (!Array.isArray(sources) || !sources.length) {
+      return "";
+    }
+    const items = sources
+      .map((source) => {
+        const url = source.url || source.source_url || "";
+        const label = source.citation || url || "Source";
+        if (!url) {
+          return `<li>${escapeHtml(label)}</li>`;
+        }
+        return `<li><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(
+          label,
+        )}</a></li>`;
+      })
+      .join("");
+    return `<ul class="assistant-source-list">${items}</ul>`;
+  };
+
+  const buildRiskResearchHtml = (payload) => {
+    const risks = payload?.external_risks || [];
+    if (!risks.length) {
+      return "<p>No external risks were identified.</p>";
+    }
+    const items = risks
+      .map((risk) => {
+        const sources = renderSourceLinks(risk.sources || []);
+        return `<li>
+            <strong>${escapeHtml(risk.title || "Risk")}</strong>
+            <span class="assistant-tag">${escapeHtml(risk.category || "technical")}</span>
+            <div class="assistant-meta">Probability: ${escapeHtml(
+              String(risk.probability ?? ""),
+            )} | Impact: ${escapeHtml(String(risk.impact ?? ""))}</div>
+            <p>${escapeHtml(risk.description || "")}</p>
+            ${sources}
+          </li>`;
+      })
+      .join("");
+    return `<ul class="assistant-research-list">${items}</ul>`;
+  };
+
+  const buildVendorResearchHtml = (payload) => {
+    const summary = payload?.summary ? `<p>${escapeHtml(payload.summary)}</p>` : "";
+    const insights = payload?.insights || [];
+    const insightItems = insights.length
+      ? `<ul class="assistant-research-list">${insights
+          .map(
+            (insight) => `<li>
+              <strong>${escapeHtml(insight.category || "signal")}</strong>
+              <span class="assistant-tag">${escapeHtml(insight.sentiment || "neutral")}</span>
+              <p>${escapeHtml(insight.detail || "")}</p>
+            </li>`,
+          )
+          .join("")}</ul>`
+      : "<p>No vendor insights were extracted.</p>";
+    const sources = renderSourceLinks(payload?.sources || []);
+    return `${summary}${insightItems}${sources}`;
+  };
+
+  const buildComplianceResearchHtml = (payload) => {
+    const monitoring = payload?.external_monitoring || {};
+    const summary = monitoring?.summary ? `<p>${escapeHtml(monitoring.summary)}</p>` : "";
+    const updates = monitoring?.updates || [];
+    const updateItems = updates.length
+      ? `<ul class="assistant-research-list">${updates
+          .map(
+            (update) => `<li>
+              <strong>${escapeHtml(update.regulation || "Regulation")}</strong>
+              <p>${escapeHtml(update.description || "")}</p>
+              ${update.effective_date ? `<div class="assistant-meta">Effective: ${escapeHtml(update.effective_date)}</div>` : ""}
+            </li>`,
+          )
+          .join("")}</ul>`
+      : "<p>No regulatory updates were detected.</p>";
+    const gaps = monitoring?.gaps || [];
+    const gapItems = gaps.length
+      ? `<div class="assistant-gap"><h5>Control gaps</h5><ul class="assistant-research-list">${gaps
+          .map(
+            (gap) => `<li>${escapeHtml(gap.regulation || "")}: ${escapeHtml(
+              gap.recommended_action || "",
+            )}</li>`,
+          )
+          .join("")}</ul></div>`
+      : "";
+    const sources = renderSourceLinks(monitoring?.sources || []);
+    return `${summary}${updateItems}${gapItems}${sources}`;
+  };
+
   const renderAssistantTranscript = () => {
     const transcript = document.getElementById("assistant-transcript");
     if (!transcript) {
@@ -3682,7 +3904,9 @@ const initWorkspace = () => {
             </div>`
           : "";
         let body = "";
-        if (entry.text) {
+        if (entry.html) {
+          body = `<div class=\"assistant-message-text\">${entry.html}</div>`;
+        } else if (entry.text) {
           body = `<p class=\"assistant-message-text\">${escapeHtml(entry.text)}</p>`;
         } else if (entry.rawResponse !== undefined) {
           const formatted = escapeHtml(
