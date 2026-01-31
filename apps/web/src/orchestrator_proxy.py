@@ -24,8 +24,11 @@ class OrchestratorProxyClient:
         query: str,
         context: dict[str, Any],
         headers: dict[str, str],
+        prompt: dict[str, Any] | None = None,
     ) -> httpx.Response:
-        payload = {"query": query, "context": context}
+        payload: dict[str, Any] = {"query": query, "context": context}
+        if prompt:
+            payload["prompt"] = prompt
         return await self._request("POST", "/api/v1/query", headers=headers, json=payload)
 
     async def _request(

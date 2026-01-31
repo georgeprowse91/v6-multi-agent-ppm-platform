@@ -9,10 +9,11 @@
  * - Gating warnings when prerequisites are incomplete
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { useMethodologyStore, type MethodologyActivity } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
+import type { PromptDefinition } from '@/types/prompt';
 import {
   useAssistantStore,
   CATEGORY_COLORS,
@@ -22,6 +23,7 @@ import {
   type PrerequisiteInfo,
 } from '@/store/assistant';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
+import promptsData from '../../../../data/prompts.json';
 import styles from './AssistantPanel.module.css';
 
 type ScopeResearchStatus = 'pending' | 'accepted' | 'rejected';
@@ -41,6 +43,17 @@ interface ScopeResearchResult {
   notice?: string;
   usedExternalResearch: boolean;
 }
+
+const ALWAYS_INCLUDED_PROMPTS = new Set<string>(['risk_identification', 'vendor_evaluation']);
+
+const stageTagLookup: Array<{ matcher: RegExp; tag: string }> = [
+  { matcher: /initiation/i, tag: 'initiation' },
+  { matcher: /planning/i, tag: 'planning' },
+  { matcher: /execution/i, tag: 'execution' },
+  { matcher: /monitoring/i, tag: 'monitoring' },
+  { matcher: /controlling/i, tag: 'monitoring' },
+  { matcher: /closing/i, tag: 'closing' },
+];
 
 export function AssistantPanel() {
   const { rightPanelCollapsed, toggleRightPanel } = useAppStore();
@@ -73,8 +86,56 @@ export function AssistantPanel() {
   const [scopeResearchResult, setScopeResearchResult] = useState<ScopeResearchResult | null>(
     null
   );
+  const [promptSearch, setPromptSearch] = useState('');
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptDefinition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const prevActivityIdRef = useRef<string | null>(null);
+
+  const promptStageTags = useMemo(() => {
+    const candidates = [context?.currentStageName ?? '', context?.currentStageId ?? ''];
+    const tags = new Set<string>();
+    for (const value of candidates) {
+      stageTagLookup.forEach(({ matcher, tag }) => {
+        if (matcher.test(value)) {
+          tags.add(tag);
+        }
+      });
+    }
+    return Array.from(tags);
+  }, [context?.currentStageId, context?.currentStageName]);
+
+  const promptChips = useMemo(() => {
+    const prompts = promptsData as PromptDefinition[];
+    const normalizedSearch = promptSearch.trim().toLowerCase();
+
+    return prompts.filter((prompt) => {
+      const matchesAlways =
+        ALWAYS_INCLUDED_PROMPTS.has(prompt.id) || prompt.tags.includes('general');
+      const matchesStage =
+        promptStageTags.length === 0 ||
+        prompt.tags.some((tag) => promptStageTags.includes(tag));
+
+      if (!matchesAlways && !matchesStage) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      const searchTarget = [
+        prompt.id,
+        prompt.label,
+        prompt.description,
+        prompt.tags.join(' '),
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return searchTarget.includes(normalizedSearch);
+    });
+  }, [promptSearch, promptStageTags]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -279,6 +340,12 @@ export function AssistantPanel() {
     </div>
   );
 
+  const handlePromptClick = (prompt: PromptDefinition) => {
+    setInputValue(prompt.description);
+    setSelectedPrompt(prompt);
+    inputRef.current?.focus();
+  };
+
   // Handle chip click
   const handleChipClick = useCallback(
     (chip: ActionChip) => {
@@ -469,6 +536,14 @@ export function AssistantPanel() {
     ]
   );
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+    setInputValue(nextValue);
+    if (selectedPrompt && nextValue.trim() !== selectedPrompt.description.trim()) {
+      setSelectedPrompt(null);
+    }
+  };
+
   // Handle text input submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -482,6 +557,7 @@ export function AssistantPanel() {
     }, 300);
 
     setInputValue('');
+    setSelectedPrompt(null);
   };
 
   // Handle local responses without backend
@@ -707,6 +783,38 @@ export function AssistantPanel() {
         </div>
       )}
 
+      {/* Prompt Library */}
+      <div className={styles.promptArea}>
+        <div className={styles.chipsHeader}>
+          <span className={styles.chipsLabel}>Next actions</span>
+        </div>
+        <input
+          type="search"
+          className={styles.promptSearch}
+          placeholder="Search prompt library..."
+          value={promptSearch}
+          onChange={(event) => setPromptSearch(event.target.value)}
+          aria-label="Search prompt library"
+        />
+        {promptChips.length === 0 ? (
+          <p className={styles.promptEmpty}>No prompts match this stage yet.</p>
+        ) : (
+          <div className={styles.promptChipsList}>
+            {promptChips.map((prompt) => (
+              <button
+                key={prompt.id}
+                type="button"
+                className={styles.promptChip}
+                onClick={() => handlePromptClick(prompt)}
+                title={prompt.description}
+              >
+                <span className={styles.promptChipLabel}>{prompt.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Messages */}
       <div className={styles.messages}>
         {messages.length === 0 ? (
@@ -748,7 +856,8 @@ export function AssistantPanel() {
           className={styles.input}
           placeholder="Ask about your project..."
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleInputChange}
+          ref={inputRef}
         />
         <button
           type="submit"

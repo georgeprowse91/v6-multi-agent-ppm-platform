@@ -19,6 +19,7 @@ from typing import Any, cast
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from agents.common.web_search import SearchPurpose, build_search_query, search_web, summarize_snippets
 from agents.runtime import BaseAgent, InMemoryEventBus
 
 OBSERVABILITY_ROOT = Path(__file__).resolve().parents[5] / "packages" / "observability" / "src"
@@ -50,6 +51,9 @@ class OrchestrationRequest(BaseModel):
     context: dict[str, Any] | None = None
     correlation_id: str | None = None
     tenant_id: str | None = None
+    prompt_id: str | None = None
+    prompt_description: str | None = None
+    prompt_tags: list[str] = Field(default_factory=list)
 
 
 class AgentInvocationResult(BaseModel):
@@ -69,6 +73,10 @@ class OrchestrationResponse(BaseModel):
 class ValidationErrorPayload(BaseModel):
     error: str
     details: list[dict[str, Any]]
+
+
+VENDOR_RESEARCH_PROMPTS = {"vendor_research", "vendor_evaluation"}
+COMPLIANCE_RESEARCH_PROMPTS = {"compliance_updates", "compliance_checklist"}
 
 
 class ResponseOrchestrationAgent(BaseAgent):
@@ -148,6 +156,83 @@ class ResponseOrchestrationAgent(BaseAgent):
         self._last_validation_error = None
         return True
 
+    def _build_prompt_payload(
+        self, request: OrchestrationRequest, parameters: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        provided_prompt = parameters.get("prompt")
+        prompt_id = parameters.get("prompt_id") or request.prompt_id
+        prompt_description = parameters.get("prompt_description") or request.prompt_description
+        prompt_tags = parameters.get("prompt_tags") or request.prompt_tags
+
+        if isinstance(provided_prompt, dict):
+            prompt_id = provided_prompt.get("id") or prompt_id
+            prompt_description = provided_prompt.get("description") or prompt_description
+            prompt_tags = provided_prompt.get("tags") or prompt_tags
+
+        if not prompt_id and not prompt_description:
+            return None
+
+        payload: dict[str, Any] = {}
+        if prompt_id:
+            payload["id"] = prompt_id
+        if prompt_description:
+            payload["description"] = prompt_description
+        if prompt_tags:
+            payload["tags"] = list(prompt_tags)
+        return payload
+
+    def _determine_research_purpose(
+        self, prompt_payload: dict[str, Any]
+    ) -> SearchPurpose | None:
+        prompt_id = prompt_payload.get("id")
+        tags = {str(tag).lower() for tag in prompt_payload.get("tags", [])}
+        if prompt_id in VENDOR_RESEARCH_PROMPTS or "vendor" in tags or "procurement" in tags:
+            return "vendor"
+        if prompt_id in COMPLIANCE_RESEARCH_PROMPTS or "compliance" in tags:
+            return "compliance"
+        return None
+
+    async def _maybe_attach_external_research(
+        self,
+        prompt_payload: dict[str, Any],
+        *,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        purpose = self._determine_research_purpose(prompt_payload)
+        if not purpose:
+            return None
+
+        context_parts = [
+            parameters.get("project_domain"),
+            parameters.get("project_name"),
+            context.get("project_id"),
+            context.get("methodology"),
+            prompt_payload.get("description"),
+        ]
+        search_context = " ".join(str(part) for part in context_parts if part)
+        query = build_search_query(search_context, purpose)
+        try:
+            snippets = await search_web(query)
+            summary = await summarize_snippets(snippets, purpose=purpose)
+        except Exception as exc:  # pragma: no cover - defensive
+            self.logger.warning("External research failed", extra={"error": str(exc)})
+            return {
+                "purpose": purpose,
+                "query": query,
+                "snippets": [],
+                "summary": "",
+                "used_external_research": False,
+            }
+
+        return {
+            "purpose": purpose,
+            "query": query,
+            "snippets": snippets,
+            "summary": summary,
+            "used_external_research": bool(snippets),
+        }
+
     async def process(self, input_data: dict[str, Any]) -> OrchestrationResponse:
         """
         Orchestrate multi-agent workflow.
@@ -168,12 +253,22 @@ class ResponseOrchestrationAgent(BaseAgent):
         """
         request = OrchestrationRequest.model_validate(input_data)
         routing = [entry.model_dump() for entry in request.routing]
-        parameters = request.parameters
+        parameters = dict(request.parameters)
         context = request.context or {}
         correlation_id = (
             context.get("correlation_id") or request.correlation_id or str(uuid.uuid4())
         )
         tenant_id = context.get("tenant_id") or request.tenant_id or "unknown"
+
+        prompt_payload = self._build_prompt_payload(request, parameters)
+        if prompt_payload:
+            parameters["prompt"] = prompt_payload
+            external_research = await self._maybe_attach_external_research(
+                prompt_payload, parameters=parameters, context=context
+            )
+            if external_research:
+                parameters["external_research"] = external_research
+                prompt_payload["external_research"] = external_research
 
         if not routing:
             return OrchestrationResponse(

@@ -229,6 +229,9 @@ class GatingSummary(BaseModel):
 class AssistantSendRequest(BaseModel):
     project_id: str
     message: str
+    prompt_id: str | None = None
+    prompt_description: str | None = None
+    prompt_tags: list[str] = Field(default_factory=list)
 
 
 class SelectedActivitySummary(BaseModel):
@@ -1670,9 +1673,19 @@ async def send_assistant_message(payload: AssistantSendRequest, request: Request
     context = _assistant_context(tenant_id, payload.project_id, correlation_id)
     headers = build_forward_headers(request, session)
     headers["X-Tenant-ID"] = tenant_id
+    prompt_payload = None
+    if payload.prompt_id or payload.prompt_description or payload.prompt_tags:
+        prompt_payload = {
+            "id": payload.prompt_id,
+            "description": payload.prompt_description,
+            "tags": payload.prompt_tags,
+        }
     try:
         response = await _orchestrator_client().send_query(
-            query=prompt_result.sanitized_text, context=context, headers=headers
+            query=prompt_result.sanitized_text,
+            context=context,
+            headers=headers,
+            prompt=prompt_payload,
         )
     except httpx.TimeoutException:
         return JSONResponse(

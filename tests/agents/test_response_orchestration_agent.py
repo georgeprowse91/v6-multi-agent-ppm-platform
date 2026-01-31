@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import httpx
 import pytest
@@ -148,6 +149,43 @@ async def test_response_orchestration_timeout_failure():
         payload = result.model_dump()
 
     assert payload["agent_results"][0]["success"] is False
+
+
+@pytest.mark.asyncio
+async def test_response_orchestration_includes_prompt_metadata():
+    captured_payload = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured_payload.update(json.loads(request.content.decode()))
+        return httpx.Response(200, json={"message": "ok"})
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        agent = ResponseOrchestrationAgent(
+            config={
+                "agent_endpoints": {"risk-management": "http://test/risk"},
+                "http_client": client,
+            }
+        )
+        await agent.initialize()
+        result = await agent.process(
+            {
+                "routing": [{"agent_id": "risk-management"}],
+                "parameters": {},
+                "query": "identify risks",
+                "prompt_id": "risk_identification",
+                "prompt_description": "Identify project risks and mitigations.",
+                "prompt_tags": ["risk", "planning"],
+            }
+        )
+        payload = result.model_dump()
+
+    assert payload["agent_results"][0]["success"] is True
+    assert captured_payload["parameters"]["prompt"]["id"] == "risk_identification"
+    assert (
+        captured_payload["parameters"]["prompt"]["description"]
+        == "Identify project risks and mitigations."
+    )
 
 
 @pytest.mark.asyncio

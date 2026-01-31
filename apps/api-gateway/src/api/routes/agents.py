@@ -17,6 +17,7 @@ class QueryRequest(BaseModel):
 
     query: str
     context: dict[str, Any] | None = None
+    prompt: dict[str, Any] | None = None
 
 
 @router.post("/query", response_model=AgentResponse)
@@ -35,6 +36,7 @@ async def process_query(request: QueryRequest):
         result = await orchestrator.process_query(
             query=request.query,
             context=request.context,
+            prompt=request.prompt,
         )
         return AgentResponse.model_validate(result).model_dump()
 

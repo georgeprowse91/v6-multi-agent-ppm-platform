@@ -398,7 +398,10 @@ class AgentOrchestrator:
         logger.info("Platform agents loaded")
 
     async def process_query(
-        self, query: str, context: dict[str, Any] | None = None
+        self,
+        query: str,
+        context: dict[str, Any] | None = None,
+        prompt: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Process a user query through the full agent pipeline.
@@ -438,10 +441,14 @@ class AgentOrchestrator:
         intent_payload = intent_response.data.model_dump() if intent_response.data else {}
 
         # Step 2: Orchestrate response
+        parameters = intent_payload.get("parameters", {})
+        if prompt:
+            parameters = {**parameters, "prompt": prompt}
+
         orchestration_result = await self.response_orchestrator.execute(
             {
                 "routing": intent_payload.get("routing", []),
-                "parameters": intent_payload.get("parameters", {}),
+                "parameters": parameters,
                 "query": query,
                 "context": {**(context or {}), "correlation_id": correlation_id},
             }
