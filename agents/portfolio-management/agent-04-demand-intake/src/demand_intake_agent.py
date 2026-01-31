@@ -19,6 +19,12 @@ from data_quality.helpers import apply_rule_set, validate_against_schema
 from events import DemandCreatedEvent
 from observability.tracing import get_trace_id
 
+from agents.common.integration_services import (
+    LocalEmbeddingService,
+    NaiveBayesTextClassifier,
+    NotificationService,
+    VectorSearchIndex,
+)
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
 
@@ -52,6 +58,14 @@ class DemandIntakeAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
+        self.notification_service = NotificationService(self.event_bus)
+        self.embedding_service = LocalEmbeddingService(
+            dimensions=config.get("embedding_dimensions", 128) if config else 128
+        )
+        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.classifier = NaiveBayesTextClassifier(
+            labels=["project", "change_request", "issue", "idea"]
+        )
         self.demand_schema_path = Path(
             config.get("demand_schema_path", "data/schemas/demand.schema.json")
             if config
@@ -101,9 +115,23 @@ class DemandIntakeAgent(BaseAgent):
         """Initialize NLP models and database connections."""
         await super().initialize()
         self.logger.info("Loading classification and similarity models...")
-        # Future work: Load Azure OpenAI for classification and embeddings
-        # Future work: Initialize database connection for demand repository
-        # Future work: Initialize vector search (Azure Cognitive Search)
+        training_samples = [
+            ("new system implementation for finance", "project"),
+            ("platform upgrade and modernization", "project"),
+            ("change request for reporting dashboard", "change_request"),
+            ("modify workflow approvals", "change_request"),
+            ("bug in payroll processing", "issue"),
+            ("system defect in billing", "issue"),
+            ("idea for new analytics capability", "idea"),
+            ("proposal for innovation lab", "idea"),
+        ]
+        self.classifier.fit(training_samples)
+        existing_demands = self.demand_store.list("default")
+        for item in existing_demands:
+            text = self._combine_text(item)
+            if item.get("demand_id"):
+                self.vector_index.add(item["demand_id"], text, item)
+        self.logger.info("Demand intake models and vector index ready.")
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate intake request has required fields."""
@@ -187,10 +215,21 @@ class DemandIntakeAgent(BaseAgent):
             "source": request_data.get("source", "unknown"),
         }
         self.demand_store.upsert(tenant_id, demand_id, demand_item)
+        self.vector_index.add(demand_id, self._combine_text(demand_item), demand_item)
         self.logger.info(f"Created demand request: {demand_id}")
 
-        # Send confirmation to requester
-        # Future work: Integrate with notification system
+        await self.notification_service.send(
+            {
+                "recipient": demand_item.get("created_by"),
+                "subject": f"Demand request {demand_id} received",
+                "body": (
+                    "Your request has been received and routed for screening. "
+                    f"Category: {category}."
+                ),
+                "metadata": {"demand_id": demand_id, "tenant_id": tenant_id},
+                "sent_at": datetime.utcnow().isoformat(),
+            }
+        )
 
         await self._publish_demand_created(
             demand_item,
@@ -235,20 +274,11 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns category: "project", "change_request", "issue", "idea"
         """
-        # Future work: Implement Azure OpenAI classification
-        description = request_data.get("description", "").lower()
-        title = request_data.get("title", "").lower()
+        description = request_data.get("description", "")
+        title = request_data.get("title", "")
         combined_text = f"{title} {description}"
-
-        # Simple keyword-based classification (baseline)
-        if any(word in combined_text for word in ["new system", "implementation", "initiative"]):
-            return "project"
-        elif any(word in combined_text for word in ["change", "update", "modify"]):
-            return "change_request"
-        elif any(word in combined_text for word in ["bug", "defect", "problem", "issue"]):
-            return "issue"
-        else:
-            return "idea"
+        label, _scores = self.classifier.predict(combined_text)
+        return label
 
     async def _find_duplicates(
         self, request_data: dict[str, Any], *, tenant_id: str
@@ -263,18 +293,16 @@ class DemandIntakeAgent(BaseAgent):
             return []
 
         candidate_text = self._combine_text(request_data)
-        corpus = [self._combine_text(item) for item in demands]
-        similarities = self._semantic_similarity(candidate_text, corpus)
-
         results = []
-        for item, score in zip(demands, similarities):
-            if score >= self.similarity_threshold:
+        for match in self.vector_index.search(candidate_text, top_k=10):
+            if match.score >= self.similarity_threshold:
+                metadata = match.metadata
                 results.append(
                     {
-                        "demand_id": item.get("demand_id"),
-                        "title": item.get("title"),
-                        "category": item.get("category"),
-                        "similarity": round(score, 3),
+                        "demand_id": match.doc_id,
+                        "title": metadata.get("title"),
+                        "category": metadata.get("category"),
+                        "similarity": round(match.score, 3),
                     }
                 )
 

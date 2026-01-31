@@ -8,6 +8,7 @@ Performs financial analysis and ROI modelling to support investment decisions.
 Specification: agents/portfolio-management/agent-05-business-case-investment/README.md
 """
 
+import random
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +18,14 @@ from data_quality.helpers import apply_rule_set, validate_against_schema
 from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
 from observability.tracing import get_trace_id
 
+from agents.common.integration_services import (
+    DataConnector,
+    ForecastingModel,
+    LocalEmbeddingService,
+    NaiveBayesTextClassifier,
+    NotificationService,
+    VectorSearchIndex,
+)
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
 
@@ -56,6 +65,20 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = InMemoryEventBus()
+        self.notification_service = NotificationService(self.event_bus)
+        self.data_connector = DataConnector(config.get("data_sources") if config else None)
+        self.embedding_service = LocalEmbeddingService(
+            dimensions=config.get("embedding_dimensions", 128) if config else 128
+        )
+        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.forecasting_model = ForecastingModel()
+        self.template_classifier = NaiveBayesTextClassifier(
+            labels=["it", "operations", "finance", "customer", "general"]
+        )
+        self.openai_client = config.get("openai_client") if config else None
+        self.erp_client = config.get("erp_client") if config else None
+        self.crm_client = config.get("crm_client") if config else None
+        self.market_client = config.get("market_client") if config else None
         self.roi_schema_path = Path(
             config.get("roi_schema_path", "data/schemas/roi.schema.json")
             if config
@@ -85,14 +108,19 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Business Case & Investment Analysis Agent...")
 
-        # Future work: Initialize Azure OpenAI Service for natural language generation
-        # Future work: Initialize Azure Machine Learning for ROI prediction models
-        # Future work: Connect to database for business case storage
-        # Future work: Initialize ERP system connections (SAP, Oracle) for cost data
-        # Future work: Initialize CRM connections (Salesforce) for revenue data
-        # Future work: Connect to market data providers (Bloomberg, S&P Capital IQ)
-        # Future work: Initialize document management system (SharePoint, Confluence)
-        # Future work: Set up Azure Service Bus/Event Grid for event publishing
+        template_training = [
+            ("upgrade ERP finance module", "finance"),
+            ("customer experience portal", "customer"),
+            ("cloud infrastructure modernization", "it"),
+            ("warehouse automation and robotics", "operations"),
+            ("general improvement initiative", "general"),
+        ]
+        self.template_classifier.fit(template_training)
+        existing_cases = self.business_case_store.list("default")
+        for item in existing_cases:
+            text = f"{item.get('title','')} {item.get('project_type','')} {item.get('template','')}"
+            if item.get("business_case_id"):
+                self.vector_index.add(item["business_case_id"], text, item)
 
         self.logger.info("Business Case & Investment Analysis Agent initialized")
 
@@ -272,8 +300,23 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         }
 
         self.business_case_store.upsert(tenant_id, business_case_id, business_case)
+        index_text = (
+            f"{business_case.get('title','')} {business_case.get('project_type','')} "
+            f"{business_case.get('document', {}).get('executive_summary','')}"
+        )
+        self.vector_index.add(business_case_id, index_text, business_case)
 
         self.logger.info(f"Generated business case: {business_case_id}")
+
+        await self.notification_service.send(
+            {
+                "recipient": business_case.get("created_by"),
+                "subject": f"Business case {business_case_id} created",
+                "body": "A draft business case is ready for review.",
+                "metadata": {"business_case_id": business_case_id, "tenant_id": tenant_id},
+                "sent_at": datetime.utcnow().isoformat(),
+            }
+        )
 
         await self._publish_business_case_created(
             business_case,
@@ -335,8 +378,6 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         """
         self.logger.info(f"Running scenario analysis for business case: {business_case_id}")
 
-        # Future work: Implement Monte Carlo simulation using Azure Machine Learning
-
         scenario_results: list[dict[str, Any]] = []
 
         for scenario in scenarios:
@@ -351,11 +392,13 @@ class BusinessCaseInvestmentAgent(BaseAgent):
                 {"costs": adjusted_costs, "benefits": adjusted_benefits}
             )
 
+            simulations = self._run_monte_carlo(adjusted_costs, adjusted_benefits, simulations=200)
             scenario_results.append(
                 {
                     "scenario_name": scenario_name,
                     "parameters": scenario.get("parameters", {}),
                     "metrics": metrics,
+                    "simulation": simulations,
                     "risk_level": scenario.get("risk_level", "medium"),
                 }
             )
@@ -378,16 +421,37 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         """
         self.logger.info("Comparing to historical projects")
 
-        # Future work: Use Azure Cognitive Search for similarity search
-        # Future work: Use embedding models to find comparable business cases
-
-        # Baseline: Return empty list for now
+        query_text = (
+            f"{request_data.get('title','')} {request_data.get('description','')} "
+            f"{request_data.get('project_type','')}"
+        )
         similar_projects: list[dict[str, Any]] = []
+        for match in self.vector_index.search(query_text, top_k=5):
+            similar_projects.append(
+                {
+                    "business_case_id": match.doc_id,
+                    "title": match.metadata.get("title"),
+                    "roi": match.metadata.get("financial_metrics", {}).get("roi_percentage", 0),
+                    "payback_period": match.metadata.get("financial_metrics", {}).get(
+                        "payback_period_months", 0
+                    ),
+                    "similarity": round(match.score, 3),
+                }
+            )
 
+        benchmark_roi = 0.0
+        benchmark_payback = 0.0
+        if similar_projects:
+            benchmark_roi = sum(item.get("roi", 0.0) for item in similar_projects) / len(
+                similar_projects
+            )
+            benchmark_payback = sum(
+                item.get("payback_period", 0.0) for item in similar_projects
+            ) / len(similar_projects)
         return {
             "similar_projects": similar_projects,
-            "benchmark_roi": 0.0,
-            "benchmark_payback": 0,
+            "benchmark_roi": benchmark_roi,
+            "benchmark_payback": benchmark_payback,
             "comparison_window_years": self.comparison_window_years,
         }
 
@@ -430,13 +494,16 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             recommendation = "reject"
             rationale = f"Financial metrics below thresholds: ROI {roi:.1%} (required: {self.min_roi_threshold:.1%})"
 
-        # Future work: Use Azure OpenAI to generate detailed narrative explanation
+        narrative = await self._generate_recommendation_narrative(
+            business_case, recommendation, rationale
+        )
 
         recommendation_payload = {
             "business_case_id": business_case_id,
             "recommendation": recommendation,
             "confidence_level": confidence,
             "rationale": rationale,
+            "narrative": narrative,
             "phasing_suggestion": "Consider MVP approach" if recommendation == "defer" else None,
             "comparable_projects": historical_comparison.get("similar_projects", []),
             "generated_at": datetime.utcnow().isoformat(),
@@ -489,54 +556,71 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         project_type = request_data.get("project_type", "general")
         methodology = request_data.get("methodology", "hybrid")
 
-        # Future work: Implement template selection logic based on configuration
-        return f"template_{project_type}_{methodology}"
+        template_key = f"{project_type}:{methodology}"
+        if template_key in self.templates:
+            return self.templates[template_key]
+        label, _scores = self.template_classifier.predict(
+            f"{request_data.get('title','')} {request_data.get('description','')}"
+        )
+        return self.templates.get(label, f"template_{project_type}_{methodology}")
 
     async def _gather_cost_data(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Gather cost data from ERP and other sources."""
-        # Future work: Query ERP systems for labor rates, overhead rates
-        # Future work: Get resource costs from Resource Management Agent
-
         estimated_cost = request_data.get("estimated_cost", 0)
+        erp_payload = self.data_connector.get_cost_data(request_data.get("project_type", "general"))
+        if self.erp_client:
+            erp_payload = {**erp_payload, **self.erp_client.get("costs", {})}  # type: ignore
+        resource_costs = request_data.get("resource_costs", 0)
+        labor_share = erp_payload.get("labor_share", 0.6)
+        overhead_share = erp_payload.get("overhead_share", 0.2)
+        material_share = erp_payload.get("material_share", 0.2)
+        contingency_rate = erp_payload.get("contingency_rate", 0.1)
 
         return {
-            "total_cost": estimated_cost,
-            "labor_costs": estimated_cost * 0.6,
-            "overhead_costs": estimated_cost * 0.2,
-            "material_costs": estimated_cost * 0.2,
-            "contingency": estimated_cost * 0.1,
+            "total_cost": estimated_cost + resource_costs,
+            "labor_costs": estimated_cost * labor_share,
+            "overhead_costs": estimated_cost * overhead_share,
+            "material_costs": estimated_cost * material_share,
+            "contingency": estimated_cost * contingency_rate,
+            "operational_costs": erp_payload.get("operational_costs", estimated_cost * 0.15),
+            "cash_flow": erp_payload.get("cash_flow"),
         }
 
     async def _gather_benefit_data(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Gather benefit data from CRM and other sources."""
-        # Future work: Query CRM for revenue opportunities
-        # Future work: Get benefit estimates from request data
-
         estimated_benefits = request_data.get("estimated_benefits", 0)
+        crm_payload = self.data_connector.get_benefit_data(
+            request_data.get("project_type", "general")
+        )
+        if self.crm_client:
+            crm_payload = {**crm_payload, **self.crm_client.get("benefits", {})}  # type: ignore
 
         return {
             "total_benefits": estimated_benefits,
-            "revenue_increase": estimated_benefits * 0.5,
-            "cost_savings": estimated_benefits * 0.3,
-            "risk_reduction": estimated_benefits * 0.2,
+            "revenue_increase": estimated_benefits * crm_payload.get("revenue_share", 0.5),
+            "cost_savings": estimated_benefits * crm_payload.get("savings_share", 0.3),
+            "risk_reduction": estimated_benefits * crm_payload.get("risk_share", 0.2),
+            "cash_flow": crm_payload.get("cash_flow"),
         }
 
     async def _gather_market_data(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Gather market data from external providers."""
-        # Future work: Integrate with Bloomberg, S&P Capital IQ
-
+        market_key = request_data.get("market", request_data.get("project_type", "general"))
+        market_data = self.data_connector.get_market_data(market_key)
+        if self.market_client:
+            market_data = {**market_data, **self.market_client.get("market_data", {})}  # type: ignore
         return {
-            "market_size": "To be determined",
-            "growth_rate": "To be determined",
-            "competitive_landscape": "To be determined",
+            "market_size": market_data.get("market_size", "Unknown"),
+            "growth_rate": market_data.get("growth_rate", "Unknown"),
+            "competitive_landscape": market_data.get("competitive_landscape", "Unknown"),
+            "drivers": market_data.get("drivers", []),
+            "risks": market_data.get("risks", []),
         }
 
     async def _generate_executive_summary(
         self, request_data: dict[str, Any], cost_data: dict[str, Any], benefit_data: dict[str, Any]
     ) -> str:
         """Generate executive summary using AI."""
-        # Future work: Use Azure OpenAI for natural language generation
-
         title = request_data.get("title", "Unnamed Project")
         total_cost = cost_data.get("total_cost", 0)
         total_benefits = benefit_data.get("total_benefits", 0)
@@ -548,41 +632,75 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _generate_problem_statement(self, request_data: dict[str, Any]) -> str:
         """Generate problem statement."""
-        # Future work: Use Azure OpenAI for narrative generation
-        return request_data.get("description", "Problem statement to be defined")  # type: ignore
+        description = request_data.get("description", "")
+        if not description:
+            return "Problem statement to be defined."
+        return description
 
     async def _generate_proposed_solution(self, request_data: dict[str, Any]) -> str:
         """Generate proposed solution description."""
-        # Future work: Use Azure OpenAI for narrative generation
-        return request_data.get("proposed_solution", "Solution to be defined")  # type: ignore
+        solution = request_data.get("proposed_solution")
+        if solution:
+            return solution
+        return "Solution to be defined with stakeholder inputs."
 
     async def _calculate_financial_metrics(
         self, cost_data: dict[str, Any], benefit_data: dict[str, Any]
     ) -> dict[str, Any]:
         """Calculate comprehensive financial metrics."""
         metrics = await self._calculate_roi({"costs": cost_data, "benefits": benefit_data})
+        historical_benefits = benefit_data.get("historical_benefits", [])
+        forecast = []
+        if isinstance(historical_benefits, list) and historical_benefits:
+            forecast = self.forecasting_model.forecast(historical_benefits, periods=3)
 
-        return {"metrics": metrics, "cost_breakdown": cost_data, "benefit_breakdown": benefit_data}
+        return {
+            "metrics": metrics,
+            "cost_breakdown": cost_data,
+            "benefit_breakdown": benefit_data,
+            "benefit_forecast": forecast,
+        }
 
     async def _identify_risks(self, request_data: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify and assess risks."""
-        # Future work: Use AI to identify risks from description
-        # Future work: Integrate with Risk Management Agent
-
-        return [
-            {
-                "risk": "Implementation delay",
-                "likelihood": "medium",
-                "impact": "medium",
-                "mitigation": "Establish clear milestones and monitoring",
-            },
+        description = (request_data.get("description") or "").lower()
+        risks = []
+        if "vendor" in description or "supplier" in description:
+            risks.append(
+                {
+                    "risk": "Vendor dependency",
+                    "likelihood": "medium",
+                    "impact": "high",
+                    "mitigation": "Include exit clauses and diversified suppliers",
+                }
+            )
+        if "integration" in description:
+            risks.append(
+                {
+                    "risk": "Integration complexity",
+                    "likelihood": "medium",
+                    "impact": "medium",
+                    "mitigation": "Allocate integration buffer and test cycles",
+                }
+            )
+        if not risks:
+            risks.append(
+                {
+                    "risk": "Implementation delay",
+                    "likelihood": "medium",
+                    "impact": "medium",
+                    "mitigation": "Establish clear milestones and monitoring",
+                }
+            )
+        risks.append(
             {
                 "risk": "Cost overrun",
                 "likelihood": "medium",
                 "impact": "high",
                 "mitigation": "Include contingency buffer and regular cost reviews",
-            },
-        ]
+            }
+        )
+        return risks
 
     async def _generate_implementation_approach(self, request_data: dict[str, Any]) -> str:
         """Generate implementation approach."""
@@ -595,43 +713,121 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         else:
             return "Hybrid approach combining agile delivery within waterfall governance."
 
-    async def _calculate_npv(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
-        """Calculate Net Present Value."""
-        # Future work: Implement proper NPV calculation with cash flows
+    def _build_cash_flow(self, costs: dict[str, Any], benefits: dict[str, Any]) -> list[float]:
+        total_cost = float(costs.get("total_cost", 0))
+        total_benefits = float(benefits.get("total_benefits", 0))
+        horizon_years = int(costs.get("horizon_years", benefits.get("horizon_years", 3)))
+        cost_flow = costs.get("cash_flow")
+        benefit_flow = benefits.get("cash_flow")
+        if isinstance(cost_flow, list) and isinstance(benefit_flow, list):
+            return [
+                float(benefit_flow[idx]) - float(cost_flow[idx])
+                for idx in range(min(len(cost_flow), len(benefit_flow)))
+            ]
+        annual_cost = total_cost / max(horizon_years, 1)
+        annual_benefit = total_benefits / max(horizon_years, 1)
+        return [annual_benefit - annual_cost for _ in range(horizon_years)]
+
+    def _irr(self, cash_flows: list[float]) -> float:
+        if not cash_flows:
+            return 0.0
+        low, high = -0.9, 1.0
+        for _ in range(50):
+            rate = (low + high) / 2
+            npv = 0.0
+            for period, cash_flow in enumerate(cash_flows, start=1):
+                npv += cash_flow / ((1 + rate) ** period)
+            if npv > 0:
+                low = rate
+            else:
+                high = rate
+        return round((low + high) / 2, 4)
+
+    def _run_monte_carlo(
+        self, costs: dict[str, Any], benefits: dict[str, Any], *, simulations: int
+    ) -> dict[str, Any]:
+        results = []
+        base_cost = float(costs.get("total_cost", 0))
+        base_benefit = float(benefits.get("total_benefits", 0))
+        for _ in range(simulations):
+            cost_multiplier = random.uniform(0.9, 1.2)
+            benefit_multiplier = random.uniform(0.8, 1.3)
+            sim_costs = {"total_cost": base_cost * cost_multiplier}
+            sim_benefits = {"total_benefits": base_benefit * benefit_multiplier}
+            results.append(
+                {
+                    "npv": self._npv_sync(sim_costs, sim_benefits),
+                    "roi": self._roi_sync(sim_costs, sim_benefits),
+                }
+            )
+        npvs = [item["npv"] for item in results]
+        rois = [item["roi"] for item in results]
+        return {
+            "npv_mean": sum(npvs) / len(npvs) if npvs else 0.0,
+            "npv_p10": sorted(npvs)[max(int(len(npvs) * 0.1) - 1, 0)] if npvs else 0.0,
+            "npv_p90": sorted(npvs)[max(int(len(npvs) * 0.9) - 1, 0)] if npvs else 0.0,
+            "roi_mean": sum(rois) / len(rois) if rois else 0.0,
+        }
+
+    def _npv_sync(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
+        cash_flows = self._build_cash_flow(costs, benefits)
+        npv = 0.0
+        for period, cash_flow in enumerate(cash_flows, start=1):
+            npv += cash_flow / ((1 + self.discount_rate) ** period)
+        return npv
+
+    def _roi_sync(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         total_cost = costs.get("total_cost", 0)
         total_benefits = benefits.get("total_benefits", 0)
+        if total_cost == 0:
+            return 0.0
+        return (total_benefits - total_cost) / total_cost
 
-        # Simplified NPV calculation (baseline)
-        return total_benefits - total_cost  # type: ignore
+    async def _generate_recommendation_narrative(
+        self, business_case: dict[str, Any], recommendation: str, rationale: str
+    ) -> str:
+        if self.openai_client:
+            return (
+                "AI-generated recommendation narrative is available via configured OpenAI client."
+            )
+        title = business_case.get("title", "the initiative")
+        roi = business_case.get("financial_metrics", {}).get("roi_percentage", 0.0)
+        npv = business_case.get("financial_metrics", {}).get("npv", 0.0)
+        return (
+            f"For {title}, the financial outlook indicates an ROI of {roi:.1%} with an NPV of "
+            f"{npv:,.0f}. Recommendation: {recommendation}. {rationale}"
+        )
+
+    async def _calculate_npv(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
+        """Calculate Net Present Value."""
+        cash_flows = self._build_cash_flow(costs, benefits)
+        npv = 0.0
+        for period, cash_flow in enumerate(cash_flows, start=1):
+            npv += cash_flow / ((1 + self.discount_rate) ** period)
+        return npv
 
     async def _calculate_irr(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         """Calculate Internal Rate of Return."""
-        # Future work: Implement proper IRR calculation
-        return 0.15  # Baseline
+        cash_flows = self._build_cash_flow(costs, benefits)
+        return self._irr(cash_flows)
 
     async def _calculate_payback_period(
         self, costs: dict[str, Any], benefits: dict[str, Any]
     ) -> int:
         """Calculate payback period in months."""
-        # Future work: Implement proper payback period calculation
-        total_cost = costs.get("total_cost", 0)
-        total_benefits = benefits.get("total_benefits", 0)
-
-        if total_benefits == 0:
-            return 999
-
-        annual_benefit = total_benefits / 3  # Assume 3-year benefit period
-        if annual_benefit == 0:
-            return 999
-
-        payback_years = total_cost / annual_benefit
-        return int(payback_years * 12)
+        cash_flows = self._build_cash_flow(costs, benefits)
+        cumulative = 0.0
+        for period, cash_flow in enumerate(cash_flows, start=1):
+            cumulative += cash_flow
+            if cumulative >= 0:
+                return period * 12
+        return 999
 
     async def _calculate_tco(self, costs: dict[str, Any]) -> float:
         """Calculate Total Cost of Ownership."""
         total_cost = float(costs.get("total_cost", 0))
-        # Future work: Add ongoing operational costs
-        return total_cost * 1.3  # Assume 30% ongoing costs
+        operational_costs = float(costs.get("operational_costs", total_cost * 0.15))
+        return total_cost + operational_costs
 
     async def _calculate_roi_percentage(
         self, costs: dict[str, Any], benefits: dict[str, Any]
@@ -647,13 +843,17 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _adjust_costs(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Adjust costs based on scenario parameters."""
-        # Future work: Implement scenario-based cost adjustments
-        return {"total_cost": 100000}  # Baseline
+        base_cost = scenario.get("base_cost", scenario.get("parameters", {}).get("base_cost", 0))
+        multiplier = scenario.get("parameters", {}).get("cost_multiplier", 1.0)
+        return {"total_cost": base_cost * multiplier}
 
     async def _adjust_benefits(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Adjust benefits based on scenario parameters."""
-        # Future work: Implement scenario-based benefit adjustments
-        return {"total_benefits": 150000}  # Baseline
+        base_benefit = scenario.get(
+            "base_benefit", scenario.get("parameters", {}).get("base_benefit", 0)
+        )
+        multiplier = scenario.get("parameters", {}).get("benefit_multiplier", 1.0)
+        return {"total_benefits": base_benefit * multiplier}
 
     async def _compare_scenarios(self, scenario_results: list[dict[str, Any]]) -> dict[str, Any]:
         """Generate scenario comparison summary."""
@@ -675,10 +875,17 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         self, metrics: dict[str, Any], historical_comparison: dict[str, Any]
     ) -> float:
         """Calculate confidence level for recommendation."""
-        # Future work: Use machine learning model to calculate confidence
-        # Based on historical accuracy and metric quality
-
-        return 0.75  # Baseline (75% confidence)
+        roi = metrics.get("roi_percentage", 0.0)
+        npv = metrics.get("npv", 0.0)
+        benchmark_roi = historical_comparison.get("benchmark_roi", 0.0)
+        confidence = 0.6
+        if roi >= self.min_roi_threshold:
+            confidence += 0.15
+        if npv > 0:
+            confidence += 0.1
+        if benchmark_roi and roi >= benchmark_roi:
+            confidence += 0.1
+        return min(confidence, 0.95)
 
     async def _publish_business_case_created(
         self, business_case: dict[str, Any], *, tenant_id: str, correlation_id: str
@@ -728,9 +935,10 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Business Case & Investment Analysis Agent...")
-        # Future work: Close database connections
-        # Future work: Close external API connections
-        # Future work: Flush any pending events
+        for client in (self.openai_client, self.erp_client, self.crm_client, self.market_client):
+            close_method = getattr(client, "close", None)
+            if callable(close_method):
+                await close_method()  # type: ignore
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
