@@ -46,6 +46,26 @@ class FakeHealthModel:
         return [0.88]
 
 
+class FakeConnector:
+    def __init__(self, projects: list[dict]) -> None:
+        self.projects = projects
+        self.requests: list[str] = []
+
+    def authenticate(self) -> bool:
+        return True
+
+    def read(self, resource: str):
+        self.requests.append(resource)
+        if resource == "projects":
+            return self.projects
+        if resource == "program_health":
+            return [
+                {"id": project["id"], "health_score": project.get("health_score", 0.9)}
+                for project in self.projects
+            ]
+        return []
+
+
 @pytest.mark.asyncio
 async def test_program_creation_and_roadmap_events(tmp_path):
     event_bus = EventCollector()
@@ -102,8 +122,14 @@ async def test_program_creation_and_roadmap_events(tmp_path):
 @pytest.mark.asyncio
 async def test_program_health_summary(tmp_path):
     fake_llm = FakeLLMClient()
+    fake_connector = FakeConnector(
+        [
+            {"id": "PROJ-1", "health_score": 0.92, "dependency_count": 2},
+        ]
+    )
     agent = ProgramManagementAgent(
         config={
+            "event_bus": EventCollector(),
             "program_store_path": tmp_path / "programs.json",
             "program_roadmap_store_path": tmp_path / "roadmaps.json",
             "program_dependency_store_path": tmp_path / "dependencies.json",
@@ -111,6 +137,7 @@ async def test_program_health_summary(tmp_path):
             "ml_model": FakeHealthModel(),
             "dependency_container": FakeCosmosContainer(),
             "mapping_container": FakeCosmosContainer(),
+            "planview_connector": fake_connector,
         }
     )
     await agent.initialize()
@@ -139,12 +166,14 @@ async def test_program_health_summary(tmp_path):
     assert response["program_id"] == created["program_id"]
     assert response["narrative"] == "Program narrative summary."
     assert "Schedule health" in fake_llm.prompts[0]
+    assert response["external_signals"]["health_index"] == 0.92
 
 
 @pytest.mark.asyncio
 async def test_program_validation_rejects_invalid_action(tmp_path):
     agent = ProgramManagementAgent(
         config={
+            "event_bus": EventCollector(),
             "program_store_path": tmp_path / "programs.json",
             "program_roadmap_store_path": tmp_path / "roadmaps.json",
             "program_dependency_store_path": tmp_path / "dependencies.json",
@@ -161,6 +190,7 @@ async def test_program_validation_rejects_invalid_action(tmp_path):
 async def test_program_validation_rejects_missing_fields(tmp_path):
     agent = ProgramManagementAgent(
         config={
+            "event_bus": EventCollector(),
             "program_store_path": tmp_path / "programs.json",
             "program_roadmap_store_path": tmp_path / "roadmaps.json",
             "program_dependency_store_path": tmp_path / "dependencies.json",
@@ -177,6 +207,7 @@ async def test_program_validation_rejects_missing_fields(tmp_path):
 async def test_synergy_analysis_detects_overlap(tmp_path):
     agent = ProgramManagementAgent(
         config={
+            "event_bus": EventCollector(),
             "program_store_path": tmp_path / "programs.json",
             "program_roadmap_store_path": tmp_path / "roadmaps.json",
             "program_dependency_store_path": tmp_path / "dependencies.json",
@@ -200,6 +231,7 @@ async def test_dependency_optimization_recommendations(tmp_path):
     dependency_container = FakeCosmosContainer()
     agent = ProgramManagementAgent(
         config={
+            "event_bus": EventCollector(),
             "program_store_path": tmp_path / "programs.json",
             "program_roadmap_store_path": tmp_path / "roadmaps.json",
             "program_dependency_store_path": tmp_path / "dependencies.json",
@@ -244,3 +276,59 @@ async def test_dependency_optimization_recommendations(tmp_path):
     optimization = response["optimization"]
     assert optimization["conflicts"]
     assert optimization["recommendations"]
+
+
+@pytest.mark.asyncio
+async def test_dependency_graph_crud_actions(tmp_path):
+    dependency_container = FakeCosmosContainer()
+    agent = ProgramManagementAgent(
+        config={
+            "event_bus": EventCollector(),
+            "program_store_path": tmp_path / "programs.json",
+            "program_roadmap_store_path": tmp_path / "roadmaps.json",
+            "program_dependency_store_path": tmp_path / "dependencies.json",
+            "dependency_container": dependency_container,
+            "mapping_container": FakeCosmosContainer(),
+        }
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "create_program",
+            "tenant_id": "tenant-a",
+            "program": {
+                "name": "CRUD Program",
+                "description": "Dependency graph CRUD",
+                "strategic_objectives": ["Visibility"],
+                "constituent_projects": ["A", "B"],
+            },
+        }
+    )
+
+    await agent.process(
+        {
+            "action": "generate_roadmap",
+            "tenant_id": "tenant-a",
+            "program_id": created["program_id"],
+        }
+    )
+
+    read = await agent.process(
+        {
+            "action": "get_dependency_graph",
+            "program_id": created["program_id"],
+        }
+    )
+    assert read["program_id"] == created["program_id"]
+
+    listing = await agent.process({"action": "list_dependency_graphs"})
+    assert listing["dependency_graphs"]
+
+    deleted = await agent.process(
+        {
+            "action": "delete_dependency_graph",
+            "program_id": created["program_id"],
+        }
+    )
+    assert deleted["status"] == "deleted"

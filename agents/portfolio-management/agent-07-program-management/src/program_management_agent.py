@@ -170,6 +170,9 @@ class ProgramManagementAgent(BaseAgent):
             "analyze_change_impact",
             "get_program_health",
             "get_program",
+            "list_dependency_graphs",
+            "get_dependency_graph",
+            "delete_dependency_graph",
         ]
 
         if action not in valid_actions:
@@ -189,7 +192,12 @@ class ProgramManagementAgent(BaseAgent):
                     self.logger.warning(f"Missing required field: {field}")
                     return False
 
-        elif action in ["track_dependencies", "analyze_change_impact"]:
+        elif action in [
+            "track_dependencies",
+            "analyze_change_impact",
+            "get_dependency_graph",
+            "delete_dependency_graph",
+        ]:
             if "program_id" not in input_data:
                 self.logger.warning("Missing program_id")
                 return False
@@ -286,6 +294,15 @@ class ProgramManagementAgent(BaseAgent):
                 input_data.get("program_id"),  # type: ignore
                 tenant_id=tenant_id,
             )
+        elif action == "list_dependency_graphs":
+            return {
+                "dependency_graphs": await self._list_dependency_graphs(),
+            }
+        elif action == "get_dependency_graph":
+            return await self._read_dependency_graph(input_data.get("program_id"))  # type: ignore
+        elif action == "delete_dependency_graph":
+            await self._delete_dependency_graph(input_data.get("program_id"))  # type: ignore
+            return {"status": "deleted", "program_id": input_data.get("program_id")}
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -394,7 +411,7 @@ class ProgramManagementAgent(BaseAgent):
         self.dependency_store.upsert(
             tenant_id, program_id, {"program_id": program_id, "dependencies": dependencies}
         )
-        await self._upsert_dependency_graph(program_id, dependencies, tenant_id=tenant_id)
+        await self._create_dependency_graph(program_id, dependencies, tenant_id=tenant_id)
         if self.db_service:
             await self.db_service.store("program_roadmaps", program_id, roadmap)
             await self.db_service.store(
@@ -430,7 +447,7 @@ class ProgramManagementAgent(BaseAgent):
         self.dependency_store.upsert(
             tenant_id, program_id, {"program_id": program_id, "dependencies": dependencies}
         )
-        await self._upsert_dependency_graph(program_id, dependencies, tenant_id=tenant_id)
+        await self._update_dependency_graph(program_id, dependencies, tenant_id=tenant_id)
         if self.db_service:
             await self.db_service.store(
                 "program_dependencies",
@@ -578,12 +595,18 @@ class ProgramManagementAgent(BaseAgent):
         cost_savings = await self._calculate_synergy_savings(
             shared_components, vendor_synergies, infrastructure_synergies
         )
+        optimization = await self._optimize_synergy_portfolio(
+            shared_components, vendor_synergies, infrastructure_synergies
+        )
+        mitigations = await self._propose_synergy_mitigations(optimization)
 
         synergies = {
             "shared_components": shared_components,
             "vendor_consolidation": vendor_synergies,
             "infrastructure_sharing": infrastructure_synergies,
             "estimated_savings": cost_savings,
+            "optimization": optimization,
+            "mitigations": mitigations,
         }
 
         # Store synergies
@@ -683,12 +706,17 @@ class ProgramManagementAgent(BaseAgent):
         benefit_metrics = await self._compute_benefit_realization_metrics(
             program_id, constituent_projects
         )
+        external_signals = await self._collect_external_health_signals(
+            program_id, constituent_projects
+        )
         predicted = await self._predict_program_health(
             {
                 "schedule_variance": 1 - schedule_health,
                 "cost_variance": 1 - budget_health,
                 "risk_indicator": 1 - risk_health,
                 "benefit_realization": benefit_metrics.get("realization_rate", 0),
+                "external_health": external_signals.get("health_index", 0.0),
+                "dependency_load": external_signals.get("dependency_load", 0.0),
             }
         )
         if predicted.get("score") is not None:
@@ -715,6 +743,7 @@ class ProgramManagementAgent(BaseAgent):
             },
             "benefit_metrics": benefit_metrics,
             "prediction": predicted,
+            "external_signals": external_signals,
             "concerns": concerns,
             "recommendations": await self._generate_health_recommendations(
                 composite_score, concerns
@@ -1125,6 +1154,8 @@ class ProgramManagementAgent(BaseAgent):
             recommendations.append("Consolidate shared components into reusable modules")
         if synergies.get("vendor_consolidation"):
             recommendations.append("Negotiate combined vendor contracts for volume discounts")
+        if synergies.get("optimization", {}).get("priority_actions"):
+            recommendations.append("Execute prioritized synergy actions to maximize savings")
         return recommendations
 
     async def _get_project_dependencies(
@@ -1296,6 +1327,10 @@ class ProgramManagementAgent(BaseAgent):
             await self.cosmos_client.close()
         if self.ml_workspace and hasattr(self.ml_workspace, "close"):
             self.ml_workspace.close()
+        if self.planview_connector and hasattr(self.planview_connector, "close"):
+            self.planview_connector.close()
+        if self.clarity_connector and hasattr(self.clarity_connector, "close"):
+            self.clarity_connector.close()
 
     def _build_dependency_graph(
         self, dependencies: list[dict[str, Any]]
@@ -1449,7 +1484,9 @@ class ProgramManagementAgent(BaseAgent):
     async def _initialize_llm(self) -> None:
         if self.llm_client is None:
             llm_config = self.config.get("llm_config", {}) if self.config else {}
-            provider = llm_config.get("provider")
+            provider = llm_config.get("provider") or (
+                "azure_openai" if os.getenv("AZURE_OPENAI_ENDPOINT") else None
+            )
             self.llm_client = LLMClient(provider=provider, config=llm_config)
 
     async def _initialize_integrations(self) -> None:
@@ -1521,6 +1558,32 @@ class ProgramManagementAgent(BaseAgent):
         updates = payload.get("updates", {})
         program.update(updates)
         self.program_store.upsert(tenant_id, program_id, program)
+        if self.db_service:
+            await self.db_service.store("programs", program_id, program)
+        if updates.get("dependencies"):
+            await self._update_dependency_graph(
+                program_id, updates["dependencies"], tenant_id=tenant_id
+            )
+
+    async def _create_dependency_graph(
+        self, program_id: str, dependencies: list[dict[str, Any]], *, tenant_id: str
+    ) -> dict[str, Any]:
+        if not self.dependency_container:
+            return {}
+        item = {
+            "id": program_id,
+            "program_id": program_id,
+            "tenant_id": tenant_id,
+            "dependencies": dependencies,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        await self.dependency_container.upsert_item(item)
+        return item
+
+    async def _update_dependency_graph(
+        self, program_id: str, dependencies: list[dict[str, Any]], *, tenant_id: str
+    ) -> dict[str, Any]:
+        return await self._create_dependency_graph(program_id, dependencies, tenant_id=tenant_id)
 
     async def _upsert_dependency_graph(
         self, program_id: str, dependencies: list[dict[str, Any]], *, tenant_id: str
@@ -1546,6 +1609,9 @@ class ProgramManagementAgent(BaseAgent):
         except Exception:
             return {}
 
+    async def _read_dependency_graph(self, program_id: str) -> dict[str, Any]:
+        return await self._get_dependency_graph(program_id)
+
     async def _delete_dependency_graph(self, program_id: str) -> None:
         if not self.dependency_container:
             return
@@ -1566,9 +1632,11 @@ class ProgramManagementAgent(BaseAgent):
         from azureml.core import Model
 
         model_path = Path(self.config.get("ml_model_path", "data/program_health_model.json"))
+        training_data = await self._prepare_health_training_data()
         model_payload = {
             "weights": self.health_score_weights,
             "trained_at": datetime.utcnow().isoformat(),
+            "training_data": training_data,
         }
         model_path.parent.mkdir(parents=True, exist_ok=True)
         model_path.write_text(json.dumps(model_payload))
@@ -1583,9 +1651,10 @@ class ProgramManagementAgent(BaseAgent):
             score = self.health_model.predict([features])[0]
             return {"score": score, "model": getattr(self.health_model, "name", "custom")}
         score = 1 - (
-            0.4 * features.get("schedule_variance", 0)
-            + 0.4 * features.get("cost_variance", 0)
+            0.35 * features.get("schedule_variance", 0)
+            + 0.35 * features.get("cost_variance", 0)
             + 0.2 * features.get("risk_indicator", 0)
+            + 0.1 * (1 - features.get("external_health", 0))
         )
         return {"score": max(min(score, 1.0), 0.0), "model": "baseline"}
 
@@ -1599,6 +1668,45 @@ class ProgramManagementAgent(BaseAgent):
             "benefits_realized": 125000,
             "benefits_target": 190000,
             "projects": project_ids,
+        }
+
+    async def _prepare_health_training_data(self) -> dict[str, Any]:
+        external = await self._ingest_external_program_data()
+        projects = external.get("projects", {})
+        signals = []
+        for project_id, payload in projects.items():
+            signals.append(
+                {
+                    "project_id": project_id,
+                    "schedule_variance": payload.get("schedule_variance", 0.1),
+                    "cost_variance": payload.get("cost_variance", 0.1),
+                    "risk_indicator": payload.get("risk_indicator", 0.2),
+                    "health_score": payload.get("health_score", 0.8),
+                }
+            )
+        return {"samples": signals, "source": "planview/clarity"}
+
+    async def _collect_external_health_signals(
+        self, program_id: str, project_ids: list[str]
+    ) -> dict[str, Any]:
+        external = await self._ingest_external_program_data()
+        projects = external.get("projects", {})
+        health_values = []
+        dependency_load = 0.0
+        for project_id in project_ids:
+            project = projects.get(project_id, {})
+            if project:
+                health_values.append(project.get("health_score", 0.8))
+                dependency_load += project.get("dependency_count", 0)
+        if health_values:
+            health_index = sum(health_values) / len(health_values)
+        else:
+            health_index = 0.8
+        return {
+            "program_id": program_id,
+            "health_index": health_index,
+            "dependency_load": dependency_load,
+            "sources": ["planview", "clarity"],
         }
 
     async def _generate_program_narrative(
@@ -1633,9 +1741,15 @@ class ProgramManagementAgent(BaseAgent):
         if self.planview_connector and self.planview_connector.authenticate():
             response = self.planview_connector.read("projects")
             data["projects"].update({proj["id"]: proj for proj in response})
+            health = self.planview_connector.read("program_health")
+            for entry in health:
+                data["projects"].setdefault(entry["id"], {}).update(entry)
         if self.clarity_connector and self.clarity_connector.authenticate():
             response = self.clarity_connector.read("projects")
             data["projects"].update({proj["id"]: proj for proj in response})
+            health = self.clarity_connector.read("program_health")
+            for entry in health:
+                data["projects"].setdefault(entry["id"], {}).update(entry)
         for project_id, project in data["projects"].items():
             benefits = project.get("benefits") or {}
             total_benefits = benefits.get("total_benefits", project.get("benefit", 0))
@@ -1747,6 +1861,68 @@ class ProgramManagementAgent(BaseAgent):
             "critical_path": critical_path,
             "recommendations": recommendations,
         }
+
+    async def _optimize_synergy_portfolio(
+        self,
+        shared_components: list[dict[str, Any]],
+        vendor_synergies: list[dict[str, Any]],
+        infrastructure_synergies: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        opportunities = []
+        for item in shared_components:
+            opportunities.append(
+                {
+                    "type": "shared_component",
+                    "projects": item.get("projects", []),
+                    "score": item.get("similarity", 0) * 0.6 + 0.4,
+                    "estimated_value": 15000,
+                }
+            )
+        for item in vendor_synergies:
+            opportunities.append(
+                {
+                    "type": "vendor_consolidation",
+                    "projects": item.get("projects", []),
+                    "score": item.get("similarity", 0) * 0.5 + 0.3,
+                    "estimated_value": 10000,
+                }
+            )
+        for item in infrastructure_synergies:
+            opportunities.append(
+                {
+                    "type": "infrastructure_sharing",
+                    "projects": item.get("projects", []),
+                    "score": item.get("similarity", 0) * 0.4 + 0.2,
+                    "estimated_value": 8000,
+                }
+            )
+        opportunities.sort(key=lambda item: item["score"] * item["estimated_value"], reverse=True)
+        priority_actions = opportunities[:3]
+        return {
+            "opportunities": opportunities,
+            "priority_actions": priority_actions,
+            "estimated_total_value": sum(item["estimated_value"] for item in priority_actions),
+        }
+
+    async def _propose_synergy_mitigations(self, optimization: dict[str, Any]) -> list[dict[str, Any]]:
+        mitigations = []
+        for action in optimization.get("priority_actions", []):
+            mitigations.append(
+                {
+                    "action": action["type"],
+                    "risk": "Adoption resistance",
+                    "mitigation": "Engage stakeholders and align governance early",
+                }
+            )
+        if not mitigations:
+            mitigations.append(
+                {
+                    "action": "baseline",
+                    "risk": "Limited synergy realization",
+                    "mitigation": "Review portfolio for additional consolidation opportunities",
+                }
+            )
+        return mitigations
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
