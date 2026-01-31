@@ -8,6 +8,10 @@ and programs. Provides real-time insights into availability, utilization and ski
 Specification: agents/delivery-management/agent-11-resource-capacity/README.md
 """
 
+import hashlib
+import json
+import math
+import os
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -22,6 +26,320 @@ from agents.common.integration_services import ForecastingModel
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, InMemoryEventBus
 from agents.runtime.src.state_store import TenantStateStore
+
+
+class ResourceCapacityRepository:
+    def __init__(self, database_url: str | None) -> None:
+        self.database_url = database_url
+        self.engine = None
+        self.session_factory = None
+        self.EmployeeProfileRecord = None
+        self.CapacityAllocationRecord = None
+        if database_url:
+            from sqlalchemy import JSON, Float, String, create_engine, select
+            from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+
+            class Base(DeclarativeBase):
+                pass
+
+            class EmployeeProfileRecord(Base):  # type: ignore
+                __tablename__ = "employee_profiles"
+
+                employee_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+                source_system: Mapped[str] = mapped_column(String(64), default="unknown")
+                profile: Mapped[dict[str, Any]] = mapped_column(JSON)
+                updated_at: Mapped[str] = mapped_column(String(64))
+
+            class CapacityAllocationRecord(Base):  # type: ignore
+                __tablename__ = "capacity_allocations"
+
+                allocation_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+                employee_id: Mapped[str] = mapped_column(String(128))
+                project_id: Mapped[str] = mapped_column(String(128))
+                start_date: Mapped[str] = mapped_column(String(32))
+                end_date: Mapped[str] = mapped_column(String(32))
+                allocation_percentage: Mapped[float] = mapped_column(Float)
+                source_system: Mapped[str] = mapped_column(String(64), default="agent")
+                metadata: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+            self.engine = create_engine(database_url)
+            Base.metadata.create_all(self.engine)
+            self.session_factory = sessionmaker(self.engine)
+            self.EmployeeProfileRecord = EmployeeProfileRecord
+            self.CapacityAllocationRecord = CapacityAllocationRecord
+            self._select = select
+
+    def is_enabled(self) -> bool:
+        return self.engine is not None and self.session_factory is not None
+
+    def upsert_employee_profile(self, profile: dict[str, Any]) -> None:
+        if not self.is_enabled():
+            return
+        employee_id = profile.get("employee_id")
+        if not employee_id:
+            return
+        source_system = profile.get("source_system", "unknown")
+        updated_at = datetime.utcnow().isoformat()
+        with self.session_factory() as session:  # type: ignore[operator]
+            record = session.get(self.EmployeeProfileRecord, employee_id)
+            if record:
+                record.profile = profile
+                record.source_system = source_system
+                record.updated_at = updated_at
+            else:
+                record = self.EmployeeProfileRecord(
+                    employee_id=employee_id,
+                    source_system=source_system,
+                    profile=profile,
+                    updated_at=updated_at,
+                )
+                session.add(record)
+            session.commit()
+
+    def upsert_capacity_allocation(self, allocation: dict[str, Any]) -> None:
+        if not self.is_enabled():
+            return
+        allocation_id = allocation.get("allocation_id")
+        if not allocation_id:
+            return
+        with self.session_factory() as session:  # type: ignore[operator]
+            record = session.get(self.CapacityAllocationRecord, allocation_id)
+            if record:
+                record.employee_id = allocation.get("resource_id", "")
+                record.project_id = allocation.get("project_id", "")
+                record.start_date = allocation.get("start_date", "")
+                record.end_date = allocation.get("end_date", "")
+                record.allocation_percentage = float(allocation.get("allocation_percentage", 0))
+                record.metadata = allocation
+            else:
+                record = self.CapacityAllocationRecord(
+                    allocation_id=allocation_id,
+                    employee_id=allocation.get("resource_id", ""),
+                    project_id=allocation.get("project_id", ""),
+                    start_date=allocation.get("start_date", ""),
+                    end_date=allocation.get("end_date", ""),
+                    allocation_percentage=float(allocation.get("allocation_percentage", 0)),
+                    source_system=allocation.get("source_system", "agent"),
+                    metadata=allocation,
+                )
+                session.add(record)
+            session.commit()
+
+    def list_capacity_allocations(self) -> list[dict[str, Any]]:
+        if not self.is_enabled():
+            return []
+        with self.session_factory() as session:  # type: ignore[operator]
+            records = session.scalars(self._select(self.CapacityAllocationRecord)).all()
+            return [record.metadata for record in records]
+
+
+class AzureADClient:
+    def __init__(self, client_id: str, tenant_id: str, client_secret: str) -> None:
+        self.client_id = client_id
+        self.tenant_id = tenant_id
+        self.client_secret = client_secret
+        self.authority = f"https://login.microsoftonline.com/{tenant_id}"
+        self.scopes = ["https://graph.microsoft.com/.default"]
+        from msal import ConfidentialClientApplication
+
+        self.app = ConfidentialClientApplication(
+            client_id=client_id, authority=self.authority, client_credential=client_secret
+        )
+
+    def _get_token(self) -> str:
+        token = self.app.acquire_token_for_client(scopes=self.scopes)
+        access_token = token.get("access_token")
+        if not access_token:
+            raise ValueError(f"Failed to acquire Graph token: {token.get('error_description')}")
+        return access_token
+
+    def _request(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        access_token = self._get_token()
+        import requests
+
+        response = requests.get(
+            f"https://graph.microsoft.com/v1.0{path}",
+            headers={"Authorization": f"Bearer {access_token}"},
+            params=params,
+            timeout=30,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def list_users(self) -> list[dict[str, Any]]:
+        response = self._request(
+            "/users",
+            params={"$select": "id,displayName,mail,jobTitle,department,employeeId"},
+        )
+        return cast(list[dict[str, Any]], response.get("value", []))
+
+    def list_user_skills(self, user_id: str) -> list[str]:
+        response = self._request(f"/users/{user_id}/profile/skills")
+        return [skill.get("displayName") for skill in response.get("value", []) if skill]
+
+    def get_calendar_availability(
+        self, user_id: str, start: datetime, end: datetime
+    ) -> list[dict[str, Any]]:
+        response = self._request(
+            f"/users/{user_id}/calendarView",
+            params={
+                "startDateTime": start.isoformat(),
+                "endDateTime": end.isoformat(),
+                "$select": "start,end,showAs",
+            },
+        )
+        return cast(list[dict[str, Any]], response.get("value", []))
+
+
+class EmbeddingClient:
+    def __init__(self, endpoint: str | None, api_key: str | None, deployment: str | None) -> None:
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.deployment = deployment
+
+    def is_configured(self) -> bool:
+        return bool(self.endpoint and self.api_key and self.deployment)
+
+    def get_embedding(self, text: str) -> list[float]:
+        if self.is_configured():
+            import requests
+
+            response = requests.post(
+                f"{self.endpoint}/openai/deployments/{self.deployment}/embeddings",
+                headers={
+                    "api-key": cast(str, self.api_key),
+                    "Content-Type": "application/json",
+                },
+                params={"api-version": "2023-05-15"},
+                json={"input": text},
+                timeout=30,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return cast(list[float], data["data"][0]["embedding"])
+        return self._fallback_embedding(text)
+
+    @staticmethod
+    def _fallback_embedding(text: str, dims: int = 64) -> list[float]:
+        vector = [0.0] * dims
+        for token in text.lower().split():
+            token_hash = int(hashlib.sha256(token.encode("utf-8")).hexdigest(), 16)
+            index = token_hash % dims
+            vector[index] += 1.0
+        norm = math.sqrt(sum(value * value for value in vector)) or 1.0
+        return [value / norm for value in vector]
+
+
+class AzureSearchClient:
+    def __init__(self, endpoint: str | None, api_key: str | None, index_name: str | None) -> None:
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.index_name = index_name
+
+    def is_configured(self) -> bool:
+        return bool(self.endpoint and self.api_key and self.index_name)
+
+    def upload_documents(self, documents: list[dict[str, Any]]) -> None:
+        if not self.is_configured():
+            return
+        import requests
+
+        response = requests.post(
+            f"{self.endpoint}/indexes/{self.index_name}/docs/index",
+            headers={"api-key": cast(str, self.api_key), "Content-Type": "application/json"},
+            params={"api-version": "2023-07-01-Preview"},
+            json={"value": documents},
+            timeout=30,
+        )
+        response.raise_for_status()
+
+    def query_documents(
+        self, query_vector: list[float], top_k: int = 5
+    ) -> list[dict[str, Any]]:
+        if not self.is_configured():
+            return []
+        import requests
+
+        response = requests.post(
+            f"{self.endpoint}/indexes/{self.index_name}/docs/search",
+            headers={"api-key": cast(str, self.api_key), "Content-Type": "application/json"},
+            params={"api-version": "2023-07-01-Preview"},
+            json={
+                "vectorQueries": [
+                    {"vector": query_vector, "fields": "embedding", "k": top_k}
+                ],
+                "select": "resource_id,skills,role,availability,cost_rate",
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        return cast(list[dict[str, Any]], response.json().get("value", []))
+
+
+class TimeSeriesForecaster:
+    def train(self, series: list[float]) -> dict[str, float]:
+        if len(series) < 2:
+            return {"slope": 0.0, "intercept": series[0] if series else 0.0}
+        x_values = list(range(len(series)))
+        x_mean = sum(x_values) / len(x_values)
+        y_mean = sum(series) / len(series)
+        numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_values, series))
+        denominator = sum((x - x_mean) ** 2 for x in x_values) or 1.0
+        slope = numerator / denominator
+        intercept = y_mean - slope * x_mean
+        return {"slope": slope, "intercept": intercept}
+
+    def forecast(self, model: dict[str, float], periods: int, start: int) -> list[float]:
+        slope = model.get("slope", 0.0)
+        intercept = model.get("intercept", 0.0)
+        return [slope * (start + i) + intercept for i in range(periods)]
+
+
+class EventPublisher:
+    def __init__(self, connection_string: str | None, queue_name: str | None) -> None:
+        self.connection_string = connection_string
+        self.queue_name = queue_name
+
+    def is_configured(self) -> bool:
+        return bool(self.connection_string and self.queue_name)
+
+    def publish(self, event_name: str, payload: dict[str, Any]) -> None:
+        if not self.is_configured():
+            return
+        from azure.servicebus import ServiceBusClient, ServiceBusMessage
+
+        with ServiceBusClient.from_connection_string(
+            cast(str, self.connection_string)
+        ) as client:
+            sender = client.get_queue_sender(queue_name=cast(str, self.queue_name))
+            with sender:
+                message = ServiceBusMessage(json.dumps({"event": event_name, "payload": payload}))
+                sender.send_messages(message)
+
+
+class NotificationService:
+    def __init__(self, graph_client: AzureADClient | None) -> None:
+        self.graph_client = graph_client
+
+    def send_email(self, recipient: str, subject: str, content: str) -> None:
+        if not self.graph_client:
+            return
+        access_token = self.graph_client._get_token()
+        import requests
+
+        response = requests.post(
+            "https://graph.microsoft.com/v1.0/users/me/sendMail",
+            headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
+            json={
+                "message": {
+                    "subject": subject,
+                    "body": {"contentType": "Text", "content": content},
+                    "toRecipients": [{"emailAddress": {"address": recipient}}],
+                }
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
 
 
 class ResourceCapacityAgent(BaseAgent):
@@ -102,6 +420,16 @@ class ResourceCapacityAgent(BaseAgent):
             self.event_bus = InMemoryEventBus()
         self.db_service: DatabaseStorageService | None = None
         self.forecasting_model: ForecastingModel | None = None
+        self.repository = ResourceCapacityRepository(os.getenv("RESOURCE_CAPACITY_DATABASE_URL"))
+        self.graph_client: AzureADClient | None = None
+        self.embedding_client: EmbeddingClient | None = None
+        self.search_client: AzureSearchClient | None = None
+        self.event_publisher = EventPublisher(
+            os.getenv("AZURE_SERVICEBUS_CONNECTION_STRING"),
+            os.getenv("AZURE_SERVICEBUS_QUEUE_NAME"),
+        )
+        self.notification_service: NotificationService | None = None
+        self.redis_client: Any | None = None
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -115,19 +443,40 @@ class ResourceCapacityAgent(BaseAgent):
         self.forecasting_model = ForecastingModel()
         self.logger.info("Forecasting model initialized")
 
-        # Future work: Connect to Azure Active Directory for employee data
-        # Future work: Initialize SAP SuccessFactors/Workday integration for HR data
-        # Future work: Connect to Planview Enterprise One/Jira Tempo for timesheet data
-        # Future work: Initialize Azure Machine Learning for capacity forecasting models
-        # Future work: Connect to Azure Cognitive Search for skill matching
+        azure_client_id = os.getenv("AZURE_CLIENT_ID")
+        azure_tenant_id = os.getenv("AZURE_TENANT_ID")
+        azure_client_secret = os.getenv("AZURE_CLIENT_SECRET")
+        if azure_client_id and azure_tenant_id and azure_client_secret:
+            self.graph_client = AzureADClient(
+                azure_client_id, azure_tenant_id, azure_client_secret
+            )
+        self.embedding_client = EmbeddingClient(
+            os.getenv("AZURE_OPENAI_ENDPOINT"),
+            os.getenv("AZURE_OPENAI_API_KEY"),
+            os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT"),
+        )
+        self.search_client = AzureSearchClient(
+            os.getenv("AZURE_SEARCH_ENDPOINT"),
+            os.getenv("AZURE_SEARCH_API_KEY"),
+            os.getenv("AZURE_SEARCH_INDEX"),
+        )
+        self.notification_service = NotificationService(self.graph_client)
+        redis_url = os.getenv("REDIS_URL")
+        if redis_url:
+            from redis import Redis
+
+            self.redis_client = Redis.from_url(redis_url, decode_responses=True)
+
+        await self._sync_hr_systems()
+        await self._refresh_capacity_allocations()
+
         self.logger.info(
             "Using local calendar storage for working hours and leave tracking"
         )
-        # Future work: Set up Azure Service Bus/Event Grid for resource event notifications
-        # Future work: Initialize Azure Redis Cache for real-time availability queries
         # Future work: Connect to learning management systems for training/certifications
 
         self.logger.info("Resource & Capacity Management Agent initialized")
+        self._subscribe_to_events()
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate input data based on the requested action."""
@@ -328,6 +677,14 @@ class ResourceCapacityAgent(BaseAgent):
         # Store resource
         self.resource_pool[resource_id] = resource_profile
         self.resource_store.upsert(tenant_id, resource_id, resource_profile)
+        canonical_profile = dict(resource_profile)
+        canonical_profile.update(
+            {
+                "employee_id": resource_id,
+                "source_system": "agent",
+            }
+        )
+        self.repository.upsert_employee_profile(canonical_profile)
 
         if self.db_service:
             await self.db_service.store("resource_profiles", resource_id, resource_profile)
@@ -401,8 +758,8 @@ class ResourceCapacityAgent(BaseAgent):
 
         if self.db_service:
             await self.db_service.store("resource_requests", request_id, request)
-        # Future work: Send notification to approver
-        # Future work: Publish resource_request.created event
+        await self._publish_resource_event("resource.request.created", request)
+        await self._notify_requester(request)
 
         self.logger.info(f"Created resource request: {request_id}")
 
@@ -451,6 +808,9 @@ class ResourceCapacityAgent(BaseAgent):
 
             # Notify Schedule & Planning Agent
             # Future work: Integrate with Agent 10
+            await self._publish_resource_event("resource.request.approved", request)
+            await self._notify_requester(request)
+            await self._notify_project_manager(request)
 
             return {
                 "request_id": request_id,
@@ -464,7 +824,8 @@ class ResourceCapacityAgent(BaseAgent):
             request["rejection_reason"] = comments
 
             # Future work: Notify requester
-            # Future work: Publish resource_request.rejected event
+            await self._publish_resource_event("resource.request.rejected", request)
+            await self._notify_requester(request)
 
             return {"request_id": request_id, "status": "Rejected", "rejection_reason": comments}
 
@@ -576,35 +937,77 @@ class ResourceCapacityAgent(BaseAgent):
         """
         self.logger.info("Matching skills to resources")
 
-        # Future work: Use Azure Cognitive Search for semantic skill matching
-        # Future work: Use NLP to parse skill descriptions
-
         candidates = []
-        matches = await self._find_matching_resources(skills_required)
-
-        for match in matches:
-            resource_id = match["resource_id"]
-            performance_score = await self._get_performance_score(resource_id, project_context)
-            combined_score = (match["weighted_score"] * 0.7) + (performance_score * 0.3)
-
-            if combined_score >= self.skill_matching_threshold:
-                candidates.append(
-                    {
-                        "resource_id": resource_id,
-                        "resource_name": match.get("resource_name"),
-                        "role": match.get("role"),
-                        "skills": match.get("skills", []),
-                        "match_score": match.get("match_score"),
-                        "weighted_score": match.get("weighted_score"),
-                        "availability_score": match.get("availability_score"),
-                        "cost_score": match.get("cost_score"),
-                        "performance_score": performance_score,
-                        "combined_score": combined_score,
-                        "cost_rate": self.resource_pool.get(resource_id, {}).get("cost_rate"),
-                    }
+        query_text = " ".join(skills_required)
+        embedding_client = self.embedding_client or EmbeddingClient(None, None, None)
+        query_embedding = embedding_client.get_embedding(query_text)
+        search_candidates = []
+        if self.search_client and self.search_client.is_configured():
+            search_candidates = self.search_client.query_documents(
+                query_embedding, top_k=10
+            )
+        if search_candidates:
+            for result in search_candidates:
+                resource_id = result.get("resource_id")
+                resource = self.resource_pool.get(resource_id, {})
+                if not resource_id:
+                    continue
+                performance_score = await self._get_performance_score(
+                    resource_id, project_context
+                )
+                semantic_score = float(result.get("@search.score", 0.0))
+                combined_score = (semantic_score * 0.6) + (performance_score * 0.4)
+                if combined_score >= self.skill_matching_threshold:
+                    candidates.append(
+                        {
+                            "resource_id": resource_id,
+                            "resource_name": resource.get("name"),
+                            "role": resource.get("role"),
+                            "skills": resource.get("skills", []),
+                            "match_score": semantic_score,
+                            "weighted_score": semantic_score,
+                            "availability_score": resource.get("availability", 0.0),
+                            "cost_score": resource.get("cost_rate", 0.0),
+                            "performance_score": performance_score,
+                            "combined_score": combined_score,
+                            "cost_rate": resource.get("cost_rate"),
+                        }
+                    )
+        else:
+            matches = await self._find_matching_resources(skills_required)
+            for match in matches:
+                resource_id = match["resource_id"]
+                resource_skills = " ".join(match.get("skills", []))
+                resource_embedding = embedding_client.get_embedding(resource_skills)
+                semantic_similarity = self._cosine_similarity(
+                    query_embedding, resource_embedding
+                )
+                performance_score = await self._get_performance_score(
+                    resource_id, project_context
+                )
+                combined_score = (
+                    match["weighted_score"] * 0.5
+                    + semantic_similarity * 0.3
+                    + performance_score * 0.2
                 )
 
-        # Sort by combined score
+                if combined_score >= self.skill_matching_threshold:
+                    candidates.append(
+                        {
+                            "resource_id": resource_id,
+                            "resource_name": match.get("resource_name"),
+                            "role": match.get("role"),
+                            "skills": match.get("skills", []),
+                            "match_score": semantic_similarity,
+                            "weighted_score": match.get("weighted_score"),
+                            "availability_score": match.get("availability_score"),
+                            "cost_score": match.get("cost_score"),
+                            "performance_score": performance_score,
+                            "combined_score": combined_score,
+                            "cost_rate": self.resource_pool.get(resource_id, {}).get("cost_rate"),
+                        }
+                    )
+
         candidates.sort(key=lambda x: x["combined_score"], reverse=True)
 
         return {
@@ -629,11 +1032,17 @@ class ResourceCapacityAgent(BaseAgent):
 
         history_months = int(filters.get("history_months", 6))
         capacity_series, demand_series = await self._build_capacity_demand_history(history_months)
-        forecasting_model = self.forecasting_model or ForecastingModel()
-        capacity_forecast = forecasting_model.forecast(
-            capacity_series, self.forecast_horizon_months
+        forecaster = TimeSeriesForecaster()
+        capacity_model = forecaster.train(capacity_series)
+        demand_model = forecaster.train(demand_series)
+        await self._store_model_in_azure_ml("capacity", capacity_model)
+        await self._store_model_in_azure_ml("demand", demand_model)
+        capacity_forecast = forecaster.forecast(
+            capacity_model, self.forecast_horizon_months, len(capacity_series)
         )
-        demand_forecast = forecasting_model.forecast(demand_series, self.forecast_horizon_months)
+        demand_forecast = forecaster.forecast(
+            demand_model, self.forecast_horizon_months, len(demand_series)
+        )
         future_capacity = [
             {"month": index + 1, "capacity": max(0.0, value)}
             for index, value in enumerate(capacity_forecast)
@@ -750,43 +1159,55 @@ class ResourceCapacityAgent(BaseAgent):
         assert isinstance(start_date, str), "start_date must be a string"
         assert isinstance(end_date, str), "end_date must be a string"
 
-        # Validate allocation
-        validation = await self._validate_allocation(
-            resource_id, start_date, end_date, allocation_percentage
-        )
+        lock_key = f"resource_allocation_lock:{resource_id}"
+        lock_acquired = await self._acquire_lock(lock_key, ttl_seconds=15)
+        if not lock_acquired:
+            raise RuntimeError("Allocation is already being processed for this resource.")
 
-        if not validation.get("valid"):
-            raise ValueError(f"Invalid allocation: {validation.get('reason')}")
+        try:
+            validation = await self._validate_allocation(
+                resource_id, start_date, end_date, allocation_percentage
+            )
 
-        # Create allocation record
-        allocation = {
-            "allocation_id": allocation_id,
-            "resource_id": resource_id,
-            "project_id": project_id,
-            "start_date": start_date,
-            "end_date": end_date,
-            "allocation_percentage": allocation_percentage,
-            "status": "Active",
-            "created_at": datetime.utcnow().isoformat(),
-        }
+            if not validation.get("valid"):
+                raise ValueError(f"Invalid allocation: {validation.get('reason')}")
 
-        # Store allocation
-        if resource_id not in self.allocations:
-            self.allocations[resource_id] = []
-        self.allocations[resource_id].append(allocation)
-        self.allocation_store.upsert(tenant_id, allocation_id, allocation)
+            allocation = {
+                "allocation_id": allocation_id,
+                "resource_id": resource_id,
+                "project_id": project_id,
+                "start_date": start_date,
+                "end_date": end_date,
+                "allocation_percentage": allocation_percentage,
+                "status": "Active",
+                "created_at": datetime.utcnow().isoformat(),
+            }
 
-        # Update resource availability
-        await self._update_resource_availability(resource_id)
+            if resource_id not in self.allocations:
+                self.allocations[resource_id] = []
+            self.allocations[resource_id].append(allocation)
+            self.allocation_store.upsert(tenant_id, allocation_id, allocation)
+            self.repository.upsert_capacity_allocation(allocation)
+            if self.redis_client:
+                self.redis_client.set(
+                    f"allocation:{allocation_id}", json.dumps(allocation), ex=3600
+                )
+                self.redis_client.rpush(
+                    f"resource_allocations:{resource_id}", json.dumps(allocation)
+                )
 
-        await self._publish_allocation_event(
-            allocation, tenant_id=tenant_id, correlation_id=correlation_id
-        )
-        # Future work: Send notification to resource and project manager
+            await self._update_resource_availability(resource_id)
 
-        self.logger.info(f"Created allocation: {allocation_id}")
+            await self._publish_allocation_event(
+                allocation, tenant_id=tenant_id, correlation_id=correlation_id
+            )
+            await self._publish_resource_event("resource.allocation.created", allocation)
 
-        return allocation
+            self.logger.info(f"Created allocation: {allocation_id}")
+
+            return allocation
+        finally:
+            await self._release_lock(lock_key)
 
     async def _get_availability(
         self, resource_id: str, date_range: dict[str, Any], *, tenant_id: str
@@ -811,7 +1232,7 @@ class ResourceCapacityAgent(BaseAgent):
             calendar = self.calendar_store.get(tenant_id, resource_id) or {}
             if calendar:
                 self.capacity_calendar[resource_id] = calendar
-        allocations = self.allocations.get(resource_id, [])
+        allocations = self._load_allocations(resource_id)
 
         start_date_str = date_range.get("start_date")
         end_date_str = date_range.get("end_date")
@@ -900,7 +1321,8 @@ class ResourceCapacityAgent(BaseAgent):
 
         conflicts = []
 
-        for resource_id, resource_allocations in self.allocations.items():
+        for resource_id in self.resource_pool.keys():
+            resource_allocations = self._load_allocations(resource_id)
             # Check for overlapping allocations
             for i, alloc1 in enumerate(resource_allocations):
                 for alloc2 in resource_allocations[i + 1 :]:
@@ -1026,6 +1448,347 @@ class ResourceCapacityAgent(BaseAgent):
             },
         )
         await self.event_bus.publish("resource.allocation.created", event.model_dump())
+
+    async def _publish_resource_event(self, event_name: str, payload: dict[str, Any]) -> None:
+        await self.event_bus.publish(event_name, payload)
+        try:
+            self.event_publisher.publish(event_name, payload)
+        except Exception as exc:
+            self.logger.warning("Service bus publish failed", extra={"error": str(exc)})
+
+    async def _notify_requester(self, request: dict[str, Any]) -> None:
+        requester = request.get("requested_by")
+        if not requester or not self.notification_service:
+            return
+        subject = f"Resource request {request.get('request_id')} status update"
+        content = f"Request status: {request.get('status')}"
+        try:
+            self.notification_service.send_email(requester, subject, content)
+        except Exception as exc:
+            self.logger.warning("Failed to send requester notification", extra={"error": str(exc)})
+
+    async def _notify_project_manager(self, request: dict[str, Any]) -> None:
+        manager = request.get("project_manager")
+        if not manager or not self.notification_service:
+            return
+        subject = f"Resource request approved for project {request.get('project_id')}"
+        content = f"Allocated resource: {request.get('allocated_resource')}"
+        try:
+            self.notification_service.send_email(manager, subject, content)
+        except Exception as exc:
+            self.logger.warning("Failed to send manager notification", extra={"error": str(exc)})
+
+    def _subscribe_to_events(self) -> None:
+        def _handle_schedule_change(payload: dict[str, Any]) -> None:
+            self.logger.info("Received schedule change event", extra={"payload": payload})
+
+        try:
+            self.event_bus.subscribe("schedule.changed", _handle_schedule_change)
+        except Exception as exc:
+            self.logger.warning("Failed to subscribe to schedule events", extra={"error": str(exc)})
+
+    async def _sync_hr_systems(self) -> None:
+        profiles: list[dict[str, Any]] = []
+        if self.graph_client:
+            profiles.extend(await self._fetch_azure_ad_profiles())
+        profiles.extend(await self._fetch_workday_profiles())
+        profiles.extend(await self._fetch_sap_profiles())
+
+        merged = self._merge_profiles(profiles)
+        for profile in merged:
+            resource_id = profile.get("employee_id")
+            if not resource_id:
+                continue
+            resource_profile = {
+                "resource_id": resource_id,
+                "name": profile.get("name"),
+                "role": profile.get("role"),
+                "skills": profile.get("skills", []),
+                "location": profile.get("location", "Unknown"),
+                "cost_rate": profile.get("cost_rate", 0.0),
+                "certifications": profile.get("certifications", []),
+                "availability": profile.get("availability", 1.0),
+                "status": profile.get("status", "Active"),
+                "created_at": profile.get("created_at", datetime.utcnow().isoformat()),
+                "source_system": profile.get("source_system", "unknown"),
+            }
+            self.resource_pool[resource_id] = resource_profile
+            self.repository.upsert_employee_profile(profile)
+            if self.db_service:
+                await self.db_service.store("resource_profiles", resource_id, resource_profile)
+        await self._index_skills()
+
+    async def _fetch_azure_ad_profiles(self) -> list[dict[str, Any]]:
+        if not self.graph_client:
+            return []
+        profiles: list[dict[str, Any]] = []
+        for user in self.graph_client.list_users():
+            user_id = user.get("id")
+            if not user_id:
+                continue
+            skills = self.graph_client.list_user_skills(user_id)
+            availability = 1.0
+            try:
+                busy_events = self.graph_client.get_calendar_availability(
+                    user_id, datetime.utcnow(), datetime.utcnow() + timedelta(days=30)
+                )
+                busy_count = len([event for event in busy_events if event.get("showAs") != "free"])
+                availability = max(0.0, 1.0 - min(busy_count / 20, 1.0))
+            except Exception:
+                availability = 1.0
+            profiles.append(
+                {
+                    "employee_id": user.get("employeeId") or user_id,
+                    "name": user.get("displayName"),
+                    "email": user.get("mail"),
+                    "role": user.get("jobTitle"),
+                    "department": user.get("department"),
+                    "skills": [skill for skill in skills if skill],
+                    "availability": availability,
+                    "source_system": "azure_ad",
+                    "created_at": datetime.utcnow().isoformat(),
+                }
+            )
+        return profiles
+
+    async def _fetch_workday_profiles(self) -> list[dict[str, Any]]:
+        try:
+            from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from connectors.workday.src.workday_connector import WorkdayConnector
+        except Exception:
+            return []
+        try:
+            config = ConnectorConfig(
+                connector_id="workday",
+                name="Workday",
+                category=ConnectorCategory.HRIS,
+                enabled=True,
+            )
+            connector = WorkdayConnector(config)
+            profiles = []
+            for worker in connector.read("workers") or []:
+                profiles.append(
+                    {
+                        "employee_id": worker.get("id"),
+                        "name": worker.get("name"),
+                        "status": worker.get("status", "Active"),
+                        "source_system": "workday",
+                        "created_at": datetime.utcnow().isoformat(),
+                    }
+                )
+            return profiles
+        except Exception as exc:
+            self.logger.warning("Workday sync failed", extra={"error": str(exc)})
+            return []
+
+    async def _fetch_sap_profiles(self) -> list[dict[str, Any]]:
+        try:
+            from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from connectors.sap_successfactors.src.sap_successfactors_connector import (
+                SapSuccessFactorsConnector,
+            )
+        except Exception:
+            return []
+        try:
+            config = ConnectorConfig(
+                connector_id="sap_successfactors",
+                name="SAP SuccessFactors",
+                category=ConnectorCategory.HRIS,
+                enabled=True,
+            )
+            connector = SapSuccessFactorsConnector(config)
+            profiles = []
+            for user in connector.read("users") or []:
+                profiles.append(
+                    {
+                        "employee_id": user.get("userId"),
+                        "name": f"{user.get('firstName', '')} {user.get('lastName', '')}".strip(),
+                        "status": user.get("status", "Active"),
+                        "source_system": "sap_successfactors",
+                        "created_at": datetime.utcnow().isoformat(),
+                    }
+                )
+            return profiles
+        except Exception as exc:
+            self.logger.warning("SAP SuccessFactors sync failed", extra={"error": str(exc)})
+            return []
+
+    def _merge_profiles(self, profiles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        merged: dict[str, dict[str, Any]] = {}
+        for profile in profiles:
+            key = (
+                profile.get("employee_id")
+                or profile.get("email")
+                or profile.get("name")
+                or str(uuid.uuid4())
+            )
+            existing = merged.get(key, {})
+            combined = {**existing, **{k: v for k, v in profile.items() if v}}
+            combined["employee_id"] = combined.get("employee_id") or key
+            merged[key] = combined
+        return list(merged.values())
+
+    async def _index_skills(self) -> None:
+        if not self.search_client or not self.search_client.is_configured():
+            return
+        documents = []
+        embedding_client = self.embedding_client or EmbeddingClient(None, None, None)
+        for resource_id, resource in self.resource_pool.items():
+            skills_text = " ".join(resource.get("skills", []))
+            documents.append(
+                {
+                    "@search.action": "mergeOrUpload",
+                    "resource_id": resource_id,
+                    "skills": skills_text,
+                    "role": resource.get("role"),
+                    "availability": resource.get("availability", 1.0),
+                    "cost_rate": resource.get("cost_rate", 0.0),
+                    "embedding": embedding_client.get_embedding(skills_text),
+                }
+            )
+        self.search_client.upload_documents(documents)
+
+    async def _refresh_capacity_allocations(self) -> None:
+        allocations = []
+        allocations.extend(await self._fetch_planview_allocations())
+        allocations.extend(await self._fetch_jira_tempo_allocations())
+        for allocation in allocations:
+            resource_id = allocation.get("resource_id")
+            if not resource_id:
+                continue
+            if resource_id not in self.allocations:
+                self.allocations[resource_id] = []
+            self.allocations[resource_id].append(allocation)
+            self.repository.upsert_capacity_allocation(allocation)
+            if self.db_service:
+                await self.db_service.store(
+                    "capacity_allocations", allocation.get("allocation_id", ""), allocation
+                )
+
+    async def _fetch_planview_allocations(self) -> list[dict[str, Any]]:
+        try:
+            from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from connectors.planview.src.planview_connector import PlanviewConnector
+        except Exception:
+            return []
+        try:
+            config = ConnectorConfig(
+                connector_id="planview",
+                name="Planview",
+                category=ConnectorCategory.PPM,
+                enabled=True,
+            )
+            connector = PlanviewConnector(config)
+            endpoint = os.getenv("PLANVIEW_CAPACITY_ENDPOINT", "/api/v1/resource-allocations")
+            response = connector._request("GET", endpoint)
+            data = response.json().get("items", [])
+            allocations = []
+            for item in data:
+                allocations.append(
+                    {
+                        "allocation_id": item.get("id") or f"planview-{uuid.uuid4().hex}",
+                        "resource_id": item.get("resourceId"),
+                        "project_id": item.get("projectId"),
+                        "start_date": item.get("startDate"),
+                        "end_date": item.get("endDate"),
+                        "allocation_percentage": float(item.get("allocationPercent", 0)),
+                        "source_system": "planview",
+                        "status": item.get("status", "Active"),
+                    }
+                )
+            return allocations
+        except Exception as exc:
+            self.logger.warning("Planview allocation sync failed", extra={"error": str(exc)})
+            return []
+
+    async def _fetch_jira_tempo_allocations(self) -> list[dict[str, Any]]:
+        tempo_url = os.getenv("JIRA_TEMPO_API_URL")
+        tempo_token = os.getenv("JIRA_TEMPO_API_TOKEN")
+        if not tempo_url or not tempo_token:
+            return []
+        try:
+            import requests
+
+            response = requests.get(
+                f"{tempo_url}/worklogs",
+                headers={"Authorization": f"Bearer {tempo_token}"},
+                timeout=30,
+            )
+            response.raise_for_status()
+            data = response.json().get("results", [])
+            allocations = []
+            for item in data:
+                allocations.append(
+                    {
+                        "allocation_id": item.get("tempoWorklogId")
+                        or f"tempo-{uuid.uuid4().hex}",
+                        "resource_id": item.get("author", {}).get("accountId"),
+                        "project_id": item.get("issue", {}).get("projectId"),
+                        "start_date": item.get("startDate"),
+                        "end_date": item.get("startDate"),
+                        "allocation_percentage": float(item.get("timeSpentSeconds", 0))
+                        / 3600
+                        / self.default_working_hours_per_day
+                        * 100,
+                        "source_system": "jira_tempo",
+                        "status": "Active",
+                    }
+                )
+            return allocations
+        except Exception as exc:
+            self.logger.warning("Tempo allocation sync failed", extra={"error": str(exc)})
+            return []
+
+    async def _store_model_in_azure_ml(self, model_name: str, model: dict[str, float]) -> None:
+        endpoint = os.getenv("AZURE_ML_ENDPOINT")
+        api_key = os.getenv("AZURE_ML_API_KEY")
+        if not endpoint or not api_key:
+            return
+        try:
+            import requests
+
+            response = requests.post(
+                f"{endpoint}/models/register",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={"name": model_name, "model": model},
+                timeout=30,
+            )
+            response.raise_for_status()
+        except Exception as exc:
+            self.logger.warning("Azure ML model registration failed", extra={"error": str(exc)})
+
+    async def _acquire_lock(self, key: str, ttl_seconds: int = 10) -> bool:
+        if not self.redis_client:
+            return True
+        result = self.redis_client.set(key, "locked", nx=True, ex=ttl_seconds)
+        return bool(result)
+
+    async def _release_lock(self, key: str) -> None:
+        if self.redis_client:
+            self.redis_client.delete(key)
+
+    @staticmethod
+    def _cosine_similarity(a: list[float], b: list[float]) -> float:
+        dot_product = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(y * y for y in b))
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        return dot_product / (norm_a * norm_b)
+
+    def _load_allocations(self, resource_id: str) -> list[dict[str, Any]]:
+        if self.redis_client:
+            cached = self.redis_client.lrange(f"resource_allocations:{resource_id}", 0, -1)
+            if cached:
+                parsed = []
+                for item in cached:
+                    try:
+                        parsed.append(json.loads(item))
+                    except json.JSONDecodeError:
+                        continue
+                if parsed:
+                    return parsed
+        return self.allocations.get(resource_id, [])
 
     async def _check_availability(
         self, resource_id: str, start_date: str, end_date: str, effort: float
@@ -1224,26 +1987,61 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _create_baseline_scenario(self) -> dict[str, Any]:
         """Create baseline scenario."""
+        history_months = 6
+        capacity_series, demand_series = await self._build_capacity_demand_history(history_months)
+        forecast = await self._forecast_capacity({"history_months": history_months})
+        utilization = await self._calculate_total_demand()
+        total_capacity = await self._calculate_total_capacity()
         return {
             "resource_count": len(self.resource_pool),
             "allocations": self.allocations,
-            "utilization": await self._calculate_total_demand()
-            / await self._calculate_total_capacity(),
+            "utilization": utilization / total_capacity if total_capacity else 0.0,
+            "capacity_series": capacity_series,
+            "demand_series": demand_series,
+            "forecast": forecast,
+            "average_cost_rate": self._average_cost_rate(),
         }
 
     async def _apply_scenario_changes(
         self, baseline: dict[str, Any], changes: dict[str, Any]
     ) -> dict[str, Any]:
         """Apply changes to create scenario."""
-        scenario = baseline.copy()
-        # Future work: Apply scenario changes
+        scenario = dict(baseline)
+        added_resources = changes.get("add_resources", [])
+        removed_resources = changes.get("remove_resources", [])
+        scope_multiplier = float(changes.get("scope_multiplier", 1.0))
+        capacity_multiplier = float(changes.get("capacity_multiplier", 1.0))
+
+        scenario["resource_count"] = max(
+            0, baseline.get("resource_count", 0) + len(added_resources) - len(removed_resources)
+        )
+        scenario["capacity_multiplier"] = capacity_multiplier
+        scenario["scope_multiplier"] = scope_multiplier
+        scenario["added_resources"] = added_resources
+        scenario["removed_resources"] = removed_resources
         return scenario
 
     async def _calculate_scenario_metrics(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Calculate metrics for scenario."""
+        forecast = await self._forecast_capacity_for_scenario(scenario)
+        avg_capacity = sum(item["capacity"] for item in forecast["future_capacity"]) / max(
+            len(forecast["future_capacity"]), 1
+        )
+        avg_demand = sum(item["demand"] for item in forecast["future_demand"]) / max(
+            len(forecast["future_demand"]), 1
+        )
+        avg_utilization = avg_demand / avg_capacity if avg_capacity else 0.0
+        average_cost_rate = scenario.get("average_cost_rate", 0.0)
+        cost_impact = avg_demand * average_cost_rate
+        schedule_impact = max(0.0, avg_demand - avg_capacity)
         return {
-            "average_utilization": scenario.get("utilization", 0),
+            "average_utilization": avg_utilization,
             "resource_count": scenario.get("resource_count", 0),
+            "average_capacity": avg_capacity,
+            "average_demand": avg_demand,
+            "forecast": forecast,
+            "cost_impact": cost_impact,
+            "schedule_impact": schedule_impact,
         }
 
     async def _compare_scenarios(
@@ -1255,6 +2053,10 @@ class ResourceCapacityAgent(BaseAgent):
             - baseline.get("average_utilization", 0),
             "resource_count_difference": scenario.get("resource_count", 0)
             - baseline.get("resource_count", 0),
+            "cost_difference": scenario.get("cost_impact", 0)
+            - baseline.get("cost_impact", 0),
+            "schedule_difference": scenario.get("schedule_impact", 0)
+            - baseline.get("schedule_impact", 0),
         }
 
     async def _generate_scenario_recommendation(self, comparison: dict[str, Any]) -> str:
@@ -1279,7 +2081,27 @@ class ResourceCapacityAgent(BaseAgent):
         if allocation_percentage <= 0 or allocation_percentage > 100:
             return {"valid": False, "reason": "Invalid allocation percentage"}
 
-        # Future work: Check for conflicts with existing allocations
+        start = datetime.fromisoformat(start_date)
+        end = datetime.fromisoformat(end_date)
+        allocations = self.allocations.get(resource_id, [])
+        total_overlap = allocation_percentage
+        for alloc in allocations:
+            overlap = await self._check_allocation_overlap(
+                alloc,
+                {
+                    "start_date": start_date,
+                    "end_date": end_date,
+                },
+            )
+            if overlap.get("has_overlap"):
+                total_overlap += float(alloc.get("allocation_percentage", 0))
+        if total_overlap > (self.max_allocation_threshold * 100):
+            return {
+                "valid": False,
+                "reason": "Allocation exceeds maximum capacity threshold",
+            }
+        if start > end:
+            return {"valid": False, "reason": "Start date must be before end date"}
 
         return {"valid": True}
 
@@ -1492,6 +2314,49 @@ class ResourceCapacityAgent(BaseAgent):
             "unfilled_requests": unfilled,
             "remaining_capacity": availability,
         }
+
+    async def _forecast_capacity_for_scenario(
+        self, scenario: dict[str, Any]
+    ) -> dict[str, Any]:
+        history_months = 6
+        capacity_series, demand_series = await self._build_capacity_demand_history(history_months)
+        scope_multiplier = float(scenario.get("scope_multiplier", 1.0))
+        capacity_multiplier = float(scenario.get("capacity_multiplier", 1.0))
+        resource_count = int(scenario.get("resource_count", len(self.resource_pool)))
+        base_count = len(self.resource_pool) or 1
+        adjusted_capacity_series = [
+            value * (resource_count / base_count) * capacity_multiplier
+            for value in capacity_series
+        ]
+        adjusted_demand_series = [value * scope_multiplier for value in demand_series]
+        forecaster = TimeSeriesForecaster()
+        capacity_model = forecaster.train(adjusted_capacity_series)
+        demand_model = forecaster.train(adjusted_demand_series)
+        await self._store_model_in_azure_ml("scenario_capacity", capacity_model)
+        await self._store_model_in_azure_ml("scenario_demand", demand_model)
+        capacity_forecast = forecaster.forecast(
+            capacity_model, self.forecast_horizon_months, len(adjusted_capacity_series)
+        )
+        demand_forecast = forecaster.forecast(
+            demand_model, self.forecast_horizon_months, len(adjusted_demand_series)
+        )
+        return {
+            "future_capacity": [
+                {"month": index + 1, "capacity": max(0.0, value)}
+                for index, value in enumerate(capacity_forecast)
+            ],
+            "future_demand": [
+                {"month": index + 1, "demand": max(0.0, value)}
+                for index, value in enumerate(demand_forecast)
+            ],
+        }
+
+    def _average_cost_rate(self) -> float:
+        if not self.resource_pool:
+            return 0.0
+        return sum(float(resource.get("cost_rate", 0.0)) for resource in self.resource_pool.values()) / len(
+            self.resource_pool
+        )
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
