@@ -8,15 +8,20 @@ workflow execution, state management, and human task coordination.
 Specification: agents/operations-management/agent-24-workflow-process-engine/README.md
 """
 
+import importlib
+import importlib.util
 import os
-from datetime import datetime
+from pathlib import Path
+from datetime import datetime, timedelta
 from typing import Any
+from xml.etree import ElementTree
 
+import yaml
 from observability.tracing import get_trace_id
 from workflow_state_store import WorkflowStateStore, build_workflow_state_store
 from workflow_task_queue import WorkflowTaskQueue, build_task_message, build_task_queue
 
-from agents.runtime import BaseAgent, InMemoryEventBus
+from agents.runtime import BaseAgent, InMemoryEventBus, ServiceBusEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 
 
@@ -45,6 +50,17 @@ class WorkflowEngineAgent(BaseAgent):
         self.max_retry_attempts = config.get("max_retry_attempts", 3)
         self.max_parallel_tasks = config.get("max_parallel_tasks", 10)
         self.worker_id = config.get("worker_id", os.getenv("WORKFLOW_WORKER_ID", self.agent_id))
+        self.durable_config_path = Path(
+            config.get(
+                "durable_workflows_config",
+                os.getenv("DURABLE_WORKFLOW_CONFIG", "config/agent-24/durable_workflows.yaml"),
+            )
+        )
+        self.monitoring_enabled = config.get("enable_monitoring", True)
+        self.event_grid_enabled = config.get("enable_event_grid", True)
+        self.logic_apps_endpoint = config.get("logic_apps_endpoint") or os.getenv(
+            "LOGIC_APPS_ENDPOINT"
+        )
 
         self.state_store: WorkflowStateStore = config.get("workflow_state_store") or (
             build_workflow_state_store(config)
@@ -58,25 +74,34 @@ class WorkflowEngineAgent(BaseAgent):
         self.workflow_instances = {}  # type: ignore
         self.task_assignments = {}  # type: ignore
         self.event_subscriptions = {}  # type: ignore
+        self.durable_orchestrations = {}  # type: ignore
         self.event_bus = config.get("event_bus")
         if self.event_bus is None:
-            self.event_bus = InMemoryEventBus()
+            service_bus_connection = config.get("service_bus_connection_string") or os.getenv(
+                "SERVICE_BUS_CONNECTION_STRING"
+            )
+            if service_bus_connection:
+                self.event_bus = ServiceBusEventBus(
+                    connection_string=service_bus_connection,
+                    topic_name=config.get("service_bus_topic", "ppm-events"),
+                    subscription_name=config.get("service_bus_subscription"),
+                )
+            else:
+                self.event_bus = InMemoryEventBus()
 
     async def initialize(self) -> None:
         """Initialize workflow engine, orchestration services, and integrations."""
         await super().initialize()
         self.logger.info("Initializing Workflow & Process Engine Agent...")
         await self.state_store.initialize()
+        await self._load_durable_workflows_config()
 
-        # Future work: Initialize Azure Durable Functions for orchestration
-        # Future work: Set up Azure Logic Apps for workflow execution
-        # Future work: Initialize Azure Service Bus for event-driven triggers
-        # Future work: Connect to BPMN modeling tools (Camunda Modeler)
-        # Future work: Initialize Azure Functions for task execution
-        # Future work: Set up Azure Monitor for workflow monitoring
-        # Future work: Connect to task management systems (Jira, Azure Boards)
-        # Future work: Initialize Approval Workflow Agent integration
-        # Future work: Set up Azure Event Grid for workflow events
+        if isinstance(self.event_bus, ServiceBusEventBus):
+            self.event_bus.subscribe("workflow.triggers", self._handle_service_bus_trigger)
+            await self.event_bus.start()
+
+        # Azure Durable Functions orchestration is represented by durable orchestrations
+        # tracked in memory and persisted to the workflow state store.
 
         self.logger.info("Workflow & Process Engine Agent initialized")
 
@@ -101,6 +126,7 @@ class WorkflowEngineAgent(BaseAgent):
             "retry_failed_task",
             "get_workflow_instances",
             "get_task_inbox",
+            "deploy_bpmn_workflow",
         ]
 
         if action not in valid_actions:
@@ -116,6 +142,10 @@ class WorkflowEngineAgent(BaseAgent):
             if "workflow_id" not in input_data:
                 self.logger.warning("Missing workflow_id")
                 return False
+        elif action == "deploy_bpmn_workflow":
+            if "bpmn_xml" not in input_data:
+                self.logger.warning("Missing BPMN XML payload")
+                return False
 
         return True
 
@@ -129,6 +159,7 @@ class WorkflowEngineAgent(BaseAgent):
                           "assign_task" | "complete_task" | "cancel_workflow" |
                           "pause_workflow" | "resume_workflow" | "handle_event" |
                           "retry_failed_task" | "get_workflow_instances" | "get_task_inbox",
+                          "deploy_bpmn_workflow",
                 "workflow": Workflow definition (BPMN or JSON),
                 "workflow_id": Workflow definition ID,
                 "instance_id": Workflow instance ID,
@@ -137,7 +168,8 @@ class WorkflowEngineAgent(BaseAgent):
                 "input_variables": Workflow input variables,
                 "task_result": Task completion result,
                 "assignee": Task assignee,
-                "filters": Query filters
+                "filters": Query filters,
+                "bpmn_xml": BPMN 2.0 XML string
             }
 
         Returns:
@@ -154,6 +186,7 @@ class WorkflowEngineAgent(BaseAgent):
             - retry_failed_task: Retry result
             - get_workflow_instances: List of instances
             - get_task_inbox: User's pending tasks
+            - deploy_bpmn_workflow: Deployment status for BPMN workflows
         """
         action = input_data.get("action", "get_workflow_instances")
         tenant_id = (
@@ -208,6 +241,13 @@ class WorkflowEngineAgent(BaseAgent):
         elif action == "get_task_inbox":
             return await self._get_task_inbox(tenant_id, input_data.get("user_id"))  # type: ignore
 
+        elif action == "deploy_bpmn_workflow":
+            return await self._deploy_bpmn_workflow(
+                tenant_id,
+                input_data.get("bpmn_xml"),  # type: ignore
+                input_data.get("workflow_name"),
+            )
+
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -238,7 +278,7 @@ class WorkflowEngineAgent(BaseAgent):
             "workflow_id": workflow_id,
             "name": workflow_config.get("name"),
             "description": workflow_config.get("description"),
-            "version": 1,
+            "version": workflow_config.get("version", 1),
             "tasks": parsed_workflow.get("tasks", []),
             "events": parsed_workflow.get("events", []),
             "gateways": parsed_workflow.get("gateways", []),
@@ -246,11 +286,18 @@ class WorkflowEngineAgent(BaseAgent):
             "variables": workflow_config.get("variables", {}),
             "created_at": datetime.utcnow().isoformat(),
             "created_by": workflow_config.get("author"),
+            "definition_source": workflow_config.get("definition_source", "inline"),
         }
 
         # Store workflow definition
         self.workflow_definitions[workflow_id] = workflow
         await self.state_store.save_definition(tenant_id, workflow_id, workflow.copy())
+        self.durable_orchestrations[workflow_id] = {
+            "workflow_id": workflow_id,
+            "definition": workflow,
+            "tasks": workflow.get("tasks", []),
+            "registered_at": datetime.utcnow().isoformat(),
+        }
 
         await self._register_event_triggers(
             tenant_id, workflow_id, workflow_config.get("event_triggers", [])
@@ -300,6 +347,14 @@ class WorkflowEngineAgent(BaseAgent):
             "current_tasks": [],
             "completed_tasks": [],
             "failed_tasks": [],
+            "completed_steps": [],
+            "checkpoints": [],
+            "last_checkpoint": None,
+            "compensation_history": [],
+            "orchestration": {
+                "engine": "durable_functions",
+                "orchestration_id": f"durable-{instance_id}",
+            },
             "variables": input_variables,
             "started_at": datetime.utcnow().isoformat(),
             "started_by": input_variables.get("requester"),
@@ -418,6 +473,14 @@ class WorkflowEngineAgent(BaseAgent):
             if task_id in instance.get("current_tasks", []):
                 instance["current_tasks"].remove(task_id)
             instance.get("completed_tasks", []).append(task_id)
+            instance.setdefault("completed_steps", []).append(task_id)
+            checkpoint = {
+                "task_id": task_id,
+                "status": "completed",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            instance.setdefault("checkpoints", []).append(checkpoint)
+            instance["last_checkpoint"] = task_id
 
             # Update variables with task result
             instance.get("variables", {}).update(task_result)
@@ -433,6 +496,11 @@ class WorkflowEngineAgent(BaseAgent):
             if await self._is_workflow_complete(instance):
                 instance["status"] = "completed"
                 instance["completed_at"] = datetime.utcnow().isoformat()
+                await self._emit_workflow_event(
+                    tenant_id,
+                    "workflow.completed",
+                    {"instance_id": instance_id, "workflow_id": instance.get("workflow_id")},
+                )
 
         if instance_id and instance:
             await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
@@ -464,8 +532,7 @@ class WorkflowEngineAgent(BaseAgent):
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
-        # Execute compensation tasks if defined
-        # Future work: Implement compensation logic
+        await self._trigger_compensation(tenant_id, instance, reason="cancelled")
 
         # Update instance status
         instance["status"] = "cancelled"
@@ -527,17 +594,27 @@ class WorkflowEngineAgent(BaseAgent):
         if not instance:
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
-        if instance.get("status") != "paused":
-            raise ValueError(f"Workflow is not paused: {instance_id}")
+        if instance.get("status") not in {"paused", "failed", "retrying", "compensating"}:
+            raise ValueError(f"Workflow is not paused or failed: {instance_id}")
 
         instance["status"] = "running"
         instance["resumed_at"] = datetime.utcnow().isoformat()
         await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(tenant_id, "workflow.resumed", {"instance_id": instance_id})
 
-        # Future work: Store in database
-        # Future work: Publish workflow.resumed event
-        # Future work: Resume pending tasks
+        if instance.get("failed_tasks"):
+            workflow_id = instance.get("workflow_id")
+            workflow = await self._load_definition(tenant_id, workflow_id) if workflow_id else None
+            if workflow:
+                for task_id in list(instance.get("failed_tasks", [])):
+                    task = next(
+                        (item for item in workflow.get("tasks", []) if item.get("task_id") == task_id),
+                        None,
+                    )
+                    if task:
+                        await self._execute_task(tenant_id, instance_id, task)
+                instance["failed_tasks"] = []
+                await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
 
         return {
             "instance_id": instance_id,
@@ -555,6 +632,8 @@ class WorkflowEngineAgent(BaseAgent):
 
         event_type = event.get("event_type")
         event_data = event.get("data", {})
+        if event_type in {"workflow.compensation.requested", "workflow.rollback.requested"}:
+            return await self._handle_compensation_event(tenant_id, event_type, event_data)
 
         # Find subscribed workflows
         subscribed_workflows = await self._find_event_subscriptions(tenant_id, event_type)  # type: ignore
@@ -698,6 +777,35 @@ class WorkflowEngineAgent(BaseAgent):
 
         return {"user_id": user_id, "pending_tasks": len(user_tasks), "tasks": user_tasks}
 
+    async def _deploy_bpmn_workflow(
+        self, tenant_id: str, bpmn_xml: str, workflow_name: str | None = None
+    ) -> dict[str, Any]:
+        workflow_config = {
+            "name": workflow_name or "BPMN Workflow",
+            "description": "BPMN 2.0 deployment",
+            "bpmn_xml": bpmn_xml,
+            "definition_source": "bpmn_upload",
+        }
+        result = await self._define_workflow(tenant_id, workflow_config)
+        return {
+            "workflow_id": result.get("workflow_id"),
+            "status": result.get("status"),
+            "tasks": result.get("tasks"),
+            "definition_source": "bpmn_upload",
+        }
+
+    async def _handle_compensation_event(
+        self, tenant_id: str, event_type: str, event_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        instance_id = event_data.get("instance_id")
+        if not instance_id:
+            raise ValueError("instance_id is required for compensation events")
+        instance = await self._load_instance(tenant_id, instance_id)
+        if not instance:
+            raise ValueError(f"Workflow instance not found: {instance_id}")
+        await self._trigger_compensation(tenant_id, instance, reason=event_type)
+        return {"instance_id": instance_id, "status": "compensation_triggered"}
+
     # Helper methods
 
     async def _generate_workflow_id(self) -> str:
@@ -719,14 +827,16 @@ class WorkflowEngineAgent(BaseAgent):
         if not workflow_config.get("name"):
             errors.append("Workflow name is required")
 
-        if not workflow_config.get("tasks"):
+        if not workflow_config.get("tasks") and not workflow_config.get("bpmn_xml"):
             errors.append("Workflow must have at least one task")
 
         return {"valid": len(errors) == 0, "errors": errors}
 
     async def _parse_workflow_definition(self, workflow_config: dict[str, Any]) -> dict[str, Any]:
         """Parse workflow definition."""
-        # Future work: Parse BPMN XML if provided
+        bpmn_xml = workflow_config.get("bpmn_xml")
+        if bpmn_xml:
+            return self._parse_bpmn_xml(bpmn_xml)
         return {
             "tasks": workflow_config.get("tasks", []),
             "events": workflow_config.get("events", []),
@@ -734,10 +844,186 @@ class WorkflowEngineAgent(BaseAgent):
             "transitions": workflow_config.get("transitions", []),
         }
 
+    def _parse_bpmn_xml(self, bpmn_xml: str) -> dict[str, Any]:
+        """Parse BPMN 2.0 XML into workflow tasks and transitions."""
+        parsed = self._parse_bpmn_with_bpmn_python(bpmn_xml)
+        if parsed:
+            return parsed
+        root = ElementTree.fromstring(bpmn_xml)
+        namespace = {"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"}
+
+        def _findall(tag: str) -> list[ElementTree.Element]:
+            return root.findall(f".//bpmn:{tag}", namespaces=namespace)
+
+        tasks: list[dict[str, Any]] = []
+        transitions: list[dict[str, Any]] = []
+
+        start_events = {event.get("id") for event in _findall("startEvent") if event.get("id")}
+
+        for task_type, internal_type in [
+            ("userTask", "human"),
+            ("serviceTask", "automated"),
+            ("scriptTask", "automated"),
+            ("task", "automated"),
+        ]:
+            for task in _findall(task_type):
+                task_id = task.get("id")
+                if not task_id:
+                    continue
+                tasks.append(
+                    {
+                        "task_id": task_id,
+                        "name": task.get("name"),
+                        "type": internal_type,
+                        "initial": False,
+                    }
+                )
+
+        for flow in _findall("sequenceFlow"):
+            source = flow.get("sourceRef")
+            target = flow.get("targetRef")
+            if source and target:
+                transitions.append({"source": source, "target": target})
+
+        initial_targets = {
+            flow.get("targetRef")
+            for flow in _findall("sequenceFlow")
+            if flow.get("sourceRef") in start_events
+        }
+        for task in tasks:
+            if task.get("task_id") in initial_targets:
+                task["initial"] = True
+
+        return {
+            "tasks": tasks,
+            "events": [],
+            "gateways": [],
+            "transitions": transitions,
+        }
+
+    def _parse_bpmn_with_bpmn_python(self, bpmn_xml: str) -> dict[str, Any] | None:
+        spec = importlib.util.find_spec("bpmn_python")
+        if not spec:
+            return None
+        bpmn_diagram_rep = importlib.import_module("bpmn_python.bpmn_diagram_rep")
+        if not hasattr(bpmn_diagram_rep, "BpmnDiagramGraph"):
+            return None
+        diagram = bpmn_diagram_rep.BpmnDiagramGraph()
+        if hasattr(diagram, "load_diagram_from_xml_string"):
+            diagram.load_diagram_from_xml_string(bpmn_xml)
+        else:
+            return None
+        tasks = []
+        for node_id, node in diagram.diagram_graph.nodes.items():
+            node_type = node[1].get("type")
+            if node_type in {"userTask", "serviceTask", "scriptTask", "task"}:
+                tasks.append(
+                    {
+                        "task_id": node_id,
+                        "name": node[1].get("name"),
+                        "type": "human" if node_type == "userTask" else "automated",
+                        "initial": False,
+                    }
+                )
+        transitions = [
+            {"source": edge[0], "target": edge[1]} for edge in diagram.diagram_graph.edges
+        ]
+        return {"tasks": tasks, "events": [], "gateways": [], "transitions": transitions}
+
     async def _get_initial_tasks(self, workflow: dict[str, Any]) -> list[dict[str, Any]]:
         """Get initial tasks to execute."""
         tasks = workflow.get("tasks", [])
         return [t for t in tasks if t.get("initial", False)][:1]
+
+    async def _load_durable_workflows_config(self) -> None:
+        if not self.durable_config_path.exists():
+            self.logger.info(
+                "Durable workflow config not found", extra={"path": str(self.durable_config_path)}
+            )
+            return
+        config_payload = yaml.safe_load(self.durable_config_path.read_text()) or {}
+        workflows = config_payload.get("workflows", [])
+        for workflow in workflows:
+            steps = workflow.get("steps", [])
+            tasks = []
+            for index, step in enumerate(steps):
+                tasks.append(
+                    {
+                        "task_id": step.get("task_id"),
+                        "name": step.get("name"),
+                        "type": step.get("type", "automated"),
+                        "initial": index == 0,
+                        "retry_policy": step.get("retry_policy"),
+                        "compensation_task_id": step.get("compensation_task_id"),
+                    }
+                )
+            workflow_config = {
+                "name": workflow.get("name") or workflow.get("workflow_id"),
+                "description": workflow.get("description"),
+                "tasks": tasks,
+                "definition_source": "durable_config",
+                "version": workflow.get("version", 1),
+            }
+            await self._define_workflow("default", workflow_config)
+
+    async def _handle_service_bus_trigger(self, payload: dict[str, Any]) -> None:
+        tenant_id = payload.get("tenant_id") or "default"
+        await self._handle_event(tenant_id, payload)
+
+    async def _trigger_compensation(
+        self, tenant_id: str, instance: dict[str, Any], reason: str
+    ) -> None:
+        workflow_id = instance.get("workflow_id")
+        workflow = await self._load_definition(tenant_id, workflow_id) if workflow_id else None
+        if not workflow:
+            return
+        compensation_tasks = []
+        completed_steps = list(instance.get("completed_steps", []))
+        failed_steps = list(instance.get("failed_tasks", []))
+        for task_id in completed_steps + failed_steps:
+            task = next(
+                (item for item in workflow.get("tasks", []) if item.get("task_id") == task_id),
+                None,
+            )
+            if task and task.get("compensation_task_id"):
+                comp_task = next(
+                    (
+                        item
+                        for item in workflow.get("tasks", [])
+                        if item.get("task_id") == task.get("compensation_task_id")
+                    ),
+                    None,
+                )
+                if comp_task:
+                    compensation_tasks.append(comp_task)
+
+        if not compensation_tasks:
+            return
+
+        instance["status"] = "compensating"
+        await self.state_store.save_instance(tenant_id, instance["instance_id"], instance.copy())
+        await self._emit_workflow_event(
+            tenant_id,
+            "workflow.compensation.started",
+            {"instance_id": instance["instance_id"], "reason": reason},
+        )
+
+        for task in compensation_tasks:
+            await self._execute_task(tenant_id, instance["instance_id"], task)
+
+        instance.setdefault("compensation_history", []).append(
+            {
+                "reason": reason,
+                "tasks": [task.get("task_id") for task in compensation_tasks],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
+        await self.state_store.save_instance(tenant_id, instance["instance_id"], instance.copy())
+        await self._emit_workflow_event(
+            tenant_id,
+            "workflow.compensation.completed",
+            {"instance_id": instance["instance_id"], "tasks": [t.get("task_id") for t in compensation_tasks]},
+        )
 
     async def _execute_task(self, tenant_id: str, instance_id: str, task: dict[str, Any]) -> None:
         """Execute workflow task."""
@@ -751,6 +1037,8 @@ class WorkflowEngineAgent(BaseAgent):
             "status": "queued",
             "created_at": datetime.utcnow().isoformat(),
             "task_payload": task,
+            "retry_policy": task.get("retry_policy"),
+            "compensation_task_id": task.get("compensation_task_id"),
         }
         self.task_assignments[task_id] = assignment
         await self.state_store.save_task(tenant_id, task_id, assignment.copy())
@@ -839,6 +1127,55 @@ class WorkflowEngineAgent(BaseAgent):
         emit_audit_event(audit_event)
         if self.event_bus:
             await self.event_bus.publish("workflow.events", event_record)
+            await self.event_bus.publish("workflow.notifications", event_record)
+        await self._emit_monitor_telemetry(tenant_id, event_type, payload)
+        await self._emit_event_grid_event(tenant_id, event_type, payload)
+
+    async def _emit_monitor_telemetry(
+        self, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        if not self.monitoring_enabled:
+            return
+        telemetry_payload = {
+            "tenant_id": tenant_id,
+            "event_type": event_type,
+            "payload": payload,
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "workflow_engine_agent",
+        }
+        if self.event_bus:
+            await self.event_bus.publish("azure.monitor.telemetry", telemetry_payload)
+
+    async def _emit_event_grid_event(
+        self, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        if not self.event_grid_enabled:
+            return
+        event_grid_payload = {
+            "tenant_id": tenant_id,
+            "event_type": event_type,
+            "payload": payload,
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "workflow_engine_agent",
+        }
+        if self.event_bus:
+            await self.event_bus.publish("azure.eventgrid.events", event_grid_payload)
+
+    async def _invoke_logic_app(self, tenant_id: str, assignment: dict[str, Any]) -> None:
+        payload = {
+            "tenant_id": tenant_id,
+            "task_id": assignment.get("task_id"),
+            "instance_id": assignment.get("instance_id"),
+            "payload": assignment.get("task_payload", {}),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        if self.logic_apps_endpoint:
+            self.logger.info(
+                "Logic Apps invocation scheduled",
+                extra={"endpoint": self.logic_apps_endpoint, "task_id": assignment.get("task_id")},
+            )
+        if self.event_bus:
+            await self.event_bus.publish("logic.apps.invocations", payload)
 
     async def _event_matches_criteria(
         self, event_data: dict[str, Any], criteria: dict[str, Any]
@@ -928,6 +1265,12 @@ class WorkflowEngineAgent(BaseAgent):
         if assignment.get("task_type") == "automated":
             result = await self._complete_task(tenant_id, task_id, {"status": "auto_completed"})
             return result
+        if assignment.get("task_type") == "logic_app":
+            await self._invoke_logic_app(tenant_id, assignment)
+            result = await self._complete_task(
+                tenant_id, task_id, {"status": "logic_app_triggered"}
+            )
+            return result
 
         assignment["status"] = "assigned"
         assignment["assigned_at"] = datetime.utcnow().isoformat()
@@ -942,13 +1285,50 @@ class WorkflowEngineAgent(BaseAgent):
             assignment["status"] = "failed"
             assignment["failed_at"] = datetime.utcnow().isoformat()
             assignment["failure_reason"] = reason
-            await self.state_store.save_task(tenant_id, task_id, assignment.copy())
+            retry_policy = assignment.get("retry_policy") or {}
+            retry_count = assignment.get("retry_count", 0)
+            max_attempts = retry_policy.get("max_attempts", self.max_retry_attempts)
+            backoff_seconds = retry_policy.get("backoff_seconds", 0)
+            if retry_count < max_attempts:
+                assignment["retry_count"] = retry_count + 1
+                assignment["status"] = "retrying"
+                if backoff_seconds:
+                    assignment["next_retry_at"] = (
+                        datetime.utcnow()
+                        + timedelta(seconds=int(backoff_seconds))
+                    ).isoformat()
+                await self.state_store.save_task(tenant_id, task_id, assignment.copy())
+                await self.task_queue.publish_task(
+                    build_task_message(
+                        tenant_id=tenant_id,
+                        instance_id=instance_id,
+                        task_id=task_id,
+                        task_type=assignment.get("task_type"),
+                        payload=assignment.get("task_payload", {}),
+                    )
+                )
+            else:
+                await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         instance = await self._load_instance(tenant_id, instance_id)
         if instance:
             instance.setdefault("failed_tasks", []).append(task_id)
-            instance["status"] = "failed"
+            instance.setdefault("checkpoints", []).append(
+                {
+                    "task_id": task_id,
+                    "status": "failed",
+                    "reason": reason,
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            )
+            instance["last_checkpoint"] = task_id
+            if assignment and assignment.get("status") == "retrying":
+                instance["status"] = "retrying"
+            else:
+                instance["status"] = "failed"
             await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
+            if instance["status"] == "failed":
+                await self._trigger_compensation(tenant_id, instance, reason=reason)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
@@ -956,6 +1336,8 @@ class WorkflowEngineAgent(BaseAgent):
         # Future work: Close database connections
         # Future work: Close orchestration connections
         # Future work: Cancel running workflows if needed
+        if isinstance(self.event_bus, ServiceBusEventBus):
+            await self.event_bus.stop()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

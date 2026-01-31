@@ -145,7 +145,7 @@ WORKFLOW_DEFINITION_TABLE = Table(
 )
 
 WORKFLOW_INSTANCE_TABLE = Table(
-    "workflow_instances",
+    "workflow_runs",
     metadata,
     Column("tenant_id", String(64), primary_key=True),
     Column("instance_id", String(64), primary_key=True),

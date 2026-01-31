@@ -4,7 +4,7 @@ import logging
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -50,6 +50,13 @@ class AgentStateResponse(BaseModel):
     status: str
     updated_at: str
     reason: str | None = None
+
+
+class WorkflowUploadResponse(BaseModel):
+    workflow_id: str | None
+    status: str
+    tasks: int | None = None
+    definition_source: str | None = None
 
 
 @app.on_event("startup")
@@ -130,6 +137,26 @@ async def deactivate_agent(agent_id: str) -> AgentStateResponse:
     orchestrator.set_agent_state(agent_id, "stopped")
     state = orchestrator.get_agent_state(agent_id)
     return AgentStateResponse(**state.__dict__)
+
+
+@app.post("/workflows/upload", response_model=WorkflowUploadResponse)
+async def upload_workflow(
+    request: Request, file: UploadFile = File(...), workflow_name: str | None = None
+) -> WorkflowUploadResponse:
+    auth = request.state.auth
+    workflow_agent = orchestrator.agents.get("agent_024")
+    if not workflow_agent:
+        raise HTTPException(status_code=503, detail="Workflow engine agent not available")
+    bpmn_payload = (await file.read()).decode("utf-8")
+    response = await workflow_agent.process(
+        {
+            "action": "deploy_bpmn_workflow",
+            "tenant_id": auth.tenant_id,
+            "bpmn_xml": bpmn_payload,
+            "workflow_name": workflow_name or file.filename,
+        }
+    )
+    return WorkflowUploadResponse(**response)
 
 
 if __name__ == "__main__":
