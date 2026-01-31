@@ -53,6 +53,8 @@ def _required_permission(request: Request) -> str:
         return "config.write" if method in {"POST", "PUT", "PATCH", "DELETE"} else "config.read"
     if path.startswith("/api/v1/query"):
         return "workflow.execute"
+    if path.startswith("/api/v1/documents"):
+        return "document.coedit"
     if path.startswith("/api/v1/agents"):
         return "workflow.read"
     if method in {"POST", "PUT", "PATCH", "DELETE"}:

@@ -33,6 +33,7 @@ class UserRole(str, Enum):
     PM = "PM"
     TEAM_MEMBER = "TEAM_MEMBER"
     AUDITOR = "AUDITOR"
+    COLLABORATOR = "COLLABORATOR"
 
 
 @dataclass
@@ -210,6 +211,12 @@ class AgentConfigStore:
                 name="Audit Reviewer",
                 email="auditor@example.com",
                 role=UserRole.AUDITOR,
+            ).to_dict(),
+            "collaborator": DevUserProfile(
+                user_id="collaborator",
+                name="Document Collaborator",
+                email="collaborator@example.com",
+                role=UserRole.COLLABORATOR,
             ).to_dict(),
         }
 

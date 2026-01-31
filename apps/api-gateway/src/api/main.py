@@ -27,6 +27,7 @@ from api.routes import (
     audit,
     compliance_research,
     connectors,
+    documents,
     health,
     lineage,
     risk_research,
@@ -212,6 +213,7 @@ app.include_router(connectors.router, prefix="/api/v1", tags=["connectors"])
 app.include_router(workflows.router, prefix="/api/v1", tags=["workflows"])
 app.include_router(audit.router, prefix="/api/v1", tags=["audit"])
 app.include_router(lineage.router, prefix="/api/v1", tags=["lineage"])
+app.include_router(documents.router, prefix="/api/v1", tags=["documents"])
 app.include_router(scope_research.router, prefix="/api/v1", tags=["scope-research"])
 app.include_router(risk_research.router, prefix="/api/v1", tags=["risk-research"])
 app.include_router(vendor_research.router, prefix="/api/v1", tags=["vendor-research"])

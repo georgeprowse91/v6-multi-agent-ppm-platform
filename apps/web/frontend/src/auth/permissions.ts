@@ -3,6 +3,7 @@ export type Role =
   | 'PM'
   | 'TEAM_MEMBER'
   | 'AUDITOR'
+  | 'COLLABORATOR'
   | 'tenant_owner'
   | 'portfolio_admin'
   | 'project_manager'
@@ -15,6 +16,7 @@ const roleAliases: Record<string, Role> = {
   project_manager: 'PM',
   analyst: 'TEAM_MEMBER',
   auditor: 'AUDITOR',
+  collaborator: 'COLLABORATOR',
 };
 
 export function normalizeRoles(roles: string[] | undefined | null): Role[] {

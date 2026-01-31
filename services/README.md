@@ -15,6 +15,7 @@ Catalog backend services that power data sync, policy enforcement, and telemetry
 - `services/agent-runtime`: Subdirectory containing agent runtime assets for this area.
 - `services/policy-engine`: Subdirectory containing policy engine assets for this area.
 - `services/telemetry-service`: Subdirectory containing telemetry service assets for this area.
+- `services/realtime-coedit-service`: Subdirectory containing real-time co-editing assets for this area.
 
 ## Service descriptions & endpoints
 
@@ -31,6 +32,7 @@ Each service runs a FastAPI application (default port `8080`) with health checks
 | Notification Service | Sends email/chat/webhook notifications. | `POST /notifications/send` |
 | Policy Engine | Evaluates RBAC/ABAC policy decisions. | `POST /policies/evaluate`, `POST /rbac/evaluate`, `POST /abac/evaluate` |
 | Telemetry Service | Ingests telemetry payloads for observability. | `POST /telemetry/ingest` |
+| Realtime Coedit Service | Manages collaborative document editing sessions. | `POST /sessions`, `GET /sessions/{session_id}`, `GET /ws/documents/{document_id}` |
 
 ## How it's used
 

@@ -3,6 +3,7 @@ export { useCanvasStore, SAMPLE_ARTIFACT_IDS } from './useCanvasStore';
 export { useMethodologyStore } from './methodology';
 export { useAssistantStore, CATEGORY_COLORS, CATEGORY_ICONS } from './assistant';
 export { useAgentConfigStore, CATEGORY_INFO } from './agentConfig';
+export { useCoeditStore } from './documents';
 export type {
   EntitySelection,
   Activity,
@@ -40,3 +41,4 @@ export type {
   ParameterType,
   ProjectAgentConfig,
 } from './agentConfig';
+export type { CoeditCursor, CoeditParticipant, CoeditConflict } from './documents';

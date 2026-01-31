@@ -41,6 +41,7 @@ classification_access:
       - "analyst"
       - "auditor"
       - "integration_service"
+      - "COLLABORATOR"
   internal:
     allowed_roles:
       - "PMO_ADMIN"
@@ -52,6 +53,7 @@ classification_access:
       - "project_manager"
       - "analyst"
       - "auditor"
+      - "COLLABORATOR"
   confidential:
     allowed_roles:
       - "PMO_ADMIN"
