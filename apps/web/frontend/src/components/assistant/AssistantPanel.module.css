@@ -177,6 +177,65 @@
   gap: var(--space-2);
 }
 
+/* Prompt Library */
+.promptArea {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-neutral-100);
+  flex-shrink: 0;
+}
+
+.promptSearch {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-neutral-200);
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-900);
+  background-color: var(--color-neutral-50);
+  margin-bottom: var(--space-2);
+}
+
+.promptSearch:focus {
+  outline: 2px solid var(--color-primary-200);
+  border-color: var(--color-primary-400);
+  background-color: white;
+}
+
+.promptChipsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.promptChip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-neutral-200);
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.promptChip:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.promptChipLabel {
+  line-height: 1.2;
+}
+
+.promptEmpty {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+  margin: 0;
+}
+
 /* Action Chip Button */
 .chip {
   display: inline-flex;
