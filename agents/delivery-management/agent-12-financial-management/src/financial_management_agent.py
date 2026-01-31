@@ -22,6 +22,8 @@ from observability.tracing import get_trace_id
 from agents.runtime import BaseAgent
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
+from agents.common.connector_integration import DatabaseStorageService, ERPIntegrationService
+from agents.common.integration_services import ForecastingModel
 
 
 class FinancialManagementAgent(BaseAgent):
@@ -100,17 +102,25 @@ class FinancialManagementAgent(BaseAgent):
             ttl_seconds=config.get("exchange_rate_ttl", 3600) if config else 3600,
             api_url=config.get("exchange_rate_api_url") if config else None,
         )
+        self.forecasting_model = ForecastingModel()
 
     async def initialize(self) -> None:
         """Initialize database connections, ERP integrations, and ML models."""
         await super().initialize()
         self.logger.info("Initializing Financial Management Agent...")
 
-        # Future work: Initialize Azure SQL Database or Synapse Analytics connection
+        # Initialize Database Storage Service (Azure SQL, Cosmos DB, or JSON fallback)
+        db_config = self.config.get("database_storage", {}) if self.config else {}
+        self.db_service = DatabaseStorageService(db_config)
+        self.logger.info("Database Storage Service initialized")
+
+        # Initialize ERP Integration Service (SAP, Oracle, Workday Financials, Dynamics 365)
+        erp_config = self.config.get("erp_integration", {}) if self.config else {}
+        self.erp_service = ERPIntegrationService(erp_config)
+        self.logger.info("ERP Integration Service initialized")
+
         # Future work: Set up Azure Data Factory pipelines for ERP integration
-        # Future work: Connect to ERP systems (SAP, Oracle, Workday Financials, Dynamics 365)
         # Future work: Connect to timesheet systems (Planview, Jira, Azure DevOps)
-        # Future work: Initialize Azure Machine Learning for forecasting models
         # Future work: Set up currency exchange rate API connections
         # Future work: Connect to tax service APIs
         # Future work: Initialize Azure Service Bus for event publishing
@@ -335,7 +345,7 @@ class FinancialManagementAgent(BaseAgent):
             actor_id=actor_id,
         )
 
-        # Future work: Store in database
+        await self.db_service.store("budgets", budget_id, budget)
         # Future work: Validate funding availability with ERP
 
         return {
@@ -434,7 +444,6 @@ class FinancialManagementAgent(BaseAgent):
         schedule_progress = await self._get_schedule_progress(project_id)
 
         # Run forecasting model
-        # Future work: Use Azure Machine Learning (Prophet, ARIMA, LSTM)
         forecast = await self._run_forecasting_model(
             historical_data, resource_plans, schedule_progress
         )
@@ -451,7 +460,7 @@ class FinancialManagementAgent(BaseAgent):
         }
         self.forecast_store.upsert(tenant_id, project_id, self.forecasts[project_id])
 
-        # Future work: Store in database
+        await self.db_service.store("forecasts", project_id, self.forecasts[project_id])
         # Future work: Publish forecast.updated event
 
         return {
@@ -930,8 +939,7 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _import_cost_transactions(self, project_id: str) -> list[dict[str, Any]]:
         """Import cost transactions from ERP."""
-        # Future work: Query ERP system for transactions
-        return []
+        return await self.erp_service.get_transactions(filters={"project_id": project_id})
 
     async def _match_costs_to_wbs(self, transactions: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Match cost transactions to WBS elements."""
@@ -978,10 +986,12 @@ class FinancialManagementAgent(BaseAgent):
         if not normalized_costs:
             normalized_costs = [0.0]
 
-        rolling_avg = sum(normalized_costs[-3:]) / min(len(normalized_costs), 3)
+        forecast_periods = int(resource_plans.get("forecast_periods", 3))
+        base_forecast = self.forecasting_model.forecast(normalized_costs, forecast_periods)
+
         progress = schedule_progress.get("percent_complete", 0.0)
         remaining_factor = max(0.0, 1.0 - progress)
-        monthly_forecast = [rolling_avg * remaining_factor for _ in range(3)]
+        monthly_forecast = [value * remaining_factor for value in base_forecast]
         total_forecast = sum(normalized_costs) + sum(monthly_forecast)
 
         return {
@@ -1106,21 +1116,32 @@ class FinancialManagementAgent(BaseAgent):
         drivers: list[dict[str, Any]],
     ) -> str:
         """Generate narrative explanation of variance."""
-        # Future work: Use Azure OpenAI for NLG
-
-        if abs(budget_variance_pct) < 0.05:
-            return "Project is tracking within budget with minimal variance."
-
         direction = "over" if budget_variance_pct > 0 else "under"
         severity = "significantly" if abs(budget_variance_pct) > 0.15 else "moderately"
+        forecast_direction = "over" if forecast_variance_pct > 0 else "under"
 
-        narrative = f"Project is {severity} {direction} budget by {abs(budget_variance_pct):.1%}. "
+        if abs(budget_variance_pct) < 0.05:
+            headline = "Project is tracking within budget with minimal variance."
+        else:
+            headline = (
+                f"Project is {severity} {direction} budget by {abs(budget_variance_pct):.1%}."
+            )
 
+        forecast_line = (
+            "Forecasts indicate the project is aligned with baseline."
+            if abs(forecast_variance_pct) < 0.05
+            else f"Forecasts indicate the project is {forecast_direction} baseline by {abs(forecast_variance_pct):.1%}."
+        )
+
+        driver_line = "No material variance drivers identified."
         if drivers:
             top_driver = drivers[0]
-            narrative += f"Primary driver is {top_driver['category']} variance of {top_driver['variance_pct']:.1%}."
+            driver_line = (
+                "Primary driver: "
+                f"{top_driver['category'].title()} variance of {top_driver['variance_pct']:.1%}."
+            )
 
-        return narrative
+        return " ".join([headline, forecast_line, driver_line])
 
     async def _assess_performance_status(self, cpi: float, spi: float) -> str:
         """Assess overall project performance status."""
