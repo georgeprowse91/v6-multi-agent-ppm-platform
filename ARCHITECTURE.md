@@ -73,7 +73,7 @@ Built to integrate with existing enterprise systems rather than replace them:
 │                    Presentation Layer                            │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
 │  │  Web UI      │  │  Mobile UI   │  │  API Clients │          │
-│  │  (React)     │  │  (Roadmap)   │  │              │          │
+│  │  (React)     │  │  (Expo)      │  │              │          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
 └───────────────────────┬─────────────────────────────────────────┘
                         │
@@ -120,6 +120,12 @@ Built to integrate with existing enterprise systems rather than replace them:
 ```
 
 ## Component Overview
+
+### Presentation Layer
+
+- **Web UI (React)**: Full-featured console for workspace navigation, project dashboards, connector configuration, and assistant interactions.
+- **Mobile UI (Expo/React Native)**: Provides a mobile workspace shell with methodologies, dashboard status, connector gallery, and assistant chat while reusing the API gateway OIDC login and tenant context for authenticated requests.
+- **API Clients**: Programmatic integrations that call the API gateway endpoints for automation and reporting.
 
 ### Core Orchestration Agents
 
