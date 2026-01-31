@@ -20,6 +20,36 @@ class ApprovalStub:
         return {"approval_id": "appr-1", "status": "pending"}
 
 
+class OpenAIStub:
+    def __init__(self) -> None:
+        self.prompts: list[str] = []
+
+    async def generate(self, prompt: str) -> str:
+        self.prompts.append(prompt)
+        if "executive summary" in prompt.lower():
+            return "AI-generated executive summary."
+        if "work breakdown structure" in prompt.lower():
+            return "1.0 - Project Management\n2.0 - Delivery Phase"
+        if "raci" in prompt.lower():
+            return "Deliverable A | Alice | Responsible"
+        return "AI response"
+
+
+class FormRecognizerStub:
+    async def extract_requirements(
+        self, *, document_content: str | None = None, document_url: str | None = None
+    ) -> list[dict[str, str]]:
+        return [{"text": "The system shall support SSO."}]
+
+
+class RequirementsSyncStub:
+    def __init__(self) -> None:
+        self.synced: list[dict] = []
+
+    async def sync_requirements(self, *, project_id: str, requirements: list[dict]) -> None:
+        self.synced.append({"project_id": project_id, "requirements": requirements})
+
+
 @pytest.mark.asyncio
 async def test_project_definition_persists_charter_and_wbs(tmp_path):
     event_bus = EventCollector()
@@ -210,3 +240,127 @@ async def test_project_definition_scope_research_falls_back_without_results(monk
     )
 
     assert result["used_external_research"] is False
+
+
+@pytest.mark.asyncio
+async def test_project_definition_openai_charter_and_wbs(tmp_path):
+    openai_stub = OpenAIStub()
+    agent = ProjectDefinitionAgent(
+        config={
+            "openai_client": openai_stub,
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    charter_response = await agent.process(
+        {
+            "action": "generate_charter",
+            "tenant_id": "tenant-a",
+            "charter_data": {
+                "title": "Project Orion",
+                "description": "AI scope",
+                "project_type": "delivery",
+                "methodology": "agile",
+            },
+        }
+    )
+
+    assert "AI-generated executive summary." in charter_response["document"]["executive_summary"]
+    wbs_response = await agent.process(
+        {
+            "action": "generate_wbs",
+            "tenant_id": "tenant-a",
+            "project_id": charter_response["project_id"],
+            "scope_statement": {},
+            "requester": "pm-1",
+        }
+    )
+    assert any("Delivery Phase" in node.get("name", "") for node in wbs_response["structure"].values())
+
+
+@pytest.mark.asyncio
+async def test_project_definition_requirements_sync_and_form_recognizer(tmp_path):
+    form_recognizer = FormRecognizerStub()
+    doors_stub = RequirementsSyncStub()
+    agent = ProjectDefinitionAgent(
+        config={
+            "form_recognizer_client": form_recognizer,
+            "doors_client": doors_stub,
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+        }
+    )
+    await agent.initialize()
+
+    requirements = await agent.process(
+        {
+            "action": "manage_requirements",
+            "project_id": "proj-1",
+            "requirements": [{"document_content": "Spec document"}],
+        }
+    )
+
+    assert any("SSO" in req.get("text", "") for req in requirements["requirements"])
+    assert doors_stub.synced
+
+
+@pytest.mark.asyncio
+async def test_project_definition_scope_baseline_and_scope_creep_event(tmp_path):
+    event_bus = EventCollector()
+    agent = ProjectDefinitionAgent(
+        config={
+            "event_bus": event_bus,
+            "charter_store_path": tmp_path / "charters.json",
+            "wbs_store_path": tmp_path / "wbs.json",
+            "scope_baseline_store_path": tmp_path / "baseline.json",
+        }
+    )
+    await agent.initialize()
+
+    charter_response = await agent.process(
+        {
+            "action": "generate_charter",
+            "tenant_id": "tenant-a",
+            "charter_data": {
+                "title": "Project Nova",
+                "description": "Define scope",
+                "project_type": "delivery",
+                "methodology": "hybrid",
+                "in_scope": ["Feature A"],
+                "deliverables": ["Portal"],
+            },
+        }
+    )
+    await agent.process(
+        {
+            "action": "generate_wbs",
+            "tenant_id": "tenant-a",
+            "project_id": charter_response["project_id"],
+            "scope_statement": {"phase_1": {"name": "Discovery"}},
+            "requester": "pm-1",
+        }
+    )
+    await agent.process(
+        {
+            "action": "manage_requirements",
+            "project_id": charter_response["project_id"],
+            "requirements": [{"text": "The system shall log in."}],
+        }
+    )
+
+    baseline = await agent.process(
+        {"action": "manage_scope_baseline", "project_id": charter_response["project_id"]}
+    )
+    assert baseline["baseline_id"]
+    assert any(topic == "scope.baseline.locked" for topic, _ in event_bus.events)
+
+    scope_creep = await agent.process(
+        {
+            "action": "detect_scope_creep",
+            "project_id": charter_response["project_id"],
+            "current_scope": {"in_scope": ["Feature A", "Feature B"], "deliverables": ["Portal"]},
+        }
+    )
+    assert scope_creep["changes_detected"]
