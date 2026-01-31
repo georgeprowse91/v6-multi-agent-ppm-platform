@@ -1,0 +1,6 @@
+{
+  "budget_thresholds": [10000, 50000, 100000],
+  "escalation_timeout_hours": 48,
+  "reminder_before_deadline_hours": 24,
+  "default_chain_type": "sequential"
+}
