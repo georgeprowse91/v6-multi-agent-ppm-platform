@@ -16,6 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from data_quality.helpers import validate_against_schema
 from data_quality.rules import evaluate_quality_rules
 
@@ -25,6 +27,13 @@ bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
+from agents.common.connector_integration import (  # noqa: E402
+    DatabaseStorageService,
+    DocumentManagementService,
+    DocumentMetadata,
+    GRCIntegrationService,
+    GRCRisk,
+)
 from agents.common.web_search import (  # noqa: E402
     build_search_query,
     search_web,
@@ -115,11 +124,18 @@ class RiskManagementAgent(BaseAgent):
         self.mitigation_plans: dict[str, Any] = {}
         self.triggers: dict[str, Any] = {}
         self.risk_histories: dict[str, Any] = {}
+        self.db_service: DatabaseStorageService | None = None
+        self.grc_service: GRCIntegrationService | None = None
+        self.document_service: DocumentManagementService | None = None
 
     async def initialize(self) -> None:
         """Initialize database connections, analytics tools, and AI models."""
         await super().initialize()
         self.logger.info("Initializing Risk Management Agent...")
+
+        self.db_service = DatabaseStorageService(self.config)
+        self.grc_service = GRCIntegrationService(self.config)
+        self.document_service = DocumentManagementService(self.config)
 
         # Future work: Initialize Azure Cosmos DB for flexible risk register storage
         # Future work: Set up Azure Data Lake or Synapse Analytics for simulation results
@@ -347,8 +363,48 @@ class RiskManagementAgent(BaseAgent):
         self.risk_register[risk_id] = risk
         self.risk_store.upsert(tenant_id, risk_id, risk)
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("risks", risk_id, risk)
         # Future work: Publish risk.identified event
+        grc_sync = None
+        if self.grc_service:
+            grc_risk = GRCRisk(
+                risk_id=risk_id,
+                title=risk["title"],
+                description=risk["description"],
+                category=risk["category"],
+                likelihood=self._map_rating_to_label(risk.get("probability")),
+                impact=self._map_rating_to_label(risk.get("impact")),
+                status=risk.get("status", "open"),
+                owner=risk.get("owner") or "",
+                mitigation_plan=risk.get("mitigation_plan_id") or "",
+            )
+            grc_sync = await self.grc_service.sync_risk(grc_risk)
+            risk["grc_sync"] = grc_sync
+
+        document_results = []
+        if self.document_service and risk_data.get("documents"):
+            for index, document in enumerate(risk_data.get("documents", []), start=1):
+                if isinstance(document, dict):
+                    content = str(document.get("content") or document.get("text") or document)
+                    title = document.get("title") or f"{risk['title']} Document {index}"
+                else:
+                    content = str(document)
+                    title = f"{risk['title']} Document {index}"
+                metadata = DocumentMetadata(
+                    title=title,
+                    description=f"Risk document for {risk['title']}",
+                    classification=risk.get("classification", "internal"),
+                    tags=[risk.get("category", "risk"), "risk-register"],
+                    owner=risk.get("owner") or "",
+                )
+                result = await self.document_service.publish_document(
+                    document_content=content,
+                    metadata=metadata,
+                    folder_path="Risk Management",
+                )
+                document_results.append(result)
+            risk["document_refs"] = document_results
 
         return {
             "risk_id": risk_id,
@@ -360,6 +416,8 @@ class RiskManagementAgent(BaseAgent):
             "risk_level": await self._classify_risk_level(risk["score"]),
             "extracted_risks": extracted_risks,
             "data_quality": validation,
+            "grc_sync": grc_sync,
+            "documents": document_results,
             "next_steps": "Create mitigation plan for high-priority risks",
         }
 
@@ -389,7 +447,8 @@ class RiskManagementAgent(BaseAgent):
         risk["quantitative_impact"] = quantitative_impact
         risk["last_assessed"] = datetime.utcnow().isoformat()
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("risks", risk_id, risk)
 
         return {
             "risk_id": risk_id,
@@ -499,7 +558,9 @@ class RiskManagementAgent(BaseAgent):
         residual_risk = await self._calculate_residual_risk(risk, mitigation_plan)
         risk["residual_risk"] = residual_risk
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("mitigation_plans", plan_id, mitigation_plan)
+            await self.db_service.store("risks", risk_id, risk)
         # Future work: Create tasks in task management system
         # Future work: Publish mitigation_plan.created event
 
@@ -549,7 +610,15 @@ class RiskManagementAgent(BaseAgent):
                     }
                 )
 
-        # Future work: Store updates in database
+        if self.db_service and triggered_risks:
+            await self.db_service.store(
+                "risk_triggers",
+                f"trigger-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+                {
+                    "risks": triggered_risks,
+                    "checked_at": datetime.utcnow().isoformat(),
+                },
+            )
         # Future work: Publish risk.trigger_activated events
 
         return {
@@ -596,7 +665,8 @@ class RiskManagementAgent(BaseAgent):
 
         risk["last_updated"] = datetime.utcnow().isoformat()
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("risks", risk_id, risk)
 
         return {
             "risk_id": risk_id,
@@ -1123,8 +1193,44 @@ class RiskManagementAgent(BaseAgent):
 
     async def _predict_risk_metrics(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Use ML to predict risk probability and impact."""
-        # Future work: Use Azure ML for prediction
-        return {"probability": risk.get("probability", 3), "impact": risk.get("impact", 3)}
+        history = self.risk_histories.get(risk.get("risk_id"), [])
+        if history:
+            probabilities = [
+                entry.get("probability", risk.get("probability", 3))
+                for entry in history
+                if entry.get("probability") is not None
+            ]
+            impacts = [
+                entry.get("impact", risk.get("impact", 3))
+                for entry in history
+                if entry.get("impact") is not None
+            ]
+            probability = round(sum(probabilities) / len(probabilities)) if probabilities else None
+            impact = round(sum(impacts) / len(impacts)) if impacts else None
+        else:
+            probability = None
+            impact = None
+
+        if probability is None or impact is None:
+            category = risk.get("category")
+            category_risks = [
+                r for r in self.risk_register.values() if r.get("category") == category
+            ]
+            if category_risks:
+                probability_values = [
+                    r.get("probability", 3) for r in category_risks if r.get("probability") is not None
+                ]
+                impact_values = [
+                    r.get("impact", 3) for r in category_risks if r.get("impact") is not None
+                ]
+                if probability is None and probability_values:
+                    probability = round(sum(probability_values) / len(probability_values))
+                if impact is None and impact_values:
+                    impact = round(sum(impact_values) / len(impact_values))
+
+        probability = probability or risk.get("probability", 3)
+        impact = impact or risk.get("impact", 3)
+        return {"probability": probability, "impact": impact}
 
     async def _calculate_quantitative_impact(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Calculate quantitative impact on schedule and cost."""
@@ -1171,17 +1277,35 @@ class RiskManagementAgent(BaseAgent):
         self, project_id: str, risks: list[dict[str, Any]], iterations: int
     ) -> dict[str, list[float]]:
         """Perform Monte Carlo simulation."""
-        # Future work: Use Azure Batch for distributed computation
-        schedule_results = []
-        cost_results = []
+        if iterations <= 0:
+            return {"schedule": [], "cost": []}
 
-        for i in range(iterations):
-            # Simulate schedule and cost with risk factors
-            # Baseline implementation
-            schedule_results.append(100.0 + (i % 20))
-            cost_results.append(1000000.0 + (i % 100000))
+        baseline_schedule_days = 100.0
+        baseline_cost = 1_000_000.0
 
-        return {"schedule": schedule_results, "cost": cost_results}
+        probabilities = np.array(
+            [min(1.0, max(0.0, (risk.get("probability", 3) / 5))) for risk in risks], dtype=float
+        )
+        impact_levels = np.array([risk.get("impact", 3) for risk in risks], dtype=float)
+
+        schedule_impact_days = impact_levels * 5.0
+        cost_impact = impact_levels * 50_000.0
+
+        rng = np.random.default_rng()
+        if risks:
+            occurrences = rng.random((iterations, len(risks))) < probabilities
+            schedule_adjustments = occurrences * schedule_impact_days
+            cost_adjustments = occurrences * cost_impact
+            schedule_results = baseline_schedule_days + schedule_adjustments.sum(axis=1)
+            cost_results = baseline_cost + cost_adjustments.sum(axis=1)
+        else:
+            schedule_results = np.full(iterations, baseline_schedule_days, dtype=float)
+            cost_results = np.full(iterations, baseline_cost, dtype=float)
+
+        return {
+            "schedule": schedule_results.tolist(),
+            "cost": cost_results.tolist(),
+        }
 
     async def _calculate_percentile(self, data: list[float], percentile: int) -> float:
         """Calculate percentile value."""
@@ -1224,6 +1348,14 @@ class RiskManagementAgent(BaseAgent):
             "data": {},
             "generated_at": datetime.utcnow().isoformat(),
         }
+
+    def _map_rating_to_label(self, rating: Any) -> str:
+        rating_map = {1: "low", 2: "low", 3: "medium", 4: "high", 5: "critical"}
+        try:
+            value = int(float(rating))
+        except (TypeError, ValueError):
+            return "medium"
+        return rating_map.get(value, "medium")
 
     async def _validate_risk_record(
         self, *, risk: dict[str, Any], tenant_id: str
