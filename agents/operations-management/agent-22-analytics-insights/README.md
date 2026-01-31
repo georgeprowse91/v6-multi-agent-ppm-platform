@@ -28,6 +28,12 @@ The agent coordinates an Azure-first analytics stack:
 - **Azure Cognitive Services (Language/QnA Maker)**: natural language query support.
 - **PostgreSQL/Cosmos DB**: audit storage for reports and narratives.
 
+Key workflows now include:
+
+- Provisioning Synapse pools, Data Lake file systems, and Data Factory pipelines via `provision_analytics_stack`.
+- Ingesting Planview, Jira, Workday, and SAP data via `ingest_sources` and storing ingestion manifests in ADLS.
+- Streaming real-time events through Event Hub and Stream Analytics with `ingest_realtime_event`.
+
 ## How to run / develop / test
 
 Run the agent locally with the shared runner:

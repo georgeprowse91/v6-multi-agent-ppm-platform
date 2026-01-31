@@ -1,5 +1,5 @@
 import json
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from analytics_insights_agent import AnalyticsInsightsAgent
@@ -68,10 +68,12 @@ async def test_analytics_get_insights_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_analytics_rejects_invalid_action(tmp_path):
+    event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
             "analytics_alert_store_path": tmp_path / "alerts.json",
+            "event_bus": event_bus,
         }
     )
     await agent.initialize()
@@ -83,10 +85,12 @@ async def test_analytics_rejects_invalid_action(tmp_path):
 
 @pytest.mark.asyncio
 async def test_analytics_rejects_missing_dashboard(tmp_path):
+    event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
             "analytics_alert_store_path": tmp_path / "alerts.json",
+            "event_bus": event_bus,
         }
     )
     await agent.initialize()
@@ -188,6 +192,7 @@ async def test_analytics_initializes_synapse_pools(tmp_path):
             self.called = True
 
     synapse_stub = SynapseStub()
+    event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
@@ -195,6 +200,7 @@ async def test_analytics_initializes_synapse_pools(tmp_path):
             "synapse_workspace_name": "synapse-ws",
             "synapse_sql_pool_name": "sql-pool",
             "synapse_client": synapse_stub,
+            "event_bus": event_bus,
         }
     )
     await agent.initialize()
@@ -206,11 +212,13 @@ async def test_analytics_initializes_synapse_pools(tmp_path):
 async def test_analytics_prediction_uses_ml_manager(tmp_path):
     ml_manager = AsyncMock()
     ml_manager.load_model.return_value = {"model_type": "cost_overrun", "version": "1.0"}
+    event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
             "analytics_alert_store_path": tmp_path / "alerts.json",
             "ml_manager": ml_manager,
+            "event_bus": event_bus,
         }
     )
     await agent.initialize()
@@ -231,11 +239,13 @@ async def test_analytics_prediction_uses_ml_manager(tmp_path):
 async def test_analytics_narrative_generation_uses_service(tmp_path):
     narrative_service = AsyncMock()
     narrative_service.generate_narrative.return_value = "Narrative summary"
+    event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
             "analytics_alert_store_path": tmp_path / "alerts.json",
             "narrative_service": narrative_service,
+            "event_bus": event_bus,
         }
     )
     await agent.initialize()
@@ -250,10 +260,12 @@ async def test_analytics_narrative_generation_uses_service(tmp_path):
 
 @pytest.mark.asyncio
 async def test_analytics_scenario_analysis_uses_predictions(tmp_path):
+    event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
             "analytics_output_store_path": tmp_path / "outputs.json",
             "analytics_alert_store_path": tmp_path / "alerts.json",
+            "event_bus": event_bus,
         }
     )
     agent._run_prediction = AsyncMock(
@@ -277,3 +289,98 @@ async def test_analytics_scenario_analysis_uses_predictions(tmp_path):
 
     assert response["scenario_metrics"]["schedule_slip"] == 0.3
     agent._run_prediction.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_analytics_provisioning_runs_managers(tmp_path):
+    synapse_manager = AsyncMock()
+    synapse_manager.ensure_pools.return_value = {"initialized": True}
+    data_lake_manager = AsyncMock()
+    data_lake_manager.ensure_file_system.return_value = {"initialized": True}
+    data_factory_manager = AsyncMock()
+    data_factory_manager.ensure_pipelines.return_value = {"initialized": True}
+    event_bus = build_test_event_bus()
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "synapse_manager": synapse_manager,
+            "data_lake_manager": data_lake_manager,
+            "data_factory_manager": data_factory_manager,
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process({"action": "provision_analytics_stack"})
+
+    assert response["synapse"]["initialized"] is True
+    synapse_manager.ensure_pools.assert_awaited()
+    data_lake_manager.ensure_file_system.assert_awaited()
+    data_factory_manager.ensure_pipelines.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_analytics_ingest_sources_triggers_pipelines(tmp_path, monkeypatch):
+    monkeypatch.setenv("LINEAGE_MASK_SALT", "unit-test-salt")
+    data_factory_manager = AsyncMock()
+    data_factory_manager.schedule_pipeline.side_effect = [
+        "run-planview",
+        "run-jira",
+        "run-workday",
+        "run-sap",
+    ]
+    data_lake_manager = MagicMock()
+    data_lake_manager.store_dataset.return_value = {
+        "raw_path": "/raw",
+        "curated_path": "/curated",
+    }
+    event_bus = build_test_event_bus()
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "data_factory_manager": data_factory_manager,
+            "data_lake_manager": data_lake_manager,
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {"action": "ingest_sources", "tenant_id": "tenant-analytics"}
+    )
+
+    assert set(response["sources"]) == {"planview", "jira", "workday", "sap"}
+    assert "planview" in response["pipelines"]
+    assert data_factory_manager.schedule_pipeline.await_count == 4
+    assert data_lake_manager.store_dataset.call_count == 4
+
+
+@pytest.mark.asyncio
+async def test_analytics_realtime_ingestion_streams(tmp_path):
+    event_hub_manager = AsyncMock()
+    stream_analytics_manager = AsyncMock()
+    event_bus = build_test_event_bus()
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "event_hub_manager": event_hub_manager,
+            "stream_analytics_manager": stream_analytics_manager,
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "ingest_realtime_event",
+            "event_type": "resource.updated",
+            "event": {"resource_id": "res-1"},
+        }
+    )
+
+    assert response["event_type"] == "resource.updated"
+    event_hub_manager.publish_event.assert_awaited()
+    stream_analytics_manager.stream_events.assert_awaited()
