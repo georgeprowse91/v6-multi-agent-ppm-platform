@@ -23,6 +23,7 @@ class LoadSla:
     max_avg_latency_s: float
     max_p95_latency_s: float
     max_error_rate: float
+    min_requests_per_s: float | None = None
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,7 @@ class LoadScenarioResult:
     name: str
     durations_s: list[float]
     error_count: int
+    total_duration_s: float
 
     @property
     def average_latency_s(self) -> float:
@@ -48,6 +50,12 @@ class LoadScenarioResult:
         total = len(self.durations_s)
         return self.error_count / total if total else 0.0
 
+    @property
+    def requests_per_s(self) -> float:
+        if self.total_duration_s <= 0:
+            return 0.0
+        return len(self.durations_s) / self.total_duration_s
+
 
 def run_load_scenario(scenario: LoadScenario) -> LoadScenarioResult:
     durations: list[float] = []
@@ -59,6 +67,7 @@ def run_load_scenario(scenario: LoadScenario) -> LoadScenarioResult:
         duration = time.perf_counter() - start
         return duration, status >= 400
 
+    start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=scenario.concurrency) as executor:
         futures = [executor.submit(_invoke) for _ in range(scenario.total_requests)]
         for future in as_completed(futures):
@@ -66,8 +75,14 @@ def run_load_scenario(scenario: LoadScenario) -> LoadScenarioResult:
             durations.append(duration)
             if failed:
                 errors += 1
+    total_duration = time.perf_counter() - start
 
-    return LoadScenarioResult(name=scenario.name, durations_s=durations, error_count=errors)
+    return LoadScenarioResult(
+        name=scenario.name,
+        durations_s=durations,
+        error_count=errors,
+        total_duration_s=total_duration,
+    )
 
 
 def load_profile(path: Path) -> dict:
@@ -117,4 +132,9 @@ def assert_sla(result: LoadScenarioResult, sla: LoadSla) -> None:
     if result.error_rate > sla.max_error_rate:
         raise AssertionError(
             f"Error rate {result.error_rate:.2%} exceeds SLA " f"{sla.max_error_rate:.2%}"
+        )
+    if sla.min_requests_per_s is not None and result.requests_per_s < sla.min_requests_per_s:
+        raise AssertionError(
+            f"Throughput {result.requests_per_s:.2f} rps below SLA "
+            f"{sla.min_requests_per_s:.2f} rps"
         )

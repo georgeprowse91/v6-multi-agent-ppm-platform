@@ -44,15 +44,37 @@ Expected output: performance target entries.
 
 ## Performance test harness
 
-The performance test harness lives under `tests/performance/` and uses Locust to drive concurrent API and connector traffic based on a YAML configuration. The harness supports configurable user counts, spawn rates, request pacing, and test duration, plus CSV exports for latency, throughput, and error rates. Locust results are summarized in CI for pull requests so reviewers can see baseline metrics before merging.
+The primary performance harness lives under `tests/load/` and executes SLA-driven load scenarios against staging or production deployments. Targets and thresholds are captured in `tests/load/sla_targets.json`, and the harness:
 
-## Test results
+- Issues concurrent HTTP requests to the configured endpoints.
+- Calculates average latency, p95 latency, error rate, and throughput.
+- Fails CI when any SLA threshold is violated.
 
-CI runs the harness against a lightweight mock API server to validate the load workflow and to capture baseline stats. The workflow publishes a markdown summary that includes total requests, failures, requests per second, average latency, and p95 latency for each configured endpoint. Teams should update `tests/performance/config.yaml` to target staging or production-like environments when running deeper performance validations.
+The harness defaults to the staging API gateway but supports overrides for alternate environments and auth headers via environment variables (see `tests/load/README.md`).
+
+## Interpreting results
+
+Each load scenario produces:
+
+- **Average latency**: mean response time across the request set.
+- **P95 latency**: tail latency for the slowest 5% of requests.
+- **Error rate**: proportion of HTTP responses with status >= 400 or network failures.
+- **Throughput**: requests per second achieved during the scenario.
+
+Use the `LOAD_PROFILE` environment variable to select SLA thresholds for `ci`, `staging`, or `production`.
+
+## Where to view latency and error metrics
+
+Use the Grafana dashboards exported under `infra/observability/dashboards`:
+
+- `ppm-platform.json` for latency, throughput, and error rates across services.
+- `ppm-slo.json` for SLO compliance and error budget burn.
+
+Logs and traces are available via Loki and Jaeger per the observability stack described in `docs/architecture/observability-architecture.md`.
 
 ## Implementation status
 
-- **Implemented**: performance test harness, CI summary reporting, documented targets, and runbook references.
+- **Implemented**: SLA-based load harness targeting staging/production, CI gating on SLA violations, documented targets, and observability dashboards.
 
 ## Related docs
 
