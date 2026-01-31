@@ -25,6 +25,11 @@ bootstrap_runtime_paths()
 
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 
+from agents.common.connector_integration import (  # noqa: E402
+    DatabaseStorageService,
+    DocumentManagementService,
+    DocumentMetadata,
+)
 from agents.common.web_search import (  # noqa: E402
     build_search_query,
     search_web,
@@ -82,6 +87,8 @@ class VendorProcurementAgent(BaseAgent):
         self.vendor_store = TenantStateStore(vendor_store_path)
         self.contract_store = TenantStateStore(contract_store_path)
         self.invoice_store = TenantStateStore(invoice_store_path)
+        self.db_service: DatabaseStorageService | None = None
+        self.document_service: DocumentManagementService | None = None
 
         # Vendor categories
         self.vendor_categories = (
@@ -138,13 +145,13 @@ class VendorProcurementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Vendor & Procurement Management Agent...")
 
-        # Future work: Initialize Azure SQL Database or Cosmos DB for vendor registry
+        self.db_service = DatabaseStorageService(self.config.get("database_config"))
+        self.document_service = DocumentManagementService(self.config.get("document_config"))
+
         # Future work: Connect to procurement systems (SAP Ariba, Coupa, Oracle Procurement, Dynamics)
-        # Future work: Set up Azure Blob Storage for contract documents and RFP responses
         # Future work: Initialize Azure Machine Learning for vendor recommendation models
         # Future work: Connect to ERP & Accounts Payable systems
         # Future work: Set up Azure Form Recognizer for contract clause extraction
-        # Future work: Initialize integration with DocuSign/Adobe Sign for e-signatures
         # Future work: Connect to third-party risk databases (Dun & Bradstreet)
         # Future work: Set up Azure Service Bus for procurement event publishing
         # Future work: Initialize Azure Key Vault for storing vendor credentials
@@ -396,7 +403,8 @@ class VendorProcurementAgent(BaseAgent):
         self.vendors[vendor_id] = vendor
         self.vendor_store.upsert(tenant_id, vendor_id, vendor)
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("vendors", vendor_id, vendor)
         # Future work: Publish vendor.onboarded event
 
         return {
@@ -482,7 +490,8 @@ class VendorProcurementAgent(BaseAgent):
         # Store request
         self.procurement_requests[request_id] = request
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("procurement_requests", request_id, request)
 
         return {
             "request_id": request_id,
@@ -543,10 +552,25 @@ class VendorProcurementAgent(BaseAgent):
             "created_at": datetime.utcnow().isoformat(),
         }
 
+        rfp_document = None
+        if self.document_service:
+            rfp_document = await self.document_service.publish_document(
+                document_content=rfp_content,
+                metadata=DocumentMetadata(
+                    title=f"RFP {rfp_id}: {rfp['title']}",
+                    description=f"RFP for procurement request {request_id}",
+                    tags=["rfp", request.get("category", "general")],
+                    owner=request.get("requester", ""),
+                ),
+                folder_path="Procurement/RFPs",
+            )
+        rfp["document"] = rfp_document
+
         # Store RFP
         self.rfps[rfp_id] = rfp
 
-        # Future work: Store in database and blob storage
+        if self.db_service:
+            await self.db_service.store("rfps", rfp_id, rfp)
         # Future work: Send RFP invitations via email
         # Future work: Publish rfp.published event
 
@@ -603,7 +627,8 @@ class VendorProcurementAgent(BaseAgent):
         # Update RFP
         rfp["proposals_received"].append(proposal_id)
 
-        # Future work: Store in database and blob storage
+        if self.db_service:
+            await self.db_service.store("proposals", proposal_id, proposal)
         # Future work: Publish proposal.submitted event
 
         return {
@@ -671,7 +696,17 @@ class VendorProcurementAgent(BaseAgent):
         # Rank proposals by score
         ranked_proposals = sorted(evaluated_proposals, key=lambda x: x["total_score"], reverse=True)
 
-        # Future work: Store evaluation results in database
+        if self.db_service:
+            await self.db_service.store(
+                "rfp_evaluations",
+                rfp_id,
+                {
+                    "rfp_id": rfp_id,
+                    "criteria": eval_criteria,
+                    "rankings": ranked_proposals,
+                    "evaluated_at": datetime.utcnow().isoformat(),
+                },
+            )
         # Future work: Use Azure ML for AI-based vendor recommendation
 
         return {
@@ -715,7 +750,17 @@ class VendorProcurementAgent(BaseAgent):
         rfp["selected_proposal_id"] = selected_proposal.get("proposal_id")
         selected_proposal["status"] = "Accepted"
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store(
+                "vendor_selections",
+                f"{rfp_id}:{vendor_id}",
+                {
+                    "rfp_id": rfp_id,
+                    "vendor_id": vendor_id,
+                    "proposal_id": selected_proposal.get("proposal_id"),
+                    "selected_at": datetime.utcnow().isoformat(),
+                },
+            )
         # Future work: Notify all vendors of selection decision
         # Future work: Publish vendor.selected event
 
@@ -773,12 +818,43 @@ class VendorProcurementAgent(BaseAgent):
             "created_by": contract_data.get("created_by", actor_id),
         }
 
+        signature_workflow = {
+            "status": "Pending Signatures",
+            "method": "manual",
+            "requested_at": datetime.utcnow().isoformat(),
+            "signatories": contract_data.get("signatories", []),
+        }
+        contract["signature_workflow"] = signature_workflow
+
+        contract_content = contract_data.get("content") or contract_data.get("document_content")
+        if not contract_content:
+            contract_content = (
+                f"Contract {contract_id} between {contract.get('vendor_id')} "
+                f"for {contract.get('project_id')} with value {contract.get('value')} "
+                f"{contract.get('currency')} and term {contract.get('start_date')} "
+                f"to {contract.get('end_date')}."
+            )
+
+        contract_document = None
+        if self.document_service:
+            contract_document = await self.document_service.publish_document(
+                document_content=contract_content,
+                metadata=DocumentMetadata(
+                    title=f"Contract {contract_id}",
+                    description=f"Procurement contract for vendor {contract.get('vendor_id')}",
+                    tags=["contract", contract.get("type", "standard")],
+                    owner=contract.get("created_by", ""),
+                ),
+                folder_path="Procurement/Contracts",
+            )
+        contract["document"] = contract_document
+
         # Store contract
         self.contracts[contract_id] = contract
         self.contract_store.upsert(tenant_id, contract_id, contract)
 
-        # Future work: Store in database and document repository
-        # Future work: Route for e-signature via DocuSign/Adobe Sign
+        if self.db_service:
+            await self.db_service.store("contracts", contract_id, contract)
         # Future work: Publish contract.created event
 
         return {
@@ -789,7 +865,8 @@ class VendorProcurementAgent(BaseAgent):
             "start_date": contract["start_date"],
             "end_date": contract["end_date"],
             "status": "Draft",
-            "next_steps": "Review contract and submit for approval and signatures",
+            "signature_status": signature_workflow["status"],
+            "next_steps": "Collect manual signatures and upload signed contract",
         }
 
     async def _create_purchase_order(
@@ -851,7 +928,8 @@ class VendorProcurementAgent(BaseAgent):
         # Store PO
         self.purchase_orders[po_number] = purchase_order
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("purchase_orders", po_number, purchase_order)
         # Future work: Release to vendor upon approval
 
         return {
@@ -908,7 +986,8 @@ class VendorProcurementAgent(BaseAgent):
         self.invoices[invoice_id] = invoice
         self.invoice_store.upsert(tenant_id, invoice_id, invoice)
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("invoices", invoice_id, invoice)
         # Future work: Initiate automatic reconciliation
         # Future work: Publish invoice.received event
 
@@ -963,7 +1042,8 @@ class VendorProcurementAgent(BaseAgent):
             invoice["approved_for_payment"] = False
             invoice["discrepancies"] = discrepancies
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store("invoice_reconciliations", invoice_id, invoice)
         # Future work: Publish invoice.reconciled event
 
         return {
@@ -1007,7 +1087,16 @@ class VendorProcurementAgent(BaseAgent):
         # Update vendor performance metrics
         vendor["performance_metrics"].update(metrics)
 
-        # Future work: Store in database
+        if self.db_service:
+            await self.db_service.store(
+                "vendor_performance",
+                vendor_id,
+                {
+                    "vendor_id": vendor_id,
+                    "metrics": metrics,
+                    "updated_at": datetime.utcnow().isoformat(),
+                },
+            )
         # Future work: Publish vendor.performance_updated event
 
         return {
@@ -1378,12 +1467,34 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _extract_contract_clauses(self, contract_data: dict[str, Any]) -> dict[str, Any]:
         """Extract key clauses from contract."""
-        # Future work: Use Azure Form Recognizer
-        return {
-            "termination": "30 days notice",
-            "liability": "Limited to contract value",
-            "warranties": "Standard warranties apply",
+        contract_text = (
+            contract_data.get("content")
+            or contract_data.get("document_content")
+            or contract_data.get("text")
+        )
+        if not contract_text:
+            contract_text = json.dumps(contract_data.get("terms", {}), indent=2)
+
+        clause_patterns = {
+            "term": r"(term|duration|contract term)\s*[:\-]\s*(?P<value>[^\n]+)",
+            "value": r"(total value|contract value|price|fees)\s*[:\-]\s*\$?(?P<value>[\d,\.]+)",
+            "sla": r"(sla|service level|uptime)\s*[:\-]\s*(?P<value>[^\n]+)",
         }
+
+        extracted = {}
+        for clause, pattern in clause_patterns.items():
+            match = re.search(pattern, contract_text, re.IGNORECASE)
+            if match:
+                extracted[clause] = match.group("value").strip()
+
+        if "term" not in extracted:
+            extracted["term"] = f"{contract_data.get('start_date')} to {contract_data.get('end_date')}"
+        if "value" not in extracted and contract_data.get("value") is not None:
+            extracted["value"] = str(contract_data.get("value"))
+        if "sla" not in extracted and contract_data.get("slas"):
+            extracted["sla"] = ", ".join(str(item) for item in contract_data.get("slas"))
+
+        return extracted
 
     async def _select_contract_template(self, contract_type: str) -> dict[str, Any]:
         """Select contract template."""
@@ -1419,7 +1530,59 @@ class VendorProcurementAgent(BaseAgent):
                 }
             )
 
-        # Future work: Check line items
+        def _normalize_line_item(item: dict[str, Any]) -> tuple[str, str]:
+            sku = str(item.get("sku") or item.get("item_code") or "").strip().lower()
+            description = str(item.get("description") or item.get("name") or "").strip().lower()
+            return sku, description
+
+        po_items = purchase_order.get("items", [])
+        po_lookup: dict[str, dict[str, Any]] = {}
+        for item in po_items:
+            sku, description = _normalize_line_item(item)
+            key = sku or description
+            if key:
+                po_lookup[key] = item
+
+        invoice_items = invoice.get("line_items", [])
+        for item in invoice_items:
+            sku, description = _normalize_line_item(item)
+            key = sku or description
+            if not key or key not in po_lookup:
+                discrepancies.append(
+                    {
+                        "type": "line_item_missing_in_po",
+                        "item": item,
+                    }
+                )
+                continue
+
+            po_item = po_lookup[key]
+            invoice_qty = item.get("quantity", 0)
+            po_qty = po_item.get("quantity", 0)
+            if invoice_qty != po_qty:
+                discrepancies.append(
+                    {
+                        "type": "quantity_mismatch",
+                        "item": item,
+                        "po_quantity": po_qty,
+                        "invoice_quantity": invoice_qty,
+                    }
+                )
+
+            invoice_unit_cost = item.get("unit_cost", 0)
+            po_unit_cost = po_item.get("unit_cost", 0)
+            if po_unit_cost and abs(invoice_unit_cost - po_unit_cost) > (
+                po_unit_cost * self.invoice_tolerance_pct
+            ):
+                discrepancies.append(
+                    {
+                        "type": "unit_cost_mismatch",
+                        "item": item,
+                        "po_unit_cost": po_unit_cost,
+                        "invoice_unit_cost": invoice_unit_cost,
+                    }
+                )
+
         # Future work: Check receipts
 
         return {"matched": len(discrepancies) == 0, "discrepancies": discrepancies}
@@ -1550,21 +1713,58 @@ class VendorProcurementAgent(BaseAgent):
         self, vendor: dict[str, Any], *, external_adjustment: dict[str, Any] | None = None
     ) -> float:
         """Calculate overall vendor score."""
+        scoring = await self._calculate_vendor_score(
+            vendor, external_adjustment=external_adjustment
+        )
+        return scoring["score"]
+
+    async def _calculate_vendor_score(
+        self, vendor: dict[str, Any], *, external_adjustment: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Calculate vendor score using weighted criteria."""
         metrics = vendor.get("performance_metrics", {})
         risk_score = vendor.get("risk_score", 50)
+        reliability_delta = 0
         if external_adjustment:
             risk_score = max(0, min(100, risk_score + external_adjustment.get("risk_delta", 0)))
+            reliability_delta = external_adjustment.get("reliability_delta", 0)
 
-        # Weighted average
-        score = (
-            metrics.get("quality_rating", 0) * 20
-            + metrics.get("on_time_delivery_rate", 0) * 20
-            + metrics.get("compliance_rating", 0) * 20
-            + (100 - risk_score) * 20
-            + metrics.get("sla_adherence", 0) * 20
-        ) / 100
+        weights = {
+            "quality": 0.3,
+            "delivery": 0.25,
+            "compliance": 0.2,
+            "sla": 0.15,
+            "risk": 0.1,
+        }
 
-        return min(100, max(0, score))  # type: ignore
+        quality_score = metrics.get("quality_rating", 0) * 20
+        delivery_score = metrics.get("on_time_delivery_rate", 0)
+        compliance_score = metrics.get("compliance_rating", 0)
+        sla_score = metrics.get("sla_adherence", 0)
+        risk_component = 100 - risk_score
+
+        weighted_score = (
+            quality_score * weights["quality"]
+            + delivery_score * weights["delivery"]
+            + compliance_score * weights["compliance"]
+            + sla_score * weights["sla"]
+            + risk_component * weights["risk"]
+        )
+
+        weighted_score = max(0, min(100, weighted_score + reliability_delta))
+
+        return {
+            "score": weighted_score,
+            "inputs": {
+                "quality": quality_score,
+                "delivery": delivery_score,
+                "compliance": compliance_score,
+                "sla": sla_score,
+                "risk": risk_component,
+                "reliability_adjustment": reliability_delta,
+            },
+            "weights": weights,
+        }
 
     def _extract_sources(self, snippets: list[str]) -> list[dict[str, str]]:
         sources: list[dict[str, str]] = []
