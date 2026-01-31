@@ -6,6 +6,7 @@ Handles routing, escalation, delegation, and audit trail for governance complian
 """
 
 import asyncio
+import json
 import os
 import sys
 import uuid
@@ -15,6 +16,7 @@ from typing import Any
 
 import httpx
 
+from agents.common.connector_integration import NotificationService
 from agents.runtime import BaseAgent
 
 DATA_SYNC_ROOT = Path(__file__).resolve().parents[5] / "services" / "data-sync-service" / "src"
@@ -89,6 +91,8 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.approval_policies: dict[str, Any] = {}
         self.delegation_records: dict[str, Any] = {}
         self.notifications: list[dict[str, Any]] = []
+        self.escalation_timers: dict[str, dict[str, Any]] = {}
+        self.notification_service: NotificationService | None = None
         self.approval_store = ApprovalStore(
             Path(
                 config.get("approval_store_path", "data/approval_store.json")
@@ -107,6 +111,9 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         # Load approval policies and routing rules
         self.approval_policies = await self._load_approval_policies()
+        self.notification_service = NotificationService(
+            self.config.get("notification", {}) if self.config else None
+        )
 
         # Future work: Initialize Azure Service Bus subscriptions for approval events
         # Future work: Connect to Microsoft Graph API for user/role lookups
@@ -349,20 +356,27 @@ class ApprovalWorkflowAgent(BaseAgent):
     ) -> bool:
         """Send approval notifications to approvers via a configured webhook."""
         webhook = os.getenv("NOTIFICATION_WEBHOOK_URL")
-        if not webhook:
-            self.logger.warning(
-                "NOTIFICATION_WEBHOOK_URL not set; approval notifications will not be sent."
-            )
-            return False
         try:
             payloads: list[dict[str, Any]] = []
+            notification_results: list[bool] = []
             for approver in approvers:
                 # Future work: Use Azure Communication Services or Microsoft Graph
-                # Future work: Send email via Office 365
                 # Future work: Send Teams/Slack notification
                 # Future work: Send mobile push via Azure Notification Hubs
 
                 self.logger.info(f"Sending approval notification to {approver}")
+
+                notification_results.append(
+                    await self._send_notification(
+                        recipient=approver,
+                        subject=f"Approval Required: {details.get('description', 'N/A')}",
+                        body=f"Approval required for request {approval_chain['request_id']}",
+                        metadata={
+                            "approval_id": approval_chain["id"],
+                            "deadline": approval_chain["deadline"],
+                        },
+                    )
+                )
 
                 # Baseline for actual notification
                 notification = {
@@ -374,22 +388,51 @@ class ApprovalWorkflowAgent(BaseAgent):
                 }
                 self.notifications.append(notification)
                 self._persist_notification(tenant_id, approval_chain["id"], notification)
-                payloads.append(
-                    {
-                        "user": approver,
-                        "approval_request_id": approval_chain["request_id"],
-                        "message": f"Approval required for request {approval_chain['request_id']}",
-                        "deadline": approval_chain["deadline"],
-                    }
+                if webhook:
+                    payloads.append(
+                        {
+                            "user": approver,
+                            "approval_request_id": approval_chain["request_id"],
+                            "message": f"Approval required for request {approval_chain['request_id']}",
+                            "deadline": approval_chain["deadline"],
+                        }
+                    )
+
+            if webhook:
+                tasks = [self._post_webhook(webhook, payload) for payload in payloads]
+                await asyncio.gather(*tasks)
+            else:
+                self.logger.warning(
+                    "NOTIFICATION_WEBHOOK_URL not set; webhook notifications will be skipped."
                 )
 
-            tasks = [self._post_webhook(webhook, payload) for payload in payloads]
-            await asyncio.gather(*tasks)
-
-            return True
+            return any(notification_results) or bool(webhook)
         except Exception as e:
             self.logger.error(f"Failed to send notifications: {str(e)}")
             return False
+
+    async def _send_notification(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        body: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> bool:
+        if not self.notification_service:
+            self.logger.warning(
+                "Notification service not initialized; falling back to log-only notification."
+            )
+            self.logger.info(f"Notification to {recipient}: {subject}")
+            return False
+        result = await self.notification_service.send_email(recipient, subject, body, metadata)
+        status = result.get("status")
+        if status in {"sent", "sent_mock", "pending"}:
+            return True
+        self.logger.warning(
+            "Notification service failed to send email to %s with status %s", recipient, status
+        )
+        return False
 
     async def _post_webhook(self, url: str, payload: dict[str, Any]) -> None:
         """Post a JSON payload to the configured webhook."""
@@ -414,6 +457,14 @@ class ApprovalWorkflowAgent(BaseAgent):
         if not approvers:
             return
 
+        scheduled_at = datetime.utcnow()
+        escalation_at = scheduled_at + timedelta(seconds=delay_seconds)
+        self.escalation_timers[approval_chain["id"]] = {
+            "scheduled_at": scheduled_at.isoformat(),
+            "escalation_at": escalation_at.isoformat(),
+            "timeout_hours": escalation_timeout_hours,
+        }
+
         async def escalation_task() -> None:
             await asyncio.sleep(delay_seconds)
             await self._send_approval_notifications(
@@ -422,19 +473,48 @@ class ApprovalWorkflowAgent(BaseAgent):
                 approvers=approvers,
                 details=details,
             )
+            self.escalation_timers[approval_chain["id"]]["last_escalated_at"] = (
+                datetime.utcnow().isoformat()
+            )
 
         asyncio.create_task(escalation_task())
         self.logger.info(f"Escalation scheduled for approval {approval_chain['id']}")
 
     async def _load_approval_policies(self) -> dict[str, Any]:
         """Load approval policies and routing rules from configuration."""
-        # Future work: Load from database or configuration file
-        return {
+        default_policies = {
             "budget_thresholds": [10000, 50000, 100000],
             "escalation_timeout_hours": 48,
             "reminder_before_deadline_hours": 24,
             "default_chain_type": "sequential",
         }
+        config_path = Path(
+            self.config.get("approval_policies_path", "config/approval_policies.json")
+            if self.config
+            else "config/approval_policies.json"
+        )
+        if not config_path.exists():
+            self.logger.warning(
+                "Approval policies file not found at %s; using defaults.", config_path
+            )
+            return default_policies
+        try:
+            with config_path.open("r", encoding="utf-8") as handle:
+                data = json.load(handle)
+            if not isinstance(data, dict):
+                self.logger.warning(
+                    "Approval policies file %s did not contain an object; using defaults.",
+                    config_path,
+                )
+                return default_policies
+            return {**default_policies, **data}
+        except (json.JSONDecodeError, OSError) as exc:
+            self.logger.warning(
+                "Failed to load approval policies from %s: %s; using defaults.",
+                config_path,
+                exc,
+            )
+            return default_policies
 
     def _persist_notification(
         self, tenant_id: str, approval_id: str, notification: dict[str, Any]
