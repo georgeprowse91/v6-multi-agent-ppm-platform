@@ -15,7 +15,7 @@ The Multi-Agent PPM Platform documentation is organized by solution pillars (arc
 | Architecture | `docs/architecture/system-context.md`, `docs/architecture/logical-architecture.md`, `docs/architecture/physical-architecture.md`, `docs/architecture/deployment-architecture.md` | System context, logical/physical layers, deployment on Azure | Implemented (narratives + diagrams) |
 | Agents & Orchestration | `docs/architecture/agent-orchestration.md`, `docs/agents/agent-catalog.md` | Orchestration flow, catalog of 25 agents | Implemented (docs + runtime scaffolding) |
 | Methodologies | `docs/methodology/overview.md`, `docs/methodology/agile/`, `docs/methodology/waterfall/`, `docs/methodology/hybrid/` | Methodology maps, gates, templates | Implemented (docs + templates) |
-| Connectors & Integrations | `docs/connectors/overview.md`, `docs/connectors/supported-systems.md` | Integration architecture, connector principles, maturity | Partial (Jira registry entry; others in progress) |
+| Connectors & Integrations | `docs/connectors/overview.md`, `docs/connectors/supported-systems.md` | Integration architecture, connector principles, maturity | Implemented (Planview, Clarity, SAP, Workday, Salesforce, Slack, Teams, ServiceNow connectors now covered) |
 | Data Model, Quality & Lineage | `docs/architecture/data-architecture.md`, `docs/data/`, `data/schemas/` | Canonical schemas, data architecture | Implemented (schemas + example lineage/quality) |
 | Security & Compliance | `docs/architecture/security-architecture.md`, `docs/compliance/` | RBAC/ABAC, threat model, retention | Implemented (docs + enforcement) |
 | Observability/Resilience/Performance | `docs/architecture/observability-architecture.md`, `docs/architecture/resilience-architecture.md`, `docs/architecture/performance-architecture.md` | Monitoring, failure modes, performance targets | Implemented (targets documented) |
@@ -24,7 +24,7 @@ The Multi-Agent PPM Platform documentation is organized by solution pillars (arc
 
 ## Gaps and next steps
 
-- Expand connector registry coverage and certification evidence for non-Jira connectors.
+- Maintain certification evidence for connector coverage as new integrations ship.
 - Add production-grade event bus documentation once event contracts are finalized.
 - Provide UI walkthroughs when the web console evolves beyond the current lightweight implementation.
 

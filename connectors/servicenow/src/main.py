@@ -25,7 +25,9 @@ class ServiceNowConfig:
 
     @classmethod
     def from_env(cls, manifest: dict[str, Any], rate_limit_per_minute: int) -> "ServiceNowConfig":
-        instance_url = resolve_secret(os.getenv("SERVICENOW_INSTANCE_URL"))
+        instance_url = resolve_secret(os.getenv("SERVICENOW_INSTANCE_URL")) or resolve_secret(
+            os.getenv("SERVICENOW_URL")
+        )
         keyvault_url = resolve_secret(os.getenv("SERVICENOW_KEYVAULT_URL"))
         client_id = resolve_secret(os.getenv("SERVICENOW_CLIENT_ID"))
         client_secret = resolve_secret(os.getenv("SERVICENOW_CLIENT_SECRET"))
@@ -52,7 +54,7 @@ class ServiceNowConfig:
         scope = os.getenv("SERVICENOW_SCOPE")
         if not instance_url or not client_id or not client_secret or not refresh_token or not token_url:
             raise ValueError(
-                "SERVICENOW_INSTANCE_URL, SERVICENOW_CLIENT_ID, SERVICENOW_CLIENT_SECRET, "
+                "SERVICENOW_URL, SERVICENOW_CLIENT_ID, SERVICENOW_CLIENT_SECRET, "
                 "SERVICENOW_REFRESH_TOKEN, and SERVICENOW_TOKEN_URL are required"
             )
         return cls(

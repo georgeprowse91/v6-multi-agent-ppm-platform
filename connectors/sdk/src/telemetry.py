@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 import time
 from contextlib import contextmanager
@@ -67,11 +68,30 @@ class ConnectorTelemetry:
 _TELEMETRY: dict[str, ConnectorTelemetry] = {}
 
 
+class _NoopMetric:
+    def add(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def record(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+
 def get_connector_telemetry(connector_id: str) -> ConnectorTelemetry:
     if connector_id in _TELEMETRY:
         return _TELEMETRY[connector_id]
 
     service_name = f"connector-{connector_id}"
+    if os.getenv("CONNECTOR_TELEMETRY_DISABLED") == "1":
+        telemetry = ConnectorTelemetry(
+            connector_id=connector_id,
+            service_name=service_name,
+            sync_duration=_NoopMetric(),
+            sync_records=_NoopMetric(),
+            sync_errors=_NoopMetric(),
+            sync_total=_NoopMetric(),
+        )
+        _TELEMETRY[connector_id] = telemetry
+        return telemetry
     configure_tracing(service_name)
     configure_logging(service_name)
 
