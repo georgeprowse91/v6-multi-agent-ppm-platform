@@ -11,6 +11,7 @@ locally, understand core services, and start contributing safely.
 - Node.js 18+ with `pnpm`
 - Docker Desktop (or Docker Engine + Docker Compose plugin)
 - `make`
+- (Optional) VS Code + Dev Containers extension or the `devcontainer` CLI
 
 ## Repository tour (fast path)
 
@@ -21,6 +22,25 @@ locally, understand core services, and start contributing safely.
 - `infra/`: Terraform, Kubernetes, and observability artifacts.
 
 ## Setup checklist
+
+### Option A: Devcontainer (recommended for simplified local setup)
+
+1. **Fill in required environment variables**
+   ```bash
+   cp .devcontainer/dev.env .devcontainer/dev.env.local
+   ```
+   Update `.devcontainer/dev.env.local` with your credentials and endpoints, then set
+   `runArgs` in `.devcontainer/devcontainer.json` to use `.devcontainer/dev.env.local`.
+2. **Start the devcontainer**
+   - VS Code: `Dev Containers: Reopen in Container`
+   - CLI: `devcontainer up --workspace-folder . --config .devcontainer/devcontainer.json`
+3. **Verify the stack**
+   ```bash
+   curl -sS http://localhost:8000/healthz
+   curl -sS http://localhost:8080/healthz
+   ```
+
+### Option B: Host setup
 
 1. **Install Python dependencies**
    ```bash

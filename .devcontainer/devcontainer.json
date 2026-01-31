@@ -1,0 +1,7 @@
+{
+  "name": "multi-agent-ppm",
+  "dockerFile": "Dockerfile",
+  "workspaceFolder": "/workspace",
+  "runArgs": ["--env-file", ".devcontainer/dev.env"],
+  "postCreateCommand": "make dev-up && make migrate"
+}
