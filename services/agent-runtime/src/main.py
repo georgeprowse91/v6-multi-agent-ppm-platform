@@ -11,6 +11,18 @@ app = FastAPI(title="Agent Runtime Service", version="0.1.0")
 runtime = AgentRuntime()
 
 
+@app.on_event("startup")
+async def start_event_bus() -> None:
+    if hasattr(runtime.event_bus, "start"):
+        await runtime.event_bus.start()
+
+
+@app.on_event("shutdown")
+async def stop_event_bus() -> None:
+    if hasattr(runtime.event_bus, "stop"):
+        await runtime.event_bus.stop()
+
+
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "agent-runtime"

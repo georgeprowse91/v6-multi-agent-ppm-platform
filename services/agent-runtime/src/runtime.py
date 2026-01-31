@@ -21,6 +21,7 @@ for path in [
     PACKAGES_ROOT / "observability" / "src",
     PACKAGES_ROOT / "security" / "src",
     PACKAGES_ROOT / "llm" / "src",
+    PACKAGES_ROOT / "event_bus" / "src",
     REPO_ROOT / "services" / "data-sync-service" / "src",
 ]:
     if str(path) not in sys.path:
@@ -29,6 +30,7 @@ for path in [
 from agents.runtime import (  # noqa: E402
     AGENT_CATALOG,
     BaseAgent,
+    EventBus,
     InMemoryEventBus,
     ServiceBusEventBus,
 )
@@ -110,7 +112,7 @@ class AgentRuntime:
         self,
         *,
         data_dir: Path | None = None,
-        event_bus: InMemoryEventBus | ServiceBusEventBus | None = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._data_dir = data_dir or Path(
             os.getenv("AGENT_RUNTIME_DATA_DIR", "/tmp/agent-runtime-data")
@@ -127,23 +129,27 @@ class AgentRuntime:
         self._initialize_agents()
         self._event_bus.subscribe("agent.requested", self._handle_agent_request)
 
-    def _build_event_bus(self) -> InMemoryEventBus | ServiceBusEventBus:
+    def _build_event_bus(self) -> EventBus:
         backend = os.getenv("EVENT_BUS_BACKEND", "memory").lower()
-        connection_string = os.getenv("AZURE_SERVICEBUS_CONNECTION_STRING")
+        connection_string = os.getenv("SERVICE_BUS_CONNECTION_STRING") or os.getenv(
+            "AZURE_SERVICEBUS_CONNECTION_STRING"
+        )
         if backend == "servicebus" or connection_string:
             if not connection_string:
                 return InMemoryEventBus()
-            topic = os.getenv("EVENT_BUS_TOPIC", "ppm-events")
-            subscription = os.getenv("EVENT_BUS_SUBSCRIPTION")
+            topic = os.getenv("SERVICE_BUS_QUEUE_NAME") or os.getenv("EVENT_BUS_TOPIC", "ppm-events")
+            subscription = os.getenv("SERVICE_BUS_SUBSCRIPTION_NAME") or os.getenv(
+                "EVENT_BUS_SUBSCRIPTION"
+            )
             return ServiceBusEventBus(
-                connection_string=connection_string or "",
-                topic=topic,
+                connection_string=connection_string,
+                topic_name=topic,
                 subscription_name=subscription,
             )
         return InMemoryEventBus()
 
     @property
-    def event_bus(self) -> InMemoryEventBus | ServiceBusEventBus:
+    def event_bus(self) -> EventBus:
         return self._event_bus
 
     @property
