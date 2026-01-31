@@ -20,7 +20,7 @@ for root in (SECURITY_ROOT, OBSERVABILITY_ROOT):
         sys.path.insert(0, str(root))
 
 from conflict_store import get_conflict_store  # noqa: E402
-from data_sync_queue import get_queue_client  # noqa: E402
+from data_sync_queue import enqueue_sync_job, get_queue_client  # noqa: E402
 from data_sync_status import get_status_store  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
@@ -185,13 +185,12 @@ async def run_sync(request: SyncRunRequest) -> SyncRunResponse:
     status_store.create(job_id, request.connector, "planned")
 
     queue_client = get_queue_client()
-    queue_client.send(
-        {
-            "job_id": job_id,
-            "connector": request.connector,
-            "dry_run": request.dry_run,
-            "rules": planned,
-        }
+    enqueue_sync_job(
+        queue_client,
+        job_id=job_id,
+        connector=request.connector,
+        dry_run=request.dry_run,
+        rules=planned,
     )
     status_store.update(job_id, "queued")
     data_sync_jobs_total.add(1, {"status": "queued"})

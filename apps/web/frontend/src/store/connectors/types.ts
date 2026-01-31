@@ -15,7 +15,8 @@ export type ConnectorCategory =
   | 'hris'
   | 'collaboration'
   | 'grc'
-  | 'compliance';
+  | 'compliance'
+  | 'iot';
 
 /**
  * Connector implementation status
@@ -178,6 +179,12 @@ export const CATEGORY_INFO: Record<ConnectorCategory, Omit<CategoryInfo, 'connec
     label: 'Compliance',
     icon: 'shield-check',
     description: 'Specialised regulatory compliance platforms',
+  },
+  iot: {
+    value: 'iot',
+    label: 'IoT Integrations',
+    icon: 'cpu-chip',
+    description: 'Custom hardware and sensor integrations',
   },
 };
 

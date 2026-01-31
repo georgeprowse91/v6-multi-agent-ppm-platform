@@ -571,6 +571,36 @@ function getMockConnectors(): Connector[] {
       health_status: 'unknown',
       last_sync_at: null,
     },
+    // IoT Integrations
+    {
+      connector_id: 'iot',
+      name: 'IoT Integrations',
+      description: 'Custom hardware and sensor integrations via device endpoints',
+      category: 'iot',
+      status: 'coming_soon',
+      icon: 'cpu-chip',
+      supported_sync_directions: ['inbound', 'outbound'],
+      auth_type: 'api_key',
+      config_fields: [
+        { name: 'device_endpoint', type: 'url', required: true, label: 'Device Endpoint' },
+        { name: 'auth_token', type: 'string', required: true, label: 'Auth Token' },
+        { name: 'sensor_types', type: 'string', required: false, label: 'Supported Sensor Types' },
+      ],
+      env_vars: ['IOT_DEVICE_ENDPOINT', 'IOT_AUTH_TOKEN'],
+      enabled: false,
+      configured: false,
+      instance_url: '',
+      project_key: '',
+      sync_direction: 'inbound',
+      sync_frequency: 'realtime',
+      health_status: 'unknown',
+      last_sync_at: null,
+      custom_fields: {
+        device_endpoint: '',
+        auth_token: '',
+        sensor_types: '',
+      },
+    },
   ];
 }
 
@@ -587,6 +617,7 @@ function getDefaultCategories(): CategoryInfo[] {
     { value: 'collaboration', label: 'Collaboration', icon: 'chat-bubble-left-right', description: 'Team communication and collaboration tools', connector_count: 3, enabled_connector: null },
     { value: 'grc', label: 'GRC', icon: 'shield-check', description: 'Governance, Risk, and Compliance platforms', connector_count: 3, enabled_connector: null },
     { value: 'compliance', label: 'Compliance', icon: 'shield-check', description: 'Specialised regulatory compliance platforms', connector_count: 1, enabled_connector: null },
+    { value: 'iot', label: 'IoT Integrations', icon: 'cpu-chip', description: 'Custom hardware and sensor integrations', connector_count: 1, enabled_connector: null },
   ];
 }
 

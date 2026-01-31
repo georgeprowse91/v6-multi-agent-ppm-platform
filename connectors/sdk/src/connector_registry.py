@@ -575,6 +575,39 @@ REGULATORY_COMPLIANCE_CONNECTOR = ConnectorDefinition(
     env_vars=["REGULATORY_COMPLIANCE_ENDPOINT", "REGULATORY_COMPLIANCE_API_KEY"],
 )
 
+# IoT Integrations Category
+IOT_CONNECTOR = ConnectorDefinition(
+    connector_id="iot",
+    name="IoT Integrations",
+    description="Custom hardware and sensor integrations via device endpoints",
+    category=ConnectorCategory.IOT,
+    status=ConnectorStatus.COMING_SOON,
+    icon="cpu-chip",
+    supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.OUTBOUND],
+    auth_type="api_key",
+    config_fields=[
+        {
+            "name": "device_endpoint",
+            "type": "url",
+            "required": True,
+            "label": "Device Endpoint",
+        },
+        {
+            "name": "auth_token",
+            "type": "string",
+            "required": True,
+            "label": "Authentication Token",
+        },
+        {
+            "name": "sensor_types",
+            "type": "string",
+            "required": False,
+            "label": "Supported Sensor Types (comma-separated)",
+        },
+    ],
+    env_vars=["IOT_DEVICE_ENDPOINT", "IOT_AUTH_TOKEN"],
+)
+
 
 # =============================================================================
 # REGISTRY
@@ -612,6 +645,8 @@ ALL_CONNECTORS: list[ConnectorDefinition] = [
     LOGICGATE_CONNECTOR,
     # Compliance
     REGULATORY_COMPLIANCE_CONNECTOR,
+    # IoT
+    IOT_CONNECTOR,
 ]
 
 CONNECTORS_BY_ID: dict[str, ConnectorDefinition] = {c.connector_id: c for c in ALL_CONNECTORS}

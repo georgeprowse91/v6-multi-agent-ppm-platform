@@ -69,6 +69,7 @@ export function ConnectorGallery() {
       collaboration: [],
       grc: [],
       compliance: [],
+      iot: [],
     };
     filteredConnectors.forEach((connector) => {
       if (grouped[connector.category]) {
@@ -421,6 +422,11 @@ function ConnectorIcon({ name }: { name: string }) {
         <path d="M12 4a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12 6 6 0 010-12zm-1 3v6h2v-6h-2zm-2 2v2h6v-2H9z"/>
       </svg>
     ),
+    'cpu-chip': (
+      <svg viewBox="0 0 24 24" fill="currentColor" className={styles.iconSvg}>
+        <path d="M9 3h6v2h2v2h2v6h-2v2h-2v2H9v-2H7v-2H5V7h2V5h2V3zm0 4v8h6V7H9z"/>
+      </svg>
+    ),
     default: (
       <svg viewBox="0 0 24 24" fill="currentColor" className={styles.iconSvg}>
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
@@ -437,7 +443,7 @@ function ConnectorIcon({ name }: { name: string }) {
 interface ConnectorConfigModalProps {
   connector: Connector;
   onClose: () => void;
-  onSave: (connectorId: string, config: { instance_url?: string; project_key?: string; sync_direction?: string; sync_frequency?: string }) => Promise<void>;
+  onSave: (connectorId: string, config: { instance_url?: string; project_key?: string; sync_direction?: string; sync_frequency?: string; custom_fields?: Record<string, unknown> }) => Promise<void>;
   onTestConnection: (connectorId: string, instanceUrl?: string, projectKey?: string) => Promise<{ status: string; message: string }>;
   testingConnection: boolean;
   testResult: { status: string; message: string; details: Record<string, unknown> } | null;
@@ -453,20 +459,36 @@ function ConnectorConfigModal({
   testResult,
   clearTestResult,
 }: ConnectorConfigModalProps) {
+  const customFields = connector.custom_fields ?? {};
+  const isIoT = connector.category === 'iot';
   const [instanceUrl, setInstanceUrl] = useState(connector.instance_url || '');
   const [projectKey, setProjectKey] = useState(connector.project_key || '');
+  const [deviceEndpoint, setDeviceEndpoint] = useState(
+    (customFields.device_endpoint as string) || connector.instance_url || ''
+  );
+  const [authToken, setAuthToken] = useState((customFields.auth_token as string) || '');
+  const [sensorTypes, setSensorTypes] = useState((customFields.sensor_types as string) || '');
   const [syncDirection, setSyncDirection] = useState(connector.sync_direction);
   const [syncFrequency, setSyncFrequency] = useState(connector.sync_frequency);
   const [saving, setSaving] = useState(false);
+  const connectionTarget = isIoT ? deviceEndpoint : instanceUrl;
 
   const handleSave = async () => {
     setSaving(true);
     try {
+      const effectiveInstanceUrl = isIoT ? deviceEndpoint : instanceUrl;
       await onSave(connector.connector_id, {
-        instance_url: instanceUrl,
+        instance_url: effectiveInstanceUrl,
         project_key: projectKey,
         sync_direction: syncDirection,
         sync_frequency: syncFrequency,
+        custom_fields: isIoT
+          ? {
+              device_endpoint: deviceEndpoint,
+              auth_token: authToken,
+              sensor_types: sensorTypes,
+            }
+          : undefined,
       });
       onClose();
     } finally {
@@ -476,7 +498,8 @@ function ConnectorConfigModal({
 
   const handleTestConnection = async () => {
     clearTestResult();
-    await onTestConnection(connector.connector_id, instanceUrl, projectKey);
+    const effectiveInstanceUrl = isIoT ? deviceEndpoint : instanceUrl;
+    await onTestConnection(connector.connector_id, effectiveInstanceUrl, projectKey);
   };
 
   return (
@@ -499,18 +522,55 @@ function ConnectorConfigModal({
             <h3 className={styles.sectionTitle}>Connection Settings</h3>
 
             <div className={styles.formField}>
-              <label className={styles.fieldLabel}>Instance URL</label>
+              <label className={styles.fieldLabel}>
+                {isIoT ? 'Device Endpoint' : 'Instance URL'}
+              </label>
               <input
                 type="url"
                 className={styles.fieldInput}
-                placeholder="https://your-instance.example.com"
-                value={instanceUrl}
-                onChange={(e) => setInstanceUrl(e.target.value)}
+                placeholder={isIoT ? 'https://device-gateway.example.com' : 'https://your-instance.example.com'}
+                value={isIoT ? deviceEndpoint : instanceUrl}
+                onChange={(e) =>
+                  isIoT ? setDeviceEndpoint(e.target.value) : setInstanceUrl(e.target.value)
+                }
               />
               <span className={styles.fieldHint}>
-                The base URL of your {connector.name} instance
+                {isIoT
+                  ? 'The REST endpoint for your device gateway or IoT hub'
+                  : `The base URL of your ${connector.name} instance`}
               </span>
             </div>
+
+            {isIoT && (
+              <>
+                <div className={styles.formField}>
+                  <label className={styles.fieldLabel}>Authentication Token</label>
+                  <input
+                    type="password"
+                    className={styles.fieldInput}
+                    placeholder="e.g., bearer token"
+                    value={authToken}
+                    onChange={(e) => setAuthToken(e.target.value)}
+                  />
+                  <span className={styles.fieldHint}>
+                    Token or API key used to authenticate with the IoT device gateway
+                  </span>
+                </div>
+                <div className={styles.formField}>
+                  <label className={styles.fieldLabel}>Supported Sensor Types</label>
+                  <input
+                    type="text"
+                    className={styles.fieldInput}
+                    placeholder="temperature, humidity, vibration"
+                    value={sensorTypes}
+                    onChange={(e) => setSensorTypes(e.target.value)}
+                  />
+                  <span className={styles.fieldHint}>
+                    Comma-separated sensor types for ingestion routing
+                  </span>
+                </div>
+              </>
+            )}
 
             {connector.connector_id === 'jira' && (
               <div className={styles.formField}>
@@ -582,7 +642,7 @@ function ConnectorConfigModal({
             <button
               className={styles.testButton}
               onClick={handleTestConnection}
-              disabled={testingConnection || !instanceUrl}
+              disabled={testingConnection || !connectionTarget}
             >
               {testingConnection ? 'Testing...' : 'Test Connection'}
             </button>

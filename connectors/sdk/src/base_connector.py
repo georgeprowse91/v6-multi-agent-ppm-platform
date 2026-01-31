@@ -33,6 +33,7 @@ class ConnectorCategory(str, Enum):
     COLLABORATION = "collaboration"  # Collaboration (Teams, Slack, Zoom)
     GRC = "grc"  # GRC (ServiceNow GRC, Archer, LogicGate)
     COMPLIANCE = "compliance"  # Compliance (Regulatory compliance platforms)
+    IOT = "iot"  # IoT Integrations (custom hardware and sensors)
 
 
 class SyncDirection(str, Enum):

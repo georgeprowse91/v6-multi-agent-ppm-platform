@@ -7,6 +7,8 @@ from typing import Any
 
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
+IOT_CONNECTORS = {"iot"}
+
 
 class QueueClient:
     def send(self, payload: dict[str, Any]) -> None:
@@ -32,6 +34,45 @@ class InMemoryQueueClient(QueueClient):
 
     def send(self, payload: dict[str, Any]) -> None:
         self.messages.append(payload)
+
+
+def build_sync_payload(
+    *,
+    job_id: str,
+    connector: str | None,
+    dry_run: bool,
+    rules: list[str],
+    sensor_data: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    payload = {
+        "job_id": job_id,
+        "connector": connector,
+        "dry_run": dry_run,
+        "rules": rules,
+    }
+    if connector in IOT_CONNECTORS:
+        payload["sensor_data"] = sensor_data or []
+        payload["event_type"] = "sensor_ingest"
+    return payload
+
+
+def enqueue_sync_job(
+    queue_client: QueueClient,
+    *,
+    job_id: str,
+    connector: str | None,
+    dry_run: bool,
+    rules: list[str],
+    sensor_data: list[dict[str, Any]] | None = None,
+) -> None:
+    payload = build_sync_payload(
+        job_id=job_id,
+        connector=connector,
+        dry_run=dry_run,
+        rules=rules,
+        sensor_data=sensor_data,
+    )
+    queue_client.send(payload)
 
 
 def get_queue_client() -> QueueClient:

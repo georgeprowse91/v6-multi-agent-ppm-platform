@@ -126,3 +126,76 @@ class TimelineExportResponse(BaseModel):
     project_id: str
     exported_at: datetime
     milestones: list[Milestone]
+
+
+class IoTEventBase(BaseModel):
+    device_id: str = Field(min_length=1)
+    timestamp: datetime
+    sensor_type: str = Field(min_length=1)
+    measurement_unit: str = Field(min_length=1)
+    measurement_value: float
+    metadata: dict[str, str] | None = None
+
+    @field_validator("device_id", "sensor_type", "measurement_unit")
+    @classmethod
+    def _strip_required(cls, value: str) -> str:
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("value must be non-empty")
+        return trimmed
+
+
+class IoTEventCreate(IoTEventBase):
+    model_config = ConfigDict(extra="forbid")
+
+
+class IoTEventUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    device_id: str | None = None
+    timestamp: datetime | None = None
+    sensor_type: str | None = None
+    measurement_unit: str | None = None
+    measurement_value: float | None = None
+    metadata: dict[str, str] | None = None
+
+    @field_validator("device_id", "sensor_type", "measurement_unit")
+    @classmethod
+    def _strip_optional_required(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("value must be non-empty")
+        return trimmed
+
+
+class IoTEvent(IoTEventBase):
+    model_config = ConfigDict(extra="forbid")
+    event_id: str
+    tenant_id: str
+    project_id: str
+    created_at: datetime
+    updated_at: datetime
+
+    @classmethod
+    def build(cls, tenant_id: str, project_id: str, payload: IoTEventCreate) -> IoTEvent:
+        now = utc_now()
+        return cls(
+            event_id=str(uuid4()),
+            tenant_id=tenant_id,
+            project_id=project_id,
+            device_id=payload.device_id,
+            timestamp=payload.timestamp,
+            sensor_type=payload.sensor_type,
+            measurement_unit=payload.measurement_unit,
+            measurement_value=payload.measurement_value,
+            metadata=payload.metadata,
+            created_at=now,
+            updated_at=now,
+        )
+
+
+class IoTEventTimelineResponse(BaseModel):
+    tenant_id: str
+    project_id: str
+    events: list[IoTEvent]
