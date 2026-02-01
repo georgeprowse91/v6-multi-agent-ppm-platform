@@ -15,6 +15,7 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable
+from uuid import uuid4
 
 from security.lineage import mask_lineage_payload
 
@@ -62,6 +63,24 @@ class SynapseManager:
                 self.workspace_name, self.spark_pool_name
             )
         details["initialized"] = True
+        return details
+
+    def ingest_dataset(self, dataset_name: str, payload: list[dict[str, Any]]) -> dict[str, Any]:
+        details = {
+            "dataset": dataset_name,
+            "workspace": self.workspace_name,
+            "sql_pool": self.sql_pool_name,
+            "spark_pool": self.spark_pool_name,
+            "stored": False,
+        }
+        if not self.synapse_client:
+            return details
+        if hasattr(self.synapse_client, "ingest"):
+            self.synapse_client.ingest(dataset_name, payload)
+            details["stored"] = True
+        elif hasattr(self.synapse_client, "upload"):
+            self.synapse_client.upload(dataset_name, payload)
+            details["stored"] = True
         return details
 
 
@@ -311,6 +330,32 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.max_dashboard_widgets = config.get("max_dashboard_widgets", 20) if config else 20
         self.scenario_engine = ScenarioEngine()
         self.metric_agents = config.get("metric_agents", {}) if config else {}
+        self.analytics_event_topics = config.get("analytics_event_topics") if config else None
+        if not self.analytics_event_topics:
+            self.analytics_event_topics = [
+                "schedule.baseline.locked",
+                "schedule.delay",
+                "deployment.started",
+                "deployment.succeeded",
+                "deployment.failed",
+                "deployment.progress",
+                "analytics.deployment.metrics",
+                "risk.identified",
+                "risk.assessed",
+                "risk.status_updated",
+                "risk.mitigation_plan_created",
+                "risk.simulation_completed",
+                "risk.simulated",
+                "risk.triggered",
+                "quality.metrics.calculated",
+                "quality.report.published",
+                "quality.audit.completed",
+                "quality.coverage.trend.updated",
+                "quality.improvement.recommendations",
+                "resource.allocation.created",
+                "resource.updated",
+                "resource.added",
+            ]
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
@@ -380,8 +425,10 @@ class AnalyticsInsightsAgent(BaseAgent):
             )
 
         self.stream_analytics_manager = (
-            config.get("stream_analytics_manager") if config else StreamAnalyticsManager()
+            config.get("stream_analytics_manager") if config else None
         )
+        if self.stream_analytics_manager is None:
+            self.stream_analytics_manager = StreamAnalyticsManager()
         self.narrative_service = config.get("narrative_service") if config else None
         if self.narrative_service is None:
             self.narrative_service = NarrativeService(config.get("openai_client") if config else None)
@@ -414,6 +461,16 @@ class AnalyticsInsightsAgent(BaseAgent):
             if config
             else Path("data/analytics_lineage.json")
         )
+        event_store_path = (
+            Path(config.get("analytics_event_store_path", "data/analytics_events.json"))
+            if config
+            else Path("data/analytics_events.json")
+        )
+        kpi_history_store_path = (
+            Path(config.get("analytics_kpi_history_store_path", "data/analytics_kpi_history.json"))
+            if config
+            else Path("data/analytics_kpi_history.json")
+        )
         health_store_path = (
             Path(config.get("health_snapshot_store_path", "data/health_snapshots.json"))
             if config
@@ -422,6 +479,8 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.analytics_output_store = TenantStateStore(output_store_path)
         self.analytics_alert_store = TenantStateStore(alert_store_path)
         self.analytics_lineage_store = TenantStateStore(lineage_store_path)
+        self.analytics_event_store = TenantStateStore(event_store_path)
+        self.kpi_history_store = TenantStateStore(kpi_history_store_path)
         self.health_snapshot_store = TenantStateStore(health_store_path)
 
         # Data stores (will be replaced with database)
@@ -433,6 +492,67 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.scenarios = {}  # type: ignore
         self.data_lineage = {}  # type: ignore
         self.health_snapshots: dict[str, list[dict[str, Any]]] = {}
+        self.event_history: dict[str, list[dict[str, Any]]] = {}
+        self.kpi_definitions = config.get("kpi_definitions") if config else None
+        if not self.kpi_definitions:
+            self.kpi_definitions = [
+                {
+                    "name": "Schedule Delay Average (days)",
+                    "metric_name": "schedule.delay.avg",
+                    "target": 0,
+                    "thresholds": {"max": 5},
+                    "event_types": ["schedule.delay"],
+                    "trend_direction": "lower_is_better",
+                },
+                {
+                    "name": "Deployment Success Rate",
+                    "metric_name": "deployment.success_rate",
+                    "target": 0.95,
+                    "thresholds": {"min": 0.9},
+                    "event_types": ["deployment.succeeded", "deployment.failed"],
+                    "trend_direction": "higher_is_better",
+                },
+                {
+                    "name": "Deployment Frequency (per week)",
+                    "metric_name": "deployment.frequency",
+                    "target": 2.0,
+                    "thresholds": {"min": 1.0},
+                    "event_types": ["deployment.succeeded", "deployment.failed", "deployment.started"],
+                    "trend_direction": "higher_is_better",
+                },
+                {
+                    "name": "Resource Utilisation",
+                    "metric_name": "resource.utilization.avg",
+                    "target": 0.8,
+                    "thresholds": {"min": 0.6, "max": 1.0},
+                    "event_types": ["resource.allocation.created", "resource.updated"],
+                    "trend_direction": "higher_is_better",
+                },
+                {
+                    "name": "Quality Score",
+                    "metric_name": "quality.score.avg",
+                    "target": 90.0,
+                    "thresholds": {"min": 80.0},
+                    "event_types": ["quality.metrics.calculated"],
+                    "trend_direction": "higher_is_better",
+                },
+                {
+                    "name": "Risk Exposure Average",
+                    "metric_name": "risk.exposure.avg",
+                    "target": 5.0,
+                    "thresholds": {"max": 15.0},
+                    "event_types": ["risk.assessed", "risk.status_updated"],
+                    "trend_direction": "lower_is_better",
+                },
+                {
+                    "name": "Compliance Audit Score",
+                    "metric_name": "compliance.audit.avg",
+                    "target": 90.0,
+                    "thresholds": {"min": 85.0},
+                    "event_types": ["quality.audit.completed"],
+                    "trend_direction": "higher_is_better",
+                },
+            ]
 
     async def initialize(self) -> None:
         """Initialize analytics services, ML models, and data sources."""
@@ -455,8 +575,10 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.event_bus.subscribe(
             "project.health.report.generated", self._handle_health_report_generated
         )
-        self.event_bus.subscribe("project.updated", self._handle_realtime_event)
-        self.event_bus.subscribe("resource.updated", self._handle_realtime_event)
+        for topic in self.analytics_event_topics:
+            self.event_bus.subscribe(topic, self._build_event_handler(topic))
+        self.event_bus.subscribe("project.updated", self._build_event_handler("project.updated"))
+        self.event_bus.subscribe("resource.updated", self._build_event_handler("resource.updated"))
 
         self.logger.info("Analytics & Insights Agent initialized")
 
@@ -488,6 +610,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "provision_analytics_stack",
             "ingest_sources",
             "ingest_realtime_event",
+            "compute_kpis_batch",
         ]
 
         if action not in valid_actions:
@@ -519,6 +642,8 @@ class AnalyticsInsightsAgent(BaseAgent):
             if "event" not in input_data:
                 self.logger.warning("Missing event payload for realtime ingestion")
                 return False
+        elif action == "compute_kpis_batch":
+            return True
 
         return True
 
@@ -531,7 +656,7 @@ class AnalyticsInsightsAgent(BaseAgent):
                 "action": "aggregate_data" | "create_dashboard" | "generate_report" |
                           "run_prediction" | "scenario_analysis" | "generate_narrative" |
                           "track_kpi" | "query_data" | "get_dashboard" | "get_insights" |
-                          "update_data_lineage",
+                          "update_data_lineage" | "compute_kpis_batch",
                 "data_sources": Data sources for aggregation,
                 "dashboard": Dashboard configuration,
                 "report": Report specification,
@@ -556,6 +681,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             - get_dashboard: Dashboard data and widgets
             - get_insights: AI-generated insights
             - update_data_lineage: Lineage tracking information
+            - compute_kpis_batch: Batch KPI computation results
         """
         action = input_data.get("action", "get_insights")
         tenant_id = (
@@ -636,6 +762,10 @@ class AnalyticsInsightsAgent(BaseAgent):
             return await self._ingest_realtime_event(
                 input_data.get("event"), input_data.get("event_type")
             )
+        elif action == "compute_kpis_batch":
+            return await self._compute_kpis_batch(
+                tenant_id, input_data.get("event_type"), input_data.get("kpis")
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -669,6 +799,9 @@ class AnalyticsInsightsAgent(BaseAgent):
                     payload=[record for record in harmonized_data if record.get("source") == source],
                 )
             )
+        synapse_details = self.synapse_manager.ingest_dataset(
+            "analytics_aggregated", harmonized_data
+        )
 
         return {
             "record_count": len(harmonized_data),
@@ -676,6 +809,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "statistics": statistics,
             "lineage_id": lineage_id,
             "data_lake_paths": data_lake_paths,
+            "synapse": synapse_details,
             "aggregated_at": datetime.utcnow().isoformat(),
         }
 
@@ -947,10 +1081,12 @@ class AnalyticsInsightsAgent(BaseAgent):
             current_value = await self._calculate_kpi_value(kpi_config)
 
         # Get historical values
-        historical_values = await self._get_kpi_history(kpi_id)
+        historical_values = await self._get_kpi_history(tenant_id, kpi_id)
 
         # Calculate trend
-        trend = await self._calculate_kpi_trend(historical_values, current_value)
+        trend = await self._calculate_kpi_trend(
+            historical_values, current_value, kpi_config.get("trend_direction")
+        )
 
         # Check against thresholds
         threshold_status = await self._check_kpi_thresholds(
@@ -970,6 +1106,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         }
         self.kpis[kpi_id] = kpi_record
         self.analytics_output_store.upsert(tenant_id, kpi_id, kpi_record.copy())
+        await self._store_kpi_history(tenant_id, kpi_id, current_value)
 
         alerts_triggered: list[str] = []
         if threshold_status.get("breached"):
@@ -1074,13 +1211,25 @@ class AnalyticsInsightsAgent(BaseAgent):
         # Generate recommendations
         recommendations = await self._generate_recommendations(insights)
 
-        return {
+        response = {
             "insights": insights,
             "anomalies": anomalies,
             "patterns": patterns,
             "recommendations": recommendations,
             "generated_at": datetime.utcnow().isoformat(),
         }
+        tenant_id = filters.get("tenant_id", "default")
+        if self.event_bus:
+            await self.event_bus.publish(
+                "analytics.insights.generated",
+                {
+                    "tenant_id": tenant_id,
+                    "insights": insights,
+                    "recommendations": recommendations,
+                    "generated_at": response["generated_at"],
+                },
+            )
+        return response
 
     async def _update_data_lineage(
         self, tenant_id: str, lineage_data: dict[str, Any]
@@ -1236,6 +1385,38 @@ class AnalyticsInsightsAgent(BaseAgent):
             "streamed_at": datetime.utcnow().isoformat(),
         }
 
+    async def _compute_kpis_batch(
+        self,
+        tenant_id: str,
+        event_type: str | None,
+        kpis: list[dict[str, Any]] | None,
+    ) -> dict[str, Any]:
+        """Compute KPI values in batch from aggregated events."""
+        kpi_definitions = kpis or list(self.kpi_definitions or [])
+        results = await self._update_kpis_from_definitions(
+            tenant_id, event_type=event_type, kpi_definitions=kpi_definitions
+        )
+        return {
+            "tenant_id": tenant_id,
+            "kpis": results,
+            "computed_at": datetime.utcnow().isoformat(),
+        }
+
+    def _build_event_handler(self, topic: str) -> Callable[[dict[str, Any]], Any]:
+        async def _handler(payload: dict[str, Any]) -> None:
+            await self._handle_domain_event(payload, topic)
+
+        return _handler
+
+    async def _handle_domain_event(self, event: dict[str, Any], event_type: str) -> None:
+        tenant_id = event.get("tenant_id") or event.get("payload", {}).get("tenant_id") or "default"
+        raw_payload = event.get("payload", event)
+        redacted_payload = self._redact_payload(raw_payload)
+        record = await self._store_event_record(tenant_id, event_type, redacted_payload, event)
+        await self._update_kpis_from_definitions(tenant_id, event_type=event_type)
+        await self._publish_insights_event(tenant_id, event_type, record)
+        await self._stream_realtime_event(event_type, redacted_payload)
+
     async def _handle_health_updated(self, event: dict[str, Any]) -> None:
         """Handle project health updates from the lifecycle agent."""
         payload = event.get("payload", event)
@@ -1263,8 +1444,107 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Stream real-time events through Event Hub and Stream Analytics."""
         payload = event.get("payload", event)
         event_type = event.get("event_type") or event.get("type") or "realtime.event"
+        tenant_id = event.get("tenant_id") or payload.get("tenant_id") or "default"
+        redacted_payload = self._redact_payload(payload)
+        await self._store_event_record(tenant_id, event_type, redacted_payload, event)
+        await self._update_kpis_from_definitions(tenant_id, event_type=event_type)
+        await self._stream_realtime_event(event_type, redacted_payload)
+
+    async def _stream_realtime_event(self, event_type: str, payload: dict[str, Any]) -> None:
         await self.event_hub_manager.publish_event(event_type, payload)
         await self.stream_analytics_manager.stream_events([payload])
+
+    async def _store_event_record(
+        self,
+        tenant_id: str,
+        event_type: str,
+        payload: dict[str, Any],
+        raw_event: dict[str, Any],
+    ) -> dict[str, Any]:
+        event_id = raw_event.get("event_id") or raw_event.get("id") or f"evt-{uuid4().hex}"
+        record = {
+            "event_id": event_id,
+            "event_type": event_type,
+            "domain": event_type.split(".")[0] if event_type else "unknown",
+            "payload": payload,
+            "received_at": datetime.utcnow().isoformat(),
+        }
+        history = self.event_history.setdefault(tenant_id, [])
+        history.append(record)
+        self.analytics_event_store.upsert(tenant_id, event_id, record.copy())
+        return record
+
+    async def _update_kpis_from_definitions(
+        self,
+        tenant_id: str,
+        *,
+        event_type: str | None = None,
+        kpi_definitions: list[dict[str, Any]] | None = None,
+    ) -> list[dict[str, Any]]:
+        definitions = kpi_definitions or list(self.kpi_definitions or [])
+        results: list[dict[str, Any]] = []
+        for kpi_definition in definitions:
+            event_types = kpi_definition.get("event_types")
+            if event_type and event_types and event_type not in event_types:
+                continue
+            kpi_payload = {**kpi_definition, "tenant_id": tenant_id}
+            results.append(await self._track_kpi(tenant_id, kpi_payload))
+        if results and self.event_bus:
+            await self.event_bus.publish(
+                "analytics.kpi.updated",
+                {"tenant_id": tenant_id, "event_type": event_type, "kpis": results},
+            )
+        return results
+
+    async def _publish_insights_event(
+        self, tenant_id: str, event_type: str, event_record: dict[str, Any]
+    ) -> None:
+        if not self.event_bus:
+            return
+        await self.event_bus.publish(
+            "analytics.insights.event_ingested",
+            {
+                "tenant_id": tenant_id,
+                "event_type": event_type,
+                "event_id": event_record.get("event_id"),
+                "received_at": event_record.get("received_at"),
+            },
+        )
+
+    def _redact_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if os.getenv("LINEAGE_MASK_SALT"):
+            return mask_lineage_payload(payload)
+        return self._mask_sensitive_fields(payload)
+
+    def _mask_sensitive_fields(self, payload: Any) -> Any:
+        pii_fields = {
+            "address",
+            "birthdate",
+            "date_of_birth",
+            "dob",
+            "email",
+            "employee_id",
+            "first_name",
+            "full_name",
+            "last_name",
+            "phone",
+            "phone_number",
+            "ssn",
+            "social_security_number",
+            "user_id",
+            "username",
+        }
+        if isinstance(payload, dict):
+            masked: dict[str, Any] = {}
+            for key, value in payload.items():
+                if key.lower() in pii_fields and value is not None:
+                    masked[key] = "redacted"
+                else:
+                    masked[key] = self._mask_sensitive_fields(value)
+            return masked
+        if isinstance(payload, list):
+            return [self._mask_sensitive_fields(item) for item in payload]
+        return payload
 
     async def _summarize_health_portfolio(self, tenant_id: str) -> dict[str, Any]:
         """Aggregate health data across projects for reporting."""
@@ -1399,6 +1679,17 @@ class AnalyticsInsightsAgent(BaseAgent):
         if project_id:
             snapshots = [s for s in snapshots if s.get("project_id") == project_id]
         return sorted(snapshots, key=lambda s: s.get("monitored_at", ""))
+
+    async def _get_events_for_tenant(self, tenant_id: str) -> list[dict[str, Any]]:
+        events = self.event_history.get(tenant_id, [])
+        if not events:
+            events = self.analytics_event_store.list(tenant_id)
+        return events
+
+    def _filter_events(
+        self, events: list[dict[str, Any]], event_types: set[str]
+    ) -> list[dict[str, Any]]:
+        return [event for event in events if event.get("event_type") in event_types]
 
     async def _collect_from_sources(self, sources: list[str]) -> list[dict[str, Any]]:
         """Collect data from multiple sources."""
@@ -1640,20 +1931,95 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _calculate_kpi_value(self, kpi_config: dict[str, Any]) -> float:
         """Calculate current KPI value."""
-        # Future work: Calculate from actual data
-        return 85.0
+        metric_name = kpi_config.get("metric_name")
+        tenant_id = kpi_config.get("tenant_id", "default")
+        events = await self._get_events_for_tenant(tenant_id)
+        if metric_name == "schedule.delay.avg":
+            delays = [
+                float(event.get("payload", {}).get("delay_days", 0))
+                for event in self._filter_events(events, {"schedule.delay"})
+            ]
+            return sum(delays) / len(delays) if delays else 0.0
+        if metric_name == "deployment.success_rate":
+            successes = len(self._filter_events(events, {"deployment.succeeded"}))
+            failures = len(self._filter_events(events, {"deployment.failed"}))
+            total = successes + failures
+            return successes / total if total else 1.0
+        if metric_name == "deployment.frequency":
+            cutoff = datetime.utcnow() - timedelta(days=30)
+            recent = [
+                event
+                for event in self._filter_events(
+                    events,
+                    {"deployment.succeeded", "deployment.failed", "deployment.started"},
+                )
+                if event.get("received_at")
+                and datetime.fromisoformat(event.get("received_at")) >= cutoff
+            ]
+            return len(recent) / 4.0 if recent else 0.0
+        if metric_name == "resource.utilization.avg":
+            allocations = []
+            for event in self._filter_events(
+                events, {"resource.allocation.created", "resource.updated"}
+            ):
+                payload = event.get("payload", {})
+                raw = payload.get("allocation_percentage")
+                if raw is None:
+                    raw = payload.get("utilization") or payload.get("utilization_pct")
+                if raw is None:
+                    continue
+                allocations.append(float(raw) / 100 if float(raw) > 1 else float(raw))
+            return sum(allocations) / len(allocations) if allocations else 0.0
+        if metric_name == "quality.score.avg":
+            scores = [
+                float(event.get("payload", {}).get("quality_score", 0))
+                for event in self._filter_events(events, {"quality.metrics.calculated"})
+            ]
+            return sum(scores) / len(scores) if scores else 0.0
+        if metric_name == "risk.exposure.avg":
+            scores = [
+                float(event.get("payload", {}).get("score", 0))
+                for event in self._filter_events(events, {"risk.assessed", "risk.status_updated"})
+            ]
+            return sum(scores) / len(scores) if scores else 0.0
+        if metric_name == "compliance.audit.avg":
+            scores = [
+                float(event.get("payload", {}).get("score", 0))
+                for event in self._filter_events(events, {"quality.audit.completed"})
+            ]
+            return sum(scores) / len(scores) if scores else 0.0
+        return 0.0
 
-    async def _get_kpi_history(self, kpi_id: str) -> list[dict[str, Any]]:
+    async def _get_kpi_history(self, tenant_id: str, kpi_id: str) -> list[dict[str, Any]]:
         """Get historical KPI values."""
-        # Future work: Query from database
+        history = self.kpi_history_store.get(tenant_id, kpi_id)
+        if history and isinstance(history.get("entries"), list):
+            return list(history["entries"])
         return []
 
-    async def _calculate_kpi_trend(self, historical: list[dict[str, Any]], current: float) -> str:
+    async def _store_kpi_history(self, tenant_id: str, kpi_id: str, value: float) -> None:
+        history = await self._get_kpi_history(tenant_id, kpi_id)
+        history.append({"value": value, "recorded_at": datetime.utcnow().isoformat()})
+        self.kpi_history_store.upsert(tenant_id, kpi_id, {"entries": history})
+
+    async def _calculate_kpi_trend(
+        self, historical: list[dict[str, Any]], current: float, direction: str | None
+    ) -> str:
         """Calculate KPI trend."""
         if not historical:
             return "stable"
-        # Future work: Calculate actual trend
-        return "improving"
+        last_value = historical[-1].get("value", current)
+        if direction == "lower_is_better":
+            if current < last_value:
+                return "improving"
+            if current > last_value:
+                return "declining"
+        else:
+            if current > last_value:
+                return "improving"
+            if current < last_value:
+                return "declining"
+        return "stable"
 
     async def _check_kpi_thresholds(
         self, value: float, thresholds: dict[str, float]
@@ -1738,7 +2104,16 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _generate_recommendations(self, insights: list[str]) -> list[str]:
         """Generate recommendations from insights."""
-        return ["Review identified anomalies", "Monitor emerging patterns"]
+        recommendations = []
+        for insight in insights:
+            lowered = insight.lower()
+            if "anomal" in lowered:
+                recommendations.append("Investigate anomalies with the delivery leads")
+            if "concerns" in lowered:
+                recommendations.append("Schedule a portfolio health review and mitigation planning")
+        if not recommendations:
+            recommendations.append("Maintain current monitoring cadence")
+        return recommendations
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
