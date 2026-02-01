@@ -61,6 +61,58 @@ class ScheduleStub:
         return {"scheduled_window": {"start_time": "2024-06-02T01:00:00", "duration_hours": 2}}
 
 
+class EventBusStub:
+    def __init__(self) -> None:
+        self.published: list[tuple[str, dict]] = []
+        self.subscriptions: dict[str, list] = {}
+
+    def subscribe(self, topic: str, handler) -> None:
+        self.subscriptions.setdefault(topic, []).append(handler)
+
+    async def publish(self, topic: str, payload: dict) -> None:
+        self.published.append((topic, payload))
+        for handler in self.subscriptions.get(topic, []):
+            await handler(payload)
+
+    def get_metrics(self) -> dict:
+        return {}
+
+    def get_recent_events(self, topic: str | None = None) -> list:
+        return []
+
+
+class ReservationStub:
+    def __init__(self, available: bool = True) -> None:
+        self.available = available
+        self.reserved: list[dict] = []
+        self.released: list[dict] = []
+
+    async def check_availability(self, payload: dict) -> dict:
+        return {"available": self.available}
+
+    async def reserve(self, payload: dict) -> dict:
+        reservation = {"reservation_id": "res-1", "status": "reserved", **payload}
+        self.reserved.append(reservation)
+        return reservation
+
+    async def release(self, allocation: dict) -> dict:
+        self.released.append(allocation)
+        return {"status": "released"}
+
+
+class MonitoringStub:
+    async def get_metrics(self, deployment_plan: dict) -> dict:
+        return {"response_time_ms": 300.0, "error_rate": 0.05}
+
+    async def get_baseline(self, deployment_plan: dict) -> dict:
+        return {"response_time_ms": {"mean": 120.0, "std": 20.0}, "error_rate": {"mean": 0.001}}
+
+
+class BlockerQualityStub:
+    async def process(self, input_data: dict) -> dict:
+        return {"passed": False, "issues": [{"severity": "critical", "summary": "Tests failing"}]}
+
+
 @pytest.mark.asyncio
 async def test_release_deployment_requires_approval_before_execute(tmp_path):
     approval_stub = ApprovalStub()
@@ -281,3 +333,154 @@ async def test_release_deployment_schedule_window_uses_schedule_agent(tmp_path):
     )
 
     assert window_response["scheduled_window"]["start_time"] == "2024-06-02T01:00:00"
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_reserves_and_releases_environment(tmp_path):
+    event_bus = EventBusStub()
+    reservation = ReservationStub()
+    agent = ReleaseDeploymentAgent(
+        config={
+            "event_bus": event_bus,
+            "environment_reservation_client": reservation,
+            "release_store_path": tmp_path / "releases.json",
+            "deployment_plan_store_path": tmp_path / "plans.json",
+        }
+    )
+    await agent.initialize()
+
+    release_response = await agent.process(
+        {
+            "action": "plan_release",
+            "tenant_id": "tenant-rel",
+            "release": {
+                "name": "Release 5",
+                "target_environment": "staging",
+                "planned_date": "2024-06-09T01:00:00",
+            },
+        }
+    )
+    assert reservation.reserved
+    plan_response = await agent.process(
+        {
+            "action": "create_deployment_plan",
+            "tenant_id": "tenant-rel",
+            "release_id": release_response["release_id"],
+        }
+    )
+    await agent.process(
+        {
+            "action": "execute_deployment",
+            "tenant_id": "tenant-rel",
+            "deployment_plan_id": plan_response["deployment_plan_id"],
+        }
+    )
+    assert reservation.released
+    assert any(topic == "environment.released" for topic, _ in event_bus.published)
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_readiness_blockers_fail(tmp_path):
+    agent = ReleaseDeploymentAgent(
+        config={
+            "quality_agent": BlockerQualityStub(),
+            "release_store_path": tmp_path / "releases.json",
+        }
+    )
+    await agent.initialize()
+
+    release_response = await agent.process(
+        {
+            "action": "plan_release",
+            "tenant_id": "tenant-rel",
+            "release": {
+                "name": "Release 6",
+                "target_environment": "staging",
+                "planned_date": "2024-06-10",
+            },
+        }
+    )
+    readiness = await agent.process(
+        {"action": "assess_readiness", "release_id": release_response["release_id"]}
+    )
+    assert readiness["recommendation"] == "NO-GO"
+    assert readiness["critical_blockers"]
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_anomaly_detection(tmp_path):
+    agent = ReleaseDeploymentAgent(
+        config={
+            "monitoring_client": MonitoringStub(),
+            "release_store_path": tmp_path / "releases.json",
+        }
+    )
+    await agent.initialize()
+
+    deployment_plan = {"deployment_plan_id": "plan-1"}
+    anomalies = await agent._detect_post_deployment_anomalies(deployment_plan)
+    assert any(anomaly["metric"] == "response_time_ms" for anomaly in anomalies)
+    assert any(anomaly["metric"] == "error_rate" for anomaly in anomalies)
+
+
+@pytest.mark.asyncio
+async def test_release_deployment_pipeline_success_and_failure(tmp_path):
+    event_bus = EventBusStub()
+    agent = ReleaseDeploymentAgent(
+        config={
+            "event_bus": event_bus,
+            "release_store_path": tmp_path / "releases.json",
+            "deployment_plan_store_path": tmp_path / "plans.json",
+        }
+    )
+    await agent.initialize()
+
+    release_response = await agent.process(
+        {
+            "action": "plan_release",
+            "tenant_id": "tenant-rel",
+            "release": {
+                "name": "Release 7",
+                "target_environment": "staging",
+                "planned_date": "2024-06-11",
+                "deployment_strategy": "canary",
+            },
+        }
+    )
+    plan_response = await agent.process(
+        {
+            "action": "create_deployment_plan",
+            "tenant_id": "tenant-rel",
+            "release_id": release_response["release_id"],
+            "deployment_plan": {"strategy": "canary"},
+        }
+    )
+    success_response = await agent.process(
+        {
+            "action": "execute_deployment",
+            "tenant_id": "tenant-rel",
+            "deployment_plan_id": plan_response["deployment_plan_id"],
+        }
+    )
+    assert success_response["status"] in {"Completed", "Failed"}
+    assert any(topic == "deployment.started" for topic, _ in event_bus.published)
+
+    failing_plan_response = await agent.process(
+        {
+            "action": "create_deployment_plan",
+            "tenant_id": "tenant-rel",
+            "release_id": release_response["release_id"],
+            "deployment_plan": {
+                "strategy": "rolling",
+                "custom_steps": [{"step": 1, "action": "Deploy", "should_fail": True}],
+            },
+        }
+    )
+    failure_response = await agent.process(
+        {
+            "action": "execute_deployment",
+            "tenant_id": "tenant-rel",
+            "deployment_plan_id": failing_plan_response["deployment_plan_id"],
+        }
+    )
+    assert failure_response["status"] == "Failed"
