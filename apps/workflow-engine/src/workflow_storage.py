@@ -239,6 +239,13 @@ class WorkflowStore:
                 updated_at=row[7],
             )
 
+    def delete_definition(self, workflow_id: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "DELETE FROM workflow_definitions WHERE workflow_id = ?",
+                (workflow_id,),
+            )
+
     def list_definitions(self) -> list[WorkflowDefinition]:
         with self._connect() as conn:
             rows = conn.execute(

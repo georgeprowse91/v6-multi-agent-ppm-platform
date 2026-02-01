@@ -59,7 +59,11 @@
               "task",
               "decision",
               "approval",
-              "notification"
+              "notification",
+              "parallel",
+              "loop",
+              "api",
+              "script"
             ]
           },
           "next": {
@@ -114,7 +118,44 @@
               "additionalProperties": false
             }
           },
+          "condition": {
+            "type": "object",
+            "required": [
+              "field",
+              "operator"
+            ],
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "greater_than",
+                  "less_than",
+                  "contains",
+                  "exists"
+                ]
+              },
+              "value": {}
+            },
+            "additionalProperties": false
+          },
+          "join": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "default_next": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "exit": {
             "type": [
               "string",
               "null"
@@ -137,6 +178,13 @@
           "timeout_seconds": {
             "type": "integer",
             "minimum": 0
+          },
+          "on_error": {
+            "type": "object"
+          },
+          "max_iterations": {
+            "type": "integer",
+            "minimum": 1
           },
           "config": {
             "type": "object"

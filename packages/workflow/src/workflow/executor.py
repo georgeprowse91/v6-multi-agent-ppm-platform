@@ -37,6 +37,8 @@ class StepExecutionOutcome:
     next_step_id: str | None
     should_retry: bool
     retry_delay_seconds: int
+    parallel_branches: list[str] | None = None
+    join_step_id: str | None = None
 
 
 class WorkflowStepExecutor:
@@ -68,6 +70,8 @@ class WorkflowStepExecutor:
             next_step_id=result.next_step_id,
             should_retry=result.should_retry,
             retry_delay_seconds=result.retry_delay_seconds,
+            parallel_branches=result.parallel_branches,
+            join_step_id=result.join_step_id,
         )
 
     def _load_definition(self, workflow_id: str) -> dict[str, Any]:

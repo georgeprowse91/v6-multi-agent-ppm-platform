@@ -32,6 +32,10 @@ def _executor() -> WorkflowStepExecutor:
 
 def _dispatch_next(outcome: StepExecutionOutcome, run_id: str, actor: dict[str, Any]) -> None:
     dispatcher = WorkflowDispatcher()
+    if outcome.parallel_branches:
+        for branch_id in outcome.parallel_branches:
+            dispatcher.dispatch_step(run_id, branch_id, actor)
+        return
     if outcome.should_retry and outcome.next_step_id:
         dispatcher.dispatch_step(
             run_id, outcome.next_step_id, actor, countdown=outcome.retry_delay_seconds

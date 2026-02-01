@@ -9,6 +9,13 @@ Document the workflows assets for the Workflow Engine application.
 - `apps/workflow-engine/workflows/definitions`: Subdirectory containing definitions assets for this area.
 - `apps/workflow-engine/workflows/schema`: Schemas or validation rules for component assets.
 
+Sample workflow templates included:
+- `change-request`
+- `deployment-rollback`
+- `project-initiation`
+- `quality-audit`
+- `risk-mitigation`
+
 ## How it's used
 
 These assets are consumed by the parent app during build, runtime, or deployment.
