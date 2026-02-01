@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Connector Certification Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "connector_id",
+    "tenant_id",
+    "compliance_status",
+    "documents",
+    "updated_at"
+  ],
+  "properties": {
+    "connector_id": {
+      "type": "string",
+      "description": "Connector identifier."
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant that owns the certification record."
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "certified",
+        "pending",
+        "expired",
+        "not_certified"
+      ],
+      "description": "Current compliance status for the connector."
+    },
+    "certification_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Date the certification was issued."
+    },
+    "expires_at": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Date the certification expires."
+    },
+    "audit_reference": {
+      "type": ["string", "null"],
+      "description": "External audit reference or report ID."
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Additional notes about the certification."
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["document_id", "filename", "uploaded_at"],
+        "properties": {
+          "document_id": { "type": "string" },
+          "filename": { "type": "string" },
+          "content_type": { "type": "string" },
+          "storage_path": { "type": "string" },
+          "uploaded_at": { "type": "string", "format": "date-time" },
+          "uploaded_by": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_by": {
+      "type": ["string", "null"]
+    }
+  }
+}

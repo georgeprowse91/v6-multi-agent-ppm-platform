@@ -5,6 +5,9 @@
 export { useConnectorStore, default } from './useConnectorStore';
 export type {
   CategoryInfo,
+  CertificationDocument,
+  CertificationRecord,
+  CertificationStatus,
   ConfigField,
   Connector,
   ConnectorCategory,

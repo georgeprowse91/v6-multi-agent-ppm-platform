@@ -136,6 +136,13 @@ export function LeftPanel() {
     'knowledge-lessons': t('nav.lessons'),
   };
 
+  const tourTargets: Record<string, string> = {
+    agents: 'nav-agents',
+    connectors: 'nav-connectors',
+    workflows: 'nav-workflows',
+    'workflow-monitoring': 'nav-workflow-monitor',
+  };
+
   const configItems = [
     ...configNav,
     ...(showAuditLogs
@@ -210,6 +217,7 @@ export function LeftPanel() {
                   }`}
                   title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
                   data-nav-item="true"
+                  data-tour={tourTargets[item.id] ?? undefined}
                 >
                   <span className={styles.icon}>{item.icon}</span>
                   {!leftPanelCollapsed && (
@@ -235,6 +243,7 @@ export function LeftPanel() {
                   }`}
                   title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
                   data-nav-item="true"
+                  data-tour={tourTargets[item.id] ?? undefined}
                 >
                   <span className={styles.icon}>{item.icon}</span>
                   {!leftPanelCollapsed && (
@@ -260,6 +269,7 @@ export function LeftPanel() {
                   }`}
                   title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
                   data-nav-item="true"
+                  data-tour={tourTargets[item.id] ?? undefined}
                 >
                   <span className={styles.icon}>{item.icon}</span>
                   {!leftPanelCollapsed && (

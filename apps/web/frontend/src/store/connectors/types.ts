@@ -45,6 +45,15 @@ export type SyncFrequency =
 export type HealthStatus = 'healthy' | 'unhealthy' | 'unknown';
 
 /**
+ * Certification status for connector compliance evidence
+ */
+export type CertificationStatus =
+  | 'certified'
+  | 'pending'
+  | 'expired'
+  | 'not_certified';
+
+/**
  * Connection test status
  */
 export type ConnectionTestStatus =
@@ -93,6 +102,33 @@ export interface Connector extends ConnectorDefinition {
   health_status: HealthStatus;
   last_sync_at: string | null;
   custom_fields?: Record<string, unknown>;
+}
+
+/**
+ * Evidence document for certification audits
+ */
+export interface CertificationDocument {
+  document_id: string;
+  filename: string;
+  content_type: string;
+  uploaded_at: string;
+  uploaded_by?: string | null;
+}
+
+/**
+ * Certification record for a connector
+ */
+export interface CertificationRecord {
+  connector_id: string;
+  tenant_id: string;
+  compliance_status: CertificationStatus;
+  certification_date?: string | null;
+  expires_at?: string | null;
+  audit_reference?: string | null;
+  notes?: string | null;
+  documents: CertificationDocument[];
+  updated_at: string;
+  updated_by?: string | null;
 }
 
 /**

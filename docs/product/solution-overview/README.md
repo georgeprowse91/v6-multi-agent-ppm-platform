@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Describe the solution overview documentation set and link the narrative to the repo assets that implement it.
+Describe the solution overview documentation set and link the narrative to the repo assets that implement it. Recent additions include connector certification evidence tracking and guided UI walkthroughs for the web console.
 
 ## Implementation alignment
 
-The files in this folder are go-to-market narratives. The repository already includes the core execution stack (API gateway, orchestration service, workflow engine, agent runtime, connector registry, data sync service, analytics service, and data-lineage service) plus a lightweight web console (`apps/web`) with the workspace shell, dashboard canvas, connector gallery, and assistant panel. Use the Solution Index to cross-reference deeper architecture details and the latest runtime configuration.
+The files in this folder are go-to-market narratives. The repository already includes the core execution stack (API gateway, orchestration service, workflow engine, agent runtime, connector registry, data sync service, analytics service, and data-lineage service) plus a lightweight web console (`apps/web`) with the workspace shell, dashboard canvas, connector gallery, guided tours, and assistant panel. Certification evidence tracking now lives alongside connector management to close compliance gaps. Use the Solution Index to cross-reference deeper architecture details and the latest runtime configuration.
 
 ## What's inside
 

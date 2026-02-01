@@ -25,6 +25,7 @@ from api.routes import (
     agents,
     analytics,
     audit,
+    certifications,
     compliance_research,
     connectors,
     documents,
@@ -210,6 +211,7 @@ app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(agent_config.router, prefix="/api/v1", tags=["agent-config"])
 app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
 app.include_router(connectors.router, prefix="/api/v1", tags=["connectors"])
+app.include_router(certifications.router, prefix="/api/v1", tags=["certifications"])
 app.include_router(workflows.router, prefix="/api/v1", tags=["workflows"])
 app.include_router(audit.router, prefix="/api/v1", tags=["audit"])
 app.include_router(lineage.router, prefix="/api/v1", tags=["lineage"])

@@ -10,7 +10,13 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useConnectorStore, CATEGORY_INFO, type Connector, type ConnectorCategory } from '@/store/connectors';
+import {
+  useConnectorStore,
+  CATEGORY_INFO,
+  type CertificationRecord,
+  type Connector,
+  type ConnectorCategory,
+} from '@/store/connectors';
 import { useAppStore } from '@/store';
 import { canManageConfig } from '@/auth/permissions';
 import { SyncStatusPanel } from './SyncStatusPanel';
@@ -21,6 +27,9 @@ export function ConnectorGallery() {
     connectors,
     connectorsLoading,
     connectorsError,
+    certifications,
+    certificationsLoading,
+    fetchCertifications,
     filter,
     fetchConnectors,
     fetchCategories,
@@ -38,9 +47,13 @@ export function ConnectorGallery() {
     testingConnection,
     testResult,
     clearTestResult,
+    updateCertification,
+    uploadCertificationDocument,
   } = useConnectorStore();
   const { session } = useAppStore();
   const canManage = canManageConfig(session.user?.roles);
+  const [certModalOpen, setCertModalOpen] = useState(false);
+  const [certModalConnector, setCertModalConnector] = useState<Connector | null>(null);
   const statusOptions: { value: Connector['status'] | 'all'; label: string }[] = [
     { value: 'all', label: 'All Status' },
     { value: 'production', label: 'Production' },
@@ -53,7 +66,8 @@ export function ConnectorGallery() {
   useEffect(() => {
     fetchConnectors();
     fetchCategories();
-  }, [fetchConnectors, fetchCategories]);
+    fetchCertifications();
+  }, [fetchConnectors, fetchCategories, fetchCertifications]);
 
   // Get filtered connectors
   const filteredConnectors = useMemo(() => getFilteredConnectors(), [connectors, filter, getFilteredConnectors]);
@@ -101,6 +115,16 @@ export function ConnectorGallery() {
     openConnectorModal(connector);
   };
 
+  const handleOpenCertification = (connector: Connector) => {
+    setCertModalConnector(connector);
+    setCertModalOpen(true);
+  };
+
+  const handleCloseCertification = () => {
+    setCertModalConnector(null);
+    setCertModalOpen(false);
+  };
+
   if (connectorsLoading) {
     return (
       <div className={styles.container}>
@@ -121,7 +145,7 @@ export function ConnectorGallery() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-tour="connector-gallery">
       <SyncStatusPanel />
       {/* Header */}
       <div className={styles.header}>
@@ -223,7 +247,9 @@ export function ConnectorGallery() {
               connectors={connectorsByCategory[category]}
               onToggleEnabled={handleToggleEnabled}
               onOpenConfig={handleOpenConfig}
+              onOpenCertification={handleOpenCertification}
               canManage={canManage}
+              certifications={certifications}
             />
           ))
         )}
@@ -241,6 +267,19 @@ export function ConnectorGallery() {
           clearTestResult={clearTestResult}
         />
       )}
+
+      {certModalOpen && certModalConnector && (
+        <CertificationModal
+          connector={certModalConnector}
+          certification={certifications[certModalConnector.connector_id]}
+          canManage={canManage}
+          loading={certificationsLoading}
+          onClose={handleCloseCertification}
+          onSave={updateCertification}
+          onUploadDocument={uploadCertificationDocument}
+          updatedBy={session.user?.name ?? session.user?.id ?? undefined}
+        />
+      )}
     </div>
   );
 }
@@ -253,7 +292,9 @@ interface CategorySectionProps {
   connectors: Connector[];
   onToggleEnabled: (connector: Connector) => void;
   onOpenConfig: (connector: Connector) => void;
+  onOpenCertification: (connector: Connector) => void;
   canManage: boolean;
+  certifications: Record<string, CertificationRecord>;
 }
 
 function CategorySection({
@@ -261,7 +302,9 @@ function CategorySection({
   connectors,
   onToggleEnabled,
   onOpenConfig,
+  onOpenCertification,
   canManage,
+  certifications,
 }: CategorySectionProps) {
   const info = CATEGORY_INFO[category];
   const enabledConnector = connectors.find((c) => c.enabled);
@@ -290,7 +333,9 @@ function CategorySection({
             connector={connector}
             onToggleEnabled={() => onToggleEnabled(connector)}
             onOpenConfig={() => onOpenConfig(connector)}
+            onOpenCertification={() => onOpenCertification(connector)}
             canManage={canManage}
+            certification={certifications[connector.connector_id]}
           />
         ))}
       </div>
@@ -305,19 +350,26 @@ interface ConnectorCardProps {
   connector: Connector;
   onToggleEnabled: () => void;
   onOpenConfig: () => void;
+  onOpenCertification: () => void;
   canManage: boolean;
+  certification?: CertificationRecord;
 }
 
 function ConnectorCard({
   connector,
   onToggleEnabled,
   onOpenConfig,
+  onOpenCertification,
   canManage,
+  certification,
 }: ConnectorCardProps) {
   const statusLabel = STATUS_LABELS[connector.status];
   const statusClassName = STATUS_BADGE_CLASSES[connector.status];
   const isToggleable = isConnectorToggleable(connector.status);
   const canToggle = canManage && isToggleable;
+  const certStatus = certification?.compliance_status ?? 'not_tracked';
+  const certLabel = CERTIFICATION_LABELS[certStatus];
+  const certBadgeClass = CERTIFICATION_BADGE_CLASSES[certStatus];
 
   return (
     <div
@@ -369,6 +421,9 @@ function ConnectorCard({
             {connector.health_status === 'unknown' && 'Not tested'}
           </span>
         )}
+        <span className={`${styles.certificationBadge} ${certBadgeClass}`}>
+          {certLabel}
+        </span>
       </div>
 
       <div className={styles.cardActions}>
@@ -385,6 +440,13 @@ function ConnectorCard({
           }
         >
           Configure
+        </button>
+        <button
+          className={styles.certButton}
+          onClick={onOpenCertification}
+          data-tour="certification-evidence"
+        >
+          {canManage ? 'Manage Evidence' : 'View Evidence'}
         </button>
       </div>
     </div>
@@ -685,6 +747,208 @@ function ConnectorConfigModal({
   );
 }
 
+interface CertificationModalProps {
+  connector: Connector;
+  certification?: CertificationRecord;
+  canManage: boolean;
+  loading: boolean;
+  updatedBy?: string;
+  onClose: () => void;
+  onSave: (
+    connectorId: string,
+    payload: Partial<{
+      compliance_status: CertificationRecord['compliance_status'];
+      certification_date: string | null;
+      expires_at: string | null;
+      audit_reference: string | null;
+      notes: string | null;
+      updated_by?: string;
+    }>
+  ) => Promise<CertificationRecord | null>;
+  onUploadDocument: (
+    connectorId: string,
+    file: File,
+    uploadedBy?: string
+  ) => Promise<CertificationRecord | null>;
+}
+
+function CertificationModal({
+  connector,
+  certification,
+  canManage,
+  loading,
+  updatedBy,
+  onClose,
+  onSave,
+  onUploadDocument,
+}: CertificationModalProps) {
+  const [status, setStatus] = useState<CertificationRecord['compliance_status']>(
+    certification?.compliance_status ?? 'pending'
+  );
+  const [certificationDate, setCertificationDate] = useState(certification?.certification_date ?? '');
+  const [expiresAt, setExpiresAt] = useState(certification?.expires_at ?? '');
+  const [auditReference, setAuditReference] = useState(certification?.audit_reference ?? '');
+  const [notes, setNotes] = useState(certification?.notes ?? '');
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    setStatus(certification?.compliance_status ?? 'pending');
+    setCertificationDate(certification?.certification_date ?? '');
+    setExpiresAt(certification?.expires_at ?? '');
+    setAuditReference(certification?.audit_reference ?? '');
+    setNotes(certification?.notes ?? '');
+  }, [certification]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave(connector.connector_id, {
+      compliance_status: status,
+      certification_date: certificationDate || null,
+      expires_at: expiresAt || null,
+      audit_reference: auditReference || null,
+      notes: notes || null,
+      updated_by: updatedBy,
+    });
+    setSaving(false);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+    setUploading(true);
+    await onUploadDocument(connector.connector_id, file, updatedBy);
+    setFile(null);
+    setUploading(false);
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <div className={styles.modalTitleSection}>
+            <ConnectorIcon name={connector.icon} />
+            <h2 className={styles.modalTitle}>{connector.name} Certification Evidence</h2>
+          </div>
+          <button className={styles.modalClose} onClick={onClose}>
+            x
+          </button>
+        </div>
+        <div className={styles.modalBody}>
+          <p className={styles.modalDescription}>
+            Track certification status, audit references, and evidence documents for this connector.
+          </p>
+
+          <div className={styles.certGrid}>
+            <label className={styles.field}>
+              <span>Status</span>
+              <select
+                value={status}
+                onChange={(event) =>
+                  setStatus(event.target.value as CertificationRecord['compliance_status'])
+                }
+                disabled={!canManage || loading}
+              >
+                <option value="certified">Certified</option>
+                <option value="pending">Pending review</option>
+                <option value="expired">Expired</option>
+                <option value="not_certified">Not certified</option>
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>Certification date</span>
+              <input
+                type="date"
+                value={certificationDate ?? ''}
+                onChange={(event) => setCertificationDate(event.target.value)}
+                disabled={!canManage || loading}
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Expiration date</span>
+              <input
+                type="date"
+                value={expiresAt ?? ''}
+                onChange={(event) => setExpiresAt(event.target.value)}
+                disabled={!canManage || loading}
+              />
+            </label>
+          </div>
+
+          <label className={styles.field}>
+            <span>Audit reference</span>
+            <input
+              type="text"
+              value={auditReference ?? ''}
+              onChange={(event) => setAuditReference(event.target.value)}
+              disabled={!canManage || loading}
+              placeholder="SOC 2 report ID, ISO certificate number, etc."
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span>Notes</span>
+            <textarea
+              value={notes ?? ''}
+              onChange={(event) => setNotes(event.target.value)}
+              disabled={!canManage || loading}
+              rows={3}
+            />
+          </label>
+
+          <div className={styles.certDocuments}>
+            <h3>Evidence documents</h3>
+            {certification?.documents?.length ? (
+              <ul className={styles.documentList}>
+                {certification.documents.map((doc) => (
+                  <li key={doc.document_id}>
+                    <div className={styles.documentName}>{doc.filename}</div>
+                    <div className={styles.documentMeta}>
+                      <span>{new Date(doc.uploaded_at).toLocaleDateString()}</span>
+                      {doc.uploaded_by && <span>Uploaded by {doc.uploaded_by}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.emptyDocuments}>No evidence uploaded yet.</p>
+            )}
+
+            {canManage && (
+              <div className={styles.uploadRow}>
+                <input
+                  type="file"
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                />
+                <button
+                  className={styles.uploadButton}
+                  onClick={handleUpload}
+                  disabled={!file || uploading}
+                >
+                  {uploading ? 'Uploading...' : 'Upload Evidence'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.modalFooter}>
+          <button className={styles.secondaryButton} onClick={onClose}>
+            Close
+          </button>
+          {canManage && (
+            <button className={styles.primaryButton} onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Updates'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default ConnectorGallery;
 
 const STATUS_LABELS: Record<Connector['status'], string> = {
@@ -699,6 +963,28 @@ const STATUS_BADGE_CLASSES: Record<Connector['status'], string> = {
   coming_soon: styles.statusBadgeComingSoon,
   beta: styles.statusBadgeBeta,
   production: styles.statusBadgeProduction,
+};
+
+const CERTIFICATION_LABELS: Record<
+  CertificationRecord['compliance_status'] | 'not_tracked',
+  string
+> = {
+  certified: 'Certified',
+  pending: 'Pending',
+  expired: 'Expired',
+  not_certified: 'Not certified',
+  not_tracked: 'Not tracked',
+};
+
+const CERTIFICATION_BADGE_CLASSES: Record<
+  CertificationRecord['compliance_status'] | 'not_tracked',
+  string
+> = {
+  certified: styles.certBadgeCertified,
+  pending: styles.certBadgePending,
+  expired: styles.certBadgeExpired,
+  not_certified: styles.certBadgeNotCertified,
+  not_tracked: styles.certBadgeNotTracked,
 };
 
 const isConnectorToggleable = (status: Connector['status']) =>
