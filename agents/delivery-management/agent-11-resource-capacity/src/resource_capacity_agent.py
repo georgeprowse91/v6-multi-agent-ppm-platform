@@ -64,11 +64,38 @@ class ResourceCapacityRepository:
                 source_system: Mapped[str] = mapped_column(String(64), default="agent")
                 metadata: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
+            class ResourceScheduleRecord(Base):  # type: ignore
+                __tablename__ = "resource_schedules"
+
+                resource_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+                schedule: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+                availability: Mapped[float] = mapped_column(Float, default=1.0)
+                updated_at: Mapped[str] = mapped_column(String(64))
+
+            class ResourceForecastRecord(Base):  # type: ignore
+                __tablename__ = "resource_forecasts"
+
+                forecast_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+                forecast_type: Mapped[str] = mapped_column(String(64))
+                payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+                created_at: Mapped[str] = mapped_column(String(64))
+
+            class ResourcePerformanceRecord(Base):  # type: ignore
+                __tablename__ = "resource_performance_scores"
+
+                resource_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+                score: Mapped[float] = mapped_column(Float, default=0.0)
+                metadata: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+                updated_at: Mapped[str] = mapped_column(String(64))
+
             self.engine = create_engine(database_url)
             Base.metadata.create_all(self.engine)
             self.session_factory = sessionmaker(self.engine)
             self.EmployeeProfileRecord = EmployeeProfileRecord
             self.CapacityAllocationRecord = CapacityAllocationRecord
+            self.ResourceScheduleRecord = ResourceScheduleRecord
+            self.ResourceForecastRecord = ResourceForecastRecord
+            self.ResourcePerformanceRecord = ResourcePerformanceRecord
             self._select = select
 
     def is_enabled(self) -> bool:
@@ -133,6 +160,85 @@ class ResourceCapacityRepository:
         with self.session_factory() as session:  # type: ignore[operator]
             records = session.scalars(self._select(self.CapacityAllocationRecord)).all()
             return [record.metadata for record in records]
+
+    def upsert_resource_schedule(
+        self, resource_id: str, schedule: dict[str, Any], availability: float | None = None
+    ) -> None:
+        if not self.is_enabled():
+            return
+        updated_at = datetime.utcnow().isoformat()
+        with self.session_factory() as session:  # type: ignore[operator]
+            record = session.get(self.ResourceScheduleRecord, resource_id)
+            if record:
+                record.schedule = schedule
+                if availability is not None:
+                    record.availability = float(availability)
+                record.updated_at = updated_at
+            else:
+                record = self.ResourceScheduleRecord(
+                    resource_id=resource_id,
+                    schedule=schedule,
+                    availability=float(availability or 0.0),
+                    updated_at=updated_at,
+                )
+                session.add(record)
+            session.commit()
+
+    def upsert_forecast(self, forecast_id: str, forecast: dict[str, Any]) -> None:
+        if not self.is_enabled():
+            return
+        forecast_type = forecast.get("type", "capacity")
+        created_at = datetime.utcnow().isoformat()
+        with self.session_factory() as session:  # type: ignore[operator]
+            record = session.get(self.ResourceForecastRecord, forecast_id)
+            if record:
+                record.payload = forecast
+                record.forecast_type = forecast_type
+                record.created_at = created_at
+            else:
+                record = self.ResourceForecastRecord(
+                    forecast_id=forecast_id,
+                    forecast_type=forecast_type,
+                    payload=forecast,
+                    created_at=created_at,
+                )
+                session.add(record)
+            session.commit()
+
+    def upsert_performance_score(
+        self, resource_id: str, score: float, metadata: dict[str, Any]
+    ) -> None:
+        if not self.is_enabled():
+            return
+        updated_at = datetime.utcnow().isoformat()
+        with self.session_factory() as session:  # type: ignore[operator]
+            record = session.get(self.ResourcePerformanceRecord, resource_id)
+            if record:
+                record.score = float(score)
+                record.metadata = metadata
+                record.updated_at = updated_at
+            else:
+                record = self.ResourcePerformanceRecord(
+                    resource_id=resource_id,
+                    score=float(score),
+                    metadata=metadata,
+                    updated_at=updated_at,
+                )
+                session.add(record)
+            session.commit()
+
+    def delete_employee_profile(self, employee_id: str) -> None:
+        if not self.is_enabled():
+            return
+        with self.session_factory() as session:  # type: ignore[operator]
+            record = session.get(self.EmployeeProfileRecord, employee_id)
+            if record:
+                session.delete(record)
+                session.commit()
+
+    def close(self) -> None:
+        if self.engine:
+            self.engine.dispose()
 
 
 class AzureADClient:
@@ -353,6 +459,57 @@ class TimeSeriesForecaster:
             return None
         return None
 
+
+class AIMLForecastClient:
+    def __init__(self, endpoint: str | None, api_key: str | None) -> None:
+        self.endpoint = endpoint
+        self.api_key = api_key
+
+    def is_configured(self) -> bool:
+        return bool(self.endpoint and self.api_key)
+
+    def train_model(
+        self,
+        model_name: str,
+        series: list[float],
+        horizon: int,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        if not self.is_configured():
+            return None
+        import requests
+
+        response = requests.post(
+            f"{self.endpoint}/forecasting/train",
+            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            json={
+                "model_name": model_name,
+                "series": series,
+                "horizon": horizon,
+                "metadata": metadata or {},
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        return cast(dict[str, Any], response.json())
+
+    def forecast(self, model_name: str, series: list[float], horizon: int) -> list[float] | None:
+        if not self.is_configured():
+            return None
+        import requests
+
+        response = requests.post(
+            f"{self.endpoint}/forecasting/predict",
+            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            json={"model_name": model_name, "series": series, "horizon": horizon},
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        forecast = payload.get("forecast")
+        if isinstance(forecast, list):
+            return [float(value) for value in forecast]
+        return None
 
 class EventPublisher:
     def __init__(self, connection_string: str | None, queue_name: str | None) -> None:
@@ -646,6 +803,12 @@ class ResourceCapacityAgent(BaseAgent):
             self.event_bus = get_event_bus()
         self.db_service: DatabaseStorageService | None = None
         self.forecasting_model: ForecastingModel | None = None
+        self.ml_forecast_client = config.get("ml_forecast_client") if config else None
+        if self.ml_forecast_client is None:
+            self.ml_forecast_client = AIMLForecastClient(
+                os.getenv("AZURE_ML_ENDPOINT"),
+                os.getenv("AZURE_ML_API_KEY"),
+            )
         self.repository = ResourceCapacityRepository(os.getenv("RESOURCE_CAPACITY_DATABASE_URL"))
         self.graph_client: AzureADClient | None = None
         self.embedding_client: EmbeddingClient | None = None
@@ -753,6 +916,8 @@ class ResourceCapacityAgent(BaseAgent):
 
         valid_actions = [
             "add_resource",
+            "update_resource",
+            "delete_resource",
             "request_resource",
             "approve_request",
             "search_resources",
@@ -778,6 +943,17 @@ class ResourceCapacityAgent(BaseAgent):
                 if field not in resource_data:
                     self.logger.warning(f"Missing required field: {field}")
                     return False
+        elif action == "update_resource":
+            resource_data = input_data.get("resource", {})
+            if "resource_id" not in resource_data:
+                self.logger.warning("Missing required field: resource_id")
+                return False
+
+        elif action == "delete_resource":
+            resource_id = input_data.get("resource_id")
+            if not resource_id:
+                self.logger.warning("Missing required field: resource_id")
+                return False
 
         elif action == "request_resource":
             request_data = input_data.get("request", {})
@@ -836,6 +1012,16 @@ class ResourceCapacityAgent(BaseAgent):
 
         if action == "add_resource":
             return await self._add_resource(input_data.get("resource", {}), tenant_id=tenant_id)
+
+        elif action == "update_resource":
+            return await self._update_resource(
+                input_data.get("resource", {}), tenant_id=tenant_id
+            )
+
+        elif action == "delete_resource":
+            resource_id = input_data.get("resource_id")
+            assert isinstance(resource_id, str), "resource_id must be a string"
+            return await self._delete_resource(resource_id, tenant_id=tenant_id)
 
         elif action == "request_resource":
             return await self._request_resource(input_data.get("request", {}), tenant_id=tenant_id)
@@ -946,6 +1132,12 @@ class ResourceCapacityAgent(BaseAgent):
         }
         self.capacity_calendar[resource_id] = calendar_entry
         self.calendar_store.upsert(tenant_id, resource_id, calendar_entry)
+        await self._persist_resource_schedule(
+            resource_id,
+            calendar_entry,
+            tenant_id=tenant_id,
+            availability=resource_profile.get("availability", 1.0),
+        )
 
         validation = await self._validate_resource_record(resource_profile, tenant_id=tenant_id)
 
@@ -971,6 +1163,63 @@ class ResourceCapacityAgent(BaseAgent):
             "status": "Active",
             "data_quality": validation,
         }
+
+    async def _update_resource(
+        self, resource_data: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
+        """Update resource details in the pool."""
+        resource_id = resource_data.get("resource_id")
+        assert isinstance(resource_id, str), "resource_id must be a string"
+        existing = self.resource_pool.get(resource_id)
+        if not existing:
+            return await self._add_resource(resource_data, tenant_id=tenant_id)
+
+        updated = {**existing, **{k: v for k, v in resource_data.items() if v is not None}}
+        updated["updated_at"] = datetime.utcnow().isoformat()
+        self.resource_pool[resource_id] = updated
+        self.resource_store.upsert(tenant_id, resource_id, updated)
+        canonical_profile = dict(updated)
+        canonical_profile.update({"employee_id": resource_id, "source_system": "agent"})
+        await self._store_canonical_profile(resource_id, canonical_profile, updated)
+        await self._index_skills()
+        await self._publish_resource_event("resource.updated", updated)
+        return {"resource_id": resource_id, "profile": updated, "status": updated.get("status")}
+
+    async def _delete_resource(self, resource_id: str, *, tenant_id: str) -> dict[str, Any]:
+        """Delete (deactivate) a resource from the pool."""
+        if resource_id not in self.resource_pool:
+            return {"resource_id": resource_id, "status": "NotFound"}
+        await self._deactivate_resource(resource_id, reason="manual_delete")
+        if self.db_service:
+            await self.db_service.delete("resource_profiles", resource_id)
+        self.repository.delete_employee_profile(resource_id)
+        return {"resource_id": resource_id, "status": "Inactive"}
+
+    async def _persist_resource_schedule(
+        self,
+        resource_id: str,
+        schedule: dict[str, Any],
+        *,
+        tenant_id: str,
+        availability: float | None = None,
+    ) -> None:
+        self.repository.upsert_resource_schedule(resource_id, schedule, availability)
+        if self.db_service:
+            await self.db_service.store(
+                "resource_schedules",
+                resource_id,
+                {
+                    "resource_id": resource_id,
+                    "schedule": schedule,
+                    "availability": availability,
+                    "tenant_id": tenant_id,
+                    "updated_at": datetime.utcnow().isoformat(),
+                },
+            )
+        if self.redis_client:
+            self.redis_client.set(
+                f"resource_schedule:{resource_id}", json.dumps(schedule), ex=3600
+            )
 
     async def _request_resource(
         self, request_data: dict[str, Any], *, tenant_id: str
@@ -1012,6 +1261,8 @@ class ResourceCapacityAgent(BaseAgent):
         request = {
             "request_id": request_id,
             "project_id": project_id,
+            "project_role": request_data.get("project_role"),
+            "project_roles": request_data.get("project_roles", []),
             "required_skills": required_skills,
             "start_date": start_date,
             "end_date": end_date,
@@ -1153,7 +1404,7 @@ class ResourceCapacityAgent(BaseAgent):
 
             # Check skills
             if skills:
-                resource_skills = set(resource.get("skills", []))
+                resource_skills = set(self._get_effective_skills(resource))
                 required_skills = set(skills)
                 if not required_skills.issubset(resource_skills):
                     continue
@@ -1328,20 +1579,47 @@ class ResourceCapacityAgent(BaseAgent):
         """
         self.logger.info("Forecasting capacity")
 
+        history_months = int(filters.get("history_months", 6))
+        tenant_id = filters.get("tenant_id") or self.default_tenant_id
+        cache_key = (
+            f"capacity_forecast:{tenant_id}:{history_months}:{self.forecast_horizon_months}"
+        )
+        if self.redis_client:
+            cached = self.redis_client.get(cache_key)
+            if cached:
+                try:
+                    return cast(dict[str, Any], json.loads(cached))
+                except json.JSONDecodeError:
+                    pass
+
         # Calculate current capacity
         current_capacity = await self._calculate_total_capacity()
 
         # Get current demand
         current_demand = await self._calculate_total_demand()
 
-        history_months = int(filters.get("history_months", 6))
         capacity_series, demand_series = await self._build_capacity_demand_history(history_months)
-        forecaster = TimeSeriesForecaster(
-            automl_endpoint=os.getenv("AZURE_AUTOML_ENDPOINT"),
-            automl_api_key=os.getenv("AZURE_AUTOML_API_KEY"),
+        ml_metadata = await self._train_forecasting_models(
+            capacity_series, demand_series, tenant_id=tenant_id, history_months=history_months
         )
-        capacity_forecast = forecaster.forecast(capacity_series, self.forecast_horizon_months)
-        demand_forecast = forecaster.forecast(demand_series, self.forecast_horizon_months)
+        capacity_forecast = None
+        demand_forecast = None
+        if self.ml_forecast_client and self.ml_forecast_client.is_configured():
+            capacity_forecast = self.ml_forecast_client.forecast(
+                f"{tenant_id}-capacity", capacity_series, self.forecast_horizon_months
+            )
+            demand_forecast = self.ml_forecast_client.forecast(
+                f"{tenant_id}-demand", demand_series, self.forecast_horizon_months
+            )
+        if capacity_forecast is None or demand_forecast is None:
+            forecaster = TimeSeriesForecaster(
+                automl_endpoint=os.getenv("AZURE_AUTOML_ENDPOINT"),
+                automl_api_key=os.getenv("AZURE_AUTOML_API_KEY"),
+            )
+            capacity_forecast = forecaster.forecast(
+                capacity_series, self.forecast_horizon_months
+            )
+            demand_forecast = forecaster.forecast(demand_series, self.forecast_horizon_months)
         future_capacity = self._adjust_capacity_forecast(capacity_forecast)
         future_demand = self._adjust_demand_forecast(demand_forecast)
 
@@ -1355,29 +1633,9 @@ class ResourceCapacityAgent(BaseAgent):
             "seasonality_factors": self.seasonality_factors,
             "training_capacity_impact": self.training_capacity_impact,
             "skill_development_uplift": self.skill_development_uplift,
+            "ml_metadata": ml_metadata,
         }
-        if self.db_service:
-            await self.db_service.store(
-                "capacity_forecasts",
-                f"forecast-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
-                {
-                    "created_at": datetime.utcnow().isoformat(),
-                    "forecast": {
-                        "future_capacity": future_capacity,
-                        "future_demand": future_demand,
-                    },
-                    "assumptions": assumptions,
-                },
-            )
-        if self.analytics_client:
-            self.analytics_client.record_metric("capacity.current", current_capacity)
-            self.analytics_client.record_metric("demand.current", current_demand)
-            self.analytics_client.record_metric(
-                "utilization.current",
-                current_demand / current_capacity if current_capacity else 0.0,
-            )
-
-        return {
+        forecast_payload = {
             "forecast_horizon_months": self.forecast_horizon_months,
             "current_capacity": current_capacity,
             "current_demand": current_demand,
@@ -1392,7 +1650,32 @@ class ResourceCapacityAgent(BaseAgent):
             "bottlenecks": bottlenecks,
             "recommendations": recommendations,
             "assumptions": assumptions,
+            "type": "capacity_vs_demand",
         }
+        forecast_id = f"forecast-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        if self.db_service:
+            await self.db_service.store(
+                "capacity_forecasts",
+                forecast_id,
+                {
+                    "created_at": datetime.utcnow().isoformat(),
+                    "forecast": forecast_payload,
+                    "assumptions": assumptions,
+                },
+            )
+        self.repository.upsert_forecast(forecast_id, forecast_payload)
+        await self._publish_resource_event("resource.capacity.forecasted", forecast_payload)
+        if self.redis_client:
+            self.redis_client.set(cache_key, json.dumps(forecast_payload), ex=900)
+        if self.analytics_client:
+            self.analytics_client.record_metric("capacity.current", current_capacity)
+            self.analytics_client.record_metric("demand.current", current_demand)
+            self.analytics_client.record_metric(
+                "utilization.current",
+                current_demand / current_capacity if current_capacity else 0.0,
+            )
+
+        return forecast_payload
 
     async def _plan_capacity(self, planning_horizon: dict[str, Any]) -> dict[str, Any]:
         """
@@ -1852,6 +2135,22 @@ class ResourceCapacityAgent(BaseAgent):
                 "created_at": profile.get("created_at", datetime.utcnow().isoformat()),
                 "source_system": profile.get("source_system", "unknown"),
             }
+            if resource_id not in self.capacity_calendar:
+                calendar_entry = {
+                    "resource_id": resource_id,
+                    "available_hours_per_day": self.default_working_hours_per_day,
+                    "working_days": self.default_working_days,
+                    "planned_leave": [],
+                    "holidays": [],
+                }
+                self.capacity_calendar[resource_id] = calendar_entry
+                self.calendar_store.upsert(self.default_tenant_id, resource_id, calendar_entry)
+                await self._persist_resource_schedule(
+                    resource_id,
+                    calendar_entry,
+                    tenant_id=self.default_tenant_id,
+                    availability=resource_profile.get("availability", 1.0),
+                )
             existing = self.resource_pool.get(resource_id)
             if not existing:
                 self.resource_pool[resource_id] = resource_profile
@@ -2138,7 +2437,52 @@ class ResourceCapacityAgent(BaseAgent):
             self.logger.warning("Tempo allocation sync failed", extra={"error": str(exc)})
             return []
 
-    async def _store_model_in_azure_ml(self, model_name: str, model: dict[str, float]) -> None:
+    async def _train_forecasting_models(
+        self,
+        capacity_series: list[float],
+        demand_series: list[float],
+        *,
+        tenant_id: str,
+        history_months: int,
+    ) -> dict[str, Any]:
+        if not self.ml_forecast_client or not self.ml_forecast_client.is_configured():
+            return {}
+        run_id = f"forecast-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        metadata = {
+            "run_id": run_id,
+            "tenant_id": tenant_id,
+            "history_months": history_months,
+            "trained_at": datetime.utcnow().isoformat(),
+        }
+        capacity_model_name = f"{tenant_id}-capacity"
+        demand_model_name = f"{tenant_id}-demand"
+        capacity_info = self.ml_forecast_client.train_model(
+            capacity_model_name,
+            capacity_series,
+            self.forecast_horizon_months,
+            metadata={"series_type": "capacity", **metadata},
+        )
+        demand_info = self.ml_forecast_client.train_model(
+            demand_model_name,
+            demand_series,
+            self.forecast_horizon_months,
+            metadata={"series_type": "demand", **metadata},
+        )
+        metadata["capacity_model"] = capacity_info
+        metadata["demand_model"] = demand_info
+        if self.db_service:
+            await self.db_service.store(
+                "capacity_forecast_models",
+                run_id,
+                metadata,
+            )
+        if capacity_info:
+            await self._store_model_in_azure_ml(capacity_model_name, capacity_info)
+        if demand_info:
+            await self._store_model_in_azure_ml(demand_model_name, demand_info)
+        return metadata
+
+    async def _store_model_in_azure_ml(self, model_name: str, model: dict[str, Any]) -> None:
         endpoint = os.getenv("AZURE_ML_ENDPOINT")
         api_key = os.getenv("AZURE_ML_API_KEY")
         if not endpoint or not api_key:
@@ -2235,6 +2579,21 @@ class ResourceCapacityAgent(BaseAgent):
         requester_profile = self.org_structure.get(requester, {}) if requester else {}
         if requester_profile.get("manager"):
             return requester_profile["manager"]
+        project_role = request.get("project_role") or request.get("role")
+        if project_role:
+            project_role_mapping = self.approval_routing.get("by_project_role", {})
+            if project_role in project_role_mapping:
+                return project_role_mapping[project_role]
+        project_roles = request.get("project_roles", [])
+        for role in project_roles or []:
+            project_role_mapping = self.approval_routing.get("by_project_role", {})
+            if role in project_role_mapping:
+                return project_role_mapping[role]
+        project_id = request.get("project_id")
+        if project_id:
+            project_mapping = self.approval_routing.get("by_project", {})
+            if project_id in project_mapping:
+                return project_mapping[project_id]
         department = request.get("department") or requester_profile.get("department")
         if department:
             dept_mapping = self.approval_routing.get("by_department", {})
@@ -2272,6 +2631,15 @@ class ResourceCapacityAgent(BaseAgent):
         """Get historical performance score for resource."""
         if resource_id in self.performance_scores:
             return self.performance_scores[resource_id]
+        if self.redis_client:
+            cached = self.redis_client.get(f"resource_performance:{resource_id}")
+            if cached:
+                try:
+                    score = float(cached)
+                    self.performance_scores[resource_id] = score
+                    return score
+                except ValueError:
+                    pass
         score = 0.85
         if self.db_service:
             records = await self.db_service.query(
@@ -2284,8 +2652,17 @@ class ResourceCapacityAgent(BaseAgent):
             await self.db_service.store(
                 "resource_performance_scores",
                 resource_id,
-                {"resource_id": resource_id, "score": score, "calculated_at": datetime.utcnow().isoformat()},
+                {
+                    "resource_id": resource_id,
+                    "score": score,
+                    "calculated_at": datetime.utcnow().isoformat(),
+                },
             )
+        self.repository.upsert_performance_score(
+            resource_id, score, {"calculated_at": datetime.utcnow().isoformat()}
+        )
+        if self.redis_client:
+            self.redis_client.set(f"resource_performance:{resource_id}", score, ex=3600)
         return score
 
     async def _calculate_total_capacity(self) -> float:
@@ -2572,6 +2949,13 @@ class ResourceCapacityAgent(BaseAgent):
         training_load = float(self.resource_pool.get(resource_id, {}).get("training_load", 0.0))
         availability = max(0.0, availability - training_load)
         self.resource_pool[resource_id]["availability"] = availability
+        schedule = self.capacity_calendar.get(resource_id, {})
+        await self._persist_resource_schedule(
+            resource_id,
+            schedule,
+            tenant_id=self.default_tenant_id,
+            availability=availability,
+        )
         if self.db_service:
             await self.db_service.store(
                 "resource_availability",
@@ -2851,27 +3235,43 @@ class ResourceCapacityAgent(BaseAgent):
         self, records: list[dict[str, Any]], project_context: dict[str, Any]
     ) -> float:
         weights = {
-            "on_time_rate": 0.35,
-            "quality_score": 0.3,
+            "on_time_rate": 0.3,
+            "quality_score": 0.25,
             "completion_rate": 0.2,
             "customer_satisfaction": 0.15,
+            "utilization_rate": 0.1,
         }
         total = 0.0
+        metric_totals = {key: 0.0 for key in weights}
         for record in records:
             on_time = self._normalize_score(record.get("on_time_rate", 0.85))
             quality = self._normalize_score(record.get("quality_score", 0.85))
             completion = self._normalize_score(record.get("completion_rate", 0.85))
             satisfaction = self._normalize_score(record.get("customer_satisfaction", 0.85))
+            utilization = self._normalize_score(record.get("utilization_rate", 0.85))
             total += (
                 weights["on_time_rate"] * on_time
                 + weights["quality_score"] * quality
                 + weights["completion_rate"] * completion
                 + weights["customer_satisfaction"] * satisfaction
+                + weights["utilization_rate"] * utilization
             )
+            metric_totals["on_time_rate"] += on_time
+            metric_totals["quality_score"] += quality
+            metric_totals["completion_rate"] += completion
+            metric_totals["customer_satisfaction"] += satisfaction
+            metric_totals["utilization_rate"] += utilization
         average = total / max(len(records), 1)
         context_boost = 0.0
         if project_context.get("priority") == "high":
             context_boost += 0.02
+        if self.analytics_client:
+            record_count = max(len(records), 1)
+            for metric_name, total_value in metric_totals.items():
+                self.analytics_client.record_metric(
+                    f"resource.performance.{metric_name}",
+                    total_value / record_count,
+                )
         return min(1.0, max(0.0, average + context_boost))
 
     def _normalize_score(self, value: Any) -> float:
@@ -3045,9 +3445,21 @@ class ResourceCapacityAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Resource & Capacity Management Agent...")
-        # Future work: Close database connections
-        # Future work: Close external API connections
-        # Future work: Flush any pending events
+        if self.redis_client:
+            try:
+                self.redis_client.close()
+            except Exception as exc:
+                self.logger.warning("Failed to close Redis client", extra={"error": str(exc)})
+        if self.db_service:
+            try:
+                await self.db_service.store(
+                    "agent_events",
+                    f"resource-capacity-cleanup-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+                    {"status": "cleanup", "timestamp": datetime.utcnow().isoformat()},
+                )
+            except Exception as exc:
+                self.logger.warning("Failed to flush events", extra={"error": str(exc)})
+        self.repository.close()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

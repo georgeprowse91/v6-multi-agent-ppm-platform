@@ -11,6 +11,23 @@ class EventCollector:
         self.events.append((topic, payload))
 
 
+class FakeMLForecastClient:
+    def __init__(self) -> None:
+        self.trained_models: list[str] = []
+        self.forecast_calls: list[str] = []
+
+    def is_configured(self) -> bool:
+        return True
+
+    def train_model(self, model_name, series, horizon, metadata=None):
+        self.trained_models.append(model_name)
+        return {"model_name": model_name, "trained": True}
+
+    def forecast(self, model_name, series, horizon):
+        self.forecast_calls.append(model_name)
+        return [0.8 for _ in range(horizon)]
+
+
 def build_agent_config(tmp_path, **overrides):
     return {
         "event_bus": EventCollector(),
@@ -245,6 +262,45 @@ async def test_resource_capacity_approval_routing(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_resource_capacity_approval_routing_project_role(tmp_path):
+    class FakeApprovalClient:
+        async def request_approval(self, request, *, tenant_id, correlation_id, approver_hint=None):
+            return {"approval_id": "approval-2", "status": "pending", "approvers": [approver_hint]}
+
+        async def record_decision(
+            self, approval_id, *, decision, approver_id, comments, tenant_id, correlation_id
+        ):
+            return {"status": decision}
+
+    approval_client = FakeApprovalClient()
+    agent = ResourceCapacityAgent(
+        config=build_agent_config(
+            tmp_path,
+            approval_client=approval_client,
+            approval_routing={"by_project_role": {"architect": "chief_architect"}},
+        )
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "request_resource",
+            "tenant_id": "tenant-a",
+            "request": {
+                "project_id": "proj-2",
+                "project_role": "architect",
+                "required_skills": ["design"],
+                "start_date": "2024-05-01",
+                "end_date": "2024-06-01",
+                "requested_by": "user-2",
+            },
+        }
+    )
+
+    assert response["approver"] == "chief_architect"
+
+
+@pytest.mark.asyncio
 async def test_resource_capacity_forecasting(tmp_path):
     agent = ResourceCapacityAgent(
         config=build_agent_config(tmp_path, forecast_horizon_months=3)
@@ -283,6 +339,37 @@ async def test_resource_capacity_forecasting(tmp_path):
     assert len(forecast["future_capacity"]) == 3
     assert len(forecast["future_demand"]) == 3
     assert "assumptions" in forecast
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_forecasting_with_ml_client(tmp_path):
+    ml_client = FakeMLForecastClient()
+    agent = ResourceCapacityAgent(
+        config=build_agent_config(
+            tmp_path, forecast_horizon_months=2, ml_forecast_client=ml_client
+        )
+    )
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "add_resource",
+            "tenant_id": "tenant-a",
+            "resource": {
+                "resource_id": "res-ml",
+                "name": "Morgan",
+                "role": "Analyst",
+                "skills": ["planning"],
+                "location": "Remote",
+            },
+        }
+    )
+
+    forecast = await agent.process({"action": "forecast_capacity", "filters": {"history_months": 2}})
+
+    assert "assumptions" in forecast
+    assert forecast["assumptions"]["ml_metadata"]["capacity_model"]["trained"] is True
+    assert "tenant-a-capacity" in ml_client.trained_models
 
 
 @pytest.mark.asyncio
@@ -403,3 +490,39 @@ async def test_resource_capacity_performance_scoring(tmp_path):
     score = await agent._get_performance_score("res-perf", {})
 
     assert score >= 0.88
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_update_and_delete(tmp_path):
+    agent = ResourceCapacityAgent(config=build_agent_config(tmp_path))
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "add_resource",
+            "tenant_id": "tenant-a",
+            "resource": {
+                "resource_id": "res-update",
+                "name": "River",
+                "role": "Engineer",
+                "skills": ["python"],
+                "location": "Remote",
+            },
+        }
+    )
+
+    update_response = await agent.process(
+        {
+            "action": "update_resource",
+            "tenant_id": "tenant-a",
+            "resource": {"resource_id": "res-update", "role": "Lead Engineer"},
+        }
+    )
+
+    assert update_response["profile"]["role"] == "Lead Engineer"
+
+    delete_response = await agent.process(
+        {"action": "delete_resource", "tenant_id": "tenant-a", "resource_id": "res-update"}
+    )
+
+    assert delete_response["status"] == "Inactive"
