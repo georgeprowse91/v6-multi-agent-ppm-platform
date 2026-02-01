@@ -10,6 +10,9 @@ for use by agents. These services handle:
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
 import importlib
 import importlib.util
 import logging
@@ -17,6 +20,8 @@ import os
 import smtplib
 import ssl
 import sys
+import time
+import urllib.parse
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.message import EmailMessage
@@ -1096,6 +1101,8 @@ class NotificationService:
         provider = (get_setting("email_provider") or get_setting("EMAIL_PROVIDER") or "smtp").lower()
         smtp_host = get_setting("smtp_host") or get_setting("EMAIL_SMTP_HOST")
         sendgrid_key = get_setting("sendgrid_api_key") or get_setting("SENDGRID_API_KEY")
+        graph_provider = provider == "graph"
+        acs_provider = provider in {"acs", "azure_communication_service", "azure_communication_services"}
 
         if provider == "sendgrid" and not sendgrid_key:
             logger.error("SendGrid provider selected but SENDGRID_API_KEY is not configured")
@@ -1126,6 +1133,32 @@ class NotificationService:
         html_body = metadata.get("html_body")
 
         try:
+            if graph_provider:
+                graph_result = await self._send_email_via_graph(
+                    to=to,
+                    subject=subject,
+                    body=body,
+                    metadata=metadata,
+                )
+                if graph_result.get("status") != "failed":
+                    return graph_result
+                if smtp_host:
+                    provider = "smtp"
+                else:
+                    return graph_result
+            if acs_provider:
+                acs_result = await self._send_email_via_acs(
+                    to=to,
+                    subject=subject,
+                    body=body,
+                    metadata=metadata,
+                )
+                if acs_result.get("status") != "failed":
+                    return acs_result
+                if smtp_host:
+                    provider = "smtp"
+                else:
+                    return acs_result
             if provider == "sendgrid":
                 try:
                     from sendgrid import SendGridAPIClient
@@ -1220,8 +1253,139 @@ class NotificationService:
                 "provider": provider,
             }
 
+    async def _send_email_via_graph(
+        self,
+        *,
+        to: str,
+        subject: str,
+        body: str,
+        metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        token = await self._get_graph_access_token()
+        if not token:
+            return {"status": "failed", "error": "graph_access_token_missing", "provider": "graph"}
+        sender = (
+            metadata.get("graph_sender")
+            or self.config.get("graph_sender")
+            or os.getenv("GRAPH_SENDER")
+            or "me"
+        )
+        html_body = metadata.get("html_body")
+        content_type = "HTML" if html_body else "Text"
+        message_body = html_body or body
+        payload = {
+            "message": {
+                "subject": subject,
+                "body": {"contentType": content_type, "content": message_body},
+                "toRecipients": [{"emailAddress": {"address": to}}],
+            },
+            "saveToSentItems": "false",
+        }
+        import httpx
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"https://graph.microsoft.com/v1.0/users/{sender}/sendMail",
+                headers={"Authorization": f"Bearer {token}"},
+                json=payload,
+            )
+            if response.status_code in {200, 202}:
+                return {
+                    "status": "sent",
+                    "to": to,
+                    "subject": subject,
+                    "provider": "graph",
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                    "metadata": metadata,
+                }
+            return {
+                "status": "failed",
+                "to": to,
+                "subject": subject,
+                "provider": "graph",
+                "error": response.text,
+            }
+
+    async def _send_email_via_acs(
+        self,
+        *,
+        to: str,
+        subject: str,
+        body: str,
+        metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        connection_string = (
+            self.config.get("acs_connection_string") or os.getenv("ACS_CONNECTION_STRING")
+        )
+        if not connection_string:
+            return {"status": "failed", "error": "acs_connection_missing", "provider": "acs"}
+        if not importlib.util.find_spec("azure.communication.email"):
+            return {
+                "status": "failed",
+                "error": "acs_email_library_missing",
+                "provider": "acs",
+            }
+        from azure.communication.email import EmailClient  # type: ignore
+
+        sender = (
+            metadata.get("acs_sender")
+            or self.config.get("acs_sender")
+            or os.getenv("ACS_EMAIL_SENDER")
+        )
+        if not sender:
+            return {"status": "failed", "error": "acs_sender_missing", "provider": "acs"}
+        html_body = metadata.get("html_body")
+        email_message = {
+            "senderAddress": sender,
+            "content": {
+                "subject": subject,
+                "plainText": body,
+                "html": html_body,
+            },
+            "recipients": {"to": [{"address": to}]},
+        }
+        client = EmailClient.from_connection_string(connection_string)
+        poller = client.begin_send(email_message)
+        poller.result()
+        return {
+            "status": "sent",
+            "to": to,
+            "subject": subject,
+            "provider": "acs",
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+            "metadata": metadata,
+        }
+
+    async def _get_graph_access_token(self) -> str | None:
+        token = self.config.get("graph_access_token") or os.getenv("GRAPH_ACCESS_TOKEN")
+        if token:
+            return token
+        if not importlib.util.find_spec("msal"):
+            return None
+        import msal
+
+        tenant_id = self.config.get("graph_tenant_id") or os.getenv("AZURE_TENANT_ID")
+        client_id = self.config.get("graph_client_id") or os.getenv("AZURE_CLIENT_ID")
+        client_secret = self.config.get("graph_client_secret") or os.getenv("AZURE_CLIENT_SECRET")
+        if not tenant_id or not client_id or not client_secret:
+            return None
+        authority = f"https://login.microsoftonline.com/{tenant_id}"
+        app = msal.ConfidentialClientApplication(
+            client_id=client_id, authority=authority, client_credential=client_secret
+        )
+        scopes = self.config.get("graph_scopes") or ["https://graph.microsoft.com/.default"]
+        result = app.acquire_token_silent(scopes, account=None) or app.acquire_token_for_client(
+            scopes=scopes
+        )
+        return result.get("access_token") if result else None
+
     async def send_teams_message(
-        self, team_id: str, channel_id: str, message: str
+        self,
+        team_id: str | None,
+        channel_id: str | None,
+        message: str,
+        chat_id: str | None = None,
+        user_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Send a message to a Microsoft Teams channel.
@@ -1234,6 +1398,9 @@ class NotificationService:
         Returns:
             Send status
         """
+        if chat_id or user_id:
+            return await self.send_chat_message(chat_id=chat_id, user_id=user_id, message=message)
+
         connector = self._get_connector("teams")
 
         if connector is None:
@@ -1259,21 +1426,11 @@ class NotificationService:
             logger.error(f"Failed to send Teams message: {exc}")
             return {"status": "failed", "error": str(exc)}
 
-    async def send_push_notification(self, destination: str, message: str) -> dict[str, Any]:
-        """
-        Send a push notification.
-
-        Args:
-            destination: Target destination identifier
-            message: Notification message
-
-        Returns:
-            Send status
-        """
+    async def send_slack_message(self, destination: str, message: str) -> dict[str, Any]:
         connector = self._get_connector("slack")
 
         if connector is None:
-            logger.info("Mock sending push notification")
+            logger.info("Mock sending Slack message")
             return {
                 "status": "sent_mock",
                 "destination": destination,
@@ -1291,8 +1448,131 @@ class NotificationService:
                 "sent_at": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as exc:
-            logger.error(f"Failed to send push notification: {exc}")
+            logger.error(f"Failed to send Slack message: {exc}")
             return {"status": "failed", "error": str(exc)}
+
+    async def send_chat_message(
+        self, chat_id: str | None, user_id: str | None, message: str
+    ) -> dict[str, Any]:
+        chat_id = chat_id or (self.config.get("graph_chat_map", {}).get(user_id) if user_id else None)
+        token = await self._get_graph_access_token()
+        if not token or not chat_id:
+            logger.info("Mock sending chat message")
+            return {
+                "status": "sent_mock",
+                "chat_id": chat_id,
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+            }
+        import httpx
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"https://graph.microsoft.com/v1.0/chats/{chat_id}/messages",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"body": {"contentType": "html", "content": message}},
+            )
+            if response.status_code in {200, 201, 202}:
+                return {
+                    "status": "sent",
+                    "chat_id": chat_id,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            return {"status": "failed", "error": response.text}
+
+    async def send_push_notification(self, destination: str, message: str) -> dict[str, Any]:
+        """
+        Send a push notification.
+
+        Args:
+            destination: Target destination identifier
+            message: Notification message
+
+        Returns:
+            Send status
+        """
+        provider = (self.config.get("push_provider") or os.getenv("PUSH_PROVIDER") or "mock").lower()
+        if provider == "firebase":
+            return await self._send_push_via_firebase(destination, message)
+        if provider in {"azure_notification_hubs", "notification_hubs"}:
+            return await self._send_push_via_notification_hubs(destination, message)
+        logger.info("Mock sending push notification")
+        return {
+            "status": "sent_mock",
+            "destination": destination,
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    async def _send_push_via_firebase(self, destination: str, message: str) -> dict[str, Any]:
+        server_key = self.config.get("firebase_server_key") or os.getenv("FIREBASE_SERVER_KEY")
+        if not server_key:
+            return {"status": "failed", "error": "firebase_server_key_missing"}
+        import httpx
+
+        payload = {"to": destination, "notification": {"title": "Approval Update", "body": message}}
+        headers = {"Authorization": f"key={server_key}", "Content-Type": "application/json"}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                "https://fcm.googleapis.com/fcm/send", headers=headers, json=payload
+            )
+            if response.status_code in {200, 201}:
+                return {
+                    "status": "sent",
+                    "destination": destination,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            return {"status": "failed", "error": response.text}
+
+    async def _send_push_via_notification_hubs(
+        self, destination: str, message: str
+    ) -> dict[str, Any]:
+        namespace = self.config.get("notification_hubs_namespace") or os.getenv(
+            "AZURE_NOTIFICATION_HUBS_NAMESPACE"
+        )
+        hub_name = self.config.get("notification_hubs_name") or os.getenv(
+            "AZURE_NOTIFICATION_HUBS_NAME"
+        )
+        sas_key_name = self.config.get("notification_hubs_sas_key_name") or os.getenv(
+            "AZURE_NOTIFICATION_HUBS_SAS_KEY_NAME"
+        )
+        sas_key = self.config.get("notification_hubs_sas_key") or os.getenv(
+            "AZURE_NOTIFICATION_HUBS_SAS_KEY"
+        )
+        if not namespace or not hub_name or not sas_key_name or not sas_key:
+            return {"status": "failed", "error": "notification_hubs_config_missing"}
+        url = (
+            f"https://{namespace}.servicebus.windows.net/{hub_name}/messages"
+            "?api-version=2015-01"
+        )
+        token = self._build_sas_token(url, sas_key_name, sas_key)
+        import httpx
+
+        headers = {
+            "Authorization": token,
+            "Content-Type": "application/json",
+            "ServiceBusNotification-Format": "gcm",
+        }
+        payload = {"data": {"message": message}, "to": destination}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, headers=headers, json=payload)
+            if response.status_code in {200, 201, 202}:
+                return {
+                    "status": "sent",
+                    "destination": destination,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            return {"status": "failed", "error": response.text}
+
+    def _build_sas_token(self, uri: str, key_name: str, key: str) -> str:
+        expiry = int(time.time() + 3600)
+        encoded_uri = urllib.parse.quote_plus(uri)
+        sign_key = f"{encoded_uri}\n{expiry}".encode("utf-8")
+        signature = base64.b64encode(
+            hmac.new(base64.b64decode(key), sign_key, hashlib.sha256).digest()
+        ).decode()
+        return (
+            f"SharedAccessSignature sr={encoded_uri}&sig={urllib.parse.quote_plus(signature)}"
+            f"&se={expiry}&skn={key_name}"
+        )
 
 
 class MLPredictionService:

@@ -6,21 +6,21 @@ Handles routing, escalation, delegation, and audit trail for governance complian
 """
 
 import asyncio
+import importlib.util
 import json
 import os
 import sys
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from string import Template
 from typing import Any
 
 import httpx
-import msal
-from azure.servicebus import ServiceBusClient
-from azure.servicebus.management import ServiceBusAdministrationClient
-
 from agents.common.connector_integration import NotificationService
 from agents.runtime import BaseAgent
+from agents.runtime.src.state_store import TenantStateStore
+from services.integration import AnalyticsClient, EventBusClient, EventEnvelope
 
 DATA_SYNC_ROOT = Path(__file__).resolve().parents[5] / "services" / "data-sync-service" / "src"
 if str(DATA_SYNC_ROOT) not in sys.path:
@@ -78,6 +78,33 @@ class RoleLookupClient:
         return resolved
 
 
+class NotificationTemplateEngine:
+    def __init__(self, templates: dict[str, dict[str, str]], default_locale: str = "en") -> None:
+        self.templates = templates
+        self.default_locale = default_locale
+
+    def render(self, template_key: str, locale: str, context: dict[str, Any]) -> str:
+        locale_templates = self.templates.get(locale) or self.templates.get(self.default_locale, {})
+        raw_template = locale_templates.get(template_key) or ""
+        return Template(raw_template).safe_substitute(context)
+
+
+class NotificationSubscriptionStore:
+    def __init__(self, path: Path) -> None:
+        self.store = TenantStateStore(path)
+
+    def get_preferences(self, tenant_id: str, recipient_id: str) -> dict[str, Any] | None:
+        return self.store.get(tenant_id, recipient_id)
+
+    def upsert_preferences(
+        self, tenant_id: str, recipient_id: str, preferences: dict[str, Any]
+    ) -> None:
+        self.store.upsert(tenant_id, recipient_id, preferences)
+
+    def delete_preferences(self, tenant_id: str, recipient_id: str) -> None:
+        self.store.delete(tenant_id, recipient_id)
+
+
 class ApprovalWorkflowAgent(BaseAgent):
     """
     Manages approval workflows with role-based routing, multi-level chains,
@@ -94,11 +121,20 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.approval_policies: dict[str, Any] = {}
         self.delegation_records: dict[str, Any] = {}
         self.notifications: list[dict[str, Any]] = []
+        self.notification_queue: dict[str, list[dict[str, Any]]] = {}
+        self.digest_tasks: dict[str, asyncio.Task] = {}
         self.escalation_timers: dict[str, dict[str, Any]] = {}
         self.notification_service: NotificationService | None = None
         self.approval_event_queue: list[dict[str, Any]] = []
-        self.service_bus_client: ServiceBusClient | None = None
-        self.service_bus_admin: ServiceBusAdministrationClient | None = None
+        self.analytics_client = AnalyticsClient()
+        self.enable_event_publishing = (
+            config.get("enable_event_publishing", True) if config else True
+        )
+        self.event_bus_client = (
+            config.get("event_bus_client") if config else None
+        ) or EventBusClient()
+        self.service_bus_client: Any | None = None
+        self.service_bus_admin: Any | None = None
         self.service_bus_topic: str | None = None
         self.service_bus_subscription: str | None = None
         self.service_bus_receiver = None
@@ -113,6 +149,16 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.role_lookup = config.get("role_lookup") if config else None
         if self.role_lookup is None:
             self.role_lookup = RoleLookupClient(config)
+        templates = (config or {}).get("notification_templates") or self._default_templates()
+        default_locale = (config or {}).get("default_locale", "en")
+        self.template_engine = NotificationTemplateEngine(templates, default_locale)
+        self.notification_store = NotificationSubscriptionStore(
+            Path(
+                config.get("notification_store_path", "data/approval_notification_store.json")
+                if config
+                else "data/approval_notification_store.json"
+            )
+        )
 
     async def initialize(self) -> None:
         """Initialize approval workflow configurations and connections."""
@@ -128,6 +174,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         await self._initialize_service_bus()
         await self._initialize_graph_client()
         await self._prime_graph_approval_queue()
+        self._subscribe_to_approval_responses()
 
         self.logger.info("Approval Workflow Agent initialized successfully")
 
@@ -139,9 +186,15 @@ class ApprovalWorkflowAgent(BaseAgent):
         if not connection_string:
             self.logger.info("Service Bus connection string not configured; skipping setup.")
             return
+        if not importlib.util.find_spec("azure.servicebus"):
+            self.logger.warning("Azure Service Bus SDK not installed; skipping setup.")
+            return
 
         topic = service_bus_config.get("topic", "approval-events")
         subscription = service_bus_config.get("subscription", f"{self.agent_id}-approvals")
+        from azure.servicebus import ServiceBusClient
+        from azure.servicebus.management import ServiceBusAdministrationClient
+
         self.service_bus_client = ServiceBusClient.from_connection_string(connection_string)
         self.service_bus_admin = ServiceBusAdministrationClient.from_connection_string(
             connection_string
@@ -178,8 +231,13 @@ class ApprovalWorkflowAgent(BaseAgent):
         if not tenant_id or not client_id or not client_secret:
             self.logger.info("Microsoft Graph credentials not configured; skipping setup.")
             return
+        if not importlib.util.find_spec("msal"):
+            self.logger.warning("MSAL not installed; skipping Microsoft Graph setup.")
+            return
 
         authority = f"https://login.microsoftonline.com/{tenant_id}"
+        import msal
+
         app = msal.ConfidentialClientApplication(
             client_id=client_id, authority=authority, client_credential=client_secret
         )
@@ -274,11 +332,26 @@ class ApprovalWorkflowAgent(BaseAgent):
             await self.graph_client.aclose()
         if self.service_bus_client:
             self.service_bus_client.close()
+        for task in list(self.digest_tasks.values()):
+            if not task.done():
+                task.cancel()
+        for timer in list(self.escalation_timers.values()):
+            task = timer.get("task")
+            if task and not task.done():
+                task.cancel()
         await super().cleanup()
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate approval request input data."""
         if input_data.get("decision") and input_data.get("approval_id"):
+            return True
+        action = input_data.get("action")
+        if action in {
+            "subscribe_notifications",
+            "unsubscribe_notifications",
+            "record_notification_interaction",
+            "update_notification_preferences",
+        }:
             return True
         required_fields = ["request_type", "request_id", "requester", "details"]
 
@@ -328,6 +401,8 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "notifications_sent": true
             }
         """
+        if action := input_data.get("action"):
+            return await self._handle_notification_action(action, input_data)
         if input_data.get("decision") and input_data.get("approval_id"):
             context = input_data.get("context", {})
             tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
@@ -357,7 +432,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.logger.info(f"Processing {request_type} approval request: {request_id}")
 
         # Determine approvers based on routing rules
-        approvers, delegation_records = await self._determine_approvers(
+        approvers, delegation_records, user_roles = await self._determine_approvers(
             tenant_id, request_type, details
         )
 
@@ -369,6 +444,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             approvers=approvers,
             details=details,
             delegation_records=delegation_records,
+            user_roles=user_roles,
         )
 
         # Send notifications
@@ -395,6 +471,30 @@ class ApprovalWorkflowAgent(BaseAgent):
             resource_id=approval_chain["id"],
             metadata={"request_type": request_type, "approvers": approvers},
         )
+        self._publish_approval_event(
+            event_type="approval.created",
+            tenant_id=tenant_id,
+            approval_chain=approval_chain,
+            payload={
+                "approval_id": approval_chain["id"],
+                "request_id": request_id,
+                "request_type": request_type,
+                "approvers": approvers,
+                "deadline": approval_chain["deadline"],
+            },
+        )
+        if notifications_sent:
+            self._publish_approval_event(
+                event_type="approval.requested",
+                tenant_id=tenant_id,
+                approval_chain=approval_chain,
+                payload={
+                    "approval_id": approval_chain["id"],
+                    "request_id": request_id,
+                    "approvers": approvers,
+                    "deadline": approval_chain["deadline"],
+                },
+            )
 
         return {
             "approval_id": approval_chain["id"],
@@ -412,9 +512,9 @@ class ApprovalWorkflowAgent(BaseAgent):
 
     async def _determine_approvers(
         self, tenant_id: str, request_type: str, details: dict[str, Any]
-    ) -> tuple[list[str], list[dict[str, Any]]]:
+    ) -> tuple[list[str], list[dict[str, Any]], dict[str, list[str]]]:
         """Determine required approvers based on request type and thresholds."""
-        roles = []
+        roles: list[str] = []
 
         if request_type == "budget_change":
             amount = details.get("amount", 0)
@@ -447,12 +547,16 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         resolved = await self.role_lookup.get_users_for_roles(tenant_id, roles)
         approvers = []
+        user_roles: dict[str, list[str]] = {}
         for role in roles:
-            approvers.extend(resolved.get(role, []))
+            role_users = resolved.get(role, [])
+            approvers.extend(role_users)
+            for user_id in role_users:
+                user_roles.setdefault(user_id, []).append(role)
         approvers = list(dict.fromkeys(approvers))
 
         approvers, delegation_records = self._apply_delegations(approvers)
-        return approvers, delegation_records
+        return approvers, delegation_records, user_roles
 
     async def _create_approval_chain(
         self,
@@ -463,6 +567,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         approvers: list[str],
         details: dict[str, Any],
         delegation_records: list[dict[str, Any]],
+        user_roles: dict[str, list[str]],
     ) -> dict[str, Any]:
         """Create approval chain configuration."""
         approval_id = f"approval_{request_id}_{datetime.utcnow().timestamp()}"
@@ -478,6 +583,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         chain = {
             "id": approval_id,
             "request_id": request_id,
+            "request_type": request_type,
             "type": chain_type,
             "approvers": approvers,
             "deadline": deadline.isoformat(),
@@ -485,6 +591,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "responses": {},
             "created_at": datetime.utcnow().isoformat(),
             "delegations": delegation_records,
+            "user_roles": user_roles,
         }
 
         self.approval_chains[approval_id] = chain
@@ -495,6 +602,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "request_type": request_type,
                 "request_id": request_id,
                 "approvers": approvers,
+                "user_roles": user_roles,
                 "chain": chain,
                 "notifications": [],
             },
@@ -510,62 +618,72 @@ class ApprovalWorkflowAgent(BaseAgent):
         approvers: list[str],
         details: dict[str, Any],
     ) -> bool:
-        """Send approval notifications to approvers via a configured webhook."""
+        """Send approval notifications to approvers across configured channels."""
         webhook = os.getenv("NOTIFICATION_WEBHOOK_URL")
-        try:
-            payloads: list[dict[str, Any]] = []
-            notification_results: list[bool] = []
-            for approver in approvers:
-                # Future work: Use Azure Communication Services or Microsoft Graph
-                # Future work: Send Teams/Slack notification
-                # Future work: Send mobile push via Azure Notification Hubs
+        notification_results: list[bool] = []
+        payloads: list[dict[str, Any]] = []
 
-                self.logger.info(f"Sending approval notification to {approver}")
+        for approver in approvers:
+            self.logger.info("Sending approval notification to %s", approver)
+            context = self._build_notification_context(
+                tenant_id=tenant_id,
+                approval_chain=approval_chain,
+                approver=approver,
+                details=details,
+            )
+            preferences = self._resolve_notification_preferences(
+                tenant_id=tenant_id,
+                approver=approver,
+                approval_chain=approval_chain,
+            )
+            locale = preferences.get("locale", self.template_engine.default_locale)
+            subject = self.template_engine.render("approval_request_subject", locale, context)
+            body = self.template_engine.render("approval_request_body", locale, context)
+            chat_message = self.template_engine.render("approval_request_chat", locale, context)
+            push_message = self.template_engine.render("approval_request_push", locale, context)
 
-                notification_results.append(
-                    await self._send_notification(
-                        recipient=approver,
-                        subject=f"Approval Required: {details.get('description', 'N/A')}",
-                        body=f"Approval required for request {approval_chain['request_id']}",
-                        metadata={
-                            "approval_id": approval_chain["id"],
-                            "deadline": approval_chain["deadline"],
-                        },
-                    )
-                )
-
-                # Baseline for actual notification
-                notification = {
-                    "to": approver,
-                    "subject": f"Approval Required: {details.get('description', 'N/A')}",
-                    "deadline": approval_chain["deadline"],
-                    "approval_id": approval_chain["id"],
-                    "sent_at": datetime.utcnow().isoformat(),
-                }
-                self.notifications.append(notification)
-                self._persist_notification(tenant_id, approval_chain["id"], notification)
-                if webhook:
-                    payloads.append(
-                        {
-                            "user": approver,
-                            "approval_request_id": approval_chain["request_id"],
-                            "message": f"Approval required for request {approval_chain['request_id']}",
-                            "deadline": approval_chain["deadline"],
-                        }
-                    )
-
+            notification = {
+                "to": approver,
+                "subject": subject,
+                "body": body,
+                "deadline": approval_chain["deadline"],
+                "approval_id": approval_chain["id"],
+                "sent_at": datetime.utcnow().isoformat(),
+                "channels": preferences.get("channels", {}),
+                "delivery": preferences.get("delivery", "immediate"),
+            }
+            result = await self._dispatch_notification(
+                tenant_id=tenant_id,
+                recipient=approver,
+                notification=notification,
+                subject=subject,
+                body=body,
+                chat_message=chat_message,
+                push_message=push_message,
+                preferences=preferences,
+            )
+            notification_results.append(result)
+            self.notifications.append(notification)
+            self._persist_notification(tenant_id, approval_chain["id"], notification)
             if webhook:
-                tasks = [self._post_webhook(webhook, payload) for payload in payloads]
-                await asyncio.gather(*tasks)
-            else:
-                self.logger.warning(
-                    "NOTIFICATION_WEBHOOK_URL not set; webhook notifications will be skipped."
+                payloads.append(
+                    {
+                        "user": approver,
+                        "approval_request_id": approval_chain["request_id"],
+                        "message": body,
+                        "deadline": approval_chain["deadline"],
+                    }
                 )
 
-            return any(notification_results) or bool(webhook)
-        except Exception as e:
-            self.logger.error(f"Failed to send notifications: {str(e)}")
-            return False
+        if webhook and payloads:
+            tasks = [self._post_webhook(webhook, payload) for payload in payloads]
+            await asyncio.gather(*tasks)
+        elif not webhook:
+            self.logger.warning(
+                "NOTIFICATION_WEBHOOK_URL not set; webhook notifications will be skipped."
+            )
+
+        return any(notification_results) or bool(webhook)
 
     async def _send_notification(
         self,
@@ -589,6 +707,327 @@ class ApprovalWorkflowAgent(BaseAgent):
             "Notification service failed to send email to %s with status %s", recipient, status
         )
         return False
+
+    async def _dispatch_notification(
+        self,
+        *,
+        tenant_id: str,
+        recipient: str,
+        notification: dict[str, Any],
+        subject: str,
+        body: str,
+        chat_message: str,
+        push_message: str,
+        preferences: dict[str, Any],
+    ) -> bool:
+        delivery = preferences.get("delivery", "immediate")
+        if delivery == "digest":
+            self._queue_digest_notification(
+                tenant_id=tenant_id,
+                recipient=recipient,
+                notification=notification,
+                subject=subject,
+                body=body,
+                chat_message=chat_message,
+                push_message=push_message,
+                preferences=preferences,
+            )
+            return True
+        return await self._deliver_notification(
+            tenant_id=tenant_id,
+            recipient=recipient,
+            notification=notification,
+            subject=subject,
+            body=body,
+            chat_message=chat_message,
+            push_message=push_message,
+            preferences=preferences,
+        )
+
+    async def _deliver_notification(
+        self,
+        *,
+        tenant_id: str,
+        recipient: str,
+        notification: dict[str, Any],
+        subject: str,
+        body: str,
+        chat_message: str,
+        push_message: str,
+        preferences: dict[str, Any],
+    ) -> bool:
+        channels = preferences.get("channels", {})
+        results: list[bool] = []
+
+        email_channel = channels.get("email")
+        if email_channel:
+            email_address = email_channel.get("address") if isinstance(email_channel, dict) else email_channel
+            results.append(
+                await self._send_notification(
+                    recipient=email_address,
+                    subject=subject,
+                    body=body,
+                    metadata={
+                        "approval_id": notification["approval_id"],
+                        "deadline": notification["deadline"],
+                        "html_body": channels.get("email_html"),
+                    },
+                )
+            )
+
+        teams_channel = channels.get("teams")
+        if teams_channel and self.notification_service:
+            teams_result = await self.notification_service.send_teams_message(
+                team_id=teams_channel.get("team_id"),
+                channel_id=teams_channel.get("channel_id"),
+                message=chat_message,
+                chat_id=teams_channel.get("chat_id"),
+                user_id=teams_channel.get("user_id"),
+            )
+            results.append(teams_result.get("status") in {"sent", "sent_mock"})
+
+        slack_channel = channels.get("slack")
+        if slack_channel and self.notification_service:
+            slack_result = await self.notification_service.send_slack_message(
+                destination=slack_channel.get("channel") or slack_channel.get("user_id"),
+                message=chat_message,
+            )
+            results.append(slack_result.get("status") in {"sent", "sent_mock"})
+
+        push_channel = channels.get("push")
+        if push_channel and self.notification_service:
+            destinations = push_channel.get("destinations", [])
+            for destination in destinations:
+                push_result = await self.notification_service.send_push_notification(
+                    destination, push_message
+                )
+                results.append(push_result.get("status") in {"sent", "sent_mock"})
+
+        delivered = any(results)
+        self._record_delivery_metric(
+            tenant_id=tenant_id,
+            recipient=recipient,
+            approval_id=notification["approval_id"],
+            delivered=delivered,
+            channels=list(channels.keys()),
+        )
+        return delivered
+
+    def _queue_digest_notification(
+        self,
+        *,
+        tenant_id: str,
+        recipient: str,
+        notification: dict[str, Any],
+        subject: str,
+        body: str,
+        chat_message: str,
+        push_message: str,
+        preferences: dict[str, Any],
+    ) -> None:
+        key = f"{tenant_id}:{recipient}"
+        entry = {
+            "notification": notification,
+            "subject": subject,
+            "body": body,
+            "chat_message": chat_message,
+            "push_message": push_message,
+            "preferences": preferences,
+        }
+        self.notification_queue.setdefault(key, []).append(entry)
+        if key not in self.digest_tasks or self.digest_tasks[key].done():
+            interval_minutes = preferences.get("digest_interval_minutes") or self.approval_policies.get(
+                "digest_interval_minutes", 60
+            )
+            self.digest_tasks[key] = asyncio.create_task(
+                self._send_digest_notifications_after_delay(
+                    tenant_id=tenant_id,
+                    recipient=recipient,
+                    interval_minutes=interval_minutes,
+                )
+            )
+
+    async def _send_digest_notifications_after_delay(
+        self, *, tenant_id: str, recipient: str, interval_minutes: int
+    ) -> None:
+        await asyncio.sleep(interval_minutes * 60)
+        await self._send_digest_notifications(tenant_id=tenant_id, recipient=recipient)
+
+    async def _send_digest_notifications(self, *, tenant_id: str, recipient: str) -> bool:
+        key = f"{tenant_id}:{recipient}"
+        entries = self.notification_queue.pop(key, [])
+        if not entries:
+            return False
+        latest = entries[-1]
+        preferences = latest["preferences"]
+        locale = preferences.get("locale", self.template_engine.default_locale)
+        context = {
+            "recipient": recipient,
+            "count": len(entries),
+            "items": self._format_digest_entries(entries),
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+        subject = self.template_engine.render("approval_digest_subject", locale, context)
+        body = self.template_engine.render("approval_digest_body", locale, context)
+        return await self._deliver_notification(
+            tenant_id=tenant_id,
+            recipient=recipient,
+            notification=latest["notification"],
+            subject=subject,
+            body=body,
+            chat_message=body,
+            push_message=subject,
+            preferences=preferences,
+        )
+
+    async def flush_digest_notifications(self, tenant_id: str, recipient: str) -> bool:
+        return await self._send_digest_notifications(tenant_id=tenant_id, recipient=recipient)
+
+    def _format_digest_entries(self, entries: list[dict[str, Any]]) -> str:
+        lines: list[str] = []
+        for entry in entries:
+            notification = entry["notification"]
+            lines.append(
+                f"- {notification['subject']} (approval {notification['approval_id']}, "
+                f"deadline {notification['deadline']})"
+            )
+        return "\n".join(lines)
+
+    def _build_notification_context(
+        self,
+        *,
+        tenant_id: str,
+        approval_chain: dict[str, Any],
+        approver: str,
+        details: dict[str, Any],
+    ) -> dict[str, Any]:
+        return {
+            "tenant_id": tenant_id,
+            "approval_id": approval_chain["id"],
+            "request_id": approval_chain["request_id"],
+            "request_type": approval_chain.get("request_type") or details.get("request_type") or details.get("type") or "",
+            "description": details.get("description", "Approval required"),
+            "justification": details.get("justification", ""),
+            "amount": details.get("amount", ""),
+            "urgency": details.get("urgency", ""),
+            "project_id": details.get("project_id") or approval_chain.get("project_id", ""),
+            "deadline": approval_chain["deadline"],
+            "approver": approver,
+        }
+
+    def _resolve_notification_preferences(
+        self,
+        *,
+        tenant_id: str,
+        approver: str,
+        approval_chain: dict[str, Any],
+    ) -> dict[str, Any]:
+        routing = (self.config or {}).get("notification_routing", {})
+        default_prefs = routing.get("default", {})
+        user_prefs = routing.get("users", {}).get(approver, {})
+        group_prefs: dict[str, Any] = {}
+        for role in approval_chain.get("user_roles", {}).get(approver, []):
+            group_prefs = self._merge_preferences(group_prefs, routing.get("groups", {}).get(role, {}))
+        stored = self.notification_store.get_preferences(tenant_id, approver) or {}
+        preferences = self._merge_preferences(
+            self._merge_preferences(self._merge_preferences(default_prefs, group_prefs), user_prefs),
+            stored,
+        )
+
+        channels = preferences.setdefault("channels", {})
+        if not channels.get("email") and "@" in approver:
+            channels["email"] = {"address": approver}
+        preferences.setdefault("delivery", "immediate")
+        preferences.setdefault("locale", self.template_engine.default_locale)
+        return preferences
+
+    def _merge_preferences(self, base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+        if not base:
+            return dict(override)
+        merged = dict(base)
+        for key, value in override.items():
+            if key == "channels":
+                merged.setdefault("channels", {})
+                merged["channels"] = {**merged["channels"], **value}
+            else:
+                merged[key] = value
+        return merged
+
+    def _record_delivery_metric(
+        self,
+        *,
+        tenant_id: str,
+        recipient: str,
+        approval_id: str,
+        delivered: bool,
+        channels: list[str],
+    ) -> None:
+        metadata = {
+            "tenant_id": tenant_id,
+            "recipient": recipient,
+            "approval_id": approval_id,
+            "channels": channels,
+        }
+        if delivered:
+            self.analytics_client.record_event("approval.notification.sent", metadata)
+            self.analytics_client.record_metric("approval.notification.sent.count", 1, metadata)
+        else:
+            self.analytics_client.record_event("approval.notification.failed", metadata)
+            self.analytics_client.record_metric("approval.notification.failed.count", 1, metadata)
+
+    def _record_interaction_metric(
+        self,
+        *,
+        tenant_id: str,
+        recipient: str,
+        approval_id: str,
+        interaction: str,
+    ) -> None:
+        metadata = {
+            "tenant_id": tenant_id,
+            "recipient": recipient,
+            "approval_id": approval_id,
+            "interaction": interaction,
+        }
+        self.analytics_client.record_event("approval.notification.interaction", metadata)
+        self.analytics_client.record_metric(
+            f"approval.notification.{interaction}.count", 1, metadata
+        )
+
+    def _record_response_metric(
+        self,
+        *,
+        tenant_id: str,
+        approval_id: str,
+        approver_id: str,
+        response_time_seconds: float,
+        decision: str,
+    ) -> None:
+        metadata = {
+            "tenant_id": tenant_id,
+            "approval_id": approval_id,
+            "approver_id": approver_id,
+            "decision": decision,
+        }
+        self.analytics_client.record_metric(
+            "approval.response_time.seconds", response_time_seconds, metadata
+        )
+        self.analytics_client.record_event("approval.decision.recorded", metadata)
+        self._adjust_delivery_strategy(
+            tenant_id=tenant_id,
+            approver_id=approver_id,
+            response_time_seconds=response_time_seconds,
+        )
+
+    def _adjust_delivery_strategy(
+        self, *, tenant_id: str, approver_id: str, response_time_seconds: float
+    ) -> None:
+        threshold_hours = self.approval_policies.get("response_time_threshold_hours", 48)
+        existing = self.notification_store.get_preferences(tenant_id, approver_id) or {}
+        delivery = existing.get("delivery", "immediate")
+        if response_time_seconds > threshold_hours * 3600 and delivery != "digest":
+            updated = {**existing, "delivery": "digest"}
+            self.notification_store.upsert_preferences(tenant_id, approver_id, updated)
 
     async def _post_webhook(self, url: str, payload: dict[str, Any]) -> None:
         """Post a JSON payload to the configured webhook."""
@@ -633,7 +1072,8 @@ class ApprovalWorkflowAgent(BaseAgent):
                 datetime.utcnow().isoformat()
             )
 
-        asyncio.create_task(escalation_task())
+        task = asyncio.create_task(escalation_task())
+        self.escalation_timers[approval_chain["id"]]["task"] = task
         self.logger.info(f"Escalation scheduled for approval {approval_chain['id']}")
 
     async def _load_approval_policies(self) -> dict[str, Any]:
@@ -643,6 +1083,8 @@ class ApprovalWorkflowAgent(BaseAgent):
             "escalation_timeout_hours": 48,
             "reminder_before_deadline_hours": 24,
             "default_chain_type": "sequential",
+            "digest_interval_minutes": 60,
+            "response_time_threshold_hours": 48,
         }
         config_path = Path(
             self.config.get("approval_policies_path", "config/approval_policies.json")
@@ -713,6 +1155,18 @@ class ApprovalWorkflowAgent(BaseAgent):
         tenant_id: str,
         correlation_id: str,
     ) -> dict[str, Any]:
+        response_time_seconds = None
+        existing = self.approval_store.get(tenant_id, approval_id)
+        if existing:
+            created_at = existing.get("details", {}).get("chain", {}).get("created_at")
+            if created_at:
+                try:
+                    created_dt = datetime.fromisoformat(created_at)
+                    response_time_seconds = (
+                        datetime.now(timezone.utc) - created_dt.replace(tzinfo=timezone.utc)
+                    ).total_seconds()
+                except ValueError:
+                    response_time_seconds = None
         self.approval_store.update(
             tenant_id,
             approval_id,
@@ -722,6 +1176,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "decided_by": approver_id,
                 "decided_at": datetime.utcnow().isoformat(),
                 "comments": comments,
+                "response_time_seconds": response_time_seconds,
             },
         )
         self._emit_audit_event(
@@ -736,10 +1191,218 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "comments": comments,
             },
         )
+        if response_time_seconds is not None:
+            self._record_response_metric(
+                tenant_id=tenant_id,
+                approval_id=approval_id,
+                approver_id=approver_id,
+                response_time_seconds=response_time_seconds,
+                decision=decision,
+            )
+        self._publish_approval_event(
+            event_type="approval.decision",
+            tenant_id=tenant_id,
+            approval_chain=existing.get("details", {}).get("chain") if existing else {},
+            payload={
+                "approval_id": approval_id,
+                "decision": decision,
+                "approver_id": approver_id,
+                "comments": comments,
+            },
+        )
+        if decision in {"approved", "rejected"}:
+            self._publish_approval_event(
+                event_type=f"approval.{decision}",
+                tenant_id=tenant_id,
+                approval_chain=existing.get("details", {}).get("chain") if existing else {},
+                payload={
+                    "approval_id": approval_id,
+                    "approver_id": approver_id,
+                    "comments": comments,
+                },
+            )
         return {
             "approval_id": approval_id,
             "decision": decision,
             "status": decision,
+        }
+
+    async def _handle_notification_action(
+        self, action: str, input_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        tenant_id = input_data.get("tenant_id") or input_data.get("context", {}).get(
+            "tenant_id", "unknown"
+        )
+        recipient = input_data.get("recipient") or input_data.get("user_id")
+        if action == "subscribe_notifications":
+            preferences = input_data.get("preferences", {})
+            if recipient:
+                existing = self.notification_store.get_preferences(tenant_id, recipient) or {}
+                merged = self._merge_preferences(existing, preferences)
+                self.notification_store.upsert_preferences(tenant_id, recipient, merged)
+                return {"status": "subscribed", "recipient": recipient, "preferences": merged}
+            return {"status": "failed", "reason": "recipient_required"}
+        if action == "unsubscribe_notifications":
+            if recipient:
+                self.notification_store.delete_preferences(tenant_id, recipient)
+                return {"status": "unsubscribed", "recipient": recipient}
+            return {"status": "failed", "reason": "recipient_required"}
+        if action == "update_notification_preferences":
+            if recipient:
+                preferences = input_data.get("preferences", {})
+                self.notification_store.upsert_preferences(tenant_id, recipient, preferences)
+                return {"status": "updated", "recipient": recipient, "preferences": preferences}
+            return {"status": "failed", "reason": "recipient_required"}
+        if action == "record_notification_interaction":
+            approval_id = input_data.get("approval_id")
+            interaction = input_data.get("interaction")
+            if not recipient or not approval_id or not interaction:
+                return {"status": "failed", "reason": "missing_fields"}
+            self._record_interaction_metric(
+                tenant_id=tenant_id,
+                recipient=recipient,
+                approval_id=approval_id,
+                interaction=interaction,
+            )
+            return {
+                "status": "recorded",
+                "approval_id": approval_id,
+                "recipient": recipient,
+                "interaction": interaction,
+            }
+        return {"status": "failed", "reason": "unsupported_action"}
+
+    def _publish_approval_event(
+        self,
+        *,
+        event_type: str,
+        tenant_id: str,
+        approval_chain: dict[str, Any] | None,
+        payload: dict[str, Any],
+    ) -> None:
+        if not self.enable_event_publishing:
+            return
+        data = {
+            **payload,
+            "tenant_id": tenant_id,
+            "approval_chain": approval_chain or {},
+        }
+        envelope = EventEnvelope(
+            event_type=event_type,
+            subject=payload.get("approval_id", "approval"),
+            data=data,
+            metadata={"tenant_id": tenant_id, "source": self.agent_id},
+        )
+        try:
+            self.event_bus_client.publish_event(envelope)
+        except Exception as exc:
+            self.logger.warning("Failed to publish approval event: %s", exc)
+
+    def _subscribe_to_approval_responses(self) -> None:
+        if not self.enable_event_publishing:
+            return
+
+        def handler(payload: dict[str, Any]) -> None:
+            event_type = payload.get("event_type")
+            if event_type not in {"approval.response", "approval.decision"}:
+                return
+            metadata = payload.get("metadata", {})
+            if metadata.get("source") == self.agent_id:
+                return
+            data = payload.get("data", {})
+            approval_id = data.get("approval_id")
+            decision = data.get("decision")
+            if not approval_id or not decision:
+                return
+            tenant_id = data.get("tenant_id") or metadata.get("tenant_id", "unknown")
+            approver_id = data.get("approver_id", "unknown")
+            comments = data.get("comments")
+            correlation_id = metadata.get("correlation_id") or str(uuid.uuid4())
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(
+                    self._record_decision(
+                        approval_id=approval_id,
+                        decision=decision,
+                        approver_id=approver_id,
+                        comments=comments,
+                        tenant_id=tenant_id,
+                        correlation_id=correlation_id,
+                    )
+                )
+            except RuntimeError:
+                asyncio.run(
+                    self._record_decision(
+                        approval_id=approval_id,
+                        decision=decision,
+                        approver_id=approver_id,
+                        comments=comments,
+                        tenant_id=tenant_id,
+                        correlation_id=correlation_id,
+                    )
+                )
+
+        try:
+            self.event_bus_client.subscribe(handler)
+        except Exception as exc:
+            self.logger.warning("Failed to subscribe to approval responses: %s", exc)
+
+    def _default_templates(self) -> dict[str, dict[str, str]]:
+        return {
+            "en": {
+                "approval_request_subject": "Approval required: ${description}",
+                "approval_request_body": (
+                    "Hello ${approver},\n\n"
+                    "An approval decision is required for request ${request_id}.\n"
+                    "Description: ${description}\n"
+                    "Urgency: ${urgency}\n"
+                    "Deadline: ${deadline}\n\n"
+                    "Please review and submit your decision."
+                ),
+                "approval_request_chat": (
+                    "Approval required for request ${request_id}: ${description} "
+                    "(deadline ${deadline})."
+                ),
+                "approval_request_push": "Approval required: ${description} (deadline ${deadline})",
+                "approval_digest_subject": "You have ${count} pending approvals",
+                "approval_digest_body": (
+                    "Here is your approval digest:\n"
+                    "${items}\n"
+                    "Generated at ${generated_at}."
+                ),
+                "approval_decision_subject": "Approval ${decision} for ${request_id}",
+                "approval_decision_body": (
+                    "Approval ${decision} for request ${request_id} by ${approver}.\n"
+                    "Comments: ${comments}"
+                ),
+            },
+            "es": {
+                "approval_request_subject": "Aprobación requerida: ${description}",
+                "approval_request_body": (
+                    "Hola ${approver},\n\n"
+                    "Se requiere una decisión de aprobación para la solicitud ${request_id}.\n"
+                    "Descripción: ${description}\n"
+                    "Urgencia: ${urgency}\n"
+                    "Fecha límite: ${deadline}\n\n"
+                    "Revisa y envía tu decisión."
+                ),
+                "approval_request_chat": (
+                    "Aprobación requerida para la solicitud ${request_id}: ${description} "
+                    "(fecha límite ${deadline})."
+                ),
+                "approval_request_push": "Aprobación requerida: ${description} (fecha límite ${deadline})",
+                "approval_digest_subject": "Tienes ${count} aprobaciones pendientes",
+                "approval_digest_body": (
+                    "Resumen de aprobaciones:\n"
+                    "${items}\n"
+                    "Generado a las ${generated_at}."
+                ),
+                "approval_decision_subject": "Aprobación ${decision} para ${request_id}",
+                "approval_decision_body": (
+                    "Aprobación ${decision} para la solicitud ${request_id} por ${approver}.\n"
+                    "Comentarios: ${comments}"
+                ),
+            },
         }
 
     def _emit_audit_event(
