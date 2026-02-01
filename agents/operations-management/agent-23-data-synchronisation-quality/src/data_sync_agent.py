@@ -177,8 +177,26 @@ class DataSyncAgent(BaseAgent):
         self.function_base_url = os.getenv("AZURE_FUNCTION_BASE_URL")
         self.function_key = os.getenv("AZURE_FUNCTION_KEY")
         self.validation_rules: dict[str, list[dict[str, Any]]] = {}
+        self.quality_thresholds: dict[str, float] = {}
+        self.schema_registry: dict[str, dict[str, Any]] = {}
+        self.schema_versions: dict[str, list[dict[str, Any]]] = {}
+        self.schema_registry_store = TenantStateStore(
+            Path(
+                config.get("schema_registry_store_path", "data/schema_registry.json")
+                if config
+                else "data/schema_registry.json"
+            )
+        )
         self.seen_record_hashes: dict[str, set[str]] = {}
         self.latency_records: list[dict[str, Any]] = []
+        self.quality_records: list[dict[str, Any]] = []
+        self.sync_state_store = TenantStateStore(
+            Path(config.get("sync_state_store_path", "data/sync_state.json") if config else "data/sync_state.json")
+        )
+        self.retry_queue_store = TenantStateStore(
+            Path(config.get("retry_queue_store_path", "data/sync_retry_queue.json") if config else "data/sync_retry_queue.json")
+        )
+        self.max_retry_attempts = config.get("max_retry_attempts", 3) if config else 3
         self.log_analytics_client: Any | None = None
         self.connectors: dict[str, Any] = {}
 
@@ -188,6 +206,9 @@ class DataSyncAgent(BaseAgent):
         self.logger.info("Initializing Data Synchronization & Consistency Agent...")
 
         self.validation_rules = self._load_validation_rules()
+        self.quality_thresholds = self._load_quality_thresholds()
+        self.schema_registry, self.schema_versions = self._load_schema_registry()
+        self.transformation_rules = self._load_mapping_rules()
         self.data_factory_pipelines, self.function_names = self._load_pipeline_config()
 
         await self._initialize_key_vault_secrets()
@@ -215,6 +236,7 @@ class DataSyncAgent(BaseAgent):
 
         valid_actions = [
             "sync_data",
+            "run_sync",
             "create_master_record",
             "update_master_record",
             "detect_conflicts",
@@ -226,6 +248,11 @@ class DataSyncAgent(BaseAgent):
             "get_sync_status",
             "get_master_record",
             "metrics",
+            "get_schema",
+            "register_schema",
+            "get_quality_report",
+            "process_retries",
+            "get_dashboard",
         ]
 
         if action not in valid_actions:
@@ -286,6 +313,14 @@ class DataSyncAgent(BaseAgent):
                 input_data.get("data"),  # type: ignore
                 input_data.get("source_system"),  # type: ignore
             )
+        if action == "run_sync":
+            return await self._run_sync(
+                tenant_id=tenant_id,
+                entity_type=input_data.get("entity_type"),  # type: ignore
+                source_system=input_data.get("source_system"),  # type: ignore
+                mode=input_data.get("mode", "incremental"),
+                filters=input_data.get("filters", {}),
+            )
 
         elif action == "create_master_record":
             return await self._create_master_record(
@@ -333,6 +368,26 @@ class DataSyncAgent(BaseAgent):
         elif action == "metrics":
             return await self._get_metrics(tenant_id)
 
+        elif action == "get_schema":
+            return await self._get_schema(input_data.get("entity_type"))  # type: ignore
+
+        elif action == "register_schema":
+            return await self._register_schema(
+                tenant_id=tenant_id,
+                entity_type=input_data.get("entity_type"),
+                schema=input_data.get("schema", {}),
+                version=input_data.get("version"),
+            )
+
+        elif action == "get_quality_report":
+            return await self._get_quality_report(tenant_id, input_data.get("entity_type"))
+
+        elif action == "process_retries":
+            return await self._process_retry_queue(tenant_id)
+
+        elif action == "get_dashboard":
+            return await self._get_dashboard(tenant_id)
+
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -376,9 +431,23 @@ class DataSyncAgent(BaseAgent):
                 "latency_seconds": 0.0,
             }
 
+        mapped_data = await self._map_to_canonical(entity_type, data, source_system)
         # Validate data
-        validation_result = await self._validate_data(entity_type, data)
+        validation_result = await self._validate_data(entity_type, mapped_data)
+        await self._record_quality_metrics(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            source_system=source_system,
+            validation_result=validation_result,
+        )
         if not validation_result.get("valid"):
+            await self._enqueue_retry(
+                tenant_id,
+                entity_type,
+                mapped_data,
+                source_system,
+                reason="validation_failed",
+            )
             await self._publish_event(
                 "sync.complete",
                 {
@@ -400,7 +469,9 @@ class DataSyncAgent(BaseAgent):
 
         try:
             # Transform data using mapping rules
-            transformed_data = await self._transform_data(entity_type, data, source_system)
+            transformed_data = await self._transform_data(
+                entity_type, mapped_data, source_system
+            )
             await self._run_etl_workflows(tenant_id, entity_type, transformed_data, source_system)
 
             # Check for existing master record
@@ -468,6 +539,23 @@ class DataSyncAgent(BaseAgent):
                 "latency_seconds": latency_seconds,
             }
         except Exception as exc:
+            await self._enqueue_retry(
+                tenant_id,
+                entity_type,
+                mapped_data,
+                source_system,
+                reason=str(exc),
+            )
+            await self._publish_event(
+                "data_sync.failure",
+                {
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "source_system": source_system,
+                    "error": str(exc),
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
             await self._publish_event(
                 "sync.complete",
                 {
@@ -481,6 +569,144 @@ class DataSyncAgent(BaseAgent):
                 },
             )
             raise
+
+    async def _run_sync(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        source_system: str,
+        mode: str = "incremental",
+        filters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Run full or incremental synchronization for a connector."""
+        filters = filters or {}
+        sync_mode = mode.lower()
+        sync_started_at = datetime.utcnow()
+        state_key = f"{source_system}:{entity_type}"
+        sync_state = self.sync_state_store.get(tenant_id, state_key) or {}
+        last_synced_at = sync_state.get("last_synced_at")
+        cursor = sync_state.get("cursor")
+
+        if sync_mode not in {"incremental", "full"}:
+            raise ValueError(f"Unsupported sync mode: {mode}")
+
+        await self._publish_event(
+            "sync.batch.start",
+            {
+                "tenant_id": tenant_id,
+                "entity_type": entity_type,
+                "source_system": source_system,
+                "mode": sync_mode,
+                "started_at": sync_started_at.isoformat(),
+            },
+        )
+
+        if sync_mode == "incremental":
+            records, new_cursor = await self._fetch_incremental_records(
+                source_system, entity_type, last_synced_at, cursor, filters
+            )
+        else:
+            records, new_cursor = await self._fetch_full_records(
+                source_system, entity_type, filters
+            )
+
+        results = []
+        for record in records:
+            try:
+                result = await self._sync_data(tenant_id, entity_type, record, source_system)
+            except Exception as exc:
+                result = {"status": "failed", "error": str(exc)}
+            results.append(result)
+
+        sync_finished_at = datetime.utcnow()
+        new_state = {
+            "source_system": source_system,
+            "entity_type": entity_type,
+            "last_synced_at": sync_finished_at.isoformat(),
+            "cursor": new_cursor or cursor,
+            "mode": sync_mode,
+            "record_count": len(records),
+            "updated_at": sync_finished_at.isoformat(),
+        }
+        self.sync_state_store.upsert(tenant_id, state_key, new_state)
+        await self._store_record("sync_state", state_key, new_state)
+
+        await self._publish_event(
+            "sync.batch.complete",
+            {
+                "tenant_id": tenant_id,
+                "entity_type": entity_type,
+                "source_system": source_system,
+                "mode": sync_mode,
+                "record_count": len(records),
+                "started_at": sync_started_at.isoformat(),
+                "finished_at": sync_finished_at.isoformat(),
+            },
+        )
+
+        return {
+            "status": "completed",
+            "mode": sync_mode,
+            "records_processed": len(records),
+            "results": results,
+            "started_at": sync_started_at.isoformat(),
+            "finished_at": sync_finished_at.isoformat(),
+        }
+
+    async def _fetch_incremental_records(
+        self,
+        source_system: str,
+        entity_type: str,
+        last_synced_at: str | None,
+        cursor: str | None,
+        filters: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        """Fetch records using change data capture or timestamp-based queries."""
+        connector = self.connectors.get(source_system)
+        if connector is None:
+            return [], None
+
+        if hasattr(connector, "read_changes"):
+            try:
+                records = connector.read_changes(entity_type, cursor=cursor, filters=filters)
+                new_cursor = getattr(connector, "last_cursor", None)
+                return records, new_cursor
+            except Exception as exc:
+                self.logger.warning("cdc_fetch_failed", extra={"error": str(exc)})
+
+        query_filters = dict(filters)
+        if last_synced_at:
+            query_filters.setdefault("updated_since", last_synced_at)
+            query_filters.setdefault("since", last_synced_at)
+        records = self._fetch_connector_records(connector, entity_type, query_filters)
+        return records, None
+
+    async def _fetch_full_records(
+        self,
+        source_system: str,
+        entity_type: str,
+        filters: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        connector = self.connectors.get(source_system)
+        if connector is None:
+            return [], None
+        records = self._fetch_connector_records(connector, entity_type, filters)
+        return records, None
+
+    def _fetch_connector_records(
+        self, connector: Any, entity_type: str, filters: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        if hasattr(connector, "read"):
+            try:
+                return connector.read(entity_type, filters=filters)
+            except TypeError:
+                return connector.read(entity_type)
+            except Exception as exc:
+                self.logger.warning(
+                    "connector_read_failed",
+                    extra={"entity_type": entity_type, "error": str(exc)},
+                )
+        return []
 
     async def _create_master_record(
         self, tenant_id: str, entity_type: str, data: dict[str, Any]
@@ -739,6 +965,11 @@ class DataSyncAgent(BaseAgent):
                 else:
                     warnings.append(result.get("message"))
 
+        schema = self.schema_registry.get(entity_type)
+        if schema:
+            schema_errors = self._validate_against_schema(schema, data)
+            errors.extend(schema_errors)
+
         return {
             "valid": len(errors) == 0,
             "errors": errors,
@@ -770,6 +1001,14 @@ class DataSyncAgent(BaseAgent):
 
         # Store mapping rule
         self.mapping_rules[mapping_id] = mapping_rule
+        self.transformation_rules.append(
+            {
+                "entity_type": mapping_rule.get("target_entity"),
+                "source_system": mapping_rule.get("source_system"),
+                "field_mappings": mapping_rule.get("field_mappings"),
+                "transformations": mapping_rule.get("transformations", []),
+            }
+        )
 
         await self._store_record("mapping_rules", mapping_id, mapping_rule)
 
@@ -815,6 +1054,7 @@ class DataSyncAgent(BaseAgent):
             "successful_syncs": successful_syncs,
             "failed_syncs": failed_syncs,
             "success_rate": (successful_syncs / total_events * 100) if total_events > 0 else 0,
+            "failure_rate": (failed_syncs / total_events * 100) if total_events > 0 else 0,
             "pending_conflicts": pending_conflicts,
             "recent_events": recent_events,
             "avg_latency_seconds": avg_latency,
@@ -876,6 +1116,276 @@ class DataSyncAgent(BaseAgent):
         return {
             key: value if isinstance(value, list) else []
             for key, value in payload.items()
+        }
+
+    def _load_quality_thresholds(self) -> dict[str, float]:
+        thresholds_path = (
+            Path(self.config.get("quality_thresholds_path", "config/agent-23/quality_thresholds.yaml"))
+            if self.config
+            else Path("config/agent-23/quality_thresholds.yaml")
+        )
+        if not thresholds_path.exists():
+            return {}
+        try:
+            with thresholds_path.open("r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle) or {}
+        except (OSError, yaml.YAMLError) as exc:
+            self.logger.warning("quality_thresholds_load_failed", extra={"error": str(exc)})
+            return {}
+        thresholds: dict[str, float] = {}
+        for key, value in payload.items():
+            if isinstance(value, (int, float)):
+                thresholds[key] = float(value)
+        return thresholds
+
+    def _load_schema_registry(self) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+        registry_path = (
+            Path(self.config.get("schema_registry_path", "config/agent-23/schema_registry.yaml"))
+            if self.config
+            else Path("config/agent-23/schema_registry.yaml")
+        )
+        if not registry_path.exists():
+            return {}, {}
+        try:
+            with registry_path.open("r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle) or {}
+        except (OSError, yaml.YAMLError) as exc:
+            self.logger.warning("schema_registry_load_failed", extra={"error": str(exc)})
+            return {}, {}
+        registry: dict[str, dict[str, Any]] = {}
+        versions: dict[str, list[dict[str, Any]]] = {}
+        for entry in payload.get("entities", []):
+            if not isinstance(entry, dict):
+                continue
+            entity_type = entry.get("name")
+            schema = entry.get("schema")
+            version = entry.get("version", "1.0")
+            if entity_type and isinstance(schema, dict):
+                registry[entity_type] = schema
+                versions.setdefault(entity_type, []).append(
+                    {"version": version, "schema": schema}
+                )
+        return registry, versions
+
+    def _load_mapping_rules(self) -> list[dict[str, Any]]:
+        mapping_path = (
+            Path(self.config.get("mapping_rules_path", "config/agent-23/mapping_rules.yaml"))
+            if self.config
+            else Path("config/agent-23/mapping_rules.yaml")
+        )
+        if not mapping_path.exists():
+            return []
+        try:
+            with mapping_path.open("r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle) or {}
+        except (OSError, yaml.YAMLError) as exc:
+            self.logger.warning("mapping_rules_load_failed", extra={"error": str(exc)})
+            return []
+        mappings = payload.get("mappings", [])
+        if not isinstance(mappings, list):
+            return []
+        return [entry for entry in mappings if isinstance(entry, dict)]
+
+    async def _get_schema(self, entity_type: str | None) -> dict[str, Any]:
+        if not entity_type:
+            return {"schemas": self.schema_registry}
+        schema = self.schema_registry.get(entity_type)
+        if not schema:
+            raise ValueError(f"Schema not found for {entity_type}")
+        return {"entity_type": entity_type, "schema": schema}
+
+    async def _register_schema(
+        self,
+        tenant_id: str,
+        entity_type: str | None,
+        schema: dict[str, Any],
+        version: str | None = None,
+    ) -> dict[str, Any]:
+        if not entity_type:
+            raise ValueError("entity_type is required for schema registration")
+        version = version or datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        self.schema_registry[entity_type] = schema
+        self.schema_versions.setdefault(entity_type, []).append(
+            {"version": version, "schema": schema}
+        )
+        self.schema_registry_store.upsert(
+            tenant_id,
+            f"{entity_type}:{version}",
+            {"entity_type": entity_type, "version": version, "schema": schema},
+        )
+        await self._store_record("schema_registry", f"{entity_type}:{version}", schema)
+        return {"entity_type": entity_type, "version": version}
+
+    async def _map_to_canonical(
+        self, entity_type: str, data: dict[str, Any], source_system: str
+    ) -> dict[str, Any]:
+        rules = [
+            rule
+            for rule in self.transformation_rules
+            if rule.get("entity_type") == entity_type
+            and rule.get("source_system") == source_system
+        ]
+        if not rules:
+            return data
+        mapped = data.copy()
+        for rule in rules:
+            if not self._validate_transformation_rule(rule):
+                continue
+            field_mappings = rule.get("field_mappings", {})
+            mapped_payload: dict[str, Any] = {}
+            for source_field, target_field in field_mappings.items():
+                if source_field in mapped:
+                    mapped_payload[target_field] = mapped.get(source_field)
+            defaults = rule.get("defaults", {})
+            for key, value in defaults.items():
+                mapped_payload.setdefault(key, value)
+            mapped = mapped_payload
+        return mapped
+
+    def _validate_against_schema(self, schema: dict[str, Any], data: dict[str, Any]) -> list[str]:
+        try:
+            validate(instance=data, schema=schema)
+        except ValidationError as exc:
+            return [str(exc)]
+        return []
+
+    async def _record_quality_metrics(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        source_system: str,
+        validation_result: dict[str, Any],
+    ) -> None:
+        record = {
+            "tenant_id": tenant_id,
+            "entity_type": entity_type,
+            "source_system": source_system,
+            "valid": validation_result.get("valid", False),
+            "error_count": len(validation_result.get("errors", [])),
+            "warning_count": len(validation_result.get("warnings", [])),
+            "validated_at": validation_result.get("validated_at"),
+        }
+        self.quality_records.append(record)
+        await self._store_record("data_quality_metrics", self._quality_record_key(record), record)
+        await self._evaluate_quality_thresholds(tenant_id, entity_type)
+
+    async def _get_quality_report(
+        self, tenant_id: str, entity_type: str | None
+    ) -> dict[str, Any]:
+        records = [
+            record
+            for record in self.quality_records
+            if record["tenant_id"] == tenant_id
+            and (entity_type is None or record["entity_type"] == entity_type)
+        ]
+        total = len(records)
+        valid_count = sum(1 for record in records if record.get("valid"))
+        error_rate = (total - valid_count) / total if total else 0.0
+        return {
+            "tenant_id": tenant_id,
+            "entity_type": entity_type,
+            "total_records": total,
+            "valid_records": valid_count,
+            "error_rate": error_rate,
+            "records": records[-25:],
+        }
+
+    async def _evaluate_quality_thresholds(self, tenant_id: str, entity_type: str) -> None:
+        threshold = self.quality_thresholds.get(entity_type, self.quality_thresholds.get("default", 0.9))
+        report = await self._get_quality_report(tenant_id, entity_type)
+        if report["total_records"] == 0:
+            return
+        quality_score = report["valid_records"] / report["total_records"]
+        if quality_score < threshold:
+            await self._publish_event(
+                "data_quality.alert",
+                {
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "quality_score": quality_score,
+                    "threshold": threshold,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
+
+    def _quality_record_key(self, record: dict[str, Any]) -> str:
+        return f"{record['tenant_id']}:{record['entity_type']}:{record['validated_at']}"
+
+    async def _enqueue_retry(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        data: dict[str, Any],
+        source_system: str,
+        reason: str,
+    ) -> None:
+        retry_id = f"RETRY-{uuid.uuid4()}"
+        retry_payload = {
+            "retry_id": retry_id,
+            "tenant_id": tenant_id,
+            "entity_type": entity_type,
+            "source_system": source_system,
+            "data": data,
+            "reason": reason,
+            "attempts": 0,
+            "queued_at": datetime.utcnow().isoformat(),
+        }
+        self.retry_queue_store.upsert(tenant_id, retry_id, retry_payload)
+        await self._store_record("sync_retry_queue", retry_id, retry_payload)
+
+    async def _process_retry_queue(self, tenant_id: str) -> dict[str, Any]:
+        retries = self.retry_queue_store.list(tenant_id)
+        processed = 0
+        successes = 0
+        failures = 0
+        for payload in retries:
+            retry_id = payload.get("retry_id")
+            if not retry_id:
+                continue
+            attempts = payload.get("attempts", 0)
+            if attempts >= self.max_retry_attempts:
+                continue
+            try:
+                await self._sync_data(
+                    tenant_id,
+                    payload.get("entity_type"),
+                    payload.get("data"),
+                    payload.get("source_system"),
+                )
+                successes += 1
+                self.retry_queue_store.delete(tenant_id, retry_id)
+            except Exception:
+                payload["attempts"] = attempts + 1
+                payload["last_attempt_at"] = datetime.utcnow().isoformat()
+                self.retry_queue_store.upsert(tenant_id, retry_id, payload)
+                failures += 1
+            processed += 1
+        return {
+            "processed": processed,
+            "successes": successes,
+            "failures": failures,
+            "remaining": len(self.retry_queue_store.list(tenant_id)),
+        }
+
+    async def _get_dashboard(self, tenant_id: str) -> dict[str, Any]:
+        sync_status = await self._get_sync_status({})
+        quality_report = await self._get_quality_report(tenant_id, None)
+        state_records = self.sync_state_store.list(tenant_id)
+        lag_seconds = []
+        for payload in state_records:
+            last_synced = payload.get("last_synced_at")
+            if last_synced:
+                try:
+                    last_synced_dt = datetime.fromisoformat(last_synced)
+                    lag_seconds.append((datetime.utcnow() - last_synced_dt).total_seconds())
+                except ValueError:
+                    continue
+        average_lag = sum(lag_seconds) / len(lag_seconds) if lag_seconds else 0.0
+        return {
+            "sync_status": sync_status,
+            "quality_report": quality_report,
+            "average_sync_lag_seconds": average_lag,
+            "sync_state": state_records,
         }
 
     def _load_pipeline_config(self) -> tuple[list[str], list[str]]:
@@ -1270,14 +1780,17 @@ class DataSyncAgent(BaseAgent):
                 continue
             field_mappings = rule.get("field_mappings", {})
             mapped_payload: dict[str, Any] = {}
+            has_mapping = False
             for source_field, target_field in field_mappings.items():
                 if source_field in transformed:
                     mapped_payload[target_field] = transformed.get(source_field)
+                    has_mapping = True
             defaults = rule.get("defaults", {})
             for key, value in defaults.items():
                 mapped_payload.setdefault(key, value)
 
-            transformed = mapped_payload
+            if has_mapping:
+                transformed = mapped_payload
             transformations = rule.get("transformations", [])
             transformed = self._apply_transformations(transformed, transformations)
 
@@ -1315,6 +1828,7 @@ class DataSyncAgent(BaseAgent):
         }
         self.sync_events[event_id] = event_record
         self.sync_event_store.upsert(tenant_id, event_id, event_record)
+        await self._store_record("sync_events", event_id, event_record)
         return event_id
 
     async def _record_sync_lineage(
@@ -1481,6 +1995,9 @@ class DataSyncAgent(BaseAgent):
         """Apply validation rule."""
         field = rule.get("field")
         required = rule.get("required", False)
+        minimum = rule.get("min")
+        maximum = rule.get("max")
+        reference = rule.get("reference")
 
         if required and not data.get(field):  # type: ignore
             return {
@@ -1488,6 +2005,30 @@ class DataSyncAgent(BaseAgent):
                 "severity": rule.get("severity", "error"),
                 "message": f"Required field '{field}' is missing",
             }
+
+        if field and field in data and isinstance(data.get(field), (int, float)):
+            value = data.get(field)
+            if minimum is not None and value < minimum:
+                return {
+                    "valid": False,
+                    "severity": rule.get("severity", "error"),
+                    "message": f"Field '{field}' is below minimum {minimum}",
+                }
+            if maximum is not None and value > maximum:
+                return {
+                    "valid": False,
+                    "severity": rule.get("severity", "error"),
+                    "message": f"Field '{field}' exceeds maximum {maximum}",
+                }
+
+        if reference and field:
+            referenced_id = data.get(field)
+            if referenced_id and not self.master_records.get(referenced_id):
+                return {
+                    "valid": False,
+                    "severity": rule.get("severity", "warning"),
+                    "message": f"Referential integrity check failed for '{field}'",
+                }
 
         return {"valid": True}
 

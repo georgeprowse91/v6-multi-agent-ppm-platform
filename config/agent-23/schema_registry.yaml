@@ -1,0 +1,60 @@
+entities:
+  - name: projects
+    version: "1.0"
+    schema:
+      type: object
+      required: [id, name, status]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        status: {type: string}
+        start_date: {type: string}
+        end_date: {type: string}
+        owner_id: {type: string}
+        budget: {type: number}
+  - name: tasks
+    version: "1.0"
+    schema:
+      type: object
+      required: [id, name, status, project_id]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        status: {type: string}
+        project_id: {type: string}
+        assignee_id: {type: string}
+        due_date: {type: string}
+        priority: {type: string}
+  - name: resources
+    version: "1.0"
+    schema:
+      type: object
+      required: [id, name, role]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        role: {type: string}
+        email: {type: string}
+        department: {type: string}
+  - name: vendors
+    version: "1.0"
+    schema:
+      type: object
+      required: [id, name]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        status: {type: string}
+        category: {type: string}
+        primary_contact: {type: string}
+  - name: risks
+    version: "1.0"
+    schema:
+      type: object
+      required: [id, name, severity]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        severity: {type: string}
+        status: {type: string}
+        project_id: {type: string}

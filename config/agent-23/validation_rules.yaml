@@ -6,7 +6,7 @@ default:
     required: true
     severity: error
 
-project:
+projects:
   - field: id
     required: true
     severity: error
@@ -14,13 +14,52 @@ project:
     required: true
     severity: error
   - field: status
-    required: false
+    required: true
     severity: warning
 
-resource:
+tasks:
   - field: id
     required: true
     severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: true
+    severity: warning
+  - field: project_id
+    required: true
+    severity: error
+
+resources:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: role
+    required: true
+    severity: warning
   - field: email
+    required: false
+    severity: warning
+
+vendors:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+
+risks:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: severity
     required: true
     severity: warning

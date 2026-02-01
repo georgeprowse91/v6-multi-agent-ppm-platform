@@ -73,6 +73,9 @@ Set the following variables to enable full integration:
 2. Ensure the validation rules and pipeline configuration files exist:
    - `config/agent-23/validation_rules.yaml`
    - `config/agent-23/pipelines.yaml`
+   - `config/agent-23/schema_registry.yaml`
+   - `config/agent-23/mapping_rules.yaml`
+   - `config/agent-23/quality_thresholds.yaml`
 3. If you want to invoke Azure Functions locally, expose the Function App base URL and key in `.env`.
 4. Run the agent locally:
 
