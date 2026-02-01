@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+  namespace: ppm
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: db-backup
+            image: mcr.microsoft.com/azure-cli:latest
+            envFrom:
+            - secretRef:
+                name: db-backup-config
+            volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: backups
+              mountPath: /backups
+            command: ["/bin/bash", "/scripts/db_backup.sh"]
+          volumes:
+          - name: scripts
+            configMap:
+              name: db-backup-scripts
+              defaultMode: 0755
+          - name: backups
+            emptyDir: {}
