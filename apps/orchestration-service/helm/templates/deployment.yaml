@@ -33,6 +33,10 @@ spec:
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
             - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
+            - name: MAX_AGENT_CONCURRENCY
+              value: {{ .Values.env.MAX_AGENT_CONCURRENCY | quote }}
+            - name: AGENT_CALL_TIMEOUT
+              value: {{ .Values.env.AGENT_CALL_TIMEOUT | quote }}
             {{- if .Values.leaderElection.enabled }}
             - name: LEADER_ELECTION_ENABLED
               value: "true"

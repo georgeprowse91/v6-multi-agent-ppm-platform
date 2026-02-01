@@ -2,6 +2,7 @@
 Agent Orchestrator - Manages agent lifecycle and routing
 """
 
+import asyncio
 import logging
 import os
 from dataclasses import dataclass
@@ -13,10 +14,12 @@ import httpx
 from persistence import WorkflowState, build_state_store, make_state_key
 from workflow_client import WorkflowClient
 
-from agents.runtime import AgentResponse
+from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
 from tools.runtime_paths import bootstrap_runtime_paths
 
 logger = logging.getLogger(__name__)
+MAX_AGENT_CONCURRENCY = int(os.getenv("MAX_AGENT_CONCURRENCY", "5"))
+AGENT_CALL_TIMEOUT = float(os.getenv("AGENT_CALL_TIMEOUT", "30.0"))
 DEFAULT_POLICY_BUNDLE_PATH = (
     Path(__file__).resolve().parents[1] / "policies" / "bundles" / "default-policy-bundle.yaml"
 )
@@ -61,6 +64,7 @@ class AgentOrchestrator:
             )
         )
         self.state_store = build_state_store(state_path)
+        self._agent_semaphore = asyncio.Semaphore(MAX_AGENT_CONCURRENCY)
 
     async def initialize(self):
         """Initialize all 25 agents."""
@@ -220,6 +224,46 @@ class AgentOrchestrator:
 
     def list_states(self, tenant_id: str) -> list[WorkflowState]:
         return [state for state in self.workflow_states.values() if state.tenant_id == tenant_id]
+
+    async def _execute_agent(
+        self, agent: BaseAgent, context: dict[str, Any] | AgentContext
+    ) -> AgentResponse:
+        async with self._agent_semaphore:
+            try:
+                payload = context
+                if isinstance(context, AgentContext):
+                    payload = {"context": context.model_dump()}
+                result = await asyncio.wait_for(
+                    agent.execute(cast(dict[str, Any], payload)),
+                    timeout=AGENT_CALL_TIMEOUT,
+                )
+                return AgentResponse.model_validate(result)
+            except asyncio.TimeoutError:
+                logger.error("Agent %s timed out after %ss", agent.agent_id, AGENT_CALL_TIMEOUT)
+                if isinstance(context, AgentContext):
+                    correlation_id = context.correlation_id
+                else:
+                    context_payload = context.get("context", {})
+                    if isinstance(context_payload, AgentContext):
+                        correlation_id = context_payload.correlation_id
+                    else:
+                        correlation_id = context_payload.get("correlation_id") or context.get(
+                            "correlation_id"
+                        )
+                return AgentResponse(
+                    success=False,
+                    error="Agent timeout",
+                    data=None,
+                    metadata=AgentResponseMetadata(
+                        agent_id=agent.agent_id,
+                        catalog_id=agent.catalog_id or agent.agent_id,
+                        timestamp=datetime.utcnow().isoformat(),
+                        correlation_id=correlation_id or "unknown",
+                        trace_id=None,
+                        execution_time_seconds=None,
+                        policy_reasons=None,
+                    ),
+                )
 
     async def _load_governance_agents(self):
         """Initialize governance agents."""
@@ -424,13 +468,13 @@ class AgentOrchestrator:
         if not correlation_id:
             correlation_id = f"corr-{os.urandom(8).hex()}"
 
-        intent_result = await self.intent_router.execute(
+        intent_response = await self._execute_agent(
+            self.intent_router,
             {
                 "query": query,
                 "context": {**(context or {}), "correlation_id": correlation_id},
             }
         )
-        intent_response = AgentResponse.model_validate(intent_result)
 
         if not intent_response.success:
             return {
@@ -445,7 +489,8 @@ class AgentOrchestrator:
         if prompt:
             parameters = {**parameters, "prompt": prompt}
 
-        orchestration_result = await self.response_orchestrator.execute(
+        orchestration_response = await self._execute_agent(
+            self.response_orchestrator,
             {
                 "routing": intent_payload.get("routing", []),
                 "parameters": parameters,
@@ -453,8 +498,6 @@ class AgentOrchestrator:
                 "context": {**(context or {}), "correlation_id": correlation_id},
             }
         )
-
-        orchestration_response = AgentResponse.model_validate(orchestration_result)
         return cast(dict[str, Any], orchestration_response.model_dump())
 
     def get_agent(self, agent_id: str):
