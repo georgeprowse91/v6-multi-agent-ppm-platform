@@ -85,6 +85,11 @@ function createSampleArtifacts(): Record<string, CanvasArtifact> {
     label: 'Project Alpha - WBS',
     parentId: null,
     children: ['wbs-1', 'wbs-2', 'wbs-3'],
+    metadata: {
+      wbs: {
+        owner: 'PMO',
+      },
+    },
   };
 
   const wbsTree: CanvasArtifact<TreeContent> = {
@@ -101,60 +106,150 @@ function createSampleArtifacts(): Record<string, CanvasArtifact> {
           label: '1. Initiation',
           parentId: 'wbs-root',
           children: ['wbs-1-1', 'wbs-1-2'],
+          metadata: {
+            wbs: {
+              owner: 'A. Turner',
+              startDate: '2024-01-08',
+              endDate: '2024-01-26',
+            },
+          },
         },
         'wbs-1-1': {
           id: 'wbs-1-1',
           label: '1.1 Project Charter',
           parentId: 'wbs-1',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 24,
+              cost: 2400,
+              owner: 'A. Turner',
+              startDate: '2024-01-08',
+              endDate: '2024-01-12',
+              isMilestone: true,
+            },
+          },
         },
         'wbs-1-2': {
           id: 'wbs-1-2',
           label: '1.2 Stakeholder Analysis',
           parentId: 'wbs-1',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 40,
+              cost: 3200,
+              owner: 'B. Lee',
+              startDate: '2024-01-15',
+              endDate: '2024-01-26',
+              dependencies: ['wbs-1-1'],
+            },
+          },
         },
         'wbs-2': {
           id: 'wbs-2',
           label: '2. Planning',
           parentId: 'wbs-root',
           children: ['wbs-2-1', 'wbs-2-2', 'wbs-2-3'],
+          metadata: {
+            wbs: {
+              owner: 'C. Patel',
+              startDate: '2024-01-29',
+              endDate: '2024-02-23',
+            },
+          },
         },
         'wbs-2-1': {
           id: 'wbs-2-1',
           label: '2.1 Scope Definition',
           parentId: 'wbs-2',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 56,
+              cost: 5600,
+              owner: 'C. Patel',
+              startDate: '2024-01-29',
+              endDate: '2024-02-09',
+            },
+          },
         },
         'wbs-2-2': {
           id: 'wbs-2-2',
           label: '2.2 Schedule Development',
           parentId: 'wbs-2',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 48,
+              cost: 4800,
+              owner: 'D. Chen',
+              startDate: '2024-02-05',
+              endDate: '2024-02-16',
+              dependencies: ['wbs-2-1'],
+            },
+          },
         },
         'wbs-2-3': {
           id: 'wbs-2-3',
           label: '2.3 Resource Planning',
           parentId: 'wbs-2',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 32,
+              cost: 3200,
+              owner: 'E. Singh',
+              startDate: '2024-02-12',
+              endDate: '2024-02-23',
+              dependencies: ['wbs-2-2'],
+            },
+          },
         },
         'wbs-3': {
           id: 'wbs-3',
           label: '3. Execution',
           parentId: 'wbs-root',
           children: ['wbs-3-1', 'wbs-3-2'],
+          metadata: {
+            wbs: {
+              owner: 'F. Rivera',
+              startDate: '2024-02-26',
+              endDate: '2024-03-22',
+            },
+          },
         },
         'wbs-3-1': {
           id: 'wbs-3-1',
           label: '3.1 Development',
           parentId: 'wbs-3',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 160,
+              cost: 24000,
+              owner: 'F. Rivera',
+              startDate: '2024-02-26',
+              endDate: '2024-03-15',
+            },
+          },
         },
         'wbs-3-2': {
           id: 'wbs-3-2',
           label: '3.2 Testing',
           parentId: 'wbs-3',
           children: [],
+          metadata: {
+            wbs: {
+              effortHours: 96,
+              cost: 12000,
+              owner: 'G. Ortiz',
+              startDate: '2024-03-11',
+              endDate: '2024-03-22',
+              dependencies: ['wbs-3-1'],
+              isMilestone: true,
+            },
+          },
         },
       },
     },
@@ -169,48 +264,8 @@ function createSampleArtifacts(): Record<string, CanvasArtifact> {
     title: 'Project Schedule',
     projectId: 'project-demo',
     content: {
-      items: [
-        {
-          id: 'task-1',
-          name: 'Project Kickoff',
-          startDate: '2024-02-01',
-          endDate: '2024-02-07',
-          progress: 100,
-          color: '#22c55e',
-        },
-        {
-          id: 'task-2',
-          name: 'Requirements Gathering',
-          startDate: '2024-02-05',
-          endDate: '2024-02-20',
-          progress: 75,
-          color: '#6366f1',
-        },
-        {
-          id: 'task-3',
-          name: 'Design Phase',
-          startDate: '2024-02-15',
-          endDate: '2024-03-05',
-          progress: 50,
-          color: '#6366f1',
-        },
-        {
-          id: 'task-4',
-          name: 'Development Sprint 1',
-          startDate: '2024-03-01',
-          endDate: '2024-03-15',
-          progress: 25,
-          color: '#8b5cf6',
-        },
-        {
-          id: 'task-5',
-          name: 'Development Sprint 2',
-          startDate: '2024-03-15',
-          endDate: '2024-03-30',
-          progress: 0,
-          color: '#8b5cf6',
-        },
-      ],
+      items: [],
+      wbs: wbsTree.content,
     },
     metadata: { createdAt: now, updatedAt: now },
     version: 1,
@@ -223,14 +278,38 @@ function createSampleArtifacts(): Record<string, CanvasArtifact> {
     title: 'Budget Tracker',
     projectId: 'project-demo',
     content: {
-      columns: ['A', 'B', 'C', 'D'],
+      columns: ['Phase', 'Resource', 'Cost', 'Notes'],
       rows: [
-        [{ value: 'Category' }, { value: 'Planned' }, { value: 'Actual' }, { value: 'Variance' }],
-        [{ value: 'Personnel' }, { value: 50000 }, { value: 48000 }, { value: 2000 }],
-        [{ value: 'Equipment' }, { value: 15000 }, { value: 16500 }, { value: -1500 }],
-        [{ value: 'Software' }, { value: 10000 }, { value: 9500 }, { value: 500 }],
-        [{ value: 'Training' }, { value: 5000 }, { value: 4000 }, { value: 1000 }],
-        [{ value: 'Total' }, { value: 80000 }, { value: 78000 }, { value: 2000 }],
+        [
+          { value: 'Initiation' },
+          { value: 'PMO' },
+          { value: 5600 },
+          { value: 'Charter + stakeholders' },
+        ],
+        [
+          { value: 'Planning' },
+          { value: 'Scheduler' },
+          { value: 13600 },
+          { value: 'Scope + schedule' },
+        ],
+        [
+          { value: 'Planning' },
+          { value: 'Resource Lead' },
+          { value: 3200 },
+          { value: 'Resource plan' },
+        ],
+        [
+          { value: 'Execution' },
+          { value: 'Delivery Team' },
+          { value: 36000 },
+          { value: 'Build + test' },
+        ],
+        [
+          { value: 'Total' },
+          { value: '' },
+          { value: null, formula: 'SUM(C1:C4)' },
+          { value: 'Auto-calculated' },
+        ],
       ],
     },
     metadata: { createdAt: now, updatedAt: now },

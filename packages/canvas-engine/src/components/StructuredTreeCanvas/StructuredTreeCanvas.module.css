@@ -106,6 +106,41 @@
   white-space: nowrap;
 }
 
+.nodeMetrics {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-neutral-600, #525252);
+}
+
+.metricField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+}
+
+.metricInput {
+  width: 80px;
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--font-size-xs, 0.75rem);
+  border: 1px solid var(--color-neutral-200, #e5e5e5);
+  border-radius: var(--radius-sm, 4px);
+  background-color: white;
+  color: var(--color-neutral-800, #262626);
+}
+
+.metricInput:disabled {
+  background-color: var(--color-neutral-100, #f5f5f5);
+  color: var(--color-neutral-500, #737373);
+}
+
+.metricValue {
+  min-width: 60px;
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-neutral-700, #404040);
+}
+
 .editInput {
   flex: 1;
   padding: var(--space-1, 4px) var(--space-2, 8px);

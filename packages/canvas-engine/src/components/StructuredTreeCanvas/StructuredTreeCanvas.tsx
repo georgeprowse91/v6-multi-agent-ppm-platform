@@ -5,7 +5,7 @@
  * hierarchical structures with add/edit/delete node capabilities.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { CanvasComponentProps } from '../../types/canvas';
 import type { TreeContent, TreeNode } from '../../types/artifact';
 import styles from './StructuredTreeCanvas.module.css';
@@ -19,11 +19,53 @@ interface TreeNodeProps {
   readOnly: boolean;
   onToggle: (nodeId: string) => void;
   onEdit: (nodeId: string, label: string) => void;
+  onUpdateWbs: (nodeId: string, updates: Partial<WbsNodeData>) => void;
   onAdd: (parentId: string) => void;
   onDelete: (nodeId: string) => void;
   editingNodeId: string | null;
   setEditingNodeId: (id: string | null) => void;
+  rollups: Record<string, WbsRollup>;
 }
+
+interface WbsNodeData {
+  effortHours?: number;
+  cost?: number;
+  owner?: string;
+  startDate?: string;
+  endDate?: string;
+  dependencies?: string[];
+  phase?: string;
+  resource?: string;
+  isMilestone?: boolean;
+  gateStatus?: 'on-track' | 'delayed';
+}
+
+interface WbsRollup {
+  effortHours: number;
+  cost: number;
+}
+
+const getWbsData = (node: TreeNode): WbsNodeData => {
+  const metadata = node.metadata ?? {};
+  const wbs = metadata.wbs;
+  if (wbs && typeof wbs === 'object') {
+    return wbs as WbsNodeData;
+  }
+  return {};
+};
+
+const formatNumber = (value: number, suffix = ''): string => {
+  if (!Number.isFinite(value)) return '-';
+  return `${value.toLocaleString()}${suffix}`;
+};
+
+const formatCurrency = (value: number): string => {
+  if (!Number.isFinite(value)) return '-';
+  return `$${value.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+};
 
 function TreeNodeComponent({
   node,
@@ -32,14 +74,18 @@ function TreeNodeComponent({
   readOnly,
   onToggle,
   onEdit,
+  onUpdateWbs,
   onAdd,
   onDelete,
   editingNodeId,
   setEditingNodeId,
+  rollups,
 }: TreeNodeProps) {
   const [editValue, setEditValue] = useState(node.label);
   const hasChildren = node.children.length > 0;
   const isEditing = editingNodeId === node.id;
+  const wbsData = getWbsData(node);
+  const rollup = rollups[node.id];
 
   const handleSaveEdit = useCallback(() => {
     if (editValue.trim()) {
@@ -58,6 +104,19 @@ function TreeNodeComponent({
       }
     },
     [handleSaveEdit, node.label, setEditingNodeId]
+  );
+
+  const handleWbsChange = useCallback(
+    (field: keyof WbsNodeData, value: string) => {
+      if (readOnly) return;
+      let parsed: number | string | undefined = value;
+      if (field === 'effortHours' || field === 'cost') {
+        const numeric = Number(value);
+        parsed = Number.isFinite(numeric) ? numeric : 0;
+      }
+      onUpdateWbs(node.id, { [field]: parsed });
+    },
+    [node.id, onUpdateWbs, readOnly]
   );
 
   return (
@@ -126,6 +185,60 @@ function TreeNodeComponent({
           </span>
         )}
 
+        <div className={styles.nodeMetrics}>
+          <label className={styles.metricField}>
+            <span>Effort</span>
+            {hasChildren ? (
+              <span className={styles.metricValue}>
+                {formatNumber(rollup?.effortHours ?? 0, 'h')}
+              </span>
+            ) : (
+              <input
+                type="number"
+                min="0"
+                className={styles.metricInput}
+                value={wbsData.effortHours ?? ''}
+                onChange={(e) => handleWbsChange('effortHours', e.target.value)}
+                disabled={readOnly}
+              />
+            )}
+          </label>
+          <label className={styles.metricField}>
+            <span>Cost</span>
+            {hasChildren ? (
+              <span className={styles.metricValue}>
+                {formatCurrency(rollup?.cost ?? 0)}
+              </span>
+            ) : (
+              <input
+                type="number"
+                min="0"
+                className={styles.metricInput}
+                value={wbsData.cost ?? ''}
+                onChange={(e) => handleWbsChange('cost', e.target.value)}
+                disabled={readOnly}
+              />
+            )}
+          </label>
+          <label className={styles.metricField}>
+            <span>Owner</span>
+            {readOnly ? (
+              <span className={styles.metricValue}>
+                {wbsData.owner || '-'}
+              </span>
+            ) : (
+              <input
+                type="text"
+                className={styles.metricInput}
+                value={wbsData.owner ?? ''}
+                onChange={(e) => handleWbsChange('owner', e.target.value)}
+                disabled={readOnly}
+                placeholder="Assign owner"
+              />
+            )}
+          </label>
+        </div>
+
         {!readOnly && !isEditing && (
           <div className={styles.nodeActions}>
             <button
@@ -184,10 +297,12 @@ function TreeNodeComponent({
                 readOnly={readOnly}
                 onToggle={onToggle}
                 onEdit={onEdit}
+                onUpdateWbs={onUpdateWbs}
                 onAdd={onAdd}
                 onDelete={onDelete}
                 editingNodeId={editingNodeId}
                 setEditingNodeId={setEditingNodeId}
+                rollups={rollups}
               />
             );
           })}
@@ -207,6 +322,98 @@ export function StructuredTreeCanvas({
   const { nodes, rootId } = artifact.content;
   const rootNode = nodes[rootId];
 
+  const rollups = useMemo(() => {
+    const cache: Record<string, WbsRollup> = {};
+    const calculate = (nodeId: string): WbsRollup => {
+      if (cache[nodeId]) return cache[nodeId];
+      const node = nodes[nodeId];
+      if (!node) {
+        return { effortHours: 0, cost: 0 };
+      }
+      const data = getWbsData(node);
+      if (node.children.length === 0) {
+        const leafTotal = {
+          effortHours: data.effortHours ?? 0,
+          cost: data.cost ?? 0,
+        };
+        cache[nodeId] = leafTotal;
+        return leafTotal;
+      }
+      const totals = node.children.reduce(
+        (acc, childId) => {
+          const childTotals = calculate(childId);
+          acc.effortHours += childTotals.effortHours;
+          acc.cost += childTotals.cost;
+          return acc;
+        },
+        { effortHours: 0, cost: 0 }
+      );
+      cache[nodeId] = totals;
+      return totals;
+    };
+    Object.keys(nodes).forEach(calculate);
+    return cache;
+  }, [nodes]);
+
+  const applyRollups = useCallback(
+    (updatedNodes: Record<string, TreeNode>) => {
+      const cache: Record<string, WbsRollup> = {};
+      const calculate = (nodeId: string): WbsRollup => {
+        if (cache[nodeId]) return cache[nodeId];
+        const node = updatedNodes[nodeId];
+        if (!node) {
+          return { effortHours: 0, cost: 0 };
+        }
+        const data = getWbsData(node);
+        if (node.children.length === 0) {
+          const leafTotal = {
+            effortHours: data.effortHours ?? 0,
+            cost: data.cost ?? 0,
+          };
+          cache[nodeId] = leafTotal;
+          return leafTotal;
+        }
+        const totals = node.children.reduce(
+          (acc, childId) => {
+            const childTotals = calculate(childId);
+            acc.effortHours += childTotals.effortHours;
+            acc.cost += childTotals.cost;
+            return acc;
+          },
+          { effortHours: 0, cost: 0 }
+        );
+        cache[nodeId] = totals;
+        return totals;
+      };
+
+      Object.keys(updatedNodes).forEach(calculate);
+
+      const withRollups: Record<string, TreeNode> = {};
+      for (const [id, node] of Object.entries(updatedNodes)) {
+        const totals = cache[id];
+        if (!totals || node.children.length === 0) {
+          withRollups[id] = node;
+          continue;
+        }
+        const metadata = node.metadata ?? {};
+        const wbsData = getWbsData(node);
+        withRollups[id] = {
+          ...node,
+          metadata: {
+            ...metadata,
+            wbs: {
+              ...wbsData,
+              effortHours: totals.effortHours,
+              cost: totals.cost,
+            },
+          },
+        };
+      }
+      return withRollups;
+    },
+    []
+  );
+
   const handleToggle = useCallback(
     (nodeId: string) => {
       if (!onChange) return;
@@ -215,13 +422,13 @@ export function StructuredTreeCanvas({
 
       onChange({
         ...artifact.content,
-        nodes: {
+        nodes: applyRollups({
           ...nodes,
           [nodeId]: { ...node, collapsed: !node.collapsed },
-        },
+        }),
       });
     },
-    [nodes, onChange, artifact.content]
+    [nodes, onChange, artifact.content, applyRollups]
   );
 
   const handleEdit = useCallback(
@@ -232,13 +439,41 @@ export function StructuredTreeCanvas({
 
       onChange({
         ...artifact.content,
-        nodes: {
+        nodes: applyRollups({
           ...nodes,
           [nodeId]: { ...node, label },
-        },
+        }),
       });
     },
-    [nodes, onChange, artifact.content]
+    [nodes, onChange, artifact.content, applyRollups]
+  );
+
+  const handleUpdateWbs = useCallback(
+    (nodeId: string, updates: Partial<WbsNodeData>) => {
+      if (!onChange) return;
+      const node = nodes[nodeId];
+      if (!node) return;
+      const metadata = node.metadata ?? {};
+      const wbsData = getWbsData(node);
+
+      onChange({
+        ...artifact.content,
+        nodes: applyRollups({
+          ...nodes,
+          [nodeId]: {
+            ...node,
+            metadata: {
+              ...metadata,
+              wbs: {
+                ...wbsData,
+                ...updates,
+              },
+            },
+          },
+        }),
+      });
+    },
+    [nodes, onChange, artifact.content, applyRollups]
   );
 
   const handleAdd = useCallback(
@@ -253,11 +488,18 @@ export function StructuredTreeCanvas({
         label: 'New Item',
         parentId,
         children: [],
+        metadata: {
+          wbs: {
+            effortHours: 0,
+            cost: 0,
+            owner: '',
+          },
+        },
       };
 
       onChange({
         ...artifact.content,
-        nodes: {
+        nodes: applyRollups({
           ...nodes,
           [parentId]: {
             ...parent,
@@ -265,13 +507,13 @@ export function StructuredTreeCanvas({
             collapsed: false,
           },
           [newId]: newNode,
-        },
+        }),
       });
 
       // Start editing the new node
       setTimeout(() => setEditingNodeId(newId), 50);
     },
-    [nodes, onChange, artifact.content]
+    [nodes, onChange, artifact.content, applyRollups]
   );
 
   const handleDelete = useCallback(
@@ -308,10 +550,10 @@ export function StructuredTreeCanvas({
 
       onChange({
         ...artifact.content,
-        nodes: newNodes,
+        nodes: applyRollups(newNodes),
       });
     },
-    [nodes, onChange, artifact.content]
+    [nodes, onChange, artifact.content, applyRollups]
   );
 
   if (!rootNode) {
@@ -340,10 +582,12 @@ export function StructuredTreeCanvas({
           readOnly={readOnly}
           onToggle={handleToggle}
           onEdit={handleEdit}
+          onUpdateWbs={handleUpdateWbs}
           onAdd={handleAdd}
           onDelete={handleDelete}
           editingNodeId={editingNodeId}
           setEditingNodeId={setEditingNodeId}
+          rollups={rollups}
         />
       </div>
     </div>
