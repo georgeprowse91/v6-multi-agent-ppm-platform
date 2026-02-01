@@ -3,7 +3,7 @@
  *
  * Features:
  * - Collapsible stages with activities
- * - Status icons (✓, ◐, ○, ⚠️, 🔒) and progress % per stage
+ * - Status icons (✓, ◐, ○, ⚠️, 🔒) and progress bar per stage
  * - Stage-gate logic: locked stages/activities shown but not actionable
  * - "Monitoring & Controlling" section always accessible
  * - Clicking activity updates current activity and opens relevant canvas
@@ -50,6 +50,9 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
   const navigate = useNavigate();
 
   const { methodology, projectName } = projectMethodology;
+  const stageNameLookup = Object.fromEntries(
+    methodology.stages.map((stage) => [stage.id, stage.name])
+  );
 
   // Helper to get incomplete prerequisites
   const getIncompletePrerequisites = useCallback(
@@ -157,8 +160,10 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
             isExpanded={expandedStageIds.includes(stage.id)}
             isLocked={isStageLockedComputed(stage.id)}
             progress={getStageProgressComputed(stage.id)}
+            stageNameLookup={stageNameLookup}
             currentActivityId={currentActivityId}
             isActivityLocked={isActivityLockedComputed}
+            getIncompletePrerequisites={getIncompletePrerequisites}
             onStageClick={handleStageHeaderClick}
             onActivityClick={handleActivityClick}
             onCaptureLessons={handleCaptureLessons}
@@ -175,8 +180,10 @@ interface StageItemProps {
   isExpanded: boolean;
   isLocked: boolean;
   progress: number;
+  stageNameLookup: Record<string, string>;
   currentActivityId: string | null;
   isActivityLocked: (activityId: string) => boolean;
+  getIncompletePrerequisites: (activity: MethodologyActivity) => PrerequisiteInfo[];
   onStageClick: (stageId: string) => void;
   onActivityClick: (activity: MethodologyActivity, stageLocked: boolean) => void;
   onCaptureLessons: (stageId: string, stageName: string) => void;
@@ -188,14 +195,25 @@ function StageItem({
   isExpanded,
   isLocked,
   progress,
+  stageNameLookup,
   currentActivityId,
   isActivityLocked,
+  getIncompletePrerequisites,
   onStageClick,
   onActivityClick,
   onCaptureLessons,
 }: StageItemProps) {
   // Compute effective status (locked overrides actual status for display)
   const displayStatus: MethodologyStatus = isLocked ? 'locked' : stage.status;
+  const progressTone = getProgressTone(displayStatus);
+  const prerequisiteNames = stage.prerequisites
+    .map((prereqId) => stageNameLookup[prereqId])
+    .filter(Boolean);
+  const gateCriteria = prerequisiteNames.length
+    ? `Gate criteria: prerequisites completed (${prerequisiteNames.join(
+        ', '
+      )}), approvals received.`
+    : 'Gate criteria: approvals received, readiness checklist complete.';
 
   return (
     <div
@@ -217,7 +235,22 @@ function StageItem({
         {!collapsed && (
           <>
             <span className={styles.stageName}>{stage.name}</span>
-            <span className={styles.stageProgress}>{progress}%</span>
+            <span className={styles.stageProgressWrapper}>
+              <span
+                className={styles.stageProgressBar}
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${stage.name} progress`}
+              >
+                <span
+                  className={`${styles.stageProgressFill} ${styles[progressTone]}`}
+                  style={{ width: `${progress}%` }}
+                />
+              </span>
+              <span className={styles.stageGateTooltip}>{gateCriteria}</span>
+            </span>
             {stage.status === 'complete' && (
               <button
                 className={styles.stageActionButton}
@@ -246,6 +279,7 @@ function StageItem({
               activity={activity}
               stageLocked={isLocked}
               isActivityLocked={isActivityLocked(activity.id)}
+              missingPrerequisites={getIncompletePrerequisites(activity)}
               isSelected={currentActivityId === activity.id}
               onClick={() => onActivityClick(activity, isLocked)}
             />
@@ -260,6 +294,7 @@ interface ActivityItemProps {
   activity: MethodologyActivity;
   stageLocked: boolean;
   isActivityLocked: boolean;
+  missingPrerequisites: PrerequisiteInfo[];
   isSelected: boolean;
   onClick: () => void;
 }
@@ -268,12 +303,16 @@ function ActivityItem({
   activity,
   stageLocked,
   isActivityLocked,
+  missingPrerequisites,
   isSelected,
   onClick,
 }: ActivityItemProps) {
   // Compute effective status
   const isLocked = stageLocked || isActivityLocked;
   const displayStatus: MethodologyStatus = isLocked ? 'locked' : activity.status;
+  const missingLabel = missingPrerequisites.length
+    ? missingPrerequisites.map((prereq) => prereq.activityName).join(', ')
+    : 'Additional prerequisites required.';
 
   return (
     <li className={styles.activityItem}>
@@ -289,6 +328,22 @@ function ActivityItem({
         <span className={styles.activityName}>{activity.name}</span>
         <CanvasTypeIcon canvasType={activity.canvasType} />
       </button>
+      {isLocked && (
+        <div className={styles.lockedPopover} role="tooltip">
+          <div className={styles.lockedPopoverTitle}>Missing prerequisites</div>
+          {missingPrerequisites.length > 0 ? (
+            <ul className={styles.lockedPopoverList}>
+              {missingPrerequisites.map((prereq) => (
+                <li key={prereq.activityId}>
+                  {prereq.activityName} ({prereq.stageName})
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.lockedPopoverText}>{missingLabel}</p>
+          )}
+        </div>
+      )}
     </li>
   );
 }
@@ -332,6 +387,20 @@ function CanvasTypeIcon({ canvasType }: CanvasTypeIconProps) {
       {iconMap[canvasType]}
     </span>
   );
+}
+
+type ProgressTone = 'onTrack' | 'atRisk' | 'offTrack';
+
+function getProgressTone(status: MethodologyStatus): ProgressTone {
+  if (status === 'locked') {
+    return 'offTrack';
+  }
+
+  if (status === 'blocked') {
+    return 'atRisk';
+  }
+
+  return 'onTrack';
 }
 
 export default MethodologyNav;

@@ -131,6 +131,64 @@
   text-align: right;
 }
 
+.stageProgressWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.stageProgressBar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 90px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-neutral-100);
+  overflow: hidden;
+}
+
+.stageProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--transition-fast), background-color var(--transition-fast);
+}
+
+.stageProgressFill.onTrack {
+  background: var(--color-success);
+}
+
+.stageProgressFill.atRisk {
+  background: var(--color-warning);
+}
+
+.stageProgressFill.offTrack {
+  background: var(--color-error, #ef4444);
+}
+
+.stageGateTooltip {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-0);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+  width: 220px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: var(--shadow-md);
+}
+
+.stageProgressWrapper:hover .stageGateTooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
 .stageActionButton {
   flex-shrink: 0;
   margin-left: var(--space-2);
@@ -157,6 +215,7 @@
 
 /* Activity item */
 .activityItem {
+  position: relative;
   margin: var(--space-1) 0;
 }
 
@@ -207,6 +266,48 @@
 .activityButton.alwaysAccessible {
   opacity: 1;
   cursor: pointer;
+}
+
+.lockedPopover {
+  position: absolute;
+  left: calc(100% + var(--space-2));
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-0);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  width: 220px;
+  font-size: var(--font-size-xs);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+
+.activityButton.locked:hover + .lockedPopover,
+.activityButton.locked:focus-visible + .lockedPopover {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lockedPopoverTitle {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-1);
+}
+
+.lockedPopoverList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.lockedPopoverText {
+  margin: 0;
+  color: var(--color-neutral-100);
 }
 
 /* Activity name */
