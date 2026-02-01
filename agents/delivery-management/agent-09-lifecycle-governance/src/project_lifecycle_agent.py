@@ -14,7 +14,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from approval_workflow_agent import ApprovalWorkflowAgent
 from events import (
     ProjectHealthReportGeneratedEvent,
     ProjectHealthUpdatedEvent,
@@ -26,6 +25,12 @@ from agents.common.health_recommendations import generate_recommendations, ident
 from agents.common.metrics_catalog import get_metric_value, normalize_metric_value
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+from notifications import NotificationService
+from orchestration import DurableTask, DurableWorkflow, OrchestrationContext, RetryPolicy
+from persistence import LifecyclePersistence
+from readiness_model import ReadinessScoringModel
+from summarization import GateSummarizer
+from sync_clients import ExternalSyncService
 
 
 class ProjectLifecycleAgent(BaseAgent):
@@ -89,8 +94,26 @@ class ProjectLifecycleAgent(BaseAgent):
             self.event_bus = get_event_bus()
         self.approval_agent = config.get("approval_agent") if config else None
         if self.approval_agent is None:
+            from approval_workflow_agent import ApprovalWorkflowAgent
+
             approval_config = config.get("approval_agent_config", {}) if config else {}
             self.approval_agent = ApprovalWorkflowAgent(config=approval_config)
+
+        self.persistence = LifecyclePersistence.from_config(config or {})
+        self.readiness_model = config.get("readiness_model") if config else None
+        if self.readiness_model is None:
+            self.readiness_model = ReadinessScoringModel()
+        self.external_sync = config.get("external_sync") if config else None
+        if self.external_sync is None:
+            self.external_sync = ExternalSyncService(logger=self.logger)
+        self.notification_service = config.get("notification_service") if config else None
+        if self.notification_service is None:
+            self.notification_service = NotificationService()
+        self.summarizer = config.get("summarizer") if config else None
+        if self.summarizer is None:
+            self.summarizer = GateSummarizer()
+        self.knowledge_agent = config.get("knowledge_agent") if config else None
+        self.orchestrator_sleep = (config or {}).get("orchestrator_sleep", asyncio.sleep)
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -106,6 +129,7 @@ class ProjectLifecycleAgent(BaseAgent):
         # Future work: Connect to Azure Cognitive Services for dashboard summarization
         # Future work: Initialize Azure Monitor for health metrics collection
 
+        self._register_event_handlers()
         self.logger.info("Project Lifecycle & Governance Agent initialized")
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
@@ -127,6 +151,11 @@ class ProjectLifecycleAgent(BaseAgent):
             "get_project_status",
             "get_health_dashboard",
             "override_gate",
+            "get_gate_history",
+            "get_readiness_scores",
+            "get_health_history",
+            "train_readiness_model",
+            "score_readiness",
         ]
 
         if action not in valid_actions:
@@ -149,6 +178,10 @@ class ProjectLifecycleAgent(BaseAgent):
             "generate_health_report",
             "get_project_status",
             "get_health_dashboard",
+            "get_gate_history",
+            "get_readiness_scores",
+            "get_health_history",
+            "score_readiness",
         ]:
             if "project_id" not in input_data:
                 self.logger.warning("Missing project_id")
@@ -165,7 +198,8 @@ class ProjectLifecycleAgent(BaseAgent):
                 "action": "initiate_project" | "transition_phase" | "evaluate_gate" |
                           "monitor_health" | "generate_health_report" | "recommend_methodology" |
                           "adjust_methodology" | "get_project_status" | "get_health_dashboard" |
-                          "override_gate",
+                          "override_gate" | "get_gate_history" | "get_readiness_scores" |
+                          "get_health_history" | "train_readiness_model" | "score_readiness",
                 "project_data": Project initialization data,
                 "project_id": ID of existing project,
                 "target_phase": Target phase for transition,
@@ -232,6 +266,16 @@ class ProjectLifecycleAgent(BaseAgent):
                 input_data.get("project_id"), input_data.get("new_methodology")  # type: ignore
             )
 
+        elif action == "train_readiness_model":
+            return await self._train_readiness_model(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
+
+        elif action == "score_readiness":
+            return await self._score_readiness(
+                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
+
         elif action == "get_project_status":
             return await self._get_project_status(
                 input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
@@ -252,6 +296,21 @@ class ProjectLifecycleAgent(BaseAgent):
                 requester=actor_id,
             )
 
+        elif action == "get_gate_history":
+            return await self._get_gate_history(
+                input_data.get("project_id"), input_data.get("gate_name"), tenant_id=tenant_id
+            )
+
+        elif action == "get_readiness_scores":
+            return await self._get_readiness_scores(
+                input_data.get("project_id"), tenant_id=tenant_id
+            )
+
+        elif action == "get_health_history":
+            return await self._get_health_history(
+                input_data.get("project_id"), tenant_id=tenant_id
+            )
+
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -266,59 +325,47 @@ class ProjectLifecycleAgent(BaseAgent):
         self.logger.info("Initiating project")
 
         project_id = project_data.get("project_id")
-        name = project_data.get("name")
-        methodology = project_data.get("methodology", "hybrid")
+        workflow = DurableWorkflow(
+            name="project_initiation",
+            tasks=[
+                DurableTask(
+                    name="create_records",
+                    action=self._create_project_record,
+                    compensation=self._rollback_project_record,
+                ),
+                DurableTask(name="persist_methodology", action=self._persist_methodology_decision),
+                DurableTask(
+                    name="publish_project_initiated",
+                    action=self._publish_project_initiated,
+                    retry_policy=RetryPolicy(max_attempts=3),
+                ),
+                DurableTask(
+                    name="sync_project_state",
+                    action=self._sync_project_state,
+                    retry_policy=RetryPolicy(max_attempts=3),
+                ),
+                DurableTask(name="notify_project_initiated", action=self._notify_project_initiated),
+            ],
+            sleep=self.orchestrator_sleep,
+        )
 
-        # Select or validate methodology
-        recommended_methodology = await self._recommend_methodology(project_data)
-        if methodology != recommended_methodology.get("methodology"):
-            self.logger.warning(
-                f"Provided methodology '{methodology}' differs from recommended '{recommended_methodology.get('methodology')}'"
-            )
-
-        # Load methodology map
-        methodology_map = await self._load_methodology_map(methodology)
-
-        # Create project record
-        project = {
-            "project_id": project_id,
-            "name": name,
-            "methodology": methodology,
-            "current_phase": methodology_map["initial_phase"],
-            "phase_history": [],
-            "created_at": datetime.utcnow().isoformat(),
-            "status": "Active",
-        }
-
-        # Create initial lifecycle state
-        lifecycle_state = {
-            "project_id": project_id,
-            "current_phase": methodology_map["initial_phase"],
-            "phase_start_date": datetime.utcnow().isoformat(),
-            "methodology_map": methodology_map,
-            "transitions": [],
-            "gates_passed": [],
-            "gates_pending": [],
-        }
-
-        # Store project and state
-        self.projects[project_id] = project
-        self.lifecycle_states[project_id] = lifecycle_state
-        self.lifecycle_store.upsert(tenant_id, project_id, lifecycle_state)
-
-        # Trigger charter generation
-        # Future work: Integrate with Project Definition Agent (Agent 8)
-
-        # Future work: Store in Azure Cosmos DB
-        # Future work: Publish project.initiated event to Service Bus
+        context = OrchestrationContext(
+            workflow_id=f"initiate-{project_id}",
+            tenant_id=tenant_id,
+            project_id=project_id,
+            correlation_id=str(uuid.uuid4()),
+            payload={"project_data": project_data},
+        )
+        context = await workflow.run(context)
+        init_payload = context.results["create_records"]
 
         self.logger.info(f"Initiated project: {project_id}")
 
         return {
             "project_id": project_id,
-            "current_phase": methodology_map["initial_phase"],
-            "methodology": methodology,
-            "methodology_map": methodology_map,
+            "current_phase": init_payload["methodology_map"]["initial_phase"],
+            "methodology": init_payload["methodology"],
+            "methodology_map": init_payload["methodology_map"],
             "next_steps": "Generate project charter and complete initiation activities",
         }
 
@@ -428,53 +475,31 @@ class ProjectLifecycleAgent(BaseAgent):
         if not lifecycle_state:
             raise ValueError(f"Lifecycle state not found for project: {project_id}")
 
-        # Get gate criteria definition
-        gate_criteria_def = await self._get_gate_criteria(gate_name)
-
-        # Check each criterion
-        criteria_status = []
-        for criterion in gate_criteria_def:
-            status = await self._check_criterion(project_id, criterion)
-            criteria_status.append(
-                {
-                    "criterion": criterion,
-                    "met": status,
-                    "description": await self._get_criterion_description(criterion),
-                }
-            )
-
-        # Calculate readiness score
-        # Future work: Use ML model for readiness prediction
-        readiness_score = (
-            sum(1 for c in criteria_status if c["met"]) / len(criteria_status)
-            if criteria_status
-            else 0
+        workflow = DurableWorkflow(
+            name="gate_evaluation",
+            tasks=[
+                DurableTask(name="evaluate_criteria", action=self._evaluate_gate_criteria),
+                DurableTask(name="score_readiness", action=self._score_gate_readiness),
+                DurableTask(name="persist_gate_evaluation", action=self._persist_gate_evaluation),
+                DurableTask(name="publish_gate_event", action=self._publish_gate_event),
+                DurableTask(name="sync_gate_event", action=self._sync_gate_decision),
+                DurableTask(name="summarize_gate", action=self._summarize_gate),
+            ],
+            sleep=self.orchestrator_sleep,
         )
+        context = OrchestrationContext(
+            workflow_id=f"gate-{project_id}-{gate_name}",
+            tenant_id=tenant_id,
+            project_id=project_id,
+            correlation_id=str(uuid.uuid4()),
+            payload={"gate_name": gate_name},
+        )
+        context = await workflow.run(context)
+        evaluation = context.results["evaluate_criteria"]
 
-        # Identify missing criteria
-        missing_criteria = [c for c in criteria_status if not c["met"]]
-
-        # Determine if gate can be passed
-        criteria_met = readiness_score >= 0.90  # 90% threshold
-
-        evaluation = {
-            "project_id": project_id,
-            "gate_name": gate_name,
-            "criteria_met": criteria_met,
-            "readiness_score": readiness_score,
-            "criteria_status": criteria_status,
-            "missing_criteria": missing_criteria,
-            "evaluated_at": datetime.utcnow().isoformat(),
-            "recommendation": "Proceed" if criteria_met else "Complete missing activities",
-        }
-
-        # Store evaluation
         if project_id not in self.gate_evaluations:
             self.gate_evaluations[project_id] = []
         self.gate_evaluations[project_id].append(evaluation)
-
-        # Future work: Store in database
-        # Future work: Publish gate.evaluated event
 
         return evaluation
 
@@ -619,18 +644,23 @@ class ProjectLifecycleAgent(BaseAgent):
             "monitored_at": datetime.utcnow().isoformat(),
         }
 
-        # Store health score
-        self.health_scores[project_id] = health_data
-        record_id = f"{project_id}-{health_data['monitored_at']}"
-        self.health_store.upsert(tenant_id, record_id, health_data.copy())
-
-        # Future work: Store in database
-        # Future work: Trigger alerts if health is critical
-        await self._publish_health_updated(
-            project_id,
-            health_data,
-            tenant_id=tenant_id,
+        workflow = DurableWorkflow(
+            name="health_monitoring",
+            tasks=[
+                DurableTask(name="persist_health", action=self._persist_health_metrics),
+                DurableTask(name="publish_health", action=self._publish_health_event),
+                DurableTask(name="notify_health", action=self._notify_health_if_needed),
+            ],
+            sleep=self.orchestrator_sleep,
         )
+        context = OrchestrationContext(
+            workflow_id=f"health-{project_id}",
+            tenant_id=tenant_id,
+            project_id=project_id,
+            correlation_id=str(uuid.uuid4()),
+            payload={"health_data": health_data},
+        )
+        await workflow.run(context)
 
         return health_data
 
@@ -693,6 +723,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "rationale": rationale,
             "confidence": 0.85,
             "alternatives": await self._get_alternative_methodologies(methodology),
+            "decided_at": datetime.utcnow().isoformat(),
         }
 
     async def _adjust_methodology(self, project_id: str, new_methodology: str) -> dict[str, Any]:
@@ -723,16 +754,33 @@ class ProjectLifecycleAgent(BaseAgent):
         lifecycle_state["methodology_map"] = new_methodology_map
         lifecycle_state["current_phase"] = new_phase
 
-        # Future work: Update in database
-        # Future work: Publish methodology.adjusted event
-
-        return {
+        update_payload = {
             "project_id": project_id,
             "old_methodology": old_methodology,
             "new_methodology": new_methodology,
             "current_phase": new_phase,
             "methodology_map": new_methodology_map,
+            "adjusted_at": datetime.utcnow().isoformat(),
         }
+        workflow = DurableWorkflow(
+            name="methodology_adjustment",
+            tasks=[
+                DurableTask(name="persist_methodology", action=self._persist_methodology_decision),
+                DurableTask(name="publish_methodology", action=self._publish_methodology_adjusted),
+                DurableTask(name="sync_methodology", action=self._sync_project_state),
+            ],
+            sleep=self.orchestrator_sleep,
+        )
+        context = OrchestrationContext(
+            workflow_id=f"methodology-{project_id}",
+            tenant_id="unknown",
+            project_id=project_id,
+            correlation_id=str(uuid.uuid4()),
+            payload={"project_data": update_payload},
+        )
+        await workflow.run(context)
+
+        return update_payload
 
     async def _get_project_status(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Get current project status."""
@@ -845,9 +893,13 @@ class ProjectLifecycleAgent(BaseAgent):
             lifecycle_state["gates_passed"].append(f"{gate_name} (OVERRIDDEN)")
             self.lifecycle_store.upsert(tenant_id, project_id, lifecycle_state)
 
-        # Future work: Store override record in database
-        # Future work: Publish gate.overridden event
-        # Future work: Send notification to PMO and stakeholders
+        await self.event_bus.publish("gate.overridden", override_record)
+        await self.external_sync.sync_gate_decision(
+            project_id, gate_name, {"override": True, **override_record}
+        )
+        await self.notification_service.notify_gate_decision(
+            {"project_id": project_id, "gate_name": gate_name, "event": "gate.overridden"}
+        )
 
         self.logger.warning(f"Gate override recorded for {project_id}: {gate_name}")
 
@@ -1142,6 +1194,299 @@ class ProjectLifecycleAgent(BaseAgent):
                 }
             )
         return alerts
+
+    async def _train_readiness_model(
+        self, project_id: str, *, tenant_id: str
+    ) -> dict[str, Any]:
+        history = self.persistence.list_gate_outcomes(tenant_id, project_id)
+        if not history:
+            return {"status": "skipped", "reason": "no_gate_history"}
+        samples = []
+        for record in history:
+            payload = record["payload"]
+            criteria_status = payload.get("criteria_status", [])
+            health_snapshot = payload.get("health_snapshot", {})
+            features = self.readiness_model.build_features(criteria_status, health_snapshot)
+            label = 1.0 if payload.get("criteria_met") else 0.0
+            samples.append({"features": features, "label": label})
+        self.readiness_model.fit(samples)
+        return {"status": "trained", "samples": len(samples)}
+
+    async def _score_readiness(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
+        lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
+        if not lifecycle_state:
+            raise ValueError(f"Lifecycle state not found for project: {project_id}")
+        pending_gates = await self._get_pending_gates(project_id)
+        gate_name = pending_gates[0] if pending_gates else "current_gate"
+        evaluation = await self._evaluate_gate(project_id, gate_name, tenant_id=tenant_id)
+        return {
+            "project_id": project_id,
+            "gate_name": gate_name,
+            "readiness_score": evaluation.get("readiness_score"),
+            "criteria_met": evaluation.get("criteria_met"),
+        }
+
+    async def _get_gate_history(
+        self, project_id: str, gate_name: str | None, *, tenant_id: str
+    ) -> dict[str, Any]:
+        return {
+            "project_id": project_id,
+            "gate_name": gate_name,
+            "history": self.persistence.list_gate_outcomes(tenant_id, project_id, gate_name),
+        }
+
+    async def _get_readiness_scores(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
+        return {
+            "project_id": project_id,
+            "readiness_scores": self.persistence.list_readiness_scores(tenant_id, project_id),
+        }
+
+    async def _get_health_history(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
+        return {
+            "project_id": project_id,
+            "health_history": self.persistence.list_health_metrics(tenant_id, project_id),
+        }
+
+    def _register_event_handlers(self) -> None:
+        try:
+            self.event_bus.subscribe("risk.updated", self._handle_risk_event)
+            self.event_bus.subscribe("resource.updated", self._handle_resource_event)
+        except Exception as exc:
+            self.logger.warning("Event bus subscription failed", extra={"error": str(exc)})
+
+    async def _handle_risk_event(self, payload: dict[str, Any]) -> None:
+        severity = payload.get("severity")
+        project_id = payload.get("project_id")
+        if severity in {"high", "critical"} and project_id:
+            self.logger.info("Risk event triggered health monitor", extra={"project_id": project_id})
+            await self._monitor_health(project_id, tenant_id=payload.get("tenant_id", "unknown"))
+
+    async def _handle_resource_event(self, payload: dict[str, Any]) -> None:
+        project_id = payload.get("project_id")
+        if project_id:
+            await self._monitor_health(project_id, tenant_id=payload.get("tenant_id", "unknown"))
+
+    async def _create_project_record(self, context: OrchestrationContext) -> dict[str, Any]:
+        project_data = context.payload.get("project_data", {})
+        project_id = project_data.get("project_id")
+        name = project_data.get("name")
+        methodology = project_data.get("methodology", "hybrid")
+
+        recommended_methodology = await self._recommend_methodology(project_data)
+        if methodology != recommended_methodology.get("methodology"):
+            self.logger.warning(
+                "Provided methodology differs from recommended",
+                extra={
+                    "provided": methodology,
+                    "recommended": recommended_methodology.get("methodology"),
+                },
+            )
+
+        methodology_map = await self._load_methodology_map(methodology)
+        project = {
+            "project_id": project_id,
+            "name": name,
+            "methodology": methodology,
+            "current_phase": methodology_map["initial_phase"],
+            "phase_history": [],
+            "created_at": datetime.utcnow().isoformat(),
+            "status": "Active",
+        }
+        lifecycle_state = {
+            "project_id": project_id,
+            "current_phase": methodology_map["initial_phase"],
+            "phase_start_date": datetime.utcnow().isoformat(),
+            "methodology_map": methodology_map,
+            "transitions": [],
+            "gates_passed": [],
+            "gates_pending": [],
+        }
+
+        self.projects[project_id] = project
+        self.lifecycle_states[project_id] = lifecycle_state
+        self.lifecycle_store.upsert(context.tenant_id, project_id, lifecycle_state)
+
+        context.results["methodology_decision"] = recommended_methodology
+        return {
+            "project_id": project_id,
+            "project": project,
+            "lifecycle_state": lifecycle_state,
+            "methodology": methodology,
+            "methodology_map": methodology_map,
+        }
+
+    async def _rollback_project_record(
+        self, context: OrchestrationContext, _exc: Exception | None
+    ) -> None:
+        project_id = context.project_id
+        self.projects.pop(project_id, None)
+        self.lifecycle_states.pop(project_id, None)
+
+    async def _persist_methodology_decision(self, context: OrchestrationContext) -> dict[str, Any]:
+        decision = context.results.get("methodology_decision") or context.payload.get(
+            "project_data", {}
+        )
+        return self.persistence.store_methodology_decision(
+            context.tenant_id, context.project_id, decision
+        )
+
+    async def _publish_project_initiated(self, context: OrchestrationContext) -> dict[str, Any]:
+        payload = {
+            "project_id": context.project_id,
+            "initiated_at": datetime.utcnow().isoformat(),
+            "methodology": context.results.get("create_records", {}).get("methodology"),
+        }
+        await self.event_bus.publish("project.initiated", payload)
+        return payload
+
+    async def _sync_project_state(self, context: OrchestrationContext) -> dict[str, Any]:
+        state = (
+            context.results.get("create_records", {}).get("lifecycle_state")
+            or context.payload.get("project_data")
+            or context.payload
+        )
+        results = await self.external_sync.sync_project_state(context.project_id, state)
+        return {"sync_results": [result.__dict__ for result in results]}
+
+    async def _notify_project_initiated(self, context: OrchestrationContext) -> dict[str, Any]:
+        payload = {
+            "project_id": context.project_id,
+            "event": "project.initiated",
+            "methodology": context.results.get("create_records", {}).get("methodology"),
+        }
+        return await self.notification_service.notify_project_initiated(payload)
+
+    async def _evaluate_gate_criteria(self, context: OrchestrationContext) -> dict[str, Any]:
+        gate_name = context.payload.get("gate_name")
+        project_id = context.project_id
+        gate_criteria_def = await self._get_gate_criteria(gate_name)
+        criteria_status = []
+        for criterion in gate_criteria_def:
+            status = await self._check_criterion(project_id, criterion)
+            criteria_status.append(
+                {
+                    "criterion": criterion,
+                    "met": status,
+                    "description": await self._get_criterion_description(criterion),
+                }
+            )
+        readiness_score = (
+            sum(1 for c in criteria_status if c["met"]) / len(criteria_status)
+            if criteria_status
+            else 0
+        )
+        missing_criteria = [c for c in criteria_status if not c["met"]]
+        criteria_met = readiness_score >= 0.90
+        evaluation = {
+            "project_id": project_id,
+            "gate_name": gate_name,
+            "criteria_met": criteria_met,
+            "readiness_score": readiness_score,
+            "criteria_status": criteria_status,
+            "missing_criteria": missing_criteria,
+            "evaluated_at": datetime.utcnow().isoformat(),
+            "recommendation": "Proceed" if criteria_met else "Complete missing activities",
+        }
+        return evaluation
+
+    async def _score_gate_readiness(self, context: OrchestrationContext) -> dict[str, Any]:
+        evaluation = context.results["evaluate_criteria"]
+        health_snapshot = self.health_scores.get(context.project_id)
+        features = self.readiness_model.build_features(
+            evaluation.get("criteria_status", []), health_snapshot
+        )
+        ml_score = self.readiness_model.predict(features)
+        evaluation["readiness_score"] = max(evaluation["readiness_score"], ml_score)
+        evaluation["health_snapshot"] = health_snapshot or {}
+        evaluation["readiness_model"] = {
+            "score": ml_score,
+            "trained": self.readiness_model.trained,
+        }
+        return evaluation
+
+    async def _persist_gate_evaluation(self, context: OrchestrationContext) -> dict[str, Any]:
+        evaluation = context.results["evaluate_criteria"]
+        return self.persistence.store_gate_evaluation(
+            context.tenant_id, context.project_id, evaluation
+        )
+
+    async def _publish_gate_event(self, context: OrchestrationContext) -> dict[str, Any]:
+        evaluation = context.results["evaluate_criteria"]
+        topic = "gate.passed" if evaluation.get("criteria_met") else "gate.failed"
+        await self.event_bus.publish(topic, evaluation)
+        return {"topic": topic}
+
+    async def _sync_gate_decision(self, context: OrchestrationContext) -> dict[str, Any]:
+        evaluation = context.results["evaluate_criteria"]
+        results = await self.external_sync.sync_gate_decision(
+            context.project_id, evaluation.get("gate_name"), evaluation
+        )
+        return {"sync_results": [result.__dict__ for result in results]}
+
+    async def _summarize_gate(self, context: OrchestrationContext) -> dict[str, Any]:
+        evaluation = context.results["evaluate_criteria"]
+        summary_payload = {"gate_name": evaluation.get("gate_name"), **evaluation}
+        summary = await self.summarizer.summarize(summary_payload)
+        record = {
+            "project_id": context.project_id,
+            "gate_name": evaluation.get("gate_name"),
+            "summary": summary["summary"],
+            "provider": summary["provider"],
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        await self._store_gate_summary(context.tenant_id, record)
+        return record
+
+    async def _store_gate_summary(self, tenant_id: str, record: dict[str, Any]) -> None:
+        if self.knowledge_agent:
+            await self.knowledge_agent.process(
+                {
+                    "action": "ingest_document",
+                    "document": {
+                        "document_id": f"gate-summary-{record['project_id']}-{record['gate_name']}",
+                        "title": f"Gate Summary: {record['gate_name']}",
+                        "content": record["summary"],
+                        "metadata": record,
+                    },
+                    "tenant_id": tenant_id,
+                }
+            )
+        else:
+            self.persistence.store_summary(tenant_id, record["project_id"], record)
+
+    async def _persist_health_metrics(self, context: OrchestrationContext) -> dict[str, Any]:
+        health_data = context.payload["health_data"]
+        project_id = context.project_id
+        self.health_scores[project_id] = health_data
+        record_id = f"{project_id}-{health_data['monitored_at']}"
+        self.health_store.upsert(context.tenant_id, record_id, health_data.copy())
+        return self.persistence.store_health_metrics(context.tenant_id, project_id, health_data)
+
+    async def _publish_health_event(self, context: OrchestrationContext) -> dict[str, Any]:
+        health_data = context.payload["health_data"]
+        await self._publish_health_updated(
+            context.project_id,
+            health_data,
+            tenant_id=context.tenant_id,
+        )
+        return {"status": "published"}
+
+    async def _notify_health_if_needed(self, context: OrchestrationContext) -> dict[str, Any]:
+        health_data = context.payload["health_data"]
+        if health_data.get("health_status") == "Critical":
+            return await self.notification_service.notify_gate_decision(
+                {
+                    "project_id": context.project_id,
+                    "event": "project.health.critical",
+                    "health_data": health_data,
+                }
+            )
+        return {"status": "skipped", "reason": "health_not_critical"}
+
+    async def _publish_methodology_adjusted(self, context: OrchestrationContext) -> dict[str, Any]:
+        payload = context.payload.get("project_data", {})
+        await self.event_bus.publish("methodology.adjusted", payload)
+        return payload
 
     async def _get_lifecycle_state(self, tenant_id: str, project_id: str) -> dict[str, Any] | None:
         lifecycle_state = self.lifecycle_states.get(project_id)
