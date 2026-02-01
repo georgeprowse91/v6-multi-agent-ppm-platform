@@ -9,11 +9,18 @@ Specification: agents/operations-management/agent-19-knowledge-document-manageme
 """
 
 import json
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from agents.runtime import BaseAgent
+from agents.common.connector_integration import DocumentManagementService
+from agents.common.integration_services import (
+    LocalEmbeddingService,
+    NaiveBayesTextClassifier,
+    VectorSearchIndex,
+)
+from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 from jsonschema import ValidationError
 from jsonschema import validate as jsonschema_validate
@@ -41,6 +48,7 @@ class KnowledgeManagementAgent(BaseAgent):
         self.max_summary_length = config.get("max_summary_length", 500) if config else 500
         self.search_result_limit = config.get("search_result_limit", 50) if config else 50
         self.similarity_threshold = config.get("similarity_threshold", 0.75) if config else 0.75
+        self.embedding_dimensions = config.get("embedding_dimensions", 128) if config else 128
 
         document_store_path = (
             Path(config.get("document_store_path", "data/knowledge_documents.json"))
@@ -86,6 +94,19 @@ class KnowledgeManagementAgent(BaseAgent):
             ]
         )
 
+        self.event_bus = config.get("event_bus") if config else None
+        if self.event_bus is None:
+            try:
+                self.event_bus = get_event_bus()
+            except ValueError:
+                self.event_bus = None
+
+        self.document_management_service = DocumentManagementService(config)
+        self.embedding_service = LocalEmbeddingService(self.embedding_dimensions)
+        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.classifier = NaiveBayesTextClassifier(self.document_types)
+        self.classifier_trained = False
+
         # Data stores (will be replaced with database)
         self.documents: dict[str, Any] = {}
         self.document_versions: dict[str, Any] = {}
@@ -93,6 +114,12 @@ class KnowledgeManagementAgent(BaseAgent):
         self.knowledge_graph: dict[str, Any] = {}
         self.lessons_learned: dict[str, Any] = {}
         self.taxonomy: dict[str, Any] = {}
+        self.document_annotations: dict[str, list[dict[str, Any]]] = {}
+        self.document_reviews: dict[str, list[dict[str, Any]]] = {}
+        self.document_approvals: dict[str, list[dict[str, Any]]] = {}
+        self.graph_nodes: dict[str, dict[str, Any]] = {}
+        self.graph_edges: list[dict[str, Any]] = []
+        self.ingestion_runs: list[dict[str, Any]] = []
 
     async def initialize(self) -> None:
         """Initialize document storage, search services, and AI models."""
@@ -112,6 +139,12 @@ class KnowledgeManagementAgent(BaseAgent):
         # Future work: Set up Azure Service Bus for document event publishing
         # Future work: Initialize Azure AD for authentication and RBAC
 
+        self._train_classifier_seed()
+
+        if self.event_bus and hasattr(self.event_bus, "subscribe"):
+            self.event_bus.subscribe("cognitive.summary.created", self._handle_cognitive_summary)
+            self.event_bus.subscribe("agent.summary.created", self._handle_cognitive_summary)
+
         self.logger.info("Knowledge & Document Management Agent initialized")
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
@@ -124,7 +157,10 @@ class KnowledgeManagementAgent(BaseAgent):
 
         valid_actions = [
             "upload_document",
+            "ingest_sources",
+            "ingest_agent_output",
             "search_documents",
+            "search_semantic",
             "get_document",
             "update_document",
             "delete_document",
@@ -132,11 +168,16 @@ class KnowledgeManagementAgent(BaseAgent):
             "summarize_document",
             "extract_entities",
             "build_knowledge_graph",
+            "query_knowledge_graph",
             "capture_lesson_learned",
             "recommend_documents",
             "manage_taxonomy",
             "track_document_access",
             "get_document_version_history",
+            "annotate_document",
+            "review_document",
+            "approve_document",
+            "link_documents",
         ]
 
         if action not in valid_actions:
@@ -149,7 +190,17 @@ class KnowledgeManagementAgent(BaseAgent):
                 self.logger.warning("Missing required document fields")
                 return False
 
-        elif action == "search_documents":
+        elif action == "ingest_sources":
+            if not input_data.get("sources"):
+                self.logger.warning("Missing ingestion sources")
+                return False
+
+        elif action == "ingest_agent_output":
+            if not input_data.get("payload"):
+                self.logger.warning("Missing agent output payload")
+                return False
+
+        elif action in {"search_documents", "search_semantic"}:
             if "query" not in input_data:
                 self.logger.warning("Missing search query")
                 return False
@@ -204,7 +255,21 @@ class KnowledgeManagementAgent(BaseAgent):
         if action == "upload_document":
             return await self._upload_document(tenant_id, input_data.get("document", {}))
 
+        elif action == "ingest_sources":
+            return await self._ingest_sources(tenant_id, input_data.get("sources", []))
+
+        elif action == "ingest_agent_output":
+            return await self._ingest_agent_output(tenant_id, input_data.get("payload", {}))
+
         elif action == "search_documents":
+            return await self._search_documents(
+                input_data.get("query"),
+                input_data.get("filters", {}),  # type: ignore
+                access_context,
+                tenant_id,
+            )
+
+        elif action == "search_semantic":
             return await self._search_documents(
                 input_data.get("query"),
                 input_data.get("filters", {}),  # type: ignore
@@ -247,6 +312,9 @@ class KnowledgeManagementAgent(BaseAgent):
                 input_data.get("document_id"), tenant_id  # type: ignore
             )
 
+        elif action == "query_knowledge_graph":
+            return await self._query_knowledge_graph(input_data.get("query", {}))
+
         elif action == "capture_lesson_learned":
             return await self._capture_lesson_learned(input_data.get("lesson", {}))
 
@@ -265,6 +333,33 @@ class KnowledgeManagementAgent(BaseAgent):
             return await self._get_document_version_history(
                 input_data.get("document_id"), tenant_id  # type: ignore
             )
+
+        elif action == "annotate_document":
+            return await self._annotate_document(
+                input_data.get("document_id"),
+                input_data.get("annotation", {}),
+                access_context,
+                tenant_id,
+            )
+
+        elif action == "review_document":
+            return await self._review_document(
+                input_data.get("document_id"),
+                input_data.get("review", {}),
+                access_context,
+                tenant_id,
+            )
+
+        elif action == "approve_document":
+            return await self._approve_document(
+                input_data.get("document_id"),
+                input_data.get("approval", {}),
+                access_context,
+                tenant_id,
+            )
+
+        elif action == "link_documents":
+            return await self._link_documents(input_data.get("links", []), tenant_id)
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -310,6 +405,7 @@ class KnowledgeManagementAgent(BaseAgent):
             "program_id": document_data.get("program_id"),
             "portfolio_id": document_data.get("portfolio_id"),
             "metadata": metadata,
+            "source": document_data.get("source"),
             "version": 1,
             "permissions": document_data.get("permissions", {"public": False}),
             "classification": classification_label,
@@ -338,6 +434,8 @@ class KnowledgeManagementAgent(BaseAgent):
         # Store document
         self.documents[document_id] = document
         self.document_store.upsert(tenant_id, document_id, document.copy())
+        self._index_document(document)
+        await self._update_graph_for_document(document)
 
         # Store version
         self.document_versions[document_id] = [document.copy()]
@@ -348,6 +446,17 @@ class KnowledgeManagementAgent(BaseAgent):
 
         # Extract entities for knowledge graph
         await self._extract_entities(document_id, tenant_id)
+
+        await self._publish_event(
+            "knowledge.document.ingested",
+            {
+                "document_id": document_id,
+                "tenant_id": tenant_id,
+                "title": document.get("title"),
+                "type": document.get("type"),
+                "source": document.get("source"),
+            },
+        )
 
         # Future work: Store in Azure Blob Storage
         # Future work: Index in Azure Cognitive Search
@@ -362,6 +471,149 @@ class KnowledgeManagementAgent(BaseAgent):
             "tags": tags,
             "classification": classification,
             "next_steps": "Document indexed and ready for search",
+        }
+
+    async def _ingest_sources(
+        self, tenant_id: str, sources: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Ingest documents from configured sources."""
+        ingestion_id = await self._generate_ingestion_id()
+        ingested_documents: list[str] = []
+        source_summaries: list[dict[str, Any]] = []
+
+        for source in sources:
+            source_type = source.get("type") or source.get("source_type") or "unknown"
+            if source_type == "confluence":
+                documents = await self._crawl_confluence(source)
+            elif source_type == "sharepoint":
+                documents = await self._crawl_sharepoint(source)
+            elif source_type == "github":
+                documents = await self._crawl_github(source)
+            elif source_type in {"agent_output", "cognitive_summary"}:
+                documents = await self._ingest_agent_outputs(source)
+            else:
+                documents = list(source.get("documents", []))
+
+            processed_ids: list[str] = []
+            for document in documents:
+                normalized = await self._normalize_ingested_document(document, source_type, source)
+                result = await self._upload_document(tenant_id, normalized)
+                processed_ids.append(result["document_id"])
+                ingested_documents.append(result["document_id"])
+
+            source_summaries.append(
+                {
+                    "source_type": source_type,
+                    "count": len(processed_ids),
+                    "document_ids": processed_ids,
+                }
+            )
+
+        run_record = {
+            "ingestion_id": ingestion_id,
+            "tenant_id": tenant_id,
+            "sources": source_summaries,
+            "total_documents": len(ingested_documents),
+            "ingested_at": datetime.utcnow().isoformat(),
+        }
+        self.ingestion_runs.append(run_record)
+
+        await self._publish_event("knowledge.ingestion.completed", run_record)
+
+        return run_record
+
+    async def _ingest_agent_output(self, tenant_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """Ingest agent output summaries as knowledge artifacts."""
+        document_data = await self._build_agent_output_document(payload)
+        result = await self._upload_document(tenant_id, document_data)
+        await self._publish_event(
+            "knowledge.agent_output.ingested",
+            {"tenant_id": tenant_id, "document_id": result["document_id"]},
+        )
+        return result
+
+    async def _handle_cognitive_summary(self, payload: dict[str, Any]) -> None:
+        """Handle summaries from other agents published to the event bus."""
+        tenant_id = payload.get("tenant_id") or "default"
+        try:
+            await self._ingest_agent_output(tenant_id, payload)
+        except Exception as exc:
+            self.logger.warning(f"Failed to ingest cognitive summary: {exc}")
+
+    async def _ingest_agent_outputs(self, source: dict[str, Any]) -> list[dict[str, Any]]:
+        documents = []
+        for payload in source.get("payloads", []):
+            documents.append(await self._build_agent_output_document(payload))
+        return documents
+
+    async def _build_agent_output_document(self, payload: dict[str, Any]) -> dict[str, Any]:
+        source_agent = payload.get("source_agent") or payload.get("agent_id") or "agent"
+        title = payload.get("title") or payload.get("summary_title") or f"Summary from {source_agent}"
+        content = payload.get("summary") or payload.get("content") or payload.get("details", "")
+        tags = payload.get("tags") or []
+        tags.extend(["agent_summary", source_agent])
+        return {
+            "title": title,
+            "content": content,
+            "author": payload.get("author") or source_agent,
+            "project_id": payload.get("project_id"),
+            "program_id": payload.get("program_id"),
+            "portfolio_id": payload.get("portfolio_id"),
+            "tags": tags,
+            "metadata": payload.get("metadata", {}),
+            "source": payload.get("source") or "agent_output",
+            "permissions": payload.get("permissions", {"public": False}),
+            "status": payload.get("status", "draft"),
+        }
+
+    async def _crawl_confluence(self, source: dict[str, Any]) -> list[dict[str, Any]]:
+        """Fetch documents from Confluence or provided payload."""
+        documents = list(source.get("documents", []))
+        connector = source.get("connector")
+        if connector and hasattr(connector, "read"):
+            try:
+                records = connector.read("pages", filters=source.get("filters"))
+                documents.extend(records)
+            except Exception as exc:
+                self.logger.warning(f"Confluence crawl failed: {exc}")
+        return documents
+
+    async def _crawl_sharepoint(self, source: dict[str, Any]) -> list[dict[str, Any]]:
+        """Fetch documents from SharePoint or provided payload."""
+        documents = list(source.get("documents", []))
+        document_ids = source.get("document_ids", [])
+        for document_id in document_ids:
+            record = await self.document_management_service.get_document(document_id)
+            if record:
+                documents.append(record)
+        return documents
+
+    async def _crawl_github(self, source: dict[str, Any]) -> list[dict[str, Any]]:
+        """Fetch documents from GitHub or provided payload."""
+        documents = list(source.get("documents", []))
+        for file_record in source.get("files", []):
+            documents.append(file_record)
+        return documents
+
+    async def _normalize_ingested_document(
+        self, document: dict[str, Any], source_type: str, source: dict[str, Any]
+    ) -> dict[str, Any]:
+        title = document.get("title") or document.get("name") or "Untitled"
+        content = document.get("content") or document.get("body") or document.get("text") or ""
+        metadata = document.get("metadata", {})
+        metadata.update({"source_type": source_type, "source_id": source.get("id")})
+        return {
+            "title": title,
+            "content": content,
+            "author": document.get("author") or document.get("owner"),
+            "project_id": document.get("project_id") or source.get("project_id"),
+            "program_id": document.get("program_id") or source.get("program_id"),
+            "portfolio_id": document.get("portfolio_id") or source.get("portfolio_id"),
+            "tags": document.get("tags") or source.get("tags") or [],
+            "metadata": metadata,
+            "source": source_type,
+            "permissions": document.get("permissions", {"public": False}),
+            "status": document.get("status", "draft"),
         }
 
     async def _search_documents(
@@ -440,6 +692,9 @@ class KnowledgeManagementAgent(BaseAgent):
             "modified_at": document.get("modified_at"),
             "accessed_count": document.get("accessed_count"),
             "related_documents": related_documents,
+            "annotations": self.document_annotations.get(document_id, []),
+            "reviews": self.document_reviews.get(document_id, []),
+            "approvals": self.document_approvals.get(document_id, []),
         }
 
     async def _update_document(
@@ -494,6 +749,18 @@ class KnowledgeManagementAgent(BaseAgent):
         )
 
         self.document_store.upsert(tenant_id, document_id, document.copy())
+        self._index_document(document)
+        await self._update_graph_for_document(document)
+
+        await self._publish_event(
+            "knowledge.document.updated",
+            {
+                "document_id": document_id,
+                "tenant_id": tenant_id,
+                "version": document.get("version"),
+                "changes": list(updates.keys()),
+            },
+        )
 
         # Future work: Store in database
         # Future work: Update search index
@@ -522,6 +789,11 @@ class KnowledgeManagementAgent(BaseAgent):
         document["deleted"] = True
         document["deleted_at"] = datetime.utcnow().isoformat()
         self.document_store.upsert(tenant_id, document_id, document.copy())
+
+        await self._publish_event(
+            "knowledge.document.deleted",
+            {"document_id": document_id, "tenant_id": tenant_id},
+        )
 
         # Future work: Mark as deleted in database
         # Future work: Remove from search index
@@ -553,6 +825,7 @@ class KnowledgeManagementAgent(BaseAgent):
         document["classification_confidence"] = classification.get("confidence")
         document["doc_type"] = await self._map_doc_type_for_schema(classification.get("type"))
         self.document_store.upsert(tenant_id, document_id, document.copy())
+        self._index_document(document)
 
         # Future work: Store in database
         # Future work: Update search index
@@ -620,6 +893,16 @@ class KnowledgeManagementAgent(BaseAgent):
             self.knowledge_graph[document_id] = {"entities": [], "relationships": []}
 
         self.knowledge_graph[document_id]["entities"] = entities
+        document_node = self._graph_document_id(document_id)
+        self._register_graph_node(
+            document_node,
+            "document",
+            {"title": document.get("title"), "doc_type": document.get("type")},
+        )
+        for entity in entities:
+            entity_node = self._graph_entity_id(entity.get("text"))
+            self._register_graph_node(entity_node, "entity", entity)
+            self._register_graph_edge(document_node, entity_node, "mentions")
 
         # Future work: Store in graph database
 
@@ -814,6 +1097,148 @@ class KnowledgeManagementAgent(BaseAgent):
             "version_history": version_list,
         }
 
+    async def _annotate_document(
+        self,
+        document_id: str,
+        annotation: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Add annotation to a document."""
+        document = self._load_document(tenant_id, document_id)
+        if not document:
+            raise ValueError(f"Document not found: {document_id}")
+        if not await self._is_access_allowed(document, access_context):
+            raise PermissionError("Access denied for requested document")
+
+        record = {
+            "annotation_id": f"ANN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "document_id": document_id,
+            "text": annotation.get("text"),
+            "selection": annotation.get("selection"),
+            "author": access_context.get("user_id") or annotation.get("author"),
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        self.document_annotations.setdefault(document_id, []).append(record)
+        await self._publish_event("knowledge.document.annotated", record)
+        return {"document_id": document_id, "annotation": record}
+
+    async def _review_document(
+        self,
+        document_id: str,
+        review: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Capture document review feedback."""
+        document = self._load_document(tenant_id, document_id)
+        if not document:
+            raise ValueError(f"Document not found: {document_id}")
+        if not await self._is_access_allowed(document, access_context):
+            raise PermissionError("Access denied for requested document")
+
+        record = {
+            "review_id": f"REV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "document_id": document_id,
+            "status": review.get("status", "in_review"),
+            "comments": review.get("comments", []),
+            "reviewer": access_context.get("user_id") or review.get("reviewer"),
+            "version": document.get("version"),
+            "reviewed_at": datetime.utcnow().isoformat(),
+        }
+        self.document_reviews.setdefault(document_id, []).append(record)
+        await self._publish_event("knowledge.document.reviewed", record)
+        return {"document_id": document_id, "review": record}
+
+    async def _approve_document(
+        self,
+        document_id: str,
+        approval: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Approve document changes."""
+        document = self._load_document(tenant_id, document_id)
+        if not document:
+            raise ValueError(f"Document not found: {document_id}")
+        if not await self._is_access_allowed(document, access_context):
+            raise PermissionError("Access denied for requested document")
+
+        record = {
+            "approval_id": f"APR-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "document_id": document_id,
+            "status": approval.get("status", "approved"),
+            "approver": access_context.get("user_id") or approval.get("approver"),
+            "version": document.get("version"),
+            "notes": approval.get("notes"),
+            "approved_at": datetime.utcnow().isoformat(),
+        }
+        self.document_approvals.setdefault(document_id, []).append(record)
+        document["status"] = "approved" if record["status"] == "approved" else document.get(
+            "status", "draft"
+        )
+        self.document_store.upsert(tenant_id, document_id, document.copy())
+        await self._publish_event("knowledge.document.approved", record)
+        return {"document_id": document_id, "approval": record}
+
+    async def _link_documents(
+        self, links: list[dict[str, Any]], tenant_id: str
+    ) -> dict[str, Any]:
+        """Link related documents in the knowledge graph."""
+        created_links: list[dict[str, Any]] = []
+        for link in links:
+            source_id = link.get("source_document_id")
+            target_id = link.get("target_document_id")
+            relation = link.get("relation", "related")
+            if not source_id or not target_id:
+                continue
+            source = self._load_document(tenant_id, source_id)
+            target = self._load_document(tenant_id, target_id)
+            if not source or not target:
+                continue
+            source_node = self._graph_document_id(source_id)
+            target_node = self._graph_document_id(target_id)
+            self._register_graph_node(
+                source_node, "document", {"title": source.get("title"), "doc_type": source.get("type")}
+            )
+            self._register_graph_node(
+                target_node, "document", {"title": target.get("title"), "doc_type": target.get("type")}
+            )
+            self._register_graph_edge(source_node, target_node, relation)
+            created_links.append(
+                {"source_document_id": source_id, "target_document_id": target_id, "relation": relation}
+            )
+
+        if created_links:
+            await self._publish_event(
+                "knowledge.document.linked", {"links": created_links, "tenant_id": tenant_id}
+            )
+        return {"links": created_links, "count": len(created_links)}
+
+    async def _query_knowledge_graph(self, query: dict[str, Any]) -> dict[str, Any]:
+        """Query graph relationships for insights."""
+        query_type = query.get("type", "traverse")
+        if query_type == "impact_analysis":
+            risk = query.get("risk")
+            if not risk:
+                raise ValueError("Missing risk for impact analysis")
+            risk_node = self._graph_risk_id(risk)
+            impacted = self._traverse_graph(risk_node, target_type="project")
+            return {"risk": risk, "impacted_projects": impacted}
+
+        start_node = query.get("start_node")
+        relation = query.get("relation")
+        target_type = query.get("target_type")
+        if not start_node:
+            raise ValueError("Missing start_node for graph query")
+        results = self._traverse_graph(start_node, relation, target_type)
+        return {
+            "start_node": start_node,
+            "relation": relation,
+            "target_type": target_type,
+            "results": results,
+        }
+
     # Helper methods
 
     async def _generate_document_id(self) -> str:
@@ -826,26 +1251,56 @@ class KnowledgeManagementAgent(BaseAgent):
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"LESSON-{timestamp}"
 
+    async def _generate_ingestion_id(self) -> str:
+        """Generate unique ingestion ID."""
+        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        return f"INGEST-{timestamp}"
+
+    def _train_classifier_seed(self) -> None:
+        """Train classifier with seed samples for bootstrapping."""
+        if self.classifier_trained:
+            return
+        seed_samples = [
+            ("project charter objectives scope", "charter"),
+            ("functional requirements shall must", "requirements"),
+            ("test plan verification validation", "test_plan"),
+            ("lessons learned retrospective", "lessons_learned"),
+            ("meeting minutes decisions action items", "meeting_minutes"),
+            ("policy procedure compliance", "policy"),
+            ("design specification architecture", "design"),
+            ("status report metrics", "report"),
+        ]
+        self.classifier.fit(seed_samples)
+        self.classifier_trained = True
+
     async def _extract_metadata(self, document_data: dict[str, Any]) -> dict[str, Any]:
         """Extract metadata from document."""
+        keywords = self._extract_keywords(document_data.get("content", ""))
         return {
             "file_size": len(document_data.get("content", "")),
             "format": document_data.get("format", "text"),
             "language": "en",  # Future work: Detect language
+            "keywords": keywords,
+            "source": document_data.get("source"),
         }
 
     async def _auto_classify_document(self, document_data: dict[str, Any]) -> dict[str, Any]:
         """Auto-classify document using AI."""
-        # Future work: Use Azure ML for classification
-        content = document_data.get("content", "").lower()
+        content = document_data.get("content", "")
+        if self.classifier_trained:
+            label, scores = self.classifier.predict(content)
+            confidence = max(scores.values()) if scores else 0.5
+            return {"type": label, "confidence": confidence, "category": label}
 
-        if "requirement" in content or "shall" in content:
+        # Fallback heuristic classification
+        content_lower = content.lower()
+        if "requirement" in content_lower or "shall" in content_lower:
             doc_type = "requirements"
-        elif "test" in content or "verify" in content:
+        elif "test" in content_lower or "verify" in content_lower:
             doc_type = "test_plan"
-        elif "lesson" in content or "learned" in content:
+        elif "lesson" in content_lower or "learned" in content_lower:
             doc_type = "lessons_learned"
-        elif "charter" in content or "objectives" in content:
+        elif "charter" in content_lower or "objectives" in content_lower:
             doc_type = "charter"
         else:
             doc_type = "report"
@@ -856,37 +1311,188 @@ class KnowledgeManagementAgent(BaseAgent):
         self, document_data: dict[str, Any], classification: dict[str, Any]
     ) -> list[str]:
         """Generate tags for document."""
-        # Future work: Use NLP for tag generation
-        tags = [classification.get("type")]
-
+        tags = set(document_data.get("tags", []))
+        if classification.get("type"):
+            tags.add(classification.get("type"))
+        keywords = self._extract_keywords(document_data.get("content", ""))
+        tags.update(keywords[:5])
         if document_data.get("project_id"):
-            tags.append("project")
+            tags.add("project")
+        if document_data.get("program_id"):
+            tags.add("program")
+        if document_data.get("portfolio_id"):
+            tags.add("portfolio")
+        return list(tags)
 
-        return tags  # type: ignore
+    def _extract_keywords(self, content: str, *, limit: int = 10) -> list[str]:
+        """Extract simple keyword list from content."""
+        tokens = [token.lower().strip(".,;:()[]") for token in content.split()]
+        tokens = [token for token in tokens if len(token) > 3]
+        counts = Counter(tokens)
+        return [token for token, _ in counts.most_common(limit)]
+
+    def _index_document(self, document: dict[str, Any]) -> None:
+        """Index document into the vector search index."""
+        doc_id = document.get("document_id")
+        if not doc_id:
+            return
+        combined = " ".join(
+            [
+                document.get("title", ""),
+                document.get("content", ""),
+                " ".join(document.get("tags", [])),
+                json.dumps(document.get("metadata", {})),
+            ]
+        )
+        self.vector_index.add(doc_id, combined, {"title": document.get("title")})
+
+    async def _update_graph_for_document(self, document: dict[str, Any]) -> None:
+        """Update knowledge graph with document relationships."""
+        document_id = document.get("document_id")
+        if not document_id:
+            return
+        doc_node = self._graph_document_id(document_id)
+        self._register_graph_node(
+            doc_node, "document", {"title": document.get("title"), "doc_type": document.get("type")}
+        )
+
+        for relation, key in [
+            ("project", "project_id"),
+            ("program", "program_id"),
+            ("portfolio", "portfolio_id"),
+        ]:
+            related_id = document.get(key)
+            if related_id:
+                related_node = f"{relation}:{related_id}"
+                self._register_graph_node(related_node, relation, {"id": related_id})
+                self._register_graph_edge(doc_node, related_node, "relates_to")
+
+        for risk in self._extract_risks(document.get("content", "")):
+            risk_node = self._graph_risk_id(risk)
+            self._register_graph_node(risk_node, "risk", {"name": risk})
+            self._register_graph_edge(risk_node, doc_node, "documented_in")
+
+        for decision in self._extract_decisions(document.get("content", "")):
+            decision_node = self._graph_decision_id(decision)
+            self._register_graph_node(decision_node, "decision", {"name": decision})
+            self._register_graph_edge(decision_node, doc_node, "documented_in")
+
+    def _extract_risks(self, content: str) -> list[str]:
+        keywords = [
+            token.strip(".,:;")
+            for token in content.split()
+            if token.lower().startswith("risk")
+        ]
+        return keywords[:5]
+
+    def _extract_decisions(self, content: str) -> list[str]:
+        decisions = []
+        for line in content.splitlines():
+            if "decision" in line.lower():
+                decisions.append(line.strip()[:80])
+        return decisions[:5]
+
+    def _graph_document_id(self, document_id: str) -> str:
+        return f"document:{document_id}"
+
+    def _graph_entity_id(self, entity_text: str | None) -> str:
+        return f"entity:{entity_text}" if entity_text else "entity:unknown"
+
+    def _graph_risk_id(self, risk: str) -> str:
+        return f"risk:{risk}"
+
+    def _graph_decision_id(self, decision: str) -> str:
+        return f"decision:{decision}"
+
+    def _register_graph_node(self, node_id: str, node_type: str, attributes: dict[str, Any]) -> None:
+        if node_id not in self.graph_nodes:
+            self.graph_nodes[node_id] = {"type": node_type, "attributes": attributes}
+        else:
+            self.graph_nodes[node_id]["attributes"].update(attributes)
+
+    def _register_graph_edge(self, source: str, target: str, relation: str) -> None:
+        self.graph_edges.append({"from": source, "to": target, "relation": relation})
+
+    def _traverse_graph(
+        self,
+        start_node: str,
+        relation: str | None = None,
+        target_type: str | None = None,
+        depth: int = 2,
+    ) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
+        visited = set()
+        frontier = [(start_node, 0)]
+        while frontier:
+            node_id, level = frontier.pop(0)
+            if node_id in visited or level >= depth:
+                continue
+            visited.add(node_id)
+            for edge in self.graph_edges:
+                if edge["from"] != node_id:
+                    continue
+                if relation and edge["relation"] != relation:
+                    continue
+                target = edge["to"]
+                node = self.graph_nodes.get(target)
+                if target_type and node and node.get("type") != target_type:
+                    frontier.append((target, level + 1))
+                    continue
+                if node:
+                    results.append({"node_id": target, **node})
+                frontier.append((target, level + 1))
+        return results
+
+    async def _publish_event(self, topic: str, payload: dict[str, Any]) -> None:
+        if not self.event_bus:
+            return
+        try:
+            await self.event_bus.publish(topic, payload)
+        except Exception as exc:
+            self.logger.warning(f"Failed to publish event {topic}: {exc}")
 
     async def _semantic_search(
         self, query: str, filters: dict[str, Any], access_context: dict[str, Any], tenant_id: str
     ) -> list[dict[str, Any]]:
         """Perform semantic search."""
-        # Future work: Use Azure Cognitive Search
         results: list[dict[str, Any]] = []
-        query_lower = query.lower()
+        vector_hits = self.vector_index.search(query, top_k=self.search_result_limit)
 
+        for hit in vector_hits:
+            document = self._load_document(tenant_id, hit.doc_id)
+            if not document or document.get("deleted"):
+                continue
+            if hit.score < self.similarity_threshold:
+                continue
+            if not await self._is_access_allowed(document, access_context):
+                continue
+            if not await self._matches_search_filters(document, filters):
+                continue
+            results.append(
+                {
+                    "document_id": hit.doc_id,
+                    "document": document,
+                    "relevance_score": hit.score,
+                }
+            )
+
+        if results:
+            return results
+
+        # Fallback to keyword search when embeddings are not populated.
+        query_lower = query.lower()
         for doc_id, document in self.documents.items():
             if document.get("deleted"):
                 continue
-
-            # Simple text matching (replace with semantic search)
             if query_lower in document.get("content", "").lower():
                 if not await self._is_access_allowed(document, access_context):
                     continue
-                # Apply filters
                 if await self._matches_search_filters(document, filters):
                     results.append(
                         {
                             "document_id": doc_id,
                             "document": document,
-                            "relevance_score": 0.8,  # Future work: Calculate actual score
+                            "relevance_score": 0.6,
                         }
                     )
 
@@ -926,8 +1532,23 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _find_related_documents(self, document_id: str) -> list[dict[str, Any]]:
         """Find related documents."""
-        # Future work: Use knowledge graph and similarity
-        return []
+        document = self.documents.get(document_id)
+        if not document:
+            return []
+        content = document.get("content", "")
+        results = self.vector_index.search(content, top_k=5)
+        related = []
+        for result in results:
+            if result.doc_id == document_id:
+                continue
+            related.append(
+                {
+                    "document_id": result.doc_id,
+                    "score": result.score,
+                    "title": self.documents.get(result.doc_id, {}).get("title"),
+                }
+            )
+        return related
 
     async def _generate_summary(self, content: str, max_length: int) -> str:
         """Generate summary using NLG."""
@@ -1134,10 +1755,13 @@ class KnowledgeManagementAgent(BaseAgent):
             "document_summarization",
             "entity_extraction",
             "knowledge_graph",
+            "knowledge_ingestion",
+            "knowledge_graph_traversal",
             "lessons_learned_capture",
             "document_recommendations",
             "taxonomy_management",
             "collaborative_editing",
+            "document_curation",
             "access_control",
             "audit_logging",
             "nlp_processing",

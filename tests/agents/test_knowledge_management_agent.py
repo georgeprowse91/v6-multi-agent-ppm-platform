@@ -104,3 +104,79 @@ async def test_knowledge_agent_validation_rejects_missing_query(tmp_path):
     valid = await agent.validate_input({"action": "search_documents"})
 
     assert valid is False
+
+
+@pytest.mark.asyncio
+async def test_knowledge_agent_ingestion_and_semantic_search(tmp_path):
+    agent = KnowledgeManagementAgent(
+        config={
+            "document_store_path": tmp_path / "documents.json",
+            "similarity_threshold": 0.1,
+        }
+    )
+    await agent.initialize()
+
+    ingestion = await agent.process(
+        {
+            "action": "ingest_sources",
+            "tenant_id": "tenant-knowledge",
+            "sources": [
+                {
+                    "type": "confluence",
+                    "documents": [
+                        {
+                            "title": "Post-Project Retrospective",
+                            "content": "Lessons learned and process improvements.",
+                            "author": "jordan",
+                            "project_id": "proj-42",
+                            "permissions": {"public": True, "roles": [], "attributes": {}},
+                        }
+                    ],
+                }
+            ],
+        }
+    )
+
+    assert ingestion["total_documents"] == 1
+
+    results = await agent.process(
+        {
+            "action": "search_semantic",
+            "tenant_id": "tenant-knowledge",
+            "query": "process improvements",
+        }
+    )
+
+    assert results["total_results"] == 1
+
+
+@pytest.mark.asyncio
+async def test_knowledge_agent_graph_impact_query(tmp_path):
+    agent = KnowledgeManagementAgent(config={"document_store_path": tmp_path / "documents.json"})
+    await agent.initialize()
+
+    upload = await agent.process(
+        {
+            "action": "upload_document",
+            "tenant_id": "tenant-knowledge",
+            "document": {
+                "title": "Security Review",
+                "content": "Risk: data loss. Decision: implement backups.",
+                "author": "alex",
+                "project_id": "proj-7",
+                "permissions": {"public": True, "roles": [], "attributes": {}},
+            },
+        }
+    )
+
+    assert upload["document_id"]
+
+    impact = await agent.process(
+        {
+            "action": "query_knowledge_graph",
+            "query": {"type": "impact_analysis", "risk": "Risk"},
+        }
+    )
+
+    impacted = [item["node_id"] for item in impact["impacted_projects"]]
+    assert "project:proj-7" in impacted
