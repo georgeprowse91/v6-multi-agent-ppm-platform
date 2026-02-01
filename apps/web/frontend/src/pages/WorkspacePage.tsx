@@ -388,6 +388,27 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
     event.dataTransfer.effectAllowed = 'move';
   };
 
+  const renderPipelineItem = (item: PipelineItem) => (
+    <div
+      key={item.item_id}
+      className={styles.pipelineItem}
+      draggable
+      onDragStart={(event) => handlePipelineDragStart(event, item.item_id)}
+    >
+      <div className={styles.pipelineItemHeader}>
+        <span className={styles.pipelineItemType}>
+          {item.type === 'intake' ? 'Intake request' : 'Active project'}
+        </span>
+        <span className={`${styles.badge} ${styles[`badge${item.priority}`]}`}>
+          {item.priority}
+        </span>
+      </div>
+      <div className={styles.pipelineItemTitle}>{item.title}</div>
+      <p className={styles.pipelineItemSummary}>{item.summary}</p>
+      <div className={styles.pipelineItemMeta}>Sponsor: {item.sponsor}</div>
+    </div>
+  );
+
   const relatedTotalPages = Math.max(
     1,
     Math.ceil(filteredRelatedItems.length / relatedPageSize)
@@ -493,6 +514,8 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
               <div className={styles.pipelineBoard}>
                 {pipelineBoard.stages.map((stage) => {
                   const items = pipelineItemsByStage.get(stage) ?? [];
+                  const intakeItems = items.filter((item) => item.type === 'intake');
+                  const projectItems = items.filter((item) => item.type === 'project');
                   return (
                     <div
                       key={stage}
@@ -501,40 +524,43 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                       onDrop={(event) => handlePipelineDrop(event, stage)}
                     >
                       <div className={styles.pipelineColumnHeader}>
-                        <span>{stage}</span>
+                        <div className={styles.pipelineStageInfo}>
+                          <span>{stage}</span>
+                          <span className={styles.pipelineStageMeta}>
+                            {intakeItems.length} intake · {projectItems.length} projects
+                          </span>
+                        </div>
                         <span className={styles.pipelineStageCount}>{items.length}</span>
                       </div>
                       <div className={styles.pipelineColumnBody}>
-                        {items.length > 0 ? (
-                          items.map((item) => (
-                            <div
-                              key={item.item_id}
-                              className={styles.pipelineItem}
-                              draggable
-                              onDragStart={(event) =>
-                                handlePipelineDragStart(event, item.item_id)
-                              }
-                            >
-                              <div className={styles.pipelineItemHeader}>
-                                <span className={styles.pipelineItemType}>
-                                  {item.type === 'intake' ? 'Intake request' : 'Active project'}
-                                </span>
-                                <span
-                                  className={`${styles.badge} ${styles[`badge${item.priority}`]}`}
-                                >
-                                  {item.priority}
-                                </span>
-                              </div>
-                              <div className={styles.pipelineItemTitle}>{item.title}</div>
-                              <p className={styles.pipelineItemSummary}>{item.summary}</p>
-                              <div className={styles.pipelineItemMeta}>
-                                Sponsor: {item.sponsor}
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className={styles.emptyState}>No items in this stage.</p>
-                        )}
+                        <div className={styles.pipelineSection}>
+                          <div className={styles.pipelineSectionHeader}>
+                            Intake requests
+                          </div>
+                          <div className={styles.pipelineSectionBody}>
+                            {intakeItems.length > 0 ? (
+                              intakeItems.map(renderPipelineItem)
+                            ) : (
+                              <p className={styles.emptyState}>
+                                No intake requests in this stage.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className={styles.pipelineSection}>
+                          <div className={styles.pipelineSectionHeader}>
+                            Active projects
+                          </div>
+                          <div className={styles.pipelineSectionBody}>
+                            {projectItems.length > 0 ? (
+                              projectItems.map(renderPipelineItem)
+                            ) : (
+                              <p className={styles.emptyState}>
+                                No active projects in this stage.
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
