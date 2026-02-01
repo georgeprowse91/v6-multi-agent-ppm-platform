@@ -3,6 +3,7 @@ import { Header } from './Header';
 import { LeftPanel } from './LeftPanel';
 import { MainCanvas } from './MainCanvas';
 import { AssistantPanel } from '@/components/assistant';
+import { TourProvider } from '@/components/tours';
 import { useAppStore } from '@/store';
 import styles from './AppLayout.module.css';
 
@@ -47,13 +48,15 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, [setSession]);
 
   return (
-    <div className={styles.layout}>
-      <Header />
-      <div className={styles.body}>
-        <LeftPanel />
-        <MainCanvas>{children}</MainCanvas>
-        <AssistantPanel />
+    <TourProvider>
+      <div className={styles.layout}>
+        <Header />
+        <div className={styles.body}>
+          <LeftPanel />
+          <MainCanvas>{children}</MainCanvas>
+          <AssistantPanel />
+        </div>
       </div>
-    </div>
+    </TourProvider>
   );
 }

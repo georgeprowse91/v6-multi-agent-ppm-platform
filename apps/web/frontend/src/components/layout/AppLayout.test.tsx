@@ -4,6 +4,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '@/i18n';
 import { AppLayout } from './AppLayout';
 
+vi.mock('shepherd.js', () => ({
+  default: {
+    Tour: class {
+      addStep = vi.fn();
+      start = vi.fn();
+      on = vi.fn();
+    },
+  },
+}));
+
 describe('AppLayout', () => {
   afterEach(() => {
     vi.unstubAllGlobals();

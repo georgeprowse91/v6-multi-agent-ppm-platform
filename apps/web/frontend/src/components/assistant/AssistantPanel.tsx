@@ -688,7 +688,7 @@ export function AssistantPanel() {
   // Collapsed state
   if (rightPanelCollapsed) {
     return (
-      <aside className={`${styles.panel} ${styles.collapsed}`}>
+      <aside className={`${styles.panel} ${styles.collapsed}`} data-tour="assistant-panel">
         <button
           className={styles.expandButton}
           onClick={toggleRightPanel}
@@ -707,7 +707,7 @@ export function AssistantPanel() {
   }
 
   return (
-    <aside className={styles.panel}>
+    <aside className={styles.panel} data-tour="assistant-panel">
       {/* Header */}
       <div className={styles.header}>
         <h2 className={styles.title}>Assistant</h2>

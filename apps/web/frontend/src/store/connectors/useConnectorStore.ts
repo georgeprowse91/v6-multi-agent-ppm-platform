@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import type {
   CategoryInfo,
+  CertificationRecord,
   Connector,
   ConnectorCategory,
   ConnectorConfigUpdate,
@@ -28,6 +29,11 @@ interface ConnectorStoreState {
   categories: CategoryInfo[];
   categoriesLoading: boolean;
 
+  // Certifications
+  certifications: Record<string, CertificationRecord>;
+  certificationsLoading: boolean;
+  certificationsError: string | null;
+
   // Filter state
   filter: ConnectorFilterState;
 
@@ -42,10 +48,21 @@ interface ConnectorStoreState {
   // Actions - Connectors
   fetchConnectors: () => Promise<void>;
   fetchCategories: () => Promise<void>;
+  fetchCertifications: () => Promise<void>;
   getConnector: (connectorId: string) => Connector | undefined;
+  getCertification: (connectorId: string) => CertificationRecord | undefined;
   updateConnectorConfig: (connectorId: string, config: ConnectorConfigUpdate) => Promise<void>;
   enableConnector: (connectorId: string) => Promise<void>;
   disableConnector: (connectorId: string) => Promise<void>;
+  updateCertification: (
+    connectorId: string,
+    payload: Partial<Omit<CertificationRecord, 'connector_id' | 'tenant_id' | 'documents' | 'updated_at'>>
+  ) => Promise<CertificationRecord | null>;
+  uploadCertificationDocument: (
+    connectorId: string,
+    file: File,
+    uploadedBy?: string
+  ) => Promise<CertificationRecord | null>;
 
   // Actions - Connection Testing
   testConnection: (connectorId: string, instanceUrl?: string, projectKey?: string) => Promise<ConnectionTestResult>;
@@ -82,6 +99,9 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
   connectorsError: null,
   categories: [],
   categoriesLoading: false,
+  certifications: {},
+  certificationsLoading: false,
+  certificationsError: null,
   filter: DEFAULT_FILTER,
   selectedConnector: null,
   isModalOpen: false,
@@ -127,9 +147,32 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     }
   },
 
+  fetchCertifications: async () => {
+    set({ certificationsLoading: true, certificationsError: null });
+    try {
+      const response = await fetch(`${API_BASE}/certifications`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch certifications: ${response.statusText}`);
+      }
+      const data = (await response.json()) as CertificationRecord[];
+      const mapped = data.reduce<Record<string, CertificationRecord>>((acc, record) => {
+        acc[record.connector_id] = record;
+        return acc;
+      }, {});
+      set({ certifications: mapped, certificationsLoading: false });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      set({ certificationsError: message, certificationsLoading: false });
+    }
+  },
+
   // Get a specific connector
   getConnector: (connectorId) => {
     return get().connectors.find((c) => c.connector_id === connectorId);
+  },
+
+  getCertification: (connectorId) => {
+    return get().certifications[connectorId];
   },
 
   // Update connector configuration
@@ -158,6 +201,50 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
             : c
         ),
       }));
+    }
+  },
+
+  updateCertification: async (connectorId, payload) => {
+    try {
+      const response = await fetch(`${API_BASE}/certifications/${connectorId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to update certification: ${response.statusText}`);
+      }
+      const record = (await response.json()) as CertificationRecord;
+      set((state) => ({
+        certifications: { ...state.certifications, [connectorId]: record },
+      }));
+      return record;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  uploadCertificationDocument: async (connectorId, file, uploadedBy) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (uploadedBy) {
+        formData.append('uploaded_by', uploadedBy);
+      }
+      const response = await fetch(`${API_BASE}/certifications/${connectorId}/documents`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to upload certification evidence: ${response.statusText}`);
+      }
+      const record = (await response.json()) as CertificationRecord;
+      set((state) => ({
+        certifications: { ...state.certifications, [connectorId]: record },
+      }));
+      return record;
+    } catch (error) {
+      return null;
     }
   },
 

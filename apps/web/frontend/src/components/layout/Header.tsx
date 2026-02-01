@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/store';
+import { useTour } from '@/components/tours';
 import styles from './Header.module.css';
 
 interface BreadcrumbItem {
@@ -38,6 +39,7 @@ function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
 export function Header() {
   const location = useLocation();
   const { session } = useAppStore();
+  const { startTour } = useTour();
   const breadcrumbs = getBreadcrumbs(location.pathname);
 
   return (
@@ -83,6 +85,17 @@ export function Header() {
       </div>
 
       <div className={styles.right}>
+        <button
+          className={styles.helpButton}
+          title="Help and walkthrough"
+          onClick={startTour}
+          data-tour="help-menu"
+        >
+          <span>Help</span>
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a8 8 0 00-8 8 8 8 0 1016 0 8 8 0 00-8-8zm.02 12a1 1 0 110 2 1 1 0 010-2zm1.58-4.86-.86.88a1.5 1.5 0 00-.46 1.06v.4a1 1 0 11-2 0v-.5a3.5 3.5 0 011.02-2.47l1.06-1.08a1.5 1.5 0 10-2.62-1.02 1 1 0 11-2 0 3.5 3.5 0 117 0 3.47 3.47 0 01-1.14 2.6z" />
+          </svg>
+        </button>
         <button className={styles.iconButton} title="Notifications">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />

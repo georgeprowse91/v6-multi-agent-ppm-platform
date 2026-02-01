@@ -361,6 +361,7 @@
 .connectorMeta {
   display: flex;
   gap: var(--spacing-sm, 8px);
+  flex-wrap: wrap;
   margin-bottom: var(--spacing-sm, 12px);
 }
 
@@ -393,9 +394,42 @@
   color: var(--color-text-secondary, #6b7280);
 }
 
+.certificationBadge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.certBadgeCertified {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.certBadgePending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.certBadgeExpired {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.certBadgeNotCertified {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.certBadgeNotTracked {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
 .cardActions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--spacing-sm, 8px);
 }
 
 .configButton {
@@ -416,6 +450,20 @@
 .configButton:disabled {
   background: var(--color-bg-secondary, #d1d5db);
   cursor: not-allowed;
+}
+
+.certButton {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+}
+
+.certButton:hover {
+  background: var(--color-bg-secondary, #f3f4f6);
 }
 
 /* Loading and Error States */
@@ -504,6 +552,14 @@
   flex: 1;
 }
 
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm, 8px);
+  padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+
 .modalDescription {
   color: var(--color-text-secondary, #6b7280);
   margin: 0 0 var(--spacing-lg, 24px) 0;
@@ -511,6 +567,112 @@
 
 .configSection {
   margin-bottom: var(--spacing-lg, 24px);
+}
+
+.certGrid {
+  display: grid;
+  gap: var(--spacing-md, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+.field input,
+.field select,
+.field textarea {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #111827);
+}
+
+.certDocuments {
+  margin-top: var(--spacing-lg, 24px);
+}
+
+.certDocuments h3 {
+  margin: 0 0 var(--spacing-sm, 12px) 0;
+  font-size: 0.95rem;
+  color: var(--color-text-primary, #111827);
+}
+
+.documentList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-md, 16px) 0;
+  display: grid;
+  gap: var(--spacing-sm, 8px);
+}
+
+.documentList li {
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.documentName {
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin-bottom: 4px;
+}
+
+.documentMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  display: flex;
+  gap: 8px;
+}
+
+.emptyDocuments {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 12px);
+}
+
+.uploadButton {
+  padding: 6px 12px;
+  background: var(--color-primary, #3b82f6);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.uploadButton:disabled {
+  background: var(--color-bg-secondary, #d1d5db);
+  cursor: not-allowed;
+}
+
+.primaryButton {
+  padding: 8px 16px;
+  background: var(--color-primary, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .sectionTitle {
