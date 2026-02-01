@@ -285,10 +285,11 @@ async def get_entity(
 async def list_entities(
     schema_name: str,
     tenant_id: str | None = Query(None),
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     store: DataServiceStore = Depends(get_store),
 ) -> list[EntityResponse]:
-    records = await store.list_entities(schema_name, tenant_id, limit)
+    records = await store.list_entities(schema_name, tenant_id, skip, limit)
     return [_entity_response(record) for record in records]
 
 

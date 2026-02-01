@@ -287,7 +287,11 @@ class DataServiceStore:
         return self._entity_from_row(row) if row else None
 
     async def list_entities(
-        self, schema_name: str, tenant_id: str | None = None, limit: int = 100
+        self,
+        schema_name: str,
+        tenant_id: str | None = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> list[EntityRecord]:
         async with self.session_factory() as session:
             statement = select(CANONICAL_ENTITIES_TABLE).where(
@@ -295,8 +299,10 @@ class DataServiceStore:
             )
             if tenant_id:
                 statement = statement.where(CANONICAL_ENTITIES_TABLE.c.tenant_id == tenant_id)
-            statement = statement.order_by(CANONICAL_ENTITIES_TABLE.c.updated_at.desc()).limit(
-                limit
+            statement = (
+                statement.order_by(CANONICAL_ENTITIES_TABLE.c.updated_at.desc())
+                .offset(skip)
+                .limit(limit)
             )
             result = await session.execute(statement)
             rows = result.fetchall()
