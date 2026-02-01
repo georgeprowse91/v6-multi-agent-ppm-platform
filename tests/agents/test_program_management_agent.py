@@ -389,3 +389,53 @@ async def test_program_optimization_with_resource_overlaps(tmp_path):
 
     assert result["optimized_schedule"]
     assert any(topic == "program.optimized" for topic, _ in event_bus.events)
+
+
+@pytest.mark.asyncio
+async def test_program_optimization_includes_synergy_and_alignment(tmp_path):
+    event_bus = EventCollector()
+    agent = ProgramManagementAgent(
+        config={
+            "event_bus": event_bus,
+            "program_store_path": tmp_path / "programs.json",
+            "program_roadmap_store_path": tmp_path / "roadmaps.json",
+            "program_dependency_store_path": tmp_path / "dependencies.json",
+            "synergy_detection_threshold": 0.1,
+        }
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "create_program",
+            "tenant_id": "tenant-a",
+            "program": {
+                "name": "Synergy Program",
+                "description": "Synergy optimization",
+                "strategic_objectives": ["CRM", "Data Platform"],
+                "constituent_projects": ["P1", "P2"],
+            },
+        }
+    )
+
+    async def fake_project_details(project_ids: list[str]) -> dict[str, dict]:
+        return {
+            "P1": {"name": "CRM Upgrade", "description": "CRM data platform"},
+            "P2": {"name": "CRM Analytics", "description": "Analytics for CRM data"},
+        }
+
+    agent._get_project_details = fake_project_details  # type: ignore
+
+    result = await agent.process(
+        {
+            "action": "optimize_program",
+            "tenant_id": "tenant-a",
+            "program_id": created["program_id"],
+            "constraints": {"iterations": 4, "optimization_method": "mixed_integer"},
+        }
+    )
+
+    assert result["synergy_savings"]["total"] >= 0
+    assert "alignment_score" in result
+    assert "synergy" in result["objective_breakdown"]
+    assert any(topic == "program.status.updated" for topic, _ in event_bus.events)

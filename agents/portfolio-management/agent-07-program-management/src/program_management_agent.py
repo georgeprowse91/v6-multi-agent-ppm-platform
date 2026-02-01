@@ -13,6 +13,7 @@ import asyncio
 import json
 import os
 import random
+import re
 import uuid
 from datetime import datetime, timedelta
 from itertools import combinations
@@ -85,10 +86,24 @@ class ProgramManagementAgent(BaseAgent):
         self.optimization_objectives = (
             config.get(
                 "optimization_objectives",
-                {"utilization": 0.35, "cost": 0.25, "risk": 0.20, "schedule": 0.20},
+                {
+                    "utilization": 0.3,
+                    "cost": 0.2,
+                    "risk": 0.2,
+                    "schedule": 0.15,
+                    "alignment": 0.1,
+                    "synergy": 0.05,
+                },
             )
             if config
-            else {"utilization": 0.35, "cost": 0.25, "risk": 0.20, "schedule": 0.20}
+            else {
+                "utilization": 0.3,
+                "cost": 0.2,
+                "risk": 0.2,
+                "schedule": 0.15,
+                "alignment": 0.1,
+                "synergy": 0.05,
+            }
         )
 
         program_store_path = (
@@ -853,6 +868,18 @@ class ProgramManagementAgent(BaseAgent):
             },
         )
 
+        await self._publish_program_status_update(
+            program_id,
+            tenant_id=tenant_id,
+            correlation_id=str(uuid.uuid4()),
+            status_type="health",
+            payload={
+                "health_score": composite_score,
+                "health_status": health_status,
+                "concerns": concerns,
+            },
+        )
+
         return health_payload
 
     async def _get_program(self, program_id: str, *, tenant_id: str) -> dict[str, Any]:
@@ -908,6 +935,37 @@ class ProgramManagementAgent(BaseAgent):
         )
         await self.event_bus.publish("program.roadmap.updated", event.model_dump())
 
+    async def _publish_program_status_update(
+        self,
+        program_id: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        status_type: str,
+        payload: dict[str, Any],
+    ) -> None:
+        status_payload = {
+            "program_id": program_id,
+            "status_type": status_type,
+            "payload": payload,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        if self.db_service:
+            await self.db_service.store(
+                "program_status_updates",
+                f"{program_id}:{status_type}:{uuid.uuid4().hex}",
+                status_payload,
+            )
+        await self.event_bus.publish(
+            "program.status.updated",
+            {
+                "program_id": program_id,
+                "tenant_id": tenant_id,
+                "status": status_payload,
+                "correlation_id": correlation_id,
+            },
+        )
+
     async def _get_project_schedules(self, project_ids: list[str]) -> dict[str, Any]:
         """Query project schedules from Schedule & Planning Agent."""
         if self.schedule_agent and project_ids:
@@ -941,6 +999,10 @@ class ProgramManagementAgent(BaseAgent):
 
         schedule_overlaps = self._detect_schedule_overlaps(project_ids, schedules)
         resource_overlaps = self._detect_resource_overlaps(project_ids, resource_allocations)
+        overlap_pairs = {(item["project_a"], item["project_b"]) for item in schedule_overlaps}
+        resource_overlap_map = {
+            (item["project_a"], item["project_b"]): item for item in resource_overlaps
+        }
 
         for overlap in schedule_overlaps:
             dependencies.append(
@@ -963,6 +1025,58 @@ class ProgramManagementAgent(BaseAgent):
                     "overlap_score": overlap["overlap_score"],
                 }
             )
+
+        for project_a, project_b in combinations(project_ids, 2):
+            if (project_a, project_b) not in overlap_pairs and (project_b, project_a) not in overlap_pairs:
+                continue
+            resource_overlap = (
+                resource_overlap_map.get((project_a, project_b))
+                or resource_overlap_map.get((project_b, project_a))
+            )
+            if not resource_overlap:
+                continue
+            schedule_a = schedules.get(project_a, {})
+            schedule_b = schedules.get(project_b, {})
+            start_a = self._parse_date(schedule_a.get("start"))
+            end_a = self._parse_date(schedule_a.get("end"))
+            start_b = self._parse_date(schedule_b.get("start"))
+            end_b = self._parse_date(schedule_b.get("end"))
+            if not (start_a and end_a and start_b and end_b):
+                continue
+            if start_a <= end_b and start_b <= end_a:
+                dependencies.append(
+                    {
+                        "predecessor": project_a,
+                        "successor": project_b,
+                        "type": "resource_contention",
+                        "shared_resources": resource_overlap.get("shared_resources", []),
+                        "overlap_window": {
+                            "start": max(start_a, start_b).date().isoformat(),
+                            "end": min(end_a, end_b).date().isoformat(),
+                        },
+                    }
+                )
+            else:
+                if end_a < start_b:
+                    dependencies.append(
+                        {
+                            "predecessor": project_a,
+                            "successor": project_b,
+                            "type": "resource_sequence",
+                            "lag_days": (start_b - end_a).days,
+                            "shared_resources": resource_overlap.get("shared_resources", []),
+                        }
+                    )
+                elif end_b < start_a:
+                    dependencies.append(
+                        {
+                            "predecessor": project_b,
+                            "successor": project_a,
+                            "type": "resource_sequence",
+                            "lag_days": (start_a - end_b).days,
+                            "shared_resources": resource_overlap.get("shared_resources", []),
+                        }
+                    )
 
         for idx in range(len(project_ids) - 1):
             predecessor = project_ids[idx]
@@ -2266,12 +2380,28 @@ class ProgramManagementAgent(BaseAgent):
         resource_allocations = await self._get_resource_allocations(constituent_projects)
         project_costs = await self._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
         project_risks = await self._estimate_project_risks(constituent_projects, tenant_id=tenant_id)
+        project_details = await self._get_project_details(constituent_projects)
+        strategic_objectives = program.get("strategic_objectives", [])
 
         base_schedule = self._build_initial_schedule(constituent_projects, project_schedules)
         dependencies = await self._identify_dependencies(
             constituent_projects,
             schedules=project_schedules,
             resource_allocations=resource_allocations,
+        )
+        synergy_analysis = await self.analyze_synergies(project_details)
+        synergy_map = self._build_synergy_map(synergy_analysis)
+        alignment_scores = self._calculate_alignment_scores(
+            project_details, strategic_objectives
+        )
+        alignment_score = (
+            sum(alignment_scores.values()) / max(1, len(alignment_scores)) if alignment_scores else 0.0
+        )
+        synergy_savings = await self._calculate_synergy_savings(
+            synergy_analysis.get("shared_components", []),
+            synergy_analysis.get("vendor_consolidation", []),
+            synergy_analysis.get("infrastructure_synergies", []),
+            project_costs,
         )
 
         target_objectives = objectives or self.optimization_objectives
@@ -2286,28 +2416,60 @@ class ProgramManagementAgent(BaseAgent):
             project_costs,
             project_risks,
             normalized_objectives,
+            alignment_score,
+            synergy_map,
         )
 
+        optimization_method = constraints.get("optimization_method", "genetic_algorithm")
         iterations = constraints.get("iterations", 30)
-        for _ in range(iterations):
-            candidate = self._mutate_schedule(
+        if optimization_method in {"mixed_integer", "mixed_integer_programming", "mip"}:
+            best_schedule, best_score, best_breakdown = self._optimize_schedule_mip(
                 base_schedule,
                 dependencies,
-                rng=rng,
-                max_shift_days=constraints.get("max_shift_days", 15),
-            )
-            score, breakdown = self._score_schedule_candidate(
-                candidate,
-                base_schedule,
                 resource_allocations,
                 project_costs,
                 project_risks,
                 normalized_objectives,
+                alignment_score,
+                synergy_map,
+                max_shift_days=constraints.get("max_shift_days", 15),
             )
-            if score > best_score:
-                best_schedule = candidate
-                best_score = score
-                best_breakdown = breakdown
+        elif optimization_method in {"genetic", "genetic_algorithm"}:
+            best_schedule, best_score, best_breakdown = self._optimize_schedule_genetic(
+                base_schedule,
+                dependencies,
+                resource_allocations,
+                project_costs,
+                project_risks,
+                normalized_objectives,
+                alignment_score,
+                synergy_map,
+                iterations=iterations,
+                max_shift_days=constraints.get("max_shift_days", 15),
+                rng=rng,
+            )
+        else:
+            for _ in range(iterations):
+                candidate = self._mutate_schedule(
+                    base_schedule,
+                    dependencies,
+                    rng=rng,
+                    max_shift_days=constraints.get("max_shift_days", 15),
+                )
+                score, breakdown = self._score_schedule_candidate(
+                    candidate,
+                    base_schedule,
+                    resource_allocations,
+                    project_costs,
+                    project_risks,
+                    normalized_objectives,
+                    alignment_score,
+                    synergy_map,
+                )
+                if score > best_score:
+                    best_schedule = candidate
+                    best_score = score
+                    best_breakdown = breakdown
 
         optimized_schedule = {
             project_id: {
@@ -2323,8 +2485,12 @@ class ProgramManagementAgent(BaseAgent):
             "optimized_schedule": optimized_schedule,
             "objective_score": round(best_score, 4),
             "objective_breakdown": best_breakdown,
-            "algorithm": "evolutionary_search",
+            "algorithm": optimization_method,
             "constraints": constraints,
+            "alignment_score": alignment_score,
+            "alignment_scores": alignment_scores,
+            "synergy_savings": synergy_savings,
+            "synergy_analysis": synergy_analysis,
             "optimized_at": datetime.utcnow().isoformat(),
         }
 
@@ -2339,6 +2505,19 @@ class ProgramManagementAgent(BaseAgent):
                     "objectives": normalized_objectives,
                 },
             )
+            await self.db_service.store(
+                "program_optimization_models",
+                program_id,
+                {
+                    "program_id": program_id,
+                    "optimization_method": optimization_method,
+                    "objectives": normalized_objectives,
+                    "alignment_scores": alignment_scores,
+                    "synergy_map": {f"{k[0]}::{k[1]}": v for k, v in synergy_map.items()},
+                    "constraints": constraints,
+                    "created_at": datetime.utcnow().isoformat(),
+                },
+            )
 
         await self.event_bus.publish(
             "program.optimized",
@@ -2347,6 +2526,18 @@ class ProgramManagementAgent(BaseAgent):
                 "tenant_id": tenant_id,
                 "optimization": optimization,
                 "correlation_id": correlation_id,
+            },
+        )
+
+        await self._publish_program_status_update(
+            program_id,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            status_type="optimization",
+            payload={
+                "optimization_score": best_score,
+                "alignment_score": alignment_score,
+                "synergy_savings": synergy_savings.get("total", 0.0),
             },
         )
 
@@ -2373,6 +2564,82 @@ class ProgramManagementAgent(BaseAgent):
         if total == 0:
             return self.optimization_objectives
         return {key: max(0.0, value) / total for key, value in objectives.items()}
+
+    def _extract_alignment_terms(self, text: str) -> set[str]:
+        return set(re.findall(r"[a-z0-9]+", text.lower()))
+
+    def _calculate_alignment_scores(
+        self, project_details: dict[str, Any], strategic_objectives: list[str]
+    ) -> dict[str, float]:
+        if not strategic_objectives:
+            return {project_id: 0.7 for project_id in project_details}
+        objective_terms = self._extract_alignment_terms(" ".join(str(obj) for obj in strategic_objectives))
+        if not objective_terms:
+            return {project_id: 0.7 for project_id in project_details}
+        scores: dict[str, float] = {}
+        for project_id, detail in project_details.items():
+            project_text = " ".join(
+                str(value)
+                for value in [
+                    detail.get("name"),
+                    detail.get("description"),
+                    " ".join(detail.get("scope", []) or []),
+                    " ".join(detail.get("tags", []) or []),
+                ]
+                if value
+            )
+            project_terms = self._extract_alignment_terms(project_text)
+            if not project_terms:
+                scores[project_id] = 0.5
+                continue
+            overlap = len(project_terms & objective_terms)
+            scores[project_id] = max(0.0, min(1.0, overlap / max(1, len(objective_terms))))
+        return scores
+
+    def _build_synergy_map(self, synergy_analysis: dict[str, Any]) -> dict[tuple[str, str], float]:
+        synergy_map: dict[tuple[str, str], float] = {}
+
+        def _add_synergies(items: list[dict[str, Any]], weight: float) -> None:
+            for item in items:
+                projects = item.get("projects", [])
+                if len(projects) != 2:
+                    continue
+                pair = tuple(sorted(projects))
+                synergy_map[pair] = synergy_map.get(pair, 0.0) + weight * float(
+                    item.get("similarity", 0.0)
+                )
+
+        _add_synergies(synergy_analysis.get("shared_components", []), 0.6)
+        _add_synergies(synergy_analysis.get("vendor_consolidation", []), 0.25)
+        _add_synergies(synergy_analysis.get("infrastructure_synergies", []), 0.15)
+
+        return synergy_map
+
+    def _calculate_synergy_score(
+        self, schedule: dict[str, dict[str, Any]], synergy_map: dict[tuple[str, str], float]
+    ) -> float:
+        if not synergy_map:
+            return 0.0
+        total_weight = sum(synergy_map.values())
+        if total_weight <= 0:
+            return 0.0
+        realized = 0.0
+        for (project_a, project_b), weight in synergy_map.items():
+            data_a = schedule.get(project_a)
+            data_b = schedule.get(project_b)
+            if not data_a or not data_b:
+                continue
+            start_a = data_a["start"]
+            end_a = data_a["end"]
+            start_b = data_b["start"]
+            end_b = data_b["end"]
+            if start_a <= end_b and start_b <= end_a:
+                realized += weight
+                continue
+            gap = min(abs((start_a - end_b).days), abs((start_b - end_a).days))
+            if gap <= 14:
+                realized += weight * 0.5
+        return min(1.0, realized / total_weight)
 
     def _mutate_schedule(
         self,
@@ -2405,6 +2672,146 @@ class ProgramManagementAgent(BaseAgent):
             }
         return candidate
 
+    def _optimize_schedule_genetic(
+        self,
+        base_schedule: dict[str, dict[str, Any]],
+        dependencies: list[dict[str, Any]],
+        resource_allocations: dict[str, Any],
+        project_costs: dict[str, float],
+        project_risks: dict[str, float],
+        objectives: dict[str, float],
+        alignment_score: float,
+        synergy_map: dict[tuple[str, str], float],
+        *,
+        iterations: int,
+        max_shift_days: int,
+        rng: random.Random,
+        population_size: int = 12,
+    ) -> tuple[dict[str, dict[str, Any]], float, dict[str, float]]:
+        population = [
+            self._mutate_schedule(
+                base_schedule, dependencies, rng=rng, max_shift_days=max_shift_days
+            )
+            for _ in range(max(2, population_size))
+        ]
+        population.append(base_schedule)
+        scored = [
+            self._score_schedule_candidate(
+                candidate,
+                base_schedule,
+                resource_allocations,
+                project_costs,
+                project_risks,
+                objectives,
+                alignment_score,
+                synergy_map,
+            )
+            for candidate in population
+        ]
+        best_idx = max(range(len(population)), key=lambda idx: scored[idx][0])
+        best_schedule = population[best_idx]
+        best_score, best_breakdown = scored[best_idx]
+
+        for _ in range(iterations):
+            ranked = sorted(
+                zip(population, scored),
+                key=lambda item: item[1][0],
+                reverse=True,
+            )
+            elites = [item[0] for item in ranked[: max(2, len(ranked) // 3)]]
+            new_population = elites[:]
+            while len(new_population) < population_size:
+                parent_a, parent_b = rng.sample(elites, 2)
+                child = {}
+                for project_id in base_schedule.keys():
+                    child[project_id] = (
+                        parent_a.get(project_id)
+                        if rng.random() < 0.5
+                        else parent_b.get(project_id)
+                    )
+                child = self._mutate_schedule(
+                    child, dependencies, rng=rng, max_shift_days=max_shift_days
+                )
+                new_population.append(child)
+            population = new_population
+            scored = [
+                self._score_schedule_candidate(
+                    candidate,
+                    base_schedule,
+                    resource_allocations,
+                    project_costs,
+                    project_risks,
+                    objectives,
+                    alignment_score,
+                    synergy_map,
+                )
+                for candidate in population
+            ]
+            best_idx = max(range(len(population)), key=lambda idx: scored[idx][0])
+            candidate_score, candidate_breakdown = scored[best_idx]
+            if candidate_score > best_score:
+                best_schedule = population[best_idx]
+                best_score = candidate_score
+                best_breakdown = candidate_breakdown
+
+        return best_schedule, best_score, best_breakdown
+
+    def _optimize_schedule_mip(
+        self,
+        base_schedule: dict[str, dict[str, Any]],
+        dependencies: list[dict[str, Any]],
+        resource_allocations: dict[str, Any],
+        project_costs: dict[str, float],
+        project_risks: dict[str, float],
+        objectives: dict[str, float],
+        alignment_score: float,
+        synergy_map: dict[tuple[str, str], float],
+        *,
+        max_shift_days: int,
+    ) -> tuple[dict[str, dict[str, Any]], float, dict[str, float]]:
+        candidate = {key: value.copy() for key, value in base_schedule.items()}
+        best_score, best_breakdown = self._score_schedule_candidate(
+            candidate,
+            base_schedule,
+            resource_allocations,
+            project_costs,
+            project_risks,
+            objectives,
+            alignment_score,
+            synergy_map,
+        )
+        improved = True
+        shift_options = [-max_shift_days, 0, max_shift_days]
+        while improved:
+            improved = False
+            for project_id, data in candidate.items():
+                best_local = (best_score, data)
+                for shift in shift_options:
+                    shifted = data.copy()
+                    shifted_start = shifted["start"] + timedelta(days=shift)
+                    shifted["start"] = shifted_start
+                    shifted["end"] = shifted_start + timedelta(days=shifted["duration_days"])
+                    test_schedule = candidate.copy()
+                    test_schedule[project_id] = shifted
+                    score, breakdown = self._score_schedule_candidate(
+                        test_schedule,
+                        base_schedule,
+                        resource_allocations,
+                        project_costs,
+                        project_risks,
+                        objectives,
+                        alignment_score,
+                        synergy_map,
+                    )
+                    if score > best_local[0]:
+                        best_local = (score, shifted)
+                        best_breakdown = breakdown
+                if best_local[0] > best_score:
+                    candidate[project_id] = best_local[1]
+                    best_score = best_local[0]
+                    improved = True
+        return candidate, best_score, best_breakdown
+
     def _score_schedule_candidate(
         self,
         candidate: dict[str, dict[str, Any]],
@@ -2413,6 +2820,8 @@ class ProgramManagementAgent(BaseAgent):
         project_costs: dict[str, float],
         project_risks: dict[str, float],
         objectives: dict[str, float],
+        alignment_score: float,
+        synergy_map: dict[tuple[str, str], float],
     ) -> tuple[float, dict[str, float]]:
         delay_days = 0.0
         for project_id, data in candidate.items():
@@ -2433,12 +2842,15 @@ class ProgramManagementAgent(BaseAgent):
         cost_score = max(0.0, 1 - total_cost / max_cost)
         risk_score = max(0.0, 1 - avg_risk)
         utilization_score = max(0.0, 1 - conflict_penalty)
+        synergy_score = self._calculate_synergy_score(candidate, synergy_map)
 
         breakdown = {
             "utilization": round(utilization_score, 4),
             "cost": round(cost_score, 4),
             "risk": round(risk_score, 4),
             "schedule": round(schedule_score, 4),
+            "alignment": round(max(0.0, min(1.0, alignment_score)), 4),
+            "synergy": round(synergy_score, 4),
         }
         overall = sum(breakdown[key] * objectives.get(key, 0.0) for key in breakdown)
         return overall, breakdown

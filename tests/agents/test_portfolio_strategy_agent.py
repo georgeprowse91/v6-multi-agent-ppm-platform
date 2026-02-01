@@ -22,7 +22,17 @@ class FakeFinancialAgent:
             "total_cost": 500,
             "expected_value": 1200,
             "roi": 0.3,
+            "cash_flows": [200, 300, 400],
         }
+
+
+class FakeApprovalAgent:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    async def process(self, payload: dict) -> dict:
+        self.calls.append(payload)
+        return {"status": "approved", "decision": "approved"}
 
 
 @pytest.mark.asyncio
@@ -148,6 +158,75 @@ async def test_portfolio_financial_integration_enrichment():
 
     assert financial_agent.calls
     assert result["total_cost"] == 500
+
+
+@pytest.mark.asyncio
+async def test_portfolio_multi_objective_and_approval_flow():
+    approval_agent = FakeApprovalAgent()
+    agent = PortfolioStrategyAgent(
+        config={
+            "budget_granularity": 100,
+            "approval_agent": approval_agent,
+            "event_bus": EventCollector(),
+        }
+    )
+    await agent.initialize()
+
+    result = await agent.process(
+        {
+            "action": "optimize_portfolio",
+            "projects": [
+                {
+                    "project_id": "P1",
+                    "name": "Strategic Data Platform",
+                    "estimated_cost": 400,
+                    "expected_value": 1000,
+                    "roi": 0.5,
+                    "risk_level": "low",
+                },
+                {
+                    "project_id": "P2",
+                    "name": "Legacy Upgrade",
+                    "estimated_cost": 500,
+                    "expected_value": 700,
+                    "roi": 0.2,
+                    "risk_level": "medium",
+                },
+            ],
+            "constraints": {
+                "budget_ceiling": 600,
+                "resource_capacity": {},
+                "optimization_method": "multi_objective",
+                "objective_weights": {"value": 0.4, "alignment": 0.3, "roi": 0.2, "risk": 0.1},
+                "submit_for_approval": True,
+            },
+        }
+    )
+
+    assert result["selected_projects"]
+    assert result["approval"]["status"] == "approved"
+    assert approval_agent.calls
+
+
+@pytest.mark.asyncio
+async def test_portfolio_scenario_api():
+    agent = PortfolioStrategyAgent(config={"event_bus": EventCollector()})
+    await agent.initialize()
+
+    upserted = await agent.process(
+        {
+            "action": "upsert_scenario",
+            "scenario": {"name": "Conservative", "budget_ceiling": 500000},
+        }
+    )
+
+    listed = await agent.process({"action": "list_scenarios"})
+    fetched = await agent.process(
+        {"action": "get_scenario", "scenario_id": upserted["scenario_id"]}
+    )
+
+    assert listed["scenarios"]
+    assert fetched["scenario_id"] == upserted["scenario_id"]
 
 
 @pytest.mark.asyncio
