@@ -1,0 +1,31 @@
+id: "iot"
+version: "1.0.0"
+name: "IoT Integrations"
+description: "Ingest sensor telemetry from custom hardware devices via HTTP or MQTT."
+owner: "integration-team"
+category: "iot"
+auth:
+  type: "api_key"
+  fields:
+    - "auth_token"
+    - "device_endpoint"
+    - "protocol"
+    - "device_ids"
+    - "sensor_types"
+    - "mqtt_broker"
+    - "mqtt_port"
+    - "mqtt_username"
+    - "mqtt_password"
+    - "mqtt_topic"
+    - "poll_interval_seconds"
+sync:
+  modes:
+    - "full"
+    - "incremental"
+  default_schedule: "*/5 * * * *"
+  supports_webhooks: false
+  rate_limit_per_minute: 120
+mappings:
+  - source: "sensor_data"
+    target: "sensor-reading"
+    mapping_file: "mappings/sensor-data.yaml"

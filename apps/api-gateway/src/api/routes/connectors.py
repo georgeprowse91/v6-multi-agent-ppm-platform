@@ -172,6 +172,17 @@ def _sanitize_headers(headers: dict[str, str]) -> dict[str, str]:
     return filtered
 
 
+def _ensure_connector_is_available(definition) -> None:
+    if definition.status == ConnectorStatus.COMING_SOON:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Connector '{definition.connector_id}' is not yet available "
+                f"(status: {definition.status.value})"
+            ),
+        )
+
+
 # =============================================================================
 # Request/Response Models
 # =============================================================================
@@ -599,11 +610,7 @@ async def enable_connector(connector_id: str, http_request: Request):
     if not definition:
         raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
 
-    if definition.status != ConnectorStatus.AVAILABLE:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Connector '{connector_id}' is not yet available (status: {definition.status.value})",
-        )
+    _ensure_connector_is_available(definition)
 
     store = get_config_store()
 
@@ -750,11 +757,7 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
     if not definition:
         raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
 
-    if definition.status != ConnectorStatus.AVAILABLE:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Connection testing is not available for connector '{connector_id}' (status: {definition.status.value})",
-        )
+    _ensure_connector_is_available(definition)
 
     store = get_config_store()
     config = store.get(connector_id)

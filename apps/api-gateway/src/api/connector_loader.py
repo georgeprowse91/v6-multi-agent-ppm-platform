@@ -29,6 +29,7 @@ _CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = {
         "regulatory_compliance_connector",
         "RegulatoryComplianceConnector",
     ),
+    "iot": ("iot_connector", "IoTConnector"),
 }
 
 

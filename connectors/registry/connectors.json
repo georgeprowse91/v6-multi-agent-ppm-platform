@@ -81,6 +81,18 @@
     ]
   },
   {
+    "id": "iot",
+    "name": "IoT Integrations",
+    "manifest_path": "connectors/iot/manifest.yaml",
+    "status": "production",
+    "certification": "not-started",
+    "category": "iot",
+    "supported_sync_directions": [
+      "inbound",
+      "outbound"
+    ]
+  },
+  {
     "id": "jira",
     "name": "Jira",
     "manifest_path": "connectors/jira/manifest.yaml",
