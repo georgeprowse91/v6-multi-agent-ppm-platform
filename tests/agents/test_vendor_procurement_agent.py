@@ -275,3 +275,124 @@ async def test_vendor_procurement_rfp_and_performance_updates(tmp_path):
     stored = agent.vendor_performance_store.get("tenant-x", vendor_response["vendor_id"])
     assert stored
     assert performance["ml_analysis"]
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_compliance_checks_use_risk_sources(tmp_path):
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+            "risk_config": {
+                "mock_responses": {
+                    "Risky Vendor": {
+                        "sanctions_check": "Fail",
+                        "anti_corruption_check": "Pass",
+                        "credit_check": "Pass",
+                        "watchlist_hits": ["Sanctioned entity list"],
+                        "sources": [{"name": "mock-sanctions", "status": "Fail"}],
+                    }
+                }
+            },
+        }
+    )
+    await agent.initialize()
+
+    checks = await agent._run_compliance_checks(
+        {"legal_name": "Risky Vendor", "contact_email": "risk@example.com"}
+    )
+
+    assert checks["sanctions_check"] == "Fail"
+    assert checks["watchlist_hits"]
+
+
+@pytest.mark.asyncio
+async def test_event_bus_publishes_and_dispatches_handlers():
+    received: list[dict] = []
+
+    async def handler(event: dict) -> None:
+        received.append(event)
+
+    event_bus = vendor_procurement_module.EventBusClient(config={"enabled": True})
+    event_bus.register_handler("vendor.onboarded", handler)
+    publisher = vendor_procurement_module.ProcurementEventPublisher(event_bus=event_bus)
+
+    await publisher.publish({"event_id": "evt-1", "event_type": "vendor.onboarded"})
+
+    assert received
+
+
+@pytest.mark.asyncio
+async def test_ml_recommendations_rank_vendors():
+    ml_service = vendor_procurement_module.VendorMLService(
+        config={
+            "training_data": [
+                {
+                    "quality_rating": 90,
+                    "on_time_delivery_rate": 95,
+                    "compliance_rating": 98,
+                    "risk_score": 90,
+                    "dispute_count": 9,
+                    "total_spend": 80,
+                    "label": 1,
+                },
+                {
+                    "quality_rating": 40,
+                    "on_time_delivery_rate": 60,
+                    "compliance_rating": 70,
+                    "risk_score": 30,
+                    "dispute_count": 2,
+                    "total_spend": 10,
+                    "label": 0,
+                },
+            ]
+        }
+    )
+    await ml_service.train_models([])
+
+    vendors = [
+        {
+            "vendor_id": "v-1",
+            "category": "software",
+            "status": "Approved",
+            "risk_score": 40,
+            "performance_metrics": {
+                "quality_rating": 4.8,
+                "on_time_delivery_rate": 98,
+                "compliance_rating": 97,
+            },
+        },
+        {
+            "vendor_id": "v-2",
+            "category": "software",
+            "status": "Approved",
+            "risk_score": 80,
+            "performance_metrics": {
+                "quality_rating": 3.0,
+                "on_time_delivery_rate": 70,
+                "compliance_rating": 80,
+            },
+        },
+    ]
+
+    recommendations = ml_service.recommend_vendors(vendors, "software", top_n=1)
+
+    assert recommendations == ["v-1"]
+
+
+@pytest.mark.asyncio
+async def test_budget_checks_use_financial_client(tmp_path):
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+            "financial_config": {
+                "budget_data": {"project-1": {"total": 5000, "committed": 1000}}
+            },
+        }
+    )
+    await agent.initialize()
+
+    budget = await agent._check_budget_availability(
+        {"project_id": "project-1", "estimated_cost": 6000}
+    )
+
+    assert budget["available"] is False
