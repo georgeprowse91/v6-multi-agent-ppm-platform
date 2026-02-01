@@ -9,6 +9,31 @@ from typing import Any, Awaitable, Callable
 Summarizer = Callable[[dict[str, Any]], Awaitable[str] | str]
 
 
+class CognitiveSummarizer:
+    def __init__(self, client: Any) -> None:
+        self.client = client
+
+    async def summarize_payload(self, payload: dict[str, Any]) -> str:
+        if callable(self.client):
+            result = self.client(payload)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return str(result)
+        summarize = getattr(self.client, "summarize", None)
+        if callable(summarize):
+            result = summarize(payload)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return str(result)
+        generate = getattr(self.client, "generate", None)
+        if callable(generate):
+            result = generate(payload)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return str(result)
+        return ""
+
+
 class GateSummarizer:
     def __init__(self, summarizer: Summarizer | None = None) -> None:
         self._summarizer = summarizer

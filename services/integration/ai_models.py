@@ -18,6 +18,7 @@ class ModelTask(str, Enum):
     VENDOR_SCORING = "vendor_scoring"
     DEFECT_CLASSIFICATION = "defect_classification"
     PROCESS_DISCOVERY = "process_discovery"
+    READINESS_SCORING = "readiness_scoring"
 
 
 class ModelStage(str, Enum):

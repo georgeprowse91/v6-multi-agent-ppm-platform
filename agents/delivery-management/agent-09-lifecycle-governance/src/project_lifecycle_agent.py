@@ -26,10 +26,18 @@ from agents.common.metrics_catalog import get_metric_value, normalize_metric_val
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 from notifications import NotificationService
-from orchestration import DurableTask, DurableWorkflow, OrchestrationContext, RetryPolicy
+from orchestration import (
+    DurableTask,
+    DurableWorkflow,
+    DurableWorkflowEngine,
+    OrchestrationContext,
+    RetryPolicy,
+)
+from monitoring import AzureMonitorClient
 from persistence import LifecyclePersistence
 from readiness_model import ReadinessScoringModel
-from summarization import GateSummarizer
+from services.integration.ai_models import AIModelService
+from summarization import CognitiveSummarizer, GateSummarizer
 from sync_clients import ExternalSyncService
 
 
@@ -69,6 +77,7 @@ class ProjectLifecycleAgent(BaseAgent):
             config.get("monitoring_frequency", "hourly") if config else "hourly"
         )
         self.methodology_rules = config.get("methodology_rules", {}) if config else {}
+        self.methodology_maps = config.get("methodology_maps", {}) if config else {}
         self.metric_agents = config.get("metric_agents", {}) if config else {}
 
         lifecycle_store_path = (
@@ -103,6 +112,9 @@ class ProjectLifecycleAgent(BaseAgent):
         self.readiness_model = config.get("readiness_model") if config else None
         if self.readiness_model is None:
             self.readiness_model = ReadinessScoringModel()
+        self.ai_model_service = config.get("ai_model_service") if config else None
+        if self.ai_model_service is None:
+            self.ai_model_service = AIModelService()
         self.external_sync = config.get("external_sync") if config else None
         if self.external_sync is None:
             self.external_sync = ExternalSyncService(logger=self.logger)
@@ -111,9 +123,22 @@ class ProjectLifecycleAgent(BaseAgent):
             self.notification_service = NotificationService()
         self.summarizer = config.get("summarizer") if config else None
         if self.summarizer is None:
-            self.summarizer = GateSummarizer()
+            cognitive_client = (config or {}).get("cognitive_client")
+            llm_client = (config or {}).get("llm_client")
+            if cognitive_client or llm_client:
+                client = cognitive_client or llm_client
+                self.summarizer = GateSummarizer(CognitiveSummarizer(client).summarize_payload)
+            else:
+                self.summarizer = GateSummarizer()
         self.knowledge_agent = config.get("knowledge_agent") if config else None
         self.orchestrator_sleep = (config or {}).get("orchestrator_sleep", asyncio.sleep)
+        self.monitor_client = config.get("monitor_client") if config else None
+        if self.monitor_client is None:
+            self.monitor_client = AzureMonitorClient(logger=self.logger)
+        self.workflow_engine = DurableWorkflowEngine(
+            sleep=self.orchestrator_sleep, monitor=self.monitor_client
+        )
+        self.cleanup_tasks: list[asyncio.Task] = []
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -129,6 +154,7 @@ class ProjectLifecycleAgent(BaseAgent):
         # Future work: Connect to Azure Cognitive Services for dashboard summarization
         # Future work: Initialize Azure Monitor for health metrics collection
 
+        await self._bootstrap_configuration()
         self._register_event_handlers()
         self.logger.info("Project Lifecycle & Governance Agent initialized")
 
@@ -156,6 +182,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "get_health_history",
             "train_readiness_model",
             "score_readiness",
+            "update_methodology_config",
         ]
 
         if action not in valid_actions:
@@ -187,6 +214,11 @@ class ProjectLifecycleAgent(BaseAgent):
                 self.logger.warning("Missing project_id")
                 return False
 
+        if action == "update_methodology_config":
+            if not input_data.get("methodology") and not input_data.get("gate_name"):
+                self.logger.warning("Missing methodology or gate_name for update")
+                return False
+
         return True
 
     async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
@@ -199,7 +231,8 @@ class ProjectLifecycleAgent(BaseAgent):
                           "monitor_health" | "generate_health_report" | "recommend_methodology" |
                           "adjust_methodology" | "get_project_status" | "get_health_dashboard" |
                           "override_gate" | "get_gate_history" | "get_readiness_scores" |
-                          "get_health_history" | "train_readiness_model" | "score_readiness",
+                          "get_health_history" | "train_readiness_model" | "score_readiness" |
+                          "update_methodology_config",
                 "project_data": Project initialization data,
                 "project_id": ID of existing project,
                 "target_phase": Target phase for transition,
@@ -263,7 +296,9 @@ class ProjectLifecycleAgent(BaseAgent):
 
         elif action == "adjust_methodology":
             return await self._adjust_methodology(
-                input_data.get("project_id"), input_data.get("new_methodology")  # type: ignore
+                input_data.get("project_id"),
+                input_data.get("new_methodology"),  # type: ignore
+                tenant_id=tenant_id,
             )
 
         elif action == "train_readiness_model":
@@ -311,6 +346,15 @@ class ProjectLifecycleAgent(BaseAgent):
                 input_data.get("project_id"), tenant_id=tenant_id
             )
 
+        elif action == "update_methodology_config":
+            return await self._update_methodology_config(
+                tenant_id=tenant_id,
+                methodology=input_data.get("methodology"),
+                methodology_map=input_data.get("methodology_map"),
+                gate_name=input_data.get("gate_name"),
+                gate_criteria=input_data.get("gate_criteria"),
+            )
+
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -356,7 +400,7 @@ class ProjectLifecycleAgent(BaseAgent):
             correlation_id=str(uuid.uuid4()),
             payload={"project_data": project_data},
         )
-        context = await workflow.run(context)
+        context = await self.workflow_engine.run(workflow, context)
         init_payload = context.results["create_records"]
 
         self.logger.info(f"Initiated project: {project_id}")
@@ -420,33 +464,38 @@ class ProjectLifecycleAgent(BaseAgent):
             }
 
         # Perform transition
-        transition_record = {
-            "from_phase": current_phase,
-            "to_phase": target_phase,
-            "gate_name": gate_name,
-            "transitioned_at": datetime.utcnow().isoformat(),
-            "transitioned_by": actor_id,
-        }
-
-        lifecycle_state["current_phase"] = target_phase
-        lifecycle_state["phase_start_date"] = datetime.utcnow().isoformat()
-        lifecycle_state["transitions"].append(transition_record)
-        lifecycle_state["gates_passed"].append(gate_name)
-
-        # Update project
-        self.projects[project_id]["current_phase"] = target_phase
-        self.projects[project_id]["phase_history"].append(transition_record)
-
-        self.lifecycle_store.upsert(tenant_id, project_id, lifecycle_state)
-
-        await self._publish_project_transitioned(
-            project_id,
-            current_phase,
-            target_phase,
-            actor_id,
-            tenant_id=tenant_id,
-            correlation_id=correlation_id,
+        workflow = DurableWorkflow(
+            name="phase_transition",
+            tasks=[
+                DurableTask(
+                    name="apply_transition",
+                    action=self._apply_phase_transition,
+                    compensation=self._rollback_phase_transition,
+                ),
+                DurableTask(name="persist_lifecycle", action=self._persist_lifecycle_state),
+                DurableTask(name="publish_phase_change", action=self._publish_phase_changed),
+                DurableTask(
+                    name="sync_project_state",
+                    action=self._sync_project_state,
+                    retry_policy=RetryPolicy(max_attempts=3),
+                ),
+            ],
+            sleep=self.orchestrator_sleep,
         )
+        context = OrchestrationContext(
+            workflow_id=f"phase-{project_id}-{target_phase}",
+            tenant_id=tenant_id,
+            project_id=project_id,
+            correlation_id=correlation_id,
+            payload={
+                "target_phase": target_phase,
+                "gate_name": gate_name,
+                "actor_id": actor_id,
+            },
+            metadata={"gate_evaluation": gate_evaluation},
+        )
+        context = await self.workflow_engine.run(workflow, context)
+        transition_record = context.results["apply_transition"]
 
         self.logger.info(
             f"Transitioned project {project_id} from {current_phase} to {target_phase}"
@@ -494,7 +543,7 @@ class ProjectLifecycleAgent(BaseAgent):
             correlation_id=str(uuid.uuid4()),
             payload={"gate_name": gate_name},
         )
-        context = await workflow.run(context)
+        context = await self.workflow_engine.run(workflow, context)
         evaluation = context.results["evaluate_criteria"]
 
         if project_id not in self.gate_evaluations:
@@ -660,7 +709,7 @@ class ProjectLifecycleAgent(BaseAgent):
             correlation_id=str(uuid.uuid4()),
             payload={"health_data": health_data},
         )
-        await workflow.run(context)
+        await self.workflow_engine.run(workflow, context)
 
         return health_data
 
@@ -726,7 +775,9 @@ class ProjectLifecycleAgent(BaseAgent):
             "decided_at": datetime.utcnow().isoformat(),
         }
 
-    async def _adjust_methodology(self, project_id: str, new_methodology: str) -> dict[str, Any]:
+    async def _adjust_methodology(
+        self, project_id: str, new_methodology: str, *, tenant_id: str
+    ) -> dict[str, Any]:
         """
         Adjust project methodology.
 
@@ -741,7 +792,7 @@ class ProjectLifecycleAgent(BaseAgent):
         old_methodology = self.projects[project_id].get("methodology")
 
         # Load new methodology map
-        new_methodology_map = await self._load_methodology_map(new_methodology)
+        new_methodology_map = await self._load_methodology_map(new_methodology, tenant_id=tenant_id)
 
         # Map current phase to equivalent in new methodology
         current_phase = lifecycle_state.get("current_phase")
@@ -773,12 +824,12 @@ class ProjectLifecycleAgent(BaseAgent):
         )
         context = OrchestrationContext(
             workflow_id=f"methodology-{project_id}",
-            tenant_id="unknown",
+            tenant_id=tenant_id,
             project_id=project_id,
             correlation_id=str(uuid.uuid4()),
             payload={"project_data": update_payload},
         )
-        await workflow.run(context)
+        await self.workflow_engine.run(workflow, context)
 
         return update_payload
 
@@ -912,9 +963,13 @@ class ProjectLifecycleAgent(BaseAgent):
 
     # Helper methods
 
-    async def _load_methodology_map(self, methodology: str) -> dict[str, Any]:
+    async def _load_methodology_map(self, methodology: str, *, tenant_id: str) -> dict[str, Any]:
         """Load methodology map with phases and gates."""
-        # Future work: Load from configuration or database
+        stored_map = self.persistence.load_methodology_map(tenant_id, methodology)
+        if stored_map:
+            return stored_map
+        if methodology in self.methodology_maps:
+            return self.methodology_maps[methodology]
 
         if methodology == "agile":
             return {
@@ -937,7 +992,7 @@ class ProjectLifecycleAgent(BaseAgent):
                     },
                 },
             }
-        elif methodology == "waterfall":
+        if methodology == "waterfall":
             return {
                 "initial_phase": "Initiate",
                 "phases": {
@@ -964,48 +1019,49 @@ class ProjectLifecycleAgent(BaseAgent):
                     "Close": {"name": "Close", "next_phases": [], "gates": ["closure_approved"]},
                 },
             }
-        else:  # hybrid
-            return {
-                "initial_phase": "Initiate",
-                "phases": {
-                    "Initiate": {
-                        "name": "Initiate",
-                        "next_phases": ["Plan"],
-                        "gates": ["charter_approved"],
-                    },
-                    "Plan": {
-                        "name": "Plan",
-                        "next_phases": ["Iterate"],
-                        "gates": ["baseline_approved"],
-                    },
-                    "Iterate": {
-                        "name": "Iterate",
-                        "next_phases": ["Release", "Iterate"],
-                        "gates": ["iteration_complete"],
-                    },
-                    "Release": {
-                        "name": "Release",
-                        "next_phases": ["Close"],
-                        "gates": ["release_approved"],
-                    },
-                    "Close": {"name": "Close", "next_phases": [], "gates": ["closure_approved"]},
+        return {
+            "initial_phase": "Initiate",
+            "phases": {
+                "Initiate": {
+                    "name": "Initiate",
+                    "next_phases": ["Plan"],
+                    "gates": ["charter_approved"],
                 },
-            }
+                "Plan": {
+                    "name": "Plan",
+                    "next_phases": ["Iterate"],
+                    "gates": ["baseline_approved"],
+                },
+                "Iterate": {
+                    "name": "Iterate",
+                    "next_phases": ["Release", "Iterate"],
+                    "gates": ["iteration_complete"],
+                },
+                "Release": {
+                    "name": "Release",
+                    "next_phases": ["Close"],
+                    "gates": ["release_approved"],
+                },
+                "Close": {"name": "Close", "next_phases": [], "gates": ["closure_approved"]},
+            },
+        }
 
     async def _get_gate_name(self, from_phase: str, to_phase: str) -> str:
         """Get gate name for phase transition."""
         return f"{from_phase}_to_{to_phase}_gate"
 
-    async def _get_gate_criteria(self, gate_name: str) -> list[str]:
+    async def _get_gate_criteria(self, gate_name: str, *, tenant_id: str) -> list[str]:
         """Get criteria for a specific gate."""
-        # Future work: Load from configuration
-        # Simplified criteria
+        stored = self.persistence.load_gate_criteria(tenant_id, gate_name)
+        if stored:
+            return stored
+        if gate_name in self.gate_criteria:
+            return self.gate_criteria[gate_name]
         if "charter" in gate_name.lower():
             return ["charter_document_complete", "charter_approved", "sponsor_assigned"]
-        elif "baseline" in gate_name.lower():
+        if "baseline" in gate_name.lower():
             return ["scope_baseline_approved", "schedule_baseline_approved", "budget_approved"]
-        else:
-            return ["deliverables_complete", "quality_criteria_met"]
+        return ["deliverables_complete", "quality_criteria_met"]
 
     async def _check_criterion(self, project_id: str, criterion: str) -> bool:
         """Check if a specific criterion is met."""
@@ -1124,7 +1180,7 @@ class ProjectLifecycleAgent(BaseAgent):
         """Map current phase to equivalent in new methodology."""
         # Future work: Implement intelligent phase mapping
         # Simplified mapping
-        new_map = await self._load_methodology_map(new_methodology)
+        new_map = await self._load_methodology_map(new_methodology, tenant_id=tenant_id)
         return new_map["initial_phase"]  # type: ignore
 
     async def _get_pending_gates(self, project_id: str) -> list[str]:
@@ -1195,6 +1251,32 @@ class ProjectLifecycleAgent(BaseAgent):
             )
         return alerts
 
+    async def _bootstrap_configuration(self) -> None:
+        for methodology, methodology_map in self.methodology_maps.items():
+            if not self.persistence.load_methodology_map("default", methodology):
+                self.persistence.store_methodology_map("default", methodology, methodology_map)
+        for gate_name, criteria in self.gate_criteria.items():
+            if not self.persistence.load_gate_criteria("default", gate_name):
+                self.persistence.store_gate_criteria("default", gate_name, criteria)
+
+    async def _update_methodology_config(
+        self,
+        *,
+        tenant_id: str,
+        methodology: str | None,
+        methodology_map: dict[str, Any] | None,
+        gate_name: str | None,
+        gate_criteria: list[str] | None,
+    ) -> dict[str, Any]:
+        updates: dict[str, Any] = {}
+        if methodology and methodology_map:
+            record = self.persistence.store_methodology_map(tenant_id, methodology, methodology_map)
+            updates["methodology_map"] = record
+        if gate_name and gate_criteria:
+            record = self.persistence.store_gate_criteria(tenant_id, gate_name, gate_criteria)
+            updates["gate_criteria"] = record
+        return {"status": "updated", "updates": updates}
+
     async def _train_readiness_model(
         self, project_id: str, *, tenant_id: str
     ) -> dict[str, Any]:
@@ -1202,6 +1284,7 @@ class ProjectLifecycleAgent(BaseAgent):
         if not history:
             return {"status": "skipped", "reason": "no_gate_history"}
         samples = []
+        ai_samples = []
         for record in history:
             payload = record["payload"]
             criteria_status = payload.get("criteria_status", [])
@@ -1209,8 +1292,17 @@ class ProjectLifecycleAgent(BaseAgent):
             features = self.readiness_model.build_features(criteria_status, health_snapshot)
             label = 1.0 if payload.get("criteria_met") else 0.0
             samples.append({"features": features, "label": label})
+            readiness_features = payload.get("readiness_features") or self.readiness_model.build_readiness_features(
+                self.projects.get(project_id), health_snapshot, criteria_status
+            )
+            ai_samples.append({"features": readiness_features, "label": label})
         self.readiness_model.fit(samples)
-        return {"status": "trained", "samples": len(samples)}
+        ai_result = self.readiness_model.train_with_ai_service(self.ai_model_service, ai_samples)
+        return {
+            "status": "trained",
+            "samples": len(samples),
+            "ai_model": ai_result,
+        }
 
     async def _score_readiness(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
@@ -1224,6 +1316,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "gate_name": gate_name,
             "readiness_score": evaluation.get("readiness_score"),
             "criteria_met": evaluation.get("criteria_met"),
+            "readiness_model": evaluation.get("readiness_model"),
         }
 
     async def _get_gate_history(
@@ -1282,7 +1375,7 @@ class ProjectLifecycleAgent(BaseAgent):
                 },
             )
 
-        methodology_map = await self._load_methodology_map(methodology)
+        methodology_map = await self._load_methodology_map(methodology, tenant_id=context.tenant_id)
         project = {
             "project_id": project_id,
             "name": name,
@@ -1305,6 +1398,7 @@ class ProjectLifecycleAgent(BaseAgent):
         self.projects[project_id] = project
         self.lifecycle_states[project_id] = lifecycle_state
         self.lifecycle_store.upsert(context.tenant_id, project_id, lifecycle_state)
+        self.persistence.store_lifecycle_state(context.tenant_id, project_id, lifecycle_state)
 
         context.results["methodology_decision"] = recommended_methodology
         return {
@@ -1356,10 +1450,79 @@ class ProjectLifecycleAgent(BaseAgent):
         }
         return await self.notification_service.notify_project_initiated(payload)
 
+    async def _apply_phase_transition(self, context: OrchestrationContext) -> dict[str, Any]:
+        project_id = context.project_id
+        target_phase = context.payload.get("target_phase")
+        gate_name = context.payload.get("gate_name")
+        actor_id = context.payload.get("actor_id")
+        lifecycle_state = await self._get_lifecycle_state(context.tenant_id, project_id)
+        if not lifecycle_state:
+            raise ValueError(f"Lifecycle state not found for project: {project_id}")
+        current_phase = lifecycle_state.get("current_phase")
+        transition_record = {
+            "from_phase": current_phase,
+            "to_phase": target_phase,
+            "gate_name": gate_name,
+            "transitioned_at": datetime.utcnow().isoformat(),
+            "transitioned_by": actor_id,
+        }
+        lifecycle_state["current_phase"] = target_phase
+        lifecycle_state["phase_start_date"] = datetime.utcnow().isoformat()
+        lifecycle_state["transitions"].append(transition_record)
+        lifecycle_state["gates_passed"].append(gate_name)
+        self.projects[project_id]["current_phase"] = target_phase
+        self.projects[project_id]["phase_history"].append(transition_record)
+        self.lifecycle_store.upsert(context.tenant_id, project_id, lifecycle_state)
+        context.metadata["previous_phase"] = current_phase
+        return transition_record
+
+    async def _rollback_phase_transition(
+        self, context: OrchestrationContext, _exc: Exception | None
+    ) -> None:
+        project_id = context.project_id
+        lifecycle_state = await self._get_lifecycle_state(context.tenant_id, project_id)
+        if not lifecycle_state:
+            return
+        previous_phase = context.metadata.get("previous_phase")
+        if previous_phase:
+            lifecycle_state["current_phase"] = previous_phase
+            lifecycle_state["phase_start_date"] = datetime.utcnow().isoformat()
+            self.projects[project_id]["current_phase"] = previous_phase
+            self.lifecycle_store.upsert(context.tenant_id, project_id, lifecycle_state)
+
+    async def _persist_lifecycle_state(self, context: OrchestrationContext) -> dict[str, Any]:
+        lifecycle_state = await self._get_lifecycle_state(context.tenant_id, context.project_id)
+        if not lifecycle_state:
+            raise ValueError("Lifecycle state not found for persistence")
+        return self.persistence.store_lifecycle_state(
+            context.tenant_id, context.project_id, lifecycle_state
+        )
+
+    async def _publish_phase_changed(self, context: OrchestrationContext) -> dict[str, Any]:
+        transition_record = context.results.get("apply_transition", {})
+        await self._publish_project_transitioned(
+            context.project_id,
+            transition_record.get("from_phase"),
+            transition_record.get("to_phase"),
+            transition_record.get("transitioned_by", "system"),
+            tenant_id=context.tenant_id,
+            correlation_id=context.correlation_id,
+        )
+        await self.event_bus.publish(
+            "phase.changed",
+            {
+                "project_id": context.project_id,
+                "from_phase": transition_record.get("from_phase"),
+                "to_phase": transition_record.get("to_phase"),
+                "gate_name": transition_record.get("gate_name"),
+            },
+        )
+        return {"status": "published"}
+
     async def _evaluate_gate_criteria(self, context: OrchestrationContext) -> dict[str, Any]:
         gate_name = context.payload.get("gate_name")
         project_id = context.project_id
-        gate_criteria_def = await self._get_gate_criteria(gate_name)
+        gate_criteria_def = await self._get_gate_criteria(gate_name, tenant_id=context.tenant_id)
         criteria_status = []
         for criterion in gate_criteria_def:
             status = await self._check_criterion(project_id, criterion)
@@ -1381,6 +1544,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "project_id": project_id,
             "gate_name": gate_name,
             "criteria_met": criteria_met,
+            "gate_status": "passed" if criteria_met else "failed",
             "readiness_score": readiness_score,
             "criteria_status": criteria_status,
             "missing_criteria": missing_criteria,
@@ -1392,16 +1556,28 @@ class ProjectLifecycleAgent(BaseAgent):
     async def _score_gate_readiness(self, context: OrchestrationContext) -> dict[str, Any]:
         evaluation = context.results["evaluate_criteria"]
         health_snapshot = self.health_scores.get(context.project_id)
+        project_data = self.projects.get(context.project_id, {})
         features = self.readiness_model.build_features(
             evaluation.get("criteria_status", []), health_snapshot
         )
         ml_score = self.readiness_model.predict(features)
-        evaluation["readiness_score"] = max(evaluation["readiness_score"], ml_score)
+        readiness_features = self.readiness_model.build_readiness_features(
+            project_data, health_snapshot, evaluation.get("criteria_status", [])
+        )
+        ai_score = self.readiness_model.predict_with_ai_service(
+            self.ai_model_service, readiness_features
+        )
+        evaluation["readiness_score"] = max(
+            evaluation["readiness_score"], ml_score, ai_score or 0.0
+        )
         evaluation["health_snapshot"] = health_snapshot or {}
         evaluation["readiness_model"] = {
             "score": ml_score,
             "trained": self.readiness_model.trained,
+            "ai_score": ai_score,
+            "ai_model_id": self.readiness_model.ai_model_id,
         }
+        evaluation["readiness_features"] = readiness_features
         return evaluation
 
     async def _persist_gate_evaluation(self, context: OrchestrationContext) -> dict[str, Any]:
@@ -1460,6 +1636,11 @@ class ProjectLifecycleAgent(BaseAgent):
         self.health_scores[project_id] = health_data
         record_id = f"{project_id}-{health_data['monitored_at']}"
         self.health_store.upsert(context.tenant_id, record_id, health_data.copy())
+        self.monitor_client.record_metric(
+            "lifecycle.health.composite",
+            float(health_data.get("composite_score", 0.0)),
+            metadata={"project_id": project_id, "tenant_id": context.tenant_id},
+        )
         return self.persistence.store_health_metrics(context.tenant_id, project_id, health_data)
 
     async def _publish_health_event(self, context: OrchestrationContext) -> dict[str, Any]:
@@ -1590,10 +1771,20 @@ class ProjectLifecycleAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Project Lifecycle & Governance Agent...")
-        # Future work: Close database connections
-        # Future work: Cancel monitoring timers
-        # Future work: Close external API connections
-        # Future work: Flush any pending events
+        await self.workflow_engine.shutdown()
+        for task in list(self.cleanup_tasks):
+            if not task.done():
+                task.cancel()
+        if self.cleanup_tasks:
+            await asyncio.gather(*self.cleanup_tasks, return_exceptions=True)
+        self.persistence.close()
+        self.external_sync.close()
+        flush = getattr(self.event_bus, "flush", None)
+        if callable(flush):
+            await flush()
+        close = getattr(self.event_bus, "close", None)
+        if callable(close):
+            await close()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

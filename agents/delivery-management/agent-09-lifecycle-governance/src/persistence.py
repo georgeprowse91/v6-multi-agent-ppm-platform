@@ -13,6 +13,12 @@ class DocumentStore:
     def read(self, doc_id: str) -> dict[str, Any] | None:
         raise NotImplementedError
 
+    def query(self, record_type: str, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
+        raise NotImplementedError
+
+    def close(self) -> None:
+        return None
+
 
 class InMemoryDocumentStore(DocumentStore):
     def __init__(self) -> None:
@@ -25,6 +31,15 @@ class InMemoryDocumentStore(DocumentStore):
 
     def read(self, doc_id: str) -> dict[str, Any] | None:
         return self._docs.get(doc_id)
+
+    def query(self, record_type: str, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
+        return [
+            doc
+            for doc in self._docs.values()
+            if doc.get("record_type") == record_type
+            and doc.get("tenant_id") == tenant_id
+            and doc.get("project_id") == project_id
+        ]
 
 
 class CosmosDocumentStore(DocumentStore):
@@ -49,6 +64,29 @@ class CosmosDocumentStore(DocumentStore):
             return self._container.read_item(item=doc_id, partition_key=doc_id)
         except Exception:
             return None
+
+    def query(self, record_type: str, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
+        query = (
+            "SELECT * FROM c WHERE c.record_type = @record_type "
+            "AND c.tenant_id = @tenant_id AND c.project_id = @project_id"
+        )
+        parameters = [
+            {"name": "@record_type", "value": record_type},
+            {"name": "@tenant_id", "value": tenant_id},
+            {"name": "@project_id", "value": project_id},
+        ]
+        try:
+            items = self._container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True,
+            )
+            return list(items)
+        except Exception:
+            return []
+
+    def close(self) -> None:
+        self._client.close()
 
 
 @dataclass(slots=True)
@@ -120,34 +158,88 @@ class LifecyclePersistence:
         self.store.upsert(record["id"], record)
         return record
 
+    def store_lifecycle_state(
+        self, tenant_id: str, project_id: str, lifecycle_state: dict[str, Any]
+    ) -> dict[str, Any]:
+        record = self._build_record("lifecycle_state", tenant_id, project_id, lifecycle_state)
+        self.store.upsert(record["id"], record)
+        return record
+
+    def store_gate_criteria(
+        self, tenant_id: str, gate_name: str, criteria: list[str]
+    ) -> dict[str, Any]:
+        record = self._build_record(
+            "gate_criteria",
+            tenant_id,
+            gate_name,
+            {"gate_name": gate_name, "criteria": criteria},
+        )
+        self.store.upsert(record["id"], record)
+        return record
+
+    def store_methodology_map(
+        self, tenant_id: str, methodology: str, methodology_map: dict[str, Any]
+    ) -> dict[str, Any]:
+        record = self._build_record(
+            "methodology_map",
+            tenant_id,
+            methodology,
+            {"methodology": methodology, "map": methodology_map},
+        )
+        self.store.upsert(record["id"], record)
+        return record
+
     def list_gate_outcomes(
         self, tenant_id: str, project_id: str, gate_name: str | None = None
     ) -> list[dict[str, Any]]:
+        records = self._list_records("gate_evaluation", tenant_id, project_id, self.gate_history)
         return [
             record
-            for record in self.gate_history
-            if record["tenant_id"] == tenant_id
-            and record["project_id"] == project_id
-            and (gate_name is None or record["payload"].get("gate_name") == gate_name)
+            for record in records
+            if gate_name is None or record["payload"].get("gate_name") == gate_name
         ]
 
     def list_readiness_scores(self, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
+        records = self._list_records("gate_evaluation", tenant_id, project_id, self.gate_history)
         return [
             {
                 "gate_name": record["payload"].get("gate_name"),
                 "readiness_score": record["payload"].get("readiness_score"),
                 "evaluated_at": record["payload"].get("evaluated_at"),
             }
-            for record in self.gate_history
-            if record["tenant_id"] == tenant_id and record["project_id"] == project_id
+            for record in records
         ]
 
     def list_health_metrics(self, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
-        return [
-            record
-            for record in self.health_history
-            if record["tenant_id"] == tenant_id and record["project_id"] == project_id
-        ]
+        return self._list_records("health_metric", tenant_id, project_id, self.health_history)
+
+    def load_gate_criteria(self, tenant_id: str, gate_name: str) -> list[str] | None:
+        records = self._list_records("gate_criteria", tenant_id, gate_name, [])
+        if not records:
+            return None
+        return records[-1].get("payload", {}).get("criteria")
+
+    def load_methodology_map(self, tenant_id: str, methodology: str) -> dict[str, Any] | None:
+        records = self._list_records("methodology_map", tenant_id, methodology, [])
+        if not records:
+            return None
+        return records[-1].get("payload", {}).get("map")
+
+    def close(self) -> None:
+        self.store.close()
+
+    def _list_records(
+        self,
+        record_type: str,
+        tenant_id: str,
+        project_id: str,
+        fallback: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        try:
+            records = self.store.query(record_type, tenant_id, project_id)
+            return records or list(fallback)
+        except Exception:
+            return list(fallback)
 
     def _build_record(
         self, record_type: str, tenant_id: str, project_id: str, payload: dict[str, Any]

@@ -74,3 +74,9 @@ class ExternalSyncService:
             if self.logger:
                 self.logger.warning("External sync failed", extra={"system": name, "error": str(exc)})
             return SyncOutcome(system=name, status="failed", details={"error": str(exc)})
+
+    def close(self) -> None:
+        for connector in (self.planview, self.clarity, self.jira, self.azure_devops):
+            close = getattr(connector, "close", None)
+            if callable(close):
+                close()
