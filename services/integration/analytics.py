@@ -1,0 +1,173 @@
+"""Analytics integration utilities."""
+
+from __future__ import annotations
+
+import logging
+import statistics
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, Iterable, List, Optional
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+
+class AnalyticsSettings(BaseSettings):
+    """Configuration for analytics providers."""
+
+    model_config = SettingsConfigDict(env_prefix="ANALYTICS_", env_file=".env")
+
+    provider: str = "in_memory"
+    azure_monitor_connection_string: Optional[str] = None
+    synapse_connection_string: Optional[str] = None
+    synapse_table: str = "analytics_events"
+
+
+@dataclass
+class AnalyticsRecord:
+    timestamp: datetime
+    category: str
+    name: str
+    value: float
+    metadata: Dict[str, Any]
+
+
+class AnalyticsProvider:
+    def record(self, record: AnalyticsRecord) -> None:  # pragma: no cover - interface
+        raise NotImplementedError
+
+
+class InMemoryAnalyticsProvider(AnalyticsProvider):
+    def __init__(self) -> None:
+        self.records: List[AnalyticsRecord] = []
+
+    def record(self, record: AnalyticsRecord) -> None:
+        self.records.append(record)
+
+
+class SynapseAnalyticsProvider(AnalyticsProvider):
+    def __init__(self, connection_string: str, table: str) -> None:
+        from sqlalchemy import create_engine, text
+
+        self._engine = create_engine(connection_string)
+        self._table = table
+        self._ensure_table()
+        self._insert_stmt = text(
+            f"INSERT INTO {self._table} (timestamp, category, name, value, metadata) "
+            "VALUES (:timestamp, :category, :name, :value, :metadata)"
+        )
+
+    def _ensure_table(self) -> None:
+        from sqlalchemy import text
+
+        ddl = (
+            f"CREATE TABLE IF NOT EXISTS {self._table} ("
+            "timestamp TEXT, category TEXT, name TEXT, value REAL, metadata TEXT)"
+        )
+        with self._engine.begin() as conn:
+            conn.execute(text(ddl))
+
+    def record(self, record: AnalyticsRecord) -> None:
+        with self._engine.begin() as conn:
+            conn.execute(
+                self._insert_stmt,
+                {
+                    "timestamp": record.timestamp.isoformat(),
+                    "category": record.category,
+                    "name": record.name,
+                    "value": record.value,
+                    "metadata": str(record.metadata),
+                },
+            )
+
+
+class AzureMonitorAnalyticsProvider(AnalyticsProvider):
+    def __init__(self, connection_string: str) -> None:
+        self._connection_string = connection_string
+
+    def record(self, record: AnalyticsRecord) -> None:
+        logger.info(
+            "Azure Monitor analytics record",
+            extra={
+                "connection_string": self._connection_string,
+                "record": record,
+            },
+        )
+
+
+class AnalyticsClient:
+    """Unified client to log analytics and metrics."""
+
+    def __init__(
+        self,
+        settings: Optional[AnalyticsSettings] = None,
+        provider: Optional[AnalyticsProvider] = None,
+    ) -> None:
+        self.settings = settings or AnalyticsSettings()
+        self.provider = provider or self._build_provider()
+
+    def _build_provider(self) -> AnalyticsProvider:
+        match self.settings.provider:
+            case "synapse":
+                if not self.settings.synapse_connection_string:
+                    raise ValueError("Synapse connection string required")
+                return SynapseAnalyticsProvider(
+                    self.settings.synapse_connection_string, self.settings.synapse_table
+                )
+            case "azure_monitor":
+                if not self.settings.azure_monitor_connection_string:
+                    raise ValueError("Azure Monitor connection string required")
+                return AzureMonitorAnalyticsProvider(self.settings.azure_monitor_connection_string)
+            case _:
+                return InMemoryAnalyticsProvider()
+
+    def record_event(self, name: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        self._record("event", name, 1.0, metadata)
+
+    def record_metric(
+        self, name: str, value: float, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        self._record("metric", name, value, metadata)
+
+    def record_error_rate(
+        self, name: str, error_rate: float, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        self._record("error_rate", name, error_rate, metadata)
+
+    def record_anomaly_signal(
+        self, name: str, score: float, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        self._record("anomaly", name, score, metadata)
+
+    def detect_anomaly(self, series: Iterable[float], threshold: float = 2.5) -> bool:
+        values = list(series)
+        if len(values) < 2:
+            return False
+        mean = statistics.mean(values)
+        std_dev = statistics.pstdev(values)
+        if std_dev == 0:
+            return False
+        z_score = (values[-1] - mean) / std_dev
+        return abs(z_score) >= threshold
+
+    def _record(
+        self, category: str, name: str, value: float, metadata: Optional[Dict[str, Any]]
+    ) -> None:
+        record = AnalyticsRecord(
+            timestamp=datetime.now(timezone.utc),
+            category=category,
+            name=name,
+            value=value,
+            metadata=metadata or {},
+        )
+        self.provider.record(record)
+
+
+__all__ = [
+    "AnalyticsSettings",
+    "AnalyticsClient",
+    "AnalyticsProvider",
+    "AnalyticsRecord",
+    "InMemoryAnalyticsProvider",
+]
