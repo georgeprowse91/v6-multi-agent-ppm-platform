@@ -10,7 +10,7 @@ The platform needs durable workflow execution for stage gates, approvals, and or
 
 ## Decision
 
-Implement a lightweight workflow engine in `apps/workflow-engine` using FastAPI and SQLite-backed storage. Workflow definitions are YAML files stored under `apps/workflow-engine/workflows/definitions/` and discovered via a registry.
+Implement a focused workflow engine in `apps/workflow-engine` using FastAPI and SQLite-backed storage. Workflow definitions are YAML files stored under `apps/workflow-engine/workflows/definitions/` and discovered via a registry.
 
 To support distributed execution, introduce a Celery-backed workflow runtime that dispatches each workflow step as an idempotent Celery task. Celery uses Redis or RabbitMQ as the broker and handles asynchronous task orchestration, while the workflow engine persists state in SQLite (or a future external store) and exposes workflow lifecycle APIs. The new shared package `packages/workflow` defines workflow dispatchers, task definitions, and result aggregation for worker pools.
 

@@ -412,7 +412,7 @@ The PPM market has three tiers:
 
 **Players:** Smartsheet, Monday.com, Asana, Wrike
 
-**Positioning:** Lightweight, user-friendly but limited enterprise capabilities
+**Positioning:** Streamlined, user-friendly but limited enterprise capabilities
 
 **Our Relationship:** Integration partners for SMB, compete in mid-market
 
@@ -802,7 +802,7 @@ Characteristics:
 
 Small PMO team (2-10 people) or no dedicated PMO
 
-Using lightweight tools (Smartsheet, Monday.com, Asana)
+Using entry-level tools (Smartsheet, Monday.com, Asana)
 
 Single methodology (usually Agile or Waterfall, not both)
 

@@ -4,10 +4,6 @@
 
 The multi‑agent PPM platform is an AI‑powered solution that modernises project portfolio management by orchestrating specialised agents across the entire project lifecycle. It addresses the growing need for real‑time, intelligent decision‑making as hybrid work becomes ubiquitous and organisations demand integrated platforms to manage complex portfolios. Market research projects that the PPM market will nearly double from USD 6.90 B in 2025 to USD 13.21 B by 2031[1], driven by integrated analytics and AI‑enabled forecasting. Adoption of AI agents is already widespread—79 % of organisations use AI agents and 74 % rank AI among their top three strategic priorities[2]—yet interoperability and clear strategy remain challenges[3][4]. This collateral equips sales teams with messaging frameworks, personas, competitive positioning, case studies and ROI tools to articulate the platform’s value.
 
-## Implementation alignment
-
-This document is marketing collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
-
 ## Messaging Framework
 
 ### Tagline
@@ -43,15 +39,17 @@ The PPM landscape includes established players like Planview, ServiceNow, Oracle
 
 **Multi‑agent AI orchestration:** Only platform to coordinate ~25 specialised agents across the full project lifecycle, delivering efficiency, scalability and consistent governance[5].
 
-**Methodology‑embedded UI:** Interactive methodology map guides users through stage gates for Agile, Waterfall and hybrid processes, ensuring governance and compliance.
+**Methodology‑embedded UI:** Interactive methodology map guides users through stage gates for Agile, Waterfall and hybrid processes, ensuring governance and compliance, with refreshed dashboards and navigation that improve usability.
 
-**Extensible connector framework:** Interoperability first: connect to PPM, ERP, HR, CRM and collaboration tools. Interoperability is recognised as critical to AI adoption[3].
+**Extensible connector framework:** Interoperability first: connect to PPM, ERP, HR, CRM, collaboration tools and IoT telemetry sources. The connector framework supports Planview, Jira, SAP, Workday, ServiceNow and Salesforce integrations, with an IoT connector for asset‑linked projects. Interoperability is recognised as critical to AI adoption[3].
 
 **Predictive and prescriptive analytics:** AI models forecast delays, resource conflicts and ROI; agents provide scenario planning and portfolio optimisation.
 
-**Flexible deployment & security:** Offer SaaS, private‑cloud and on‑premises options; built‑in encryption and RBAC[7].
+**Flexible deployment & security:** Offer SaaS, private‑cloud and on‑premises options; built‑in encryption, enterprise authentication, MFA and RBAC[7].
 
 **Change‑management & adoption support:** Comprehensive training, role‑specific guidance and a conversational assistant address adoption barriers identified in surveys[6][4].
+
+**Procurement intelligence:** Vendor onboarding, bid comparison and approval routing enhancements streamline procurement workflows and improve vendor governance across portfolios.
 
 ## Case Studies & Use Cases
 

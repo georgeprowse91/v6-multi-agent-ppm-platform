@@ -10,7 +10,7 @@ The Agile process is iterative and adaptive, emphasising incremental delivery, s
 
 **Demand & Ideation:** A stakeholder submits a demand/proposal. The Demand & Intake Agent classifies the request and recommends the Agile methodology based on factors such as uncertainty and stakeholder expectations.
 
-**Business Case & Approval:** The Business Case Agent crafts a lean business case emphasising iterative value delivery and minimum viable product (MVP). Approval is typically lightweight; a product owner or program manager can approve the case.
+**Business Case & Approval:** The Business Case Agent crafts a lean business case emphasising iterative value delivery and minimum viable product (MVP). Approval is typically streamlined; a product owner or program manager can approve the case.
 
 **Project Definition (Initiation):** The Project Definition Agent generates the Agile project charter and initial backlog. The methodology map highlights the initiation stage, with tasks such as product vision, initial backlog creation and team formation.
 

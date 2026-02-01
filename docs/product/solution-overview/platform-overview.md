@@ -6,7 +6,7 @@ The Multi‑Agent PPM Platform is an AI‑powered Project Portfolio Management (
 
 ## Implementation alignment
 
-This overview maps to the current repository implementation. The repo provides a working API gateway, orchestration service, workflow engine, agent runtime and configuration, connector registry, data sync service, analytics service, data-lineage service, and a lightweight web console (`apps/web`). The web console ships with methodology navigation, a workspace canvas with document/timeline/dashboard tabs, an assistant panel, and a connector gallery backed by the connector hub. The connector gallery supports instance lifecycle and health updates, while credentials and sync scheduling remain managed through configuration and secrets.
+This overview maps to the current repository implementation. The repo provides a working API gateway, orchestration service, workflow engine, agent runtime and configuration, connector registry, data sync service, analytics service, data-lineage service, and a web console (`apps/web`). The web console ships with methodology navigation, a workspace canvas with document/timeline/dashboard tabs, an assistant panel, and a connector gallery backed by the connector hub. The connector gallery supports instance lifecycle and health updates, while credentials and sync scheduling remain managed through configuration and secrets.
 
 ## Core Concepts
 

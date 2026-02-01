@@ -46,7 +46,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Scenario Planning:** Users shall create what‑if scenarios by adjusting budgets, constraints or strategic priorities. The system shall show how changes affect portfolio composition and performance metrics.
 
-**Portfolio Health Dashboard:** Provide real‑time analytics on portfolio value delivered, benefits realisation, budget utilisation, risk exposure and resource capacity.
+**Portfolio Health Dashboard:** Provide real‑time analytics on portfolio value delivered, benefits realisation, budget utilisation, risk exposure and resource capacity. The UI includes updated dashboard layouts and navigation improvements that make portfolio health summaries easier to scan and filter.
 
 ### 4. Program Management
 
@@ -80,7 +80,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Health Scoring & Alerts:** Calculate project health scores based on schedule, cost, risk and resource indicators. Provide early‑warning alerts when metrics fall below thresholds and recommendations for corrective actions.
 
-**Lifecycle Dashboard:** Display a timeline of phases or sprints, stage‑gate status, health metrics and outstanding tasks. Allow filtering by program, methodology and status.
+**Lifecycle Dashboard:** Display a timeline of phases or sprints, stage‑gate status, health metrics and outstanding tasks. Allow filtering by program, methodology and status. The refreshed lifecycle UI includes clearer stage status indicators and inline task summaries to reduce navigation overhead.
 
 ### 7. Schedule & Planning
 
@@ -112,7 +112,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Cost Tracking & Variance Analysis:** Integrate with ERP systems (e.g., SAP, Oracle) to import actual costs and compare them against budgets. Provide variance analysis and explanations (e.g., scope change, rate increase).
 
-**Financial Approvals & Controls:** Implement approval workflows for budget changes, expense approvals and contract authorisations. Enforce spending limits and segregation of duties.
+**Financial Approvals & Controls:** Implement approval workflows for budget changes, expense approvals and contract authorisations. Enforce spending limits and segregation of duties with role‑based permissions and audit trails now standard across finance workflows.
 
 **Multi‑Currency & Tax Handling:** Support multiple currencies, conversion rates and tax rules. Provide roll‑up views in the organisation’s base currency.
 
@@ -122,11 +122,11 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Vendor Catalogue & Contract Repository:** Store information about approved vendors, contracts, service‑level agreements (SLAs) and pricing. Link contracts to projects and resources.
 
-**Procurement Workflow:** Automate procurement processes including request for proposal (RFP), bid evaluation, vendor selection, contract negotiation and purchase order issuance. Integrate with procurement systems (e.g., Coupa, Ariba).
+**Procurement Workflow:** Automate procurement processes including request for proposal (RFP), bid evaluation, vendor selection, contract negotiation and purchase order issuance. Integrate with procurement systems (e.g., Coupa, Ariba). Vendor procurement enhancements now include configurable approval routing, vendor intake scoring and consolidated bid comparison views.
 
 **Spend Management & Invoice Processing:** Track purchase orders, invoices and payments. Match invoices to purchase orders and contracts. Integrate with finance systems for payment processing.
 
-**Vendor Performance Evaluation:** Collect performance data (delivery quality, timeliness, cost compliance) and calculate vendor scores. Use this data to inform future selection decisions and contract renewals.
+**Vendor Performance Evaluation:** Collect performance data (delivery quality, timeliness, cost compliance) and calculate vendor scores. Use this data to inform vendor selection decisions and contract renewals, with evaluation summaries surfaced alongside contracts.
 
 **Risk & Compliance Checks:** Perform due diligence on vendors (e.g., financial health, sustainability, regulatory compliance) and enforce compliance with organisational policies.
 
@@ -158,7 +158,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Control Checks & Audit Trails:** Embed automated checks at stage‑gates to ensure compliance. Capture evidence (e.g., approvals, testing results) and store audit trails.
 
-**Data Classification & Access Controls:** Enforce classification levels (Public, Internal, Confidential, Restricted) and apply role‑based access control (RBAC) and data‑level security accordingly【565999142788795†L6484-L6853】.
+**Data Classification & Access Controls:** Enforce classification levels (Public, Internal, Confidential, Restricted) and apply role‑based access control (RBAC) and data‑level security accordingly. Authentication integrates with enterprise identity providers for SSO and MFA, ensuring access control policies are enforced consistently【565999142788795†L6484-L6853】.
 
 **Privacy & DLP:** Implement data loss prevention (DLP) rules to detect and prevent sensitive data exfiltration. Provide features to support data subject requests (access, erasure, portability).
 
@@ -196,11 +196,17 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Lessons Learned & Knowledge Base:** Capture lessons learned at the end of stages or sprints. Categorise them by topic (requirements, scheduling, vendor management, etc.) and make them searchable. Provide AI‑powered recommendation of relevant lessons when similar situations arise.
 
-**Real‑Time Collaborative Editing:** Enable multiple users to co‑edit documents simultaneously with live cursors, presence indicators and change tracking. The system shall resolve conflicts using Operational Transform (OT) or CRDT‑style merging strategies, preserving intent and preventing data loss during concurrent edits.
-
 **Document Retention & Disposal:** Enforce retention schedules based on classification. Support archival and secure disposal of documents.
 
-### 17. Continuous Improvement & Process Mining
+**Real‑Time Collaborative Editing:** Enable multiple users to co‑edit documents simultaneously with live cursors, presence indicators and change tracking. The system shall resolve conflicts using Operational Transform (OT) or CRDT‑style merging strategies, preserving intent and preventing data loss during concurrent edits.
+
+### 17. Integration & Device Data
+
+**Connector Coverage:** Provide production‑ready connectors for core enterprise systems (Planview, Jira, SAP, Workday, ServiceNow, Salesforce) and an IoT connector that ingests telemetry for asset‑linked projects, enabling sensor data to inform maintenance schedules and project risk assessments.
+
+**Secure Data Exchange:** Support token‑based authentication, scoped API credentials and event‑driven sync for integrations, aligning with the platform’s RBAC and audit logging standards.
+
+### 18. Continuous Improvement & Process Mining
 
 **Process Mining & Discovery:** Analyse execution logs and user interactions to discover actual process flows. Compare them with prescribed methodologies and identify deviations or bottlenecks.
 
@@ -210,7 +216,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Continuous Learning:** Provide mechanisms to incorporate lessons learned, audit findings and process mining insights into methodology updates and templates.
 
-### 18. Communications & Stakeholder Management
+### 19. Communications & Stakeholder Management
 
 **Stakeholder Directory:** Maintain a directory of stakeholders with contact information, roles, interests and communication preferences. Integrate with identity systems.
 
@@ -222,7 +228,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Stakeholder Sentiment Analysis:** Use natural language processing to analyse feedback from surveys or communications and detect sentiment trends. Highlight emerging concerns or issues.
 
-### 19. Analytics & Insights
+### 20. Analytics & Insights
 
 **Dashboards & Reports:** Provide a library of dashboards (portfolio, program, project, resource, financial, risk) and allow custom report creation. Dashboards must be interactive and support drill‑down into underlying data.
 
@@ -234,7 +240,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Natural Language Insights:** Allow users to ask the AI assistant questions (e.g., “Which projects have the highest risk exposure?”) and generate narrative summaries explaining trends and anomalies.
 
-### 20. Data Synchronisation & Quality
+### 21. Data Synchronisation & Quality
 
 **Bi‑Directional Synchronisation:** Agents shall support reading from and writing to systems of record via connectors. Synchronisation modes (real‑time, near‑real‑time, batch) must be configurable. Conflict resolution rules must be defined per data type (e.g., “source of truth” vs. “merge” strategies). Provide instrumentation to monitor sync success rate, latency and freshness.
 
@@ -244,7 +250,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Caching & Performance Optimisation:** Use cache‑aside strategies with TTL to improve performance and reduce API calls, while ensuring consistency via event‑driven invalidation.
 
-### 21. Workflow & Process Engine
+### 22. Workflow & Process Engine
 
 **Visual Workflow Designer:** Provide a drag‑and‑drop interface to design custom workflows (e.g., approval processes, onboarding sequences). Users can define triggers, actions, conditions and tasks. Workflows can call agents and external APIs.
 
@@ -254,7 +260,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Monitoring & Logging:** Provide dashboards showing workflow executions, success/failure rates and latency. Allow users to replay, resume or roll back workflows as needed.
 
-### 22. System Health & Monitoring
+### 23. System Health & Monitoring
 
 **Operational Metrics:** Collect and display metrics such as request rates, agent response times, error rates, resource utilisation and throughput. Instrument each service and agent for observability.
 
