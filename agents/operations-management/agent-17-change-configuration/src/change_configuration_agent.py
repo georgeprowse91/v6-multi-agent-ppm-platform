@@ -686,6 +686,29 @@ class ChangeConfigurationAgent(BaseAgent):
         self.impact_model = None
         self.text_classifier = None
         self.cicd_subscriptions: list[dict[str, Any]] = []
+        self.release_deployment_endpoint = (
+            (config or {}).get("release_deployment_endpoint")
+            or os.getenv("RELEASE_DEPLOYMENT_ENDPOINT")
+        )
+        self.lifecycle_governance_endpoint = (
+            (config or {}).get("lifecycle_governance_endpoint")
+            or os.getenv("LIFECYCLE_GOVERNANCE_ENDPOINT")
+        )
+        self.stakeholder_comms_endpoint = (
+            (config or {}).get("stakeholder_comms_endpoint")
+            or os.getenv("STAKEHOLDER_COMMS_ENDPOINT")
+        )
+        self.require_staging_tests = bool(
+            (config or {}).get("require_staging_tests")
+            or os.getenv("REQUIRE_STAGING_TESTS", "false").lower() == "true"
+        )
+        self.staging_validation_endpoint = (
+            (config or {}).get("staging_validation_endpoint")
+            or os.getenv("STAGING_VALIDATION_ENDPOINT")
+        )
+        self.monitoring_endpoint = (
+            (config or {}).get("monitoring_endpoint") or os.getenv("CHANGE_MONITORING_ENDPOINT")
+        )
 
     async def initialize(self) -> None:
         """Initialize database connections, ITSM integrations, and AI models."""
@@ -787,6 +810,9 @@ class ChangeConfigurationAgent(BaseAgent):
             "assess_impact",
             "predict_impact",
             "approve_change",
+            "review_change",
+            "implement_change",
+            "update_change_request",
             "rollback_change",
             "register_ci",
             "create_baseline",
@@ -798,6 +824,7 @@ class ChangeConfigurationAgent(BaseAgent):
             "generate_change_report",
             "get_change_metrics",
             "cicd_webhook",
+            "monitor_change",
         ]
 
         if action not in valid_actions:
@@ -866,6 +893,28 @@ class ChangeConfigurationAgent(BaseAgent):
                 input_data.get("change_id"), input_data.get("approval", {})  # type: ignore
             )
 
+        elif action == "review_change":
+            return await self._review_change(
+                input_data.get("change_id"), input_data.get("review", {})  # type: ignore
+            )
+
+        elif action == "implement_change":
+            return await self._implement_change(
+                input_data.get("change_id"),
+                input_data.get("implementation", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )
+
+        elif action == "update_change_request":
+            return await self._update_change_request(
+                input_data.get("change_id"),
+                input_data.get("updates", {}),
+                tenant_id=tenant_id,
+                actor_id=actor_id,
+            )
+
         elif action == "rollback_change":
             return await self._rollback_change(
                 input_data.get("change_id"), input_data.get("reason", "")  # type: ignore
@@ -904,6 +953,10 @@ class ChangeConfigurationAgent(BaseAgent):
             return await self._handle_cicd_webhook(input_data.get("payload", {}))
         elif action == "query_impacted_cis":
             return await self._query_impacted_cis(input_data.get("ci_ids", []))
+        elif action == "monitor_change":
+            return await self._monitor_change(
+                input_data.get("change_id"), input_data.get("window_minutes", 60)  # type: ignore
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -963,12 +1016,16 @@ class ChangeConfigurationAgent(BaseAgent):
             "priority": change_data.get("priority", "medium"),
             "requester": change_data.get("requester"),
             "project_id": change_data.get("project_id"),
+            "tenant_id": tenant_id,
+            "correlation_id": correlation_id,
+            "actor_id": actor_id,
             "impacted_cis": impacted_cis,
             "impact_assessment": None,
             "risk_assessment": None,
             "approval_status": "Pending" if approval_required else "Approved",
             "approval": approval_payload,
             "status": "Submitted",
+            "version": 1,
             "created_at": datetime.utcnow().isoformat(),
             "repository_context": repo_context,
             "iac_changes": iac_changes,
@@ -989,6 +1046,18 @@ class ChangeConfigurationAgent(BaseAgent):
         }
         change["itsm_record"] = await self.itsm_service.create_change_request(itsm_payload)
         await self.db_service.store("change_requests", change_id, change)
+        await self._record_change_audit(
+            change_id,
+            "submitted",
+            actor_id=actor_id,
+            details={"approval_required": approval_required, "classification": classification},
+        )
+        await self._notify_stakeholders(
+            change,
+            event_type="change.submitted",
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         await self._publish_event(
             "change.created",
@@ -1072,6 +1141,9 @@ class ChangeConfigurationAgent(BaseAgent):
         # Update change
         change["impact_assessment"] = impact_assessment
         change["impact_assessment"]["trend_tags"] = await self._build_change_trend_tags(change)
+        impact_assessment["risk_adjusted_recommendation"] = await self._generate_risk_adjusted_recommendation(
+            impact_assessment
+        )
 
         await self.db_service.store("change_requests", change_id, change)
 
@@ -1107,6 +1179,12 @@ class ChangeConfigurationAgent(BaseAgent):
             change["status"] = "Rejected"
 
         await self.db_service.store("change_requests", change_id, change)
+        await self._record_change_audit(
+            change_id,
+            "approval_decision",
+            actor_id=approver or "unknown",
+            details={"decision": decision, "comments": comments},
+        )
 
         itsm_record = change.get("itsm_record", {})
         itsm_id = itsm_record.get("change_id") if isinstance(itsm_record, dict) else None
@@ -1124,6 +1202,12 @@ class ChangeConfigurationAgent(BaseAgent):
                 "approved_by": approver,
             },
         )
+        await self._notify_stakeholders(
+            change,
+            event_type="change.approved" if decision == "approve" else "change.rejected",
+            tenant_id=change.get("tenant_id", "unknown"),
+            correlation_id=change.get("correlation_id", str(uuid.uuid4())),
+        )
 
         return {
             "change_id": change_id,
@@ -1133,6 +1217,123 @@ class ChangeConfigurationAgent(BaseAgent):
                 "Proceed with implementation" if decision == "approve" else "Review and resubmit"
             ),
         }
+
+    async def _review_change(self, change_id: str, review_data: dict[str, Any]) -> dict[str, Any]:
+        """Record peer review decision for change."""
+        change = self.change_requests.get(change_id)
+        if not change:
+            raise ValueError(f"Change request not found: {change_id}")
+        reviewer = review_data.get("reviewer")
+        decision = review_data.get("decision", "reviewed")
+        comments = review_data.get("comments", "")
+        change["review_status"] = decision
+        change["reviewed_by"] = reviewer
+        change["reviewed_at"] = datetime.utcnow().isoformat()
+        await self.db_service.store("change_requests", change_id, change)
+        await self._record_change_audit(
+            change_id,
+            "reviewed",
+            actor_id=reviewer or "unknown",
+            details={"decision": decision, "comments": comments},
+        )
+        return {
+            "change_id": change_id,
+            "review_status": decision,
+            "reviewed_by": reviewer,
+            "comments": comments,
+        }
+
+    async def _implement_change(
+        self,
+        change_id: str | None,
+        implementation: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
+        """Implement change with staging validation, deployment coordination, and monitoring."""
+        if not change_id:
+            raise ValueError("change_id is required")
+        change = self.change_requests.get(change_id)
+        if not change:
+            raise ValueError(f"Change request not found: {change_id}")
+        if change.get("approval_status") != "Approved":
+            return {"change_id": change_id, "status": "blocked", "reason": "not_approved"}
+
+        validation = await self._run_staging_validation(change, implementation)
+        if validation.get("status") == "failed":
+            rollback = await self._rollback_change(
+                change_id, reason="staging_validation_failed"
+            )
+            return {
+                "change_id": change_id,
+                "status": "rolled_back",
+                "validation": validation,
+                "rollback": rollback,
+            }
+        if validation.get("status") == "skipped" and self.require_staging_tests:
+            return {
+                "change_id": change_id,
+                "status": "blocked",
+                "reason": "staging_validation_required",
+            }
+
+        change["status"] = "In Progress"
+        change["implementation_plan"] = implementation
+        change["implementation_started_at"] = datetime.utcnow().isoformat()
+        await self.db_service.store("change_requests", change_id, change)
+        await self._record_change_audit(
+            change_id,
+            "implementation_started",
+            actor_id=actor_id,
+            details={"validation": validation},
+        )
+
+        coordination = await self._coordinate_release_and_governance(change, tenant_id, correlation_id)
+        if coordination.get("deployment_status") == "scheduled":
+            change["status"] = "Scheduled"
+        await self.db_service.store("change_requests", change_id, change)
+        await self._publish_event(
+            "change.implementation.started",
+            {
+                "event_id": f"change.implementation.started:{change_id}",
+                "change_id": change_id,
+                "coordination": coordination,
+            },
+        )
+        return {
+            "change_id": change_id,
+            "status": change["status"],
+            "validation": validation,
+            "coordination": coordination,
+        }
+
+    async def _update_change_request(
+        self,
+        change_id: str | None,
+        updates: dict[str, Any],
+        *,
+        tenant_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
+        if not change_id:
+            raise ValueError("change_id is required")
+        change = self.change_requests.get(change_id)
+        if not change:
+            raise ValueError(f"Change request not found: {change_id}")
+        change.update(updates)
+        change["version"] = int(change.get("version", 1)) + 1
+        change["last_modified"] = datetime.utcnow().isoformat()
+        self.change_store.upsert(tenant_id, change_id, change)
+        await self.db_service.store("change_requests", change_id, change)
+        await self._record_change_audit(
+            change_id,
+            "updated",
+            actor_id=actor_id,
+            details={"fields": list(updates.keys())},
+        )
+        return {"change_id": change_id, "version": change["version"], "status": "updated"}
 
     async def _register_ci(
         self,
@@ -1591,6 +1792,21 @@ class ChangeConfigurationAgent(BaseAgent):
 
         return min(100, score)  # type: ignore
 
+    async def _generate_risk_adjusted_recommendation(
+        self, impact_assessment: dict[str, Any]
+    ) -> dict[str, Any]:
+        predicted = impact_assessment.get("predicted_impact", {})
+        success_probability = predicted.get("success_probability", 0.5)
+        risk_score = impact_assessment.get("overall_risk_score", 0)
+        recommendation = await self._generate_impact_recommendation(impact_assessment)
+        if success_probability < 0.6 or risk_score > 70:
+            recommendation = "Escalate for executive review and require enhanced testing."
+        return {
+            "recommendation": recommendation,
+            "success_probability": success_probability,
+            "risk_score": risk_score,
+        }
+
     async def _generate_impact_recommendation(self, impact_assessment: dict[str, Any]) -> str:
         """Generate recommendation based on impact assessment."""
         risk_score = impact_assessment.get("overall_risk_score", 0)
@@ -1694,6 +1910,148 @@ class ChangeConfigurationAgent(BaseAgent):
             return
         await self.event_publisher.publish_event(topic, payload)
 
+    async def _record_change_audit(
+        self,
+        change_id: str,
+        action: str,
+        *,
+        actor_id: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        entry = {
+            "change_id": change_id,
+            "action": action,
+            "actor_id": actor_id,
+            "details": details or {},
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.change_history.setdefault(change_id, []).append(entry)
+        await self.db_service.store("change_audit", f"{change_id}:{entry['timestamp']}", entry)
+
+    async def _notify_stakeholders(
+        self,
+        change: dict[str, Any],
+        *,
+        event_type: str,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> None:
+        payload = {
+            "change_id": change.get("change_id"),
+            "event_type": event_type,
+            "title": change.get("title"),
+            "status": change.get("status"),
+            "priority": change.get("priority"),
+            "approval_status": change.get("approval_status"),
+            "tenant_id": tenant_id,
+            "correlation_id": correlation_id,
+        }
+        if self.stakeholder_comms_endpoint:
+            body = json.dumps(payload).encode("utf-8")
+            try:
+                req = request.Request(self.stakeholder_comms_endpoint, data=body, method="POST")
+                req.add_header("Content-Type", "application/json")
+                request.urlopen(req, timeout=10)
+            except OSError as exc:
+                self.logger.warning("Stakeholder comms notify failed: %s", exc)
+                await self._publish_event(
+                    "stakeholder.comms.failed",
+                    {"event_id": f"stakeholder.comms.failed:{change.get('change_id')}", "error": str(exc)},
+                )
+        else:
+            await self._publish_event(
+                "stakeholder.comms.requested",
+                {"event_id": f"stakeholder.comms.requested:{change.get('change_id')}", **payload},
+            )
+
+    async def _coordinate_release_and_governance(
+        self, change: dict[str, Any], tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
+        coordination = {"deployment_status": "unconfigured", "governance_status": "unconfigured"}
+        deployment_payload = {
+            "change_id": change.get("change_id"),
+            "title": change.get("title"),
+            "priority": change.get("priority"),
+            "tenant_id": tenant_id,
+            "correlation_id": correlation_id,
+        }
+        if self.release_deployment_endpoint:
+            try:
+                body = json.dumps(deployment_payload).encode("utf-8")
+                req = request.Request(self.release_deployment_endpoint, data=body, method="POST")
+                req.add_header("Content-Type", "application/json")
+                with request.urlopen(req, timeout=10) as response:
+                    coordination["deployment_status"] = response.read().decode("utf-8") or "scheduled"
+            except OSError as exc:
+                coordination["deployment_status"] = f"error:{exc}"
+        else:
+            coordination["deployment_status"] = "scheduled"
+        governance_payload = {
+            "change_id": change.get("change_id"),
+            "status": change.get("status"),
+            "classification": change.get("classification"),
+            "tenant_id": tenant_id,
+            "correlation_id": correlation_id,
+        }
+        if self.lifecycle_governance_endpoint:
+            try:
+                body = json.dumps(governance_payload).encode("utf-8")
+                req = request.Request(self.lifecycle_governance_endpoint, data=body, method="POST")
+                req.add_header("Content-Type", "application/json")
+                with request.urlopen(req, timeout=10) as response:
+                    coordination["governance_status"] = response.read().decode("utf-8") or "checked"
+            except OSError as exc:
+                coordination["governance_status"] = f"error:{exc}"
+        else:
+            coordination["governance_status"] = "checked"
+        return coordination
+
+    async def _run_staging_validation(
+        self, change: dict[str, Any], implementation: dict[str, Any]
+    ) -> dict[str, Any]:
+        payload = {
+            "change_id": change.get("change_id"),
+            "title": change.get("title"),
+            "implementation": implementation,
+            "impacted_cis": change.get("impacted_cis", []),
+        }
+        if not self.staging_validation_endpoint:
+            return {"status": "skipped", "reason": "no_validation_endpoint"}
+        try:
+            body = json.dumps(payload).encode("utf-8")
+            req = request.Request(self.staging_validation_endpoint, data=body, method="POST")
+            req.add_header("Content-Type", "application/json")
+            with request.urlopen(req, timeout=20) as response:
+                response_body = response.read().decode("utf-8")
+                return {"status": "passed", "details": response_body}
+        except OSError as exc:
+            return {"status": "failed", "error": str(exc)}
+
+    async def _monitor_change(self, change_id: str | None, window_minutes: int) -> dict[str, Any]:
+        if not change_id:
+            raise ValueError("change_id is required")
+        change = self.change_requests.get(change_id)
+        if not change:
+            raise ValueError(f"Change request not found: {change_id}")
+        if not self.monitoring_endpoint:
+            return {"change_id": change_id, "status": "skipped", "reason": "no_monitoring_endpoint"}
+        payload = {"change_id": change_id, "window_minutes": window_minutes}
+        try:
+            body = json.dumps(payload).encode("utf-8")
+            req = request.Request(self.monitoring_endpoint, data=body, method="POST")
+            req.add_header("Content-Type", "application/json")
+            with request.urlopen(req, timeout=10) as response:
+                metrics = response.read().decode("utf-8")
+            change["monitoring_metrics"] = metrics
+            await self.db_service.store("change_requests", change_id, change)
+            await self._publish_event(
+                "change.monitoring",
+                {"event_id": f"change.monitoring:{change_id}", "metrics": metrics},
+            )
+            return {"change_id": change_id, "status": "ok", "metrics": metrics}
+        except OSError as exc:
+            return {"change_id": change_id, "status": "error", "error": str(exc)}
+
     async def _get_implementation_tasks(self, change_id: str) -> list[dict[str, Any]]:
         """Get implementation tasks for change."""
         # Future work: Query task management system
@@ -1796,6 +2154,9 @@ class ChangeConfigurationAgent(BaseAgent):
             "impact_assessment",
             "risk_evaluation",
             "approval_workflow_orchestration",
+            "change_review",
+            "change_implementation",
+            "change_update_versioning",
             "repository_integration",
             "iac_change_analysis",
             "cicd_webhook_tracking",
@@ -1807,10 +2168,13 @@ class ChangeConfigurationAgent(BaseAgent):
             "baseline_management",
             "version_control",
             "change_implementation_tracking",
+            "staging_validation",
+            "automated_rollback",
             "change_audit",
             "dependency_mapping",
             "configuration_visualization",
             "change_dashboards",
             "change_reporting",
             "change_metrics",
+            "post_change_monitoring",
         ]

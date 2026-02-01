@@ -28,6 +28,11 @@ if importlib.util.find_spec("slack_sdk"):
 else:
     WebClient = None
 
+if importlib.util.find_spec("twilio.rest"):
+    from twilio.rest import Client as TwilioClient
+else:
+    TwilioClient = None
+
 if importlib.util.find_spec("azure.communication.email"):
     from azure.communication.email import EmailClient
 else:
@@ -199,9 +204,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         # Configuration parameters
         self.communication_channels = (
-            config.get("communication_channels", ["email", "teams", "slack", "sms", "portal"])
+            config.get(
+                "communication_channels", ["email", "teams", "slack", "sms", "push", "portal"]
+            )
             if config
-            else ["email", "teams", "slack", "sms", "portal"]
+            else ["email", "teams", "slack", "sms", "push", "portal"]
         )
 
         self.engagement_levels = (
@@ -251,6 +258,24 @@ class StakeholderCommunicationsAgent(BaseAgent):
         )
         self.sendgrid_from_email = resolve_secret(
             (config or {}).get("sendgrid_from_email") or os.getenv("SENDGRID_FROM_EMAIL")
+        )
+        self.twilio_account_sid = resolve_secret(
+            (config or {}).get("twilio_account_sid") or os.getenv("TWILIO_ACCOUNT_SID")
+        )
+        self.twilio_auth_token = resolve_secret(
+            (config or {}).get("twilio_auth_token") or os.getenv("TWILIO_AUTH_TOKEN")
+        )
+        self.twilio_from_number = resolve_secret(
+            (config or {}).get("twilio_from_number") or os.getenv("TWILIO_FROM_NUMBER")
+        )
+        self.push_endpoint = resolve_secret(
+            (config or {}).get("push_endpoint") or os.getenv("PUSH_NOTIFICATION_ENDPOINT")
+        )
+        self.push_api_key = resolve_secret(
+            (config or {}).get("push_api_key") or os.getenv("PUSH_NOTIFICATION_API_KEY")
+        )
+        self.fcm_server_key = resolve_secret(
+            (config or {}).get("fcm_server_key") or os.getenv("FCM_SERVER_KEY")
         )
 
         self.openai_endpoint = resolve_secret(
@@ -326,6 +351,16 @@ class StakeholderCommunicationsAgent(BaseAgent):
         )
 
         self.slack_client = WebClient(token=self.slack_token) if WebClient and self.slack_token else None
+        self.twilio_client = (
+            TwilioClient(self.twilio_account_sid, self.twilio_auth_token)
+            if TwilioClient and self.twilio_account_sid and self.twilio_auth_token
+            else None
+        )
+
+        self.default_locale = (config or {}).get("default_locale", "en-US")
+        self.delivery_batch_size = int((config or {}).get("delivery_batch_size", 50))
+        self.delivery_batch_interval = int((config or {}).get("delivery_batch_interval_minutes", 15))
+        self.communication_templates = self._load_default_templates()
 
     async def initialize(self) -> None:
         """Initialize database connections, communication platforms, and AI models."""
@@ -362,10 +397,14 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "generate_message",
             "edit_message",
             "send_message",
+            "schedule_message",
+            "summarize_report",
+            "update_communication_preferences",
             "collect_feedback",
             "analyze_sentiment",
             "schedule_event",
             "track_engagement",
+            "track_delivery_event",
             "get_stakeholder_dashboard",
             "generate_communication_report",
         ]
@@ -437,6 +476,23 @@ class StakeholderCommunicationsAgent(BaseAgent):
         elif action == "send_message":
             return await self._send_message(tenant_id, input_data.get("message_id"))  # type: ignore
 
+        elif action == "schedule_message":
+            return await self._schedule_message(tenant_id, input_data.get("message_id"))  # type: ignore
+
+        elif action == "summarize_report":
+            return await self._summarize_report(
+                input_data.get("report", ""),
+                input_data.get("role", "general"),
+                input_data.get("locale"),
+            )
+
+        elif action == "update_communication_preferences":
+            return await self._update_communication_preferences(
+                tenant_id,
+                input_data.get("stakeholder_id"),
+                input_data.get("preferences", {}),
+            )
+
         elif action == "collect_feedback":
             return await self._collect_feedback(input_data.get("feedback", {}))
 
@@ -448,6 +504,14 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         elif action == "track_engagement":
             return await self._track_engagement(input_data.get("stakeholder_id"))
+
+        elif action == "track_delivery_event":
+            return await self._track_delivery_event(
+                tenant_id,
+                input_data.get("message_id"),
+                input_data.get("stakeholder_id"),
+                input_data.get("event", {}),
+            )
 
         elif action == "get_stakeholder_dashboard":
             return await self._get_stakeholder_dashboard(
@@ -616,14 +680,34 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Get stakeholder for personalization
         stakeholder_ids = message_data.get("stakeholder_ids", [])
 
-        # Generate content using NLG
-        # Future work: Use Azure OpenAI for natural language generation
+        template_id = message_data.get("template_id")
+        locale = message_data.get("locale") or self.default_locale
+        template_payload = self._get_template(template_id, locale) if template_id else {}
+        template_body = message_data.get("template", template_payload.get("body", ""))
+        template_subject = message_data.get("subject", template_payload.get("subject"))
+
+        summary = None
+        if message_data.get("report") or message_data.get("summary_source"):
+            summary = await self._summarize_report(
+                message_data.get("report") or message_data.get("summary_source", ""),
+                message_data.get("summary_role", "general"),
+                locale,
+            )
+
+        message_payload = dict(message_data.get("data", {}))
+        if summary:
+            message_payload["summary"] = summary.get("summary")
+
+        # Generate content using NLG or templates
         content, generation_metadata = await self._generate_message_content(
-            message_data.get("template", ""),
-            message_data.get("data", {}),
+            template_body,
+            message_payload,
             message_data.get("prompt_type"),
             message_data.get("prompt"),
         )
+        subject = template_subject or message_data.get("subject", "")
+        if subject:
+            subject = self._safe_format_template(subject, message_payload)
 
         # Personalize for each stakeholder
         personalized_messages = []
@@ -631,20 +715,29 @@ class StakeholderCommunicationsAgent(BaseAgent):
             stakeholder = self.stakeholder_register.get(stakeholder_id)
             if stakeholder:
                 personalized_content = await self._personalize_content(content, stakeholder)
+                if subject:
+                    personalized_subject = await self._personalize_content(subject, stakeholder)
+                else:
+                    personalized_subject = ""
                 personalized_messages.append(
-                    {"stakeholder_id": stakeholder_id, "content": personalized_content}
+                    {
+                        "stakeholder_id": stakeholder_id,
+                        "content": personalized_content,
+                        "subject": personalized_subject,
+                    }
                 )
 
         # Create message
         message = {
             "message_id": message_id,
             "project_id": message_data.get("project_id"),
-            "subject": message_data.get("subject"),
+            "subject": subject or message_data.get("subject"),
             "content": content,
             "generation_metadata": generation_metadata,
             "personalized_messages": personalized_messages,
             "channel": message_data.get("channel", "email"),
             "scheduled_send": message_data.get("scheduled_send"),
+            "delivery_mode": message_data.get("delivery_mode", "immediate"),
             "attachments": message_data.get("attachments", []),
             "status": "Draft",
             "review_required": generation_metadata.get("provider") == "azure_openai",
@@ -663,6 +756,25 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "channel": message["channel"],
             "status": "Draft",
             "preview": content[:200],
+        }
+
+    async def _schedule_message(self, tenant_id: str, message_id: str) -> dict[str, Any]:
+        """Schedule message delivery in batches."""
+        message = self.messages.get(message_id)
+        if not message:
+            raise ValueError(f"Message not found: {message_id}")
+        batch_schedule = self._build_delivery_schedule(
+            message.get("personalized_messages", []),
+            message.get("scheduled_send"),
+        )
+        message["delivery_batches"] = batch_schedule
+        message["status"] = "Scheduled"
+        message["scheduled_at"] = datetime.utcnow().isoformat()
+        return {
+            "message_id": message_id,
+            "status": "Scheduled",
+            "batch_count": len(batch_schedule),
+            "schedule": batch_schedule,
         }
 
     async def _edit_message(self, message_id: str | None, message_data: dict[str, Any]) -> dict[str, Any]:
@@ -708,6 +820,13 @@ class StakeholderCommunicationsAgent(BaseAgent):
         message = self.messages.get(message_id)
         if not message:
             raise ValueError(f"Message not found: {message_id}")
+        if message.get("delivery_mode") == "scheduled":
+            scheduled = await self._schedule_message(tenant_id, message_id)
+            return {
+                "message_id": message_id,
+                "status": "Scheduled",
+                "batch_count": scheduled.get("batch_count"),
+            }
 
         # Send via appropriate channel
         channel = message.get("channel", "email")
@@ -736,6 +855,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 stakeholder,
                 message,
                 personalized.get("content"),
+                personalized.get("subject"),
             )
 
             delivery_results.append(
@@ -786,6 +906,66 @@ class StakeholderCommunicationsAgent(BaseAgent):
             ),
             "sent_at": message["sent_at"],
         }
+
+    async def _update_communication_preferences(
+        self,
+        tenant_id: str,
+        stakeholder_id: str | None,
+        preferences: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not stakeholder_id:
+            raise ValueError("stakeholder_id is required")
+        stakeholder = self._load_stakeholder(tenant_id, stakeholder_id)
+        if not stakeholder:
+            raise ValueError(f"Stakeholder not found: {stakeholder_id}")
+        stakeholder["communication_preferences"] = preferences
+        if preferences.get("preferred_channels"):
+            stakeholder["preferred_channels"] = preferences["preferred_channels"]
+        if "opt_out" in preferences:
+            stakeholder["opt_out"] = bool(preferences["opt_out"])
+        self.stakeholder_store.upsert(tenant_id, stakeholder_id, stakeholder.copy())
+        return {
+            "stakeholder_id": stakeholder_id,
+            "preferences": stakeholder.get("communication_preferences", {}),
+            "preferred_channels": stakeholder.get("preferred_channels", []),
+        }
+
+    async def _track_delivery_event(
+        self,
+        tenant_id: str,
+        message_id: str | None,
+        stakeholder_id: str | None,
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not message_id or message_id not in self.messages:
+            raise ValueError("message_id not found")
+        if not stakeholder_id:
+            raise ValueError("stakeholder_id is required")
+        event_type = event.get("type", "delivered")
+        message = self.messages[message_id]
+        if stakeholder_id in self.engagement_metrics:
+            metrics = self.engagement_metrics[stakeholder_id]
+            if event_type == "opened":
+                metrics["messages_opened"] += 1
+            elif event_type == "clicked":
+                metrics["messages_clicked"] += 1
+            elif event_type == "responded":
+                metrics["responses_received"] += 1
+        self._record_communication_history(
+            {
+                "stakeholder_id": stakeholder_id,
+                "channel": message.get("channel"),
+                "subject": message.get("subject"),
+                "status": event_type,
+                "content": event.get("details"),
+                "metadata": {"message_id": message_id, "event": event},
+            }
+        )
+        self._publish_event(
+            f"stakeholder.message.{event_type}",
+            {"message_id": message_id, "stakeholder_id": stakeholder_id, "event": event},
+        )
+        return {"message_id": message_id, "stakeholder_id": stakeholder_id, "event": event_type}
 
     async def _collect_feedback(self, feedback_data: dict[str, Any]) -> dict[str, Any]:
         """Collect stakeholder feedback."""
@@ -1302,10 +1482,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 template=template, data=data, prompt_type=prompt_type, prompt=prompt
             )
             if not draft.get("content") and template:
-                return template.format(**data), {"provider": "template_fallback"}
+                return self._safe_format_template(template, data), {"provider": "template_fallback"}
             return draft.get("content", ""), draft
         if template:
-            return template.format(**data), {"provider": "template"}
+            return self._safe_format_template(template, data), {"provider": "template"}
         return "Sample message content", {"provider": "fallback"}
 
     async def _has_consent(self, stakeholder: dict[str, Any], channel: str) -> bool:
@@ -1341,9 +1521,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
         stakeholder: dict[str, Any],
         message: dict[str, Any],
         content: str,
+        subject_override: str | None = None,
     ) -> dict[str, Any]:
         """Send message via communication channel."""
-        subject = message.get("subject", "")
+        subject = subject_override or message.get("subject", "")
         attachments = message.get("attachments", [])
         if channel == "email":
             return await self._send_email(
@@ -1363,6 +1544,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 stakeholder.get("slack_channel") or stakeholder.get("slack_id"),
                 content,
             )
+        if channel == "sms":
+            return await self._send_sms(stakeholder.get("phone"), content)
+        if channel in {"push", "portal"}:
+            return await self._send_push(stakeholder, subject, content)
         return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
 
     async def _analyze_text_sentiment(self, text: str) -> dict[str, Any]:
@@ -1652,6 +1837,70 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "sent_at": datetime.utcnow().isoformat(),
         }
 
+    async def _send_sms(self, phone: str | None, content: str) -> dict[str, Any]:
+        if not phone:
+            return {"status": "failed", "reason": "missing_phone"}
+        if self.twilio_client and self.twilio_from_number:
+            message = self.twilio_client.messages.create(
+                body=content,
+                from_=self.twilio_from_number,
+                to=phone,
+            )
+            return {"status": "delivered", "sent_at": datetime.utcnow().isoformat(), "sid": message.sid}
+        if self.twilio_account_sid and self.twilio_auth_token and self.twilio_from_number:
+            payload = {
+                "From": self.twilio_from_number,
+                "To": phone,
+                "Body": content,
+            }
+            auth = (self.twilio_account_sid, self.twilio_auth_token)
+            response = requests.post(
+                f"https://api.twilio.com/2010-04-01/Accounts/{self.twilio_account_sid}/Messages.json",
+                data=payload,
+                auth=auth,
+                timeout=10,
+            )
+            if response.status_code < 400:
+                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+            return {"status": "failed", "reason": response.text}
+        return {"status": "failed", "reason": "no_sms_provider"}
+
+    async def _send_push(
+        self, stakeholder: dict[str, Any], subject: str, content: str
+    ) -> dict[str, Any]:
+        if self.fcm_server_key and stakeholder.get("push_token"):
+            payload = {
+                "to": stakeholder.get("push_token"),
+                "notification": {"title": subject, "body": content},
+                "data": {"stakeholder_id": stakeholder.get("stakeholder_id")},
+            }
+            response = requests.post(
+                "https://fcm.googleapis.com/fcm/send",
+                headers={"Authorization": f"key={self.fcm_server_key}"},
+                json=payload,
+                timeout=10,
+            )
+            if response.status_code < 400:
+                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+            return {"status": "failed", "reason": response.text}
+        if self.push_endpoint:
+            payload = {
+                "stakeholder_id": stakeholder.get("stakeholder_id"),
+                "subject": subject,
+                "content": content,
+                "channel": "push",
+            }
+            headers = {"Content-Type": "application/json"}
+            if self.push_api_key:
+                headers["Authorization"] = f"Bearer {self.push_api_key}"
+            response = requests.post(
+                self.push_endpoint, json=payload, headers=headers, timeout=10
+            )
+            if response.status_code < 400:
+                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+            return {"status": "failed", "reason": response.text}
+        return {"status": "failed", "reason": "no_push_provider"}
+
     async def _generate_openai_text(
         self,
         template: str,
@@ -1667,6 +1916,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "meeting_agenda": "Generate a concise meeting agenda.",
             "action_items": "Generate clear action items with owners and due dates.",
             "personalized_update": "Craft a personalized stakeholder update.",
+            "summary": "Summarize the report for the target stakeholder role.",
         }
         system_prompt = instructions.get(prompt_type or "", "Generate a stakeholder communication.")
         payload = {
@@ -1718,6 +1968,113 @@ class StakeholderCommunicationsAgent(BaseAgent):
             prompt=context.get("action_items_prompt"),
         )
         return [line.strip("- ").strip() for line in draft.get("content", "").splitlines() if line]
+
+    async def _summarize_report(
+        self, report: str, role: str, locale: str | None
+    ) -> dict[str, Any]:
+        """Summarize a report into concise content for a role."""
+        if not report:
+            return {"summary": "", "provider": "empty"}
+        if self.openai_endpoint and self.openai_api_key and self.openai_deployment:
+            prompt = f"Role: {role}\nLocale: {locale or self.default_locale}\nReport:\n{report}"
+            draft = await self._generate_openai_text(
+                template=report,
+                data={"report": report, "role": role, "locale": locale},
+                prompt_type="summary",
+                prompt=prompt,
+            )
+            return {"summary": draft.get("content", ""), "provider": draft.get("provider")}
+        short_summary = report[:500] + ("..." if len(report) > 500 else "")
+        return {"summary": short_summary, "provider": "fallback"}
+
+    def _safe_format_template(self, template: str, data: dict[str, Any]) -> str:
+        safe_data = {key: value if value is not None else "" for key, value in data.items()}
+        try:
+            return template.format_map(safe_data)
+        except (KeyError, ValueError):
+            return template
+
+    def _get_template(self, template_id: str | None, locale: str) -> dict[str, Any]:
+        if not template_id:
+            return {}
+        template = self.communication_templates.get(template_id, {})
+        return template.get(locale) or template.get(self.default_locale, {})
+
+    def _build_delivery_schedule(
+        self, personalized_messages: list[dict[str, Any]], scheduled_start: str | None
+    ) -> list[dict[str, Any]]:
+        if not personalized_messages:
+            return []
+        if scheduled_start:
+            try:
+                start_time = datetime.fromisoformat(scheduled_start)
+            except ValueError:
+                start_time = datetime.utcnow() + timedelta(minutes=5)
+        else:
+            start_time = datetime.utcnow() + timedelta(minutes=5)
+        batches = [
+            personalized_messages[i : i + self.delivery_batch_size]
+            for i in range(0, len(personalized_messages), self.delivery_batch_size)
+        ]
+        schedule = []
+        for index, batch in enumerate(batches):
+            scheduled_time = start_time + timedelta(minutes=index * self.delivery_batch_interval)
+            schedule.append(
+                {
+                    "batch_id": f"{index + 1}",
+                    "scheduled_time": scheduled_time.isoformat(),
+                    "recipient_count": len(batch),
+                }
+            )
+        return schedule
+
+    def _load_default_templates(self) -> dict[str, dict[str, dict[str, str]]]:
+        return {
+            "project_status_update": {
+                "en-US": {
+                    "subject": "Project status update: {project_name}",
+                    "body": (
+                        "Hello {name},\n\n"
+                        "Here is the latest status update for {project_name}:\n"
+                        "{summary}\n\n"
+                        "Key milestones:\n{milestones}\n\n"
+                        "Regards,\nPMO"
+                    ),
+                },
+                "es-ES": {
+                    "subject": "Actualización de estado del proyecto: {project_name}",
+                    "body": (
+                        "Hola {name},\n\n"
+                        "Aquí está la actualización más reciente de {project_name}:\n"
+                        "{summary}\n\n"
+                        "Hitos clave:\n{milestones}\n\n"
+                        "Saludos,\nPMO"
+                    ),
+                },
+            },
+            "risk_alert": {
+                "en-US": {
+                    "subject": "Risk alert: {risk_title}",
+                    "body": (
+                        "Hello {name},\n\n"
+                        "A new risk has been identified:\n"
+                        "{risk_details}\n\n"
+                        "Recommended actions:\n{mitigation_plan}\n"
+                    ),
+                }
+            },
+            "deployment_outcome": {
+                "en-US": {
+                    "subject": "Deployment outcome: {release_name}",
+                    "body": (
+                        "Hello {name},\n\n"
+                        "Deployment status: {deployment_status}\n"
+                        "Summary:\n{summary}\n\n"
+                        "Next steps:\n{next_steps}\n"
+                    ),
+                }
+            },
+        }
 
     async def _score_engagement_with_ml(
         self, metrics: dict[str, Any], baseline_score: float
@@ -1880,10 +2237,14 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "stakeholder_classification",
             "stakeholder_segmentation",
             "communication_planning",
+            "communication_preferences",
             "message_generation",
             "message_personalization",
             "message_scheduling",
             "multi_channel_delivery",
+            "template_management",
+            "intelligent_summarization",
+            "delivery_batching",
             "feedback_collection",
             "sentiment_analysis",
             "event_scheduling",
@@ -1891,6 +2252,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "engagement_tracking",
             "engagement_scoring",
             "communication_analytics",
+            "delivery_tracking",
             "stakeholder_dashboards",
             "communication_reporting",
         ]
