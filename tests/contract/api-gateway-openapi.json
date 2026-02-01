@@ -358,6 +358,31 @@
         "title": "AuditEventResponse",
         "type": "object"
       },
+      "Body_upload_certification_document_api_v1_certifications__connector_id__documents_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          },
+          "uploaded_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded By"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_certification_document_api_v1_certifications__connector_id__documents_post",
+        "type": "object"
+      },
       "CategoryInfo": {
         "description": "Information about a connector category.",
         "properties": {
@@ -401,6 +426,298 @@
           "connector_count"
         ],
         "title": "CategoryInfo",
+        "type": "object"
+      },
+      "CertificationCreateRequest": {
+        "properties": {
+          "audit_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Reference"
+          },
+          "certification_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certification Date"
+          },
+          "compliance_status": {
+            "enum": [
+              "certified",
+              "pending",
+              "expired",
+              "not_certified"
+            ],
+            "title": "Compliance Status",
+            "type": "string"
+          },
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "connector_id",
+          "compliance_status"
+        ],
+        "title": "CertificationCreateRequest",
+        "type": "object"
+      },
+      "CertificationDocumentResponse": {
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "uploaded_at": {
+            "title": "Uploaded At",
+            "type": "string"
+          },
+          "uploaded_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded By"
+          }
+        },
+        "required": [
+          "document_id",
+          "filename",
+          "content_type",
+          "uploaded_at"
+        ],
+        "title": "CertificationDocumentResponse",
+        "type": "object"
+      },
+      "CertificationRecordResponse": {
+        "properties": {
+          "audit_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Reference"
+          },
+          "certification_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certification Date"
+          },
+          "compliance_status": {
+            "enum": [
+              "certified",
+              "pending",
+              "expired",
+              "not_certified"
+            ],
+            "title": "Compliance Status",
+            "type": "string"
+          },
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/CertificationDocumentResponse"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "connector_id",
+          "tenant_id",
+          "compliance_status",
+          "updated_at"
+        ],
+        "title": "CertificationRecordResponse",
+        "type": "object"
+      },
+      "CertificationUpdateRequest": {
+        "properties": {
+          "audit_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Reference"
+          },
+          "certification_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certification Date"
+          },
+          "compliance_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "certified",
+                  "pending",
+                  "expired",
+                  "not_certified"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compliance Status"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "title": "CertificationUpdateRequest",
         "type": "object"
       },
       "ComplianceResearchRequest": {
@@ -712,40 +1029,6 @@
         "title": "ConnectorListItemResponse",
         "type": "object"
       },
-      "DevUserModel": {
-        "description": "API model for development user profile.",
-        "properties": {
-          "email": {
-            "title": "Email",
-            "type": "string"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "role": {
-            "title": "Role",
-            "type": "string"
-          },
-          "tenant_id": {
-            "default": "default",
-            "title": "Tenant Id",
-            "type": "string"
-          },
-          "user_id": {
-            "title": "User Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "name",
-          "email",
-          "role"
-        ],
-        "title": "DevUserModel",
-        "type": "object"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -757,6 +1040,94 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "PersistSessionRequest": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object"
+          },
+          "persisted_by": {
+            "title": "Persisted By",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "content",
+          "version",
+          "persisted_by"
+        ],
+        "title": "PersistSessionRequest",
+        "type": "object"
+      },
+      "PersistSessionResponse": {
+        "properties": {
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object"
+          },
+          "persisted_at": {
+            "title": "Persisted At",
+            "type": "string"
+          },
+          "persisted_by": {
+            "title": "Persisted By",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "document_id",
+          "session_id",
+          "version",
+          "persisted_at",
+          "persisted_by",
+          "summary",
+          "metadata"
+        ],
+        "title": "PersistSessionResponse",
         "type": "object"
       },
       "ProjectAgentConfigModel": {
@@ -849,6 +1220,17 @@
             ],
             "title": "Context"
           },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
           "query": {
             "title": "Query",
             "type": "string"
@@ -858,6 +1240,29 @@
           "query"
         ],
         "title": "QueryRequest",
+        "type": "object"
+      },
+      "RegulatoryComplianceConfigRequest": {
+        "properties": {
+          "api_key": {
+            "default": "",
+            "title": "Api Key",
+            "type": "string"
+          },
+          "endpoint_url": {
+            "default": "",
+            "title": "Endpoint Url",
+            "type": "string"
+          },
+          "supported_regulations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Regulations",
+            "type": "array"
+          }
+        },
+        "title": "RegulatoryComplianceConfigRequest",
         "type": "object"
       },
       "RiskResearchRequest": {
@@ -1104,6 +1509,160 @@
         "title": "ScopeResearchResponse",
         "type": "object"
       },
+      "SessionResponse": {
+        "properties": {
+          "collaborators": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Collaborators",
+            "type": "array"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "string"
+          },
+          "started_by": {
+            "title": "Started By",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id",
+          "document_id",
+          "tenant_id",
+          "status",
+          "started_by",
+          "started_at",
+          "updated_at",
+          "collaborators",
+          "version",
+          "content"
+        ],
+        "title": "SessionResponse",
+        "type": "object"
+      },
+      "SessionStartRequest": {
+        "properties": {
+          "collaborators": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Collaborators",
+            "type": "array"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "initial_content": {
+            "default": "",
+            "title": "Initial Content",
+            "type": "string"
+          },
+          "started_by": {
+            "title": "Started By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "started_by"
+        ],
+        "title": "SessionStartRequest",
+        "type": "object"
+      },
+      "SessionStopRequest": {
+        "properties": {
+          "ended_by": {
+            "title": "Ended By",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "ended_by"
+        ],
+        "title": "SessionStopRequest",
+        "type": "object"
+      },
+      "SessionStopResponse": {
+        "properties": {
+          "ended_by": {
+            "title": "Ended By",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "stopped_at": {
+            "title": "Stopped At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "status",
+          "ended_by",
+          "stopped_at"
+        ],
+        "title": "SessionStopResponse",
+        "type": "object"
+      },
       "TestConnectionRequest": {
         "description": "Request model for testing connection.",
         "properties": {
@@ -1180,6 +1739,67 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VendorListResponse": {
+        "properties": {
+          "search_criteria": {
+            "title": "Search Criteria",
+            "type": "object"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "total_results": {
+            "title": "Total Results",
+            "type": "integer"
+          },
+          "vendors": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Vendors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "total_results",
+          "vendors",
+          "search_criteria"
+        ],
+        "title": "VendorListResponse",
+        "type": "object"
+      },
+      "VendorProfileResponse": {
+        "properties": {
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id"
+          },
+          "vendor": {
+            "title": "Vendor",
+            "type": "object"
+          }
+        },
+        "required": [
+          "vendor"
+        ],
+        "title": "VendorProfileResponse",
         "type": "object"
       },
       "VendorResearchRequest": {
@@ -1287,6 +1907,49 @@
           "used_external_research"
         ],
         "title": "VendorResearchResponse",
+        "type": "object"
+      },
+      "VendorUpdateRequest": {
+        "properties": {
+          "updates": {
+            "description": "Vendor fields to update.",
+            "title": "Updates",
+            "type": "object"
+          }
+        },
+        "required": [
+          "updates"
+        ],
+        "title": "VendorUpdateRequest",
+        "type": "object"
+      },
+      "VendorUpdateResponse": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "updates": {
+            "title": "Updates",
+            "type": "object"
+          },
+          "vendor_id": {
+            "title": "Vendor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id",
+          "updates"
+        ],
+        "title": "VendorUpdateResponse",
         "type": "object"
       },
       "WorkflowApprovalDecisionRequest": {
@@ -1865,22 +2528,6 @@
               "title": "Catalog Id",
               "type": "string"
             }
-          },
-          {
-            "in": "header",
-            "name": "X-User-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-User-Id"
-            }
           }
         ],
         "requestBody": {
@@ -2019,6 +2666,242 @@
         ]
       }
     },
+    "/api/v1/certifications": {
+      "get": {
+        "operationId": "list_certifications_api_v1_certifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "connector_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Connector Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CertificationRecordResponse"
+                  },
+                  "title": "Response List Certifications Api V1 Certifications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Certifications",
+        "tags": [
+          "certifications"
+        ]
+      },
+      "post": {
+        "operationId": "create_certification_api_v1_certifications_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CertificationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationRecordResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Certification",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/api/v1/certifications/{connector_id}": {
+      "get": {
+        "operationId": "get_certification_api_v1_certifications__connector_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationRecordResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Certification",
+        "tags": [
+          "certifications"
+        ]
+      },
+      "put": {
+        "operationId": "update_certification_api_v1_certifications__connector_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CertificationUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationRecordResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Certification",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/api/v1/certifications/{connector_id}/documents": {
+      "post": {
+        "operationId": "upload_certification_document_api_v1_certifications__connector_id__documents_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_certification_document_api_v1_certifications__connector_id__documents_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationRecordResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Certification Document",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
     "/api/v1/connectors": {
       "get": {
         "description": "List all available connectors with their configuration status.\n\nOptionally filter by category.",
@@ -2094,6 +2977,155 @@
           }
         },
         "summary": "List Categories",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/regulatory_compliance/audit-logs": {
+      "get": {
+        "operationId": "get_regulatory_audit_logs_api_v1_connectors_regulatory_compliance_audit_logs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "regulation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Regulation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Regulatory Audit Logs",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/regulatory_compliance/config": {
+      "put": {
+        "operationId": "update_regulatory_compliance_config_api_v1_connectors_regulatory_compliance_config_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegulatoryComplianceConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Regulatory Compliance Config",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/connectors/regulatory_compliance/test": {
+      "post": {
+        "operationId": "test_regulatory_compliance_connection_api_v1_connectors_regulatory_compliance_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegulatoryComplianceConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestConnectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test Regulatory Compliance Connection",
         "tags": [
           "connectors"
         ]
@@ -2414,6 +3446,193 @@
         ]
       }
     },
+    "/api/v1/documents/sessions": {
+      "post": {
+        "operationId": "start_session_api_v1_documents_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Session",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/sessions/{session_id}": {
+      "get": {
+        "operationId": "get_session_api_v1_documents_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/sessions/{session_id}/persist": {
+      "post": {
+        "operationId": "persist_session_api_v1_documents_sessions__session_id__persist_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersistSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersistSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Persist Session",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/sessions/{session_id}/stop": {
+      "post": {
+        "operationId": "stop_session_api_v1_documents_sessions__session_id__stop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionStopRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionStopResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop Session",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "description": "Health check endpoint for load balancers and monitoring.\n\nReturns:\n    Basic health status of the API",
@@ -2663,22 +3882,6 @@
             "schema": {
               "title": "Agent Id",
               "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-User-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-User-Id"
             }
           }
         ],
@@ -3160,44 +4363,73 @@
         "summary": "Get Status"
       }
     },
-    "/api/v1/users/dev": {
+    "/api/v1/vendors": {
       "get": {
-        "description": "List all development user profiles (for testing RBAC).",
-        "operationId": "list_dev_users_api_v1_users_dev_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/DevUserModel"
-                  },
-                  "title": "Response List Dev Users Api V1 Users Dev Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Dev Users",
-        "tags": [
-          "agent-config"
-        ]
-      }
-    },
-    "/api/v1/users/dev/{user_id}": {
-      "get": {
-        "description": "Get a specific development user profile.",
-        "operationId": "get_dev_user_api_v1_users_dev__user_id__get",
+        "description": "List vendor profiles with optional filtering.",
+        "operationId": "list_vendors_api_v1_vendors_get",
         "parameters": [
           {
-            "in": "path",
-            "name": "user_id",
-            "required": true,
+            "in": "query",
+            "name": "category",
+            "required": false,
             "schema": {
-              "title": "User Id",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_rating",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Rating"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_risk_score",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Risk Score"
             }
           }
         ],
@@ -3206,15 +4438,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/DevUserModel"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "title": "Response Get Dev User Api V1 Users Dev  User Id  Get"
+                  "$ref": "#/components/schemas/VendorListResponse"
                 }
               }
             },
@@ -3231,23 +4455,23 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Dev User",
+        "summary": "List Vendors",
         "tags": [
-          "agent-config"
+          "vendor-management"
         ]
       }
     },
-    "/api/v1/users/dev/{user_id}/can-configure": {
+    "/api/v1/vendors/{vendor_id}": {
       "get": {
-        "description": "Check if a user can configure agents.",
-        "operationId": "check_user_can_configure_api_v1_users_dev__user_id__can_configure_get",
+        "description": "Get a vendor profile by ID.",
+        "operationId": "get_vendor_profile_api_v1_vendors__vendor_id__get",
         "parameters": [
           {
             "in": "path",
-            "name": "user_id",
+            "name": "vendor_id",
             "required": true,
             "schema": {
-              "title": "User Id",
+              "title": "Vendor Id",
               "type": "string"
             }
           }
@@ -3256,7 +4480,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/VendorProfileResponse"
+                }
               }
             },
             "description": "Successful Response"
@@ -3272,9 +4498,60 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Check User Can Configure",
+        "summary": "Get Vendor Profile",
         "tags": [
-          "agent-config"
+          "vendor-management"
+        ]
+      },
+      "patch": {
+        "description": "Update fields on a vendor profile.",
+        "operationId": "update_vendor_profile_api_v1_vendors__vendor_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendor_id",
+            "required": true,
+            "schema": {
+              "title": "Vendor Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VendorUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorUpdateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Vendor Profile",
+        "tags": [
+          "vendor-management"
         ]
       }
     },

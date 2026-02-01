@@ -12,6 +12,49 @@ class ApprovalStub:
         return {"approval_id": "appr-1", "status": "pending"}
 
 
+class TaskClientStub:
+    def __init__(self) -> None:
+        self.tasks: list[dict] = []
+
+    async def create_task(
+        self, *, tenant_id: str, instance_id: str, task_type: str, payload: dict
+    ) -> dict:
+        task = {
+            "tenant_id": tenant_id,
+            "instance_id": instance_id,
+            "task_type": task_type,
+            "payload": payload,
+        }
+        self.tasks.append(task)
+        return {"task_id": f"task-{len(self.tasks)}", "status": "queued"}
+
+
+class CommunicationsStub:
+    def __init__(self) -> None:
+        self.notifications: list[dict] = []
+
+    async def notify(
+        self,
+        *,
+        tenant_id: str,
+        subject: str,
+        body: str,
+        stakeholders: list[str] | None = None,
+        channel: str = "email",
+        metadata: dict | None = None,
+    ) -> dict:
+        payload = {
+            "tenant_id": tenant_id,
+            "subject": subject,
+            "body": body,
+            "stakeholders": stakeholders or [],
+            "channel": channel,
+            "metadata": metadata or {},
+        }
+        self.notifications.append(payload)
+        return {"status": "sent", "subject": subject}
+
+
 @pytest.mark.asyncio
 async def test_vendor_procurement_persists_and_requests_approval(tmp_path):
     approval_stub = ApprovalStub()
@@ -379,6 +422,18 @@ async def test_ml_recommendations_rank_vendors():
     assert recommendations == ["v-1"]
 
 
+def test_vendor_scoring_uses_weight_overrides():
+    ml_service = vendor_procurement_module.VendorMLService(
+        config={"scoring_weights": {"quality_rating": 0.5, "on_time_delivery_rate": 0.5}}
+    )
+    vendor = {
+        "risk_score": 10,
+        "performance_metrics": {"quality_rating": 4.0, "on_time_delivery_rate": 90},
+    }
+    score = ml_service.score_vendor(vendor)
+    assert round(score, 1) == 85.0
+
+
 @pytest.mark.asyncio
 async def test_budget_checks_use_financial_client(tmp_path):
     agent = VendorProcurementAgent(
@@ -396,3 +451,134 @@ async def test_budget_checks_use_financial_client(tmp_path):
     )
 
     assert budget["available"] is False
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_blocks_and_mitigates_on_compliance_failure(tmp_path):
+    task_stub = TaskClientStub()
+    comms_stub = CommunicationsStub()
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+            "event_store_path": tmp_path / "events.json",
+            "task_client": task_stub,
+            "communications_client": comms_stub,
+            "risk_config": {
+                "mock_responses": {
+                    "Risky Vendor": {
+                        "sanctions_check": "Fail",
+                        "anti_corruption_check": "Pass",
+                        "credit_check": "Pass",
+                        "watchlist_hits": ["Sanctioned entity list"],
+                        "sources": [{"name": "mock-sanctions", "status": "Fail"}],
+                    }
+                }
+            },
+            "compliance_policy": {"block_on_fail": True, "flag_on_watchlist": True},
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "onboard_vendor",
+            "tenant_id": "tenant-x",
+            "vendor": {
+                "legal_name": "Risky Vendor",
+                "contact_email": "risk@example.com",
+                "category": "software",
+            },
+        }
+    )
+
+    assert response["status"] == "blocked"
+    assert response["compliance_status"] == "blocked"
+    assert task_stub.tasks
+    assert comms_stub.notifications
+    events = agent.event_store.list("tenant-x")
+    event_types = {event["event_type"] for event in events}
+    assert "vendor.compliance_failed" in event_types
+    assert "vendor.mitigation.initiated" in event_types
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_updates_profile_and_queries(tmp_path):
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+        }
+    )
+    await agent.initialize()
+
+    vendor_response = await agent.process(
+        {
+            "action": "onboard_vendor",
+            "tenant_id": "tenant-x",
+            "vendor": {
+                "legal_name": "Evergreen Systems",
+                "contact_email": "vendor@example.com",
+                "category": "software",
+            },
+        }
+    )
+
+    update_response = await agent.process(
+        {
+            "action": "update_vendor_profile",
+            "tenant_id": "tenant-x",
+            "vendor_id": vendor_response["vendor_id"],
+            "updates": {"status": "Approved", "risk_score": 20},
+        }
+    )
+
+    assert update_response["status"] == "Approved"
+    profile = await agent.process(
+        {
+            "action": "get_vendor_profile",
+            "tenant_id": "tenant-x",
+            "vendor_id": vendor_response["vendor_id"],
+        }
+    )
+    assert profile["vendor"]["risk_score"] == 20
+
+
+@pytest.mark.asyncio
+async def test_vendor_procurement_mitigation_on_risk_event(tmp_path):
+    task_stub = TaskClientStub()
+    comms_stub = CommunicationsStub()
+    agent = VendorProcurementAgent(
+        config={
+            "vendor_store_path": tmp_path / "vendors.json",
+            "event_store_path": tmp_path / "events.json",
+            "task_client": task_stub,
+            "communications_client": comms_stub,
+        }
+    )
+    await agent.initialize()
+
+    vendor_response = await agent.process(
+        {
+            "action": "onboard_vendor",
+            "tenant_id": "tenant-x",
+            "vendor": {
+                "legal_name": "Signal Metrics",
+                "contact_email": "vendor@example.com",
+                "category": "software",
+            },
+        }
+    )
+
+    await agent.event_bus.publish(
+        {
+            "event_id": "evt-risk-1",
+            "event_type": "risk.alert",
+            "tenant_id": "tenant-x",
+            "correlation_id": "corr-1",
+            "payload": {"vendor_id": vendor_response["vendor_id"], "risk_score": 92},
+        }
+    )
+
+    vendor = agent.vendors[vendor_response["vendor_id"]]
+    assert vendor["status"] == "flagged"
+    assert task_stub.tasks
+    assert comms_stub.notifications

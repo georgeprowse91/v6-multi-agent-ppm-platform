@@ -40,9 +40,13 @@ Additional vendor procurement configuration (set via agent config or environment
 - `erp_ap_connectors.enabled_connectors`: enable ERP/AP connectors for payment initiation.
 - `ml_config.azure_ml_enabled`: toggles Azure ML training mode for vendor recommendations and risk scoring.
 - `ml_config.training_data`: optional training data used for ML-based vendor scoring.
+- `ml_config.scoring_weights`: optional weight overrides for ML-based vendor and proposal scoring.
 - `risk_config.risk_sources`: list of third-party risk/sanctions API definitions (`name`, `endpoint`, `category`, `api_key`).
 - `risk_config.mock_responses`: map of vendor names to mock compliance responses for testing.
+- `compliance_policy`: policies for compliance enforcement (`block_on_fail`, `flag_on_watchlist`, `risk_threshold`).
 - `event_bus.enabled` / `event_bus.endpoint`: enable publishing events to Azure Service Bus-compatible HTTP endpoint.
+- `task_management.queue_config`: workflow task queue configuration for mitigation tasks.
+- `communications_config.use_agent` / `communications_config.agent_config`: notify stakeholders via the communications agent.
 - `classification_config.training_data`: training corpus for procurement request categorization.
 - `financial_config.endpoint` / `financial_config.budget_data`: budget service endpoint or local budget map for budget checks.
 - `analytics_config.endpoint` / `analytics_config.performance_data`: analytics service endpoint or local performance data for SLA and delivery metrics.

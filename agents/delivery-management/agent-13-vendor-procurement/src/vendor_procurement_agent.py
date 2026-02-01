@@ -42,6 +42,7 @@ from agents.common.web_search import (  # noqa: E402
 )
 from agents.runtime import BaseAgent  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
+from workflow_task_queue import build_task_message, build_task_queue  # noqa: E402
 
 if TYPE_CHECKING:
     from approval_workflow_agent import ApprovalWorkflowAgent
@@ -212,6 +213,98 @@ class ProcurementEventPublisher:
         }
 
 
+class TaskManagementClient:
+    """Client for publishing mitigation tasks to the workflow engine/task queue."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.task_queue = self.config.get("task_queue") or build_task_queue(
+            self.config.get("queue_config")
+        )
+
+    async def create_task(
+        self,
+        *,
+        tenant_id: str,
+        instance_id: str,
+        task_type: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        task_id = f"{task_type}-{uuid.uuid4()}"
+        message = build_task_message(
+            tenant_id=tenant_id,
+            instance_id=instance_id,
+            task_id=task_id,
+            task_type=task_type,
+            payload=payload,
+        )
+        await self.task_queue.publish_task(message)
+        return {
+            "task_id": task_id,
+            "status": "queued",
+            "queue_backend": self.task_queue.__class__.__name__,
+            "message_id": message.message_id,
+        }
+
+
+class CommunicationsClient:
+    """Client wrapper for Stakeholder & Communications agent integration."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.agent = self.config.get("agent")
+        self.enabled = self.config.get("enabled", True)
+
+        if self.agent is None and self.config.get("use_agent", False):
+            try:
+                module = importlib.import_module("stakeholder_communications_agent")
+                agent_cls = getattr(module, "StakeholderCommunicationsAgent")
+                self.agent = agent_cls(config=self.config.get("agent_config"))
+            except (ImportError, AttributeError) as exc:
+                self.logger.warning("Communications agent unavailable: %s", exc)
+                self.agent = None
+
+    async def notify(
+        self,
+        *,
+        tenant_id: str,
+        subject: str,
+        body: str,
+        stakeholders: list[str] | None = None,
+        channel: str = "email",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if not self.enabled:
+            return {"status": "disabled", "subject": subject}
+        if not self.agent:
+            self.logger.info("Communications agent not configured; skipping notify.")
+            return {"status": "skipped", "subject": subject}
+
+        message_payload = {
+            "subject": subject,
+            "content": body,
+            "channel": channel,
+            "stakeholder_ids": stakeholders or [],
+            "data": metadata or {},
+        }
+        message = await self.agent.process(
+            {"action": "generate_message", "message": message_payload, "tenant_id": tenant_id}
+        )
+        message_id = message.get("message_id")
+        if not message_id:
+            return {"status": "failed", "subject": subject}
+        sent = await self.agent.process(
+            {"action": "send_message", "message_id": message_id, "tenant_id": tenant_id}
+        )
+        return {
+            "status": sent.get("status", "sent"),
+            "message_id": message_id,
+            "subject": subject,
+        }
+
+
 class LocalApprovalAgent:
     """Fallback approval workflow when external approval agent is unavailable."""
 
@@ -236,13 +329,17 @@ class VendorMLService:
         self.model_metadata: dict[str, Any] = {}
         self.training_runs: list[dict[str, Any]] = []
         self.training_data = self.config.get("training_data", [])
+        self.scoring_weights: dict[str, float] = self.config.get("scoring_weights", {})
         self.feature_weights: dict[str, float] = {}
         self.feature_stats: dict[str, float] = {}
         self.feature_order = [
+            "cost_score",
             "quality_rating",
             "on_time_delivery_rate",
             "compliance_rating",
             "risk_score",
+            "delivery_timeliness",
+            "external_rating",
             "dispute_count",
             "total_spend",
         ]
@@ -317,27 +414,56 @@ class VendorMLService:
 
     def score_vendor(self, vendor: dict[str, Any]) -> float:
         features = self._prepare_features(vendor)
-        if not self.feature_weights:
-            metrics = vendor.get("performance_metrics", {})
-            return (
-                metrics.get("quality_rating", 0) * 10
-                + metrics.get("on_time_delivery_rate", 0) * 0.4
-                + metrics.get("compliance_rating", 0) * 0.3
-                - vendor.get("risk_score", 50) * 0.2
-            )
-        score = 0.0
-        for name, value in features.items():
-            weight = self.feature_weights.get(name, 0.0)
-            score += value * weight
-        return score
+        weights = self.feature_weights or self.scoring_weights
+        if not weights:
+            weights = {
+                "quality_rating": 0.25,
+                "on_time_delivery_rate": 0.2,
+                "compliance_rating": 0.15,
+                "risk_score": 0.2,
+                "delivery_timeliness": 0.1,
+                "cost_score": 0.1,
+            }
+        return self._weighted_score(features, weights)
+
+    def score_proposal(
+        self,
+        proposal: dict[str, Any],
+        criteria_weights: dict[str, float] | None = None,
+    ) -> dict[str, float]:
+        pricing = proposal.get("pricing", {})
+        total_cost = pricing.get("total") or pricing.get("amount") or 0
+        cost_score = max(0, 100 - (float(total_cost) / 1000))
+        features = {
+            "cost": cost_score,
+            "quality": proposal.get("quality_score", 75),
+            "delivery": proposal.get("delivery_score", 80),
+            "risk": proposal.get("risk_score", 70),
+            "compliance": proposal.get("compliance_score", 80),
+        }
+        weights = criteria_weights or self.scoring_weights or {}
+        if not weights:
+            weights = {"cost": 0.4, "quality": 0.25, "delivery": 0.15, "risk": 0.15, "compliance": 0.05}
+        normalized_weights = self._normalize_weights(weights, features.keys())
+        return {key: float(features.get(key, 0)) * normalized_weights.get(key, 0) for key in features}
 
     def _prepare_features(self, vendor: dict[str, Any]) -> dict[str, float]:
         metrics = vendor.get("performance_metrics", {})
+        cost_score = vendor.get("cost_score") or metrics.get("cost_score") or 0
+        delivery_timeliness = metrics.get("delivery_timeliness") or metrics.get(
+            "on_time_delivery_rate", 0
+        )
+        external_rating = vendor.get("external_rating") or vendor.get("external_ratings", {}).get(
+            "overall", 0
+        )
         return {
+            "cost_score": float(cost_score),
             "quality_rating": metrics.get("quality_rating", 0) * 20,
             "on_time_delivery_rate": metrics.get("on_time_delivery_rate", 0),
             "compliance_rating": metrics.get("compliance_rating", 0),
             "risk_score": 100 - vendor.get("risk_score", 50),
+            "delivery_timeliness": float(delivery_timeliness),
+            "external_rating": float(external_rating),
             "dispute_count": max(0, 10 - vendor.get("dispute_count", 0)),
             "total_spend": min(vendor.get("total_spend", 0) / 1000, 100),
         }
@@ -373,6 +499,17 @@ class VendorMLService:
 
         total = sum(abs(value) for value in weights.values()) or 1.0
         self.feature_weights = {key: value / total for key, value in weights.items()}
+
+    def _weighted_score(self, features: dict[str, float], weights: dict[str, float]) -> float:
+        normalized = self._normalize_weights(weights, features.keys())
+        score = sum(features.get(name, 0.0) * normalized.get(name, 0.0) for name in features)
+        return max(0, min(100, score))
+
+    def _normalize_weights(
+        self, weights: dict[str, float], keys: Any
+    ) -> dict[str, float]:
+        total = sum(abs(weights.get(key, 0.0)) for key in keys) or 1.0
+        return {key: weights.get(key, 0.0) / total for key in keys}
 
 
 class RiskDatabaseClient:
@@ -801,7 +938,11 @@ class VendorProcurementAgent(BaseAgent):
             config.get("event_publisher") if config else None,
             event_bus=self.event_bus,
         )
-        self.ml_service = VendorMLService(config.get("ml_config") if config else None)
+        self.ml_config = config.get("ml_config") if config else None
+        self.ml_service = VendorMLService(self.ml_config)
+        self.vendor_scoring_weights = (
+            self.ml_config.get("scoring_weights", {}) if self.ml_config else {}
+        )
         self.form_recognizer = FormRecognizerClient(
             config.get("form_recognizer") if config else None
         )
@@ -826,6 +967,24 @@ class VendorProcurementAgent(BaseAgent):
         self.enable_ml_recommendations = (
             config.get("enable_ml_recommendations", True) if config else True
         )
+        self.compliance_policy = (
+            config.get(
+                "compliance_policy",
+                {"block_on_fail": True, "flag_on_watchlist": True, "risk_threshold": 75},
+            )
+            if config
+            else {"block_on_fail": True, "flag_on_watchlist": True, "risk_threshold": 75}
+        )
+        self.task_client = config.get("task_client") if config else None
+        if self.task_client is None:
+            self.task_client = TaskManagementClient(
+                config.get("task_management") if config else None
+            )
+        self.communications_client = config.get("communications_client") if config else None
+        if self.communications_client is None:
+            self.communications_client = CommunicationsClient(
+                config.get("communications_config") if config else None
+            )
 
         # Vendor categories
         self.vendor_categories = (
@@ -903,6 +1062,7 @@ class VendorProcurementAgent(BaseAgent):
                 },
             )
 
+        await self._load_vendor_cache()
         await self.ml_service.train_models(list(self.vendors.values()))
         self._register_event_handlers()
 
@@ -939,6 +1099,10 @@ class VendorProcurementAgent(BaseAgent):
             "search_vendors",
             "get_procurement_status",
             "research_vendor",
+            "get_vendor_profile",
+            "update_vendor_profile",
+            "list_vendor_profiles",
+            "sign_contract",
         ]
 
         if action not in valid_actions:
@@ -964,6 +1128,13 @@ class VendorProcurementAgent(BaseAgent):
             if not input_data.get("vendor_id") and not input_data.get("vendor_name"):
                 self.logger.warning("Missing required field: vendor_id or vendor_name")
                 return False
+        elif action == "update_vendor_profile":
+            if not input_data.get("vendor_id"):
+                self.logger.warning("Missing required field: vendor_id")
+                return False
+            if not input_data.get("updates"):
+                self.logger.warning("Missing required field: updates")
+                return False
 
         return True
 
@@ -977,7 +1148,8 @@ class VendorProcurementAgent(BaseAgent):
                           "submit_proposal" | "evaluate_proposals" | "select_vendor" |
                           "create_contract" | "create_purchase_order" | "submit_invoice" |
                           "reconcile_invoice" | "track_vendor_performance" | "get_vendor_scorecard" |
-                          "search_vendors" | "get_procurement_status",
+                          "search_vendors" | "get_procurement_status" | "get_vendor_profile" |
+                          "update_vendor_profile" | "list_vendor_profiles" | "sign_contract",
                 "vendor": Vendor data for onboarding/updates,
                 "request": Procurement request data,
                 "rfp": RFP details,
@@ -1122,6 +1294,36 @@ class VendorProcurementAgent(BaseAgent):
                 correlation_id=correlation_id,
             )
 
+        elif action == "get_vendor_profile":
+            return await self._get_vendor_profile(
+                input_data.get("vendor_id"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )  # type: ignore
+
+        elif action == "update_vendor_profile":
+            return await self._update_vendor_profile(
+                input_data.get("vendor_id"),
+                input_data.get("updates", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )  # type: ignore
+
+        elif action == "list_vendor_profiles":
+            return await self._list_vendor_profiles(
+                input_data.get("criteria", {}),
+                tenant_id=tenant_id,
+            )
+
+        elif action == "sign_contract":
+            return await self._sign_contract(
+                input_data.get("contract_id"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+            )  # type: ignore
+
         elif action == "search_vendors":
             return await self._search_vendors(input_data.get("criteria", {}))
 
@@ -1154,6 +1356,9 @@ class VendorProcurementAgent(BaseAgent):
 
         # Calculate initial risk score
         risk_score = await self._calculate_vendor_risk(vendor_data, compliance_checks)
+        compliance_decision = await self._evaluate_compliance_checks(
+            compliance_checks, risk_score=risk_score
+        )
 
         created_at = datetime.utcnow().isoformat()
         # Create vendor profile
@@ -1170,7 +1375,8 @@ class VendorProcurementAgent(BaseAgent):
             "classification": vendor_data.get("classification", "internal"),
             "risk_score": risk_score,
             "compliance_checks": compliance_checks,
-            "status": "pending",
+            "compliance_status": compliance_decision["status"],
+            "status": compliance_decision["status"],
             "created_at": created_at,
             "created_by": vendor_data.get("requester", actor_id),
             "performance_metrics": {
@@ -1189,12 +1395,7 @@ class VendorProcurementAgent(BaseAgent):
         if not validation["is_valid"]:
             raise ValueError("Vendor schema validation failed")
 
-        # Store vendor
-        self.vendors[vendor_id] = vendor
-        self.vendor_store.upsert(tenant_id, vendor_id, vendor)
-
-        if self.db_service:
-            await self.db_service.store("vendors", vendor_id, vendor)
+        await self._persist_vendor(vendor, tenant_id=tenant_id)
         await self.ml_service.train_models(list(self.vendors.values()))
         connector_results = self.procurement_connector.sync_vendor(vendor)
         await self._publish_event(
@@ -1205,15 +1406,37 @@ class VendorProcurementAgent(BaseAgent):
             actor_id=actor_id,
             entity_id=vendor_id,
         )
+        if compliance_decision["status"] in {"blocked", "flagged"}:
+            await self._publish_event(
+                "vendor.compliance_failed",
+                payload={
+                    "vendor_id": vendor_id,
+                    "compliance_status": compliance_decision["status"],
+                    "checks": compliance_checks,
+                    "risk_score": risk_score,
+                },
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+                entity_id=vendor_id,
+            )
+            await self._initiate_mitigation_workflow(
+                vendor=vendor,
+                reason=compliance_decision.get("reason", "Compliance checks failed"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         return {
             "vendor_id": vendor_id,
-            "status": "pending",
+            "status": vendor["status"],
             "legal_name": vendor["legal_name"],
             "risk_score": risk_score,
             "compliance_checks": compliance_checks,
             "data_quality": validation,
-            "next_steps": "Vendor pending approval. Submit required documentation.",
+            "compliance_status": vendor["compliance_status"],
+            "next_steps": compliance_decision.get("next_steps")
+            or "Vendor pending approval. Submit required documentation.",
         }
 
     async def _create_procurement_request(
@@ -1612,6 +1835,11 @@ class VendorProcurementAgent(BaseAgent):
                 "proposal_id": selected_proposal.get("proposal_id"),
             }
         )
+        vendor = self.vendors.get(vendor_id)
+        if vendor:
+            vendor["last_selected_at"] = datetime.utcnow().isoformat()
+            vendor["last_selected_rfp"] = rfp_id
+            await self._persist_vendor(vendor, tenant_id=tenant_id)
         await self._publish_event(
             "vendor.selected",
             payload={
@@ -1726,6 +1954,16 @@ class VendorProcurementAgent(BaseAgent):
             actor_id=actor_id,
             entity_id=contract_id,
         )
+        if contract_data.get("status") in {"Signed", "Active"}:
+            contract["status"] = "Active"
+            await self._publish_event(
+                "contract.signed",
+                payload={"contract_id": contract_id, "vendor_id": contract.get("vendor_id")},
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                actor_id=actor_id,
+                entity_id=contract_id,
+            )
 
         return {
             "contract_id": contract_id,
@@ -2282,6 +2520,9 @@ class VendorProcurementAgent(BaseAgent):
         self.event_bus.register_handler("delivery.delayed", self._handle_delivery_delayed)
         self.event_bus.register_handler("contract.signed", self._handle_contract_signed)
         self.event_bus.register_handler("vendor.flagged", self._handle_vendor_flagged)
+        self.event_bus.register_handler("risk.alert", self._handle_risk_alert)
+        self.event_bus.register_handler("compliance.violation", self._handle_compliance_violation)
+        self.event_bus.register_handler("sanctions.hit", self._handle_sanctions_hit)
 
     async def _handle_delivery_delayed(self, event: dict[str, Any]) -> None:
         payload = event.get("payload", {})
@@ -2293,12 +2534,18 @@ class VendorProcurementAgent(BaseAgent):
         metrics["delivery_timeliness"] = max(0, metrics.get("delivery_timeliness", 100) - 5)
         metrics["on_time_delivery_rate"] = metrics["delivery_timeliness"]
         vendor["performance_metrics"] = metrics
+        await self._persist_vendor(vendor, tenant_id=event.get("tenant_id", "unknown"))
 
     async def _handle_contract_signed(self, event: dict[str, Any]) -> None:
         payload = event.get("payload", {})
         contract_id = payload.get("contract_id")
         if contract_id and contract_id in self.contracts:
-            self.contracts[contract_id]["status"] = "Active"
+            contract = self.contracts[contract_id]
+            contract["status"] = "Active"
+            tenant_id = event.get("tenant_id", "unknown")
+            self.contract_store.upsert(tenant_id, contract_id, contract)
+            if self.db_service:
+                await self.db_service.store("contracts", contract_id, contract)
 
     async def _handle_vendor_flagged(self, event: dict[str, Any]) -> None:
         payload = event.get("payload", {})
@@ -2308,6 +2555,66 @@ class VendorProcurementAgent(BaseAgent):
         vendor = self.vendors[vendor_id]
         vendor["status"] = "flagged"
         vendor["risk_score"] = min(100, vendor.get("risk_score", 50) + 20)
+        vendor["compliance_status"] = "flagged"
+        await self._persist_vendor(vendor, tenant_id=event.get("tenant_id", "unknown"))
+        await self._initiate_mitigation_workflow(
+            vendor=vendor,
+            reason=payload.get("reason", "Vendor flagged via risk event"),
+            tenant_id=event.get("tenant_id", "unknown"),
+            correlation_id=event.get("correlation_id", str(uuid.uuid4())),
+        )
+
+    async def _handle_risk_alert(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload", {})
+        vendor_id = payload.get("vendor_id")
+        if not vendor_id or vendor_id not in self.vendors:
+            return
+        vendor = self.vendors[vendor_id]
+        vendor["risk_score"] = min(100, payload.get("risk_score", vendor.get("risk_score", 50)))
+        vendor["status"] = "flagged"
+        vendor["compliance_status"] = "flagged"
+        await self._persist_vendor(vendor, tenant_id=event.get("tenant_id", "unknown"))
+        await self._initiate_mitigation_workflow(
+            vendor=vendor,
+            reason=payload.get("reason", "Risk alert received"),
+            tenant_id=event.get("tenant_id", "unknown"),
+            correlation_id=event.get("correlation_id", str(uuid.uuid4())),
+        )
+
+    async def _handle_compliance_violation(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload", {})
+        vendor_id = payload.get("vendor_id")
+        if not vendor_id or vendor_id not in self.vendors:
+            return
+        vendor = self.vendors[vendor_id]
+        vendor["status"] = (
+            "blocked" if self.compliance_policy.get("block_on_fail", True) else "flagged"
+        )
+        vendor["compliance_status"] = "failed"
+        await self._persist_vendor(vendor, tenant_id=event.get("tenant_id", "unknown"))
+        await self._initiate_mitigation_workflow(
+            vendor=vendor,
+            reason=payload.get("reason", "Compliance violation received"),
+            tenant_id=event.get("tenant_id", "unknown"),
+            correlation_id=event.get("correlation_id", str(uuid.uuid4())),
+        )
+
+    async def _handle_sanctions_hit(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload", {})
+        vendor_id = payload.get("vendor_id")
+        if not vendor_id or vendor_id not in self.vendors:
+            return
+        vendor = self.vendors[vendor_id]
+        vendor["status"] = "blocked"
+        vendor["compliance_status"] = "sanctions_hit"
+        vendor["risk_score"] = min(100, vendor.get("risk_score", 50) + 30)
+        await self._persist_vendor(vendor, tenant_id=event.get("tenant_id", "unknown"))
+        await self._initiate_mitigation_workflow(
+            vendor=vendor,
+            reason=payload.get("reason", "Sanctions list hit"),
+            tenant_id=event.get("tenant_id", "unknown"),
+            correlation_id=event.get("correlation_id", str(uuid.uuid4())),
+        )
 
     async def _publish_event(
         self,
@@ -2387,6 +2694,40 @@ class VendorProcurementAgent(BaseAgent):
                 "sources": [],
             }
         return checks
+
+    async def _evaluate_compliance_checks(
+        self, checks: dict[str, Any], *, risk_score: float
+    ) -> dict[str, Any]:
+        failures = [
+            key
+            for key in ("sanctions_check", "anti_corruption_check", "credit_check")
+            if checks.get(key) == "Fail"
+        ]
+        watchlist_hits = checks.get("watchlist_hits") or []
+        status = "pending"
+        reason = ""
+        next_steps = ""
+        if failures and self.compliance_policy.get("block_on_fail", True):
+            status = "blocked"
+            reason = f"Compliance failures: {', '.join(failures)}"
+            next_steps = "Vendor blocked pending compliance remediation."
+        elif failures:
+            status = "flagged"
+            reason = f"Compliance concerns: {', '.join(failures)}"
+            next_steps = "Vendor flagged for enhanced due diligence."
+        elif watchlist_hits and self.compliance_policy.get("flag_on_watchlist", True):
+            status = "flagged"
+            reason = "Vendor appears on watchlist."
+            next_steps = "Vendor flagged for sanctions review."
+        elif risk_score >= float(self.compliance_policy.get("risk_threshold", 75)):
+            status = "flagged"
+            reason = "Risk score exceeded threshold."
+            next_steps = "Vendor flagged for risk review."
+        else:
+            status = "pending"
+            reason = "Compliance checks passed."
+            next_steps = "Vendor pending approval. Submit required documentation."
+        return {"status": status, "reason": reason, "next_steps": next_steps}
 
     async def _calculate_vendor_risk(
         self, vendor_data: dict[str, Any], compliance_checks: dict[str, Any]
@@ -2494,27 +2835,10 @@ class VendorProcurementAgent(BaseAgent):
                 if isinstance(data, dict):
                     return {key: float(value) for key, value in data.items() if key in criteria}
             except (LLMProviderError, json.JSONDecodeError, ValueError):
-                self.logger.warning("AI scoring failed; using heuristic scoring.")
+                self.logger.warning("AI scoring failed; using ML scoring fallback.")
 
-        scores = {}
-
-        # Cost score (inverse - lower cost = higher score)
-        total_cost = proposal.get("pricing", {}).get("total", 100000)
-        scores["cost"] = max(0, 100 - (total_cost / 1000))
-
-        # Quality score (baseline)
-        scores["quality"] = 75.0
-
-        # Delivery score (baseline)
-        scores["delivery"] = 80.0
-
-        # Risk score (baseline)
-        scores["risk"] = 70.0
-
-        # Diversity score (baseline)
-        scores["diversity"] = 50.0
-
-        return scores
+        scores = self.ml_service.score_proposal(proposal, criteria_weights=criteria)
+        return scores or {}
 
     async def _extract_contract_clauses(self, contract_data: dict[str, Any]) -> dict[str, Any]:
         """Extract key clauses from contract."""
@@ -2800,49 +3124,175 @@ class VendorProcurementAgent(BaseAgent):
         self, vendor: dict[str, Any], *, external_adjustment: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Calculate vendor score using weighted criteria."""
-        metrics = vendor.get("performance_metrics", {})
         risk_score = vendor.get("risk_score", 50)
         reliability_delta = 0
         if external_adjustment:
             risk_score = max(0, min(100, risk_score + external_adjustment.get("risk_delta", 0)))
             reliability_delta = external_adjustment.get("reliability_delta", 0)
-
-        weights = {
-            "quality": 0.3,
-            "delivery": 0.25,
-            "compliance": 0.2,
-            "sla": 0.15,
-            "risk": 0.1,
-        }
-
-        quality_score = metrics.get("quality_rating", 0) * 20
-        delivery_score = metrics.get("on_time_delivery_rate", 0)
-        compliance_score = metrics.get("compliance_rating", 0)
-        sla_score = metrics.get("sla_adherence", 0)
-        risk_component = 100 - risk_score
-
-        weighted_score = (
-            quality_score * weights["quality"]
-            + delivery_score * weights["delivery"]
-            + compliance_score * weights["compliance"]
-            + sla_score * weights["sla"]
-            + risk_component * weights["risk"]
-        )
-
-        weighted_score = max(0, min(100, weighted_score + reliability_delta))
-
+        vendor = {**vendor, "risk_score": risk_score}
+        score = self.ml_service.score_vendor(vendor)
+        if self.vendor_scoring_weights:
+            score = self.ml_service._weighted_score(
+                self.ml_service._prepare_features(vendor),
+                self.vendor_scoring_weights,
+            )
+        score = max(0, min(100, score + reliability_delta))
         return {
-            "score": weighted_score,
-            "inputs": {
-                "quality": quality_score,
-                "delivery": delivery_score,
-                "compliance": compliance_score,
-                "sla": sla_score,
-                "risk": risk_component,
-                "reliability_adjustment": reliability_delta,
-            },
-            "weights": weights,
+            "score": score,
+            "inputs": self.ml_service._prepare_features(vendor),
+            "weights": self.vendor_scoring_weights or self.ml_service.feature_weights,
         }
+
+    async def _get_vendor_profile(
+        self, vendor_id: str, *, tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
+        vendor = await self._resolve_vendor(vendor_id, tenant_id=tenant_id)
+        if not vendor:
+            raise ValueError(f"Vendor not found: {vendor_id}")
+        return {
+            "vendor": vendor,
+            "correlation_id": correlation_id,
+        }
+
+    async def _update_vendor_profile(
+        self,
+        vendor_id: str,
+        updates: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
+        vendor = await self._resolve_vendor(vendor_id, tenant_id=tenant_id)
+        if not vendor:
+            raise ValueError(f"Vendor not found: {vendor_id}")
+        vendor.update(updates)
+        vendor["updated_at"] = datetime.utcnow().isoformat()
+        vendor.setdefault("updated_by", actor_id)
+        await self._persist_vendor(vendor, tenant_id=tenant_id)
+        await self._publish_event(
+            "vendor.updated",
+            payload={"vendor_id": vendor_id, "updates": updates},
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=actor_id,
+            entity_id=vendor_id,
+        )
+        return {"vendor_id": vendor_id, "status": vendor.get("status"), "updates": updates}
+
+    async def _list_vendor_profiles(
+        self, criteria: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
+        vendors = [
+            vendor for vendor in self.vendors.values() if await self._matches_criteria(vendor, criteria)
+        ]
+        return {
+            "total_results": len(vendors),
+            "vendors": vendors,
+            "search_criteria": criteria,
+            "tenant_id": tenant_id,
+        }
+
+    async def _sign_contract(
+        self,
+        contract_id: str,
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        actor_id: str,
+    ) -> dict[str, Any]:
+        contract = self.contracts.get(contract_id)
+        if not contract:
+            raise ValueError(f"Contract not found: {contract_id}")
+        contract["status"] = "Active"
+        contract["signed_at"] = datetime.utcnow().isoformat()
+        self.contract_store.upsert(tenant_id, contract_id, contract)
+        if self.db_service:
+            await self.db_service.store("contracts", contract_id, contract)
+        await self._publish_event(
+            "contract.signed",
+            payload={"contract_id": contract_id, "vendor_id": contract.get("vendor_id")},
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=actor_id,
+            entity_id=contract_id,
+        )
+        return {"contract_id": contract_id, "status": contract["status"]}
+
+    async def _resolve_vendor(self, vendor_id: str, *, tenant_id: str) -> dict[str, Any] | None:
+        vendor = self.vendors.get(vendor_id)
+        if vendor:
+            return vendor
+        stored = self.vendor_store.get(tenant_id, vendor_id)
+        if stored:
+            self.vendors[vendor_id] = stored
+            return stored
+        return None
+
+    async def _persist_vendor(self, vendor: dict[str, Any], *, tenant_id: str) -> None:
+        vendor_id = vendor.get("vendor_id")
+        if not vendor_id:
+            return
+        self.vendors[vendor_id] = vendor
+        self.vendor_store.upsert(tenant_id, vendor_id, vendor)
+        if self.db_service:
+            await self.db_service.store("vendors", vendor_id, vendor)
+
+    async def _load_vendor_cache(self) -> None:
+        for tenant_id in self.vendor_store.tenants():
+            for vendor in self.vendor_store.list(tenant_id):
+                vendor_id = vendor.get("vendor_id")
+                if vendor_id:
+                    self.vendors[vendor_id] = vendor
+
+    async def _initiate_mitigation_workflow(
+        self,
+        *,
+        vendor: dict[str, Any],
+        reason: str,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        vendor_id = vendor.get("vendor_id")
+        if not vendor_id:
+            return {"status": "skipped"}
+        task_payload = {
+            "vendor_id": vendor_id,
+            "vendor_name": vendor.get("legal_name"),
+            "reason": reason,
+            "risk_score": vendor.get("risk_score"),
+            "compliance_status": vendor.get("compliance_status"),
+        }
+        task_result = await self.task_client.create_task(
+            tenant_id=tenant_id,
+            instance_id=vendor_id,
+            task_type="vendor_mitigation",
+            payload=task_payload,
+        )
+        notification = await self.communications_client.notify(
+            tenant_id=tenant_id,
+            subject=f"Vendor risk mitigation required: {vendor.get('legal_name')}",
+            body=(
+                f"Vendor {vendor.get('legal_name')} triggered a risk event. "
+                f"Reason: {reason}. Current status: {vendor.get('status')}."
+            ),
+            stakeholders=vendor.get("stakeholders", []),
+            metadata={"vendor_id": vendor_id, "correlation_id": correlation_id},
+        )
+        await self._publish_event(
+            "vendor.mitigation.initiated",
+            payload={
+                "vendor_id": vendor_id,
+                "task": task_result,
+                "notification": notification,
+                "reason": reason,
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=vendor.get("created_by", "system"),
+            entity_id=vendor_id,
+        )
+        return {"task": task_result, "notification": notification}
 
     def _extract_sources(self, snippets: list[str]) -> list[dict[str, str]]:
         sources: list[dict[str, str]] = []
@@ -2946,6 +3396,9 @@ class VendorProcurementAgent(BaseAgent):
             "vendor_performance_monitoring",
             "vendor_scorecard_generation",
             "compliance_enforcement",
+            "vendor_profile_management",
+            "risk_mitigation_workflows",
+            "event_bus_integration",
             "audit_trail_management",
             "spend_analysis",
             "external_vendor_research",
