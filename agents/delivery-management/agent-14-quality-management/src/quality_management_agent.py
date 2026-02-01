@@ -11,6 +11,7 @@ Specification: agents/delivery-management/agent-14-quality-management/README.md
 
 import json
 import math
+import random
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -120,6 +121,14 @@ class QualityManagementAgent(BaseAgent):
         self.db_service: DatabaseStorageService | None = None
         self.document_service: DocumentManagementService | None = None
         self.defect_classifier: NaiveBayesTextClassifier | None = None
+        self.defect_ml_model: dict[str, Any] | None = None
+        self.defect_cluster_model: dict[str, Any] | None = None
+        self.calendar_client = (config or {}).get("calendar_client")
+        self.approval_agent = (config or {}).get("approval_agent")
+        self.approval_agent_config = (config or {}).get("approval_agent_config", {})
+        self.approval_agent_enabled = (
+            (config or {}).get("approval_agent_enabled", True) if config is not None else True
+        )
         self.integration_config = {
             "azure_devops": (config or {}).get("azure_devops", {}),
             "jira_xray": (config or {}).get("jira_xray", {}),
@@ -135,6 +144,8 @@ class QualityManagementAgent(BaseAgent):
             "ci_pipelines": (config or {}).get("ci_pipelines", {}),
             "analytics": (config or {}).get("analytics", {}),
             "stakeholder_comms": (config or {}).get("stakeholder_comms", {}),
+            "calendar": (config or {}).get("calendar", {}),
+            "qa_tools": (config or {}).get("qa_tools", {}),
         }
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
@@ -148,6 +159,8 @@ class QualityManagementAgent(BaseAgent):
         self.db_service = DatabaseStorageService(self.config.get("database"))
         self.document_service = DocumentManagementService(self.config.get("document_service"))
         self.defect_classifier = self._build_defect_classifier()
+        self.defect_ml_model = await self._train_defect_classification_model()
+        self.defect_cluster_model = await self._train_defect_cluster_model()
         # Integration configuration is captured in self.integration_config.
         # Each integration currently uses lightweight stubs that simulate
         # expected behaviors for orchestration, testing, and reporting.
@@ -182,6 +195,7 @@ class QualityManagementAgent(BaseAgent):
             "sync_defect_tickets",
             "get_quality_dashboard",
             "generate_quality_report",
+            "query_quality_artifacts",
         ]
 
         if action not in valid_actions:
@@ -375,6 +389,11 @@ class QualityManagementAgent(BaseAgent):
             return await self._generate_quality_report(
                 input_data.get("report_type", "summary"), input_data.get("filters", {})
             )
+        elif action == "query_quality_artifacts":
+            return await self._query_quality_artifacts(
+                input_data.get("filters", {}),
+                tenant_id=tenant_id,
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -431,7 +450,20 @@ class QualityManagementAgent(BaseAgent):
         )
 
         await self._store_record("quality_plans", plan_id, quality_plan)
-        # Future work: Submit for approval via Approval Workflow Agent
+        approval_response = await self._request_quality_plan_approval(
+            plan_id,
+            quality_plan,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
+        if approval_response:
+            quality_plan = await self._apply_quality_plan_approval(
+                quality_plan,
+                approval_response,
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+            await self._store_record("quality_plans", plan_id, quality_plan)
 
         return {
             "plan_id": plan_id,
@@ -439,8 +471,13 @@ class QualityManagementAgent(BaseAgent):
             "objectives": quality_plan["objectives"],
             "metrics": quality_plan["metrics"],
             "recommended_metrics": recommended_metrics,
-            "status": "Draft",
-            "next_steps": "Review plan and submit for approval",
+            "status": quality_plan["status"],
+            "approval": approval_response,
+            "next_steps": (
+                "Await approval decision"
+                if approval_response
+                else "Review plan and submit for approval"
+            ),
         }
 
     async def _approve_quality_plan(
@@ -584,6 +621,8 @@ class QualityManagementAgent(BaseAgent):
         self.test_cases[test_case_id] = test_case
         self.test_case_store.upsert(tenant_id, test_case_id, test_case)
         sync_status = await self._sync_test_management_assets("test_case", test_case)
+        if sync_status.get("external_refs"):
+            test_case["external_refs"] = sync_status["external_refs"]
         await self._publish_quality_event(
             "quality.test_case.created",
             payload={
@@ -640,6 +679,8 @@ class QualityManagementAgent(BaseAgent):
 
         await self._store_record("quality_test_suites", suite_id, test_suite)
         sync_status = await self._sync_test_management_assets("test_suite", test_suite)
+        if sync_status.get("external_refs"):
+            test_suite["external_refs"] = sync_status["external_refs"]
 
         return {
             "suite_id": suite_id,
@@ -704,6 +745,12 @@ class QualityManagementAgent(BaseAgent):
         )
         sync_status = await self._sync_test_execution_results(
             execution_id, test_results, execution_data
+        )
+        await self._update_quality_kpis_from_execution(
+            execution_data.get("project_id"),
+            test_results,
+            code_coverage,
+            sync_status,
         )
         execution = {
             "execution_id": execution_id,
@@ -799,6 +846,7 @@ class QualityManagementAgent(BaseAgent):
             "description": defect_data.get("description"),
             "severity": defect_data.get("severity", auto_classification.get("severity")),
             "priority": defect_data.get("priority", auto_classification.get("priority")),
+            "category": auto_classification.get("category"),
             "component": defect_data.get("component"),
             "test_case_id": defect_data.get("test_case_id"),
             "steps_to_reproduce": defect_data.get("steps_to_reproduce", []),
@@ -818,6 +866,8 @@ class QualityManagementAgent(BaseAgent):
         # Store defect
         self.defects[defect_id] = defect
         self.defect_store.upsert(tenant_id, defect_id, defect)
+        self.defect_ml_model = await self._train_defect_classification_model()
+        self.defect_cluster_model = await self._train_defect_cluster_model()
         await self._publish_quality_event(
             "quality.defect.logged",
             payload={
@@ -887,7 +937,10 @@ class QualityManagementAgent(BaseAgent):
             defect["resolution_time_hours"] = resolution_time
 
         defect["external_sync"] = await self._sync_defect_ticket(
-            defect, action="update", tenant_id=defect.get("project_id", "unknown"), correlation_id=str(uuid.uuid4())
+            defect,
+            action="update",
+            tenant_id=defect.get("project_id", "unknown"),
+            correlation_id=str(uuid.uuid4()),
         )
 
         await self._store_record("quality_defects", defect_id, defect)
@@ -933,9 +986,21 @@ class QualityManagementAgent(BaseAgent):
         # Store review
         self.reviews[review_id] = review
 
+        calendar_event = await self._schedule_calendar_event(review)
+        if calendar_event:
+            review["calendar_event"] = calendar_event
         await self._store_record("quality_reviews", review_id, review)
-        # Future work: Send calendar invitations to participants
-        # Future work: Publish review.scheduled event
+        await self._publish_quality_event(
+            "quality.review.scheduled",
+            payload={
+                "review_id": review_id,
+                "project_id": review.get("project_id"),
+                "scheduled_date": review.get("scheduled_date"),
+                "calendar_event": calendar_event,
+            },
+            tenant_id=review.get("project_id") or "unknown",
+            correlation_id=str(uuid.uuid4()),
+        )
 
         return {
             "review_id": review_id,
@@ -944,6 +1009,7 @@ class QualityManagementAgent(BaseAgent):
             "scheduled_date": review["scheduled_date"],
             "participants": review["participants"],
             "participant_count": len(review["participants"]),
+            "calendar_event": calendar_event,
         }
 
     async def _conduct_audit(
@@ -1037,6 +1103,10 @@ class QualityManagementAgent(BaseAgent):
         # Calculate defect density
         # Future work: Get LOC or function points from code repository
         defect_density = await self._calculate_defect_density(project_id, total_defects)
+        code_size = await self._get_code_size_metrics(project_id)
+        defect_density_per_fp = await self._calculate_defect_density_per_fp(
+            project_id, total_defects
+        )
 
         # Get test coverage
         test_coverage = await self._get_latest_test_coverage(project_id)
@@ -1055,6 +1125,7 @@ class QualityManagementAgent(BaseAgent):
         quality_score = await self._calculate_quality_score(
             defect_density, test_coverage, pass_rate
         )
+        coverage_trend = await self._calculate_coverage_trend(project_id)
 
         model_summary = await self._train_defect_prediction_model(project_id)
         subsystem_model = await self._train_defect_subsystem_model(project_id, project_defects)
@@ -1071,8 +1142,11 @@ class QualityManagementAgent(BaseAgent):
             "open_defects": open_defects,
             "critical_defects": critical_defects,
             "defect_density": defect_density,
+            "defect_density_per_function_point": defect_density_per_fp,
+            "code_size_metrics": code_size,
             "test_coverage_pct": test_coverage,
             "coverage_snapshot": coverage_snapshot,
+            "coverage_trend": coverage_trend,
             "pass_rate_pct": pass_rate,
             "mean_time_to_resolution_hours": mttr,
             "quality_score": quality_score,
@@ -1135,6 +1209,7 @@ class QualityManagementAgent(BaseAgent):
             "anomalies": anomalies,
             "defect_density_prediction": defect_density_prediction,
             "total_defects_analyzed": len(project_defects),
+            "cluster_insights": await self._summarize_defect_clusters(project_defects),
         }
 
     async def _perform_root_cause_analysis(self, defect_ids: list[str]) -> dict[str, Any]:
@@ -1488,9 +1563,11 @@ class QualityManagementAgent(BaseAgent):
         """Auto-classify defect severity and root cause using AI."""
         classification = await self._classify_defect(defect_data)
         category = classification.get("category", "code_defect")
-        severity = defect_data.get("severity") or self._severity_from_category(category)
-        priority = defect_data.get("priority") or (
-            "high" if severity in {"critical", "high"} else "medium"
+        severity = defect_data.get("severity") or classification.get(
+            "severity", self._severity_from_category(category)
+        )
+        priority = defect_data.get("priority") or classification.get(
+            "priority", "high" if severity in {"critical", "high"} else "medium"
         )
         return {
             "severity": severity,
@@ -1498,11 +1575,11 @@ class QualityManagementAgent(BaseAgent):
             "root_cause": self._root_cause_from_category(category),
             "category": category,
             "classification_confidence": classification.get("probabilities", {}),
+            "model": classification.get("model", "statistical"),
         }
 
     async def _classify_defect(self, defect_data: dict[str, Any]) -> dict[str, Any]:
-        """Classify defect category using a Naive Bayes text classifier."""
-        classifier = self._get_defect_classifier()
+        """Classify defect category using learned text/statistical models."""
         content = " ".join(
             value
             for value in [
@@ -1515,9 +1592,29 @@ class QualityManagementAgent(BaseAgent):
             if value
         ).strip()
         if not content:
-            return {"category": "code_defect", "probabilities": {}}
-        category, probabilities = classifier.predict(content)
-        return {"category": category, "probabilities": probabilities}
+            return {"category": "code_defect", "probabilities": {}, "model": "fallback"}
+        if not self.defect_ml_model or not self.defect_ml_model.get("label_tokens"):
+            self.defect_ml_model = await self._train_defect_classification_model()
+        model = self.defect_ml_model or {}
+        label_scores = self._score_labels(content, model.get("label_tokens", {}))
+        if not label_scores:
+            classifier = self._get_defect_classifier()
+            category, probabilities = classifier.predict(content)
+            return {
+                "category": category,
+                "probabilities": probabilities,
+                "model": "naive_bayes_fallback",
+            }
+        category = max(label_scores, key=label_scores.get)
+        probabilities = self._normalize_scores(label_scores)
+        severity_scores = self._score_labels(content, model.get("severity_tokens", {}))
+        severity = max(severity_scores, key=severity_scores.get) if severity_scores else None
+        return {
+            "category": category,
+            "probabilities": probabilities,
+            "severity": severity,
+            "model": "token_frequency",
+        }
 
     async def _assign_defect_owner(self, defect: dict[str, Any]) -> str:
         """Assign defect owner based on component."""
@@ -1577,8 +1674,37 @@ class QualityManagementAgent(BaseAgent):
         self, project_id: str, checklist: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Perform audit checks."""
-        # Future work: Implement actual audit checks
-        return [{"check": item.get("check"), "result": "pass", "notes": ""} for item in checklist]
+        checks = []
+        static_analysis = self.integration_config.get("qa_tools", {}).get("static_analysis", {})
+        lint_issues = static_analysis.get("issues", [])
+        lint_result = "fail" if lint_issues else "pass"
+        checks.append(
+            {
+                "check": "static_analysis",
+                "result": lint_result,
+                "notes": "Issues detected" if lint_issues else "No issues detected",
+                "issues": lint_issues,
+            }
+        )
+        coverage_snapshot = await self._fetch_coverage_metrics(project_id)
+        coverage_pct = float(coverage_snapshot.get("coverage_pct", 0.0)) if coverage_snapshot else 0.0
+        coverage_result = "pass" if coverage_pct >= self.min_test_coverage * 100 else "fail"
+        checks.append(
+            {
+                "check": "coverage_threshold",
+                "result": coverage_result,
+                "notes": f"Coverage {coverage_pct:.1f}%",
+            }
+        )
+        for item in checklist:
+            checks.append(
+                {
+                    "check": item.get("check"),
+                    "result": item.get("result", "pass"),
+                    "notes": item.get("notes", ""),
+                }
+            )
+        return checks
 
     async def _calculate_audit_score(self, checks: list[dict[str, Any]]) -> float:
         """Calculate audit score."""
@@ -1616,8 +1742,18 @@ class QualityManagementAgent(BaseAgent):
     async def _calculate_defect_density(self, project_id: str, total_defects: int) -> float:
         """Calculate defect density (defects per KLOC)."""
         code_size = await self._get_code_size_metrics(project_id)
-        kloc = code_size.get("kloc", 10.0)
+        loc = code_size.get("loc")
+        kloc = code_size.get("kloc", (float(loc) / 1000.0) if loc else 10.0)
         return total_defects / kloc if kloc > 0 else 0
+
+    async def _calculate_defect_density_per_fp(
+        self, project_id: str, total_defects: int
+    ) -> float | None:
+        code_size = await self._get_code_size_metrics(project_id)
+        function_points = code_size.get("function_points")
+        if not function_points:
+            return None
+        return total_defects / float(function_points) if function_points > 0 else None
 
     async def _get_latest_test_coverage(self, project_id: str) -> float:
         """Get latest test coverage for project."""
@@ -1733,6 +1869,8 @@ class QualityManagementAgent(BaseAgent):
                 category_counts.items(), key=lambda item: item[1], reverse=True
             )
         )
+        cluster_patterns = await self._summarize_defect_clusters(defects)
+        patterns.extend(cluster_patterns)
         return patterns[:5]
 
     async def _detect_defect_anomalies(self, defects: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1815,6 +1953,11 @@ class QualityManagementAgent(BaseAgent):
         if defects:
             top_components = await self._recommend_refactoring_targets(defects)
             recommendations.extend(top_components)
+        cluster_insights = await self._summarize_defect_clusters(defects)
+        if cluster_insights:
+            recommendations.extend(
+                [insight.get("pattern") for insight in cluster_insights if insight.get("pattern")]
+            )
         if coverage_snapshot and coverage_snapshot.get("source") == "ci":
             recommendations.append("Review CI coverage configuration for gaps.")
         return recommendations
@@ -1905,9 +2048,15 @@ class QualityManagementAgent(BaseAgent):
 
     async def _fetch_ci_test_results(self, execution_data: dict[str, Any]) -> list[dict[str, Any]]:
         pipeline_id = execution_data.get("ci_pipeline_id")
-        pipelines = self.integration_config.get("ci_pipelines", {}).get("pipelines", {})
+        provider = execution_data.get("ci_provider") or execution_data.get("pipeline_provider")
+        pipelines_config = self.integration_config.get("ci_pipelines", {})
+        if provider:
+            provider_config = pipelines_config.get(provider, {})
+            pipelines = provider_config.get("pipelines", {})
+        else:
+            pipelines = pipelines_config.get("pipelines", {})
         pipeline = pipelines.get(pipeline_id, {})
-        results = pipeline.get("test_results", [])
+        results = pipeline.get("test_results", []) or pipeline.get("results", [])
         return [
             {
                 **result,
@@ -1920,10 +2069,18 @@ class QualityManagementAgent(BaseAgent):
     async def _fetch_ci_coverage_report(self, project_id: str) -> dict[str, Any] | None:
         pipeline_config = self.integration_config.get("ci_pipelines", {})
         coverage = pipeline_config.get("coverage_by_project", {}).get(project_id)
+        if not coverage:
+            for provider in ("github_actions", "azure_devops"):
+                provider_config = pipeline_config.get(provider, {})
+                coverage = provider_config.get("coverage_by_project", {}).get(project_id)
+                if coverage:
+                    coverage = {**coverage, "provider": provider}
+                    break
         if coverage:
             return {
                 "coverage_pct": coverage.get("coverage_pct", 0.0),
                 "source": "ci",
+                "provider": coverage.get("provider"),
                 "captured_at": datetime.utcnow().isoformat(),
             }
         return None
@@ -2287,10 +2444,16 @@ class QualityManagementAgent(BaseAgent):
             "testrail": self.integration_config.get("testrail", {}).get("enabled", True),
         }
         synced = {name: "queued" if enabled else "disabled" for name, enabled in sync_targets.items()}
+        external_refs: dict[str, Any] = {}
+        if sync_targets.get("azure_devops"):
+            external_refs["azure_devops"] = await self._create_azure_devops_test_asset(
+                asset_type, payload
+            )
         return {
             "asset_type": asset_type,
             "asset_id": payload.get("test_case_id") or payload.get("suite_id"),
             "sync_targets": synced,
+            "external_refs": external_refs,
             "synced_at": datetime.utcnow().isoformat(),
         }
 
@@ -2308,9 +2471,15 @@ class QualityManagementAgent(BaseAgent):
             "jira_xray": self.integration_config.get("jira_xray", {}).get("enabled", True),
             "testrail": self.integration_config.get("testrail", {}).get("enabled", True),
         }
+        azure_run = None
+        if targets.get("azure_devops"):
+            azure_run = await self._create_azure_devops_test_run(execution_id, test_results)
         return {
             "summary": summary,
-            "targets": {name: "submitted" if enabled else "disabled" for name, enabled in targets.items()},
+            "targets": {
+                name: "submitted" if enabled else "disabled" for name, enabled in targets.items()
+            },
+            "external_refs": {"azure_devops": azure_run} if azure_run else {},
             "synced_at": datetime.utcnow().isoformat(),
         }
 
@@ -2336,6 +2505,43 @@ class QualityManagementAgent(BaseAgent):
                 }
             )
         return results
+
+    async def _create_azure_devops_test_asset(
+        self, asset_type: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        config = self.integration_config.get("azure_devops", {})
+        plan_id = config.get("plan_id", "plan-1")
+        project = config.get("project", payload.get("project_id", "project"))
+        asset_id = payload.get("test_case_id") or payload.get("suite_id") or "asset"
+        external_id = f"ado-{asset_type}-{asset_id}"
+        record = {
+            "project": project,
+            "plan_id": plan_id,
+            "external_id": external_id,
+            "asset_type": asset_type,
+            "synced_at": datetime.utcnow().isoformat(),
+        }
+        await self._store_record("quality_devops_assets", external_id, record)
+        return record
+
+    async def _create_azure_devops_test_run(
+        self, execution_id: str, test_results: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        config = self.integration_config.get("azure_devops", {})
+        run_id = f"ado-run-{execution_id}"
+        passed = sum(1 for result in test_results if result.get("result") == "pass")
+        failed = sum(1 for result in test_results if result.get("result") == "fail")
+        record = {
+            "run_id": run_id,
+            "plan_id": config.get("plan_id", "plan-1"),
+            "suite_id": config.get("suite_id", "suite-1"),
+            "passed": passed,
+            "failed": failed,
+            "total": len(test_results),
+            "synced_at": datetime.utcnow().isoformat(),
+        }
+        await self._store_record("quality_devops_test_runs", run_id, record)
+        return record
 
     async def _store_test_results_in_blob(
         self,
@@ -2426,3 +2632,306 @@ class QualityManagementAgent(BaseAgent):
             "trend": trend,
             "data_points": len(densities),
         }
+
+    async def _request_quality_plan_approval(
+        self,
+        plan_id: str,
+        quality_plan: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any] | None:
+        if not self.approval_agent_enabled:
+            return None
+        if not self.approval_agent:
+            try:
+                from approval_workflow_agent import ApprovalWorkflowAgent
+            except ImportError:
+                return None
+            self.approval_agent = ApprovalWorkflowAgent(config=self.approval_agent_config)
+        response = await self.approval_agent.process(
+            {
+                "request_type": "quality_plan_approval",
+                "request_id": plan_id,
+                "requester": quality_plan.get("created_by", "unknown"),
+                "details": {
+                    "project_id": quality_plan.get("project_id"),
+                    "objectives": quality_plan.get("objectives"),
+                    "metrics": quality_plan.get("metrics"),
+                },
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
+        await self._publish_quality_event(
+            "quality.plan.approval.requested",
+            payload={"plan_id": plan_id, "approval": response},
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
+        return response
+
+    async def _apply_quality_plan_approval(
+        self,
+        quality_plan: dict[str, Any],
+        approval_response: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        status = approval_response.get("status", "pending")
+        normalized = status.lower()
+        if normalized in {"approved", "approve"}:
+            quality_plan["status"] = "Approved"
+        elif normalized in {"rejected", "denied"}:
+            quality_plan["status"] = "Rejected"
+        else:
+            quality_plan["status"] = "Pending Approval"
+        quality_plan["approval"] = approval_response
+        self.quality_plan_store.upsert(tenant_id, quality_plan["plan_id"], quality_plan)
+        await self._store_record("quality_plan_approvals", quality_plan["plan_id"], approval_response)
+        if quality_plan["status"] == "Approved":
+            await self._publish_quality_event(
+                "quality.plan.approved",
+                payload={
+                    "plan_id": quality_plan.get("plan_id"),
+                    "project_id": quality_plan.get("project_id"),
+                    "approved_by": approval_response.get("approver", "workflow"),
+                    "approved_at": datetime.utcnow().isoformat(),
+                },
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+        return quality_plan
+
+    async def _schedule_calendar_event(self, review: dict[str, Any]) -> dict[str, Any] | None:
+        if self.calendar_client and hasattr(self.calendar_client, "create_event"):
+            response = self.calendar_client.create_event(review)
+            if hasattr(response, "__await__"):
+                return await response
+            return response
+        comms_client = (self.config or {}).get("stakeholder_communications_client")
+        if comms_client and hasattr(comms_client, "create_calendar_event"):
+            response = comms_client.create_calendar_event(review)
+            if hasattr(response, "__await__"):
+                return await response
+            return response
+        calendar_config = self.integration_config.get("calendar", {})
+        provider = calendar_config.get("provider")
+        if provider in {"outlook", "google"}:
+            return {
+                "provider": provider,
+                "event_id": f"cal-{review['review_id']}",
+                "status": "scheduled",
+            }
+        return None
+
+    async def _query_quality_artifacts(
+        self, filters: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
+        artifact_type = filters.get("type")
+        records: list[dict[str, Any]] = []
+        store_map = {
+            "plans": self.quality_plan_store,
+            "test_cases": self.test_case_store,
+            "defects": self.defect_store,
+            "audits": self.audit_store,
+            "requirement_links": self.requirement_link_store,
+            "coverage_trends": self.coverage_trend_store,
+        }
+        if artifact_type in store_map:
+            records = store_map[artifact_type].list(tenant_id)
+        else:
+            records = (
+                self.quality_plan_store.list(tenant_id)
+                + self.test_case_store.list(tenant_id)
+                + self.defect_store.list(tenant_id)
+                + self.audit_store.list(tenant_id)
+            )
+        return {"count": len(records), "artifacts": records}
+
+    async def _update_quality_kpis_from_execution(
+        self,
+        project_id: str | None,
+        test_results: list[dict[str, Any]],
+        coverage_pct: float,
+        sync_status: dict[str, Any],
+    ) -> None:
+        if not project_id:
+            return
+        pass_rate = (
+            sum(1 for result in test_results if result.get("result") == "pass")
+            / max(len(test_results), 1)
+        ) * 100
+        await self._store_record(
+            "quality_execution_kpis",
+            f"{project_id}-{datetime.utcnow().isoformat()}",
+            {
+                "project_id": project_id,
+                "pass_rate_pct": pass_rate,
+                "coverage_pct": coverage_pct,
+                "synced_at": sync_status.get("synced_at"),
+            },
+        )
+
+    def _tokenize_text(self, text: str) -> list[str]:
+        tokens = [
+            "".join(ch for ch in token.lower() if ch.isalnum())
+            for token in text.split()
+        ]
+        return [token for token in tokens if token]
+
+    def _score_labels(self, content: str, label_tokens: dict[str, list[str]]) -> dict[str, float]:
+        if not label_tokens:
+            return {}
+        tokens = self._tokenize_text(content)
+        scores: dict[str, float] = {}
+        for label, vocab in label_tokens.items():
+            if not vocab:
+                continue
+            vocab_set = set(vocab)
+            overlap = sum(1 for token in tokens if token in vocab_set)
+            scores[label] = overlap / len(vocab_set)
+        return scores
+
+    def _normalize_scores(self, scores: dict[str, float]) -> dict[str, float]:
+        total = sum(scores.values())
+        if total <= 0:
+            return {label: 0.0 for label in scores}
+        return {label: value / total for label, value in scores.items()}
+
+    async def _train_defect_classification_model(self) -> dict[str, Any]:
+        if not self.defects:
+            return {"label_tokens": {}, "severity_tokens": {}, "trained_at": None}
+        label_tokens: dict[str, list[str]] = {}
+        severity_tokens: dict[str, list[str]] = {}
+        for defect in self.defects.values():
+            content = " ".join(
+                value
+                for value in [
+                    defect.get("summary"),
+                    defect.get("description"),
+                    defect.get("component"),
+                    defect.get("category"),
+                ]
+                if value
+            )
+            tokens = self._tokenize_text(content)
+            category = defect.get("category", "code_defect")
+            label_tokens.setdefault(category, []).extend(tokens)
+            severity = defect.get("severity")
+            if severity:
+                severity_tokens.setdefault(severity, []).extend(tokens)
+        model = {
+            "label_tokens": label_tokens,
+            "severity_tokens": severity_tokens,
+            "trained_at": datetime.utcnow().isoformat(),
+        }
+        await self._store_record(
+            "quality_defect_models", f"classifier-{uuid.uuid4().hex[:6]}", model
+        )
+        return model
+
+    async def _train_defect_cluster_model(self) -> dict[str, Any]:
+        defects = list(self.defects.values())
+        if len(defects) < 2:
+            return {"clusters": [], "trained_at": None}
+        vectors, vocab = self._vectorize_defects(defects)
+        k = min(3, len(vectors))
+        clusters = self._kmeans(vectors, k)
+        model = {
+            "clusters": clusters,
+            "vocab": vocab,
+            "trained_at": datetime.utcnow().isoformat(),
+        }
+        await self._store_record(
+            "quality_defect_cluster_models", f"cluster-{uuid.uuid4().hex[:6]}", model
+        )
+        return model
+
+    def _vectorize_defects(self, defects: list[dict[str, Any]]) -> tuple[list[list[float]], list[str]]:
+        texts = []
+        for defect in defects:
+            text = " ".join(
+                value
+                for value in [
+                    defect.get("summary"),
+                    defect.get("description"),
+                    defect.get("component"),
+                    defect.get("root_cause"),
+                ]
+                if value
+            )
+            texts.append(text)
+        vocab = sorted({token for text in texts for token in self._tokenize_text(text)})
+        vectors = []
+        for text in texts:
+            tokens = self._tokenize_text(text)
+            vector = [tokens.count(term) for term in vocab]
+            vectors.append(vector)
+        return vectors, vocab
+
+    def _kmeans(self, vectors: list[list[float]], k: int) -> list[dict[str, Any]]:
+        if not vectors:
+            return []
+        centroids = random.sample(vectors, k=k)
+        assignments = [0 for _ in vectors]
+        for _ in range(5):
+            for idx, vector in enumerate(vectors):
+                distances = [self._euclidean_distance(vector, centroid) for centroid in centroids]
+                assignments[idx] = distances.index(min(distances))
+            new_centroids = [[0.0 for _ in vectors[0]] for _ in range(k)]
+            counts = [0 for _ in range(k)]
+            for vector, cluster_id in zip(vectors, assignments):
+                counts[cluster_id] += 1
+                for i, value in enumerate(vector):
+                    new_centroids[cluster_id][i] += value
+            for cluster_id in range(k):
+                if counts[cluster_id] == 0:
+                    continue
+                new_centroids[cluster_id] = [
+                    value / counts[cluster_id] for value in new_centroids[cluster_id]
+                ]
+            centroids = new_centroids
+        clusters = []
+        for cluster_id in range(k):
+            clusters.append(
+                {
+                    "cluster_id": cluster_id,
+                    "count": assignments.count(cluster_id),
+                }
+            )
+        return clusters
+
+    def _euclidean_distance(self, vector: list[float], centroid: list[float]) -> float:
+        return math.sqrt(sum((a - b) ** 2 for a, b in zip(vector, centroid)))
+
+    async def _summarize_defect_clusters(
+        self, defects: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        if not defects:
+            return []
+        if not self.defect_cluster_model or not self.defect_cluster_model.get("clusters"):
+            self.defect_cluster_model = await self._train_defect_cluster_model()
+        clusters = (self.defect_cluster_model or {}).get("clusters", [])
+        insights = []
+        for cluster in clusters:
+            if cluster.get("count", 0) < 2:
+                continue
+            insights.append(
+                {
+                    "pattern": f"Cluster {cluster['cluster_id']} contains {cluster['count']} recurring defects",
+                    "count": cluster.get("count", 0),
+                }
+            )
+        return insights
+
+    async def _calculate_coverage_trend(self, project_id: str) -> dict[str, Any]:
+        history = self.coverage_trends.get(project_id, [])
+        if len(history) < 2:
+            return {"trend": "stable", "data_points": len(history)}
+        points = [entry.get("coverage_pct", 0.0) for entry in history]
+        slope = (points[-1] - points[0]) / max(len(points) - 1, 1)
+        trend = "increasing" if slope > 0 else "decreasing" if slope < 0 else "stable"
+        return {"trend": trend, "data_points": len(points), "latest": points[-1]}

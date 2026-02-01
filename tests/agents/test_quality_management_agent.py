@@ -10,6 +10,21 @@ class EventCollector:
         self.events.append((topic, payload))
 
 
+class DummyApprovalAgent:
+    async def process(self, payload: dict) -> dict:
+        return {"status": "approved", "approval_id": "ap-42", "approver": "qa-lead"}
+
+
+class DummyCalendarClient:
+    def __init__(self) -> None:
+        self.events: list[dict] = []
+
+    def create_event(self, event: dict) -> dict:
+        record = {"event_id": f"cal-{event['review_id']}", "status": "scheduled"}
+        self.events.append(record)
+        return record
+
+
 @pytest.mark.asyncio
 async def test_quality_management_persists_and_emits_events(tmp_path):
     event_bus = EventCollector()
@@ -101,6 +116,29 @@ async def test_quality_management_persists_and_emits_events(tmp_path):
     assert any(topic == "quality.test_execution.completed" for topic, _ in event_bus.events)
     assert any(topic == "quality.defect.logged" for topic, _ in event_bus.events)
     assert any(topic == "quality.audit.completed" for topic, _ in event_bus.events)
+
+
+@pytest.mark.asyncio
+async def test_quality_plan_auto_approval_updates_status(tmp_path):
+    agent = QualityManagementAgent(
+        config={
+            "event_bus": EventCollector(),
+            "approval_agent": DummyApprovalAgent(),
+            "quality_plan_store_path": tmp_path / "plans.json",
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "create_quality_plan",
+            "tenant_id": "tenant-q",
+            "plan": {"project_id": "project-1", "objectives": ["shift-left testing"]},
+        }
+    )
+
+    assert response["status"] == "Approved"
+    assert response["approval"]["approval_id"] == "ap-42"
 
 
 @pytest.mark.asyncio
@@ -365,3 +403,144 @@ async def test_quality_management_end_to_end_defect_lifecycle(tmp_path):
     )
     assert execution_response["failed"] == 1
     assert execution_response["coverage_snapshot"]["coverage_pct"] == 78.0
+
+
+@pytest.mark.asyncio
+async def test_quality_management_devops_and_ci_sync(tmp_path):
+    agent = QualityManagementAgent(
+        config={
+            "event_bus": EventCollector(),
+            "test_case_store_path": tmp_path / "cases.json",
+            "azure_devops": {"enabled": True, "plan_id": "plan-99", "suite_id": "suite-99"},
+            "ci_pipelines": {
+                "github_actions": {
+                    "pipelines": {
+                        "gha-1": {
+                            "test_results": [
+                                {"test_case_id": "TC-1", "name": "Unit", "result": "pass"}
+                            ]
+                        }
+                    },
+                    "coverage_by_project": {"project-1": {"coverage_pct": 92.5}},
+                }
+            },
+        }
+    )
+    await agent.initialize()
+
+    test_case_response = await agent.process(
+        {
+            "action": "create_test_case",
+            "tenant_id": "tenant-q",
+            "test_case": {"project_id": "project-1", "name": "Unit test"},
+        }
+    )
+    assert test_case_response["sync_status"]["external_refs"]["azure_devops"]["plan_id"] == "plan-99"
+
+    suite_response = await agent.process(
+        {
+            "action": "create_test_suite",
+            "test_suite": {
+                "project_id": "project-1",
+                "name": "GHA suite",
+                "test_case_ids": [test_case_response["test_case_id"]],
+            },
+        }
+    )
+    execution_response = await agent.process(
+        {
+            "action": "execute_tests",
+            "tenant_id": "tenant-q",
+            "test_execution": {
+                "project_id": "project-1",
+                "suite_id": suite_response["suite_id"],
+                "execution_mode": "ci",
+                "ci_pipeline_id": "gha-1",
+                "ci_provider": "github_actions",
+            },
+        }
+    )
+    assert execution_response["code_coverage"] == 92.5
+    assert execution_response["sync_status"]["external_refs"]["azure_devops"]["run_id"].startswith(
+        "ado-run-"
+    )
+
+
+@pytest.mark.asyncio
+async def test_quality_management_ml_classification_and_audit_schedule(tmp_path):
+    agent = QualityManagementAgent(
+        config={
+            "event_bus": EventCollector(),
+            "calendar_client": DummyCalendarClient(),
+            "defect_store_path": tmp_path / "defects.json",
+            "audit_store_path": tmp_path / "audits.json",
+        }
+    )
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "log_defect",
+            "tenant_id": "tenant-q",
+            "defect": {
+                "project_id": "project-1",
+                "summary": "Slow response in API",
+                "severity": "high",
+                "component": "api",
+            },
+        }
+    )
+    response = await agent.process(
+        {
+            "action": "log_defect",
+            "tenant_id": "tenant-q",
+            "defect": {
+                "project_id": "project-1",
+                "summary": "Latency spike on login",
+                "component": "auth",
+            },
+        }
+    )
+    assert response["auto_classification"]["model"] == "token_frequency"
+
+    review_response = await agent.process(
+        {
+            "action": "schedule_review",
+            "review": {
+                "project_id": "project-1",
+                "title": "Code review",
+                "participants": ["qa-lead"],
+                "scheduled_date": "2025-01-10T10:00:00",
+            },
+        }
+    )
+    assert review_response["calendar_event"]["status"] == "scheduled"
+
+
+@pytest.mark.asyncio
+async def test_quality_management_metrics_include_code_size(tmp_path):
+    agent = QualityManagementAgent(
+        config={
+            "event_bus": EventCollector(),
+            "defect_store_path": tmp_path / "defects.json",
+            "code_repos": {"size_by_project": {"project-1": {"loc": 12000, "function_points": 60}}},
+        }
+    )
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "log_defect",
+            "tenant_id": "tenant-q",
+            "defect": {
+                "project_id": "project-1",
+                "summary": "Calculation bug",
+                "severity": "medium",
+                "component": "billing",
+            },
+        }
+    )
+
+    metrics = await agent.process({"action": "calculate_metrics", "project_id": "project-1"})
+    assert metrics["code_size_metrics"]["loc"] == 12000
+    assert metrics["defect_density_per_function_point"] is not None
