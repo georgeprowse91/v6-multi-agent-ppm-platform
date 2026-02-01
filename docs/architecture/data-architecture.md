@@ -15,6 +15,18 @@ Data architecture ties together canonical schemas (`data/schemas/`), quality rul
 - **Document storage**: Blob storage for charters, contracts, and evidence files.
 - **Event stream**: Service Bus for domain events and sync notifications.
 
+## Persistence responsibilities
+
+The platform exposes multiple storage backends so services can pick the store that matches the
+data shape and access pattern. The matrix below summarizes how the current services use each
+backend and where to look in the codebase for implementation details.
+
+| Backend | Primary responsibility | Current usage in services |
+| --- | --- | --- |
+| PostgreSQL | Canonical, relational PPM entities that need schema validation, joins, and strong consistency. | Data service persists schema registry and canonical entities via its SQL store; orchestration state is configured to use Postgres for durability in production. |
+| Cosmos DB | Flexible document storage for semi-structured records and large JSON payloads that benefit from partitioning by tenant or document type. | Integration persistence provides a Cosmos-backed document store (`CosmosDocumentStore`) that can be wired into services needing document-style storage. |
+| Redis | Low-latency cache and transient state to avoid repeated queries against operational stores. | Cache provider in integration persistence supports Redis for shared caching and can be paired with cache-aside workflows. |
+
 ## Data flow patterns
 
 - **Connector sync** updates canonical records and emits lineage.
