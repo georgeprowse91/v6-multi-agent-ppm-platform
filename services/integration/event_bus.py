@@ -9,12 +9,42 @@ import uuid
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Callable, Deque, Dict, Iterable, List, Optional
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
+
+
+class EventType(str, Enum):
+    """Common event types shared across agents."""
+
+    SCHEDULE_CREATED = "schedule.created"
+    SCHEDULE_UPDATED = "schedule.updated"
+    RISK_CREATED = "risk.created"
+    RESOURCE_ALLOCATED = "resource.allocated"
+    QUALITY_METRIC_RECORDED = "quality.metric.recorded"
+    COMPLIANCE_EVIDENCE_ADDED = "compliance.evidence.added"
+    PROCESS_LOGGED = "process.logged"
+
+
+class ScheduleEventData(BaseModel):
+    schedule_id: str
+    owner: Optional[str] = None
+    status: Optional[str] = None
+
+
+class RiskEventData(BaseModel):
+    risk_id: str
+    severity: str
+    mitigation: Optional[str] = None
+
+
+class ResourceEventData(BaseModel):
+    resource_id: str
+    allocation: float
 
 
 class EventEnvelope(BaseModel):
@@ -52,6 +82,8 @@ class EventBusSettings(BaseSettings):
     event_grid_endpoint: Optional[str] = None
     event_grid_key: Optional[str] = None
     event_grid_topic: str = "ppm-events"
+    kafka_bootstrap_servers: Optional[str] = None
+    kafka_topic: str = "ppm-events"
 
 
 class EventBusProvider:
@@ -157,6 +189,48 @@ class AzureEventGridProvider(EventBusProvider):
         logger.warning("Event Grid subscriptions are managed externally.")
 
 
+class KafkaEventBusProvider(EventBusProvider):
+    """Kafka provider implementation."""
+
+    def __init__(self, bootstrap_servers: str) -> None:
+        try:
+            from kafka import KafkaProducer  # type: ignore
+        except ImportError as exc:  # pragma: no cover - optional dependency
+            raise RuntimeError("kafka-python is required for Kafka provider") from exc
+
+        self._bootstrap_servers = bootstrap_servers
+        self._producer = KafkaProducer(
+            bootstrap_servers=bootstrap_servers,
+            value_serializer=lambda value: json.dumps(value).encode("utf-8"),
+        )
+
+    def create_topic(self, name: str) -> None:
+        logger.info("Ensure Kafka topic exists", extra={"topic": name})
+
+    def create_queue(self, name: str) -> None:
+        logger.info("Kafka does not support queues", extra={"queue": name})
+
+    def publish(self, topic: str, payload: Dict[str, Any]) -> None:
+        self._producer.send(topic, payload)
+        self._producer.flush()
+
+    def subscribe(self, topic: str, handler: Callable[[Dict[str, Any]], None]) -> None:
+        try:
+            from kafka import KafkaConsumer  # type: ignore
+        except ImportError as exc:  # pragma: no cover - optional dependency
+            raise RuntimeError("kafka-python is required for Kafka provider") from exc
+
+        consumer = KafkaConsumer(
+            topic,
+            bootstrap_servers=self._bootstrap_servers,
+            value_deserializer=lambda value: json.loads(value.decode("utf-8")),
+            auto_offset_reset="latest",
+            enable_auto_commit=True,
+        )
+        for message in consumer:
+            handler(message.value)
+
+
 class EventBusClient:
     """Unified client for publishing/subscribing to events."""
 
@@ -183,6 +257,10 @@ class EventBusClient:
                     self.settings.event_grid_endpoint,
                     self.settings.event_grid_key,
                 )
+            case "kafka":
+                if not self.settings.kafka_bootstrap_servers:
+                    raise ValueError("Kafka bootstrap servers required")
+                return KafkaEventBusProvider(self.settings.kafka_bootstrap_servers)
             case _:
                 return InMemoryEventBusProvider()
 
@@ -203,6 +281,8 @@ class EventBusClient:
     def _topic_name(self) -> str:
         if self.settings.provider == "event_grid":
             return self.settings.event_grid_topic
+        if self.settings.provider == "kafka":
+            return self.settings.kafka_topic
         return self.settings.service_bus_topic
 
     def _with_retry(self, operation: Callable[[], None]) -> None:
@@ -230,4 +310,9 @@ __all__ = [
     "RetryPolicy",
     "EventBusProvider",
     "InMemoryEventBusProvider",
+    "KafkaEventBusProvider",
+    "EventType",
+    "ScheduleEventData",
+    "RiskEventData",
+    "ResourceEventData",
 ]

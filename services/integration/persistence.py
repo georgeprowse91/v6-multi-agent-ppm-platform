@@ -102,12 +102,39 @@ class ResourceRecord(Base):
     captured_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class ComplianceEvidence(Base):
+    __tablename__ = "compliance_evidence"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    evidence_type: Mapped[str] = mapped_column(String(120))
+    reference: Mapped[str] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(50), default="collected")
+    details: Mapped[str] = mapped_column(String(1000), default="")
+    collected_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ProcessLog(Base):
+    __tablename__ = "process_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    process_name: Mapped[str] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(50))
+    message: Mapped[str] = mapped_column(String(1000))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 @dataclass
 class SqlRepository:
     session: Session
 
+    def _build(self, model_cls: type[Base], **fields: Any) -> Base:
+        record = model_cls()
+        for key, value in fields.items():
+            setattr(record, key, value)
+        return record
+
     def add_schedule(self, name: str, status: str = "draft") -> Schedule:
-        schedule = Schedule(name=name, status=status)
+        schedule = self._build(Schedule, name=name, status=status)
         self.session.add(schedule)
         self.session.commit()
         self.session.refresh(schedule)
@@ -121,7 +148,8 @@ class SqlRepository:
         duration_days: float,
         status: str = "planned",
     ) -> TaskRecord:
-        task = TaskRecord(
+        task = self._build(
+            TaskRecord,
             schedule_id=schedule_id,
             task_key=task_key,
             name=name,
@@ -141,7 +169,8 @@ class SqlRepository:
         dependency_type: str = "FS",
         lag_days: float = 0.0,
     ) -> TaskDependencyRecord:
-        dependency = TaskDependencyRecord(
+        dependency = self._build(
+            TaskDependencyRecord,
             schedule_id=schedule_id,
             predecessor_task_key=predecessor_task_key,
             successor_task_key=successor_task_key,
@@ -154,11 +183,47 @@ class SqlRepository:
         return dependency
 
     def add_risk(self, title: str, severity: str, mitigation_plan: str) -> RiskRecord:
-        risk = RiskRecord(title=title, severity=severity, mitigation_plan=mitigation_plan)
+        risk = self._build(RiskRecord, title=title, severity=severity, mitigation_plan=mitigation_plan)
         self.session.add(risk)
         self.session.commit()
         self.session.refresh(risk)
         return risk
+
+    def add_quality_metric(self, name: str, value: float) -> QualityMetric:
+        metric = self._build(QualityMetric, name=name, value=value)
+        self.session.add(metric)
+        self.session.commit()
+        self.session.refresh(metric)
+        return metric
+
+    def add_resource_record(self, resource_name: str, allocation: float) -> ResourceRecord:
+        resource = self._build(ResourceRecord, resource_name=resource_name, allocation=allocation)
+        self.session.add(resource)
+        self.session.commit()
+        self.session.refresh(resource)
+        return resource
+
+    def add_compliance_evidence(
+        self, evidence_type: str, reference: str, status: str, details: str
+    ) -> ComplianceEvidence:
+        evidence = self._build(
+            ComplianceEvidence,
+            evidence_type=evidence_type,
+            reference=reference,
+            status=status,
+            details=details,
+        )
+        self.session.add(evidence)
+        self.session.commit()
+        self.session.refresh(evidence)
+        return evidence
+
+    def add_process_log(self, process_name: str, status: str, message: str) -> ProcessLog:
+        log = self._build(ProcessLog, process_name=process_name, status=status, message=message)
+        self.session.add(log)
+        self.session.commit()
+        self.session.refresh(log)
+        return log
 
 
 class DocumentStore:
@@ -276,6 +341,10 @@ def create_sql_engine(connection_string: str) -> Any:
     return create_engine(connection_string)
 
 
+def run_migrations(engine: Any) -> None:
+    Base.metadata.create_all(engine)
+
+
 __all__ = [
     "SqlSettings",
     "CosmosSettings",
@@ -287,11 +356,14 @@ __all__ = [
     "RiskRecord",
     "QualityMetric",
     "ResourceRecord",
+    "ComplianceEvidence",
+    "ProcessLog",
     "SqlRepository",
     "DocumentStore",
     "InMemoryDocumentStore",
     "CosmosDocumentStore",
     "create_sql_engine",
+    "run_migrations",
     "CacheSettings",
     "CacheClient",
     "CacheProvider",

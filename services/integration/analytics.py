@@ -139,6 +139,14 @@ class AnalyticsClient:
     def record_event(self, name: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         self._record("event", name, 1.0, metadata)
 
+    def record_kpi(self, name: str, value: float, metadata: Optional[Dict[str, Any]] = None) -> None:
+        self._record("kpi", name, value, metadata)
+
+    def record_health_metric(
+        self, name: str, value: float, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        self._record("health", name, value, metadata)
+
     def record_metric(
         self, name: str, value: float, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
@@ -148,6 +156,16 @@ class AnalyticsClient:
         self, name: str, error_rate: float, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         self._record("error_rate", name, error_rate, metadata)
+
+    def record_defect_rate(
+        self, name: str, defect_rate: float, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        self._record("defect_rate", name, defect_rate, metadata)
+
+    def record_deployment_metric(
+        self, name: str, value: float, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        self._record("deployment", name, value, metadata)
 
     def record_anomaly_signal(
         self, name: str, score: float, metadata: Optional[Dict[str, Any]] = None

@@ -9,8 +9,11 @@ def test_record_event_and_metric():
     client.record_event("deployment.completed", {"service": "planner"})
     client.record_metric("deployment.duration", 12.3)
     client.record_error_rate("planner.errors", 0.05)
+    client.record_kpi("portfolio.throughput", 20.0)
+    client.record_defect_rate("planner.defects", 0.01)
+    client.record_deployment_metric("planner.deployments", 3.0)
 
-    assert len(provider.records) == 3
+    assert len(provider.records) == 6
     assert provider.records[0].name == "deployment.completed"
     assert provider.records[1].value == 12.3
 
