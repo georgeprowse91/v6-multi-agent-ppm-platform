@@ -94,6 +94,12 @@ class PortfolioStrategyAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
+        self.financial_agent = config.get("financial_agent") if config else None
+        self.approval_agent = config.get("approval_agent") if config else None
+        self.approval_agent_config = config.get("approval_agent_config", {}) if config else {}
+        self.approval_agent_enabled = (
+            config.get("approval_agent_enabled", True) if config else True
+        )
 
     async def initialize(self) -> None:
         """Initialize optimization models, database connections, and external integrations."""
@@ -129,6 +135,8 @@ class PortfolioStrategyAgent(BaseAgent):
             "rebalance_portfolio",
             "get_portfolio_status",
             "compare_scenarios",
+            "submit_portfolio_for_approval",
+            "record_portfolio_decision",
         ]
 
         if action not in valid_actions:
@@ -139,6 +147,10 @@ class PortfolioStrategyAgent(BaseAgent):
             constraints = input_data.get("constraints", {})
             if "budget_ceiling" not in constraints and "resource_capacity" not in constraints:
                 self.logger.warning("Missing constraints for optimization")
+                return False
+        if action in {"submit_portfolio_for_approval", "record_portfolio_decision"}:
+            if "portfolio_id" not in input_data:
+                self.logger.warning("Missing portfolio_id")
                 return False
 
         return True
@@ -200,7 +212,11 @@ class PortfolioStrategyAgent(BaseAgent):
             )
 
         elif action == "run_scenario_analysis":
-            return await self._run_scenario_analysis(input_data.get("scenarios", []))
+            return await self._run_scenario_analysis(
+                input_data.get("scenarios", []),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         elif action == "rebalance_portfolio":
             return await self._rebalance_portfolio(input_data.get("portfolio_id"))
@@ -213,6 +229,20 @@ class PortfolioStrategyAgent(BaseAgent):
 
         elif action == "compare_scenarios":
             return await self._compare_scenarios(input_data.get("scenario_ids", []))
+        elif action == "submit_portfolio_for_approval":
+            return await self._submit_portfolio_for_approval(
+                input_data.get("portfolio_id"),
+                decision_payload=input_data.get("decision_payload", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+        elif action == "record_portfolio_decision":
+            return await self._record_portfolio_decision(
+                input_data.get("portfolio_id"),
+                decision=input_data.get("decision", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -382,9 +412,18 @@ class PortfolioStrategyAgent(BaseAgent):
         budget_ceiling = constraints.get("budget_ceiling", float("inf"))
         resource_capacity = constraints.get("resource_capacity", {})
         min_compliance_spend = constraints.get("min_compliance_spend", 0)
+        risk_appetite = constraints.get("risk_appetite", 0.6)
+        min_alignment_score = constraints.get("min_alignment_score", 0.3)
+        optimization_method = constraints.get("optimization_method", "integer_programming")
+        risk_aversion = constraints.get("risk_aversion", 0.5)
+        objective_weights = constraints.get("objective_weights", {})
+
+        enriched_projects = await self._enrich_projects_with_financials(
+            projects, tenant_id=tenant_id, correlation_id=correlation_id
+        )
 
         prioritization = await self._prioritize_portfolio(
-            projects,
+            enriched_projects,
             self.default_weights,
             tenant_id=tenant_id,
             correlation_id=correlation_id,
@@ -396,13 +435,28 @@ class PortfolioStrategyAgent(BaseAgent):
         scored_projects = []
         for project_data in ranked_projects:
             project = next(
-                (p for p in projects if p.get("project_id") == project_data["project_id"]), None
+                (
+                    p
+                    for p in enriched_projects
+                    if p.get("project_id") == project_data["project_id"]
+                ),
+                None,
             )
             if not project:
                 continue
-            project_cost = float(project.get("estimated_cost", 0))
+            project_cost = float(project.get("estimated_cost", project.get("cost", 0)))
             expected_value = float(project.get("expected_value", 0))
-            value = expected_value * project_data["overall_score"]
+            roi_score = await self._score_roi(project)
+            risk_score = await self._score_risk(project)
+            alignment_score = project_data.get("scores", {}).get(
+                "strategic_alignment", project_data["overall_score"]
+            )
+            weighted_score = (
+                alignment_score * objective_weights.get("strategic_alignment", 0.4)
+                + roi_score * objective_weights.get("roi", 0.3)
+                + risk_score * objective_weights.get("risk", 0.3)
+            )
+            value = expected_value * max(0.1, weighted_score)
             scored_projects.append(
                 {
                     "project_id": project["project_id"],
@@ -413,15 +467,27 @@ class PortfolioStrategyAgent(BaseAgent):
                     "value": value,
                     "category": project.get("category", "operations"),
                     "resource_requirements": project.get("resource_requirements", {}),
+                    "risk_score": risk_score,
+                    "alignment_score": alignment_score,
+                    "roi_score": roi_score,
                 }
             )
 
         if not math.isfinite(budget_ceiling):
             budget_ceiling = sum(item["cost"] for item in scored_projects)
 
-        selected_projects = await self._optimize_knapsack(
-            scored_projects, budget_ceiling, min_compliance_spend, resource_capacity
+        selected_projects = await self._select_optimized_projects(
+            scored_projects,
+            budget_ceiling=budget_ceiling,
+            min_compliance_spend=min_compliance_spend,
+            resource_capacity=resource_capacity,
+            method=optimization_method,
+            risk_aversion=risk_aversion,
         )
+        selected_projects = self._apply_alignment_constraint(
+            selected_projects, min_alignment_score
+        )
+        selected_projects = self._apply_risk_appetite(selected_projects, risk_appetite)
         total_cost = sum(item["cost"] for item in selected_projects)
         total_value = sum(item["expected_value"] for item in selected_projects)
 
@@ -437,6 +503,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "budget_utilization": total_cost / budget_ceiling if budget_ceiling > 0 else 0,
             "portfolio_metrics": portfolio_metrics,
             "constraints_applied": constraints,
+            "optimization_method": optimization_method,
             "optimized_at": datetime.utcnow().isoformat(),
         }
         if self.db_service:
@@ -445,9 +512,30 @@ class PortfolioStrategyAgent(BaseAgent):
                 optimization_record["optimization_id"],
                 optimization_record,
             )
+            await self.db_service.store(
+                "portfolio_decision_log",
+                optimization_record["optimization_id"],
+                {
+                    "portfolio_id": optimization_record["optimization_id"],
+                    "decision_type": "optimization",
+                    "details": optimization_record,
+                    "recorded_at": optimization_record["optimized_at"],
+                },
+            )
+        await self.event_bus.publish(
+            "portfolio.optimized",
+            {
+                "portfolio_id": optimization_record["optimization_id"],
+                "tenant_id": tenant_id,
+                "optimization": optimization_record,
+                "correlation_id": correlation_id,
+            },
+        )
         return optimization_record
 
-    async def _run_scenario_analysis(self, scenarios: list[dict[str, Any]]) -> dict[str, Any]:
+    async def _run_scenario_analysis(
+        self, scenarios: list[dict[str, Any]], *, tenant_id: str, correlation_id: str
+    ) -> dict[str, Any]:
         """
         Generate alternate portfolios under different scenarios and compare outcomes.
 
@@ -476,6 +564,11 @@ class PortfolioStrategyAgent(BaseAgent):
                 "budget_ceiling": scenario.get("budget_ceiling", 1000000) * budget_multiplier,
                 "resource_capacity": adjusted_resource_capacity,
                 "min_compliance_spend": scenario.get("min_compliance_spend", 0),
+                "risk_appetite": scenario.get("risk_appetite", 0.6),
+                "min_alignment_score": scenario.get("min_alignment_score", 0.3),
+                "optimization_method": scenario.get("optimization_method", "integer_programming"),
+                "risk_aversion": scenario.get("risk_aversion", 0.5),
+                "objective_weights": scenario.get("objective_weights", {}),
             }
 
             # Adjust criteria weights if priority shift specified
@@ -496,7 +589,7 @@ class PortfolioStrategyAgent(BaseAgent):
             optimization_result = await self._optimize_portfolio(
                 scenario_projects,
                 adjusted_constraints,
-                tenant_id=scenario.get("tenant_id", "unknown"),
+                tenant_id=scenario.get("tenant_id", tenant_id),
                 correlation_id=scenario.get("correlation_id", scenario_id),
             )
 
@@ -537,7 +630,15 @@ class PortfolioStrategyAgent(BaseAgent):
         scenario_results = scenario_output["scenarios"]
         comparison = scenario_output["comparison"]
 
-        # Future work: Publish portfolio.scenario.generated event
+        await self.event_bus.publish(
+            "portfolio.scenario.generated",
+            {
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "scenarios": scenario_results,
+                "comparison": comparison,
+            },
+        )
 
         return {
             "scenarios": scenario_results,
@@ -646,6 +747,216 @@ class PortfolioStrategyAgent(BaseAgent):
         return {"scenarios": scenarios, "comparison": comparison}
 
     # Helper methods
+
+    async def _enrich_projects_with_financials(
+        self, projects: list[dict[str, Any]], *, tenant_id: str, correlation_id: str
+    ) -> list[dict[str, Any]]:
+        if not self.financial_agent:
+            return projects
+        enriched: list[dict[str, Any]] = []
+        for project in projects:
+            project_id = project.get("project_id")
+            if not project_id:
+                enriched.append(project)
+                continue
+            financials = await self.financial_agent.process(
+                {
+                    "action": "get_financial_summary",
+                    "project_id": project_id,
+                    "tenant_id": tenant_id,
+                    "correlation_id": correlation_id,
+                    "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+                }
+            )
+            enriched_project = project.copy()
+            enriched_project.setdefault(
+                "estimated_cost",
+                financials.get("total_cost")
+                or financials.get("total_costs")
+                or financials.get("budget_total"),
+            )
+            enriched_project.setdefault(
+                "expected_value",
+                financials.get("expected_value")
+                or financials.get("roi_value")
+                or financials.get("forecast_value"),
+            )
+            enriched_project.setdefault("roi", financials.get("roi"))
+            enriched.append(enriched_project)
+        return enriched
+
+    async def _select_optimized_projects(
+        self,
+        scored_projects: list[dict[str, Any]],
+        *,
+        budget_ceiling: float,
+        min_compliance_spend: float,
+        resource_capacity: dict[str, float],
+        method: str,
+        risk_aversion: float,
+    ) -> list[dict[str, Any]]:
+        method = method.lower()
+        if method == "mean_variance":
+            return self._select_mean_variance(
+                scored_projects, budget_ceiling, resource_capacity, risk_aversion
+            )
+        if method == "ahp":
+            return self._select_ahp(scored_projects, budget_ceiling, resource_capacity)
+        return await self._optimize_knapsack(
+            scored_projects, budget_ceiling, min_compliance_spend, resource_capacity
+        )
+
+    def _select_mean_variance(
+        self,
+        projects: list[dict[str, Any]],
+        budget_ceiling: float,
+        resource_capacity: dict[str, float],
+        risk_aversion: float,
+    ) -> list[dict[str, Any]]:
+        if not projects:
+            return []
+        ranked = sorted(
+            projects,
+            key=lambda p: (
+                (p.get("expected_value", 0) - risk_aversion * p.get("risk_score", 0) ** 2)
+                / max(1.0, p.get("cost", 1))
+            ),
+            reverse=True,
+        )
+        selected: list[dict[str, Any]] = []
+        remaining_budget = budget_ceiling
+        usage: dict[str, float] = {}
+        for project in ranked:
+            cost = project.get("cost", 0)
+            if cost > remaining_budget:
+                continue
+            feasible = True
+            for resource, needed in project.get("resource_requirements", {}).items():
+                capacity = resource_capacity.get(resource, float("inf"))
+                if usage.get(resource, 0.0) + needed > capacity:
+                    feasible = False
+                    break
+            if feasible:
+                selected.append(project)
+                remaining_budget -= cost
+                for resource, needed in project.get("resource_requirements", {}).items():
+                    usage[resource] = usage.get(resource, 0.0) + needed
+        return selected
+
+    def _select_ahp(
+        self,
+        projects: list[dict[str, Any]],
+        budget_ceiling: float,
+        resource_capacity: dict[str, float],
+    ) -> list[dict[str, Any]]:
+        if not projects:
+            return []
+        ranked = sorted(
+            projects,
+            key=lambda p: (
+                p.get("alignment_score", 0) * 0.45
+                + p.get("roi_score", 0) * 0.35
+                + p.get("risk_score", 0) * 0.2
+            ),
+            reverse=True,
+        )
+        selected = []
+        total_cost = 0.0
+        for project in ranked:
+            if total_cost + project.get("cost", 0) > budget_ceiling:
+                continue
+            selected.append(project)
+            total_cost += project.get("cost", 0)
+        return self._apply_resource_capacity(selected, resource_capacity)
+
+    def _apply_alignment_constraint(
+        self, projects: list[dict[str, Any]], min_alignment_score: float
+    ) -> list[dict[str, Any]]:
+        if min_alignment_score <= 0:
+            return projects
+        return [
+            project
+            for project in projects
+            if project.get("alignment_score", 0) >= min_alignment_score
+        ]
+
+    def _apply_risk_appetite(
+        self, projects: list[dict[str, Any]], risk_appetite: float
+    ) -> list[dict[str, Any]]:
+        if not projects:
+            return projects
+        avg_risk = sum(1 - p.get("risk_score", 0.6) for p in projects) / max(1, len(projects))
+        if avg_risk <= risk_appetite:
+            return projects
+        return sorted(projects, key=lambda p: p.get("risk_score", 0.0), reverse=True)[
+            : max(1, len(projects) - 1)
+        ]
+
+    async def _submit_portfolio_for_approval(
+        self,
+        portfolio_id: str,
+        *,
+        decision_payload: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        if not self.approval_agent and self.approval_agent_enabled:
+            from approval_workflow_agent import ApprovalWorkflowAgent
+
+            self.approval_agent = ApprovalWorkflowAgent(config=self.approval_agent_config)
+        if not self.approval_agent:
+            return {"status": "skipped", "reason": "approval_agent_not_configured"}
+
+        approval = await self.approval_agent.process(
+            {
+                "request_type": "portfolio_decision",
+                "request_id": portfolio_id,
+                "requester": decision_payload.get("requester", "system"),
+                "details": decision_payload,
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
+        if self.db_service:
+            await self.db_service.store(
+                "portfolio_approvals",
+                portfolio_id,
+                {"portfolio_id": portfolio_id, "approval": approval},
+            )
+        return approval
+
+    async def _record_portfolio_decision(
+        self,
+        portfolio_id: str,
+        *,
+        decision: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        record = self.portfolio_store.get(tenant_id, portfolio_id) or {"portfolio_id": portfolio_id}
+        decision_entry = {
+            "decision_id": str(uuid.uuid4()),
+            "portfolio_id": portfolio_id,
+            "decision": decision,
+            "recorded_at": datetime.utcnow().isoformat(),
+        }
+        record.setdefault("decision_log", []).append(decision_entry)
+        self.portfolio_store.upsert(tenant_id, portfolio_id, record)
+        if self.db_service:
+            await self.db_service.store(
+                "portfolio_decisions", decision_entry["decision_id"], decision_entry
+            )
+        await self.event_bus.publish(
+            "portfolio.decision.recorded",
+            {
+                "portfolio_id": portfolio_id,
+                "tenant_id": tenant_id,
+                "decision": decision_entry,
+                "correlation_id": correlation_id,
+            },
+        )
+        return {"status": "recorded", "decision": decision_entry}
 
     async def _generate_portfolio_id(self) -> str:
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")

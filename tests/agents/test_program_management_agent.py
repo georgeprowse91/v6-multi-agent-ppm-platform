@@ -66,6 +66,17 @@ class FakeConnector:
         return []
 
 
+class FakeResourceAgent:
+    def __init__(self, allocations: dict[str, dict]) -> None:
+        self.allocations = allocations
+        self.calls: list[dict] = []
+
+    async def process(self, payload: dict) -> dict:
+        self.calls.append(payload)
+        project_id = payload.get("project_id")
+        return {"allocations": self.allocations.get(project_id, {})}
+
+
 @pytest.mark.asyncio
 async def test_program_creation_and_roadmap_events(tmp_path):
     event_bus = EventCollector()
@@ -254,7 +265,7 @@ async def test_dependency_optimization_recommendations(tmp_path):
         }
     )
 
-    async def fake_dependencies(project_ids: list[str]):
+    async def fake_dependencies(project_ids: list[str], **kwargs):
         return [
             {"predecessor": "A", "successor": "B"},
             {"predecessor": "A", "successor": "C"},
@@ -332,3 +343,49 @@ async def test_dependency_graph_crud_actions(tmp_path):
         }
     )
     assert deleted["status"] == "deleted"
+
+
+@pytest.mark.asyncio
+async def test_program_optimization_with_resource_overlaps(tmp_path):
+    event_bus = EventCollector()
+    resource_agent = FakeResourceAgent(
+        {
+            "A": {"engineer": ["R1", "R2"]},
+            "B": {"engineer": ["R2", "R3"]},
+        }
+    )
+    agent = ProgramManagementAgent(
+        config={
+            "event_bus": event_bus,
+            "program_store_path": tmp_path / "programs.json",
+            "program_roadmap_store_path": tmp_path / "roadmaps.json",
+            "program_dependency_store_path": tmp_path / "dependencies.json",
+            "resource_agent": resource_agent,
+        }
+    )
+    await agent.initialize()
+
+    created = await agent.process(
+        {
+            "action": "create_program",
+            "tenant_id": "tenant-a",
+            "program": {
+                "name": "Optimization Program",
+                "description": "Resource overlaps",
+                "strategic_objectives": ["Efficiency"],
+                "constituent_projects": ["A", "B"],
+            },
+        }
+    )
+
+    result = await agent.process(
+        {
+            "action": "optimize_program",
+            "tenant_id": "tenant-a",
+            "program_id": created["program_id"],
+            "constraints": {"iterations": 5, "max_shift_days": 2},
+        }
+    )
+
+    assert result["optimized_schedule"]
+    assert any(topic == "program.optimized" for topic, _ in event_bus.events)

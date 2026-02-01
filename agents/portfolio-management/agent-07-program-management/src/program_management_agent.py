@@ -12,8 +12,9 @@ Specification: agents/portfolio-management/agent-07-program-management/README.md
 import asyncio
 import json
 import os
+import random
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -81,6 +82,14 @@ class ProgramManagementAgent(BaseAgent):
             if config
             else {"schedule": 0.25, "budget": 0.25, "risk": 0.20, "quality": 0.15, "resource": 0.15}
         )
+        self.optimization_objectives = (
+            config.get(
+                "optimization_objectives",
+                {"utilization": 0.35, "cost": 0.25, "risk": 0.20, "schedule": 0.20},
+            )
+            if config
+            else {"utilization": 0.35, "cost": 0.25, "risk": 0.20, "schedule": 0.20}
+        )
 
         program_store_path = (
             Path(config.get("program_store_path", "data/program_store.json"))
@@ -113,6 +122,11 @@ class ProgramManagementAgent(BaseAgent):
         self.financial_agent = config.get("financial_agent") if config else None
         self.risk_agent = config.get("risk_agent") if config else None
         self.quality_agent = config.get("quality_agent") if config else None
+        self.approval_agent = config.get("approval_agent") if config else None
+        self.approval_agent_config = config.get("approval_agent_config", {}) if config else {}
+        self.approval_agent_enabled = (
+            config.get("approval_agent_enabled", True) if config else True
+        )
         self.schedule_ids = config.get("schedule_ids", {}) if config else {}
         self.business_case_ids = config.get("business_case_ids", {}) if config else {}
         self.health_actions = config.get("health_actions", {}) if config else {}
@@ -169,6 +183,9 @@ class ProgramManagementAgent(BaseAgent):
             "identify_synergies",
             "analyze_change_impact",
             "get_program_health",
+            "optimize_program",
+            "submit_program_for_approval",
+            "record_program_decision",
             "get_program",
             "list_dependency_graphs",
             "get_dependency_graph",
@@ -197,6 +214,9 @@ class ProgramManagementAgent(BaseAgent):
             "analyze_change_impact",
             "get_dependency_graph",
             "delete_dependency_graph",
+            "optimize_program",
+            "submit_program_for_approval",
+            "record_program_decision",
         ]:
             if "program_id" not in input_data:
                 self.logger.warning("Missing program_id")
@@ -287,6 +307,28 @@ class ProgramManagementAgent(BaseAgent):
             return await self._get_program_health(
                 input_data.get("program_id"),  # type: ignore
                 tenant_id=tenant_id,
+            )
+        elif action == "optimize_program":
+            return await self._optimize_program_schedule(
+                input_data.get("program_id"),  # type: ignore
+                objectives=input_data.get("objectives"),
+                constraints=input_data.get("constraints", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+        elif action == "submit_program_for_approval":
+            return await self._submit_program_for_approval(
+                input_data.get("program_id"),  # type: ignore
+                decision_payload=input_data.get("decision_payload", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+        elif action == "record_program_decision":
+            return await self._record_program_decision(
+                input_data.get("program_id"),  # type: ignore
+                decision=input_data.get("decision", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "get_program":
@@ -386,8 +428,15 @@ class ProgramManagementAgent(BaseAgent):
         # Query project schedules from Schedule & Planning Agent
         project_schedules = await self._get_project_schedules(constituent_projects)
 
+        # Query resource allocations for overlap detection
+        resource_allocations = await self._get_resource_allocations(constituent_projects)
+
         # Identify inter-project dependencies
-        dependencies = await self._identify_dependencies(constituent_projects)
+        dependencies = await self._identify_dependencies(
+            constituent_projects,
+            schedules=project_schedules,
+            resource_allocations=resource_allocations,
+        )
 
         # Calculate critical path across program
         critical_path = await self._calculate_program_critical_path(project_schedules, dependencies)
@@ -402,6 +451,7 @@ class ProgramManagementAgent(BaseAgent):
             "dependencies": dependencies,
             "critical_path": critical_path,
             "project_timelines": project_schedules,
+            "resource_allocations": resource_allocations,
             "start_date": await self._calculate_program_start(project_schedules),
             "end_date": await self._calculate_program_end(project_schedules),
             "generated_at": datetime.utcnow().isoformat(),
@@ -443,7 +493,13 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
 
         # Identify all dependencies
-        dependencies = await self._identify_dependencies(constituent_projects)
+        project_schedules = await self._get_project_schedules(constituent_projects)
+        resource_allocations = await self._get_resource_allocations(constituent_projects)
+        dependencies = await self._identify_dependencies(
+            constituent_projects,
+            schedules=project_schedules,
+            resource_allocations=resource_allocations,
+        )
         self.dependency_store.upsert(
             tenant_id, program_id, {"program_id": program_id, "dependencies": dependencies}
         )
@@ -592,8 +648,9 @@ class ProgramManagementAgent(BaseAgent):
         infrastructure_synergies = synergy_analysis.get("infrastructure_synergies", [])
 
         # Calculate potential savings
+        project_costs = await self._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
         cost_savings = await self._calculate_synergy_savings(
-            shared_components, vendor_synergies, infrastructure_synergies
+            shared_components, vendor_synergies, infrastructure_synergies, project_costs
         )
         optimization = await self._optimize_synergy_portfolio(
             shared_components, vendor_synergies, infrastructure_synergies
@@ -617,6 +674,21 @@ class ProgramManagementAgent(BaseAgent):
                 program_id,
                 {"program_id": program_id, "synergies": synergies},
             )
+            await self.db_service.store(
+                "program_analytics",
+                program_id,
+                {"program_id": program_id, "synergy_savings": cost_savings},
+            )
+
+        await self.event_bus.publish(
+            "program.synergy.identified",
+            {
+                "program_id": program_id,
+                "tenant_id": tenant_id,
+                "synergies": synergies,
+                "estimated_savings": cost_savings,
+            },
+        )
 
         return {
             "program_id": program_id,
@@ -730,7 +802,7 @@ class ProgramManagementAgent(BaseAgent):
             schedule_health, budget_health, risk_health, quality_health, resource_health
         )
 
-        return {
+        health_payload = {
             "program_id": program_id,
             "composite_score": composite_score,
             "health_status": health_status,
@@ -759,6 +831,29 @@ class ProgramManagementAgent(BaseAgent):
             ),
             "calculated_at": datetime.utcnow().isoformat(),
         }
+
+        if self.db_service:
+            await self.db_service.store("program_health", program_id, health_payload)
+            await self.db_service.store(
+                "program_analytics",
+                program_id,
+                {
+                    "program_id": program_id,
+                    "health_status": health_status,
+                    "composite_score": composite_score,
+                },
+            )
+
+        await self.event_bus.publish(
+            "program.health.updated",
+            {
+                "program_id": program_id,
+                "tenant_id": tenant_id,
+                "health": health_payload,
+            },
+        )
+
+        return health_payload
 
     async def _get_program(self, program_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Retrieve a program by ID."""
@@ -832,9 +927,43 @@ class ProgramManagementAgent(BaseAgent):
                 return schedules
         return {pid: {"start": "2026-01-01", "end": "2026-12-31"} for pid in project_ids}
 
-    async def _identify_dependencies(self, project_ids: list[str]) -> list[dict[str, Any]]:
-        """Identify inter-project dependencies."""
-        dependencies = []
+    async def _identify_dependencies(
+        self,
+        project_ids: list[str],
+        *,
+        schedules: dict[str, Any] | None = None,
+        resource_allocations: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Identify inter-project dependencies and overlaps."""
+        dependencies: list[dict[str, Any]] = []
+        schedules = schedules or {}
+        resource_allocations = resource_allocations or {}
+
+        schedule_overlaps = self._detect_schedule_overlaps(project_ids, schedules)
+        resource_overlaps = self._detect_resource_overlaps(project_ids, resource_allocations)
+
+        for overlap in schedule_overlaps:
+            dependencies.append(
+                {
+                    "predecessor": overlap["project_a"],
+                    "successor": overlap["project_b"],
+                    "type": "schedule_overlap",
+                    "overlap_days": overlap["overlap_days"],
+                    "overlap_window": overlap["overlap_window"],
+                }
+            )
+
+        for overlap in resource_overlaps:
+            dependencies.append(
+                {
+                    "predecessor": overlap["project_a"],
+                    "successor": overlap["project_b"],
+                    "type": "shared_resource",
+                    "shared_resources": overlap["shared_resources"],
+                    "overlap_score": overlap["overlap_score"],
+                }
+            )
+
         for idx in range(len(project_ids) - 1):
             predecessor = project_ids[idx]
             successor = project_ids[idx + 1]
@@ -845,6 +974,7 @@ class ProgramManagementAgent(BaseAgent):
                     "type": self.dependency_types[idx % len(self.dependency_types)],
                 }
             )
+
         return dependencies
 
     async def _calculate_program_critical_path(
@@ -880,6 +1010,92 @@ class ProgramManagementAgent(BaseAgent):
         """Calculate program end date."""
         # Baseline
         return datetime.utcnow().isoformat()
+
+    def _parse_date(self, date_value: str | None) -> datetime | None:
+        if not date_value:
+            return None
+        try:
+            return datetime.fromisoformat(date_value)
+        except ValueError:
+            try:
+                return datetime.strptime(date_value, "%Y-%m-%d")
+            except ValueError:
+                return None
+
+    def _detect_schedule_overlaps(
+        self, project_ids: list[str], schedules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        overlaps: list[dict[str, Any]] = []
+        for project_a, project_b in combinations(project_ids, 2):
+            schedule_a = schedules.get(project_a, {})
+            schedule_b = schedules.get(project_b, {})
+            start_a = self._parse_date(schedule_a.get("start"))
+            end_a = self._parse_date(schedule_a.get("end"))
+            start_b = self._parse_date(schedule_b.get("start"))
+            end_b = self._parse_date(schedule_b.get("end"))
+            if not (start_a and end_a and start_b and end_b):
+                continue
+            latest_start = max(start_a, start_b)
+            earliest_end = min(end_a, end_b)
+            if latest_start <= earliest_end:
+                overlap_days = (earliest_end - latest_start).days + 1
+                overlaps.append(
+                    {
+                        "project_a": project_a,
+                        "project_b": project_b,
+                        "overlap_days": overlap_days,
+                        "overlap_window": {
+                            "start": latest_start.date().isoformat(),
+                            "end": earliest_end.date().isoformat(),
+                        },
+                    }
+                )
+        return overlaps
+
+    def _detect_resource_overlaps(
+        self, project_ids: list[str], allocations: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        overlaps: list[dict[str, Any]] = []
+        resources_by_project = {
+            project_id: set(self._flatten_resource_allocations(allocations.get(project_id, {})))
+            for project_id in project_ids
+        }
+        for project_a, project_b in combinations(project_ids, 2):
+            resources_a = resources_by_project.get(project_a, set())
+            resources_b = resources_by_project.get(project_b, set())
+            shared = resources_a.intersection(resources_b)
+            if shared:
+                overlap_score = len(shared) / max(1, len(resources_a | resources_b))
+                overlaps.append(
+                    {
+                        "project_a": project_a,
+                        "project_b": project_b,
+                        "shared_resources": sorted(shared),
+                        "overlap_score": round(overlap_score, 3),
+                    }
+                )
+        return overlaps
+
+    def _flatten_resource_allocations(self, allocation: Any) -> list[str]:
+        if isinstance(allocation, dict):
+            resources = []
+            for key, value in allocation.items():
+                if isinstance(value, (list, tuple, set)):
+                    resources.extend(str(item) for item in value)
+                elif isinstance(value, dict):
+                    resources.append(str(value.get("resource_id") or value.get("name") or key))
+                else:
+                    resources.append(str(key))
+            return resources
+        if isinstance(allocation, list):
+            resources = []
+            for item in allocation:
+                if isinstance(item, dict):
+                    resources.append(str(item.get("resource_id") or item.get("name") or item.get("role")))
+                else:
+                    resources.append(str(item))
+            return resources
+        return [str(allocation)] if allocation else []
 
     async def _analyze_dependency_graph(self, dependencies: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze dependency graph structure."""
@@ -1016,26 +1232,83 @@ class ProgramManagementAgent(BaseAgent):
         self, allocations: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify resource allocation conflicts."""
-        # Baseline
-        return []
+        resource_usage: dict[str, list[str]] = {}
+        for project_id, allocation in allocations.items():
+            for resource in self._flatten_resource_allocations(allocation):
+                resource_usage.setdefault(resource, []).append(project_id)
+
+        conflicts = []
+        for resource, projects in resource_usage.items():
+            if len(projects) > 1:
+                conflicts.append(
+                    {
+                        "resource": resource,
+                        "projects": projects,
+                        "severity": "high" if len(projects) >= 3 else "medium",
+                    }
+                )
+        return conflicts
 
     async def _optimize_resource_allocation(
         self, allocations: dict[str, Any], conflicts: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Generate resource optimization recommendations."""
-        # Future work: Use optimization algorithms
-        # Baseline
-        return []
+        recommendations = []
+        for conflict in conflicts:
+            projects = conflict.get("projects", [])
+            recommendations.append(
+                {
+                    "resource": conflict.get("resource"),
+                    "action": "stagger_assignments",
+                    "projects": projects,
+                    "rationale": "Reduce simultaneous contention for shared resources",
+                }
+            )
+            recommendations.append(
+                {
+                    "resource": conflict.get("resource"),
+                    "action": "augment_capacity",
+                    "projects": projects,
+                    "rationale": "Consider adding temporary capacity or contractors",
+                }
+            )
+        if not conflicts:
+            recommendations.append(
+                {
+                    "action": "maintain_allocation",
+                    "rationale": "Resource usage appears balanced across projects",
+                }
+            )
+        return recommendations
 
     async def _calculate_program_utilization(self, allocations: dict[str, Any]) -> float:
         """Calculate average utilization across program."""
-        # Baseline
-        return 0.75
+        if not allocations:
+            return 0.0
+        total_resources = 0
+        shared_resources = 0
+        resource_usage: dict[str, int] = {}
+        for allocation in allocations.values():
+            resources = self._flatten_resource_allocations(allocation)
+            total_resources += len(resources)
+            for resource in resources:
+                resource_usage[resource] = resource_usage.get(resource, 0) + 1
+        shared_resources = sum(1 for count in resource_usage.values() if count > 1)
+        utilization = shared_resources / max(1, len(resource_usage))
+        return round(min(1.0, 0.5 + utilization * 0.5), 2)
 
     async def _identify_shared_resources(self, allocations: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify resources shared across multiple projects."""
-        # Baseline
-        return []
+        resource_usage: dict[str, list[str]] = {}
+        for project_id, allocation in allocations.items():
+            for resource in self._flatten_resource_allocations(allocation):
+                resource_usage.setdefault(resource, []).append(project_id)
+
+        return [
+            {"resource": resource, "projects": projects}
+            for resource, projects in resource_usage.items()
+            if len(projects) > 1
+        ]
 
     async def _get_project_details(self, project_ids: list[str]) -> dict[str, Any]:
         """Get detailed project information."""
@@ -1135,11 +1408,16 @@ class ProgramManagementAgent(BaseAgent):
         shared_components: list[dict[str, Any]],
         vendor_synergies: list[dict[str, Any]],
         infrastructure_synergies: list[dict[str, Any]],
+        project_costs: dict[str, float],
     ) -> dict[str, float]:
         """Calculate potential cost savings from synergies."""
-        shared = 15000 * len(shared_components)
-        vendor = 10000 * len(vendor_synergies)
-        infrastructure = 8000 * len(infrastructure_synergies)
+        def _pair_cost(pair: dict[str, Any]) -> float:
+            projects = pair.get("projects", [])
+            return sum(project_costs.get(project, 0) for project in projects)
+
+        shared = sum(_pair_cost(item) * 0.06 for item in shared_components)
+        vendor = sum(_pair_cost(item) * 0.04 for item in vendor_synergies)
+        infrastructure = sum(_pair_cost(item) * 0.03 for item in infrastructure_synergies)
         return {
             "shared_components": shared,
             "vendor_consolidation": vendor,
@@ -1923,6 +2201,326 @@ class ProgramManagementAgent(BaseAgent):
                 }
             )
         return mitigations
+
+    async def _estimate_project_costs(
+        self, project_ids: list[str], *, tenant_id: str
+    ) -> dict[str, float]:
+        costs: dict[str, float] = {}
+        if self.financial_agent:
+            for project_id in project_ids:
+                response = await self.financial_agent.process(
+                    {
+                        "action": "get_financial_summary",
+                        "project_id": project_id,
+                        "tenant_id": tenant_id,
+                        "context": {"tenant_id": tenant_id},
+                    }
+                )
+                costs[project_id] = float(
+                    response.get("total_cost")
+                    or response.get("total_costs")
+                    or response.get("budget_total", 0)
+                )
+        if not costs:
+            for project_id in project_ids:
+                costs[project_id] = 100000.0
+        return costs
+
+    async def _estimate_project_risks(
+        self, project_ids: list[str], *, tenant_id: str
+    ) -> dict[str, float]:
+        risks: dict[str, float] = {}
+        if self.risk_agent:
+            for project_id in project_ids:
+                response = await self.risk_agent.process(
+                    {
+                        "action": "get_risk_dashboard",
+                        "project_id": project_id,
+                        "tenant_id": tenant_id,
+                        "context": {"tenant_id": tenant_id},
+                    }
+                )
+                risks[project_id] = float(response.get("risk_score", 0.3))
+        if not risks:
+            for project_id in project_ids:
+                risks[project_id] = 0.3
+        return risks
+
+    async def _optimize_program_schedule(
+        self,
+        program_id: str,
+        *,
+        objectives: dict[str, float] | None,
+        constraints: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        self.logger.info(f"Optimizing program schedule for: {program_id}")
+
+        program = self.program_store.get(tenant_id, program_id)
+        if not program:
+            raise ValueError(f"Program not found: {program_id}")
+
+        constituent_projects = program.get("constituent_projects", [])
+        project_schedules = await self._get_project_schedules(constituent_projects)
+        resource_allocations = await self._get_resource_allocations(constituent_projects)
+        project_costs = await self._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
+        project_risks = await self._estimate_project_risks(constituent_projects, tenant_id=tenant_id)
+
+        base_schedule = self._build_initial_schedule(constituent_projects, project_schedules)
+        dependencies = await self._identify_dependencies(
+            constituent_projects,
+            schedules=project_schedules,
+            resource_allocations=resource_allocations,
+        )
+
+        target_objectives = objectives or self.optimization_objectives
+        normalized_objectives = self._normalize_objectives(target_objectives)
+
+        rng = random.Random(hash(program_id) % 10_000)
+        best_schedule = base_schedule
+        best_score, best_breakdown = self._score_schedule_candidate(
+            base_schedule,
+            base_schedule,
+            resource_allocations,
+            project_costs,
+            project_risks,
+            normalized_objectives,
+        )
+
+        iterations = constraints.get("iterations", 30)
+        for _ in range(iterations):
+            candidate = self._mutate_schedule(
+                base_schedule,
+                dependencies,
+                rng=rng,
+                max_shift_days=constraints.get("max_shift_days", 15),
+            )
+            score, breakdown = self._score_schedule_candidate(
+                candidate,
+                base_schedule,
+                resource_allocations,
+                project_costs,
+                project_risks,
+                normalized_objectives,
+            )
+            if score > best_score:
+                best_schedule = candidate
+                best_score = score
+                best_breakdown = breakdown
+
+        optimized_schedule = {
+            project_id: {
+                "start": data["start"].isoformat(),
+                "end": data["end"].isoformat(),
+                "duration_days": data["duration_days"],
+            }
+            for project_id, data in best_schedule.items()
+        }
+
+        optimization = {
+            "program_id": program_id,
+            "optimized_schedule": optimized_schedule,
+            "objective_score": round(best_score, 4),
+            "objective_breakdown": best_breakdown,
+            "algorithm": "evolutionary_search",
+            "constraints": constraints,
+            "optimized_at": datetime.utcnow().isoformat(),
+        }
+
+        if self.db_service:
+            await self.db_service.store("program_optimizations", program_id, optimization)
+            await self.db_service.store(
+                "program_analytics",
+                program_id,
+                {
+                    "program_id": program_id,
+                    "optimization_score": best_score,
+                    "objectives": normalized_objectives,
+                },
+            )
+
+        await self.event_bus.publish(
+            "program.optimized",
+            {
+                "program_id": program_id,
+                "tenant_id": tenant_id,
+                "optimization": optimization,
+                "correlation_id": correlation_id,
+            },
+        )
+
+        return optimization
+
+    def _build_initial_schedule(
+        self, project_ids: list[str], schedules: dict[str, Any]
+    ) -> dict[str, dict[str, Any]]:
+        schedule_map: dict[str, dict[str, Any]] = {}
+        default_start = datetime.utcnow()
+        for idx, project_id in enumerate(project_ids):
+            schedule = schedules.get(project_id, {})
+            start = self._parse_date(schedule.get("start")) or default_start + timedelta(days=30 * idx)
+            end = self._parse_date(schedule.get("end")) or start + timedelta(days=180)
+            schedule_map[project_id] = {
+                "start": start,
+                "end": end,
+                "duration_days": max(1, (end - start).days),
+            }
+        return schedule_map
+
+    def _normalize_objectives(self, objectives: dict[str, float]) -> dict[str, float]:
+        total = sum(max(0.0, value) for value in objectives.values())
+        if total == 0:
+            return self.optimization_objectives
+        return {key: max(0.0, value) / total for key, value in objectives.items()}
+
+    def _mutate_schedule(
+        self,
+        base_schedule: dict[str, dict[str, Any]],
+        dependencies: list[dict[str, Any]],
+        *,
+        rng: random.Random,
+        max_shift_days: int,
+    ) -> dict[str, dict[str, Any]]:
+        candidate = {}
+        dependency_map: dict[str, list[str]] = {}
+        for dep in dependencies:
+            predecessor = dep.get("predecessor")
+            successor = dep.get("successor")
+            if predecessor and successor:
+                dependency_map.setdefault(successor, []).append(predecessor)
+
+        for project_id, data in base_schedule.items():
+            shift = rng.randint(-max_shift_days, max_shift_days)
+            start = data["start"] + timedelta(days=shift)
+            duration = data.get("duration_days", 180)
+            for predecessor in dependency_map.get(project_id, []):
+                predecessor_end = base_schedule.get(predecessor, {}).get("end")
+                if predecessor_end and start < predecessor_end:
+                    start = predecessor_end + timedelta(days=1)
+            candidate[project_id] = {
+                "start": start,
+                "end": start + timedelta(days=duration),
+                "duration_days": duration,
+            }
+        return candidate
+
+    def _score_schedule_candidate(
+        self,
+        candidate: dict[str, dict[str, Any]],
+        baseline: dict[str, dict[str, Any]],
+        resource_allocations: dict[str, Any],
+        project_costs: dict[str, float],
+        project_risks: dict[str, float],
+        objectives: dict[str, float],
+    ) -> tuple[float, dict[str, float]]:
+        delay_days = 0.0
+        for project_id, data in candidate.items():
+            baseline_start = baseline.get(project_id, {}).get("start")
+            if baseline_start and data["start"] > baseline_start:
+                delay_days += (data["start"] - baseline_start).days
+
+        total_cost = sum(project_costs.values()) or 1.0
+        max_cost = total_cost * 1.2
+        avg_risk = sum(project_risks.values()) / max(1, len(project_risks))
+
+        overlap_conflicts = self._detect_resource_schedule_conflicts(
+            candidate, resource_allocations
+        )
+        conflict_penalty = min(1.0, overlap_conflicts / max(1, len(candidate)))
+
+        schedule_score = max(0.0, 1 - delay_days / (max(1, len(candidate)) * 30))
+        cost_score = max(0.0, 1 - total_cost / max_cost)
+        risk_score = max(0.0, 1 - avg_risk)
+        utilization_score = max(0.0, 1 - conflict_penalty)
+
+        breakdown = {
+            "utilization": round(utilization_score, 4),
+            "cost": round(cost_score, 4),
+            "risk": round(risk_score, 4),
+            "schedule": round(schedule_score, 4),
+        }
+        overall = sum(breakdown[key] * objectives.get(key, 0.0) for key in breakdown)
+        return overall, breakdown
+
+    def _detect_resource_schedule_conflicts(
+        self, schedule: dict[str, dict[str, Any]], resource_allocations: dict[str, Any]
+    ) -> int:
+        conflicts = 0
+        for project_a, project_b in combinations(schedule.keys(), 2):
+            data_a = schedule[project_a]
+            data_b = schedule[project_b]
+            if data_a["start"] <= data_b["end"] and data_b["start"] <= data_a["end"]:
+                resources_a = set(self._flatten_resource_allocations(resource_allocations.get(project_a, {})))
+                resources_b = set(self._flatten_resource_allocations(resource_allocations.get(project_b, {})))
+                if resources_a.intersection(resources_b):
+                    conflicts += 1
+        return conflicts
+
+    async def _submit_program_for_approval(
+        self,
+        program_id: str,
+        *,
+        decision_payload: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        if not self.approval_agent and self.approval_agent_enabled:
+            from approval_workflow_agent import ApprovalWorkflowAgent
+
+            self.approval_agent = ApprovalWorkflowAgent(config=self.approval_agent_config)
+        if not self.approval_agent:
+            return {"status": "skipped", "reason": "approval_agent_not_configured"}
+
+        approval = await self.approval_agent.process(
+            {
+                "request_type": "program_optimization",
+                "request_id": program_id,
+                "requester": decision_payload.get("requester", "system"),
+                "details": decision_payload,
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+                "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+            }
+        )
+        if self.db_service:
+            await self.db_service.store(
+                "program_approvals",
+                program_id,
+                {"program_id": program_id, "approval": approval},
+            )
+        return approval
+
+    async def _record_program_decision(
+        self,
+        program_id: str,
+        *,
+        decision: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        program = self.program_store.get(tenant_id, program_id) or {}
+        decision_entry = {
+            "decision_id": str(uuid.uuid4()),
+            "program_id": program_id,
+            "decision": decision,
+            "recorded_at": datetime.utcnow().isoformat(),
+        }
+        program.setdefault("decision_log", []).append(decision_entry)
+        self.program_store.upsert(tenant_id, program_id, program)
+        if self.db_service:
+            await self.db_service.store("program_decisions", decision_entry["decision_id"], decision_entry)
+
+        await self.event_bus.publish(
+            "program.decision.recorded",
+            {
+                "program_id": program_id,
+                "tenant_id": tenant_id,
+                "decision": decision_entry,
+                "correlation_id": correlation_id,
+            },
+        )
+        return {"status": "recorded", "decision": decision_entry}
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
