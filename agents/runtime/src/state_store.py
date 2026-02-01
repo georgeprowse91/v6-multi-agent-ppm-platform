@@ -47,3 +47,7 @@ class TenantStateStore:
         data = self._load()
         tenant_records = cast(dict[str, Any], data.get(tenant_id, {}))
         return [cast(dict[str, Any], record) for record in tenant_records.values()]
+
+    def tenants(self) -> list[str]:
+        data = self._load()
+        return list(data.keys())
