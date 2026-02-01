@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import contextlib
 import sys
 import types
@@ -19,13 +20,36 @@ connector_src_paths = [
 security_module = types.ModuleType("security")
 dlp_module = types.ModuleType("security.dlp")
 secrets_module = types.ModuleType("security.secrets")
+keyvault_module = types.ModuleType("security.keyvault")
 dlp_module.redact_payload = lambda payload: payload
 secrets_module.resolve_secret = lambda value: value
+class DummyKeyVaultConfig:  # noqa: D401 - simple stub
+    def __init__(self, vault_url: str | None = None) -> None:
+        self.vault_url = vault_url
+
+
+class DummyKeyVaultClient:
+    def __init__(self, _config: DummyKeyVaultConfig) -> None:
+        return None
+
+    def get_secret(self, _name: str) -> str | None:
+        return None
+
+
+class DummyKeyVaultUnavailableError(Exception):
+    pass
+
+
+keyvault_module.KeyVaultClient = DummyKeyVaultClient
+keyvault_module.KeyVaultConfig = DummyKeyVaultConfig
+keyvault_module.KeyVaultUnavailableError = DummyKeyVaultUnavailableError
 security_module.dlp = dlp_module
 security_module.secrets = secrets_module
+security_module.keyvault = keyvault_module
 sys.modules.setdefault("security", security_module)
 sys.modules.setdefault("security.dlp", dlp_module)
 sys.modules.setdefault("security.secrets", secrets_module)
+sys.modules.setdefault("security.keyvault", keyvault_module)
 for path in [SDK_PATH, *connector_src_paths]:
     path_str = str(path.resolve())
     if path_str not in sys.path:
@@ -36,23 +60,29 @@ from adp_connector import AdpConnector
 from archer_connector import ArcherConnector
 from asana_connector import AsanaConnector
 from azure_devops_connector import AzureDevOpsConnector
+from azure_communication_services_connector import AzureCommunicationServicesConnector
 from base_connector import ConnectionStatus, ConnectorCategory, ConnectorConfig
 from clarity_connector import ClarityConnector
 from confluence_connector import ConfluenceConnector
+from google_calendar_connector import GoogleCalendarConnector
 from google_drive_connector import GoogleDriveConnector
 from http_client import HttpClient
 from logicgate_connector import LogicGateConnector
 from monday_connector import MondayConnector
 from ms_project_server_connector import MsProjectServerConnector
 from netsuite_connector import NetSuiteConnector
+from notification_hubs_connector import NotificationHubsConnector
 from oracle_connector import OracleConnector
+from outlook_connector import OutlookConnector
 from planview_connector import PlanviewConnector
 from sap_connector import SapConnector
 from sap_successfactors_connector import SapSuccessFactorsConnector
 from servicenow_grc_connector import ServiceNowGrcConnector
 from sharepoint_connector import SharePointConnector
 from slack_connector import SlackConnector
+from smartsheet_connector import SmartsheetConnector
 from teams_connector import TeamsConnector
+from twilio_connector import TwilioConnector
 from workday_connector import WorkdayConnector
 from zoom_connector import ZoomConnector
 
@@ -229,6 +259,20 @@ CONNECTOR_CASES: list[ConnectorCase] = [
         write_resource_type="tasks",
     ),
     ConnectorCase(
+        connector_class=SmartsheetConnector,
+        connector_id="smartsheet",
+        category=ConnectorCategory.PM,
+        env_vars={
+            "SMARTSHEET_API_URL": "https://api.example.com",
+            "SMARTSHEET_API_TOKEN": "token",
+        },
+        resource_type="sheets",
+        auth_path="/users/me",
+        resource_path="/sheets",
+        items_path="data",
+        write_resource_type="sheets",
+    ),
+    ConnectorCase(
         connector_class=SharePointConnector,
         connector_id="sharepoint",
         category=ConnectorCategory.DOC_MGMT,
@@ -276,6 +320,23 @@ CONNECTOR_CASES: list[ConnectorCase] = [
         items_path="files",
         use_token_manager=True,
         write_resource_type="files",
+    ),
+    ConnectorCase(
+        connector_class=GoogleCalendarConnector,
+        connector_id="google_calendar",
+        category=ConnectorCategory.COLLABORATION,
+        env_vars={
+            "GOOGLE_CALENDAR_BASE_URL": "https://api.example.com",
+            "GOOGLE_CALENDAR_CLIENT_ID": "client",
+            "GOOGLE_CALENDAR_CLIENT_SECRET": "secret",
+            "GOOGLE_CALENDAR_REFRESH_TOKEN": "refresh",
+        },
+        resource_type="events",
+        auth_path="/calendars/primary/events",
+        resource_path="/calendars/primary/events",
+        items_path="items",
+        use_token_manager=True,
+        write_resource_type="events",
     ),
     ConnectorCase(
         connector_class=SapConnector,
@@ -373,6 +434,23 @@ CONNECTOR_CASES: list[ConnectorCase] = [
         use_token_manager=True,
     ),
     ConnectorCase(
+        connector_class=OutlookConnector,
+        connector_id="outlook",
+        category=ConnectorCategory.COLLABORATION,
+        env_vars={
+            "OUTLOOK_API_URL": "https://api.example.com",
+            "OUTLOOK_CLIENT_ID": "client",
+            "OUTLOOK_CLIENT_SECRET": "secret",
+            "OUTLOOK_REFRESH_TOKEN": "refresh",
+        },
+        resource_type="events",
+        auth_path="/me/events",
+        resource_path="/me/events",
+        items_path="value",
+        use_token_manager=True,
+        write_resource_type="events",
+    ),
+    ConnectorCase(
         connector_class=TeamsConnector,
         connector_id="teams",
         category=ConnectorCategory.COLLABORATION,
@@ -399,6 +477,51 @@ CONNECTOR_CASES: list[ConnectorCase] = [
         resource_path="/conversations.list",
         items_path="channels",
         write_resource_type="messages",
+    ),
+    ConnectorCase(
+        connector_class=AzureCommunicationServicesConnector,
+        connector_id="azure_communication_services",
+        category=ConnectorCategory.COLLABORATION,
+        env_vars={
+            "ACS_ENDPOINT": "https://api.example.com",
+            "ACS_ACCESS_KEY": "key",
+        },
+        resource_type="sms",
+        auth_path="/sms",
+        resource_path="/sms",
+        items_path="value",
+        write_resource_type="sms",
+    ),
+    ConnectorCase(
+        connector_class=TwilioConnector,
+        connector_id="twilio",
+        category=ConnectorCategory.COLLABORATION,
+        env_vars={
+            "TWILIO_API_URL": "https://api.example.com",
+            "TWILIO_ACCOUNT_SID": "acct",
+            "TWILIO_AUTH_TOKEN": "token",
+        },
+        resource_type="messages",
+        auth_path="/Accounts/acct/Messages.json",
+        resource_path="/Accounts/acct/Messages.json",
+        items_path="messages",
+        write_resource_type="messages",
+    ),
+    ConnectorCase(
+        connector_class=NotificationHubsConnector,
+        connector_id="notification_hubs",
+        category=ConnectorCategory.COLLABORATION,
+        env_vars={
+            "AZURE_NOTIFICATION_HUBS_NAMESPACE": "namespace",
+            "AZURE_NOTIFICATION_HUBS_NAME": "hub",
+            "AZURE_NOTIFICATION_HUBS_SAS_KEY_NAME": "DefaultFullSharedAccessSignature",
+            "AZURE_NOTIFICATION_HUBS_SAS_KEY": base64.b64encode(b"secret").decode("utf-8"),
+        },
+        resource_type="notifications",
+        auth_path="/hub/messages",
+        resource_path="/hub/messages",
+        items_path=None,
+        write_resource_type="notifications",
     ),
     ConnectorCase(
         connector_class=ZoomConnector,
@@ -518,6 +641,8 @@ def test_connector_write_success(case: ConnectorCase, monkeypatch: pytest.Monkey
     if hasattr(case.connector_class, "RESOURCE_PATHS"):
         resource_paths = case.connector_class.RESOURCE_PATHS
         write_path = resource_paths[write_resource].get("write_path", case.resource_path)
+    if case.connector_id in {"twilio", "notification_hubs"}:
+        write_path = case.resource_path
 
     payload = [{"id": "1", "name": "Sample"}]
     routes = {

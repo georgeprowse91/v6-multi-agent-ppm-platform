@@ -46,6 +46,17 @@
     ]
   },
   {
+    "id": "azure_communication_services",
+    "name": "Azure Communication Services",
+    "manifest_path": "connectors/azure_communication_services/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "outbound"
+    ]
+  },
+  {
     "id": "clarity",
     "name": "Clarity PPM",
     "manifest_path": "connectors/clarity/manifest.yaml",
@@ -75,6 +86,18 @@
     "status": "beta",
     "certification": "not-started",
     "category": "doc_mgmt",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
+  },
+  {
+    "id": "google_calendar",
+    "name": "Google Calendar",
+    "manifest_path": "connectors/google_calendar/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
     "supported_sync_directions": [
       "inbound",
       "bidirectional"
@@ -151,6 +174,17 @@
     ]
   },
   {
+    "id": "notification_hubs",
+    "name": "Azure Notification Hubs",
+    "manifest_path": "connectors/notification_hubs/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "outbound"
+    ]
+  },
+  {
     "id": "oracle",
     "name": "Oracle ERP Cloud",
     "manifest_path": "connectors/oracle/manifest.yaml",
@@ -159,6 +193,18 @@
     "category": "erp",
     "supported_sync_directions": [
       "inbound"
+    ]
+  },
+  {
+    "id": "outlook",
+    "name": "Outlook",
+    "manifest_path": "connectors/outlook/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
     ]
   },
   {
@@ -243,9 +289,33 @@
     ]
   },
   {
+    "id": "smartsheet",
+    "name": "Smartsheet",
+    "manifest_path": "connectors/smartsheet/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "pm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
+  },
+  {
     "id": "teams",
     "name": "Microsoft Teams",
     "manifest_path": "connectors/teams/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "outbound",
+      "bidirectional"
+    ]
+  },
+  {
+    "id": "twilio",
+    "name": "Twilio",
+    "manifest_path": "connectors/twilio/manifest.yaml",
     "status": "beta",
     "certification": "not-started",
     "category": "collaboration",

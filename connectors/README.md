@@ -27,6 +27,18 @@ Registered and packaged connectors include:
   - Configuration: `SLACK_API_URL`, `SLACK_BOT_TOKEN`.
 - `connectors/teams`: Microsoft Teams notifications and cards (inbound teams, outbound messages).
   - Configuration: `TEAMS_API_URL`, `TEAMS_CLIENT_ID`, `TEAMS_CLIENT_SECRET`, `TEAMS_REFRESH_TOKEN`.
+- `connectors/smartsheet`: Smartsheet schedule and sheet sync (inbound sheets, outbound updates).
+  - Configuration: `SMARTSHEET_API_URL`, `SMARTSHEET_API_TOKEN`.
+- `connectors/outlook`: Outlook calendar sync via Microsoft Graph (inbound events, outbound invites).
+  - Configuration: `OUTLOOK_API_URL`, `OUTLOOK_CLIENT_ID`, `OUTLOOK_CLIENT_SECRET`, `OUTLOOK_REFRESH_TOKEN`.
+- `connectors/google_calendar`: Google Calendar event sync (inbound events, outbound invites).
+  - Configuration: `GOOGLE_CALENDAR_BASE_URL`, `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_REFRESH_TOKEN`.
+- `connectors/azure_communication_services`: Azure Communication Services messaging (outbound SMS/email).
+  - Configuration: `AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING`, `ACS_ENDPOINT`, `ACS_ACCESS_KEY`.
+- `connectors/twilio`: Twilio SMS messaging (outbound SMS, inbound message logs).
+  - Configuration: `TWILIO_API_URL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`.
+- `connectors/notification_hubs`: Azure Notification Hubs push notifications.
+  - Configuration: `AZURE_NOTIFICATION_HUBS_NAMESPACE`, `AZURE_NOTIFICATION_HUBS_NAME`, `AZURE_NOTIFICATION_HUBS_SAS_KEY_NAME`, `AZURE_NOTIFICATION_HUBS_SAS_KEY`.
 
 Additional connector folders exist for future expansion (e.g., Asana, Monday.com, Oracle, NetSuite) and can be promoted by adding manifests, mappings, and registry entries.
 

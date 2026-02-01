@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from agents.common.connector_integration import (
+    CalendarIntegrationService,
     DatabaseStorageService,
     DocumentationPublishingService,
 )
@@ -68,6 +69,7 @@ class ReleaseDeploymentAgent(BaseAgent):
         )
         self.release_store = TenantStateStore(release_store_path)
         self.deployment_plan_store = TenantStateStore(deployment_plan_store_path)
+        self.calendar_service = CalendarIntegrationService((config or {}).get("calendar"))
 
         # Data stores (will be replaced with database)
         self.releases: dict[str, Any] = {}
@@ -433,6 +435,18 @@ class ReleaseDeploymentAgent(BaseAgent):
         # Persist to database
         await self.db_service.store("releases", release_id, release)
 
+        calendar_event = None
+        if self.calendar_service:
+            calendar_event = self.calendar_service.create_event(
+                {
+                    "title": f"Release: {release.get('name')}",
+                    "summary": release.get("name"),
+                    "scheduled_time": release.get("planned_date"),
+                    "description": release.get("description"),
+                }
+            )
+            release["calendar_event"] = calendar_event
+
         return {
             "release_id": release_id,
             "name": release["name"],
@@ -443,6 +457,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "alternative_windows": alternative_windows,
             "approval_required": approval_required,
             "approval": approval_payload,
+            "calendar_event": calendar_event,
             "next_steps": "Create deployment plan and assess readiness",
         }
 

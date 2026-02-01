@@ -1,0 +1,23 @@
+id: "notification_hubs"
+version: "1.0.0"
+name: "Azure Notification Hubs"
+description: "Send push notifications via Azure Notification Hubs."
+owner: "integration-team"
+category: "collaboration"
+auth:
+  type: "sas"
+  fields:
+    - "namespace"
+    - "hub_name"
+    - "sas_key_name"
+    - "sas_key"
+sync:
+  modes:
+    - "incremental"
+  default_schedule: "*/30 * * * *"
+  supports_webhooks: false
+  rate_limit_per_minute: 60
+mappings:
+  - source: "project"
+    target: "project"
+    mapping_file: "mappings/project.yaml"

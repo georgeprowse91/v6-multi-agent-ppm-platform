@@ -19,6 +19,7 @@ from typing import Any
 
 import requests
 
+from agents.common.connector_integration import CalendarIntegrationService, NotificationService
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
 from connectors.sdk.src.secrets import fetch_keyvault_secret, resolve_secret
@@ -355,6 +356,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
             TwilioClient(self.twilio_account_sid, self.twilio_auth_token)
             if TwilioClient and self.twilio_account_sid and self.twilio_auth_token
             else None
+        )
+        self.notification_service = NotificationService(
+            (config or {}).get("notification") if config else None
+        )
+        self.calendar_service = CalendarIntegrationService(
+            (config or {}).get("calendar") if config else None
         )
 
         self.default_locale = (config or {}).get("default_locale", "en-US")
@@ -1691,6 +1698,15 @@ class StakeholderCommunicationsAgent(BaseAgent):
     ) -> dict[str, Any]:
         """Create a calendar event and send invites via Graph API."""
         if not self.exchange_token:
+            if self.calendar_service:
+                return self.calendar_service.create_event(
+                    {
+                        "title": event.get("title"),
+                        "summary": event.get("title"),
+                        "scheduled_time": event.get("scheduled_time"),
+                        "description": event.get("description"),
+                    }
+                )
             return {"status": "skipped", "reason": "missing_exchange_token"}
         scheduled_time = event.get("scheduled_time") or datetime.utcnow().isoformat()
         try:
@@ -1840,6 +1856,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
     async def _send_sms(self, phone: str | None, content: str) -> dict[str, Any]:
         if not phone:
             return {"status": "failed", "reason": "missing_phone"}
+        if self.notification_service:
+            sms_result = await self.notification_service.send_sms(phone, content)
+            if sms_result.get("status") != "failed":
+                return sms_result
         if self.twilio_client and self.twilio_from_number:
             message = self.twilio_client.messages.create(
                 body=content,
@@ -1868,6 +1888,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
     async def _send_push(
         self, stakeholder: dict[str, Any], subject: str, content: str
     ) -> dict[str, Any]:
+        if self.notification_service and stakeholder.get("push_token"):
+            push_result = await self.notification_service.send_push_notification(
+                stakeholder.get("push_token"), content
+            )
+            if push_result.get("status") != "failed":
+                return push_result
         if self.fcm_server_key and stakeholder.get("push_token"):
             payload = {
                 "to": stakeholder.get("push_token"),

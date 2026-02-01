@@ -23,7 +23,7 @@ from data_quality.rules import evaluate_quality_rules
 from events import ResourceAllocationCreatedEvent
 from observability.tracing import get_trace_id
 
-from agents.common.connector_integration import DatabaseStorageService
+from agents.common.connector_integration import CalendarIntegrationService, DatabaseStorageService
 from agents.common.integration_services import ForecastingModel
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, get_event_bus
@@ -811,6 +811,9 @@ class ResourceCapacityAgent(BaseAgent):
             )
         self.repository = ResourceCapacityRepository(os.getenv("RESOURCE_CAPACITY_DATABASE_URL"))
         self.graph_client: AzureADClient | None = None
+        self.calendar_service = CalendarIntegrationService(
+            (config or {}).get("calendar") if config else None
+        )
         self.embedding_client: EmbeddingClient | None = None
         self.search_client: AzureSearchClient | None = None
         self.event_publisher = EventPublisher(
@@ -2183,9 +2186,14 @@ class ResourceCapacityAgent(BaseAgent):
             skills = self.graph_client.list_user_skills(user_id)
             availability = 1.0
             try:
-                busy_events = self.graph_client.get_calendar_availability(
-                    user_id, datetime.utcnow(), datetime.utcnow() + timedelta(days=30)
-                )
+                if self.calendar_service:
+                    busy_events = self.calendar_service.get_availability(
+                        user_id, datetime.utcnow(), datetime.utcnow() + timedelta(days=30)
+                    )
+                else:
+                    busy_events = self.graph_client.get_calendar_availability(
+                        user_id, datetime.utcnow(), datetime.utcnow() + timedelta(days=30)
+                    )
                 busy_count = len([event for event in busy_events if event.get("showAs") != "free"])
                 availability = max(0.0, 1.0 - min(busy_count / 20, 1.0))
             except Exception:

@@ -13,7 +13,6 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-sys.modules.pop("connectors", None)
 
 os.environ.setdefault("CONNECTOR_TELEMETRY_DISABLED", "1")
 
@@ -42,16 +41,28 @@ def _load_router(connector_id: str):  # noqa: ANN001
     return module.router
 
 
-CONNECTOR_ROUTERS = [
-    ("planview", _load_router("planview")),
-    ("clarity", _load_router("clarity")),
-    ("sap", _load_router("sap")),
-    ("workday", _load_router("workday")),
-    ("salesforce", _load_router("salesforce")),
-    ("slack", _load_router("slack")),
-    ("teams", _load_router("teams")),
-    ("servicenow", _load_router("servicenow")),
+CONNECTOR_IDS = [
+    "planview",
+    "clarity",
+    "sap",
+    "workday",
+    "salesforce",
+    "slack",
+    "teams",
+    "smartsheet",
+    "outlook",
+    "google_calendar",
+    "azure_communication_services",
+    "twilio",
+    "notification_hubs",
+    "servicenow",
 ]
+
+
+@pytest.fixture(params=CONNECTOR_IDS)
+def connector_router(request: pytest.FixtureRequest) -> tuple[str, object]:
+    connector_id = request.param
+    return connector_id, _load_router(connector_id)
 
 
 def _client(router) -> TestClient:  # noqa: ANN001
@@ -60,8 +71,8 @@ def _client(router) -> TestClient:  # noqa: ANN001
     return TestClient(app)
 
 
-@pytest.mark.parametrize("connector_id,router", CONNECTOR_ROUTERS)
-def test_inbound_sync_records(connector_id: str, router) -> None:  # noqa: ANN001
+def test_inbound_sync_records(connector_router: tuple[str, object]) -> None:  # noqa: ANN001
+    connector_id, router = connector_router
     client = _client(router)
     payload = {
         "tenant_id": "tenant-alpha",
@@ -85,8 +96,8 @@ def test_inbound_sync_records(connector_id: str, router) -> None:  # noqa: ANN00
     assert body[0]["name"] == "Alpha"
 
 
-@pytest.mark.parametrize("connector_id,router", CONNECTOR_ROUTERS)
-def test_outbound_sync_dry_run(connector_id: str, router) -> None:  # noqa: ANN001
+def test_outbound_sync_dry_run(connector_router: tuple[str, object]) -> None:  # noqa: ANN001
+    connector_id, router = connector_router
     client = _client(router)
     payload = {
         "tenant_id": "tenant-bravo",

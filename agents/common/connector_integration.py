@@ -1116,6 +1116,36 @@ class NotificationService:
                     return None
                 logger.warning("Email connector not available - using mock notification service")
                 return None
+            elif connector_type == "twilio":
+                if not (os.getenv("TWILIO_ACCOUNT_SID") and os.getenv("TWILIO_AUTH_TOKEN")):
+                    logger.warning("Twilio not configured - using mock notification service")
+                    return None
+                from twilio_connector import TwilioConnector
+
+                connector_config = ConnectorConfig(
+                    connector_id="twilio",
+                    name="Twilio",
+                    category=ConnectorCategory.COLLABORATION,
+                    instance_url=os.getenv("TWILIO_API_URL", ""),
+                )
+                self._connectors[connector_type] = TwilioConnector(connector_config)
+            elif connector_type == "notification_hubs":
+                if not (
+                    os.getenv("AZURE_NOTIFICATION_HUBS_NAMESPACE")
+                    and os.getenv("AZURE_NOTIFICATION_HUBS_NAME")
+                    and os.getenv("AZURE_NOTIFICATION_HUBS_SAS_KEY_NAME")
+                    and os.getenv("AZURE_NOTIFICATION_HUBS_SAS_KEY")
+                ):
+                    logger.warning("Notification Hubs not configured - using mock notification service")
+                    return None
+                from notification_hubs_connector import NotificationHubsConnector
+
+                connector_config = ConnectorConfig(
+                    connector_id="notification_hubs",
+                    name="Notification Hubs",
+                    category=ConnectorCategory.COLLABORATION,
+                )
+                self._connectors[connector_type] = NotificationHubsConnector(connector_config)
             else:
                 logger.warning("Unsupported notification connector type - using mock notification service")
                 return None
@@ -1298,6 +1328,79 @@ class NotificationService:
                 "error": str(exc),
                 "provider": provider,
             }
+
+    async def send_sms(self, to: str, message: str, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Send an SMS notification."""
+        metadata = metadata or {}
+        provider = (self.config.get("sms_provider") or os.getenv("SMS_PROVIDER") or "twilio").lower()
+
+        if provider in {"twilio", "sms"}:
+            connector = self._get_connector("twilio")
+            if connector is None:
+                logger.info("Twilio not configured - using mock SMS notification")
+                return {
+                    "status": "sent_mock",
+                    "to": to,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            from_number = (
+                metadata.get("from_number")
+                or self.config.get("twilio_from_number")
+                or os.getenv("TWILIO_FROM_NUMBER")
+            )
+            payload = {"to": to, "from": from_number, "body": message}
+            try:
+                result = connector.write("messages", [payload])
+                return {
+                    "status": "sent",
+                    "to": to,
+                    "message_id": result[0].get("sid") if result else None,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            except Exception as exc:
+                logger.error(f"Failed to send SMS via Twilio: {exc}")
+                return {"status": "failed", "to": to, "error": str(exc)}
+
+        if provider in {"acs", "azure_communication_services"}:
+            try:
+                from azure_communication_services_connector import (
+                    AzureCommunicationServicesConnector,
+                )
+
+                connector_config = ConnectorConfig(
+                    connector_id="azure_communication_services",
+                    name="Azure Communication Services",
+                    category=ConnectorCategory.COLLABORATION,
+                )
+                connector = AzureCommunicationServicesConnector(connector_config)
+            except Exception as exc:
+                logger.warning("ACS connector unavailable: %s", exc)
+                connector = None
+            if connector is None:
+                return {"status": "failed", "to": to, "error": "acs_connector_missing"}
+            payload = {
+                "to": [to],
+                "from": metadata.get("from_number") or os.getenv("ACS_FROM_NUMBER"),
+                "message": message,
+            }
+            try:
+                result = connector.write("sms", [payload])
+                return {
+                    "status": "sent",
+                    "to": to,
+                    "message_id": result[0].get("messageId") if result else None,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            except Exception as exc:
+                logger.error(f"Failed to send SMS via ACS: {exc}")
+                return {"status": "failed", "to": to, "error": str(exc)}
+
+        logger.info("Mock sending SMS notification")
+        return {
+            "status": "sent_mock",
+            "to": to,
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     async def _send_email_via_graph(
         self,
@@ -1571,6 +1674,19 @@ class NotificationService:
     async def _send_push_via_notification_hubs(
         self, destination: str, message: str
     ) -> dict[str, Any]:
+        connector = self._get_connector("notification_hubs")
+        if connector is not None:
+            try:
+                payload = {"to": destination, "notification": {"title": "Approval Update", "body": message}}
+                result = connector.write("notifications", [payload])
+                return {
+                    "status": "sent",
+                    "destination": destination,
+                    "message_id": result[0].get("id") if result else None,
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                }
+            except Exception as exc:
+                logger.error(f"Failed to send push notification via connector: {exc}")
         namespace = self.config.get("notification_hubs_namespace") or os.getenv(
             "AZURE_NOTIFICATION_HUBS_NAMESPACE"
         )
@@ -1619,6 +1735,117 @@ class NotificationService:
             f"SharedAccessSignature sr={encoded_uri}&sig={urllib.parse.quote_plus(signature)}"
             f"&se={expiry}&skn={key_name}"
         )
+
+
+class CalendarIntegrationService:
+    """Calendar integration service for Outlook and Google Calendar connectors."""
+
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config = config or {}
+        self._connector: Any | None = None
+        self._provider = (self.config.get("provider") or os.getenv("CALENDAR_PROVIDER") or "").lower()
+
+    def _select_provider(self) -> str | None:
+        if self._provider:
+            return self._provider
+        if os.getenv("OUTLOOK_CLIENT_ID") or os.getenv("OUTLOOK_REFRESH_TOKEN"):
+            return "outlook"
+        if os.getenv("GOOGLE_CALENDAR_CLIENT_ID") or os.getenv("GOOGLE_CALENDAR_REFRESH_TOKEN"):
+            return "google_calendar"
+        return None
+
+    def _get_connector(self) -> Any | None:
+        if self._connector is not None:
+            return self._connector
+
+        provider = self._select_provider()
+        if not provider:
+            return None
+        try:
+            _ensure_connector_paths()
+            if provider in {"outlook", "graph"}:
+                from outlook_connector import OutlookConnector
+
+                connector_config = ConnectorConfig(
+                    connector_id="outlook",
+                    name="Outlook",
+                    category=ConnectorCategory.COLLABORATION,
+                )
+                self._connector = OutlookConnector(connector_config)
+            elif provider in {"google", "google_calendar"}:
+                from google_calendar_connector import GoogleCalendarConnector
+
+                connector_config = ConnectorConfig(
+                    connector_id="google_calendar",
+                    name="Google Calendar",
+                    category=ConnectorCategory.COLLABORATION,
+                )
+                self._connector = GoogleCalendarConnector(connector_config)
+            else:
+                return None
+            return self._connector
+        except Exception as exc:
+            logger.warning("Failed to initialize calendar connector (%s): %s", provider, exc)
+            return None
+
+    def create_event(self, event: dict[str, Any]) -> dict[str, Any]:
+        connector = self._get_connector()
+        if connector is None:
+            return {"status": "skipped", "reason": "calendar_connector_unavailable"}
+
+        start_time = event.get("start") or event.get("scheduled_time")
+        end_time = event.get("end")
+        if not end_time and start_time:
+            end_time = start_time
+        payload = {
+            "subject": event.get("title") or event.get("summary"),
+            "summary": event.get("title") or event.get("summary"),
+            "start": {"dateTime": start_time, "timeZone": "UTC"},
+            "end": {"dateTime": end_time, "timeZone": "UTC"},
+            "description": event.get("description"),
+        }
+        try:
+            result = connector.write("events", [payload])
+            return {
+                "status": "scheduled",
+                "provider": connector.CONNECTOR_ID,
+                "event_id": result[0].get("id") if result else None,
+            }
+        except Exception as exc:
+            logger.error(f"Failed to create calendar event: {exc}")
+            return {"status": "failed", "error": str(exc)}
+
+    def list_events(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        connector = self._get_connector()
+        if connector is None:
+            return []
+        try:
+            return connector.read("events", filters=filters)
+        except Exception as exc:
+            logger.error(f"Failed to list calendar events: {exc}")
+            return []
+
+    def get_availability(
+        self, user_id: str | None, start: datetime, end: datetime
+    ) -> list[dict[str, Any]]:
+        connector = self._get_connector()
+        if connector is None:
+            return []
+        try:
+            if connector.CONNECTOR_ID == "outlook":
+                filters = {
+                    "startDateTime": start.isoformat(),
+                    "endDateTime": end.isoformat(),
+                }
+                return connector.read("calendar_view", filters=filters)
+            filters = {
+                "timeMin": start.isoformat(),
+                "timeMax": end.isoformat(),
+            }
+            return connector.read("events", filters=filters)
+        except Exception as exc:
+            logger.error(f"Failed to get calendar availability: {exc}")
+            return []
 
 
 class MLPredictionService:

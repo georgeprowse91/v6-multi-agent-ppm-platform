@@ -21,6 +21,7 @@ from events import EventEnvelope
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import (
+    CalendarIntegrationService,
     DatabaseStorageService,
     DocumentManagementService,
     DocumentMetadata,
@@ -124,6 +125,9 @@ class QualityManagementAgent(BaseAgent):
         self.defect_ml_model: dict[str, Any] | None = None
         self.defect_cluster_model: dict[str, Any] | None = None
         self.calendar_client = (config or {}).get("calendar_client")
+        self.calendar_service = CalendarIntegrationService(
+            (config or {}).get("calendar")
+        )
         self.approval_agent = (config or {}).get("approval_agent")
         self.approval_agent_config = (config or {}).get("approval_agent_config", {})
         self.approval_agent_enabled = (
@@ -2710,6 +2714,16 @@ class QualityManagementAgent(BaseAgent):
             response = self.calendar_client.create_event(review)
             if hasattr(response, "__await__"):
                 return await response
+            return response
+        if self.calendar_service:
+            response = self.calendar_service.create_event(
+                {
+                    "title": review.get("title") or review.get("review_id"),
+                    "summary": review.get("title") or review.get("review_id"),
+                    "scheduled_time": review.get("scheduled_date"),
+                    "description": review.get("description"),
+                }
+            )
             return response
         comms_client = (self.config or {}).get("stakeholder_communications_client")
         if comms_client and hasattr(comms_client, "create_calendar_event"):

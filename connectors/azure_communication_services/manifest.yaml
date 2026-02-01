@@ -1,0 +1,22 @@
+id: "azure_communication_services"
+version: "1.0.0"
+name: "Azure Communication Services"
+description: "Send notifications via Azure Communication Services (SMS/Email)."
+owner: "integration-team"
+category: "collaboration"
+auth:
+  type: "api_key"
+  fields:
+    - "connection_string"
+    - "endpoint"
+    - "access_key"
+sync:
+  modes:
+    - "incremental"
+  default_schedule: "*/30 * * * *"
+  supports_webhooks: false
+  rate_limit_per_minute: 60
+mappings:
+  - source: "project"
+    target: "project"
+    mapping_file: "mappings/project.yaml"

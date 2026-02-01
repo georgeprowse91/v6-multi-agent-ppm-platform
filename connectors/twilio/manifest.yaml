@@ -1,0 +1,22 @@
+id: "twilio"
+version: "1.0.0"
+name: "Twilio"
+description: "Send SMS notifications via Twilio APIs."
+owner: "integration-team"
+category: "collaboration"
+auth:
+  type: "basic"
+  fields:
+    - "account_sid"
+    - "auth_token"
+    - "base_url"
+sync:
+  modes:
+    - "incremental"
+  default_schedule: "*/30 * * * *"
+  supports_webhooks: true
+  rate_limit_per_minute: 60
+mappings:
+  - source: "project"
+    target: "project"
+    mapping_file: "mappings/project.yaml"
