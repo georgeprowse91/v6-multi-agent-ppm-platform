@@ -13,6 +13,7 @@ Document the 25 specialized domain agents and how they integrate into the orches
 - `agents/common`: Shared utilities (metrics catalog, scenario engine, health recommendations).
 - `agents/runtime`: Subdirectory containing runtime assets for this area.
 - `agents/__init__.py`: Python module used by this component.
+- `agents/AGENT_CATALOG.md`: Generated catalogue enumerating agents, capabilities, and dependencies.
 
 ## How it's used
 
