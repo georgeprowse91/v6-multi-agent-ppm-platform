@@ -10,7 +10,7 @@ class EventCollector:
         self.events.append((topic, payload))
 
 
-class ApprovalStub:
+class ApprovalMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -19,7 +19,7 @@ class ApprovalStub:
         return {"approval_id": "appr-1", "status": "pending"}
 
 
-class MetricAgentStub:
+class MetricAgentMock:
     def __init__(self, response: dict) -> None:
         self.response = response
         self.requests: list[dict] = []
@@ -32,18 +32,18 @@ class MetricAgentStub:
 @pytest.mark.asyncio
 async def test_project_lifecycle_gate_and_health(tmp_path):
     event_bus = EventCollector()
-    approval_stub = ApprovalStub()
+    approval_mock = ApprovalMock()
     metric_agents = {
-        "schedule": MetricAgentStub({"schedule_variance_pct": -0.05}),
-        "financial": MetricAgentStub({"budget_variance_pct": 0.02}),
-        "risk": MetricAgentStub({"risk_summary": {"total_risks": 4, "high_risks": 1}}),
-        "quality": MetricAgentStub({"quality_score": 0.9}),
-        "resource": MetricAgentStub({"average_utilization": 0.85}),
+        "schedule": MetricAgentMock({"schedule_variance_pct": -0.05}),
+        "financial": MetricAgentMock({"budget_variance_pct": 0.02}),
+        "risk": MetricAgentMock({"risk_summary": {"total_risks": 4, "high_risks": 1}}),
+        "quality": MetricAgentMock({"quality_score": 0.9}),
+        "resource": MetricAgentMock({"average_utilization": 0.85}),
     }
     agent = ProjectLifecycleAgent(
         config={
             "event_bus": event_bus,
-            "approval_agent": approval_stub,
+            "approval_agent": approval_mock,
             "lifecycle_store_path": tmp_path / "lifecycle.json",
             "health_store_path": tmp_path / "health.json",
             "metric_agents": metric_agents,
@@ -107,17 +107,17 @@ async def test_project_lifecycle_gate_and_health(tmp_path):
         requester="user-2",
     )
     assert override["approval"]["status"] == "pending"
-    assert approval_stub.requests
+    assert approval_mock.requests
 
 
 @pytest.mark.asyncio
 async def test_project_lifecycle_dashboard_success(tmp_path):
     metric_agents = {
-        "schedule": MetricAgentStub({"schedule_variance_pct": -0.02}),
-        "financial": MetricAgentStub({"budget_variance_pct": 0.01}),
-        "risk": MetricAgentStub({"risk_summary": {"total_risks": 2, "high_risks": 0}}),
-        "quality": MetricAgentStub({"quality_score": 0.92}),
-        "resource": MetricAgentStub({"average_utilization": 0.8}),
+        "schedule": MetricAgentMock({"schedule_variance_pct": -0.02}),
+        "financial": MetricAgentMock({"budget_variance_pct": 0.01}),
+        "risk": MetricAgentMock({"risk_summary": {"total_risks": 2, "high_risks": 0}}),
+        "quality": MetricAgentMock({"quality_score": 0.92}),
+        "resource": MetricAgentMock({"average_utilization": 0.8}),
     }
     agent = ProjectLifecycleAgent(
         config={
@@ -160,11 +160,11 @@ async def test_project_lifecycle_dashboard_success(tmp_path):
 async def test_project_lifecycle_generates_health_report(tmp_path):
     event_bus = EventCollector()
     metric_agents = {
-        "schedule": MetricAgentStub({"schedule_variance_pct": -0.08}),
-        "financial": MetricAgentStub({"budget_variance_pct": 0.05}),
-        "risk": MetricAgentStub({"risk_summary": {"total_risks": 5, "high_risks": 2}}),
-        "quality": MetricAgentStub({"quality_score": 0.8}),
-        "resource": MetricAgentStub({"average_utilization": 0.9}),
+        "schedule": MetricAgentMock({"schedule_variance_pct": -0.08}),
+        "financial": MetricAgentMock({"budget_variance_pct": 0.05}),
+        "risk": MetricAgentMock({"risk_summary": {"total_risks": 5, "high_risks": 2}}),
+        "quality": MetricAgentMock({"quality_score": 0.8}),
+        "resource": MetricAgentMock({"average_utilization": 0.9}),
     }
     agent = ProjectLifecycleAgent(
         config={

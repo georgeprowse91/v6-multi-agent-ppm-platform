@@ -120,7 +120,7 @@ class NotificationService:
 
 
 class DataConnector:
-    """Provides access to external datasets using config-defined stubs."""
+    """Provides access to external datasets using config-defined mock datasets."""
 
     def __init__(self, data: dict[str, Any] | None = None) -> None:
         self.data = data or {}

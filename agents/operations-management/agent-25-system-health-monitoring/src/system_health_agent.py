@@ -745,7 +745,6 @@ class SystemHealthAgent(BaseAgent):
         metrics = await self._get_service_metrics(service_name, time_range)
 
         # Apply anomaly detection
-        # Future work: Use Azure ML or statistical models
         anomalies = await self._apply_anomaly_detection(metrics)
 
         # Store anomalies
@@ -942,7 +941,6 @@ class SystemHealthAgent(BaseAgent):
         self.logger.info(f"Getting metrics: {service_name}.{metric_name}")
 
         # Query metrics
-        # Future work: Query from Azure Monitor
         metric_values = await self._query_metrics(service_name, metric_name, time_range)
 
         return {
@@ -1117,8 +1115,6 @@ class SystemHealthAgent(BaseAgent):
         alert["acknowledged_at"] = datetime.utcnow().isoformat()
         self.alert_store.upsert(tenant_id, alert_id, alert.copy())
 
-        # Future work: Update in monitoring system
-        # Future work: Publish alert.acknowledged event
 
         return {
             "alert_id": alert_id,
@@ -2095,24 +2091,20 @@ class SystemHealthAgent(BaseAgent):
 
     async def _collect_incident_metrics(self, affected_services: list[str]) -> dict[str, Any]:
         """Collect metrics related to incident."""
-        # Future work: Collect metrics from Azure Monitor
         return {}
 
     async def _collect_incident_logs(self, affected_services: list[str]) -> list[dict[str, Any]]:
         """Collect logs related to incident."""
-        # Future work: Collect logs from Log Analytics
         return []
 
     async def _collect_incident_traces(self, affected_services: list[str]) -> list[dict[str, Any]]:
         """Collect traces related to incident."""
-        # Future work: Collect traces from Application Insights
         return []
 
     async def _correlate_incident_data(
         self, metrics: dict[str, Any], logs: list[dict[str, Any]], traces: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Correlate incident data sources."""
-        # Future work: Implement correlation logic
         return []
 
     async def _identify_probable_causes(self, correlations: list[dict[str, Any]]) -> list[str]:

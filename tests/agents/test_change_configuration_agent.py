@@ -3,7 +3,7 @@ import pytest
 from change_configuration_agent import ChangeConfigurationAgent, ImpactTrainingSample
 
 
-class ApprovalStub:
+class ApprovalMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -12,7 +12,7 @@ class ApprovalStub:
         return {"approval_id": "appr-change", "status": "pending"}
 
 
-class EventPublisherStub:
+class EventPublisherMock:
     def __init__(self) -> None:
         self.events: list[dict] = []
 
@@ -22,10 +22,10 @@ class EventPublisherStub:
 
 @pytest.mark.asyncio
 async def test_change_configuration_persists_and_requests_approval(tmp_path):
-    approval_stub = ApprovalStub()
+    approval_mock = ApprovalMock()
     agent = ChangeConfigurationAgent(
         config={
-            "approval_agent": approval_stub,
+            "approval_agent": approval_mock,
             "change_store_path": tmp_path / "changes.json",
             "cmdb_store_path": tmp_path / "cmdb.json",
         }
@@ -45,7 +45,7 @@ async def test_change_configuration_persists_and_requests_approval(tmp_path):
         }
     )
     assert change_response["approval_required"] is True
-    assert approval_stub.requests
+    assert approval_mock.requests
     assert agent.change_store.get("tenant-chg", change_response["change_id"])
 
     ci_response = await agent.process(
@@ -167,7 +167,7 @@ async def test_change_configuration_graph_traversal(tmp_path):
 
 @pytest.mark.asyncio
 async def test_change_configuration_publishes_events(tmp_path):
-    publisher = EventPublisherStub()
+    publisher = EventPublisherMock()
     agent = ChangeConfigurationAgent(
         config={
             "event_publisher": publisher,

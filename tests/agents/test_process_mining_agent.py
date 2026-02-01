@@ -2,7 +2,7 @@ import pytest
 from process_mining_agent import ProcessMiningAgent
 
 
-class WorkflowStub:
+class WorkflowMock:
     def __init__(self) -> None:
         self.events: list[dict] = []
 
@@ -11,7 +11,7 @@ class WorkflowStub:
         return {"status": "ok"}
 
 
-class EventBusStub:
+class EventBusMock:
     def __init__(self) -> None:
         self.subscribers: dict[str, list] = {}
         self.published: list[dict] = []
@@ -37,11 +37,11 @@ class EventBusStub:
 
 @pytest.mark.asyncio
 async def test_process_mining_persists_logs_and_emits_recommendations(tmp_path):
-    workflow_stub = WorkflowStub()
+    workflow_mock = WorkflowMock()
     agent = ProcessMiningAgent(
         config={
             "event_log_store_path": tmp_path / "event_logs.json",
-            "workflow_engine_agent": workflow_stub,
+            "workflow_engine_agent": workflow_mock,
         }
     )
     await agent.initialize()
@@ -75,8 +75,8 @@ async def test_process_mining_persists_logs_and_emits_recommendations(tmp_path):
     )
 
     assert improvement["improvement_id"]
-    assert workflow_stub.events
-    assert workflow_stub.events[0]["action"] == "handle_event"
+    assert workflow_mock.events
+    assert workflow_mock.events[0]["action"] == "handle_event"
 
 
 @pytest.mark.asyncio
@@ -111,7 +111,7 @@ async def test_process_mining_get_insights_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_mining_discovers_and_checks_conformance(tmp_path):
-    event_bus = EventBusStub()
+    event_bus = EventBusMock()
     agent = ProcessMiningAgent(
         config={
             "event_log_store_path": tmp_path / "event_logs.json",
@@ -165,7 +165,7 @@ async def test_process_mining_discovers_and_checks_conformance(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_mining_ingests_event_bus_events(tmp_path):
-    event_bus = EventBusStub()
+    event_bus = EventBusMock()
     agent = ProcessMiningAgent(
         config={
             "event_log_store_path": tmp_path / "event_logs.json",

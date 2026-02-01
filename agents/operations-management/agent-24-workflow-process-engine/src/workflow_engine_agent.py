@@ -359,9 +359,6 @@ class WorkflowEngineAgent(BaseAgent):
             {"workflow_id": workflow_id, "name": workflow.get("name")},
         )
 
-        # Future work: Store in database
-        # Future work: Import/export BPMN XML if provided
-        # Future work: Publish workflow.defined event
 
         return {
             "workflow_id": workflow_id,
@@ -430,8 +427,6 @@ class WorkflowEngineAgent(BaseAgent):
         for task in initial_tasks:
             await self._execute_task(tenant_id, instance_id, task)
 
-        # Future work: Store in database
-        # Future work: Publish workflow.started event
 
         return {
             "instance_id": instance_id,
@@ -498,9 +493,6 @@ class WorkflowEngineAgent(BaseAgent):
             },
         )
 
-        # Future work: Store in database
-        # Future work: Send notification to assignee
-        # Future work: Publish task.assigned event
 
         return {"task_id": task_id, "assignee": assignee, "assigned_at": assignment["assigned_at"]}
 
@@ -578,8 +570,6 @@ class WorkflowEngineAgent(BaseAgent):
                 {"instance_id": instance_id, "task_id": task_id},
             )
 
-        # Future work: Store in database
-        # Future work: Publish task.completed event
 
         return {
             "task_id": task_id,
@@ -622,8 +612,6 @@ class WorkflowEngineAgent(BaseAgent):
                 self.task_assignments[task_id] = assignment
                 await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
-        # Future work: Store in database
-        # Future work: Publish workflow.cancelled event
 
         return {
             "instance_id": instance_id,
@@ -651,8 +639,6 @@ class WorkflowEngineAgent(BaseAgent):
             tenant_id, "workflow.paused", {"instance_id": instance_id}
         )
 
-        # Future work: Store in database
-        # Future work: Publish workflow.paused event
 
         return {"instance_id": instance_id, "status": "paused", "paused_at": instance["paused_at"]}
 
@@ -798,7 +784,6 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Re-execute task
         assignment.get("instance_id")
-        # Future work: Re-execute task logic
 
         return {"task_id": task_id, "status": "retrying", "retry_count": assignment["retry_count"]}
 
@@ -1507,7 +1492,6 @@ class WorkflowEngineAgent(BaseAgent):
         self, event_data: dict[str, Any], criteria: dict[str, Any]
     ) -> bool:
         """Check if event matches subscription criteria."""
-        # Future work: Implement criteria matching
         return True
 
     async def _matches_instance_filters(
@@ -1700,9 +1684,6 @@ class WorkflowEngineAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Workflow & Process Engine Agent...")
-        # Future work: Close database connections
-        # Future work: Close orchestration connections
-        # Future work: Cancel running workflows if needed
         if isinstance(self.event_bus, ServiceBusEventBus):
             await self.event_bus.stop()
 

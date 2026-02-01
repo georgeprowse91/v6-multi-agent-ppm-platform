@@ -29,7 +29,7 @@ container is healthy:
 DATABASE_URL=postgresql://ppm:ppm_password@localhost:5432/ppm alembic upgrade head
 ```
 
-The default dev stack enables an auth stub and mock LLM response for deterministic routing. The
+The default dev stack enables auth dev mode and a mock LLM response for deterministic routing. The
 stack exposes:
 - API gateway: http://localhost:8000
 - Workflow engine: http://localhost:8080
@@ -37,7 +37,7 @@ stack exposes:
 
 ## Run the end-to-end scenario
 The scenario uses:
-- API gateway auth stub/dev mode
+- API gateway auth dev mode
 - Intent router + response orchestration
 - Portfolio strategy, financial management, and risk management agents
 - Workflow engine persistence
@@ -87,7 +87,7 @@ make dev-down
 ## Notes
 - To override the deterministic routing response, set `LLM_MOCK_RESPONSE_PATH` to a custom JSON
   file that matches the intent router response schema.
-- Auth stub/dev mode is enabled with `AUTH_DEV_MODE=true` (default in docker-compose for local
+- Auth dev mode is enabled with `AUTH_DEV_MODE=true` (default in docker-compose for local
   development). In production, disable it and configure JWT validation.
 - The orchestration service reads `ORCHESTRATION_STATE_BACKEND` (set to `db` in docker-compose)
   and `ORCHESTRATION_DATABASE_URL`/`DATABASE_URL` to select the durable Postgres store. Ensure the

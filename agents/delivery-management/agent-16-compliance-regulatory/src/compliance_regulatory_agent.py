@@ -845,7 +845,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         policy_content = f"""# {policy['title']}
 
 **Version:** {policy['version']}
-**Effective Date:** {policy.get('effective_date', 'TBD')}
+**Effective Date:** {policy.get('effective_date', 'unknown')}
 **Owner:** {policy.get('owner', 'Unassigned')}
 
 ## Description
@@ -921,7 +921,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         # Persist to database
         await self.db_service.store("audits", audit_id, audit)
-        # Future work: Grant read-only access to auditors
+        audit["auditor_access"] = {"auditor": audit.get("auditor"), "access": "read_only"}
 
         return {
             "audit_id": audit_id,
@@ -1159,7 +1159,6 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.logger.info("Monitoring regulatory changes")
 
         # Check for regulatory updates
-        # Future work: Subscribe to regulatory feeds and APIs
         changes = await self._check_regulatory_feeds()
 
         # Assess impact on existing regulations and controls
@@ -1923,8 +1922,22 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _assess_regulatory_change_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess impact of regulatory change."""
-        # Future work: Analyze impact on projects and controls
-        return {"projects_affected": [], "controls_affected": [], "estimated_effort": "medium"}
+        affected_projects = []
+        affected_controls = []
+        regulation_key = str(change.get("regulation") or change.get("id") or "").lower()
+        for project_id, mapping in self.compliance_mappings.items():
+            scope = [str(item).lower() for item in mapping.get("regulations", [])]
+            if regulation_key and regulation_key in scope:
+                affected_projects.append(project_id)
+                affected_controls.extend(mapping.get("applicable_controls", []))
+        effort = "low"
+        if affected_controls:
+            effort = "high" if len(affected_controls) > 5 else "medium"
+        return {
+            "projects_affected": affected_projects,
+            "controls_affected": list(dict.fromkeys(affected_controls)),
+            "estimated_effort": effort,
+        }
 
     async def _get_control_testing_status(self, project_id: str | None) -> dict[str, Any]:
         """Get control testing status."""

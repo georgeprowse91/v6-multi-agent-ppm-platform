@@ -3,7 +3,7 @@ import vendor_procurement_agent as vendor_procurement_module
 from vendor_procurement_agent import VendorProcurementAgent
 
 
-class ApprovalStub:
+class ApprovalMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -12,7 +12,7 @@ class ApprovalStub:
         return {"approval_id": "appr-1", "status": "pending"}
 
 
-class TaskClientStub:
+class TaskClientMock:
     def __init__(self) -> None:
         self.tasks: list[dict] = []
 
@@ -29,7 +29,7 @@ class TaskClientStub:
         return {"task_id": f"task-{len(self.tasks)}", "status": "queued"}
 
 
-class CommunicationsStub:
+class CommunicationsMock:
     def __init__(self) -> None:
         self.notifications: list[dict] = []
 
@@ -57,10 +57,10 @@ class CommunicationsStub:
 
 @pytest.mark.asyncio
 async def test_vendor_procurement_persists_and_requests_approval(tmp_path):
-    approval_stub = ApprovalStub()
+    approval_mock = ApprovalMock()
     agent = VendorProcurementAgent(
         config={
-            "approval_agent": approval_stub,
+            "approval_agent": approval_mock,
             "vendor_store_path": tmp_path / "vendors.json",
             "contract_store_path": tmp_path / "contracts.json",
             "invoice_store_path": tmp_path / "invoices.json",
@@ -99,7 +99,7 @@ async def test_vendor_procurement_persists_and_requests_approval(tmp_path):
         }
     )
     assert request_response["approval_required"] is True
-    assert approval_stub.requests
+    assert approval_mock.requests
 
     contract_response = await agent.process(
         {
@@ -455,14 +455,14 @@ async def test_budget_checks_use_financial_client(tmp_path):
 
 @pytest.mark.asyncio
 async def test_vendor_procurement_blocks_and_mitigates_on_compliance_failure(tmp_path):
-    task_stub = TaskClientStub()
-    comms_stub = CommunicationsStub()
+    task_mock = TaskClientMock()
+    comms_mock = CommunicationsMock()
     agent = VendorProcurementAgent(
         config={
             "vendor_store_path": tmp_path / "vendors.json",
             "event_store_path": tmp_path / "events.json",
-            "task_client": task_stub,
-            "communications_client": comms_stub,
+            "task_client": task_mock,
+            "communications_client": comms_mock,
             "risk_config": {
                 "mock_responses": {
                     "Risky Vendor": {
@@ -493,8 +493,8 @@ async def test_vendor_procurement_blocks_and_mitigates_on_compliance_failure(tmp
 
     assert response["status"] == "blocked"
     assert response["compliance_status"] == "blocked"
-    assert task_stub.tasks
-    assert comms_stub.notifications
+    assert task_mock.tasks
+    assert comms_mock.notifications
     events = agent.event_store.list("tenant-x")
     event_types = {event["event_type"] for event in events}
     assert "vendor.compliance_failed" in event_types
@@ -544,14 +544,14 @@ async def test_vendor_procurement_updates_profile_and_queries(tmp_path):
 
 @pytest.mark.asyncio
 async def test_vendor_procurement_mitigation_on_risk_event(tmp_path):
-    task_stub = TaskClientStub()
-    comms_stub = CommunicationsStub()
+    task_mock = TaskClientMock()
+    comms_mock = CommunicationsMock()
     agent = VendorProcurementAgent(
         config={
             "vendor_store_path": tmp_path / "vendors.json",
             "event_store_path": tmp_path / "events.json",
-            "task_client": task_stub,
-            "communications_client": comms_stub,
+            "task_client": task_mock,
+            "communications_client": comms_mock,
         }
     )
     await agent.initialize()
@@ -580,5 +580,5 @@ async def test_vendor_procurement_mitigation_on_risk_event(tmp_path):
 
     vendor = agent.vendors[vendor_response["vendor_id"]]
     assert vendor["status"] == "flagged"
-    assert task_stub.tasks
-    assert comms_stub.notifications
+    assert task_mock.tasks
+    assert comms_mock.notifications

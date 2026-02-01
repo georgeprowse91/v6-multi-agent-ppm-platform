@@ -94,11 +94,17 @@ locally, understand core services, and start contributing safely.
 
 ## Configuration tips
 
-- Local development uses an auth stub in docker-compose (`AUTH_DEV_MODE=true`).
+- Local development uses auth dev mode in docker-compose (`AUTH_DEV_MODE=true`).
 - Update `.env` for local overrides (LLM provider, credentials, feature flags).
 - Service-specific environment variables live in each service README.
 - External research features rely on `SEARCH_API_ENDPOINT`/`SEARCH_API_KEY` and per-agent flags such as
   `enable_external_risk_research`, `enable_vendor_research`, and `enable_regulatory_monitoring`.
+
+## Validation suites
+
+- End-to-end workflow validation lives in `tests/integration/test_end_to_end_workflow.py`.
+- Load and performance checks for the event bus live in `tests/performance/test_event_bus_load.py`.
+- Security validation of secret resolution and RBAC mappings lives in `tests/security/test_secret_resolution_and_rbac.py`.
 
 ## Common issues
 

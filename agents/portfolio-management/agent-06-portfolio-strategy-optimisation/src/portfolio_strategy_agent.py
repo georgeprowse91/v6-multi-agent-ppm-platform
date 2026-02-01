@@ -19,6 +19,7 @@ from events import PortfolioPrioritizedEvent
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import DatabaseStorageService
+from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
@@ -92,6 +93,12 @@ class PortfolioStrategyAgent(BaseAgent):
         self.optimization_scenarios = {}  # type: ignore
         self.scenario_definitions = {}  # type: ignore
         self.db_service: DatabaseStorageService | None = None
+        self.embedding_service = LocalEmbeddingService(
+            config.get("embedding_dimensions", 128) if config else 128
+        )
+        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.integration_clients = config.get("integration_clients", {}) if config else {}
+        self.integration_status: dict[str, bool] = {}
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
@@ -107,16 +114,11 @@ class PortfolioStrategyAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Portfolio Strategy & Optimization Agent...")
 
-        # Future work: Initialize Azure Machine Learning for multi-objective optimization
         db_config = self.config.get("database_storage", {}) if self.config else {}
         self.db_service = DatabaseStorageService(db_config)
         self.logger.info("Database Storage Service initialized")
-        # Future work: Initialize connections to Planview/Clarity PPM
-        # Future work: Connect to strategic planning tools (Cascade, AchieveIt)
-        # Future work: Initialize Azure Cognitive Services for NLP of strategic documents
-        # Future work: Set up Azure Cognitive Search for objective extraction
-        # Future work: Initialize Azure Service Bus/Event Grid for event publishing
-        # Future work: Load strategic objectives from corporate planning systems
+        self._register_integrations()
+        await self._load_strategic_objectives()
 
         self.logger.info("Portfolio Strategy & Optimization Agent initialized")
 
@@ -382,9 +384,6 @@ class PortfolioStrategyAgent(BaseAgent):
         Returns alignment scores for each strategic objective.
         """
         self.logger.info(f"Calculating alignment score for project: {project.get('project_id')}")
-
-        # Future work: Use Azure Cognitive Services NLP to analyze project description
-        # Future work: Match project to strategic objectives using embeddings
 
         alignment_details = []
 
@@ -723,8 +722,18 @@ class PortfolioStrategyAgent(BaseAgent):
 
         # Calculate impact metrics
         impact = await self._calculate_rebalancing_impact(recommendations)
-
-        # Future work: Publish portfolio.rebalanced event
+        await self._publish_event(
+            "portfolio.rebalanced",
+            {
+                "portfolio_id": portfolio_id,
+                "gaps": gaps,
+                "recommendations": recommendations,
+                "impact": impact,
+                "rebalanced_at": datetime.utcnow().isoformat(),
+            },
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+        )
 
         return {
             "portfolio_id": portfolio_id,
@@ -1341,8 +1350,15 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _score_resource_feasibility(self, project: dict[str, Any]) -> float:
         """Score resource feasibility (0-1)."""
-        # Future work: Query Resource Management Agent for availability
-
+        resource_agent = self.integration_clients.get("resource_agent")
+        if resource_agent:
+            response = await resource_agent.process(
+                {
+                    "action": "get_capacity",
+                    "resource_requirements": project.get("resource_requirements", {}),
+                }
+            )
+            return float(response.get("feasibility_score", project.get("resource_score", 0.7)))
         return project.get("resource_score", 0.7)  # type: ignore
 
     async def _score_compliance(self, project: dict[str, Any]) -> float:
@@ -1375,7 +1391,9 @@ class PortfolioStrategyAgent(BaseAgent):
             return 0.0
 
         matched = len(project_terms & objective_terms)
-        score = matched / max(1, len(objective_terms))
+        keyword_score = matched / max(1, len(objective_terms))
+        embedding_score = self._embedding_similarity(objective_text, project_text)
+        score = max(keyword_score, embedding_score)
 
         objective_ids = {objective.get("id"), objective.get("name")}
         project_objectives = set(project.get("strategic_objectives", []) or [])
@@ -1383,6 +1401,52 @@ class PortfolioStrategyAgent(BaseAgent):
             score = max(score, 0.85)
 
         return max(0.0, min(1.0, score))
+
+    def _embedding_similarity(self, left: str, right: str) -> float:
+        if not left or not right:
+            return 0.0
+        vectors = self.embedding_service.embed([left, right])
+        a, b = vectors[0], vectors[1]
+        dot = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a)) or 1.0
+        norm_b = math.sqrt(sum(y * y for y in b)) or 1.0
+        return max(0.0, min(1.0, dot / (norm_a * norm_b)))
+
+    def _register_integrations(self) -> None:
+        self.integration_status = {
+            "ml_optimizer": bool(self.integration_clients.get("ml_optimizer")),
+            "ppm_connector": bool(self.integration_clients.get("ppm_connector")),
+            "planning_tools": bool(self.integration_clients.get("planning_tools")),
+            "cognitive_nlp": bool(self.integration_clients.get("cognitive_nlp")),
+            "cognitive_search": bool(self.integration_clients.get("cognitive_search")),
+            "event_bus": self.event_bus is not None,
+        }
+
+    async def _load_strategic_objectives(self) -> None:
+        objectives = self.config.get("strategic_objectives") if self.config else None
+        if isinstance(objectives, list):
+            self.strategic_objectives = objectives
+            for objective in objectives:
+                if isinstance(objective, dict):
+                    objective_text = f"{objective.get('name', '')} {objective.get('description', '')}"
+                    self.vector_index.add(
+                        str(objective.get("id", objective.get("name", uuid.uuid4().hex))),
+                        objective_text,
+                        objective,
+                    )
+
+    async def _publish_event(
+        self, topic: str, payload: dict[str, Any], *, tenant_id: str, correlation_id: str
+    ) -> None:
+        if not self.event_bus:
+            return
+        enriched = {
+            **payload,
+            "tenant_id": tenant_id,
+            "correlation_id": correlation_id,
+            "published_at": datetime.utcnow().isoformat(),
+        }
+        await self.event_bus.publish(topic, enriched)
 
     def _extract_keywords(self, text: str) -> set[str]:
         tokens = re.findall(r"[a-z0-9]+", text.lower())
@@ -1496,7 +1560,10 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _get_current_portfolio(self, portfolio_id: str | None = None) -> list[dict[str, Any]]:
         """Get current portfolio composition."""
-        # Future work: Query database for active projects
+        if self.db_service and portfolio_id:
+            record = await self.db_service.get("portfolio_strategy", portfolio_id)
+            if record:
+                return record.get("ranked_projects", [])
         return []
 
     async def _calculate_investment_mix(self, portfolio: list[dict[str, Any]]) -> dict[str, float]:
@@ -1546,9 +1613,10 @@ class PortfolioStrategyAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Portfolio Strategy & Optimization Agent...")
-        # Future work: Close database connections
-        # Future work: Close PPM system connections
-        # Future work: Flush any pending events
+        if self.db_service and hasattr(self.db_service, "close"):
+            await self.db_service.close()
+        if self.event_bus and hasattr(self.event_bus, "stop"):
+            await self.event_bus.stop()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

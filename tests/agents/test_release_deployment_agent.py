@@ -2,7 +2,7 @@ import pytest
 from release_deployment_agent import ReleaseDeploymentAgent
 
 
-class ApprovalStub:
+class ApprovalMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -11,7 +11,7 @@ class ApprovalStub:
         return {"approval_id": "appr-release", "status": "pending"}
 
 
-class QualityStub:
+class QualityMock:
     def __init__(self, passed: bool = True) -> None:
         self.passed = passed
 
@@ -19,7 +19,7 @@ class QualityStub:
         return {"passed": self.passed, "test_pass_rate": 88.0}
 
 
-class ChangeStub:
+class ChangeMock:
     def __init__(self, approved: bool = True) -> None:
         self.approved = approved
 
@@ -27,7 +27,7 @@ class ChangeStub:
         return {"approved": self.approved}
 
 
-class RiskStub:
+class RiskMock:
     def __init__(self, acceptable: bool = True) -> None:
         self.acceptable = acceptable
 
@@ -35,7 +35,7 @@ class RiskStub:
         return {"acceptable": self.acceptable, "risk_score": 0.8}
 
 
-class ComplianceStub:
+class ComplianceMock:
     def __init__(self, met: bool = True) -> None:
         self.met = met
 
@@ -43,7 +43,7 @@ class ComplianceStub:
         return {"met": self.met, "requirements": []}
 
 
-class PolicyStub:
+class PolicyMock:
     async def assess_compliance(self, environment: dict) -> dict:
         return {
             "compliance_state": "noncompliant",
@@ -51,17 +51,17 @@ class PolicyStub:
         }
 
 
-class OpenAIStub:
+class OpenAIMock:
     async def generate(self, prompt: str) -> str:
         return "AI Release Notes"
 
 
-class ScheduleStub:
+class ScheduleMock:
     async def process(self, input_data: dict) -> dict:
         return {"scheduled_window": {"start_time": "2024-06-02T01:00:00", "duration_hours": 2}}
 
 
-class EventBusStub:
+class EventBusMock:
     def __init__(self) -> None:
         self.published: list[tuple[str, dict]] = []
         self.subscriptions: dict[str, list] = {}
@@ -81,7 +81,7 @@ class EventBusStub:
         return []
 
 
-class ReservationStub:
+class ReservationMock:
     def __init__(self, available: bool = True) -> None:
         self.available = available
         self.reserved: list[dict] = []
@@ -100,7 +100,7 @@ class ReservationStub:
         return {"status": "released"}
 
 
-class MonitoringStub:
+class MonitoringMock:
     async def get_metrics(self, deployment_plan: dict) -> dict:
         return {"response_time_ms": 300.0, "error_rate": 0.05}
 
@@ -108,17 +108,17 @@ class MonitoringStub:
         return {"response_time_ms": {"mean": 120.0, "std": 20.0}, "error_rate": {"mean": 0.001}}
 
 
-class BlockerQualityStub:
+class BlockerQualityMock:
     async def process(self, input_data: dict) -> dict:
         return {"passed": False, "issues": [{"severity": "critical", "summary": "Tests failing"}]}
 
 
 @pytest.mark.asyncio
 async def test_release_deployment_requires_approval_before_execute(tmp_path):
-    approval_stub = ApprovalStub()
+    approval_mock = ApprovalMock()
     agent = ReleaseDeploymentAgent(
         config={
-            "approval_agent": approval_stub,
+            "approval_agent": approval_mock,
             "release_store_path": tmp_path / "releases.json",
             "deployment_plan_store_path": tmp_path / "plans.json",
         }
@@ -158,17 +158,17 @@ async def test_release_deployment_requires_approval_before_execute(tmp_path):
         }
     )
     assert execute_response["status"] == "Pending Approval"
-    assert approval_stub.requests
+    assert approval_mock.requests
 
 
 @pytest.mark.asyncio
 async def test_release_deployment_readiness_gate_blocks(tmp_path):
     agent = ReleaseDeploymentAgent(
         config={
-            "quality_agent": QualityStub(passed=False),
-            "change_agent": ChangeStub(approved=False),
-            "risk_agent": RiskStub(acceptable=False),
-            "compliance_agent": ComplianceStub(met=True),
+            "quality_agent": QualityMock(passed=False),
+            "change_agent": ChangeMock(approved=False),
+            "risk_agent": RiskMock(acceptable=False),
+            "compliance_agent": ComplianceMock(met=True),
             "release_store_path": tmp_path / "releases.json",
             "deployment_plan_store_path": tmp_path / "plans.json",
         }
@@ -244,7 +244,7 @@ async def test_release_deployment_validation_rejects_missing_fields(tmp_path):
 async def test_release_deployment_configuration_drift_uses_policy(tmp_path):
     agent = ReleaseDeploymentAgent(
         config={
-            "azure_policy_client": PolicyStub(),
+            "azure_policy_client": PolicyMock(),
             "release_store_path": tmp_path / "releases.json",
         }
     )
@@ -273,7 +273,7 @@ async def test_release_deployment_configuration_drift_uses_policy(tmp_path):
 async def test_release_deployment_release_notes_uses_openai(tmp_path):
     agent = ReleaseDeploymentAgent(
         config={
-            "openai_client": OpenAIStub(),
+            "openai_client": OpenAIMock(),
             "release_store_path": tmp_path / "releases.json",
         }
     )
@@ -305,7 +305,7 @@ async def test_release_deployment_release_notes_uses_openai(tmp_path):
 async def test_release_deployment_schedule_window_uses_schedule_agent(tmp_path):
     agent = ReleaseDeploymentAgent(
         config={
-            "schedule_agent": ScheduleStub(),
+            "schedule_agent": ScheduleMock(),
             "schedule_agent_action": "suggest_deployment_window",
             "release_store_path": tmp_path / "releases.json",
         }
@@ -337,8 +337,8 @@ async def test_release_deployment_schedule_window_uses_schedule_agent(tmp_path):
 
 @pytest.mark.asyncio
 async def test_release_deployment_reserves_and_releases_environment(tmp_path):
-    event_bus = EventBusStub()
-    reservation = ReservationStub()
+    event_bus = EventBusMock()
+    reservation = ReservationMock()
     agent = ReleaseDeploymentAgent(
         config={
             "event_bus": event_bus,
@@ -383,7 +383,7 @@ async def test_release_deployment_reserves_and_releases_environment(tmp_path):
 async def test_release_deployment_readiness_blockers_fail(tmp_path):
     agent = ReleaseDeploymentAgent(
         config={
-            "quality_agent": BlockerQualityStub(),
+            "quality_agent": BlockerQualityMock(),
             "release_store_path": tmp_path / "releases.json",
         }
     )
@@ -411,7 +411,7 @@ async def test_release_deployment_readiness_blockers_fail(tmp_path):
 async def test_release_deployment_anomaly_detection(tmp_path):
     agent = ReleaseDeploymentAgent(
         config={
-            "monitoring_client": MonitoringStub(),
+            "monitoring_client": MonitoringMock(),
             "release_store_path": tmp_path / "releases.json",
         }
     )
@@ -425,7 +425,7 @@ async def test_release_deployment_anomaly_detection(tmp_path):
 
 @pytest.mark.asyncio
 async def test_release_deployment_pipeline_success_and_failure(tmp_path):
-    event_bus = EventBusStub()
+    event_bus = EventBusMock()
     agent = ReleaseDeploymentAgent(
         config={
             "event_bus": event_bus,

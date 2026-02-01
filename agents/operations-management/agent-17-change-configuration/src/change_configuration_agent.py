@@ -679,6 +679,11 @@ class ChangeConfigurationAgent(BaseAgent):
 
         self.event_publisher = config.get("event_publisher") if config else None
         self.dependency_graph = config.get("dependency_graph") if config else None
+        self.schedule_agent = config.get("schedule_agent") if config else None
+        self.resource_agent = config.get("resource_agent") if config else None
+        self.financial_agent = config.get("financial_agent") if config else None
+        self.risk_agent = config.get("risk_agent") if config else None
+        self.task_management_client = config.get("task_management_client") if config else None
         self.document_service = None
         self.repo_service = None
         self.iac_parser = None
@@ -1123,7 +1128,6 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
 
         # Consult other agents for impact
-        # Future work: Call Schedule, Resource, Financial agents
         schedule_impact = await self._assess_schedule_impact(change)
         cost_impact = await self._assess_cost_impact(change)
         resource_impact = await self._assess_resource_impact(change)
@@ -1134,7 +1138,6 @@ class ChangeConfigurationAgent(BaseAgent):
         dependency_impact = await self._analyze_dependency_impact(change)
 
         # Predict change impact using AI
-        # Future work: Use Azure ML for impact prediction
         predicted_impact = await self._predict_change_impact(change)
 
         impact_assessment = {
@@ -1452,7 +1455,6 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
 
         # Get implementation tasks
-        # Future work: Integrate with task management system
         implementation_tasks = await self._get_implementation_tasks(change_id)
 
         # Calculate completion percentage
@@ -1753,22 +1755,38 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _assess_schedule_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess schedule impact of change."""
-        # Future work: Integrate with Schedule Agent
+        if self.schedule_agent:
+            response = await self.schedule_agent.process(
+                {"action": "assess_schedule_impact", "change": change}
+            )
+            return response
         return {"impact_days": 0, "critical_path_affected": False}
 
     async def _assess_cost_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess cost impact of change."""
-        # Future work: Integrate with Financial Agent
+        if self.financial_agent:
+            response = await self.financial_agent.process(
+                {"action": "assess_cost_impact", "change": change}
+            )
+            return response
         return {"cost_variance": 0, "budget_available": True}
 
     async def _assess_resource_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess resource impact of change."""
-        # Future work: Integrate with Resource Agent
+        if self.resource_agent:
+            response = await self.resource_agent.process(
+                {"action": "assess_resource_impact", "change": change}
+            )
+            return response
         return {"resources_required": [], "availability": True}
 
     async def _assess_risk_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Assess risk impact of change."""
-        # Future work: Integrate with Risk Management Agent
+        if self.risk_agent:
+            response = await self.risk_agent.process(
+                {"action": "assess_change_risk", "change": change}
+            )
+            return response
         return {"new_risks": [], "risk_score_increase": 0}
 
     async def _assess_compliance_impact(self, change: dict[str, Any]) -> dict[str, Any]:
@@ -2154,7 +2172,8 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _get_implementation_tasks(self, change_id: str) -> list[dict[str, Any]]:
         """Get implementation tasks for change."""
-        # Future work: Query task management system
+        if self.task_management_client:
+            return await self.task_management_client.list_tasks(change_id)
         return []
 
     async def _matches_filters(self, change: dict[str, Any], filters: dict[str, Any]) -> bool:
@@ -2169,17 +2188,61 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _analyze_change_patterns(self, changes: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze patterns in changes."""
-        # Future work: Perform pattern analysis
+        if not changes:
+            return {
+                "most_common_type": "unknown",
+                "average_approval_time_days": 0,
+                "rejection_rate": 0,
+            }
+        type_counts: dict[str, int] = {}
+        approval_times: list[float] = []
+        rejected = 0
+        for change in changes:
+            change_type = str(change.get("type", "unknown"))
+            type_counts[change_type] = type_counts.get(change_type, 0) + 1
+            if change.get("approval_date") and change.get("created_at"):
+                approval_times.append(
+                    (
+                        datetime.fromisoformat(change["approval_date"])
+                        - datetime.fromisoformat(change["created_at"])
+                    ).days
+                )
+            if change.get("approval_status") == "Rejected":
+                rejected += 1
+        most_common_type = max(type_counts.items(), key=lambda item: item[1])[0]
+        avg_approval = sum(approval_times) / len(approval_times) if approval_times else 0
         return {
-            "most_common_type": "normal",
-            "average_approval_time_days": 3,
-            "rejection_rate": 0.15,
+            "most_common_type": most_common_type,
+            "average_approval_time_days": avg_approval,
+            "rejection_rate": rejected / len(changes),
         }
 
     async def _build_dependency_graph(self, ci_id: str) -> dict[str, Any]:
         """Build dependency graph for CI."""
-        # Future work: Use graph algorithms
-        return {"nodes": [{"id": ci_id, "label": "CI"}], "edges": []}
+        visited = set()
+        nodes = []
+        edges = []
+
+        def visit(node_id: str) -> None:
+            if node_id in visited:
+                return
+            visited.add(node_id)
+            ci = self.cmdb.get(node_id, {"name": node_id, "relationships": []})
+            nodes.append({"id": node_id, "label": ci.get("name"), "type": ci.get("type")})
+            for rel in ci.get("relationships", []):
+                target = rel.get("target_ci_id")
+                if target:
+                    edges.append(
+                        {
+                            "source": node_id,
+                            "target": target,
+                            "type": rel.get("relationship_type"),
+                        }
+                    )
+                    visit(target)
+
+        visit(ci_id)
+        return {"nodes": nodes, "edges": edges}
 
     async def _build_full_cmdb_graph(self) -> dict[str, Any]:
         """Build full CMDB dependency graph."""
@@ -2241,9 +2304,12 @@ class ChangeConfigurationAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Change & Configuration Management Agent...")
-        # Future work: Close database connections
-        # Future work: Close ITSM connections
-        # Future work: Flush any pending events
+        if hasattr(self.db_service, "close"):
+            await self.db_service.close()
+        if hasattr(self.itsm_service, "close"):
+            await self.itsm_service.close()
+        if isinstance(self.event_publisher, ServiceBusEventBus):
+            await self.event_publisher.stop()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

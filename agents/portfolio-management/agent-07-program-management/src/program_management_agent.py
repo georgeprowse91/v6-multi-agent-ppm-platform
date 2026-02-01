@@ -1301,10 +1301,32 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _adjust_for_overlaps(self, project_benefits: dict[str, Any]) -> float:
         """Adjust benefits for overlaps to avoid double-counting."""
-        # Future work: Implement overlap detection
-        # Baseline: assume 10% overlap
         total = sum(pb.get("total_benefits", 0) for pb in project_benefits.values())
-        return total * 0.9  # type: ignore
+        if total <= 0:
+            return 0.0
+
+        overlap_groups: dict[str, list[str]] = {}
+        for project_id, benefit in project_benefits.items():
+            breakdown = benefit.get("benefit_breakdown") or benefit.get("benefits") or {}
+            overlap_key = (
+                breakdown.get("overlap_key")
+                or breakdown.get("initiative")
+                or benefit.get("overlap_key")
+                or benefit.get("initiative")
+            )
+            if overlap_key:
+                overlap_groups.setdefault(str(overlap_key), []).append(project_id)
+
+        if not overlap_groups:
+            return total
+
+        penalty = 0.0
+        for projects in overlap_groups.values():
+            if len(projects) > 1:
+                penalty += min(0.25, 0.05 * (len(projects) - 1))
+
+        penalty = min(0.35, penalty)
+        return total * (1 - penalty)
 
     async def _categorize_benefits(self, project_benefits: dict[str, Any]) -> dict[str, float]:
         """Categorize benefits by type."""
@@ -1562,9 +1584,34 @@ class ProgramManagementAgent(BaseAgent):
         self, project_id: str, dependencies: list[dict[str, Any]], change_details: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Analyze cascading effects of a change."""
-        # Future work: Implement impact propagation algorithm
-        # Baseline
-        return []
+        cascading_effects = []
+        delay_days = int(change_details.get("delay_days", 5))
+        cost_delta = float(change_details.get("cost_delta", 0))
+
+        for dependency in dependencies:
+            predecessor = dependency.get("predecessor")
+            successor = dependency.get("successor")
+            if predecessor == project_id:
+                impacted = successor
+                direction = "downstream"
+            elif successor == project_id:
+                impacted = predecessor
+                direction = "upstream"
+            else:
+                continue
+
+            cascading_effects.append(
+                {
+                    "impacted_project_id": impacted,
+                    "direction": direction,
+                    "dependency_type": dependency.get("type"),
+                    "schedule_delay_days": delay_days,
+                    "cost_delta": cost_delta,
+                    "shared_resources": dependency.get("shared_resources", []),
+                }
+            )
+
+        return cascading_effects
 
     async def _calculate_schedule_impact(
         self, cascading_effects: list[dict[str, Any]], change_details: dict[str, Any]
@@ -1608,9 +1655,26 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _select_best_mitigation(self, options: list[dict[str, Any]]) -> str:
         """Select the best mitigation option."""
-        # Future work: Use optimization logic
-        # Baseline
-        return options[0]["option"] if options else "No mitigation needed"
+        if not options:
+            return "No mitigation needed"
+
+        def _parse_days(value: str) -> float:
+            digits = "".join(ch for ch in value if ch.isdigit() or ch == ".")
+            return float(digits) if digits else 0.0
+
+        def _parse_cost(value: str) -> float:
+            digits = "".join(ch for ch in value if ch.isdigit() or ch == ".")
+            return float(digits) if digits else 0.0
+
+        scored = []
+        for option in options:
+            reduction = _parse_days(str(option.get("schedule_reduction", "0")))
+            cost = _parse_cost(str(option.get("cost", "0")))
+            score = reduction - (cost / 10000)
+            scored.append((score, option))
+
+        best_option = max(scored, key=lambda item: item[0])[1]
+        return best_option.get("option", options[0].get("option", "No mitigation needed"))
 
     async def _get_schedule_health(self, project_ids: list[str]) -> float:
         """Get schedule health across projects."""

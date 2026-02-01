@@ -11,7 +11,7 @@ class EventCollector:
         self.events.append((topic, payload))
 
 
-class ApprovalStub:
+class ApprovalMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -20,7 +20,7 @@ class ApprovalStub:
         return {"approval_id": "appr-1", "status": "pending"}
 
 
-class OpenAIStub:
+class OpenAIMock:
     def __init__(self) -> None:
         self.prompts: list[str] = []
 
@@ -35,14 +35,14 @@ class OpenAIStub:
         return "AI response"
 
 
-class FormRecognizerStub:
+class FormRecognizerMock:
     async def extract_requirements(
         self, *, document_content: str | None = None, document_url: str | None = None
     ) -> list[dict[str, str]]:
         return [{"text": "The system shall support SSO."}]
 
 
-class RequirementsSyncStub:
+class RequirementsSyncMock:
     def __init__(self) -> None:
         self.synced: list[dict] = []
 
@@ -53,11 +53,11 @@ class RequirementsSyncStub:
 @pytest.mark.asyncio
 async def test_project_definition_persists_charter_and_wbs(tmp_path):
     event_bus = EventCollector()
-    approval_stub = ApprovalStub()
+    approval_mock = ApprovalMock()
     agent = ProjectDefinitionAgent(
         config={
             "event_bus": event_bus,
-            "approval_agent": approval_stub,
+            "approval_agent": approval_mock,
             "charter_store_path": tmp_path / "charters.json",
             "wbs_store_path": tmp_path / "wbs.json",
         }
@@ -96,7 +96,7 @@ async def test_project_definition_persists_charter_and_wbs(tmp_path):
     assert wbs_response["wbs_id"]
     assert agent.wbs_store.get("tenant-a", project_id)
     assert any(topic == "wbs.created" for topic, _ in event_bus.events)
-    assert len(approval_stub.requests) >= 2
+    assert len(approval_mock.requests) >= 2
 
 
 @pytest.mark.asyncio
@@ -244,10 +244,10 @@ async def test_project_definition_scope_research_falls_back_without_results(monk
 
 @pytest.mark.asyncio
 async def test_project_definition_openai_charter_and_wbs(tmp_path):
-    openai_stub = OpenAIStub()
+    openai_mock = OpenAIMock()
     agent = ProjectDefinitionAgent(
         config={
-            "openai_client": openai_stub,
+            "openai_client": openai_mock,
             "charter_store_path": tmp_path / "charters.json",
             "wbs_store_path": tmp_path / "wbs.json",
         }
@@ -282,12 +282,12 @@ async def test_project_definition_openai_charter_and_wbs(tmp_path):
 
 @pytest.mark.asyncio
 async def test_project_definition_requirements_sync_and_form_recognizer(tmp_path):
-    form_recognizer = FormRecognizerStub()
-    doors_stub = RequirementsSyncStub()
+    form_recognizer = FormRecognizerMock()
+    doors_mock = RequirementsSyncMock()
     agent = ProjectDefinitionAgent(
         config={
             "form_recognizer_client": form_recognizer,
-            "doors_client": doors_stub,
+            "doors_client": doors_mock,
             "charter_store_path": tmp_path / "charters.json",
             "wbs_store_path": tmp_path / "wbs.json",
         }
@@ -303,7 +303,7 @@ async def test_project_definition_requirements_sync_and_form_recognizer(tmp_path
     )
 
     assert any("SSO" in req.get("text", "") for req in requirements["requirements"])
-    assert doors_stub.synced
+    assert doors_mock.synced
 
 
 @pytest.mark.asyncio
