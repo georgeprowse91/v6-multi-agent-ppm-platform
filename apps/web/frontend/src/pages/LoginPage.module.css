@@ -1,0 +1,128 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background: radial-gradient(circle at top, var(--color-primary-50), var(--color-neutral-50));
+}
+
+.card {
+  width: min(420px, 100%);
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.logo {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary-700);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+}
+
+.subtitle {
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-sm);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+}
+
+.input {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.2);
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.primaryButton {
+  background: var(--color-primary-600);
+  color: white;
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-weight: var(--font-weight-semibold);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.primaryButton:hover {
+  background: var(--color-primary-700);
+  transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-50);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-700);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+}
+
+.resetLink {
+  font-size: var(--font-size-sm);
+}

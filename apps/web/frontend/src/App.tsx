@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import {
   HomePage,
@@ -13,12 +13,20 @@ import {
   IntakeFormPage,
   IntakeStatusPage,
   IntakeApprovalsPage,
+  LoginPage,
 } from '@/pages';
 
 export function App() {
   return (
-    <AppLayout>
-      <Routes>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        element={(
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        )}
+      >
         {/* Home */}
         <Route path="/" element={<HomePage />} />
 
@@ -64,7 +72,7 @@ export function App() {
 
         {/* Admin pages */}
         <Route path="/admin/audit" element={<AuditLogPage />} />
-      </Routes>
-    </AppLayout>
+      </Route>
+    </Routes>
   );
 }

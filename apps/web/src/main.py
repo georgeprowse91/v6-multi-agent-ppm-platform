@@ -1199,6 +1199,7 @@ async def login(request: Request) -> RedirectResponse:
             state = _random_token_urlsafe(16)
             nonce = _random_token_urlsafe(16)
             project_id = request.query_params.get("project_id")
+            return_to = request.query_params.get("return_to")
             params = {
                 "client_id": client_id,
                 "response_type": "code",
@@ -1210,7 +1211,15 @@ async def login(request: Request) -> RedirectResponse:
             response = RedirectResponse(url=f"{auth_url}?{urlencode(params)}")
             response.set_cookie(
                 STATE_COOKIE,
-                _encode_cookie({"state": state, "nonce": nonce, "project_id": project_id}, 600),
+                _encode_cookie(
+                    {
+                        "state": state,
+                        "nonce": nonce,
+                        "project_id": project_id,
+                        "return_to": return_to,
+                    },
+                    600,
+                ),
                 httponly=True,
                 secure=_cookie_secure(),
                 samesite="lax",
@@ -1228,6 +1237,7 @@ async def login(request: Request) -> RedirectResponse:
     state = _random_token_urlsafe(16)
     nonce = _random_token_urlsafe(16)
     project_id = request.query_params.get("project_id")
+    return_to = request.query_params.get("return_to")
 
     params = {
         "client_id": client.client_id,
@@ -1240,7 +1250,15 @@ async def login(request: Request) -> RedirectResponse:
     response = RedirectResponse(url=f"{discovery.authorization_endpoint}?{urlencode(params)}")
     response.set_cookie(
         STATE_COOKIE,
-        _encode_cookie({"state": state, "nonce": nonce, "project_id": project_id}, 600),
+        _encode_cookie(
+            {
+                "state": state,
+                "nonce": nonce,
+                "project_id": project_id,
+                "return_to": return_to,
+            },
+            600,
+        ),
         httponly=True,
         secure=_cookie_secure(),
         samesite="lax",
@@ -1296,13 +1314,13 @@ async def oidc_callback(request: Request) -> RedirectResponse:
         "subject": claims.get("sub"),
         "roles": roles,
     }
-    response = RedirectResponse(
-        url=(
-            f"/workspace?project_id={state_payload.get('project_id')}"
-            if state_payload.get("project_id")
-            else "/workspace"
-        )
-    )
+    return_to = state_payload.get("return_to")
+    redirect_target = "/workspace"
+    if isinstance(return_to, str) and return_to.startswith("/"):
+        redirect_target = return_to
+    if state_payload.get("project_id"):
+        redirect_target = f"/workspace?project_id={state_payload.get('project_id')}"
+    response = RedirectResponse(url=redirect_target)
     response.set_cookie(
         SESSION_COOKIE,
         _encode_cookie(session_payload, 8 * 60 * 60),
