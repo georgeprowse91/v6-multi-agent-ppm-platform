@@ -11,6 +11,7 @@ from uuid import uuid4
 import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -28,6 +29,13 @@ logging.basicConfig(level=logging.INFO)
 
 DEFAULT_TEMPLATES_DIR = REPO_ROOT / "services" / "notification-service" / "templates"
 DEFAULT_OUTBOX_DIR = REPO_ROOT / "services" / "notification-service" / "outbox"
+HTTP_TIMEOUT = 5
+
+http_retry = retry(
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    stop=stop_after_attempt(3),
+    reraise=True,
+)
 
 
 class HealthResponse(BaseModel):
@@ -99,6 +107,7 @@ def _coerce_recipient_to_target(recipient: str | None, fallback: str | None) -> 
     return recipient or fallback
 
 
+@http_retry
 async def _fetch_graph_token() -> str:
     token = os.getenv("NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN")
     if token:
@@ -117,7 +126,7 @@ async def _fetch_graph_token() -> str:
         "client_secret": client_secret,
         "scope": "https://graph.microsoft.com/.default",
     }
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         response = await client.post(token_url, data=data)
         response.raise_for_status()
         payload = response.json()
@@ -142,10 +151,11 @@ def _resolve_teams_target(recipient: str | None) -> tuple[str | None, str | None
     return chat_id, team_id, channel_id
 
 
+@http_retry
 async def _send_teams_notification(rendered: str, recipient: str | None) -> str:
     webhook_url = os.getenv("NOTIFICATION_TEAMS_WEBHOOK_URL")
     if webhook_url:
-        async with httpx.AsyncClient(timeout=10) as client:
+        async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
             response = await client.post(webhook_url, json={"text": rendered})
             response.raise_for_status()
         return "teams:webhook"
@@ -163,7 +173,7 @@ async def _send_teams_notification(rendered: str, recipient: str | None) -> str:
         raise ValueError("Teams Graph target is not configured")
 
     payload = {"body": {"content": rendered}}
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         response = await client.post(
             f"{base_url}{path}",
             json=payload,
@@ -173,10 +183,11 @@ async def _send_teams_notification(rendered: str, recipient: str | None) -> str:
     return target
 
 
+@http_retry
 async def _send_slack_notification(rendered: str, recipient: str | None) -> str:
     webhook_url = os.getenv("NOTIFICATION_SLACK_WEBHOOK_URL")
     if webhook_url:
-        async with httpx.AsyncClient(timeout=10) as client:
+        async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
             response = await client.post(webhook_url, json={"text": rendered})
             response.raise_for_status()
         return "slack:webhook"
@@ -187,7 +198,7 @@ async def _send_slack_notification(rendered: str, recipient: str | None) -> str:
         raise ValueError("Slack API credentials are not configured")
 
     base_url = os.getenv("NOTIFICATION_SLACK_API_BASE_URL", "https://slack.com/api")
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         response = await client.post(
             f"{base_url}/chat.postMessage",
             json={"channel": channel, "text": rendered},
@@ -200,6 +211,7 @@ async def _send_slack_notification(rendered: str, recipient: str | None) -> str:
     return f"slack:channel:{channel}"
 
 
+@http_retry
 async def _send_acs_notification(rendered: str, recipient: str | None) -> str:
     endpoint = os.getenv("NOTIFICATION_ACS_ENDPOINT")
     token = os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN")
@@ -220,7 +232,7 @@ async def _send_acs_notification(rendered: str, recipient: str | None) -> str:
     if application_id:
         payload["applicationId"] = application_id
 
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         response = await client.post(
             endpoint,
             json=payload,
@@ -261,6 +273,12 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
             else:
                 _, destination = _deliver(rendered, request.recipient, channel, delivery_id)
             break
+        except RetryError as exc:
+            last_error = exc
+            logger.warning(
+                "notification_channel_retry_exhausted",
+                extra={"channel": channel, "error": str(exc), "delivery_id": delivery_id},
+            )
         except Exception as exc:  # noqa: BLE001
             last_error = exc
             logger.warning(
