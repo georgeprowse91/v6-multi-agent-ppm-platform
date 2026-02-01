@@ -367,6 +367,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self.default_locale = (config or {}).get("default_locale", "en-US")
         self.delivery_batch_size = int((config or {}).get("delivery_batch_size", 50))
         self.delivery_batch_interval = int((config or {}).get("delivery_batch_interval_minutes", 15))
+        self.digest_window_minutes = int((config or {}).get("digest_window_minutes", 60))
+        self.digest_batch_size = int((config or {}).get("digest_batch_size", 10))
+        self.digest_queue: dict[tuple[str, str], list[dict[str, Any]]] = {}
         self.communication_templates = self._load_default_templates()
 
     async def initialize(self) -> None:
@@ -412,6 +415,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "schedule_event",
             "track_engagement",
             "track_delivery_event",
+            "flush_digest_notifications",
             "get_stakeholder_dashboard",
             "generate_communication_report",
         ]
@@ -518,6 +522,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 input_data.get("message_id"),
                 input_data.get("stakeholder_id"),
                 input_data.get("event", {}),
+            )
+
+        elif action == "flush_digest_notifications":
+            return await self._flush_digest_notifications(
+                tenant_id, input_data.get("stakeholder_id")
             )
 
         elif action == "get_stakeholder_dashboard":
@@ -726,11 +735,16 @@ class StakeholderCommunicationsAgent(BaseAgent):
                     personalized_subject = await self._personalize_content(subject, stakeholder)
                 else:
                     personalized_subject = ""
+                delivery_time = await self._calculate_optimal_send_time(
+                    stakeholder,
+                    message_data.get("scheduled_send"),
+                )
                 personalized_messages.append(
                     {
                         "stakeholder_id": stakeholder_id,
                         "content": personalized_content,
                         "subject": personalized_subject,
+                        "scheduled_time": delivery_time,
                     }
                 )
 
@@ -834,6 +848,13 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 "status": "Scheduled",
                 "batch_count": scheduled.get("batch_count"),
             }
+        if message.get("delivery_mode") == "digest":
+            queued = await self._queue_digest_notifications(tenant_id, message)
+            return {
+                "message_id": message_id,
+                "status": "Queued",
+                "queued_notifications": queued,
+            }
 
         # Send via appropriate channel
         channel = message.get("channel", "email")
@@ -845,37 +866,38 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
             if not stakeholder:
                 continue
-            if not await self._has_consent(stakeholder, channel):
+            delivery_channels = self._resolve_delivery_channels(message, stakeholder)
+            for delivery_channel in delivery_channels:
+                if not await self._has_consent(stakeholder, delivery_channel):
+                    delivery_results.append(
+                        {
+                            "stakeholder_id": stakeholder_id,
+                            "channel": delivery_channel,
+                            "status": "skipped_no_consent",
+                            "sent_at": None,
+                        }
+                    )
+                    continue
+
+                result = await self._send_via_channel(
+                    delivery_channel,
+                    stakeholder,
+                    message,
+                    personalized.get("content"),
+                    personalized.get("subject"),
+                )
+
                 delivery_results.append(
                     {
                         "stakeholder_id": stakeholder_id,
-                        "status": "skipped_no_consent",
-                        "sent_at": None,
+                        "channel": delivery_channel,
+                        "status": result.get("status"),
+                        "sent_at": result.get("sent_at"),
                     }
                 )
-                continue
 
-            # Send message
-            # Future work: Integrate with actual communication platforms
-            result = await self._send_via_channel(
-                channel,
-                stakeholder,
-                message,
-                personalized.get("content"),
-                personalized.get("subject"),
-            )
-
-            delivery_results.append(
-                {
-                    "stakeholder_id": stakeholder_id,
-                    "status": result.get("status"),
-                    "sent_at": result.get("sent_at"),
-                }
-            )
-
-            # Update engagement metrics
-            if stakeholder_id in self.engagement_metrics:
-                self.engagement_metrics[stakeholder_id]["messages_sent"] += 1
+                if stakeholder_id in self.engagement_metrics:
+                    self.engagement_metrics[stakeholder_id]["messages_sent"] += 1
 
         # Update message status
         message["status"] = "Sent"
@@ -894,6 +916,15 @@ class StakeholderCommunicationsAgent(BaseAgent):
                     "delivery_results": delivery_results,
                 },
             }
+        )
+        self._publish_metrics_event(
+            tenant_id=tenant_id,
+            event_type="message_sent",
+            payload={
+                "message_id": message_id,
+                "channel": channel,
+                "delivery_results": delivery_results,
+            },
         )
         self._publish_event(
             "stakeholder.message.sent",
@@ -971,6 +1002,16 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self._publish_event(
             f"stakeholder.message.{event_type}",
             {"message_id": message_id, "stakeholder_id": stakeholder_id, "event": event},
+        )
+        self._publish_metrics_event(
+            tenant_id=tenant_id,
+            event_type="message_engagement",
+            payload={
+                "message_id": message_id,
+                "stakeholder_id": stakeholder_id,
+                "event_type": event_type,
+                "event": event,
+            },
         )
         return {"message_id": message_id, "stakeholder_id": stakeholder_id, "event": event_type}
 
@@ -1506,6 +1547,125 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return False
         return True
 
+    def _resolve_delivery_channels(
+        self, message: dict[str, Any], stakeholder: dict[str, Any]
+    ) -> list[str]:
+        channel_config = message.get("channels") or message.get("channel", "email")
+        preferences = stakeholder.get("communication_preferences", {})
+        preferred = (
+            preferences.get("preferred_channels")
+            or stakeholder.get("preferred_channels")
+            or ["email"]
+        )
+        fallback = preferences.get("fallback_channels", [])
+        if isinstance(channel_config, list):
+            channels = channel_config
+        elif channel_config in {"auto", "preferred"}:
+            channels = preferred
+        else:
+            channels = [channel_config]
+        for fallback_channel in fallback:
+            if fallback_channel not in channels:
+                channels.append(fallback_channel)
+        return [channel for channel in channels if channel]
+
+    async def _queue_digest_notifications(
+        self, tenant_id: str, message: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        queued_entries: list[dict[str, Any]] = []
+        now = datetime.utcnow()
+        for personalized in message.get("personalized_messages", []):
+            stakeholder_id = personalized.get("stakeholder_id")
+            if not stakeholder_id:
+                continue
+            scheduled_time = personalized.get("scheduled_time")
+            if scheduled_time:
+                send_after = scheduled_time
+            else:
+                send_after = (now + timedelta(minutes=self.digest_window_minutes)).isoformat()
+            key = (tenant_id, stakeholder_id)
+            entry = {
+                "message_id": message.get("message_id"),
+                "subject": personalized.get("subject") or message.get("subject"),
+                "content": personalized.get("content"),
+                "queued_at": now.isoformat(),
+                "send_after": send_after,
+                "project_id": message.get("project_id"),
+            }
+            self.digest_queue.setdefault(key, []).append(entry)
+            queued_entries.append({"stakeholder_id": stakeholder_id, "send_after": send_after})
+            if len(self.digest_queue.get(key, [])) >= self.digest_batch_size:
+                await self._flush_digest_notifications(tenant_id, stakeholder_id)
+        return queued_entries
+
+    async def _flush_digest_notifications(
+        self, tenant_id: str, stakeholder_id: str | None
+    ) -> dict[str, Any]:
+        now = datetime.utcnow()
+        flushed: list[dict[str, Any]] = []
+        for (queued_tenant, queued_stakeholder), items in list(self.digest_queue.items()):
+            if queued_tenant != tenant_id:
+                continue
+            if stakeholder_id and queued_stakeholder != stakeholder_id:
+                continue
+            due_items = []
+            for item in items:
+                try:
+                    send_after = datetime.fromisoformat(item["send_after"])
+                except (TypeError, ValueError):
+                    send_after = now
+                if send_after <= now:
+                    due_items.append(item)
+            if not due_items:
+                continue
+            stakeholder = self._load_stakeholder(tenant_id, queued_stakeholder)
+            if not stakeholder:
+                continue
+            digest_payload = await self._build_digest_payload(stakeholder, due_items)
+            digest_message = {
+                "subject": digest_payload["subject"],
+                "content": digest_payload["body"],
+                "channel": "preferred",
+                "attachments": [],
+            }
+            delivery_channels = self._resolve_delivery_channels(digest_message, stakeholder)
+            results = []
+            for channel in delivery_channels:
+                if not await self._has_consent(stakeholder, channel):
+                    results.append({"channel": channel, "status": "skipped_no_consent"})
+                    continue
+                result = await self._send_via_channel(
+                    channel,
+                    stakeholder,
+                    digest_message,
+                    digest_payload["body"],
+                    digest_payload["subject"],
+                )
+                results.append({"channel": channel, "status": result.get("status")})
+                if queued_stakeholder in self.engagement_metrics:
+                    self.engagement_metrics[queued_stakeholder]["messages_sent"] += 1
+            self.digest_queue[(queued_tenant, queued_stakeholder)] = [
+                item for item in items if item not in due_items
+            ]
+            self._record_communication_history(
+                {
+                    "stakeholder_id": queued_stakeholder,
+                    "channel": ",".join(delivery_channels),
+                    "subject": digest_payload["subject"],
+                    "status": "sent",
+                    "content": digest_payload["body"],
+                    "metadata": {"digest_items": len(due_items), "results": results},
+                }
+            )
+            flushed.append(
+                {
+                    "stakeholder_id": queued_stakeholder,
+                    "digest_items": len(due_items),
+                    "channels": delivery_channels,
+                }
+            )
+        return {"status": "flushed", "digests": flushed}
+
     def _load_stakeholder(self, tenant_id: str, stakeholder_id: str) -> dict[str, Any] | None:
         stakeholder = self.stakeholder_register.get(stakeholder_id)
         if stakeholder:
@@ -1521,6 +1681,65 @@ class StakeholderCommunicationsAgent(BaseAgent):
         personalized = content.replace("{name}", stakeholder.get("name", ""))
         personalized = personalized.replace("{role}", stakeholder.get("role", ""))
         return personalized
+
+    async def _build_digest_payload(
+        self, stakeholder: dict[str, Any], items: list[dict[str, Any]]
+    ) -> dict[str, str]:
+        digest_items = "\n".join(
+            f"- {item.get('subject') or 'Update'}"
+            for item in items
+            if item.get("subject") or item.get("content")
+        )
+        summary_source = "\n\n".join(item.get("content", "") for item in items)
+        summary = await self._summarize_report(
+            summary_source,
+            stakeholder.get("role", "general"),
+            stakeholder.get("locale") or self.default_locale,
+        )
+        template = self._get_template("digest_update", stakeholder.get("locale") or self.default_locale)
+        subject = template.get("subject", "Update digest")
+        body_template = template.get("body", "{digest_items}")
+        payload = {
+            "name": stakeholder.get("name", ""),
+            "project_name": stakeholder.get("project_name", "your project"),
+            "digest_items": digest_items,
+            "summary": summary.get("summary", ""),
+        }
+        return {
+            "subject": self._safe_format_template(subject, payload),
+            "body": self._safe_format_template(body_template, payload),
+        }
+
+    async def _calculate_optimal_send_time(
+        self, stakeholder: dict[str, Any], scheduled_send: str | None
+    ) -> str | None:
+        if scheduled_send:
+            return scheduled_send
+        preferences = stakeholder.get("communication_preferences", {})
+        preferred_hour = preferences.get("preferred_send_hour")
+        utc_offset = int(preferences.get("utc_offset_minutes") or 0)
+        if preferred_hour is None:
+            return None
+        now_utc = datetime.utcnow()
+        local_time = now_utc + timedelta(minutes=utc_offset)
+        candidate = local_time.replace(
+            hour=int(preferred_hour), minute=0, second=0, microsecond=0
+        )
+        if candidate <= local_time:
+            candidate = candidate + timedelta(days=1)
+        send_time = candidate - timedelta(minutes=utc_offset)
+        return send_time.isoformat()
+
+    def _publish_metrics_event(
+        self, *, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        enriched = {
+            "tenant_id": tenant_id,
+            "event_type": event_type,
+            "recorded_at": datetime.utcnow().isoformat(),
+            **payload,
+        }
+        self._publish_event("stakeholder.communication.metrics", enriched)
 
     async def _send_via_channel(
         self,
@@ -1773,6 +1992,19 @@ class StakeholderCommunicationsAgent(BaseAgent):
         """Send email via Graph or fallback providers."""
         if not recipient:
             return {"status": "failed", "reason": "missing_recipient"}
+        if self.notification_service and not attachments:
+            result = await self.notification_service.send_email(
+                recipient,
+                subject,
+                content,
+                metadata={"provider_hint": "smtp"},
+            )
+            if result.get("status") != "failed":
+                return {
+                    "status": "delivered",
+                    "sent_at": result.get("sent_at") or datetime.utcnow().isoformat(),
+                    "provider": result.get("provider"),
+                }
         if use_graph and self.exchange_token:
             message_payload = {
                 "message": {
@@ -2002,7 +2234,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
         if not report:
             return {"summary": "", "provider": "empty"}
         if self.openai_endpoint and self.openai_api_key and self.openai_deployment:
-            prompt = f"Role: {role}\nLocale: {locale or self.default_locale}\nReport:\n{report}"
+            prompt = (
+                f"Summarize the following report for the {role} role. "
+                f"Use locale {locale or self.default_locale} and keep it concise.\n\n{report}"
+            )
             draft = await self._generate_openai_text(
                 template=report,
                 data={"report": report, "role": role, "locale": locale},
@@ -2037,7 +2272,19 @@ class StakeholderCommunicationsAgent(BaseAgent):
             except ValueError:
                 start_time = datetime.utcnow() + timedelta(minutes=5)
         else:
-            start_time = datetime.utcnow() + timedelta(minutes=5)
+            scheduled_times = [
+                message.get("scheduled_time")
+                for message in personalized_messages
+                if message.get("scheduled_time")
+            ]
+            if scheduled_times:
+                try:
+                    earliest = min(datetime.fromisoformat(ts) for ts in scheduled_times)
+                    start_time = earliest
+                except ValueError:
+                    start_time = datetime.utcnow() + timedelta(minutes=5)
+            else:
+                start_time = datetime.utcnow() + timedelta(minutes=5)
         batches = [
             personalized_messages[i : i + self.delivery_batch_size]
             for i in range(0, len(personalized_messages), self.delivery_batch_size)
@@ -2089,6 +2336,26 @@ class StakeholderCommunicationsAgent(BaseAgent):
                     ),
                 }
             },
+            "risk_alert_summary": {
+                "en-US": {
+                    "subject": "Risk summary for {project_name}",
+                    "body": (
+                        "Hello {name},\n\n"
+                        "Summary of active risks for {project_name}:\n"
+                        "{risk_details}\n\n"
+                        "Top mitigations:\n{mitigation_plan}\n"
+                    ),
+                },
+                "fr-FR": {
+                    "subject": "Résumé des risques pour {project_name}",
+                    "body": (
+                        "Bonjour {name},\n\n"
+                        "Résumé des risques actifs pour {project_name}:\n"
+                        "{risk_details}\n\n"
+                        "Principales mesures:\n{mitigation_plan}\n"
+                    ),
+                },
+            },
             "deployment_outcome": {
                 "en-US": {
                     "subject": "Deployment outcome: {release_name}",
@@ -2099,6 +2366,28 @@ class StakeholderCommunicationsAgent(BaseAgent):
                         "Next steps:\n{next_steps}\n"
                     ),
                 }
+            },
+            "digest_update": {
+                "en-US": {
+                    "subject": "Your update digest: {project_name}",
+                    "body": (
+                        "Hello {name},\n\n"
+                        "Here is your digest for {project_name}:\n"
+                        "{digest_items}\n\n"
+                        "Summary:\n{summary}\n\n"
+                        "Regards,\nPMO"
+                    ),
+                },
+                "es-ES": {
+                    "subject": "Resumen de actualizaciones: {project_name}",
+                    "body": (
+                        "Hola {name},\n\n"
+                        "Aquí está tu resumen para {project_name}:\n"
+                        "{digest_items}\n\n"
+                        "Resumen:\n{summary}\n\n"
+                        "Saludos,\nPMO"
+                    ),
+                },
             },
         }
 

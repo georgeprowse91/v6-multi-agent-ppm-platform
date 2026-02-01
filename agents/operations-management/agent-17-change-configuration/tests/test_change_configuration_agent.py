@@ -65,6 +65,20 @@ def test_change_impact_model_trains_with_samples() -> None:
 
 
 @pytest.mark.anyio
+async def test_compliance_impact_assessment() -> None:
+    agent = ChangeConfigurationAgent(config={})
+    change = {
+        "compliance_scope": ["sox", "gdpr"],
+        "regulatory_flags": ["pii"],
+    }
+
+    compliance = await agent._assess_compliance_impact(change)
+
+    assert compliance["compliance_review_required"] is True
+    assert compliance["compliance_risk_score"] > 0
+
+
+@pytest.mark.anyio
 async def test_change_category_and_trend_metrics() -> None:
     agent = ChangeConfigurationAgent(config={})
     now = datetime.utcnow()
@@ -94,3 +108,13 @@ async def test_change_category_and_trend_metrics() -> None:
     assert metrics["change_type_counts"]["normal"] == 1
     assert metrics["change_category_counts"]["urgent"] == 1
     assert metrics["monthly_trends"]
+
+
+@pytest.mark.anyio
+async def test_automated_tests_skipped_without_endpoint() -> None:
+    agent = ChangeConfigurationAgent(config={})
+    change = {"change_id": "CHG-1", "title": "Change"}
+
+    result = await agent._run_automated_tests(change, {})
+
+    assert result["status"] == "skipped"

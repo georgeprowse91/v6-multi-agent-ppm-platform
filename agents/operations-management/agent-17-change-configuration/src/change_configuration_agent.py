@@ -702,12 +702,23 @@ class ChangeConfigurationAgent(BaseAgent):
             (config or {}).get("require_staging_tests")
             or os.getenv("REQUIRE_STAGING_TESTS", "false").lower() == "true"
         )
+        self.require_automated_tests = bool(
+            (config or {}).get("require_automated_tests")
+            or os.getenv("REQUIRE_AUTOMATED_TESTS", "false").lower() == "true"
+        )
         self.staging_validation_endpoint = (
             (config or {}).get("staging_validation_endpoint")
             or os.getenv("STAGING_VALIDATION_ENDPOINT")
         )
+        self.automated_test_endpoint = (
+            (config or {}).get("automated_test_endpoint")
+            or os.getenv("CHANGE_TEST_ENDPOINT")
+        )
         self.monitoring_endpoint = (
             (config or {}).get("monitoring_endpoint") or os.getenv("CHANGE_MONITORING_ENDPOINT")
+        )
+        self.metrics_endpoint = (
+            (config or {}).get("metrics_endpoint") or os.getenv("CHANGE_METRICS_ENDPOINT")
         )
 
     async def initialize(self) -> None:
@@ -1117,6 +1128,7 @@ class ChangeConfigurationAgent(BaseAgent):
         cost_impact = await self._assess_cost_impact(change)
         resource_impact = await self._assess_resource_impact(change)
         risk_impact = await self._assess_risk_impact(change)
+        compliance_impact = await self._assess_compliance_impact(change)
 
         # Analyze CI dependencies
         dependency_impact = await self._analyze_dependency_impact(change)
@@ -1130,10 +1142,11 @@ class ChangeConfigurationAgent(BaseAgent):
             "cost_impact": cost_impact,
             "resource_impact": resource_impact,
             "risk_impact": risk_impact,
+            "compliance_impact": compliance_impact,
             "dependency_impact": dependency_impact,
             "predicted_impact": predicted_impact,
             "overall_risk_score": await self._calculate_overall_risk(
-                schedule_impact, cost_impact, risk_impact
+                schedule_impact, cost_impact, risk_impact, compliance_impact
             ),
             "assessed_at": datetime.utcnow().isoformat(),
         }
@@ -1261,6 +1274,22 @@ class ChangeConfigurationAgent(BaseAgent):
         if change.get("approval_status") != "Approved":
             return {"change_id": change_id, "status": "blocked", "reason": "not_approved"}
 
+        automated_tests = await self._run_automated_tests(change, implementation)
+        if automated_tests.get("status") == "failed":
+            rollback = await self._rollback_change(change_id, reason="automated_tests_failed")
+            return {
+                "change_id": change_id,
+                "status": "rolled_back",
+                "automated_tests": automated_tests,
+                "rollback": rollback,
+            }
+        if automated_tests.get("status") == "skipped" and self.require_automated_tests:
+            return {
+                "change_id": change_id,
+                "status": "blocked",
+                "reason": "automated_tests_required",
+            }
+
         validation = await self._run_staging_validation(change, implementation)
         if validation.get("status") == "failed":
             rollback = await self._rollback_change(
@@ -1287,7 +1316,7 @@ class ChangeConfigurationAgent(BaseAgent):
             change_id,
             "implementation_started",
             actor_id=actor_id,
-            details={"validation": validation},
+            details={"validation": validation, "automated_tests": automated_tests},
         )
 
         coordination = await self._coordinate_release_and_governance(change, tenant_id, correlation_id)
@@ -1549,6 +1578,12 @@ class ChangeConfigurationAgent(BaseAgent):
         change["rollback_reason"] = reason
         change["rolled_back_at"] = datetime.utcnow().isoformat()
         await self.db_service.store("change_requests", change_id, change)
+        await self._record_change_audit(
+            change_id,
+            "rolled_back",
+            actor_id=change.get("actor_id", "system"),
+            details={"reason": reason},
+        )
         await self._publish_event(
             "change.rolled_back",
             {
@@ -1557,6 +1592,12 @@ class ChangeConfigurationAgent(BaseAgent):
                 "status": change["status"],
                 "reason": reason,
             },
+        )
+        await self._notify_stakeholders(
+            change,
+            event_type="change.rolled_back",
+            tenant_id=change.get("tenant_id", "unknown"),
+            correlation_id=change.get("correlation_id", str(uuid.uuid4())),
         )
         return {"change_id": change_id, "status": change["status"], "reason": reason}
 
@@ -1622,7 +1663,7 @@ class ChangeConfigurationAgent(BaseAgent):
             sum(approval_times) / len(approval_times) if approval_times else 0.0
         )
         success_rate = (success_count / len(changes)) if changes else 0.0
-        return {
+        metrics = {
             "total_changes": len(changes),
             "change_type_counts": type_counts,
             "change_category_counts": category_counts,
@@ -1630,6 +1671,8 @@ class ChangeConfigurationAgent(BaseAgent):
             "success_rate": round(success_rate, 2),
             "monthly_trends": dict(sorted(monthly_trends.items())),
         }
+        await self._publish_change_metrics(metrics)
+        return metrics
 
     # Helper methods
 
@@ -1728,6 +1771,22 @@ class ChangeConfigurationAgent(BaseAgent):
         # Future work: Integrate with Risk Management Agent
         return {"new_risks": [], "risk_score_increase": 0}
 
+    async def _assess_compliance_impact(self, change: dict[str, Any]) -> dict[str, Any]:
+        """Assess compliance and regulatory impact of change."""
+        compliance_scope = change.get("compliance_scope", [])
+        regulatory_flags = change.get("regulatory_flags", [])
+        risk_score = 0
+        if compliance_scope:
+            risk_score += min(20, 5 * len(compliance_scope))
+        if regulatory_flags:
+            risk_score += min(30, 10 * len(regulatory_flags))
+        return {
+            "compliance_scope": compliance_scope,
+            "regulatory_flags": regulatory_flags,
+            "compliance_risk_score": risk_score,
+            "compliance_review_required": bool(compliance_scope or regulatory_flags),
+        }
+
     async def _analyze_dependency_impact(self, change: dict[str, Any]) -> dict[str, Any]:
         """Analyze CI dependency impact."""
         impacted_cis = change.get("impacted_cis", [])
@@ -1778,6 +1837,7 @@ class ChangeConfigurationAgent(BaseAgent):
         schedule_impact: dict[str, Any],
         cost_impact: dict[str, Any],
         risk_impact: dict[str, Any],
+        compliance_impact: dict[str, Any],
     ) -> float:
         """Calculate overall risk score for change."""
         score = 0.0
@@ -1789,6 +1849,7 @@ class ChangeConfigurationAgent(BaseAgent):
             score += 20
 
         score += risk_impact.get("risk_score_increase", 0)
+        score += compliance_impact.get("compliance_risk_score", 0)
 
         return min(100, score)  # type: ignore
 
@@ -1910,6 +1971,24 @@ class ChangeConfigurationAgent(BaseAgent):
             return
         await self.event_publisher.publish_event(topic, payload)
 
+    async def _publish_change_metrics(self, metrics: dict[str, Any]) -> None:
+        await self._publish_event(
+            "change.metrics",
+            {
+                "event_id": f"change.metrics:{datetime.utcnow().isoformat()}",
+                "metrics": metrics,
+            },
+        )
+        if not self.metrics_endpoint:
+            return
+        payload = json.dumps(metrics).encode("utf-8")
+        try:
+            req = request.Request(self.metrics_endpoint, data=payload, method="POST")
+            req.add_header("Content-Type", "application/json")
+            request.urlopen(req, timeout=10)
+        except OSError as exc:
+            self.logger.warning("Failed to publish change metrics: %s", exc)
+
     async def _record_change_audit(
         self,
         change_id: str,
@@ -2020,6 +2099,27 @@ class ChangeConfigurationAgent(BaseAgent):
         try:
             body = json.dumps(payload).encode("utf-8")
             req = request.Request(self.staging_validation_endpoint, data=body, method="POST")
+            req.add_header("Content-Type", "application/json")
+            with request.urlopen(req, timeout=20) as response:
+                response_body = response.read().decode("utf-8")
+                return {"status": "passed", "details": response_body}
+        except OSError as exc:
+            return {"status": "failed", "error": str(exc)}
+
+    async def _run_automated_tests(
+        self, change: dict[str, Any], implementation: dict[str, Any]
+    ) -> dict[str, Any]:
+        payload = {
+            "change_id": change.get("change_id"),
+            "title": change.get("title"),
+            "implementation": implementation,
+            "impacted_cis": change.get("impacted_cis", []),
+        }
+        if not self.automated_test_endpoint:
+            return {"status": "skipped", "reason": "no_automated_test_endpoint"}
+        try:
+            body = json.dumps(payload).encode("utf-8")
+            req = request.Request(self.automated_test_endpoint, data=body, method="POST")
             req.add_header("Content-Type", "application/json")
             with request.urlopen(req, timeout=20) as response:
                 response_body = response.read().decode("utf-8")
