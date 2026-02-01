@@ -1,0 +1,55 @@
+apiVersion: ppm.workflows/v1
+kind: Workflow
+metadata:
+  name: quality-audit
+  version: "1.0.0"
+  owner: workflow-engine
+  description: Execute a quality audit with parallel evidence collection.
+steps:
+  - id: audit-intake
+    type: task
+    next: collect-evidence
+    config:
+      agent: quality_management_agent
+      action: schedule_audit
+  - id: collect-evidence
+    type: parallel
+    join: compile-findings
+    branches:
+      - name: process
+        next: capture-process-evidence
+      - name: artifact
+        next: capture-artifact-evidence
+  - id: capture-process-evidence
+    type: task
+    next: null
+    config:
+      agent: quality_management_agent
+      action: gather_process_evidence
+  - id: capture-artifact-evidence
+    type: task
+    next: null
+    config:
+      agent: quality_management_agent
+      action: gather_artifact_evidence
+  - id: compile-findings
+    type: task
+    next: audit-approval
+    config:
+      agent: quality_management_agent
+      action: compile_findings
+  - id: audit-approval
+    type: approval
+    next: audit-complete
+    config:
+      request_type: audit_gate
+      request_id: $.payload.audit_id
+      requester: $.payload.requester
+      approvers:
+        - quality_board
+  - id: audit-complete
+    type: notification
+    next: null
+    config:
+      channel: teams
+      template: quality-audit-complete

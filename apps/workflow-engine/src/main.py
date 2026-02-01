@@ -17,7 +17,15 @@ WORKFLOW_ROOT = Path(__file__).resolve().parent
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 WORKFLOW_PACKAGE_ROOT = REPO_ROOT / "packages" / "workflow" / "src"
-for root in (REPO_ROOT, WORKFLOW_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, WORKFLOW_PACKAGE_ROOT):
+EVENT_BUS_ROOT = REPO_ROOT / "packages" / "event_bus" / "src"
+for root in (
+    REPO_ROOT,
+    WORKFLOW_ROOT,
+    SECURITY_ROOT,
+    OBSERVABILITY_ROOT,
+    WORKFLOW_PACKAGE_ROOT,
+    EVENT_BUS_ROOT,
+):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -26,7 +34,11 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from workflow_audit import emit_audit_event  # noqa: E402
-from workflow_definitions import load_definition, seed_definitions  # noqa: E402
+from workflow_definitions import (  # noqa: E402
+    load_definition,
+    seed_definitions,
+    validate_definition,
+)
 from workflow_runtime import WorkflowRuntime  # noqa: E402
 from workflow_storage import WorkflowStore  # noqa: E402
 from workflow.dispatcher import WorkflowDispatcher  # noqa: E402
@@ -124,6 +136,29 @@ class WorkflowApprovalDecisionRequest(BaseModel):
     comments: str | None = None
 
 
+class WorkflowDefinitionUpdateRequest(BaseModel):
+    definition: dict[str, Any]
+
+
+ROLE_POLICIES = {
+    "workflow:manage_definitions": {"workflow_admin", "workflow_editor"},
+    "workflow:start": {"workflow_admin", "workflow_operator", "portfolio_admin"},
+    "workflow:monitor": {
+        "workflow_admin",
+        "workflow_operator",
+        "portfolio_admin",
+        "portfolio_viewer",
+    },
+    "workflow:update": {"workflow_admin", "workflow_operator"},
+}
+
+
+def _require_roles(request: Request, allowed: set[str]) -> None:
+    roles = set(request.state.auth.roles or [])
+    if allowed and not roles.intersection(allowed):
+        raise HTTPException(status_code=403, detail="Insufficient role permissions")
+
+
 def _enforce_methodology_gates(definition: dict[str, Any], payload: dict[str, Any]) -> None:
     gates = definition.get("gates", {})
     required = set(gates.get("required_activities", []))
@@ -165,7 +200,8 @@ async def startup_event() -> None:
 
 
 @app.get("/workflows/definitions", response_model=list[WorkflowDefinitionResponse])
-async def list_definitions() -> list[WorkflowDefinitionResponse]:
+async def list_definitions(http_request: Request) -> list[WorkflowDefinitionResponse]:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     return [
         WorkflowDefinitionResponse(
             workflow_id=definition.workflow_id,
@@ -179,7 +215,15 @@ async def list_definitions() -> list[WorkflowDefinitionResponse]:
 
 
 @app.post("/workflows/definitions", response_model=WorkflowDefinitionResponse)
-async def create_definition(request: WorkflowDefinitionCreateRequest) -> WorkflowDefinitionResponse:
+async def create_definition(
+    request: WorkflowDefinitionCreateRequest, http_request: Request
+) -> WorkflowDefinitionResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:manage_definitions"])
+    errors = validate_definition(request.definition)
+    if errors:
+        raise HTTPException(
+            status_code=422, detail={"message": "Invalid definition", "errors": errors}
+        )
     record = store.upsert_definition(request.workflow_id, request.definition)
     return WorkflowDefinitionResponse(
         workflow_id=record.workflow_id,
@@ -190,10 +234,56 @@ async def create_definition(request: WorkflowDefinitionCreateRequest) -> Workflo
     )
 
 
+@app.get("/workflows/definitions/{workflow_id}", response_model=WorkflowDefinitionResponse)
+async def get_definition(workflow_id: str, http_request: Request) -> WorkflowDefinitionResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
+    record = store.get_definition(workflow_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Workflow definition not found")
+    return WorkflowDefinitionResponse(
+        workflow_id=record.workflow_id,
+        name=record.name,
+        version=record.version,
+        owner=record.owner,
+        description=record.description,
+    )
+
+
+@app.put("/workflows/definitions/{workflow_id}", response_model=WorkflowDefinitionResponse)
+async def update_definition(
+    workflow_id: str, request: WorkflowDefinitionUpdateRequest, http_request: Request
+) -> WorkflowDefinitionResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:manage_definitions"])
+    errors = validate_definition(request.definition)
+    if errors:
+        raise HTTPException(
+            status_code=422, detail={"message": "Invalid definition", "errors": errors}
+        )
+    record = store.upsert_definition(workflow_id, request.definition)
+    return WorkflowDefinitionResponse(
+        workflow_id=record.workflow_id,
+        name=record.name,
+        version=record.version,
+        owner=record.owner,
+        description=record.description,
+    )
+
+
+@app.delete("/workflows/definitions/{workflow_id}")
+async def delete_definition(workflow_id: str, http_request: Request) -> dict[str, str]:
+    _require_roles(http_request, ROLE_POLICIES["workflow:manage_definitions"])
+    record = store.get_definition(workflow_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Workflow definition not found")
+    store.delete_definition(workflow_id)
+    return {"status": "deleted"}
+
+
 @app.post("/workflows/start", response_model=WorkflowRunResponse)
 async def start_workflow(
     request: WorkflowStartRequest, http_request: Request
 ) -> WorkflowRunResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:start"])
     if request.tenant_id != http_request.state.auth.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
     definition = _get_definition(request.workflow_id)
@@ -215,6 +305,15 @@ async def start_workflow(
         resource={"id": run_id, "type": "workflow", "definition": definition.get("name")},
         classification=request.classification,
     )
+    await runtime._publish_event(  # noqa: SLF001 - workflow runtime manages event publishing
+        "workflow.started",
+        {
+            "run_id": instance.run_id,
+            "workflow_id": instance.workflow_id,
+            "tenant_id": instance.tenant_id,
+            "actor": request.actor,
+        },
+    )
 
     logger.info("workflow_started", extra={"run_id": run_id, "workflow_id": request.workflow_id})
     return WorkflowRunResponse(
@@ -230,6 +329,7 @@ async def start_workflow(
 
 @app.get("/workflows/{run_id}", response_model=WorkflowRunResponse)
 async def get_workflow(run_id: str, http_request: Request) -> WorkflowRunResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     instance = store.get(run_id)
     if not instance:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -248,6 +348,7 @@ async def get_workflow(run_id: str, http_request: Request) -> WorkflowRunRespons
 
 @app.get("/workflows", response_model=list[WorkflowRunResponse])
 async def list_workflows(http_request: Request) -> list[WorkflowRunResponse]:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     return [
         WorkflowRunResponse(
             run_id=instance.run_id,
@@ -264,6 +365,7 @@ async def list_workflows(http_request: Request) -> list[WorkflowRunResponse]:
 
 @app.post("/workflows/{run_id}/resume", response_model=WorkflowRunResponse)
 async def resume_workflow(run_id: str, http_request: Request) -> WorkflowRunResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:update"])
     instance = store.get(run_id)
     if not instance:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -290,6 +392,7 @@ async def resume_workflow(run_id: str, http_request: Request) -> WorkflowRunResp
 
 @app.get("/workflows/{run_id}/timeline", response_model=list[WorkflowEventResponse])
 async def workflow_timeline(run_id: str, http_request: Request) -> list[WorkflowEventResponse]:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     instance = store.get(run_id)
     if not instance:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -312,6 +415,7 @@ async def workflow_timeline(run_id: str, http_request: Request) -> list[Workflow
 async def update_workflow(
     run_id: str, request: WorkflowUpdateRequest, http_request: Request
 ) -> WorkflowRunResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:update"])
     instance = store.update_status(run_id, request.status)
     if not instance:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -339,6 +443,7 @@ async def update_workflow(
 async def list_approvals(
     http_request: Request, status: str | None = None
 ) -> list[WorkflowApprovalResponse]:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     approvals = store.list_approvals(http_request.state.auth.tenant_id, status=status)
     return [
         WorkflowApprovalResponse(
@@ -360,6 +465,7 @@ async def list_approvals(
 
 @app.get("/approvals/{approval_id}", response_model=WorkflowApprovalResponse)
 async def get_approval(approval_id: str, http_request: Request) -> WorkflowApprovalResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     approval = store.get_approval(approval_id)
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")
@@ -384,6 +490,7 @@ async def get_approval(approval_id: str, http_request: Request) -> WorkflowAppro
 async def decide_approval(
     approval_id: str, request: WorkflowApprovalDecisionRequest, http_request: Request
 ) -> WorkflowRunResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:update"])
     approval = store.get_approval(approval_id)
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")

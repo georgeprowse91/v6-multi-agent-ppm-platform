@@ -1,0 +1,66 @@
+apiVersion: ppm.workflows/v1
+kind: Workflow
+metadata:
+  name: project-initiation
+  version: "1.0.0"
+  owner: workflow-engine
+  description: Initiate a new project with parallel discovery and approval gates.
+steps:
+  - id: register-request
+    type: task
+    next: discovery
+    config:
+      agent: portfolio_planning_agent
+      action: register_initiation
+  - id: discovery
+    type: parallel
+    join: consolidate-discovery
+    branches:
+      - name: schedule
+        next: schedule-kickoff
+      - name: risk
+        next: risk-assessment
+  - id: schedule-kickoff
+    type: task
+    next: null
+    config:
+      agent: scheduling_agent
+      action: create_kickoff
+  - id: risk-assessment
+    type: task
+    next: null
+    config:
+      agent: risk_management_agent
+      action: initial_assessment
+  - id: consolidate-discovery
+    type: decision
+    next: governance-approval
+    branches:
+      - name: high-risk
+        condition:
+          field: $.payload.risk_score
+          operator: greater_than
+          value: 70
+        next: risk-mitigation-plan
+    default_next: governance-approval
+  - id: risk-mitigation-plan
+    type: task
+    next: governance-approval
+    config:
+      agent: risk_management_agent
+      action: build_mitigation
+  - id: governance-approval
+    type: approval
+    next: launch-project
+    config:
+      request_type: phase_gate
+      request_id: $.payload.request_id
+      requester: $.payload.requester
+      approvers:
+        - portfolio_board
+  - id: launch-project
+    type: notification
+    next: null
+    config:
+      channel: teams
+      template: project-initiation-complete
