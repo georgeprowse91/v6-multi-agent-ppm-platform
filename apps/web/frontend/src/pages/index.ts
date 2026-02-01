@@ -7,3 +7,6 @@ export { DocumentSearchPage } from './DocumentSearchPage';
 export { LessonsLearnedPage } from './LessonsLearnedPage';
 export { AuditLogPage } from './AuditLogPage';
 export { ConnectorMarketplacePage } from './ConnectorMarketplacePage';
+export { IntakeFormPage } from './IntakeFormPage';
+export { IntakeStatusPage } from './IntakeStatusPage';
+export { IntakeApprovalsPage } from './IntakeApprovalsPage';

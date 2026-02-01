@@ -10,6 +10,9 @@ import {
   LessonsLearnedPage,
   AuditLogPage,
   ConnectorMarketplacePage,
+  IntakeFormPage,
+  IntakeStatusPage,
+  IntakeApprovalsPage,
 } from '@/pages';
 
 export function App() {
@@ -51,6 +54,9 @@ export function App() {
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
         <Route path="/marketplace/connectors" element={<ConnectorMarketplacePage />} />
+        <Route path="/intake/new" element={<IntakeFormPage />} />
+        <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
+        <Route path="/intake/approvals" element={<IntakeApprovalsPage />} />
 
         {/* Knowledge pages */}
         <Route path="/knowledge/documents" element={<DocumentSearchPage />} />
