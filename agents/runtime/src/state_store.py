@@ -35,6 +35,14 @@ class TenantStateStore:
             return None
         return cast(dict[str, Any], record)
 
+    def delete(self, tenant_id: str, record_id: str) -> None:
+        data = self._load()
+        tenant_records = cast(dict[str, Any], data.get(tenant_id, {}))
+        if record_id in tenant_records:
+            tenant_records.pop(record_id)
+            data[tenant_id] = tenant_records
+            self._save(data)
+
     def list(self, tenant_id: str) -> list[dict[str, Any]]:
         data = self._load()
         tenant_records = cast(dict[str, Any], data.get(tenant_id, {}))

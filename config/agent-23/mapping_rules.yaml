@@ -1,0 +1,46 @@
+mappings:
+  - name: Jira issues to tasks
+    entity_type: tasks
+    source_system: jira
+    field_mappings:
+      id: id
+      key: id
+      summary: name
+      status: status
+      project_id: project_id
+      assignee_id: assignee_id
+      due_date: due_date
+    defaults:
+      status: "open"
+    transformations:
+      - field: name
+        operation: strip
+  - name: Planview projects to projects
+    entity_type: projects
+    source_system: planview
+    field_mappings:
+      id: id
+      name: name
+      status: status
+      start_date: start_date
+      end_date: end_date
+      owner_id: owner_id
+      budget: budget
+  - name: Workday workers to resources
+    entity_type: resources
+    source_system: workday
+    field_mappings:
+      id: id
+      name: name
+      role: role
+      email: email
+      department: department
+  - name: SAP vendors to vendors
+    entity_type: vendors
+    source_system: sap
+    field_mappings:
+      id: id
+      name: name
+      status: status
+      category: category
+      primary_contact: primary_contact
