@@ -41,9 +41,12 @@ class ProcessMiningAgent(BaseAgent):
 
         # Process mining algorithms
         self.mining_algorithms = (
-            config.get("mining_algorithms", ["alpha_miner", "heuristic_miner", "fuzzy_miner"])
+            config.get(
+                "mining_algorithms",
+                ["alpha_miner", "inductive_miner", "heuristic_miner", "fuzzy_miner"],
+            )
             if config
-            else ["alpha_miner", "heuristic_miner", "fuzzy_miner"]
+            else ["alpha_miner", "inductive_miner", "heuristic_miner", "fuzzy_miner"]
         )
 
         event_log_store_path = self._resolve_store_path(
@@ -70,6 +73,7 @@ class ProcessMiningAgent(BaseAgent):
         self.benefit_tracking = {}  # type: ignore
         self.benchmarks = {}  # type: ignore
         self.workflow_engine_agent = config.get("workflow_engine_agent") if config else None
+        self.knowledge_agent = config.get("knowledge_agent") if config else None
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             try:
@@ -80,23 +84,58 @@ class ProcessMiningAgent(BaseAgent):
             config.get(
                 "event_topics",
                 [
+                    "schedule.created",
+                    "schedule.updated",
                     "task.started",
                     "task.completed",
+                    "deployment.started",
                     "deployment.succeeded",
+                    "deployment.failed",
+                    "risk.triggered",
                     "risk.mitigated",
+                    "quality.finding.created",
+                    "quality.finding.closed",
+                    "approval.requested",
+                    "approval.granted",
+                    "approval.rejected",
+                    "change.requested",
+                    "change.approved",
+                    "workflow.step.started",
                     "workflow.step.completed",
+                    "incident.created",
+                    "incident.resolved",
                 ],
             )
             if config
             else [
+                "schedule.created",
+                "schedule.updated",
                 "task.started",
                 "task.completed",
+                "deployment.started",
                 "deployment.succeeded",
+                "deployment.failed",
+                "risk.triggered",
                 "risk.mitigated",
+                "quality.finding.created",
+                "quality.finding.closed",
+                "approval.requested",
+                "approval.granted",
+                "approval.rejected",
+                "change.requested",
+                "change.approved",
+                "workflow.step.started",
                 "workflow.step.completed",
+                "incident.created",
+                "incident.resolved",
             ]
         )
         self.max_deviation_alerts = config.get("max_deviation_alerts", 5) if config else 5
+        self.knowledge_event_topic = (
+            config.get("knowledge_event_topic", "agent.summary.created")
+            if config
+            else "agent.summary.created"
+        )
 
     async def initialize(self) -> None:
         """Initialize process mining tools, analytics, and data sources."""
@@ -143,6 +182,7 @@ class ProcessMiningAgent(BaseAgent):
             "get_conformance_report",
             "get_recommendations",
             "get_improvement_backlog",
+            "get_kpi_report",
         ]
 
         if action not in valid_actions:
@@ -174,7 +214,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Args:
             input_data: {
-                "action": "ingest_event_log" | "discover_process" | "detect_bottlenecks" |
+            "action": "ingest_event_log" | "discover_process" | "detect_bottlenecks" |
                           "detect_deviations" | "analyze_root_cause" | "create_improvement" |
                           "prioritize_improvements" | "track_benefits" | "benchmark_performance" |
                           "share_best_practices" | "get_process_insights" | "get_improvement_backlog",
@@ -200,6 +240,7 @@ class ProcessMiningAgent(BaseAgent):
             - share_best_practices: Best practices list
             - get_process_insights: Process performance insights
             - get_improvement_backlog: Improvement backlog list
+            - get_kpi_report: KPI rollups for projects and programs
         """
         action = input_data.get("action", "get_process_insights")
         tenant_id = (
@@ -215,7 +256,7 @@ class ProcessMiningAgent(BaseAgent):
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
             return await self._discover_process(
-                process_id, input_data.get("algorithm", "heuristic_miner")
+                tenant_id, process_id, input_data.get("algorithm", "heuristic_miner")
             )
         elif action == "check_conformance":
             process_id = input_data.get("process_id")
@@ -225,18 +266,18 @@ class ProcessMiningAgent(BaseAgent):
             if expected_model is None and process_model_id:
                 expected_model = self.process_models.get(process_model_id, {}).get("model")
             if expected_model is None:
-                expected_model = await self._get_designed_process_model(process_id)
-            return await self._check_conformance(process_id, expected_model)
+                expected_model = await self._get_designed_process_model(tenant_id, process_id)
+            return await self._check_conformance(tenant_id, process_id, expected_model)
 
         elif action == "detect_bottlenecks":
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
-            return await self._detect_bottlenecks(process_id)
+            return await self._detect_bottlenecks(tenant_id, process_id)
 
         elif action == "detect_deviations":
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
-            return await self._detect_deviations(process_id)
+            return await self._detect_deviations(tenant_id, process_id)
 
         elif action == "analyze_root_cause":
             process_id = input_data.get("process_id")
@@ -269,22 +310,24 @@ class ProcessMiningAgent(BaseAgent):
         elif action == "get_process_insights":
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
-            return await self._get_process_insights(process_id)
+            return await self._get_process_insights(tenant_id, process_id)
         elif action == "get_process_model":
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
-            return await self._get_process_model(process_id)
+            return await self._get_process_model(tenant_id, process_id)
         elif action == "get_conformance_report":
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
-            return await self._get_conformance_report(process_id)
+            return await self._get_conformance_report(tenant_id, process_id)
         elif action == "get_recommendations":
             process_id = input_data.get("process_id")
             assert isinstance(process_id, str), "process_id must be a string"
-            return await self._get_recommendations(process_id)
+            return await self._get_recommendations(tenant_id, process_id)
 
         elif action == "get_improvement_backlog":
             return await self._get_improvement_backlog(input_data.get("filters", {}))
+        elif action == "get_kpi_report":
+            return await self._get_kpi_report(input_data.get("filters", {}))
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -329,7 +372,7 @@ class ProcessMiningAgent(BaseAgent):
         }
 
     async def _check_conformance(
-        self, process_id: str, expected_model: dict[str, Any]
+        self, tenant_id: str, process_id: str, expected_model: dict[str, Any]
     ) -> dict[str, Any]:
         """Compare actual traces against expected process model."""
         self.logger.info(f"Checking conformance for process: {process_id}")
@@ -382,12 +425,12 @@ class ProcessMiningAgent(BaseAgent):
             "deviations": deviations,
             "checked_at": datetime.utcnow().isoformat(),
         }
-        self.conformance_store.upsert(process_id, process_id, report)
+        self.conformance_store.upsert(tenant_id, process_id, report)
         await self._emit_deviation_alert(process_id, report)
         return report
 
     async def _discover_process(
-        self, process_id: str, algorithm: str = "heuristic_miner"
+        self, tenant_id: str, process_id: str, algorithm: str = "heuristic_miner"
     ) -> dict[str, Any]:
         """
         Discover process model from event logs.
@@ -403,6 +446,8 @@ class ProcessMiningAgent(BaseAgent):
             raise ValueError(f"No events found for process: {process_id}")
 
         process_model = await self._apply_mining_algorithm(events, algorithm)
+        bpmn_model = await self._build_bpmn_model(events, process_model)
+        petri_net = await self._build_petri_net(events, process_model)
 
         # Calculate performance metrics
         performance_metrics = await self._calculate_process_metrics(events, process_model)
@@ -416,13 +461,15 @@ class ProcessMiningAgent(BaseAgent):
         model_record = {
             "process_id": process_id,
             "model": process_model,
+            "bpmn": bpmn_model,
+            "petri_net": petri_net,
             "algorithm": algorithm,
             "metrics": performance_metrics,
             "visualization": visualization,
             "discovered_at": datetime.utcnow().isoformat(),
         }
         self.process_models[process_id] = model_record
-        self.process_model_store.upsert(process_id, process_id, model_record)
+        self.process_model_store.upsert(tenant_id, process_id, model_record)
 
         # Future work: Store in database
         # Future work: Publish process.discovered event
@@ -432,11 +479,13 @@ class ProcessMiningAgent(BaseAgent):
             "algorithm": algorithm,
             "activities": len(process_model.get("activities", [])),
             "transitions": len(process_model.get("transitions", [])),
+            "bpmn": bpmn_model,
+            "petri_net": petri_net,
             "metrics": performance_metrics,
             "visualization": visualization,
         }
 
-    async def _detect_bottlenecks(self, process_id: str) -> dict[str, Any]:
+    async def _detect_bottlenecks(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """
         Detect bottlenecks in process execution.
 
@@ -444,11 +493,15 @@ class ProcessMiningAgent(BaseAgent):
         """
         self.logger.info(f"Detecting bottlenecks for process: {process_id}")
 
-        process_model = self.process_models.get(process_id)
+        process_model = self.process_models.get(process_id) or self.process_model_store.get(
+            tenant_id, process_id
+        )
         if not process_model:
             # Discover process first
-            await self._discover_process(process_id)
-            process_model = self.process_models.get(process_id)
+            await self._discover_process(tenant_id, process_id)
+            process_model = self.process_models.get(process_id) or self.process_model_store.get(
+                tenant_id, process_id
+            )
 
         # Analyze waiting times
         waiting_times = await self._analyze_waiting_times(process_id)
@@ -481,7 +534,7 @@ class ProcessMiningAgent(BaseAgent):
             "overall_throughput": throughput,
         }
 
-    async def _detect_deviations(self, process_id: str) -> dict[str, Any]:
+    async def _detect_deviations(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """
         Detect deviations from designed process.
 
@@ -491,13 +544,17 @@ class ProcessMiningAgent(BaseAgent):
 
         # Get designed process model
         # Future work: Get from Workflow & Process Engine Agent
-        designed_model = await self._get_designed_process_model(process_id)
+        designed_model = await self._get_designed_process_model(tenant_id, process_id)
 
         # Get actual process model
-        actual_model = self.process_models.get(process_id)
+        actual_model = self.process_models.get(process_id) or self.process_model_store.get(
+            tenant_id, process_id
+        )
         if not actual_model:
-            await self._discover_process(process_id)
-            actual_model = self.process_models.get(process_id)
+            await self._discover_process(tenant_id, process_id)
+            actual_model = self.process_models.get(process_id) or self.process_model_store.get(
+                tenant_id, process_id
+            )
 
         assert actual_model is not None, "Failed to discover process model"
 
@@ -789,7 +846,7 @@ class ProcessMiningAgent(BaseAgent):
             "top_performers": top_performers,
         }
 
-    async def _get_process_insights(self, process_id: str) -> dict[str, Any]:
+    async def _get_process_insights(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """
         Get comprehensive process insights.
 
@@ -797,24 +854,37 @@ class ProcessMiningAgent(BaseAgent):
         """
         self.logger.info(f"Generating insights for process: {process_id}")
 
-        process_model = self.process_models.get(process_id)
+        process_model = self.process_models.get(process_id) or self.process_model_store.get(
+            tenant_id, process_id
+        )
         if not process_model:
-            await self._discover_process(process_id)
-            process_model = self.process_models.get(process_id)
+            await self._discover_process(tenant_id, process_id)
+            process_model = self.process_models.get(process_id) or self.process_model_store.get(
+                tenant_id, process_id
+            )
 
         # Get metrics
         metrics = process_model.get("metrics", {})  # type: ignore
 
         # Get bottlenecks
-        bottlenecks_result = await self._detect_bottlenecks(process_id)
+        bottlenecks_result = await self._detect_bottlenecks(tenant_id, process_id)
 
         # Get deviations
-        deviations_result = await self._detect_deviations(process_id)
+        deviations_result = await self._detect_deviations(tenant_id, process_id)
 
         recommendations = await self._generate_process_recommendations(
             metrics, bottlenecks_result, deviations_result
         )
-        await self._store_recommendations(process_id, recommendations)
+        await self._store_recommendations(
+            tenant_id,
+            process_id,
+            recommendations,
+            context={
+                "metrics": metrics,
+                "bottlenecks": bottlenecks_result.get("bottlenecks", []),
+                "deviations": deviations_result.get("deviations", {}),
+            },
+        )
         return {
             "process_id": process_id,
             "metrics": metrics,
@@ -849,36 +919,60 @@ class ProcessMiningAgent(BaseAgent):
             "filters": filters,
         }
 
-    async def _get_process_model(self, process_id: str) -> dict[str, Any]:
+    async def _get_process_model(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """Return stored process model for API consumers."""
         model = self.process_models.get(process_id) or self.process_model_store.get(
-            process_id, process_id
+            tenant_id, process_id
         )
         if not model:
-            await self._discover_process(process_id)
+            await self._discover_process(tenant_id, process_id)
             model = self.process_models.get(process_id) or self.process_model_store.get(
-                process_id, process_id
+                tenant_id, process_id
             )
         return model or {}
 
-    async def _get_conformance_report(self, process_id: str) -> dict[str, Any]:
+    async def _get_conformance_report(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """Return conformance report for API consumers."""
-        report = self.conformance_store.get(process_id, process_id)
+        report = self.conformance_store.get(tenant_id, process_id)
         if not report:
-            expected_model = await self._get_designed_process_model(process_id)
-            report = await self._check_conformance(process_id, expected_model)
+            expected_model = await self._get_designed_process_model(tenant_id, process_id)
+            report = await self._check_conformance(tenant_id, process_id, expected_model)
         return report
 
-    async def _get_recommendations(self, process_id: str) -> dict[str, Any]:
+    async def _get_recommendations(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """Return stored recommendations for API consumers."""
-        stored = self.recommendations_store.get(process_id, process_id)
+        stored = self.recommendations_store.get(tenant_id, process_id)
         if stored:
             return stored
-        insights = await self._get_process_insights(process_id)
+        insights = await self._get_process_insights(tenant_id, process_id)
         return {
             "process_id": process_id,
             "generated_at": datetime.utcnow().isoformat(),
             "recommendations": insights.get("recommendations", []),
+        }
+
+    async def _get_kpi_report(self, filters: dict[str, Any]) -> dict[str, Any]:
+        """Compute KPI rollups across projects and programs."""
+        all_events = []
+        if not self.event_logs:
+            stored_logs = await self._load_all_event_logs()
+            for log in stored_logs:
+                all_events.extend(log.get("events", []))
+        else:
+            for log in self.event_logs.values():
+                all_events.extend(log.get("events", []))
+
+        if filters.get("process_id"):
+            all_events = [
+                event for event in all_events if event.get("process_id") == filters["process_id"]
+            ]
+
+        return {
+            "generated_at": datetime.utcnow().isoformat(),
+            "filters": filters,
+            "process_kpis": await self._calculate_grouped_kpis(all_events, "process_id"),
+            "project_kpis": await self._calculate_grouped_kpis(all_events, "project_id"),
+            "program_kpis": await self._calculate_grouped_kpis(all_events, "program_id"),
         }
 
     # Helper methods
@@ -1000,6 +1094,70 @@ class ProcessMiningAgent(BaseAgent):
 
         return {"activities": activities, "transitions": transitions, "algorithm": algorithm}
 
+    async def _build_bpmn_model(
+        self, events: list[dict[str, Any]], process_model: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Build a lightweight BPMN representation."""
+        traces = await self._build_traces(events)
+        start_activities, end_activities = self._get_start_end_activities(traces)
+        tasks = [
+            {"id": activity, "name": activity, "type": "task"}
+            for activity in process_model.get("activities", [])
+        ]
+        flows = [
+            {"id": f"{edge['from']}-{edge['to']}", "source": edge["from"], "target": edge["to"]}
+            for edge in process_model.get("transitions", [])
+        ]
+        return {
+            "type": "bpmn",
+            "start_events": [
+                {"id": f"start-{activity}", "name": "Start", "outgoing": activity}
+                for activity in start_activities
+            ],
+            "end_events": [
+                {"id": f"end-{activity}", "name": "End", "incoming": activity}
+                for activity in end_activities
+            ],
+            "tasks": tasks,
+            "sequence_flows": flows,
+        }
+
+    async def _build_petri_net(
+        self, events: list[dict[str, Any]], process_model: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Build a simplified Petri net representation."""
+        traces = await self._build_traces(events)
+        start_activities, end_activities = self._get_start_end_activities(traces)
+        transitions = [
+            {"id": activity, "label": activity}
+            for activity in process_model.get("activities", [])
+        ]
+        places = [{"id": "p_start"}, {"id": "p_end"}]
+        arcs: list[dict[str, str]] = []
+        for activity in start_activities:
+            arcs.append({"from": "p_start", "to": activity})
+        for activity in end_activities:
+            arcs.append({"from": activity, "to": "p_end"})
+
+        for edge in process_model.get("transitions", []):
+            place_id = f"p_{edge['from']}_to_{edge['to']}"
+            places.append({"id": place_id})
+            arcs.append({"from": edge["from"], "to": place_id})
+            arcs.append({"from": place_id, "to": edge["to"]})
+
+        return {"type": "petri_net", "places": places, "transitions": transitions, "arcs": arcs}
+
+    def _get_start_end_activities(
+        self, traces: dict[str, list[str]]
+    ) -> tuple[list[str], list[str]]:
+        start_activities = []
+        end_activities = []
+        for activities in traces.values():
+            if activities:
+                start_activities.append(activities[0])
+                end_activities.append(activities[-1])
+        return sorted(set(start_activities)), sorted(set(end_activities))
+
     async def _calculate_process_metrics(
         self, events: list[dict[str, Any]], process_model: dict[str, Any]
     ) -> dict[str, Any]:
@@ -1026,6 +1184,63 @@ class ProcessMiningAgent(BaseAgent):
             "activity_count": len(process_model.get("activities", [])),
             "avg_waiting_time": await self._calculate_average_waiting_time(events),
         }
+
+    async def _calculate_basic_metrics(self, events: list[dict[str, Any]]) -> dict[str, Any]:
+        """Calculate basic performance metrics without a process model."""
+        traces = await self._build_traces(events)
+        cycle_times = []
+        for case_id in traces:
+            case_events = [e for e in events if e.get("case_id") == case_id]
+            timestamps = [
+                self._safe_parse_timestamp(e.get("timestamp"))
+                for e in case_events
+                if e.get("timestamp")
+            ]
+            timestamps = [ts for ts in timestamps if ts]
+            if timestamps:
+                cycle_times.append((max(timestamps) - min(timestamps)).total_seconds() / 3600)
+
+        median_cycle_time = (
+            sorted(cycle_times)[len(cycle_times) // 2] if cycle_times else 0.0
+        )
+        return {
+            "median_cycle_time": round(median_cycle_time, 2),
+            "throughput": len(traces),
+            "avg_waiting_time": await self._calculate_average_waiting_time(events),
+            "trace_count": len(traces),
+        }
+
+    async def _calculate_grouped_kpis(
+        self, events: list[dict[str, Any]], key: str
+    ) -> list[dict[str, Any]]:
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for event in events:
+            dimension = self._extract_dimension(event, key)
+            if dimension is None:
+                continue
+            grouped.setdefault(dimension, []).append(event)
+
+        results = []
+        for dimension, group_events in grouped.items():
+            metrics = await self._calculate_basic_metrics(group_events)
+            results.append(
+                {
+                    "dimension": dimension,
+                    "event_count": len(group_events),
+                    "metrics": metrics,
+                }
+            )
+        return sorted(results, key=lambda item: item["event_count"], reverse=True)
+
+    def _extract_dimension(self, event: dict[str, Any], key: str) -> str | None:
+        if key == "process_id":
+            return event.get("process_id")
+        metadata = event.get("metadata", {})
+        return (
+            metadata.get(key)
+            if isinstance(metadata, dict)
+            else event.get(key)
+        )
 
     async def _generate_process_visualization(
         self, process_model: dict[str, Any], metrics: dict[str, Any]
@@ -1106,10 +1321,12 @@ class ProcessMiningAgent(BaseAgent):
             )
         return recommendations
 
-    async def _get_designed_process_model(self, process_id: str) -> dict[str, Any]:
+    async def _get_designed_process_model(
+        self, tenant_id: str, process_id: str
+    ) -> dict[str, Any]:
         """Get designed process model."""
         # Future work: Query from Workflow & Process Engine Agent
-        stored = self.process_model_store.get(process_id, process_id)
+        stored = self.process_model_store.get(tenant_id, process_id)
         if stored:
             return stored.get("model", {})
         return {"activities": [], "transitions": []}
@@ -1474,17 +1691,51 @@ class ProcessMiningAgent(BaseAgent):
         except ValueError:
             return None
 
-    async def _store_recommendations(self, process_id: str, recommendations: list[str]) -> None:
+    async def _store_recommendations(
+        self,
+        tenant_id: str,
+        process_id: str,
+        recommendations: list[str],
+        context: dict[str, Any] | None = None,
+    ) -> None:
         payload = {
             "process_id": process_id,
             "recommendations": recommendations,
             "generated_at": datetime.utcnow().isoformat(),
         }
-        self.recommendations_store.upsert(process_id, process_id, payload)
+        if context:
+            payload["context"] = context
+        self.recommendations_store.upsert(tenant_id, process_id, payload)
         if self.event_bus:
             await self.event_bus.publish(
                 "process.recommendations.generated",
                 {"event_type": "process.recommendations.generated", "data": payload},
+            )
+        await self._publish_lessons_learned(tenant_id, payload)
+
+    async def _publish_lessons_learned(
+        self, tenant_id: str, payload: dict[str, Any]
+    ) -> None:
+        knowledge_payload = {
+            "source_agent": self.agent_id,
+            "title": f"Process improvement recommendations for {payload.get('process_id')}",
+            "summary": "\n".join(payload.get("recommendations", [])),
+            "content": json.dumps(payload, indent=2),
+            "tags": ["process_mining", "continuous_improvement", "lessons_learned"],
+            "metadata": {
+                "process_id": payload.get("process_id"),
+                "generated_at": payload.get("generated_at"),
+            },
+        }
+        if self.knowledge_agent:
+            await self.knowledge_agent.process(
+                {"action": "ingest_agent_output", "tenant_id": tenant_id, "payload": knowledge_payload}
+            )
+            return
+        if self.event_bus:
+            await self.event_bus.publish(
+                self.knowledge_event_topic,
+                {"tenant_id": tenant_id, **knowledge_payload},
             )
 
     async def _emit_deviation_alert(self, process_id: str, report: dict[str, Any]) -> None:
