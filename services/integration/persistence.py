@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -49,6 +50,30 @@ class Schedule(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class TaskRecord(Base):
+    __tablename__ = "tasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    schedule_id: Mapped[int] = mapped_column(Integer, index=True)
+    task_key: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(255))
+    duration_days: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(50), default="planned")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class TaskDependencyRecord(Base):
+    __tablename__ = "task_dependencies"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    schedule_id: Mapped[int] = mapped_column(Integer, index=True)
+    predecessor_task_key: Mapped[str] = mapped_column(String(100))
+    successor_task_key: Mapped[str] = mapped_column(String(100))
+    dependency_type: Mapped[str] = mapped_column(String(10), default="FS")
+    lag_days: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class RiskRecord(Base):
     __tablename__ = "risks"
 
@@ -88,6 +113,46 @@ class SqlRepository:
         self.session.refresh(schedule)
         return schedule
 
+    def add_task(
+        self,
+        schedule_id: int,
+        task_key: str,
+        name: str,
+        duration_days: float,
+        status: str = "planned",
+    ) -> TaskRecord:
+        task = TaskRecord(
+            schedule_id=schedule_id,
+            task_key=task_key,
+            name=name,
+            duration_days=duration_days,
+            status=status,
+        )
+        self.session.add(task)
+        self.session.commit()
+        self.session.refresh(task)
+        return task
+
+    def add_dependency(
+        self,
+        schedule_id: int,
+        predecessor_task_key: str,
+        successor_task_key: str,
+        dependency_type: str = "FS",
+        lag_days: float = 0.0,
+    ) -> TaskDependencyRecord:
+        dependency = TaskDependencyRecord(
+            schedule_id=schedule_id,
+            predecessor_task_key=predecessor_task_key,
+            successor_task_key=successor_task_key,
+            dependency_type=dependency_type,
+            lag_days=lag_days,
+        )
+        self.session.add(dependency)
+        self.session.commit()
+        self.session.refresh(dependency)
+        return dependency
+
     def add_risk(self, title: str, severity: str, mitigation_plan: str) -> RiskRecord:
         risk = RiskRecord(title=title, severity=severity, mitigation_plan=mitigation_plan)
         self.session.add(risk)
@@ -102,6 +167,69 @@ class DocumentStore:
 
     def read(self, doc_id: str) -> Optional[Dict[str, Any]]:  # pragma: no cover
         raise NotImplementedError
+
+
+class CacheSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="CACHE_", env_file=".env")
+
+    provider: str = "in_memory"
+    redis_url: Optional[str] = None
+    default_ttl_seconds: int = 600
+
+
+class CacheProvider:
+    def get(self, key: str) -> Optional[Dict[str, Any]]:  # pragma: no cover
+        raise NotImplementedError
+
+    def set(self, key: str, value: Dict[str, Any], ttl_seconds: int) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+
+class InMemoryCacheProvider(CacheProvider):
+    def __init__(self) -> None:
+        self._store: Dict[str, Dict[str, Any]] = {}
+
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        return self._store.get(key)
+
+    def set(self, key: str, value: Dict[str, Any], ttl_seconds: int) -> None:
+        self._store[key] = value
+
+
+class RedisCacheProvider(CacheProvider):
+    def __init__(self, redis_url: str) -> None:
+        import redis
+
+        self._client = redis.from_url(redis_url, decode_responses=True)
+
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        raw = self._client.get(key)
+        if not raw:
+            return None
+        return json.loads(raw)
+
+    def set(self, key: str, value: Dict[str, Any], ttl_seconds: int) -> None:
+        self._client.setex(key, ttl_seconds, json.dumps(value))
+
+
+class CacheClient:
+    def __init__(self, settings: Optional[CacheSettings] = None) -> None:
+        self.settings = settings or CacheSettings()
+        self.provider = self._build_provider()
+
+    def _build_provider(self) -> CacheProvider:
+        if self.settings.provider == "redis":
+            if not self.settings.redis_url:
+                raise ValueError("Redis URL required for redis cache provider")
+            return RedisCacheProvider(self.settings.redis_url)
+        return InMemoryCacheProvider()
+
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        return self.provider.get(key)
+
+    def set(self, key: str, value: Dict[str, Any], ttl_seconds: Optional[int] = None) -> None:
+        ttl = ttl_seconds or self.settings.default_ttl_seconds
+        self.provider.set(key, value, ttl)
 
 
 class InMemoryDocumentStore(DocumentStore):
@@ -154,6 +282,8 @@ __all__ = [
     "PersistenceSettings",
     "Base",
     "Schedule",
+    "TaskRecord",
+    "TaskDependencyRecord",
     "RiskRecord",
     "QualityMetric",
     "ResourceRecord",
@@ -162,4 +292,9 @@ __all__ = [
     "InMemoryDocumentStore",
     "CosmosDocumentStore",
     "create_sql_engine",
+    "CacheSettings",
+    "CacheClient",
+    "CacheProvider",
+    "InMemoryCacheProvider",
+    "RedisCacheProvider",
 ]

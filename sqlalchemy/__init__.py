@@ -26,6 +26,16 @@ class String:
         return None
 
 
+class Float:
+    def __init__(self, *args, **kwargs) -> None:
+        return None
+
+
+class Integer:
+    def __init__(self, *args, **kwargs) -> None:
+        return None
+
+
 class Table:
     def __init__(self, *args, **kwargs) -> None:
         return None
@@ -41,3 +51,21 @@ def select(*args, **kwargs):
 
 
 func = _Func()
+
+
+class _Engine:
+    def begin(self):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return None
+
+    def execute(self, *args, **kwargs):
+        return None
+
+
+def create_engine(*args, **kwargs):
+    return _Engine()
