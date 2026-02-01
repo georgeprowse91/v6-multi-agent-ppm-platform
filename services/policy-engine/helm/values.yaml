@@ -16,6 +16,14 @@ env:
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
   ABAC_POLICY_PATH: ""
 
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 400m
+    memory: 512Mi
+
 livenessProbe:
   path: /healthz
   initialDelaySeconds: 15

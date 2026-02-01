@@ -18,6 +18,14 @@ env:
   JAEGER_COLLECTOR_ENDPOINT: "jaeger-collector:14250"
   LOKI_ENDPOINT: "http://loki:3100/loki/api/v1/push"
 
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 400m
+    memory: 512Mi
+
 livenessProbe:
   path: /healthz
   initialDelaySeconds: 15
