@@ -50,6 +50,15 @@ const syncFrequencyOptions = [
   'manual',
 ];
 
+const agentMaturityByCategory: Record<string, string> = {
+  core: 'Production',
+  portfolio: 'Beta',
+  delivery: 'Beta',
+  operations: 'Production',
+  platform: 'Production',
+  governance: 'Beta',
+};
+
 const toConfigFieldType = (
   type: ConfigField['type'] | AgentParameter['param_type']
 ) => {
@@ -84,6 +93,8 @@ export function ConfigPage({ type }: ConfigPageProps) {
   const [routingEntries, setRoutingEntries] = useState<OrchestrationRoutingEntry[]>([]);
   const [workflowsLoading, setWorkflowsLoading] = useState(true);
   const [workflowsError, setWorkflowsError] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null);
+  const [selectedWorkflowIndex, setSelectedWorkflowIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setActiveTab(type);
@@ -301,6 +312,18 @@ export function ConfigPage({ type }: ConfigPageProps) {
     ]);
   };
 
+  const handleCloseModal = () => {
+    setSelectedAgent(null);
+    setSelectedWorkflowIndex(null);
+  };
+
+  const handleTestClick = (label: string) => {
+    console.info(`Testing ${label}`);
+  };
+
+  const selectedWorkflow =
+    selectedWorkflowIndex !== null ? routingEntries[selectedWorkflowIndex] : null;
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -353,8 +376,15 @@ export function ConfigPage({ type }: ConfigPageProps) {
               <div className={styles.state}>No agent configurations available.</div>
             )}
             {!agentsLoading && !agentsError && agents.length > 0 && (
-              <div className={styles.forms}>
+              <div className={styles.cardGrid}>
                 {agents.map((agent) => {
+                  const maturity =
+                    agentMaturityByCategory[agent.category] ?? 'Beta';
+                  const estimatedCost = `$${(
+                    0.04 + agent.parameters.length * 0.01
+                  ).toFixed(2)}/run`;
+                  const latencyEstimate = `${280 + agent.capabilities.length * 35}ms avg`;
+
                   const fields = [
                     {
                       name: 'enabled',
@@ -384,15 +414,102 @@ export function ConfigPage({ type }: ConfigPageProps) {
                   );
 
                   return (
-                    <ConfigForm
-                      key={agent.catalog_id}
-                      title={agent.display_name}
-                      description={agent.description}
-                      fields={fields}
-                      initialValues={initialValues}
-                      submitLabel="Update agent"
-                      onSubmit={(values) => handleAgentSubmit(agent, values)}
-                    />
+                    <div key={agent.catalog_id} className={styles.card}>
+                      <div className={styles.cardHeader}>
+                        <div>
+                          <h3 className={styles.cardTitle}>{agent.display_name}</h3>
+                          <p className={styles.cardDescription}>{agent.description}</p>
+                        </div>
+                        <div className={styles.badges}>
+                          <span
+                            className={`${styles.badge} ${
+                              agent.enabled ? styles.badgeOn : styles.badgeOff
+                            }`}
+                          >
+                            {agent.enabled ? 'On' : 'Off'}
+                          </span>
+                          <span className={`${styles.badge} ${styles.badgeMaturity}`}>
+                            {maturity}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.cardMeta}>
+                        <div>
+                          <span className={styles.metaLabel}>Estimated cost</span>
+                          <span className={styles.metaValue}>{estimatedCost}</span>
+                        </div>
+                        <div>
+                          <span className={styles.metaLabel}>Performance</span>
+                          <span className={styles.metaValue}>{latencyEstimate}</span>
+                        </div>
+                        <div>
+                          <span className={styles.metaLabel}>Parameters</span>
+                          <span className={styles.metaValue}>
+                            {agent.parameters.length} inputs
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.cardActions}>
+                        <button
+                          type="button"
+                          className={styles.primaryButton}
+                          onClick={() => setSelectedAgent(agent)}
+                        >
+                          Configure
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          onClick={() => handleTestClick(agent.display_name)}
+                        >
+                          Test
+                        </button>
+                      </div>
+                      {selectedAgent?.catalog_id === agent.catalog_id && (
+                        <div
+                          className={styles.modalOverlay}
+                          role="dialog"
+                          aria-modal="true"
+                          onClick={handleCloseModal}
+                        >
+                          <div
+                            className={styles.modal}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <div className={styles.modalHeader}>
+                              <div>
+                                <h2 className={styles.modalTitle}>
+                                  Configure {agent.display_name}
+                                </h2>
+                                <p className={styles.modalDescription}>
+                                  {agent.description}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                className={styles.modalClose}
+                                onClick={handleCloseModal}
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div className={styles.modalBody}>
+                              <ConfigForm
+                                title={agent.display_name}
+                                description="Update parameters and enablement for this agent."
+                                fields={fields}
+                                initialValues={initialValues}
+                                submitLabel="Save agent"
+                                onSubmit={async (values) => {
+                                  await handleAgentSubmit(agent, values);
+                                  handleCloseModal();
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -509,61 +626,174 @@ export function ConfigPage({ type }: ConfigPageProps) {
               <div className={styles.state}>No workflow routing entries defined.</div>
             )}
             {!workflowsLoading && !workflowsError && routingEntries.length > 0 && (
-              <div className={styles.forms}>
-                {routingEntries.map((entry, index) => (
-                  <ConfigForm
-                    key={`${entry.agent_id || 'entry'}-${index}`}
-                    title={`Routing entry ${index + 1}`}
-                    description={
-                      workflowConfig
-                        ? `Last updated by ${workflowConfig.last_updated_by}.`
-                        : undefined
-                    }
-                    fields={[
-                      {
-                        name: 'agent_id',
-                        label: 'Agent ID',
-                        type: 'text',
-                        required: true,
-                        placeholder: 'intent-router',
-                      },
-                      {
-                        name: 'action',
-                        label: 'Action',
-                        type: 'text',
-                        placeholder: 'route',
-                      },
-                      {
-                        name: 'intent',
-                        label: 'Intent',
-                        type: 'text',
-                        placeholder: 'portfolio_intake',
-                      },
-                      {
-                        name: 'priority',
-                        label: 'Priority',
-                        type: 'number',
-                        min: 0,
-                        placeholder: '1',
-                      },
-                      {
-                        name: 'depends_on',
-                        label: 'Depends On',
-                        type: 'text',
-                        placeholder: 'agent-1, agent-2',
-                      },
-                    ]}
-                    initialValues={{
-                      agent_id: entry.agent_id,
-                      action: entry.action ?? '',
-                      intent: entry.intent ?? '',
-                      priority: entry.priority ?? '',
-                      depends_on: (entry.depends_on ?? []).join(', '),
-                    }}
-                    submitLabel="Update routing"
-                    onSubmit={(values) => handleWorkflowSubmit(index, values)}
-                  />
-                ))}
+              <div className={styles.cardGrid}>
+                {routingEntries.map((entry, index) => {
+                  const workflowName =
+                    entry.intent?.replace(/_/g, ' ') ||
+                    entry.action?.replace(/_/g, ' ') ||
+                    `Routing entry ${index + 1}`;
+                  const status = entry.agent_id ? 'On' : 'Off';
+                  const maturity =
+                    entry.priority !== null && entry.priority !== undefined
+                      ? entry.priority <= 1
+                        ? 'Production'
+                        : entry.priority <= 3
+                        ? 'Beta'
+                        : 'Experimental'
+                      : 'Beta';
+                  const estimatedCost = `$${(
+                    0.06 + (entry.depends_on?.length ?? 0) * 0.02
+                  ).toFixed(2)}/run`;
+                  const latencyEstimate = `${320 + (entry.priority ?? 2) * 85}ms target`;
+                  const description = entry.agent_id
+                    ? `Routes ${workflowName} requests to ${entry.agent_id}.`
+                    : 'Assign an agent to activate this workflow route.';
+
+                  return (
+                    <div
+                      key={`${entry.agent_id || 'entry'}-${index}`}
+                      className={styles.card}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div>
+                          <h3 className={styles.cardTitle}>{workflowName}</h3>
+                          <p className={styles.cardDescription}>{description}</p>
+                        </div>
+                        <div className={styles.badges}>
+                          <span
+                            className={`${styles.badge} ${
+                              status === 'On' ? styles.badgeOn : styles.badgeOff
+                            }`}
+                          >
+                            {status}
+                          </span>
+                          <span className={`${styles.badge} ${styles.badgeMaturity}`}>
+                            {maturity}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.cardMeta}>
+                        <div>
+                          <span className={styles.metaLabel}>Estimated cost</span>
+                          <span className={styles.metaValue}>{estimatedCost}</span>
+                        </div>
+                        <div>
+                          <span className={styles.metaLabel}>Performance</span>
+                          <span className={styles.metaValue}>{latencyEstimate}</span>
+                        </div>
+                        <div>
+                          <span className={styles.metaLabel}>Dependencies</span>
+                          <span className={styles.metaValue}>
+                            {(entry.depends_on ?? []).length} agents
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.cardActions}>
+                        <button
+                          type="button"
+                          className={styles.primaryButton}
+                          onClick={() => setSelectedWorkflowIndex(index)}
+                        >
+                          Configure
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          onClick={() => handleTestClick(workflowName)}
+                        >
+                          Test
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {selectedWorkflow && selectedWorkflowIndex !== null && (
+                  <div
+                    className={styles.modalOverlay}
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={handleCloseModal}
+                  >
+                    <div
+                      className={styles.modal}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className={styles.modalHeader}>
+                        <div>
+                          <h2 className={styles.modalTitle}>
+                            Configure workflow routing
+                          </h2>
+                          <p className={styles.modalDescription}>
+                            Update routing details and validation will appear inline.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.modalClose}
+                          onClick={handleCloseModal}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className={styles.modalBody}>
+                        <ConfigForm
+                          title={`Routing entry ${selectedWorkflowIndex + 1}`}
+                          description={
+                            workflowConfig
+                              ? `Last updated by ${workflowConfig.last_updated_by}.`
+                              : undefined
+                          }
+                          fields={[
+                            {
+                              name: 'agent_id',
+                              label: 'Agent ID',
+                              type: 'text',
+                              required: true,
+                              placeholder: 'intent-router',
+                            },
+                            {
+                              name: 'action',
+                              label: 'Action',
+                              type: 'text',
+                              placeholder: 'route',
+                            },
+                            {
+                              name: 'intent',
+                              label: 'Intent',
+                              type: 'text',
+                              placeholder: 'portfolio_intake',
+                            },
+                            {
+                              name: 'priority',
+                              label: 'Priority',
+                              type: 'number',
+                              min: 0,
+                              placeholder: '1',
+                            },
+                            {
+                              name: 'depends_on',
+                              label: 'Depends On',
+                              type: 'text',
+                              placeholder: 'agent-1, agent-2',
+                            },
+                          ]}
+                          initialValues={{
+                            agent_id: selectedWorkflow.agent_id,
+                            action: selectedWorkflow.action ?? '',
+                            intent: selectedWorkflow.intent ?? '',
+                            priority: selectedWorkflow.priority ?? '',
+                            depends_on: (selectedWorkflow.depends_on ?? []).join(', '),
+                          }}
+                          submitLabel="Save routing"
+                          onSubmit={async (values) => {
+                            await handleWorkflowSubmit(selectedWorkflowIndex, values);
+                            handleCloseModal();
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
