@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { KpiWidget } from '@/components/dashboard/KpiWidget';
 import { StatusIndicator } from '@/components/dashboard/StatusIndicator';
@@ -16,6 +16,21 @@ interface DemandStage {
   count: number;
   target: number;
   trend?: 'up' | 'down' | 'steady';
+}
+
+interface PipelineItem {
+  item_id: string;
+  title: string;
+  summary: string;
+  sponsor: string;
+  priority: 'High' | 'Medium' | 'Low';
+  type: 'intake' | 'project';
+  status: string;
+}
+
+interface PipelineBoard {
+  stages: string[];
+  items: PipelineItem[];
 }
 
 interface KpiMetric {
@@ -128,6 +143,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
   const [dashboardData, setDashboardData] = useState<DashboardPayload>(emptyDashboard);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pipelineBoard, setPipelineBoard] = useState<PipelineBoard | null>(null);
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
+  const [pipelineSearch, setPipelineSearch] = useState('');
+  const [pipelineSponsorFilter, setPipelineSponsorFilter] = useState('all');
+  const [pipelinePriorityFilter, setPipelinePriorityFilter] = useState('all');
   const [relatedFilter, setRelatedFilter] = useState('');
   const [relatedPage, setRelatedPage] = useState(1);
   const [relatedPageSize, setRelatedPageSize] = useState(RELATED_PAGE_SIZES[0]);
@@ -215,6 +236,55 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
     setRelatedPage(1);
   }, [relatedFilter, relatedPageSize, dashboardData.relatedItems.length]);
 
+  const supportsPipelineView = type === 'portfolio' || type === 'program';
+
+  useEffect(() => {
+    if (!supportsPipelineView || entityId === 'unknown') {
+      setPipelineBoard(null);
+      return;
+    }
+
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchPipeline = async () => {
+      setPipelineLoading(true);
+      setPipelineError(null);
+      try {
+        const response = await fetch(
+          `${API_BASE}/pipeline/${type}/${entityId}`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) {
+          throw new Error('Unable to load pipeline view.');
+        }
+        const payload = await response.json();
+        if (!isMounted) return;
+        setPipelineBoard(payload);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : 'Unable to load pipeline view.';
+        setPipelineError(message);
+        setPipelineBoard(null);
+      } finally {
+        if (isMounted) setPipelineLoading(false);
+      }
+    };
+
+    fetchPipeline();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [supportsPipelineView, type, entityId]);
+
+  useEffect(() => {
+    setPipelineSearch('');
+    setPipelineSponsorFilter('all');
+    setPipelinePriorityFilter('all');
+  }, [pipelineBoard?.items.length]);
+
   const relatedLabel = useMemo(() => {
     if (type === 'portfolio') return 'Programs';
     if (type === 'program') return 'Projects';
@@ -237,6 +307,86 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
         (item.status ?? '').toLowerCase().includes(lowered)
     );
   }, [dashboardData.relatedItems, relatedFilter]);
+
+  const pipelineSponsors = useMemo(() => {
+    const sponsors = new Set<string>();
+    pipelineBoard?.items.forEach((item) => sponsors.add(item.sponsor));
+    return Array.from(sponsors).sort();
+  }, [pipelineBoard?.items]);
+
+  const pipelinePriorities = useMemo(() => {
+    const priorities = new Set<string>();
+    pipelineBoard?.items.forEach((item) => priorities.add(item.priority));
+    return Array.from(priorities).sort();
+  }, [pipelineBoard?.items]);
+
+  const filteredPipelineItems = useMemo(() => {
+    if (!pipelineBoard) return [];
+    const lowered = pipelineSearch.toLowerCase();
+    return pipelineBoard.items.filter((item) => {
+      const matchesSearch =
+        !pipelineSearch ||
+        item.title.toLowerCase().includes(lowered) ||
+        item.summary.toLowerCase().includes(lowered) ||
+        item.sponsor.toLowerCase().includes(lowered);
+      const matchesSponsor =
+        pipelineSponsorFilter === 'all' || item.sponsor === pipelineSponsorFilter;
+      const matchesPriority =
+        pipelinePriorityFilter === 'all' || item.priority === pipelinePriorityFilter;
+      return matchesSearch && matchesSponsor && matchesPriority;
+    });
+  }, [pipelineBoard, pipelinePriorityFilter, pipelineSearch, pipelineSponsorFilter]);
+
+  const pipelineItemsByStage = useMemo(() => {
+    const grouped = new Map<string, PipelineItem[]>();
+    if (!pipelineBoard) return grouped;
+    pipelineBoard.stages.forEach((stage) => grouped.set(stage, []));
+    filteredPipelineItems.forEach((item) => {
+      const list = grouped.get(item.status) ?? [];
+      list.push(item);
+      grouped.set(item.status, list);
+    });
+    return grouped;
+  }, [filteredPipelineItems, pipelineBoard]);
+
+  const handlePipelineDrop = async (event: DragEvent<HTMLDivElement>, stage: string) => {
+    event.preventDefault();
+    const itemId = event.dataTransfer.getData('text/plain');
+    if (!pipelineBoard || !itemId) return;
+    const currentItem = pipelineBoard.items.find((item) => item.item_id === itemId);
+    if (!currentItem || currentItem.status === stage) return;
+
+    const optimisticItems = pipelineBoard.items.map((item) =>
+      item.item_id === itemId ? { ...item, status: stage } : item
+    );
+    setPipelineBoard({ ...pipelineBoard, items: optimisticItems });
+    setPipelineError(null);
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/pipeline/${type}/${entityId}/items/${itemId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: stage }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error('Unable to update pipeline stage.');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to update pipeline stage.';
+      setPipelineError(message);
+      setPipelineBoard(pipelineBoard);
+    }
+  };
+
+  const handlePipelineDragStart = (event: DragEvent<HTMLDivElement>, itemId: string) => {
+    event.dataTransfer.setData('text/plain', itemId);
+    event.dataTransfer.effectAllowed = 'move';
+  };
 
   const relatedTotalPages = Math.max(
     1,
@@ -293,6 +443,110 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
           {isLoading && <p className={styles.statusNote}>Loading latest metrics…</p>}
           {errorMessage && <p className={styles.errorNote}>{errorMessage}</p>}
         </section>
+
+        {supportsPipelineView && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={styles.sectionTitle}>Pipeline & tranche view</h2>
+                <p className={styles.sectionSubtitle}>
+                  Track intake requests and active projects across governance stages.
+                </p>
+              </div>
+            </div>
+            <div className={styles.pipelineFilters}>
+              <input
+                type="search"
+                placeholder="Search by title, sponsor, or summary..."
+                value={pipelineSearch}
+                onChange={(event) => setPipelineSearch(event.target.value)}
+                className={styles.filterInput}
+              />
+              <select
+                className={styles.filterSelect}
+                value={pipelineSponsorFilter}
+                onChange={(event) => setPipelineSponsorFilter(event.target.value)}
+              >
+                <option value="all">All sponsors</option>
+                {pipelineSponsors.map((sponsor) => (
+                  <option key={sponsor} value={sponsor}>
+                    {sponsor}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={styles.filterSelect}
+                value={pipelinePriorityFilter}
+                onChange={(event) => setPipelinePriorityFilter(event.target.value)}
+              >
+                <option value="all">All priorities</option>
+                {pipelinePriorities.map((priority) => (
+                  <option key={priority} value={priority}>
+                    {priority}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {pipelineLoading && <p className={styles.statusNote}>Loading pipeline view…</p>}
+            {pipelineError && <p className={styles.errorNote}>{pipelineError}</p>}
+            {pipelineBoard ? (
+              <div className={styles.pipelineBoard}>
+                {pipelineBoard.stages.map((stage) => {
+                  const items = pipelineItemsByStage.get(stage) ?? [];
+                  return (
+                    <div
+                      key={stage}
+                      className={styles.pipelineColumn}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={(event) => handlePipelineDrop(event, stage)}
+                    >
+                      <div className={styles.pipelineColumnHeader}>
+                        <span>{stage}</span>
+                        <span className={styles.pipelineStageCount}>{items.length}</span>
+                      </div>
+                      <div className={styles.pipelineColumnBody}>
+                        {items.length > 0 ? (
+                          items.map((item) => (
+                            <div
+                              key={item.item_id}
+                              className={styles.pipelineItem}
+                              draggable
+                              onDragStart={(event) =>
+                                handlePipelineDragStart(event, item.item_id)
+                              }
+                            >
+                              <div className={styles.pipelineItemHeader}>
+                                <span className={styles.pipelineItemType}>
+                                  {item.type === 'intake' ? 'Intake request' : 'Active project'}
+                                </span>
+                                <span
+                                  className={`${styles.badge} ${styles[`badge${item.priority}`]}`}
+                                >
+                                  {item.priority}
+                                </span>
+                              </div>
+                              <div className={styles.pipelineItemTitle}>{item.title}</div>
+                              <p className={styles.pipelineItemSummary}>{item.summary}</p>
+                              <div className={styles.pipelineItemMeta}>
+                                Sponsor: {item.sponsor}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className={styles.emptyState}>No items in this stage.</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              !pipelineLoading && (
+                <p className={styles.emptyState}>Pipeline stages will appear here once loaded.</p>
+              )
+            )}
+          </section>
+        )}
 
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Demand pipeline</h2>

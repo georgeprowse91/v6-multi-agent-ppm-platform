@@ -7,7 +7,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlencode
 
 import httpx
@@ -51,6 +51,12 @@ from intake_models import (  # noqa: E402
     IntakeRequestCreate,
 )
 from intake_store import IntakeStore  # noqa: E402
+from pipeline_models import (  # noqa: E402
+    PipelineBoard,
+    PipelineItem,
+    PipelineItemUpdate,
+)
+from pipeline_store import PipelineStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 from methodologies import available_methodologies, get_methodology_map  # noqa: E402
@@ -133,6 +139,7 @@ SPREADSHEETS_PATH = STORAGE_DIR / "spreadsheets.json"
 TREES_PATH = STORAGE_DIR / "trees.json"
 AGENT_SETTINGS_PATH = STORAGE_DIR / "agent_settings.json"
 INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
+PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 
 SESSION_COOKIE = "ppm_session"
@@ -157,6 +164,7 @@ spreadsheet_store = SpreadsheetStore(SPREADSHEETS_PATH)
 tree_store = TreeStore(TREES_PATH)
 agent_settings_store = AgentSettingsStore(AGENT_SETTINGS_PATH)
 intake_store = IntakeStore(INTAKE_REQUESTS_PATH)
+pipeline_store = PipelineStore(PIPELINE_STATE_PATH)
 logger = logging.getLogger("web-ui")
 
 
@@ -1400,6 +1408,32 @@ def decide_intake_request(request_id: str, payload: IntakeDecision) -> IntakeReq
     if not request:
         raise HTTPException(status_code=404, detail="Intake request not found")
     return request
+
+
+@api_router.get("/api/pipeline/{entity_type}/{entity_id}", response_model=PipelineBoard)
+def get_pipeline_board(
+    entity_type: Literal["portfolio", "program"], entity_id: str
+) -> PipelineBoard:
+    return pipeline_store.get_board(entity_type, entity_id)
+
+
+@api_router.patch(
+    "/api/pipeline/{entity_type}/{entity_id}/items/{item_id}",
+    response_model=PipelineItem,
+)
+def update_pipeline_item(
+    entity_type: Literal["portfolio", "program"],
+    entity_id: str,
+    item_id: str,
+    payload: PipelineItemUpdate,
+) -> PipelineItem:
+    try:
+        item = pipeline_store.update_item_status(entity_type, entity_id, item_id, payload.status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not item:
+        raise HTTPException(status_code=404, detail="Pipeline item not found")
+    return item
 
 
 @api_router.post("/api/workflows/start", response_model=WorkflowStartResponse)
