@@ -8,7 +8,7 @@ from types import ModuleType
 from fastapi.testclient import TestClient
 
 
-def _install_opentelemetry_stubs() -> None:
+def _install_opentelemetry_mocks() -> None:
     import sys
 
     if "opentelemetry" in sys.modules:
@@ -134,7 +134,7 @@ def _install_opentelemetry_stubs() -> None:
     sys.modules["opentelemetry.trace.propagation.tracecontext"] = trace_propagation_module
 
 
-def _install_security_stubs() -> None:
+def _install_security_mocks() -> None:
     import sys
 
     if "cryptography" in sys.modules:
@@ -166,8 +166,8 @@ assert spec and spec.loader
 module = module_from_spec(spec)
 sys.path.insert(0, str(SERVICE_ROOT / "src"))
 sys.modules[spec.name] = module
-_install_opentelemetry_stubs()
-_install_security_stubs()
+_install_opentelemetry_mocks()
+_install_security_mocks()
 spec.loader.exec_module(module)
 
 

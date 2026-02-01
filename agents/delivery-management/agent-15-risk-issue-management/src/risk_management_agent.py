@@ -805,7 +805,16 @@ class RiskManagementAgent(BaseAgent):
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
         await self._store_risk_dataset("risks", [risk], domain="risk_register")
-        # Future work: Publish risk.identified event
+        await self._publish_risk_event(
+            "risk.identified",
+            {
+                "risk_id": risk_id,
+                "title": risk.get("title"),
+                "category": risk.get("category"),
+                "score": risk.get("score"),
+                "status": risk.get("status"),
+            },
+        )
         grc_sync = None
         if self.grc_service:
             grc_risk = GRCRisk(
@@ -1132,7 +1141,7 @@ class RiskManagementAgent(BaseAgent):
             await self._store_risk_dataset("risk_triggers", triggered_risks, domain="triggers")
             for triggered in triggered_risks:
                 await self._publish_risk_event("risk.triggered", triggered)
-        # Future work: Publish risk.trigger_activated events
+                await self._publish_risk_event("risk.trigger_activated", triggered)
 
         return {
             "risks_monitored": len(risks_to_monitor),

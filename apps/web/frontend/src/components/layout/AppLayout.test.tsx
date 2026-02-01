@@ -16,17 +16,12 @@ vi.mock('shepherd.js', () => ({
 
 describe('AppLayout', () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('renders the assistant panel in the layout', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve(
-          new Response(JSON.stringify({ authenticated: false }), { status: 200 })
-        )
-      )
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ authenticated: false }), { status: 200 }))
     );
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       value: vi.fn(),

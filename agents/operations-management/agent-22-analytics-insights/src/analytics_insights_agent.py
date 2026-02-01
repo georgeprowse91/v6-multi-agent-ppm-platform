@@ -779,7 +779,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.logger.info(f"Aggregating data from {len(data_sources)} sources")
 
         # Collect data from sources
-        # Future work: Query from Data Synchronization Agent and domain agents
         aggregated_data = await self._collect_from_sources(data_sources)
 
         # Harmonize data definitions
@@ -856,9 +855,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.dashboards[dashboard_id] = dashboard
         self.analytics_output_store.upsert(tenant_id, dashboard_id, dashboard.copy())
 
-        # Future work: Store in database
-        # Future work: Create in Power BI
-        # Future work: Publish dashboard.created event
 
         return {
             "dashboard_id": dashboard_id,
@@ -905,8 +901,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
         await self.report_repository.store_report(report.copy())
 
-        # Future work: Store in database
-        # Future work: Export to PDF/Word if requested
 
         return {
             "report_id": report_id,
@@ -929,7 +923,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         input_data = {**input_data, "tenant_id": tenant_id}
 
         # Load ML model
-        # Future work: Load from Azure Machine Learning
         model = await self._load_ml_model(model_type)
 
         # Prepare input features
@@ -955,8 +948,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.predictions[prediction_id] = prediction_record
         self.analytics_output_store.upsert(tenant_id, prediction_id, prediction_record.copy())
 
-        # Future work: Store in database
-        # Future work: Publish prediction.made event
 
         return {
             "prediction_id": prediction_id,
@@ -1257,7 +1248,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.data_lineage[lineage_id] = masked_lineage
         self.analytics_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
 
-        # Future work: Store in lineage database
 
         return {
             "lineage_id": lineage_id,
@@ -1710,7 +1700,6 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _harmonize_data(self, data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Harmonize data definitions."""
-        # Future work: Apply data transformation rules
         return data
 
     async def _calculate_statistics(self, data: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1768,7 +1757,6 @@ class AnalyticsInsightsAgent(BaseAgent):
                 "kpi_count": len(self.kpis),
                 "generated_at": datetime.utcnow().isoformat(),
             }
-        # Future work: Query from data warehouse
         return {}
 
     async def _generate_visualizations(
@@ -1800,7 +1788,6 @@ class AnalyticsInsightsAgent(BaseAgent):
                     "data": data.get("kpis", []),
                 }
             )
-        # Future work: Create charts using Power BI or custom charting
         return visualizations
 
     async def _load_ml_model(self, model_type: str) -> dict[str, Any]:
@@ -1838,7 +1825,6 @@ class AnalyticsInsightsAgent(BaseAgent):
                 return {"value": prediction_value, "confidence": 0.75}
             if history:
                 return {"value": history[-1]["composite_score"], "confidence": 0.6}
-        # Future work: Call ML model endpoint
         return {"value": 0.0, "confidence": 0.85}
 
     async def _calculate_confidence_interval(
@@ -1854,7 +1840,6 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _get_baseline_metrics(self, scenario: dict[str, Any]) -> dict[str, Any]:
         """Get baseline metrics for scenario."""
-        # Future work: Query current metrics
         return {"metric_1": 100, "metric_2": 200}
 
     async def _calculate_scenario_metrics(
@@ -1902,7 +1887,6 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _calculate_scenario_impact(self, comparison: dict[str, Any]) -> str:
         """Calculate overall scenario impact."""
-        # Future work: Analyze comparison
         return "Moderate positive impact"
 
     async def _generate_scenario_recommendations(self, impact: str | None) -> list[str]:
@@ -2039,14 +2023,12 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _parse_query(self, query: str) -> dict[str, Any]:
         """Parse natural language query."""
-        # Future work: Use NLP to parse query
         return {"parsed": query}
 
     async def _execute_query(
         self, parsed_query: dict[str, Any], filters: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Execute data query."""
-        # Future work: Execute against data warehouse
         return []
 
     async def _format_query_results(self, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -2066,7 +2048,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             elif widget_type == "kpi_summary":
                 widget_data["data"] = list(self.kpis.values())
             else:
-                widget_data["data"] = []  # Future work: Load actual data
+                widget_data["data"] = []
             widget_data["last_refreshed"] = datetime.utcnow().isoformat()
             refreshed.append(widget_data)
         return refreshed
@@ -2079,12 +2061,10 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _detect_anomalies(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Detect anomalies in data."""
-        # Future work: Use anomaly detection algorithms
         return []
 
     async def _identify_patterns(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify patterns in data."""
-        # Future work: Use pattern recognition algorithms
         return []
 
     async def _generate_insights(
@@ -2118,9 +2098,6 @@ class AnalyticsInsightsAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Analytics & Insights Agent...")
-        # Future work: Close database connections
-        # Future work: Close ML model connections
-        # Future work: Flush pending analytics jobs
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

@@ -10,7 +10,7 @@ class EventCollector:
         self.events.append((topic, payload))
 
 
-class ChangeStub:
+class ChangeMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -55,11 +55,11 @@ async def test_schedule_planning_cpm_and_monte_carlo():
 @pytest.mark.asyncio
 async def test_schedule_baseline_and_variance_events(tmp_path):
     event_bus = EventCollector()
-    change_stub = ChangeStub()
+    change_mock = ChangeMock()
     agent = SchedulePlanningAgent(
         config={
             "event_bus": event_bus,
-            "change_agent": change_stub,
+            "change_agent": change_mock,
             "schedule_store_path": tmp_path / "schedules.json",
             "schedule_baseline_store_path": tmp_path / "baselines.json",
         }
@@ -93,7 +93,7 @@ async def test_schedule_baseline_and_variance_events(tmp_path):
     )
     assert variance["schedule_variance_days"] < 0
     assert any(topic == "schedule.delay" for topic, _ in event_bus.events)
-    assert change_stub.requests
+    assert change_mock.requests
 
 
 @pytest.mark.asyncio

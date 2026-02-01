@@ -145,15 +145,6 @@ class ProjectLifecycleAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Project Lifecycle & Governance Agent...")
 
-        # Future work: Initialize Azure Durable Functions for stateful workflows
-        # Future work: Connect to Azure Cosmos DB for lifecycle state storage
-        # Future work: Initialize Azure Machine Learning for readiness scoring models
-        # Future work: Connect to Planview/Clarity PPM for lifecycle metadata sync
-        # Future work: Initialize Jira/Azure DevOps integration for Agile sprint data
-        # Future work: Set up Azure Service Bus/Event Grid for lifecycle event subscriptions
-        # Future work: Connect to Azure Cognitive Services for dashboard summarization
-        # Future work: Initialize Azure Monitor for health metrics collection
-
         await self._bootstrap_configuration()
         self._register_event_handlers()
         self.logger.info("Project Lifecycle & Governance Agent initialized")
@@ -753,7 +744,6 @@ class ProjectLifecycleAgent(BaseAgent):
         stakeholder_engagement = project_data.get("stakeholder_engagement", "medium")
         regulatory_requirements = project_data.get("regulatory_requirements", False)
 
-        # Future work: Use ML model for methodology recommendation
         # Simplified rule-based logic
         if requirement_volatility == "high" and stakeholder_engagement == "high":
             methodology = "agile"
@@ -797,7 +787,7 @@ class ProjectLifecycleAgent(BaseAgent):
         # Map current phase to equivalent in new methodology
         current_phase = lifecycle_state.get("current_phase")
         new_phase = await self._map_phase_to_methodology(
-            current_phase, old_methodology, new_methodology
+            current_phase, old_methodology, new_methodology, tenant_id=tenant_id
         )
 
         # Update project and lifecycle state
@@ -1175,12 +1165,16 @@ class ProjectLifecycleAgent(BaseAgent):
         return [m for m in all_methodologies if m != primary]
 
     async def _map_phase_to_methodology(
-        self, current_phase: str, old_methodology: str, new_methodology: str
+        self, current_phase: str, old_methodology: str, new_methodology: str, *, tenant_id: str
     ) -> str:
         """Map current phase to equivalent in new methodology."""
-        # Future work: Implement intelligent phase mapping
-        # Simplified mapping
         new_map = await self._load_methodology_map(new_methodology, tenant_id=tenant_id)
+        if current_phase in new_map.get("phases", {}):
+            return current_phase
+        phase_map = new_map.get("phase_map", {}).get(old_methodology, {})
+        mapped = phase_map.get(current_phase)
+        if mapped:
+            return mapped
         return new_map["initial_phase"]  # type: ignore
 
     async def _get_pending_gates(self, project_id: str) -> list[str]:

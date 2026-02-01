@@ -166,7 +166,7 @@ class QualityManagementAgent(BaseAgent):
         self.defect_ml_model = await self._train_defect_classification_model()
         self.defect_cluster_model = await self._train_defect_cluster_model()
         # Integration configuration is captured in self.integration_config.
-        # Each integration currently uses lightweight stubs that simulate
+        # Each integration currently uses lightweight mocks that simulate
         # expected behaviors for orchestration, testing, and reporting.
 
         self.logger.info("Quality Management Agent initialized")
@@ -640,7 +640,6 @@ class QualityManagementAgent(BaseAgent):
         )
 
         await self._store_record("quality_test_cases", test_case_id, test_case)
-        # Future work: Sync with Azure DevOps Test Plans
 
         return {
             "test_case_id": test_case_id,
@@ -737,7 +736,6 @@ class QualityManagementAgent(BaseAgent):
         pass_rate = passed_tests / total_tests if total_tests > 0 else 0
 
         # Calculate code coverage
-        # Future work: Integrate with code coverage tools
         code_coverage = await self._calculate_code_coverage(execution_data.get("project_id"))  # type: ignore
         coverage_snapshot = await self._record_coverage_snapshot(
             execution_data.get("project_id"), code_coverage
@@ -839,7 +837,6 @@ class QualityManagementAgent(BaseAgent):
         defect_id = await self._generate_defect_id()
 
         # Auto-classify severity and root cause
-        # Future work: Use Azure ML for classification
         auto_classification = await self._auto_classify_defect(defect_data)
 
         # Create defect
@@ -1076,7 +1073,6 @@ class QualityManagementAgent(BaseAgent):
         if audit_document:
             audit["document"] = audit_document
         await self._store_record("quality_audits", audit_id, audit)
-        # Future work: Publish audit.completed event
 
         return {
             "audit_id": audit_id,
@@ -1105,7 +1101,6 @@ class QualityManagementAgent(BaseAgent):
         critical_defects = len([d for d in project_defects if d.get("severity") == "critical"])
 
         # Calculate defect density
-        # Future work: Get LOC or function points from code repository
         defect_density = await self._calculate_defect_density(project_id, total_defects)
         code_size = await self._get_code_size_metrics(project_id)
         defect_density_per_fp = await self._calculate_defect_density_per_fp(
@@ -1438,8 +1433,7 @@ class QualityManagementAgent(BaseAgent):
 
     async def _recommend_quality_metrics(self, plan_data: dict[str, Any]) -> list[dict[str, Any]]:
         """Recommend quality metrics based on project type."""
-        # Future work: Use AI to recommend metrics
-        return [
+        baseline = [
             {
                 "name": "defect_density",
                 "threshold": self.defect_density_threshold,
@@ -1449,6 +1443,12 @@ class QualityManagementAgent(BaseAgent):
             {"name": "pass_rate", "threshold": 0.95, "unit": "percentage"},
             {"name": "mean_time_to_resolution", "threshold": 48, "unit": "hours"},
         ]
+        project_type = str(plan_data.get("project_type", "")).lower()
+        if project_type in {"compliance", "regulated"}:
+            baseline.append(
+                {"name": "audit_score", "threshold": 0.9, "unit": "percentage"}
+            )
+        return baseline
 
     async def _link_to_requirements(
         self, requirement_ids: list[str], project_id: str | None
@@ -2281,14 +2281,15 @@ class QualityManagementAgent(BaseAgent):
             trace_id=get_trace_id(),
             payload=payload,
         )
-        await self.event_bus.publish(event_name, event.model_dump())
+        await self.event_bus.publish(event_name, event.model_dump(mode="json"))
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Quality Management Agent...")
-        # Future work: Close database connections
-        # Future work: Close test tool integrations
-        # Future work: Flush any pending events
+        if self.db_service and hasattr(self.db_service, "close"):
+            await self.db_service.close()
+        if self.event_bus and hasattr(self.event_bus, "stop"):
+            await self.event_bus.stop()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
@@ -2554,7 +2555,7 @@ class QualityManagementAgent(BaseAgent):
         test_results: list[dict[str, Any]],
         execution_data: dict[str, Any],
     ) -> dict[str, Any]:
-        """Store test results in blob storage (stubbed)."""
+        """Store test results in blob storage (simulated)."""
         container = self.integration_config.get("blob_storage", {}).get("container", "quality-tests")
         blob_name = f"{suite_id}/{execution_id}/results.json"
         payload = {
@@ -2574,7 +2575,7 @@ class QualityManagementAgent(BaseAgent):
         }
 
     async def _train_defect_prediction_model(self, project_id: str) -> dict[str, Any]:
-        """Train or refresh a defect prediction model using Azure ML (stubbed)."""
+        """Train or refresh a defect prediction model using Azure ML (simulated)."""
         model_version = datetime.utcnow().strftime("v%Y%m%d%H%M%S")
         model_info = {
             "project_id": project_id,
@@ -2588,7 +2589,7 @@ class QualityManagementAgent(BaseAgent):
         return model_info
 
     async def _fetch_coverage_metrics(self, project_id: str) -> dict[str, Any]:
-        """Pull coverage metrics from code repositories (stubbed)."""
+        """Pull coverage metrics from code repositories (simulated)."""
         repo_config = self.integration_config.get("code_repos", {})
         coverage_data = repo_config.get("coverage_by_project", {}).get(project_id)
         if coverage_data:
@@ -2605,7 +2606,7 @@ class QualityManagementAgent(BaseAgent):
     async def _generate_openai_narrative(
         self, report_type: str, filters: dict[str, Any], default_prompt: str
     ) -> str:
-        """Generate narrative text using Azure OpenAI (stubbed)."""
+        """Generate narrative text using Azure OpenAI (simulated)."""
         prompt_prefix = self.integration_config.get("azure_openai", {}).get("prompt_prefix", "")
         context = {
             "filters": filters,

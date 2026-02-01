@@ -137,7 +137,7 @@ async def test_orchestrator_persists_memory_across_calls() -> None:
 async def test_service_orchestrator_calls_workflow_client() -> None:
     AgentOrchestrator = _load_service_orchestrator()
 
-    class StubWorkflowClient:
+    class MockWorkflowClient:
         def __init__(self) -> None:
             self.calls: list[dict] = []
 
@@ -145,7 +145,7 @@ async def test_service_orchestrator_calls_workflow_client() -> None:
             self.calls.append({"payload": payload, "headers": headers})
             return {"run_id": "run-123"}
 
-    workflow_client = StubWorkflowClient()
+    workflow_client = MockWorkflowClient()
     orchestrator = AgentOrchestrator(workflow_client=workflow_client)
 
     response = await orchestrator.start_workflow(

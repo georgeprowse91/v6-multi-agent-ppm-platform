@@ -48,7 +48,7 @@ async def test_financial_forecast_normalizes_currency(monkeypatch):
     assert forecast["forecast"]["currency"] == "USD"
 
 
-class ApprovalStub:
+class ApprovalMock:
     def __init__(self) -> None:
         self.requests: list[dict] = []
 
@@ -59,13 +59,13 @@ class ApprovalStub:
 
 @pytest.mark.asyncio
 async def test_financial_budget_persistence_and_approvals(tmp_path):
-    approval_stub = ApprovalStub()
+    approval_mock = ApprovalMock()
     agent = FinancialManagementAgent(
         config={
             "exchange_rate_fixture": "data/fixtures/exchange_rates.json",
             "tax_rate_fixture": "data/fixtures/tax_rates.json",
             "budget_store_path": tmp_path / "budgets.json",
-            "approval_agent": approval_stub,
+            "approval_agent": approval_mock,
         }
     )
     await agent.initialize()
@@ -88,7 +88,7 @@ async def test_financial_budget_persistence_and_approvals(tmp_path):
 
     budget_id = create_response["budget_id"]
     assert create_response["data_quality"]["is_valid"] is True
-    assert approval_stub.requests
+    assert approval_mock.requests
 
     update_response = await agent.process(
         {
@@ -140,7 +140,7 @@ async def test_financial_validation_rejects_missing_budget_fields():
     assert valid is False
 
 
-class EventBusStub:
+class EventBusMock:
     def __init__(self) -> None:
         self.events: list[tuple[str, dict]] = []
 
@@ -150,7 +150,7 @@ class EventBusStub:
 
 @pytest.mark.asyncio
 async def test_financial_cost_classification_and_accruals(monkeypatch):
-    event_bus = EventBusStub()
+    event_bus = EventBusMock()
     agent = FinancialManagementAgent(
         config={
             "exchange_rate_fixture": "data/fixtures/exchange_rates.json",

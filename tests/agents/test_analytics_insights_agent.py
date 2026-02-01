@@ -181,7 +181,7 @@ async def test_analytics_kpi_threshold_alerts(tmp_path):
 
 @pytest.mark.asyncio
 async def test_analytics_initializes_synapse_pools(tmp_path):
-    class SynapseStub:
+    class SynapseMock:
         def __init__(self) -> None:
             self.called = False
 
@@ -191,7 +191,7 @@ async def test_analytics_initializes_synapse_pools(tmp_path):
         def create_spark_pool(self, workspace: str, pool: str) -> None:
             self.called = True
 
-    synapse_stub = SynapseStub()
+    synapse_mock = SynapseMock()
     event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(
         config={
@@ -199,13 +199,13 @@ async def test_analytics_initializes_synapse_pools(tmp_path):
             "analytics_alert_store_path": tmp_path / "alerts.json",
             "synapse_workspace_name": "synapse-ws",
             "synapse_sql_pool_name": "sql-pool",
-            "synapse_client": synapse_stub,
+            "synapse_client": synapse_mock,
             "event_bus": event_bus,
         }
     )
     await agent.initialize()
 
-    assert synapse_stub.called is True
+    assert synapse_mock.called is True
 
 
 @pytest.mark.asyncio

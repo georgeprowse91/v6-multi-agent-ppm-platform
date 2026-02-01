@@ -200,6 +200,25 @@ class KnowledgeDatabase:
                 (interaction_id, document_id, interaction_type, json.dumps(payload), created_at),
             )
 
+    def list_interactions(self, document_id: str) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM document_interactions WHERE document_id = ? ORDER BY created_at",
+                (document_id,),
+            ).fetchall()
+        interactions = []
+        for row in rows:
+            interactions.append(
+                {
+                    "interaction_id": row["interaction_id"],
+                    "document_id": row["document_id"],
+                    "interaction_type": row["interaction_type"],
+                    "payload": json.loads(row["payload"]),
+                    "created_at": row["created_at"],
+                }
+            )
+        return interactions
+
     def upsert_graph(self, nodes: dict[str, dict[str, Any]], edges: list[dict[str, Any]]) -> None:
         with self._connect() as conn:
             for node_id, node in nodes.items():

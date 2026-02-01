@@ -71,11 +71,11 @@ const mockWorkflowConfig = {
 
 describe('ConfigPage', () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('renders configuration tabs and agent forms', async () => {
-    vi.stubGlobal('fetch', vi.fn((input: RequestInfo) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input: RequestInfo) => {
       const url = typeof input === 'string' ? input : input.url;
       if (url.endsWith('/agents/config')) {
         return Promise.resolve(
@@ -93,7 +93,7 @@ describe('ConfigPage', () => {
         );
       }
       return Promise.resolve(new Response('Not found', { status: 404 }));
-    }));
+    });
 
     render(<ConfigPage type="agents" />);
 

@@ -109,6 +109,9 @@ class ResponseOrchestrationAgent(BaseAgent):
         self.retry_backoff_max = config.get("retry_backoff_max", 5.0) if config else 5.0
         self.circuit_breaker_threshold = config.get("circuit_breaker_threshold", 3) if config else 3
         self.event_bus = config.get("event_bus") if config else None
+        self.cache_backend = config.get("cache_backend") if config else None
+        self.agent_registry_loader = config.get("agent_registry_loader") if config else None
+        self.agent_registry_path = config.get("agent_registry_path") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
         self.http_client = config.get("http_client") if config else None
@@ -144,8 +147,8 @@ class ResponseOrchestrationAgent(BaseAgent):
         """Initialize orchestration engine and cache."""
         await super().initialize()
         self.logger.info("Initializing orchestration engine...")
-        # Future work: Initialize cache (Redis)
-        # Future work: Load agent registry
+        self._initialize_cache_backend()
+        self._load_agent_registry()
         if self.http_client is None:
             self.http_client = httpx.AsyncClient(timeout=self.agent_timeout)
 
@@ -615,13 +618,11 @@ class ResponseOrchestrationAgent(BaseAgent):
 
         Returns aggregated response string.
         """
-        # Future work: Use Azure OpenAI for intelligent summarization
         successful_results = [r for r in results if r.get("success")]
 
         if not successful_results:
             return "Unable to process request - all agents failed"
 
-        # Simple concatenation for now
         responses = []
         for result in successful_results:
             agent_id = result.get("agent_id", "unknown")
@@ -636,7 +637,42 @@ class ResponseOrchestrationAgent(BaseAgent):
                 message = "No response"
             responses.append(f"[{agent_id}]: {message}")
 
-        return "\n".join(responses)
+        if len(responses) <= 2:
+            return "\n".join(responses)
+
+        summary_lines = []
+        for response in responses:
+            trimmed = response.strip()
+            if len(trimmed) > 220:
+                trimmed = trimmed[:217].rstrip() + "..."
+            summary_lines.append(f"- {trimmed}")
+
+        return "Summary of agent responses:\n" + "\n".join(summary_lines)
+
+    def _initialize_cache_backend(self) -> None:
+        if self.cache_backend and hasattr(self.cache_backend, "get") and hasattr(
+            self.cache_backend, "set"
+        ):
+            self.logger.info("Cache backend configured", extra={"backend": str(self.cache_backend)})
+        else:
+            self.cache_backend = None
+
+    def _load_agent_registry(self) -> None:
+        if self.agent_registry_loader:
+            try:
+                loaded = self.agent_registry_loader()
+                if isinstance(loaded, dict):
+                    self.agent_registry.update(loaded)
+            except Exception as exc:  # pragma: no cover - defensive
+                self.logger.warning("Agent registry loader failed", exc_info=exc)
+        if self.agent_registry_path:
+            try:
+                registry_payload = json.loads(Path(self.agent_registry_path).read_text())
+            except Exception as exc:  # pragma: no cover - defensive
+                self.logger.warning("Agent registry path could not be read", exc_info=exc)
+                return
+            if isinstance(registry_payload, dict):
+                self.agent_endpoints.update(registry_payload.get("agent_endpoints", {}))
 
     def _cache_key(
         self, agent_id: str, action: str | None, parameters: dict[str, Any], tenant_id: str
@@ -650,6 +686,16 @@ class ResponseOrchestrationAgent(BaseAgent):
         return json.dumps(payload, sort_keys=True, default=str)
 
     def _get_cached_result(self, cache_key: str) -> dict[str, Any] | None:
+        if self.cache_backend:
+            try:
+                cached = self.cache_backend.get(cache_key)
+            except Exception:  # pragma: no cover - defensive
+                cached = None
+            if cached:
+                self._cache_hits.add(1)
+                return cached
+            self._cache_misses.add(1)
+            return None
         cached = self._cache.get(cache_key)
         if not cached:
             return None
@@ -660,6 +706,12 @@ class ResponseOrchestrationAgent(BaseAgent):
         return result
 
     def _set_cached_result(self, cache_key: str, result: dict[str, Any]) -> None:
+        if self.cache_backend:
+            try:
+                self.cache_backend.set(cache_key, result, ttl=self.cache_ttl)
+                return
+            except Exception:  # pragma: no cover - defensive
+                pass
         if self.cache_max_entries and len(self._cache) >= self.cache_max_entries:
             self._cache.pop(next(iter(self._cache)), None)
         self._cache[cache_key] = (time.time() + self.cache_ttl, result)

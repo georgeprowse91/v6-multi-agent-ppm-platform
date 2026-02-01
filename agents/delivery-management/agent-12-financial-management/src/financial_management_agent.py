@@ -117,6 +117,7 @@ class FinancialManagementAgent(BaseAgent):
         self.forecasting_model = ForecastingModel()
         self.cost_classifier = NaiveBayesTextClassifier(labels=self.cost_categories)
         self.event_bus = config.get("event_bus") if config else None
+        self.business_case_agent = config.get("business_case_agent") if config else None
         data_factory_client = config.get("data_factory_client") if config else None
         self.data_factory_manager = DataFactoryPipelineManager(data_factory_client)
         self.erp_pipeline_runs: list[dict[str, Any]] = []
@@ -395,7 +396,7 @@ class FinancialManagementAgent(BaseAgent):
         )
 
         await self.db_service.store("budgets", budget_id, budget)
-        # Future work: Validate funding availability with ERP
+        erp_validation = await self._validate_funding_with_erp(budget)
 
         return {
             "budget_id": budget_id,
@@ -407,6 +408,7 @@ class FinancialManagementAgent(BaseAgent):
             "created_at": budget["created_at"],
             "data_quality": validation,
             "approval": approval,
+            "erp_validation": erp_validation,
         }
 
     async def _track_costs(
@@ -606,7 +608,6 @@ class FinancialManagementAgent(BaseAgent):
                 }
             )
 
-        # Future work: Generate contextual narrative using Azure OpenAI
         narrative = await self._generate_variance_narrative(
             budget_variance_pct, forecast_variance_pct, drivers
         )
@@ -913,7 +914,6 @@ class FinancialManagementAgent(BaseAgent):
         )
 
         # Get benefit cash flows
-        # Future work: Get from Business Case Agent
         benefits = await self._get_project_benefits(project_id)
 
         # Calculate metrics
@@ -1110,7 +1110,6 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _match_costs_to_wbs(self, transactions: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Match cost transactions to WBS elements."""
-        # Future work: Use AI classification when codes are missing
         return transactions
 
     async def _enrich_cost_transactions(
@@ -1165,7 +1164,9 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _get_historical_spending(self, project_id: str) -> list[dict[str, Any]]:
         """Get historical spending data."""
-        # Future work: Query database
+        if self.db_service:
+            records = await self.db_service.query("actual_costs", {"project_id": project_id})
+            return records or []
         return []
 
     async def _get_resource_plans(self, project_id: str) -> dict[str, Any]:
@@ -1540,11 +1541,34 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _get_project_benefits(self, project_id: str) -> dict[str, Any]:
         """Get project benefits and cash flows."""
+        if self.business_case_agent:
+            response = await self.business_case_agent.process(
+                {"action": "get_business_case", "project_id": project_id}
+            )
+            if response:
+                return {
+                    "cash_flows": response.get("cash_flows", response.get("benefit_cash_flows", [])),
+                    "total_benefits": response.get("total_benefits", 0),
+                }
         return await self._query_related_agent(
             "benefits",
             {"project_id": project_id},
             default={"cash_flows": [], "total_benefits": 0},
         )
+
+    async def _validate_funding_with_erp(self, budget: dict[str, Any]) -> dict[str, Any]:
+        project_id = budget.get("project_id")
+        if not project_id:
+            return {"status": "skipped", "reason": "no_project_id"}
+        transactions = await self.erp_service.get_transactions(filters={"project_id": project_id})
+        available_funds = sum(txn.get("amount", 0) for txn in transactions)
+        requested = budget.get("total_amount", 0)
+        return {
+            "status": "validated",
+            "available_funds": available_funds,
+            "requested_amount": requested,
+            "funding_sufficient": available_funds >= requested,
+        }
 
     async def _calculate_npv(self, total_cost: float, cash_flows: list[float]) -> float:
         """Calculate Net Present Value."""

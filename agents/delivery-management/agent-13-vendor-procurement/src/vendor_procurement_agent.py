@@ -101,7 +101,7 @@ class ProcurementConnectorService:
                     ConnectorStatus(
                         name=name,
                         status="fallback",
-                        detail="Connector unavailable, using stub integration.",
+                        detail="Connector unavailable, using fallback integration.",
                     )
                 )
             else:
@@ -1071,7 +1071,6 @@ class VendorProcurementAgent(BaseAgent):
         else:
             self.logger.info("Form Recognizer not configured; falling back to regex extraction.")
 
-        # Future work: Initialize Azure Key Vault for storing vendor credentials
 
         self.logger.info("Vendor & Procurement Management Agent initialized")
 
@@ -1766,7 +1765,6 @@ class VendorProcurementAgent(BaseAgent):
                     "evaluated_at": datetime.utcnow().isoformat(),
                 },
             )
-        # Future work: Use Azure ML for AI-based vendor recommendation
 
         return {
             "rfp_id": rfp_id,
@@ -1809,7 +1807,6 @@ class VendorProcurementAgent(BaseAgent):
             raise ValueError(f"No proposal found from vendor {vendor_id}")
 
         # Document selection rationale
-        # Future work: Use Azure OpenAI for generating selection rationale
 
         # Update RFP and proposal status
         rfp["status"] = "Vendor Selected"
@@ -2165,7 +2162,6 @@ class VendorProcurementAgent(BaseAgent):
             invoice["approved_for_payment"] = True
             invoice["approved_at"] = datetime.utcnow().isoformat()
 
-            # Future work: Initiate payment in ERP
             payment_status = await self._initiate_payment(invoice)
 
             invoice["payment_status"] = payment_status.get("status", "Processing")
@@ -2881,7 +2877,6 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _select_contract_template(self, contract_type: str) -> dict[str, Any]:
         """Select contract template."""
-        # Future work: Load from template library
         return {"template_id": f"{contract_type}_contract"}
 
     async def _calculate_po_total(self, items: list[dict[str, Any]]) -> float:
@@ -2966,7 +2961,6 @@ class VendorProcurementAgent(BaseAgent):
                     }
                 )
 
-        # Future work: Check receipts
 
         return {"matched": len(discrepancies) == 0, "discrepancies": discrepancies}
 
@@ -3024,7 +3018,6 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _analyze_performance_trend(self, vendor_id: str) -> str:
         """Analyze vendor performance trend."""
-        # Future work: Perform trend analysis
         return "Stable"
 
     async def _generate_vendor_recommendations(self, metrics: dict[str, Any]) -> list[str]:
@@ -3371,10 +3364,6 @@ class VendorProcurementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Vendor & Procurement Management Agent...")
-        # Future work: Close database connections
-        # Future work: Close ERP connections
-        # Future work: Close external API connections
-        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

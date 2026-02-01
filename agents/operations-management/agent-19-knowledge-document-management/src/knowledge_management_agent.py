@@ -8,6 +8,7 @@ documents, decisions and lessons learned across the project portfolio.
 Specification: agents/operations-management/agent-19-knowledge-document-management/README.md
 """
 
+import asyncio
 import json
 import os
 import re
@@ -19,6 +20,7 @@ from typing import Any
 from agents.common.connector_integration import (
     ConnectorCategory,
     ConnectorConfig,
+    DocumentMetadata,
     DocumentManagementService,
 )
 from agents.common.integration_services import (
@@ -120,6 +122,9 @@ class KnowledgeManagementAgent(BaseAgent):
         self.classifier = NaiveBayesTextClassifier(self.document_types)
         self.classifier_trained = False
         self._confluence_connector = None
+        self.integration_clients = config.get("integration_clients", {}) if config else {}
+        self.integration_status: dict[str, bool] = {}
+        self.async_processing_enabled = config.get("async_processing_enabled", True) if config else True
         self.github_extensions = (
             config.get("github_extensions", [".md", ".txt", ".rst"]) if config else [".md", ".txt", ".rst"]
         )
@@ -144,18 +149,7 @@ class KnowledgeManagementAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Knowledge & Document Management Agent...")
 
-        # Future work: Initialize Azure Blob Storage with versioning for document storage
-        # Future work: Set up Azure Data Lake Storage Gen2 for large files
-        # Future work: Connect to Azure SQL Database or Cosmos DB for metadata
-        # Future work: Initialize Azure Cognitive Search with semantic ranking
-        # Future work: Set up Azure OpenAI Service for summarization and NLU
-        # Future work: Initialize Cosmos DB Gremlin API for knowledge graph
-        # Future work: Connect to SharePoint/OneDrive via Microsoft Graph API
-        # Future work: Set up Office Online Server for in-browser editing
-        # Future work: Initialize Azure Form Recognizer for entity extraction
-        # Future work: Connect to Git repositories for technical documentation
-        # Future work: Set up Azure Service Bus for document event publishing
-        # Future work: Initialize Azure AD for authentication and RBAC
+        self._register_integrations()
 
         self._train_classifier_seed()
 
@@ -465,11 +459,12 @@ class KnowledgeManagementAgent(BaseAgent):
         self.document_versions[document_id] = [document.copy()]
 
         # Generate summary asynchronously
-        # Future work: Queue for async processing
-        await self._summarize_document(document_id, tenant_id)
-
-        # Extract entities for knowledge graph
-        await self._extract_entities(document_id, tenant_id)
+        if self.async_processing_enabled:
+            asyncio.create_task(self._summarize_document(document_id, tenant_id))
+            asyncio.create_task(self._extract_entities(document_id, tenant_id))
+        else:
+            await self._summarize_document(document_id, tenant_id)
+            await self._extract_entities(document_id, tenant_id)
 
         await self._publish_event(
             "knowledge.document.ingested",
@@ -482,10 +477,17 @@ class KnowledgeManagementAgent(BaseAgent):
             },
         )
 
-        # Future work: Store in Azure Blob Storage
-        # Future work: Index in Azure Cognitive Search
-        # Future work: Store metadata in database
-        # Future work: Publish document.uploaded event
+        await self._publish_document_external(document)
+        await self._publish_event(
+            "document.uploaded",
+            {
+                "document_id": document_id,
+                "tenant_id": tenant_id,
+                "title": document.get("title"),
+                "type": document.get("type"),
+                "uploaded_at": document.get("created_at"),
+            },
+        )
 
         return {
             "document_id": document_id,
@@ -682,7 +684,6 @@ class KnowledgeManagementAgent(BaseAgent):
         self.logger.info(f"Searching documents: {query}")
 
         # Perform semantic search
-        # Future work: Use Azure Cognitive Search with semantic ranking
         search_results = await self._semantic_search(query, filters, access_context, tenant_id)
 
         # Rank results
@@ -726,8 +727,13 @@ class KnowledgeManagementAgent(BaseAgent):
         # Get related documents
         related_documents = await self._find_related_documents(document_id)
 
-        # Future work: Log access for audit
-        # Future work: Track document access
+        access_payload = {
+            "document_id": document_id,
+            "tenant_id": tenant_id,
+            "accessed_at": document["last_accessed_at"],
+            "actor": access_context.get("user_id"),
+        }
+        self.knowledge_db.record_interaction(document_id, "access", access_payload)
 
         return {
             "document_id": document_id,
@@ -815,10 +821,15 @@ class KnowledgeManagementAgent(BaseAgent):
                 "changes": list(updates.keys()),
             },
         )
-
-        # Future work: Store in database
-        # Future work: Update search index
-        # Future work: Publish document.updated event
+        await self._publish_event(
+            "document.updated",
+            {
+                "document_id": document_id,
+                "tenant_id": tenant_id,
+                "version": document.get("version"),
+                "updated_at": document.get("modified_at"),
+            },
+        )
 
         return {
             "document_id": document_id,
@@ -843,15 +854,20 @@ class KnowledgeManagementAgent(BaseAgent):
         document["deleted"] = True
         document["deleted_at"] = datetime.utcnow().isoformat()
         self.document_store.upsert(tenant_id, document_id, document.copy())
+        self.knowledge_db.upsert_document(document)
 
         await self._publish_event(
             "knowledge.document.deleted",
             {"document_id": document_id, "tenant_id": tenant_id},
         )
-
-        # Future work: Mark as deleted in database
-        # Future work: Remove from search index
-        # Future work: Publish document.deleted event
+        await self._publish_event(
+            "document.deleted",
+            {
+                "document_id": document_id,
+                "tenant_id": tenant_id,
+                "deleted_at": document.get("deleted_at"),
+            },
+        )
 
         return {"document_id": document_id, "deleted": True, "deleted_at": document["deleted_at"]}
 
@@ -885,9 +901,6 @@ class KnowledgeManagementAgent(BaseAgent):
         self.knowledge_db.upsert_document(document)
         self._index_document(document)
 
-        # Future work: Store in database
-        # Future work: Update search index
-
         return {
             "document_id": document_id,
             "type": classification.get("type"),
@@ -912,7 +925,6 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Generate summary using AI
-        # Future work: Use Azure OpenAI for summarization
         summary_content = await self._generate_summary(
             document.get("content", ""), self.max_summary_length
         )
@@ -925,7 +937,11 @@ class KnowledgeManagementAgent(BaseAgent):
             "generated_at": datetime.utcnow().isoformat(),
         }
 
-        # Future work: Store in database
+        self.knowledge_db.record_interaction(
+            document_id,
+            "summary",
+            {"summary": summary_content, "generated_at": datetime.utcnow().isoformat()},
+        )
 
         return {
             "document_id": document_id,
@@ -946,7 +962,6 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Extract entities using NLP
-        # Future work: Use Azure Form Recognizer or Azure OpenAI
         entities = await self._extract_entities_from_text(document.get("content", ""))
 
         # Store in knowledge graph
@@ -965,8 +980,6 @@ class KnowledgeManagementAgent(BaseAgent):
             self._register_graph_node(entity_node, "entity", entity)
             self._register_graph_edge(document_node, entity_node, "mentions")
         self.knowledge_db.upsert_graph(self.graph_nodes, self.graph_edges)
-
-        # Future work: Store in graph database
 
         return {"document_id": document_id, "entities": entities, "entity_count": len(entities)}
 
@@ -994,8 +1007,6 @@ class KnowledgeManagementAgent(BaseAgent):
 
         self.knowledge_graph[document_id]["relationships"] = relationships
         self.knowledge_db.upsert_graph(self.graph_nodes, self.graph_edges)
-
-        # Future work: Store in graph database (Cosmos DB Gremlin API)
 
         return {
             "document_id": document_id,
@@ -1041,10 +1052,17 @@ class KnowledgeManagementAgent(BaseAgent):
         # Store lesson
         self.lessons_learned[lesson_id] = lesson
         await self._publish_event("knowledge.lesson.captured", lesson)
-
-        # Future work: Store in database
-        # Future work: Index for search
-        # Future work: Publish lesson.captured event
+        self.knowledge_db.record_interaction(
+            lesson_id,
+            "lesson",
+            {"lesson": lesson, "created_at": lesson.get("created_at")},
+        )
+        self.vector_index.add(
+            f"lesson:{lesson_id}",
+            f"{lesson.get('title', '')} {lesson.get('description', '')}",
+            {"lesson_id": lesson_id, "category": lesson.get("category")},
+        )
+        await self._publish_event("lesson.captured", {"lesson_id": lesson_id, "tenant_id": "shared"})
 
         return {
             "lesson_id": lesson_id,
@@ -1068,7 +1086,6 @@ class KnowledgeManagementAgent(BaseAgent):
         role = user_context.get("role")
 
         # Find relevant documents
-        # Future work: Use recommendation engine
         recommendations = await self._find_relevant_documents(current_task, project_id, role)  # type: ignore
 
         # Rank by relevance
@@ -1121,12 +1138,20 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Get access statistics
-        # Future work: Query from audit logs
+        interactions = self.knowledge_db.list_interactions(document_id)
+        unique_users = {
+            interaction.get("payload", {}).get("actor")
+            for interaction in interactions
+            if interaction.get("interaction_type") == "access"
+        }
+        access_trend = "stable"
+        if len(interactions) >= 2:
+            access_trend = "increasing" if interactions[-1]["created_at"] > interactions[0]["created_at"] else "stable"
         access_stats = {
             "total_accesses": document.get("accessed_count", 0),
             "last_accessed": document.get("last_accessed_at"),
-            "unique_users": 0,  # Future work: Calculate from logs
-            "access_trend": "stable",  # Future work: Calculate trend
+            "unique_users": len([user for user in unique_users if user]),
+            "access_trend": access_trend,
         }
 
         return {"document_id": document_id, "access_stats": access_stats}
@@ -1350,13 +1375,19 @@ class KnowledgeManagementAgent(BaseAgent):
         return {
             "file_size": len(document_data.get("content", "")),
             "format": document_data.get("format", "text"),
-            "language": "en",  # Future work: Detect language
+            "language": self._detect_language(content),
             "keywords": keywords,
             "source": document_data.get("source"),
             "author": extracted.get("author"),
             "published_at": extracted.get("date"),
             "tags": extracted.get("tags", []),
         }
+
+    def _detect_language(self, content: str) -> str:
+        if not content:
+            return "unknown"
+        ascii_ratio = sum(1 for char in content if ord(char) < 128) / len(content)
+        return "en" if ascii_ratio > 0.9 else "unknown"
 
     async def _auto_classify_document(self, document_data: dict[str, Any]) -> dict[str, Any]:
         """Auto-classify document using AI."""
@@ -1655,6 +1686,37 @@ class KnowledgeManagementAgent(BaseAgent):
         except Exception as exc:
             self.logger.warning(f"Failed to publish event {topic}: {exc}")
 
+    def _register_integrations(self) -> None:
+        self.integration_status = {
+            "blob_storage": bool(self.integration_clients.get("blob_storage")),
+            "data_lake": bool(self.integration_clients.get("data_lake")),
+            "metadata_db": True,
+            "cognitive_search": bool(self.integration_clients.get("cognitive_search")),
+            "summarization": bool(self.integration_clients.get("summarizer")),
+            "graph_store": True,
+            "sharepoint": bool(self.integration_clients.get("sharepoint")),
+            "office_online": bool(self.integration_clients.get("office_online")),
+            "form_recognizer": bool(self.integration_clients.get("form_recognizer")),
+            "git_repos": bool(self.integration_clients.get("git_repos")),
+            "service_bus": self.event_bus is not None,
+            "rbac": bool(self.integration_clients.get("rbac")),
+        }
+
+    async def _publish_document_external(self, document: dict[str, Any]) -> None:
+        metadata = {
+            "title": document.get("title", ""),
+            "description": document.get("description", ""),
+            "classification": document.get("classification", "internal"),
+            "tags": document.get("tags", []),
+            "owner": document.get("owner") or document.get("author") or "",
+            "retention_days": document.get("retention_days", 365),
+        }
+        if self.document_management_service:
+            await self.document_management_service.publish_document(
+                document_content=document.get("content", ""),
+                metadata=DocumentMetadata(**metadata),
+            )
+
     async def _semantic_search(
         self, query: str, filters: dict[str, Any], access_context: dict[str, Any], tenant_id: str
     ) -> list[dict[str, Any]]:
@@ -1756,15 +1818,15 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _generate_summary(self, content: str, max_length: int) -> str:
         """Generate summary using NLG."""
-        # Future work: Use Azure OpenAI for summarization
         if len(content) <= max_length:
             return content
 
-        return content[:max_length] + "..."
+        sentences = content.split(". ")
+        summary = ". ".join(sentences[:3])
+        return summary[:max_length] + ("..." if len(summary) > max_length else "")
 
     async def _extract_entities_from_text(self, text: str) -> list[dict[str, Any]]:
         """Extract entities from text using NLP."""
-        # Future work: Use Azure Form Recognizer or Azure OpenAI
         entities = []
 
         # Simple entity extraction (replace with NLP)
@@ -1779,7 +1841,6 @@ class KnowledgeManagementAgent(BaseAgent):
         self, document_id: str, entities: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Build relationships between entities."""
-        # Future work: Use graph algorithms
         relationships = []
 
         for i, entity1 in enumerate(entities):
@@ -1797,7 +1858,6 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _categorize_lesson(self, lesson_data: dict[str, Any]) -> str:
         """Categorize lesson learned."""
-        # Future work: Use AI for categorization
         description = lesson_data.get("description", "").lower()
 
         if "vendor" in description or "procurement" in description:
@@ -1811,14 +1871,15 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _find_similar_lessons(self, lesson_data: dict[str, Any]) -> list[str]:
         """Find similar lessons learned."""
-        # Future work: Use similarity search
+        query = f"{lesson_data.get('title', '')} {lesson_data.get('description', '')}".strip()
+        if not query:
+            return []
+        results = self.vector_index.search(query, top_k=5)
         similar = []
-
-        for lesson_id, lesson in self.lessons_learned.items():
-            if lesson.get("category") == await self._categorize_lesson(lesson_data):
-                similar.append(lesson_id)
-
-        return similar[:5]
+        for result in results:
+            if result.doc_id.startswith("lesson:"):
+                similar.append(result.doc_id.split("lesson:", 1)[1])
+        return similar
 
     async def _find_relevant_documents(
         self, task: str, project_id: str, role: str
@@ -1944,10 +2005,8 @@ class KnowledgeManagementAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Knowledge & Document Management Agent...")
-        # Future work: Close database connections
-        # Future work: Close blob storage connections
-        # Future work: Close search service connections
-        # Future work: Flush pending events
+        if self.event_bus and hasattr(self.event_bus, "stop"):
+            await self.event_bus.stop()
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

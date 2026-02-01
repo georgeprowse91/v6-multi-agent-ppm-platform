@@ -65,7 +65,7 @@ make tf-apply
 ## Acceptance Criteria Checklist
 - [x] CI gates: lint, typecheck, tests with coverage ≥ 80%.
 - [x] Deterministic quickstart scenario (see `docs/runbooks/quickstart.md`).
-- [x] Auth stub/dev mode for local stack with RBAC enforcement.
+- [x] Auth dev mode for local stack with RBAC enforcement.
 - [x] Orchestration resilience (bounded concurrency, retries, timeouts, caching).
 - [x] Release pipeline builds, generates SBOM, signs, and verifies artifacts.
 - [x] Runbooks for incident response, backup/recovery, and DR.

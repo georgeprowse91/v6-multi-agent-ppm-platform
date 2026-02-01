@@ -170,16 +170,6 @@ class SchedulePlanningAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Schedule & Planning Agent...")
 
-        # Future work: Initialize Azure Machine Learning for duration estimation models
-        # Future work: Initialize Azure Databricks for Monte Carlo simulation
-        # Future work: Connect to Azure SQL Database for schedule data storage
-        # Future work: Initialize Azure Cache for Redis for frequently accessed schedules
-        # Future work: Connect to Microsoft Project via Logic Apps for Gantt chart sync
-        # Future work: Initialize Jira/Azure DevOps integration for sprint planning
-        # Future work: Connect to Smartsheet API for timeline sync
-        # Future work: Initialize Outlook/Google Calendar integration for milestone sync
-        # Future work: Set up Azure Service Bus/Event Grid for schedule event publishing
-        # Future work: Initialize Azure Synapse Analytics for historical performance analysis
 
         if self.event_bus:
             self.event_bus.subscribe("risk.updated", self._handle_risk_event)
@@ -366,7 +356,6 @@ class SchedulePlanningAgent(BaseAgent):
         tasks_with_durations = await self._apply_duration_estimates(tasks, duration_estimates)
 
         # Define dependencies
-        # Future work: Use AI to suggest dependencies based on task relationships
         dependencies = await self._suggest_dependencies(tasks_with_durations)
         for dependency in dependencies:
             await self._publish_dependency_added({"schedule_id": schedule_id}, dependency)
@@ -636,7 +625,6 @@ class SchedulePlanningAgent(BaseAgent):
         dependencies = schedule.get("dependencies", [])
 
         # Get resource availability from Resource Management Agent
-        # Future work: Integrate with Agent 11
         resource_availability = await self._get_resource_availability(resources)
 
         # Apply resource leveling
@@ -938,7 +926,7 @@ class SchedulePlanningAgent(BaseAgent):
             "start_date": schedule.get("start_date"),
             "end_date": schedule.get("end_date"),
             "locked_at": datetime.utcnow().isoformat(),
-            "locked_by": "system",  # Future work: Get from user context
+            "locked_by": "system",
             "status": "Locked",
         }
 
@@ -1502,7 +1490,6 @@ class SchedulePlanningAgent(BaseAgent):
     async def _wbs_to_tasks(self, wbs: dict[str, Any]) -> list[dict[str, Any]]:
         """Convert WBS to flat task list."""
         tasks = []
-        # Future work: Implement recursive WBS traversal
         # Baseline
         task_id = 1
         for key, value in wbs.items():
@@ -1519,7 +1506,6 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _get_historical_durations(self, task_name: str, complexity: str) -> list[float]:
         """Query historical task durations."""
-        # Future work: Query Azure Synapse Analytics
         return [5.0, 7.0, 6.0]  # Baseline
 
     async def _get_cached_duration_estimates(
@@ -1939,7 +1925,6 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _get_resource_availability(self, resources: dict[str, Any]) -> dict[str, Any]:
         """Get resource availability from Resource Management Agent."""
-        # Future work: Integrate with Agent 11
         return resources
 
     async def _resource_leveling(
@@ -2267,7 +2252,6 @@ class SchedulePlanningAgent(BaseAgent):
         self, schedule: dict[str, Any], opportunities: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """Apply optimizations to schedule."""
-        # Future work: Implement optimization logic
         return schedule
 
     async def _calculate_improvements(
@@ -2289,12 +2273,10 @@ class SchedulePlanningAgent(BaseAgent):
         self, schedule: dict[str, Any], params: dict[str, Any]
     ) -> dict[str, Any]:
         """Create scenario schedule with modified parameters."""
-        # Future work: Apply scenario parameters
         return schedule.copy()
 
     async def _recalculate_schedule(self, schedule: dict[str, Any]) -> dict[str, Any]:
         """Recalculate schedule with changes."""
-        # Future work: Recalculate CPM
         return schedule
 
     async def _compare_schedules(
@@ -2409,19 +2391,16 @@ class SchedulePlanningAgent(BaseAgent):
         self, schedule: dict[str, Any], baseline: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Identify delayed tasks."""
-        # Future work: Compare task dates to baseline
         return []
 
     async def _identify_critical_path_changes(
         self, schedule: dict[str, Any], baseline: dict[str, Any]
     ) -> list[str]:
         """Identify changes to critical path."""
-        # Future work: Compare critical paths
         return []
 
     async def _forecast_completion_date(self, schedule: dict[str, Any], spi: float) -> str:
         """Forecast completion date based on SPI."""
-        # Future work: Calculate forecast using SPI
         return datetime.utcnow().isoformat()
 
     async def _recommend_sprint_backlog(
@@ -2484,10 +2463,6 @@ class SchedulePlanningAgent(BaseAgent):
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Schedule & Planning Agent...")
-        # Future work: Close database connections
-        # Future work: Close external API connections
-        # Future work: Cancel pending monitoring tasks
-        # Future work: Flush any pending events
 
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""

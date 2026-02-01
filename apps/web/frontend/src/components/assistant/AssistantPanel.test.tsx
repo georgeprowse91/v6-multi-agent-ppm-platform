@@ -4,7 +4,7 @@ import { AssistantPanel } from './AssistantPanel';
 import { useAssistantStore } from '@/store/assistant';
 import { useMethodologyStore } from '@/store/methodology';
 
-const stubFetch = () =>
+const mockFetch = () =>
   vi.fn(() =>
     Promise.resolve(
       new Response(
@@ -16,7 +16,7 @@ const stubFetch = () =>
 
 describe('AssistantPanel prompt library', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', stubFetch());
+    vi.spyOn(globalThis, 'fetch').mockImplementation(mockFetch());
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       value: vi.fn(),
       writable: true,
@@ -31,7 +31,7 @@ describe('AssistantPanel prompt library', () => {
       context: null,
       isGeneratingSuggestions: false,
     });
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('renders prompt chips for the current stage', async () => {

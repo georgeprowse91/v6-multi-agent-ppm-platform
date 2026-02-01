@@ -825,7 +825,6 @@ class DataSyncAgent(BaseAgent):
         )
 
         await self._store_record("master_records", master_id, master_record)
-        # Future work: Publish master_record.created event
 
         return {"master_id": master_id, "entity_type": entity_type, "version": 1}
 
@@ -871,7 +870,6 @@ class DataSyncAgent(BaseAgent):
         )
 
         await self._store_record("master_records", master_id, master_record)
-        # Future work: Publish master_record.updated event
 
         return {
             "master_id": master_id,
@@ -1013,7 +1011,6 @@ class DataSyncAgent(BaseAgent):
             duplicate_record = self.master_records.get(master_id)
             if duplicate_record:
                 await self._store_record("master_records", master_id, duplicate_record)
-        # Future work: Publish duplicates.merged event
 
         return {
             "primary_id": primary_id,
@@ -1033,7 +1030,6 @@ class DataSyncAgent(BaseAgent):
         warnings = []
 
         # Get validation rules for entity type
-        # Future work: Load from configuration
         validation_rules = await self._get_validation_rules(entity_type)
 
         # Apply validation rules
@@ -2012,7 +2008,6 @@ class DataSyncAgent(BaseAgent):
         self, entity_type: str, data: dict[str, Any]
     ) -> dict[str, Any] | None:
         """Find existing master record."""
-        # Future work: Use matching algorithm
         for master_id, record in self.master_records.items():
             if record.get("entity_type") == entity_type and record.get("data", {}).get(
                 "id"

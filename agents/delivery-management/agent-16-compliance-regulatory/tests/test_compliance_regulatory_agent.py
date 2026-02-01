@@ -13,12 +13,12 @@ SRC_DIR = TESTS_DIR.parent / "src"
 sys.path.extend([str(SRC_DIR), str(REPO_ROOT), str(REPO_ROOT / "packages")])
 
 if "requests" not in sys.modules:
-    requests_stub = types.SimpleNamespace(
+    requests_mock = types.SimpleNamespace(
         RequestException=Exception,
         get=lambda *args, **kwargs: None,
         post=lambda *args, **kwargs: None,
     )
-    sys.modules["requests"] = requests_stub
+    sys.modules["requests"] = requests_mock
 
 if "observability.tracing" not in sys.modules:
     observability_module = types.ModuleType("observability")

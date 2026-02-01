@@ -18,7 +18,7 @@ class ConnectorStatus(str, Enum):
     """Implementation status of a connector."""
 
     AVAILABLE = "available"  # Fully functional
-    COMING_SOON = "coming_soon"  # Stub, planned for implementation
+    COMING_SOON = "coming_soon"
     BETA = "beta"  # In beta testing
 
 

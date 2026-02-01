@@ -1359,7 +1359,6 @@ class ResourceCapacityAgent(BaseAgent):
             request["allocation_id"] = allocation.get("allocation_id")
 
             # Notify Schedule & Planning Agent
-            # Future work: Integrate with Agent 10
             await self._publish_resource_event("resource.request.approved", request)
             await self._notify_requester(request)
             await self._notify_project_manager(request)
@@ -1375,7 +1374,6 @@ class ResourceCapacityAgent(BaseAgent):
             request["rejected_at"] = datetime.utcnow().isoformat()
             request["rejection_reason"] = comments
 
-            # Future work: Notify requester
             await self._publish_resource_event("resource.request.rejected", request)
             await self._notify_requester(request)
 
@@ -2058,7 +2056,9 @@ class ResourceCapacityAgent(BaseAgent):
                 "allocation_percentage": allocation.get("allocation_percentage", 0),
             },
         )
-        await self.event_bus.publish("resource.allocation.created", event.model_dump())
+        await self.event_bus.publish(
+            "resource.allocation.created", event.model_dump(mode="json")
+        )
 
     async def _publish_resource_event(self, event_name: str, payload: dict[str, Any]) -> None:
         await self.event_bus.publish(event_name, payload)
@@ -2735,14 +2735,12 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _forecast_future_capacity(self, months: int) -> list[dict[str, Any]]:
         """Forecast future capacity."""
-        # Future work: Use ML model for forecasting
         # Baseline: assume constant capacity
         current_capacity = await self._calculate_total_capacity()
         return [{"month": i, "capacity": current_capacity} for i in range(months)]
 
     async def _forecast_future_demand(self, months: int) -> list[dict[str, Any]]:
         """Forecast future demand."""
-        # Future work: Use ML model and project pipeline data
         # Baseline
         return [
             {"month": i, "demand": 0.8 * await self._calculate_total_capacity()}

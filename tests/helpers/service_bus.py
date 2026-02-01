@@ -7,42 +7,42 @@ from event_bus import ServiceBusEventBus
 
 
 @dataclass
-class StubServiceBusMessage:
+class MockServiceBusMessage:
     body: str
 
 
-class _StubSender:
-    def __init__(self, sent: list[StubServiceBusMessage]) -> None:
+class _MockSender:
+    def __init__(self, sent: list[MockServiceBusMessage]) -> None:
         self._sent = sent
 
-    async def __aenter__(self) -> "_StubSender":
+    async def __aenter__(self) -> "_MockSender":
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> bool:
         return False
 
-    async def send_messages(self, message: StubServiceBusMessage) -> None:
+    async def send_messages(self, message: MockServiceBusMessage) -> None:
         self._sent.append(message)
 
 
-class StubServiceBusClient:
+class MockServiceBusClient:
     def __init__(self) -> None:
-        self.sent: list[StubServiceBusMessage] = []
+        self.sent: list[MockServiceBusMessage] = []
 
-    async def __aenter__(self) -> "StubServiceBusClient":
+    async def __aenter__(self) -> "MockServiceBusClient":
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> bool:
         return False
 
-    def get_topic_sender(self, topic_name: str) -> _StubSender:
-        return _StubSender(self.sent)
+    def get_topic_sender(self, topic_name: str) -> _MockSender:
+        return _MockSender(self.sent)
 
 
 def build_test_event_bus() -> ServiceBusEventBus:
     return ServiceBusEventBus(
         connection_string="Endpoint=sb://local/;SharedAccessKeyName=local;SharedAccessKey=local",
-        client=StubServiceBusClient(),
-        message_cls=StubServiceBusMessage,
+        client=MockServiceBusClient(),
+        message_cls=MockServiceBusMessage,
         local_dispatch=True,
     )

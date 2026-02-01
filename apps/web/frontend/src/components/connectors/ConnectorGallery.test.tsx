@@ -44,7 +44,7 @@ const mockCertifications = [
 
 describe('ConnectorGallery', () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
     useConnectorStore.setState({
       connectors: [],
       connectorsLoading: false,
@@ -82,7 +82,7 @@ describe('ConnectorGallery', () => {
       },
     });
 
-    vi.stubGlobal('fetch', vi.fn((input: RequestInfo) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input: RequestInfo) => {
       const url = typeof input === 'string' ? input : input.url;
       if (url.endsWith('/connectors')) {
         return Promise.resolve(new Response(JSON.stringify(mockConnectors), { status: 200 }));
@@ -94,7 +94,7 @@ describe('ConnectorGallery', () => {
         return Promise.resolve(new Response(JSON.stringify(mockCertifications), { status: 200 }));
       }
       return Promise.resolve(new Response('Not Found', { status: 404 }));
-    }));
+    });
 
     render(<ConnectorGallery />);
 

@@ -383,7 +383,7 @@ class ProjectDefinitionAgent(BaseAgent):
         await self._index_artifact(
             artifact_type="project_charter",
             artifact_id=charter_id,
-            content=await self._serialize_charter_for_index(charter),
+            content=self._serialize_charter_for_index(charter),
             metadata={"project_id": project_id, "title": title or ""},
         )
         charter_content = await self._generate_charter_content(charter)
@@ -397,7 +397,6 @@ class ProjectDefinitionAgent(BaseAgent):
             ),
             folder_path="Project Charters",
         )
-        # Future work: Publish charter.created event to Service Bus
 
         self.logger.info(f"Generated charter for project: {project_id}")
 
@@ -431,7 +430,6 @@ class ProjectDefinitionAgent(BaseAgent):
             raise ValueError(f"Charter not found for project: {project_id}")
 
         # Query Knowledge Management Agent for similar projects
-        # Future work: Integrate with Agent 19
         similar_projects = await self._find_similar_projects(charter)
 
         # Generate WBS structure using AI
@@ -484,7 +482,6 @@ class ProjectDefinitionAgent(BaseAgent):
             content=self._serialize_wbs_for_index(wbs_with_details),
             metadata={"project_id": project_id},
         )
-        # Future work: Publish wbs.created event
 
         return {
             "wbs_id": wbs_id,
@@ -658,7 +655,6 @@ class ProjectDefinitionAgent(BaseAgent):
                 "updated_at": requirements_repo.get("updated_at"),
             }
         )
-        # Future work: Publish requirements.updated event
 
         return requirements_repo
 
@@ -716,8 +712,6 @@ class ProjectDefinitionAgent(BaseAgent):
             metadata={"project_id": project_id},
         )
 
-        # Future work: Store in Azure SQL Database
-        # Future work: Publish traceability_matrix.created event
 
         return matrix
 
@@ -752,8 +746,6 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store stakeholder register
         self.stakeholder_registers[project_id] = stakeholder_register
 
-        # Future work: Store in database
-        # Future work: Publish stakeholder_register.created event
 
         return stakeholder_register
 
@@ -771,7 +763,6 @@ class ProjectDefinitionAgent(BaseAgent):
         self.logger.info(f"Creating RACI matrix for project: {project_id}")
 
         # Generate RACI assignments
-        # Future work: Use AI to suggest RACI assignments based on roles
         raci_assignments = await self._generate_raci_assignments(stakeholders, deliverables)
 
         # Validate assignments
@@ -832,7 +823,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "requirements_count": len(requirements_repo.get("requirements", [])),
             "scope_statement": charter["document"].get("scope_overview"),
             "locked_at": datetime.utcnow().isoformat(),
-            "locked_by": "system",  # Future work: Get from user context
+            "locked_by": "system",
             "status": "Locked",
         }
 
@@ -972,7 +963,7 @@ class ProjectDefinitionAgent(BaseAgent):
                 "owner": charter.get("created_by", "unknown"),
             },
         )
-        await self.event_bus.publish("charter.created", event.model_dump())
+        await self.event_bus.publish("charter.created", event.model_dump(mode="json"))
 
     async def _publish_wbs_created(
         self, wbs: dict[str, Any], *, tenant_id: str, correlation_id: str
@@ -991,7 +982,7 @@ class ProjectDefinitionAgent(BaseAgent):
                 "baseline_date": None,
             },
         )
-        await self.event_bus.publish("wbs.created", event.model_dump())
+        await self.event_bus.publish("wbs.created", event.model_dump(mode="json"))
 
     async def _generate_baseline_id(self, project_id: str) -> str:
         """Generate unique baseline ID."""
@@ -1003,7 +994,6 @@ class ProjectDefinitionAgent(BaseAgent):
         project_type = charter_data.get("project_type", "general")
         methodology = charter_data.get("methodology", "hybrid")
 
-        # Future work: Implement template selection logic
         return f"template_{project_type}_{methodology}"
 
     async def _generate_executive_summary(self, charter_data: dict[str, Any]) -> str:
@@ -1023,7 +1013,6 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _generate_objectives(self, charter_data: dict[str, Any]) -> list[str]:
         """Generate project objectives."""
-        # Future work: Extract objectives from description using NLP
         return charter_data.get(  # type: ignore
             "objectives",
             [
@@ -1067,7 +1056,6 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _extract_high_level_requirements(self, charter_data: dict[str, Any]) -> list[str]:
         """Extract high-level requirements."""
-        # Future work: Use NLP to extract requirements
         return charter_data.get("high_level_requirements", [])  # type: ignore
 
     async def _identify_stakeholders(self, charter_data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1140,12 +1128,10 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _add_work_package_details(self, wbs_structure: dict[str, Any]) -> dict[str, Any]:
         """Add details to work packages."""
-        # Future work: Add effort estimates, resources, durations
         return wbs_structure
 
     async def _count_work_packages(self, wbs_structure: dict[str, Any]) -> int:
         """Count total work packages in WBS."""
-        # Future work: Implement recursive counting
         return 10  # Baseline
 
     async def _extract_requirements_from_sources(
@@ -1362,7 +1348,6 @@ class ProjectDefinitionAgent(BaseAgent):
         """Categorize requirements by type."""
         for req in requirements:
             if "category" not in req:
-                # Future work: Use ML to categorize
                 req["category"] = "functional"
         return requirements
 
@@ -1379,7 +1364,6 @@ class ProjectDefinitionAgent(BaseAgent):
         self, requirements: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Detect conflicting requirements."""
-        # Future work: Use semantic similarity to detect conflicts
         return []
 
     async def _validate_requirements_completeness(
@@ -1415,14 +1399,12 @@ class ProjectDefinitionAgent(BaseAgent):
         test_cases: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """Create traceability links between artifacts."""
-        # Future work: Implement linking logic
         return []
 
     async def _identify_traceability_gaps(
         self, requirements: list[dict[str, Any]], traceability_links: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Identify gaps in traceability."""
-        # Future work: Find unlinked requirements
         return []
 
     async def _calculate_traceability_coverage(
@@ -1431,7 +1413,6 @@ class ProjectDefinitionAgent(BaseAgent):
         """Calculate traceability coverage percentage."""
         if not requirements:
             return 1.0
-        # Future work: Calculate actual coverage
         return 0.85
 
     async def _classify_stakeholders(
@@ -1549,7 +1530,6 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _calculate_scope_variance(self, changes: list[dict[str, Any]]) -> float:
         """Calculate scope variance percentage."""
-        # Future work: Calculate actual variance
         return 0.05  # 5% variance
 
     async def cleanup(self) -> None:

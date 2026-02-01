@@ -23,7 +23,7 @@ secrets_module = types.ModuleType("security.secrets")
 keyvault_module = types.ModuleType("security.keyvault")
 dlp_module.redact_payload = lambda payload: payload
 secrets_module.resolve_secret = lambda value: value
-class DummyKeyVaultConfig:  # noqa: D401 - simple stub
+class DummyKeyVaultConfig:  # noqa: D401 - simple mock
     def __init__(self, vault_url: str | None = None) -> None:
         self.vault_url = vault_url
 
