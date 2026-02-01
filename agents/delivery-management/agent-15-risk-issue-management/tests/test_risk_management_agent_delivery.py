@@ -103,3 +103,52 @@ async def test_risk_simulation_event_published() -> None:
     await agent._run_monte_carlo("P3", iterations=50)
     topics = [topic for topic, _payload in event_bus.published]
     assert "risk.simulated" in topics
+
+
+class DummyPMService:
+    async def create_tasks(self, project_id, tasks):
+        return [{"status": "created", "task_id": f"T-{idx}"} for idx, _task in enumerate(tasks, start=1)]
+
+
+@pytest.mark.anyio
+async def test_mitigation_plan_creates_tasks_and_event() -> None:
+    event_bus = DummyEventBus()
+    agent = RiskManagementAgent(
+        config={
+            "event_bus": event_bus,
+        }
+    )
+    agent.project_management_services = {"jira": DummyPMService()}
+    agent.event_bus = event_bus
+    agent.risk_register["R4"] = {
+        "risk_id": "R4",
+        "project_id": "P4",
+        "title": "Scope creep",
+        "description": "Scope growth without approval.",
+        "category": "scope",
+        "probability": 4,
+        "impact": 4,
+        "score": 16,
+    }
+    plan = await agent._create_mitigation_plan("R4", {"strategy": "mitigate"})
+    assert plan["created_tasks"]
+    topics = [topic for topic, _payload in event_bus.published]
+    assert "risk.mitigation.created" in topics
+
+
+@pytest.mark.anyio
+async def test_event_trigger_publishes_risk_triggered() -> None:
+    event_bus = DummyEventBus()
+    agent = RiskManagementAgent(config={"event_bus": event_bus})
+    agent.event_bus = event_bus
+    agent.risk_register["R5"] = {
+        "risk_id": "R5",
+        "project_id": "P5",
+        "title": "Cost overrun",
+        "probability": 3,
+        "impact": 4,
+        "score": 12,
+    }
+    await agent._handle_cost_overrun_event({"project_id": "P5", "cost_overrun_pct": 0.2})
+    topics = [topic for topic, _payload in event_bus.published]
+    assert "risk.triggered" in topics

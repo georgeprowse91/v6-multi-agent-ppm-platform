@@ -205,21 +205,76 @@ class RiskNLPExtractor:
         labels: list[str] | None = None,
         threshold: float = 0.6,
         max_sentences: int = 80,
+        training_keywords: tuple[str, ...] | None = None,
     ) -> None:
         self.model_name = model_name
         self.pipeline_task = pipeline_task
         self.labels = labels or ["risk", "no risk"]
         self.threshold = threshold
         self.max_sentences = max_sentences
+        self.training_keywords = training_keywords or (
+            "risk",
+            "delay",
+            "overrun",
+            "issue",
+            "compliance",
+            "shortage",
+            "failure",
+            "defect",
+            "breach",
+        )
         self._pipeline = None
+        self._sklearn_model = None
+        self._vectorizer = None
+        self._trained = False
 
     def is_available(self) -> bool:
         return importlib.util.find_spec("transformers") is not None
+
+    def is_sklearn_available(self) -> bool:
+        return importlib.util.find_spec("sklearn") is not None
+
+    def train(self, documents: list[dict[str, Any] | str]) -> bool:
+        sentences = self._collect_sentences(documents)
+        if not sentences or not self.is_sklearn_available():
+            return False
+
+        labeled: list[tuple[str, int]] = []
+        for sentence in sentences:
+            label = 1 if self._is_risk_sentence(sentence) else 0
+            labeled.append((sentence, label))
+
+        if len(labeled) < 4:
+            return False
+        if len({label for _, label in labeled}) < 2:
+            return False
+
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            from sklearn.linear_model import LogisticRegression
+
+            texts = [text for text, _ in labeled]
+            labels = [label for _, label in labeled]
+            vectorizer = TfidfVectorizer(stop_words="english")
+            features = vectorizer.fit_transform(texts)
+            model = LogisticRegression(max_iter=200)
+            model.fit(features, labels)
+            self._vectorizer = vectorizer
+            self._sklearn_model = model
+            self._trained = True
+            return True
+        except Exception:
+            self._sklearn_model = None
+            self._vectorizer = None
+            self._trained = False
+            return False
 
     def extract_risks(self, documents: list[dict[str, Any] | str]) -> list[dict[str, Any]]:
         sentences = self._collect_sentences(documents)
         if not sentences:
             return []
+        if self._trained and self._sklearn_model and self._vectorizer:
+            return self._sklearn_risks(sentences)
         self._ensure_pipeline()
         if self._pipeline is None:
             return self._heuristic_risks(sentences)
@@ -251,17 +306,37 @@ class RiskNLPExtractor:
         return sentences[: self.max_sentences]
 
     def _heuristic_risks(self, sentences: list[str]) -> list[dict[str, Any]]:
-        keywords = ("risk", "delay", "overrun", "issue", "compliance", "shortage")
         extracted: list[dict[str, Any]] = []
         for sentence in sentences:
-            lowered = sentence.lower()
-            if any(keyword in lowered for keyword in keywords):
+            if self._is_risk_sentence(sentence):
                 extracted.append(
                     {
                         "title": sentence[:80],
                         "description": sentence,
                         "category": "nlp",
                         "source": "heuristic_nlp",
+                    }
+                )
+        return extracted
+
+    def _sklearn_risks(self, sentences: list[str]) -> list[dict[str, Any]]:
+        extracted: list[dict[str, Any]] = []
+        if not self._trained or not self._sklearn_model or not self._vectorizer:
+            return extracted
+        try:
+            features = self._vectorizer.transform(sentences)
+            probabilities = self._sklearn_model.predict_proba(features)[:, 1]
+        except Exception:
+            return self._heuristic_risks(sentences)
+        for sentence, probability in zip(sentences, probabilities):
+            if probability >= self.threshold:
+                extracted.append(
+                    {
+                        "title": sentence[:80],
+                        "description": sentence,
+                        "category": "nlp",
+                        "source": "sklearn",
+                        "confidence": float(round(probability, 4)),
                     }
                 )
         return extracted
@@ -300,6 +375,10 @@ class RiskNLPExtractor:
                         }
                     )
         return extracted
+
+    def _is_risk_sentence(self, sentence: str) -> bool:
+        lowered = sentence.lower()
+        return any(keyword in lowered for keyword in self.training_keywords)
 
 
 class RiskManagementAgent(BaseAgent):
@@ -391,10 +470,29 @@ class RiskManagementAgent(BaseAgent):
         self.project_management_services: dict[str, ProjectManagementService] = {}
         self.cognitive_search_service: CognitiveSearchService | None = None
         self.knowledge_base_service: KnowledgeBaseQueryService | None = None
+        self.resource_management_service = config.get("resource_management_service") if config else None
         self.data_lake_manager: DataLakeManager | None = None
         self.synapse_manager: SynapseManager | None = None
         self.event_bus = None
         self.risk_events: list[dict[str, Any]] = []
+        self.risk_trigger_thresholds = (
+            config.get(
+                "risk_trigger_thresholds",
+                {
+                    "cost_overrun_pct": 0.1,
+                    "schedule_delay_days": 10,
+                    "quality_defect_rate": 0.05,
+                    "resource_utilization": 0.9,
+                },
+            )
+            if config
+            else {
+                "cost_overrun_pct": 0.1,
+                "schedule_delay_days": 10,
+                "quality_defect_rate": 0.05,
+                "resource_utilization": 0.9,
+            }
+        )
         self.risk_nlp_extractor = (
             config.get("risk_nlp_extractor")
             if config
@@ -407,6 +505,11 @@ class RiskManagementAgent(BaseAgent):
                 labels=(config.get("risk_nlp_labels") if config else None),
                 threshold=float(config.get("risk_nlp_threshold", 0.6)) if config else 0.6,
                 max_sentences=int(config.get("risk_nlp_max_sentences", 80)) if config else 80,
+                training_keywords=(
+                    tuple(config.get("risk_nlp_training_keywords"))
+                    if config and config.get("risk_nlp_training_keywords")
+                    else None
+                ),
             )
         self.schedule_agent_endpoint = (
             config.get("schedule_agent_endpoint") if config else None
@@ -421,6 +524,8 @@ class RiskManagementAgent(BaseAgent):
         self.simulation_offload = config.get("simulation_offload", {}) if config else {}
         self.latest_schedule_signals: dict[str, Any] = {}
         self.latest_financial_signals: dict[str, Any] = {}
+        self._local_probability_model = None
+        self._local_impact_model = None
 
     async def initialize(self) -> None:
         """Initialize database connections, analytics tools, and AI models."""
@@ -467,9 +572,15 @@ class RiskManagementAgent(BaseAgent):
             self.event_bus.subscribe("schedule.baseline.locked", self._handle_schedule_baseline_event)
             self.event_bus.subscribe("schedule.delay", self._handle_schedule_delay_event)
             self.event_bus.subscribe("financial.budget.updated", self._handle_financial_update_event)
+            self.event_bus.subscribe("financial.cost_overrun", self._handle_cost_overrun_event)
+            self.event_bus.subscribe("schedule.milestone.missed", self._handle_milestone_missed_event)
+            self.event_bus.subscribe("quality.defect_rate", self._handle_quality_event)
+            self.event_bus.subscribe("resource.utilization", self._handle_resource_utilization_event)
 
         if self.synapse_manager:
             self.synapse_manager.ensure_pools()
+
+        await self._prime_risk_extractor()
 
         self.logger.info("Risk Management Agent initialized")
 
@@ -647,8 +758,10 @@ class RiskManagementAgent(BaseAgent):
         risk_id = await self._generate_risk_id()
 
         # Extract risks from documents if provided
-        # Future work: Use NLP for risk extraction
-        extracted_risks = await self._extract_risks_from_documents(risk_data.get("documents", []))
+        documents = risk_data.get("documents", [])
+        if documents:
+            await self._train_risk_extractor(documents)
+        extracted_risks = await self._extract_risks_from_documents(documents)
 
         # Perform initial classification and scoring
         initial_assessment = await self._initial_risk_assessment(risk_data)
@@ -676,6 +789,7 @@ class RiskManagementAgent(BaseAgent):
             "mitigation_plan_id": None,
             "residual_risk": None,
             "classification": risk_data.get("classification", "internal"),
+            "extracted_risks": extracted_risks,
         }
 
         validation = await self._validate_risk_record(risk=risk, tenant_id=tenant_id)
@@ -764,7 +878,7 @@ class RiskManagementAgent(BaseAgent):
             raise ValueError(f"Risk not found: {risk_id}")
 
         # Use predictive models for probability and impact
-        # Future work: Use Azure ML for risk prediction
+        await self._ensure_local_risk_models()
         predicted_assessment = await self._predict_risk_metrics(risk)
 
         # Calculate quantitative impact
@@ -779,6 +893,25 @@ class RiskManagementAgent(BaseAgent):
 
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
+            await self.db_service.store(
+                "risk_assessments",
+                f"{risk_id}-{risk['last_assessed']}",
+                {
+                    "risk_id": risk_id,
+                    "assessment": predicted_assessment,
+                    "score": risk["score"],
+                    "assessed_at": risk["last_assessed"],
+                },
+            )
+            await self.db_service.store(
+                "risk_impacts",
+                f"{risk_id}-{risk['last_assessed']}",
+                {
+                    "risk_id": risk_id,
+                    "quantitative_impact": quantitative_impact,
+                    "assessed_at": risk["last_assessed"],
+                },
+            )
         await self._store_risk_dataset("risks", [risk], domain="risk_register")
         await self._publish_risk_event(
             "risk.assessed",
@@ -869,19 +1002,37 @@ class RiskManagementAgent(BaseAgent):
         plan_id = await self._generate_mitigation_plan_id()
 
         # Recommend mitigation strategies
-        # Future work: Use knowledge base of mitigation strategies
         recommended_strategies = await self._recommend_mitigation_strategies(risk)
+        mitigation_owner = await self._resolve_mitigation_owner(risk, mitigation_data)
+        tasks = mitigation_data.get("tasks", [])
+        if not tasks:
+            tasks = [
+                {
+                    "title": strategy,
+                    "description": f"Mitigation action for risk {risk_id}: {strategy}",
+                    "priority": "High" if risk.get("score", 0) >= self.high_risk_threshold else "Medium",
+                    "due_date": mitigation_data.get("due_date"),
+                    "owner": mitigation_owner,
+                }
+                for strategy in recommended_strategies[:3]
+            ]
+        created_tasks = await self._create_mitigation_tasks(
+            risk,
+            tasks,
+            mitigation_owner,
+        )
 
         # Create mitigation plan
         mitigation_plan = {
             "plan_id": plan_id,
             "risk_id": risk_id,
             "strategy": mitigation_data.get(
-                "strategy", "mitigate"
+            "strategy", "mitigate"
             ),  # avoid, mitigate, transfer, accept
-            "tasks": mitigation_data.get("tasks", []),
+            "tasks": tasks,
+            "created_tasks": created_tasks,
             "budget": mitigation_data.get("budget"),
-            "responsible_person": mitigation_data.get("responsible_person"),
+            "responsible_person": mitigation_owner,
             "due_date": mitigation_data.get("due_date"),
             "status": "Planned",
             "recommended_strategies": recommended_strategies,
@@ -906,19 +1057,27 @@ class RiskManagementAgent(BaseAgent):
         if self.db_service:
             await self.db_service.store("mitigation_plans", plan_id, mitigation_plan)
             await self.db_service.store("risks", risk_id, risk)
+            await self.db_service.store(
+                "mitigation_tasks",
+                f"{plan_id}-tasks",
+                {"plan_id": plan_id, "risk_id": risk_id, "tasks": created_tasks},
+            )
         await self._store_risk_dataset("mitigation_plans", [mitigation_plan], domain="mitigation")
         await self._publish_risk_event(
             "risk.mitigation_plan_created",
             {"risk_id": risk_id, "plan_id": plan_id, "strategy": mitigation_plan["strategy"]},
         )
-        # Future work: Create tasks in task management system
-        # Future work: Publish mitigation_plan.created event
+        await self._publish_risk_event(
+            "risk.mitigation.created",
+            {"risk_id": risk_id, "plan_id": plan_id, "task_count": len(created_tasks)},
+        )
 
         return {
             "plan_id": plan_id,
             "risk_id": risk_id,
             "strategy": mitigation_plan["strategy"],
             "tasks": mitigation_plan["tasks"],
+            "created_tasks": created_tasks,
             "task_count": len(mitigation_plan["tasks"]),
             "budget": mitigation_plan["budget"],
             "residual_risk": residual_risk,
@@ -1601,6 +1760,150 @@ class RiskManagementAgent(BaseAgent):
             extracted.extend(self.cognitive_search_service.extract_risks(documents))
         return extracted
 
+    async def _prime_risk_extractor(self) -> None:
+        training_documents = self.config.get("risk_nlp_training_documents") if self.config else None
+        training_path = self.config.get("risk_nlp_training_path") if self.config else None
+        documents: list[dict[str, Any] | str] = []
+
+        if isinstance(training_documents, list):
+            documents.extend(training_documents)
+
+        if training_path:
+            try:
+                path = Path(training_path)
+                if path.is_file():
+                    if path.suffix.lower() == ".json":
+                        documents.extend(json.loads(path.read_text()))
+                    else:
+                        documents.append(path.read_text())
+            except Exception:
+                documents = documents
+
+        if documents:
+            await self._train_risk_extractor(documents)
+
+    async def _train_risk_extractor(self, documents: list[dict[str, Any] | str]) -> None:
+        if self.risk_nlp_extractor and hasattr(self.risk_nlp_extractor, "train"):
+            try:
+                self.risk_nlp_extractor.train(documents)
+            except Exception:
+                return
+
+    async def _build_risk_features(self, risk: dict[str, Any]) -> dict[str, Any]:
+        schedule_distribution = await self._fetch_schedule_baseline(risk.get("project_id"))
+        financial_distribution = await self._fetch_financial_distribution(risk.get("project_id"))
+        schedule_delay = schedule_distribution.get("mean_delay_days", 0) or 0
+        cost_overrun = financial_distribution.get("mean_cost_overrun", 0) or 0
+        baseline_duration = schedule_distribution.get("baseline_duration_days", 100) or 100
+        baseline_cost = financial_distribution.get("baseline_cost", 1_000_000) or 1_000_000
+
+        quality_score = risk.get("quality_score") or risk.get("quality_metrics", {}).get("score")
+        resource_utilization = risk.get("resource_utilization") or risk.get("resource_metrics", {}).get(
+            "utilization"
+        )
+        schedule_pressure = float(schedule_delay) / max(1.0, float(baseline_duration))
+        cost_pressure = float(cost_overrun) / max(1.0, float(baseline_cost))
+        quality_pressure = 1 - (float(quality_score) if quality_score is not None else 0.8)
+        resource_pressure = float(resource_utilization) if resource_utilization is not None else 0.7
+
+        return {
+            "title": risk.get("title"),
+            "description": risk.get("description"),
+            "category": risk.get("category"),
+            "risk_indicator": risk.get("probability", 3),
+            "impact_indicator": risk.get("impact", 3),
+            "schedule_pressure": round(schedule_pressure, 4),
+            "cost_pressure": round(cost_pressure, 4),
+            "quality_pressure": round(quality_pressure, 4),
+            "resource_pressure": round(resource_pressure, 4),
+            "baseline_duration_days": baseline_duration,
+            "baseline_cost": baseline_cost,
+        }
+
+    async def _ensure_local_risk_models(self) -> None:
+        if self._local_probability_model and self._local_impact_model:
+            return
+        if importlib.util.find_spec("sklearn") is None:
+            return
+        samples: list[list[float]] = []
+        probability_targets: list[float] = []
+        impact_targets: list[float] = []
+        for risk in self.risk_register.values():
+            features = await self._build_risk_features(risk)
+            samples.append(
+                [
+                    features.get("schedule_pressure", 0.0),
+                    features.get("cost_pressure", 0.0),
+                    features.get("quality_pressure", 0.0),
+                    features.get("resource_pressure", 0.0),
+                    features.get("risk_indicator", 0.0),
+                ]
+            )
+            probability_targets.append(float(risk.get("probability", 3)))
+            impact_targets.append(float(risk.get("impact", 3)))
+        if len(samples) < 4:
+            return
+        try:
+            from sklearn.ensemble import GradientBoostingRegressor
+
+            self._local_probability_model = GradientBoostingRegressor(random_state=42)
+            self._local_probability_model.fit(samples, probability_targets)
+            self._local_impact_model = GradientBoostingRegressor(random_state=42)
+            self._local_impact_model.fit(samples, impact_targets)
+        except Exception:
+            self._local_probability_model = None
+            self._local_impact_model = None
+
+    async def _resolve_mitigation_owner(
+        self, risk: dict[str, Any], mitigation_data: dict[str, Any]
+    ) -> str | None:
+        if mitigation_data.get("responsible_person"):
+            return mitigation_data.get("responsible_person")
+        if self.resource_management_service:
+            for method in ("assign_owner", "get_available_owner", "resolve_owner"):
+                if hasattr(self.resource_management_service, method):
+                    try:
+                        owner = await getattr(self.resource_management_service, method)(risk)
+                        if owner:
+                            return owner
+                    except Exception:
+                        continue
+        return risk.get("owner")
+
+    async def _create_mitigation_tasks(
+        self,
+        risk: dict[str, Any],
+        tasks: list[dict[str, Any]],
+        owner: str | None,
+    ) -> list[dict[str, Any]]:
+        created: list[dict[str, Any]] = []
+        if not tasks:
+            return created
+        for task in tasks:
+            payload = {
+                "title": task.get("title") or task.get("summary"),
+                "description": task.get("description"),
+                "priority": task.get("priority", "Medium"),
+                "owner": task.get("owner") or owner,
+                "due_date": task.get("due_date"),
+                "labels": ["risk", risk.get("category", "risk")],
+                "risk_id": risk.get("risk_id"),
+                "project_id": risk.get("project_id"),
+            }
+            created.append({"status": "pending", **payload})
+
+        for connector_type, service in self.project_management_services.items():
+            try:
+                result = await service.create_tasks(risk.get("project_id"), created)
+                for task, response in zip(created, result):
+                    task["status"] = response.get("status", "created")
+                    task["external_id"] = response.get("task_id") or response.get("id")
+                    task["system"] = connector_type
+            except Exception:
+                continue
+
+        return created
+
     async def _initial_risk_assessment(self, risk_data: dict[str, Any]) -> dict[str, Any]:
         """Perform initial risk assessment."""
         # Use provided values or defaults
@@ -1621,15 +1924,9 @@ class RiskManagementAgent(BaseAgent):
 
     async def _predict_risk_metrics(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Use ML to predict risk probability and impact."""
+        features = await self._build_risk_features(risk)
         if self.ml_service:
-            prediction = await self.ml_service.predict_classification(
-                {
-                    "title": risk.get("title"),
-                    "description": risk.get("description"),
-                    "category": risk.get("category"),
-                    "score": risk.get("score"),
-                }
-            )
+            prediction = await self.ml_service.predict_classification(features)
             if prediction.get("status") == "predicted":
                 result = prediction.get("result", {}) or {}
                 probability = result.get("probability") or result.get("likelihood")
@@ -1640,6 +1937,31 @@ class RiskManagementAgent(BaseAgent):
                         "impact": self._coerce_rating(impact, fallback=risk.get("impact", 3)),
                         "severity_score": result.get("severity_score"),
                     }
+            if prediction.get("status") == "predicted_mock":
+                mock_probability = features.get("risk_indicator", risk.get("probability", 3))
+                mock_impact = features.get("impact_indicator", risk.get("impact", 3))
+                return {
+                    "probability": self._coerce_rating(mock_probability, fallback=risk.get("probability", 3)),
+                    "impact": self._coerce_rating(mock_impact, fallback=risk.get("impact", 3)),
+                }
+
+        if self._local_probability_model and self._local_impact_model:
+            try:
+                model_features = [
+                    features.get("schedule_pressure", 0.0),
+                    features.get("cost_pressure", 0.0),
+                    features.get("quality_pressure", 0.0),
+                    features.get("resource_pressure", 0.0),
+                    features.get("risk_indicator", 0.0),
+                ]
+                probability_pred = float(self._local_probability_model.predict([model_features])[0])
+                impact_pred = float(self._local_impact_model.predict([model_features])[0])
+                return {
+                    "probability": self._coerce_rating(round(probability_pred), fallback=risk.get("probability", 3)),
+                    "impact": self._coerce_rating(round(impact_pred), fallback=risk.get("impact", 3)),
+                }
+            except Exception:
+                pass
 
         history = self.risk_histories.get(risk.get("risk_id"), [])
         if history:
@@ -2157,6 +2479,76 @@ class RiskManagementAgent(BaseAgent):
         if not project_id:
             return
         self.latest_financial_signals[project_id] = payload
+
+    async def _handle_cost_overrun_event(self, payload: dict[str, Any]) -> None:
+        await self._evaluate_event_trigger(payload, trigger_type="cost_overrun")
+
+    async def _handle_milestone_missed_event(self, payload: dict[str, Any]) -> None:
+        await self._evaluate_event_trigger(payload, trigger_type="schedule_delay")
+
+    async def _handle_quality_event(self, payload: dict[str, Any]) -> None:
+        await self._evaluate_event_trigger(payload, trigger_type="quality_defect_rate")
+
+    async def _handle_resource_utilization_event(self, payload: dict[str, Any]) -> None:
+        await self._evaluate_event_trigger(payload, trigger_type="resource_utilization")
+
+    async def _evaluate_event_trigger(self, payload: dict[str, Any], *, trigger_type: str) -> None:
+        project_id = payload.get("project_id")
+        if not project_id:
+            return
+        threshold_map = {
+            "cost_overrun": self.risk_trigger_thresholds.get("cost_overrun_pct", 0.1),
+            "schedule_delay": self.risk_trigger_thresholds.get("schedule_delay_days", 10),
+            "quality_defect_rate": self.risk_trigger_thresholds.get("quality_defect_rate", 0.05),
+            "resource_utilization": self.risk_trigger_thresholds.get("resource_utilization", 0.9),
+        }
+        value_map = {
+            "cost_overrun": payload.get("overrun_pct")
+            or payload.get("cost_overrun_pct")
+            or payload.get("variance_pct"),
+            "schedule_delay": payload.get("delay_days")
+            or payload.get("slip_days")
+            or payload.get("delay"),
+            "quality_defect_rate": payload.get("defect_rate") or payload.get("quality_defect_rate"),
+            "resource_utilization": payload.get("utilization") or payload.get("resource_utilization"),
+        }
+        threshold = threshold_map.get(trigger_type)
+        current_value = value_map.get(trigger_type)
+        if threshold is None or current_value is None:
+            return
+        if float(current_value) < float(threshold):
+            return
+        triggered = []
+        for risk in self.risk_register.values():
+            if risk.get("project_id") != project_id:
+                continue
+            await self._update_risk_from_trigger(
+                risk,
+                {
+                    "triggered": True,
+                    "trigger": {
+                        "type": trigger_type,
+                        "threshold": threshold,
+                        "current_value": current_value,
+                        "status": "triggered",
+                    },
+                    "new_score": min(25, risk.get("score", 0) + 2),
+                },
+            )
+            triggered.append(
+                {
+                    "risk_id": risk.get("risk_id"),
+                    "project_id": project_id,
+                    "trigger_type": trigger_type,
+                    "threshold": threshold,
+                    "current_value": current_value,
+                    "new_score": risk.get("score"),
+                }
+            )
+        if triggered:
+            await self._store_risk_dataset("risk_triggers", triggered, domain="triggers")
+            for item in triggered:
+                await self._publish_risk_event("risk.triggered", item)
 
     async def _collect_external_risk_signals(self, project_id: str) -> list[dict[str, Any]]:
         signals: list[dict[str, Any]] = []

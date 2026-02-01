@@ -982,6 +982,52 @@ class ProjectManagementService:
             logger.error(f"Failed to retrieve tasks: {exc}")
             return []
 
+    async def create_tasks(
+        self,
+        project_id: str | None,
+        tasks: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """
+        Create tasks in the PM platform.
+
+        Args:
+            project_id: Project identifier
+            tasks: Task payloads
+
+        Returns:
+            List of task creation results
+        """
+        connector = self._get_connector()
+
+        if connector is None:
+            logger.info("Mock creating tasks")
+            return [
+                {
+                    "status": "created_mock",
+                    "task_id": f"TASK-{index+1:03d}",
+                    "project_id": project_id,
+                }
+                for index, _task in enumerate(tasks)
+            ]
+
+        try:
+            payloads = []
+            for task in tasks:
+                payload = {"project_id": project_id, **task}
+                payloads.append(payload)
+            results = connector.write(self._task_resource_type(), payloads)
+            return [
+                {
+                    "status": "created",
+                    "task_id": result.get("id") or result.get("task_id"),
+                    "project_id": project_id,
+                }
+                for result in (results or [])
+            ]
+        except Exception as exc:
+            logger.error(f"Failed to create tasks: {exc}")
+            return [{"status": "failed", "error": str(exc)}]
+
     async def update_schedule(self, project_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """
         Update project schedule in the PM platform.
