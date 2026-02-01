@@ -30,6 +30,8 @@ spec:
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
             - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | quote }}
+            - name: NOTIFICATION_SERVICE_RATE_LIMIT
+              value: {{ .Values.rateLimit | quote }}
           readinessProbe:
             httpGet:
               path: /healthz

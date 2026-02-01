@@ -16,6 +16,7 @@ env:
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
   WORKFLOW_BROKER_URL: "redis://workflow-broker:6379/0"
   WORKFLOW_RESULT_BACKEND: "redis://workflow-broker:6379/0"
+rateLimit: "100/minute"
 
 resources:
   requests:

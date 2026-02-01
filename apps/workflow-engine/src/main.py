@@ -9,6 +9,10 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from tools.runtime_paths import bootstrap_runtime_paths
 
@@ -50,9 +54,14 @@ WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workflows.db"))
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
+RATE_LIMIT = os.getenv("WORKFLOW_ENGINE_RATE_LIMIT", "100/minute")
 
 app = FastAPI(title="Workflow Engine", version="1.0.0")
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+app.add_middleware(SlowAPIMiddleware)
 configure_tracing("workflow-engine")
 configure_metrics("workflow-engine")
 app.add_middleware(TraceMiddleware, service_name="workflow-engine")
@@ -280,6 +289,7 @@ async def delete_definition(workflow_id: str, http_request: Request) -> dict[str
 
 
 @app.post("/workflows/start", response_model=WorkflowRunResponse)
+@limiter.limit(RATE_LIMIT)
 async def start_workflow(
     request: WorkflowStartRequest,
     http_request: Request,

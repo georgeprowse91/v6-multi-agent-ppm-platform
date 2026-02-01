@@ -11,6 +11,10 @@ from uuid import uuid4
 import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -30,6 +34,7 @@ logging.basicConfig(level=logging.INFO)
 DEFAULT_TEMPLATES_DIR = REPO_ROOT / "services" / "notification-service" / "templates"
 DEFAULT_OUTBOX_DIR = REPO_ROOT / "services" / "notification-service" / "outbox"
 HTTP_TIMEOUT = 5
+RATE_LIMIT = os.getenv("NOTIFICATION_SERVICE_RATE_LIMIT", "100/minute")
 
 http_retry = retry(
     wait=wait_exponential(multiplier=1, min=1, max=10),
@@ -59,7 +64,11 @@ class NotificationResponse(BaseModel):
 
 
 app = FastAPI(title="Notification Service", version="0.1.0")
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz"})
+app.add_middleware(SlowAPIMiddleware)
 configure_tracing("notification-service")
 configure_metrics("notification-service")
 app.add_middleware(TraceMiddleware, service_name="notification-service")
@@ -243,6 +252,7 @@ async def _send_acs_notification(rendered: str, recipient: str | None) -> str:
 
 
 @app.post("/notifications/send", response_model=NotificationResponse)
+@limiter.limit(RATE_LIMIT)
 async def send_notification(request: NotificationRequest) -> NotificationResponse:
     template = _load_template(request.template)
     try:

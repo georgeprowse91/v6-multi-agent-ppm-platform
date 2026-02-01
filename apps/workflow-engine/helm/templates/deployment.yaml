@@ -34,6 +34,8 @@ spec:
               value: {{ .Values.env.WORKFLOW_BROKER_URL | quote }}
             - name: WORKFLOW_RESULT_BACKEND
               value: {{ .Values.env.WORKFLOW_RESULT_BACKEND | quote }}
+            - name: WORKFLOW_ENGINE_RATE_LIMIT
+              value: {{ .Values.rateLimit | quote }}
           readinessProbe:
             httpGet:
               path: /healthz
