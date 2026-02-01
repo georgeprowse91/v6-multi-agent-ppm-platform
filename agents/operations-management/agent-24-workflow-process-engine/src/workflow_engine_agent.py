@@ -18,6 +18,7 @@ from xml.etree import ElementTree
 
 import yaml
 from observability.tracing import get_trace_id
+from workflow_spec import WorkflowSpecError, load_workflow_spec, parse_workflow_spec
 from workflow_state_store import WorkflowStateStore, build_workflow_state_store
 from workflow_task_queue import WorkflowTaskQueue, build_task_message, build_task_queue
 
@@ -61,6 +62,27 @@ class WorkflowEngineAgent(BaseAgent):
         self.logic_apps_endpoint = config.get("logic_apps_endpoint") or os.getenv(
             "LOGIC_APPS_ENDPOINT"
         )
+        self.workflow_templates_path = Path(
+            config.get(
+                "workflow_templates_path",
+                os.getenv("WORKFLOW_TEMPLATES_PATH", "config/agent-24/workflow_templates.yaml"),
+            )
+        )
+        self.rbac_policy = config.get(
+            "rbac_policy",
+            {
+                "define_workflow": {"workflow_admin", "workflow_editor"},
+                "start_workflow": {"workflow_admin", "workflow_operator"},
+                "assign_task": {"workflow_admin", "workflow_operator"},
+                "complete_task": {"workflow_admin", "workflow_operator"},
+                "cancel_workflow": {"workflow_admin"},
+                "pause_workflow": {"workflow_admin", "workflow_operator"},
+                "resume_workflow": {"workflow_admin", "workflow_operator"},
+                "retry_failed_task": {"workflow_admin", "workflow_operator"},
+                "deploy_bpmn_workflow": {"workflow_admin", "workflow_editor"},
+                "upload_bpmn_workflow": {"workflow_admin", "workflow_editor"},
+            },
+        )
 
         self.state_store: WorkflowStateStore = config.get("workflow_state_store") or (
             build_workflow_state_store(config)
@@ -98,6 +120,7 @@ class WorkflowEngineAgent(BaseAgent):
         self.logger.info("Initializing Workflow & Process Engine Agent...")
         await self.state_store.initialize()
         await self._load_durable_workflows_config()
+        await self._load_workflow_templates()
 
         if isinstance(self.event_bus, ServiceBusEventBus):
             self.event_bus.subscribe("workflow.triggers", self._handle_service_bus_trigger)
@@ -202,6 +225,7 @@ class WorkflowEngineAgent(BaseAgent):
             or input_data.get("context", {}).get("tenant_id")
             or "default"
         )
+        self._authorize_action(action, input_data)
 
         if action == "define_workflow":
             return await self._define_workflow(tenant_id, input_data.get("workflow", {}))
@@ -276,40 +300,44 @@ class WorkflowEngineAgent(BaseAgent):
         """
         self.logger.info(f"Defining workflow: {workflow_config.get('name')}")
 
-        # Generate workflow ID
-        workflow_id = await self._generate_workflow_id()
+        normalized = self._normalize_workflow_definition(workflow_config)
+        workflow_id = normalized.get("workflow_id") or await self._generate_workflow_id()
 
         # Validate workflow definition
-        validation = await self._validate_workflow_definition(workflow_config)
+        validation = await self._validate_workflow_definition(normalized)
 
         if not validation.get("valid"):
             return {"workflow_id": None, "status": "invalid", "errors": validation.get("errors")}
 
         # Parse workflow definition
-        parsed_workflow = await self._parse_workflow_definition(workflow_config)
+        try:
+            parsed_workflow = await self._parse_workflow_definition(normalized)
+        except WorkflowSpecError as exc:
+            return {"workflow_id": None, "status": "invalid", "errors": [str(exc)]}
         durable_orchestration = self._build_durable_orchestration(
             workflow_id,
             parsed_workflow.get("tasks", []),
             parsed_workflow.get("transitions", []),
-            workflow_config.get("definition_source", "inline"),
+            normalized.get("definition_source", "inline"),
         )
 
         # Create workflow definition
         workflow = {
             "workflow_id": workflow_id,
-            "name": workflow_config.get("name"),
-            "description": workflow_config.get("description"),
-            "version": workflow_config.get("version", 1),
+            "name": normalized.get("name"),
+            "description": normalized.get("description"),
+            "version": normalized.get("version", 1),
             "tasks": parsed_workflow.get("tasks", []),
             "events": parsed_workflow.get("events", []),
             "gateways": parsed_workflow.get("gateways", []),
             "transitions": parsed_workflow.get("transitions", []),
-            "variables": workflow_config.get("variables", {}),
+            "variables": normalized.get("variables", {}),
             "orchestration": durable_orchestration,
             "created_at": datetime.utcnow().isoformat(),
-            "created_by": workflow_config.get("author"),
-            "definition_source": workflow_config.get("definition_source", "inline"),
+            "created_by": normalized.get("author"),
+            "definition_source": normalized.get("definition_source", "inline"),
             "task_sequence": [task.get("task_id") for task in parsed_workflow.get("tasks", [])],
+            "dependencies": parsed_workflow.get("dependencies", {}),
         }
 
         # Store workflow definition
@@ -323,7 +351,7 @@ class WorkflowEngineAgent(BaseAgent):
         }
 
         await self._register_event_triggers(
-            tenant_id, workflow_id, workflow_config.get("event_triggers", [])
+            tenant_id, workflow_id, normalized.get("event_triggers", [])
         )
         await self._emit_workflow_event(
             tenant_id,
@@ -895,7 +923,11 @@ class WorkflowEngineAgent(BaseAgent):
         if not workflow_config.get("name"):
             errors.append("Workflow name is required")
 
-        if not workflow_config.get("tasks") and not workflow_config.get("bpmn_xml"):
+        if (
+            not workflow_config.get("tasks")
+            and not workflow_config.get("steps")
+            and not workflow_config.get("bpmn_xml")
+        ):
             errors.append("Workflow must have at least one task")
 
         return {"valid": len(errors) == 0, "errors": errors}
@@ -905,11 +937,21 @@ class WorkflowEngineAgent(BaseAgent):
         bpmn_xml = workflow_config.get("bpmn_xml")
         if bpmn_xml:
             return self._parse_bpmn_xml(bpmn_xml)
+        if workflow_config.get("steps"):
+            parsed = parse_workflow_spec(workflow_config)
+            return {
+                "tasks": parsed.tasks,
+                "events": workflow_config.get("events", []),
+                "gateways": workflow_config.get("gateways", []),
+                "transitions": parsed.transitions,
+                "dependencies": parsed.dependencies,
+            }
         return {
             "tasks": workflow_config.get("tasks", []),
             "events": workflow_config.get("events", []),
             "gateways": workflow_config.get("gateways", []),
             "transitions": workflow_config.get("transitions", []),
+            "dependencies": workflow_config.get("dependencies", {}),
         }
 
     def _parse_bpmn_xml(self, bpmn_xml: str) -> dict[str, Any]:
@@ -962,11 +1004,21 @@ class WorkflowEngineAgent(BaseAgent):
             if task.get("task_id") in initial_targets:
                 task["initial"] = True
 
+        dependencies: dict[str, list[str]] = {}
+        incoming: dict[str, set[str]] = {}
+        for transition in transitions:
+            source = transition.get("source")
+            target = transition.get("target")
+            if source and target:
+                incoming.setdefault(target, set()).add(source)
+        for task_id, deps in incoming.items():
+            dependencies[task_id] = sorted(deps)
         return {
             "tasks": tasks,
             "events": [],
             "gateways": [],
             "transitions": transitions,
+            "dependencies": dependencies,
         }
 
     def _parse_bpmn_with_bpmn_python(self, bpmn_xml: str) -> dict[str, Any] | None:
@@ -996,12 +1048,28 @@ class WorkflowEngineAgent(BaseAgent):
         transitions = [
             {"source": edge[0], "target": edge[1]} for edge in diagram.diagram_graph.edges
         ]
-        return {"tasks": tasks, "events": [], "gateways": [], "transitions": transitions}
+        incoming: dict[str, set[str]] = {}
+        for transition in transitions:
+            source = transition.get("source")
+            target = transition.get("target")
+            if source and target:
+                incoming.setdefault(target, set()).add(source)
+        dependencies = {task_id: sorted(deps) for task_id, deps in incoming.items()}
+        return {
+            "tasks": tasks,
+            "events": [],
+            "gateways": [],
+            "transitions": transitions,
+            "dependencies": dependencies,
+        }
 
     async def _get_initial_tasks(self, workflow: dict[str, Any]) -> list[dict[str, Any]]:
         """Get initial tasks to execute."""
         tasks = workflow.get("tasks", [])
-        return [t for t in tasks if t.get("initial", False)][:1]
+        initial = [t for t in tasks if t.get("initial", False)]
+        if initial:
+            return initial
+        return tasks[:1]
 
     def _build_durable_orchestration(
         self,
@@ -1197,18 +1265,117 @@ class WorkflowEngineAgent(BaseAgent):
             return []
         transitions = workflow.get("transitions", [])
         tasks = workflow.get("tasks", [])
-        next_task_ids = [
-            transition.get("target")
+        task_map = {task.get("task_id"): task for task in tasks if task.get("task_id")}
+        dependencies = workflow.get("dependencies", {})
+
+        candidates = [
+            transition
             for transition in transitions
             if transition.get("source") == completed_task_id
         ]
+        next_task_ids: list[str] = []
+        for transition in candidates:
+            condition = transition.get("condition")
+            if condition and not self._evaluate_condition(condition, instance.get("variables", {})):
+                continue
+            target = transition.get("target")
+            if target:
+                next_task_ids.extend(
+                    self._resolve_virtual_targets(target, task_map, transitions, instance)
+                )
+
         if not next_task_ids:
             sequence = workflow.get("task_sequence", [])
             if completed_task_id in sequence:
                 index = sequence.index(completed_task_id)
                 if index + 1 < len(sequence):
                     next_task_ids = [sequence[index + 1]]
-        return [task for task in tasks if task.get("task_id") in next_task_ids]
+
+        completed_steps = set(instance.get("completed_steps", []))
+        completed_steps.update(instance.get("completed_tasks", []))
+        filtered = []
+        for task_id in dict.fromkeys(next_task_ids):
+            if task_id in instance.get("current_tasks", []):
+                continue
+            if task_id in completed_steps:
+                continue
+            deps = set(dependencies.get(task_id, []))
+            if deps and not deps.issubset(completed_steps):
+                continue
+            task = task_map.get(task_id)
+            if task:
+                filtered.append(task)
+        return filtered
+
+    def _resolve_virtual_targets(
+        self,
+        target_id: str,
+        task_map: dict[str, dict[str, Any]],
+        transitions: list[dict[str, Any]],
+        instance: dict[str, Any],
+        depth: int = 0,
+    ) -> list[str]:
+        if depth > 8:
+            return []
+        target = task_map.get(target_id)
+        if not target:
+            return []
+        if target.get("type") not in {"decision", "parallel", "loop"}:
+            return [target_id]
+        instance.setdefault("completed_steps", [])
+        if target_id not in instance["completed_steps"]:
+            instance["completed_steps"].append(target_id)
+        next_ids = []
+        for transition in transitions:
+            if transition.get("source") != target_id:
+                continue
+            condition = transition.get("condition")
+            if condition and not self._evaluate_condition(condition, instance.get("variables", {})):
+                continue
+            if transition.get("target"):
+                next_ids.extend(
+                    self._resolve_virtual_targets(
+                        transition["target"], task_map, transitions, instance, depth + 1
+                    )
+                )
+        return next_ids
+
+    def _evaluate_condition(self, condition: dict[str, Any], variables: dict[str, Any]) -> bool:
+        field = condition.get("field")
+        operator = condition.get("operator")
+        value = condition.get("value")
+        resolved = self._resolve_reference(field, variables)
+
+        if operator == "exists":
+            return resolved is not None
+        if operator == "equals":
+            return resolved == value
+        if operator == "not_equals":
+            return resolved != value
+        if operator == "greater_than":
+            return resolved is not None and resolved > value
+        if operator == "less_than":
+            return resolved is not None and resolved < value
+        if operator == "contains":
+            if isinstance(resolved, (list, tuple, set)):
+                return value in resolved
+            if isinstance(resolved, str):
+                return str(value) in resolved
+        return False
+
+    def _resolve_reference(self, value: Any, variables: dict[str, Any]) -> Any:
+        if not isinstance(value, str):
+            return value
+        if not value.startswith("$."):
+            return value
+        path = value[2:].split(".")
+        current: Any = {"vars": variables}
+        for part in path:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
+                return None
+        return current
 
     async def _is_workflow_complete(self, instance: dict[str, Any]) -> bool:
         """Check if workflow is complete."""
@@ -1222,7 +1389,11 @@ class WorkflowEngineAgent(BaseAgent):
         if not workflow:
             return False
         completed = set(instance.get("completed_tasks", []))
-        task_ids = {task.get("task_id") for task in workflow.get("tasks", []) if task.get("task_id")}
+        task_ids = {
+            task.get("task_id")
+            for task in workflow.get("tasks", [])
+            if task.get("task_id") and task.get("type") not in {"decision", "parallel", "loop"}
+        }
         return bool(task_ids) and task_ids.issubset(completed)
 
     async def _find_event_subscriptions(
@@ -1435,7 +1606,8 @@ class WorkflowEngineAgent(BaseAgent):
             raise RuntimeError("Simulated task failure")
 
         if assignment.get("task_type") == "automated":
-            result = await self._complete_task(tenant_id, task_id, {"status": "auto_completed"})
+            result_payload = await self._execute_automated_task(tenant_id, assignment)
+            result = await self._complete_task(tenant_id, task_id, result_payload)
             return result
         if assignment.get("task_type") == "logic_app":
             await self._invoke_logic_app(tenant_id, assignment)
@@ -1551,6 +1723,30 @@ class WorkflowEngineAgent(BaseAgent):
             "state_management",
         ]
 
+    def _authorize_action(self, action: str, input_data: dict[str, Any]) -> None:
+        required_roles = self.rbac_policy.get(action)
+        if not required_roles:
+            return
+        actor = input_data.get("actor") or {}
+        roles = actor.get("roles") or input_data.get("context", {}).get("roles") or []
+        if not set(roles).intersection(required_roles):
+            raise PermissionError(f"Actor lacks required role for {action}")
+
+    def _normalize_workflow_definition(self, workflow_config: dict[str, Any]) -> dict[str, Any]:
+        if "workflow_spec" in workflow_config:
+            spec = load_workflow_spec(workflow_config["workflow_spec"])
+            workflow_config = {**workflow_config, **spec}
+        if "workflow_yaml" in workflow_config:
+            spec = load_workflow_spec(workflow_config["workflow_yaml"])
+            workflow_config = {**workflow_config, **spec}
+        metadata = workflow_config.get("metadata") or {}
+        if metadata:
+            workflow_config.setdefault("name", metadata.get("name"))
+            workflow_config.setdefault("description", metadata.get("description"))
+            workflow_config.setdefault("version", metadata.get("version"))
+            workflow_config.setdefault("owner", metadata.get("owner"))
+        return workflow_config
+
     async def _resume_from_checkpoint(self, tenant_id: str, instance: dict[str, Any]) -> None:
         if instance.get("status") != "running":
             return
@@ -1567,6 +1763,38 @@ class WorkflowEngineAgent(BaseAgent):
         for next_task in next_tasks:
             await self._execute_task(tenant_id, instance["instance_id"], next_task)
 
+    async def _execute_automated_task(
+        self, tenant_id: str, assignment: dict[str, Any]
+    ) -> dict[str, Any]:
+        task_payload = assignment.get("task_payload", {})
+        if task_payload.get("callable") or task_payload.get("script"):
+            result = await self._execute_script_task(tenant_id, assignment)
+            return {"status": "script_completed", "result": result}
+        return {"status": "auto_completed"}
+
+    async def _execute_script_task(
+        self, tenant_id: str, assignment: dict[str, Any]
+    ) -> dict[str, Any]:
+        callable_path = assignment.get("task_payload", {}).get("callable")
+        if not callable_path:
+            raise ValueError("Script task requires callable path")
+        module_name, _, function_name = callable_path.partition(":")
+        if not module_name or not function_name:
+            raise ValueError("Callable must be in 'module:function' format")
+        module = importlib.import_module(module_name)
+        func = getattr(module, function_name, None)
+        if not callable(func):
+            raise ValueError(f"Callable {callable_path} not found")
+        return func(
+            {
+                "tenant_id": tenant_id,
+                "instance_id": assignment.get("instance_id"),
+                "task_id": assignment.get("task_id"),
+                "payload": assignment.get("task_payload", {}),
+                "variables": assignment.get("task_payload", {}).get("variables", {}),
+            }
+        )
+
     async def _send_notification(
         self, tenant_id: str, event_type: str, payload: dict[str, Any]
     ) -> None:
@@ -1579,3 +1807,18 @@ class WorkflowEngineAgent(BaseAgent):
         }
         if self.event_bus:
             await self.event_bus.publish("workflow.notifications", notification)
+
+    async def _load_workflow_templates(self) -> None:
+        if not self.workflow_templates_path.exists():
+            self.logger.info(
+                "Workflow templates not found", extra={"path": str(self.workflow_templates_path)}
+            )
+            return
+        templates = yaml.safe_load(self.workflow_templates_path.read_text()) or {}
+        for template in templates.get("templates", []):
+            try:
+                await self._define_workflow("default", template)
+            except WorkflowSpecError as exc:
+                self.logger.warning(
+                    "Template invalid", extra={"template": template.get("name"), "error": str(exc)}
+                )

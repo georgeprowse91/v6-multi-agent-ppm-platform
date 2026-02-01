@@ -36,6 +36,17 @@ Agent runtime configuration is centralized in `.env` (see `.env.example`) and sh
 
 The agent loads durable workflow orchestration definitions from `config/agent-24/durable_workflows.yaml` on startup. Each workflow entry defines ordered steps, retry policies, and optional compensation tasks. The agent registers these definitions as Durable Functions-style orchestrations and persists them in the workflow state store.
 
+### Workflow specification format
+
+The agent supports JSON or YAML workflow definitions with step-based modeling, branching logic, parallelism, and retries. Definitions can be supplied inline via `workflow_spec` or `workflow_yaml` in the API payload. Key fields:
+
+- `apiVersion`: `ppm.workflow/v1`
+- `kind`: `Workflow`
+- `metadata`: name, version, owner, description
+- `steps`: list of steps (`task`, `decision`, `parallel`, `approval`, `script`, `notification`, `loop`) with `next`, `branches`, and `retry` policies.
+
+Sample templates live in `config/agent-24/workflow_templates.yaml` and are loaded on startup.
+
 ### BPMN 2.0 support
 
 The engine can parse BPMN 2.0 XML definitions and convert them into Durable Functions-style orchestrations. Use the `/workflows/upload` API (in the orchestration service) to upload BPMN files for deployment. BPMN user tasks become `human` tasks; service/script tasks become `automated` tasks. The parser uses `bpmn-python` when available and falls back to an XML parser.
