@@ -23,6 +23,7 @@ from typing import Any
 import httpx
 from observability.metrics import build_kpi_handles, configure_metrics
 from observability.tracing import configure_tracing, start_agent_span
+from services.integration.analytics import AnalyticsClient
 
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
@@ -277,6 +278,16 @@ class SystemHealthAgent(BaseAgent):
             if config
             else os.getenv("PROMETHEUS_METRICS_PORT", "0")
         )
+        self.prometheus_scrape_targets = (
+            config.get("prometheus_scrape_targets")
+            if config and config.get("prometheus_scrape_targets")
+            else self._load_prometheus_scrape_targets()
+        )
+        self.monitor_resource_ids = (
+            config.get("monitor_resource_ids")
+            if config and config.get("monitor_resource_ids")
+            else self._load_monitor_resource_ids()
+        )
 
         alert_store_path = (
             Path(config.get("alert_store_path", "data/alerts.json"))
@@ -312,6 +323,9 @@ class SystemHealthAgent(BaseAgent):
             "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
             "phone": re.compile(r"\+?\d[\d\s().-]{7,}\d"),
         }
+        self.analytics_client = config.get("analytics_client") if config else None
+        if not self.analytics_client:
+            self.analytics_client = AnalyticsClient()
 
     async def initialize(self) -> None:
         """Initialize monitoring infrastructure and integrations."""
@@ -341,6 +355,8 @@ class SystemHealthAgent(BaseAgent):
 
         valid_actions = [
             "collect_metrics",
+            "collect_platform_metrics",
+            "collect_application_metrics",
             "check_health",
             "create_alert",
             "detect_anomalies",
@@ -355,6 +371,8 @@ class SystemHealthAgent(BaseAgent):
             "forecast_capacity",
             "acknowledge_alert",
             "resolve_incident",
+            "get_health_dashboard",
+            "get_postmortem_report",
         ]
 
         if action not in valid_actions:
@@ -412,6 +430,16 @@ class SystemHealthAgent(BaseAgent):
                 input_data.get("metrics", {}),
             )
 
+        elif action == "collect_platform_metrics":
+            return await self._collect_platform_metrics(
+                tenant_id, input_data.get("targets")
+            )
+
+        elif action == "collect_application_metrics":
+            return await self._collect_application_metrics(
+                tenant_id, input_data.get("time_range", {})
+            )
+
         elif action == "check_health":
             return await self._check_health(input_data.get("service_name"))
 
@@ -420,7 +448,9 @@ class SystemHealthAgent(BaseAgent):
 
         elif action == "detect_anomalies":
             return await self._detect_anomalies(
-                input_data.get("service_name"), input_data.get("time_range", {})  # type: ignore
+                tenant_id,
+                input_data.get("service_name"),  # type: ignore
+                input_data.get("time_range", {}),
             )
 
         elif action == "create_incident":
@@ -433,6 +463,8 @@ class SystemHealthAgent(BaseAgent):
             return await self._get_system_status()
 
         elif action == "get_metrics":
+            if input_data.get("deployment_plan"):
+                return await self._get_deployment_metrics(input_data["deployment_plan"])
             return await self._get_metrics(
                 input_data.get("service_name"),  # type: ignore
                 input_data.get("metric_name"),  # type: ignore
@@ -472,6 +504,12 @@ class SystemHealthAgent(BaseAgent):
                 input_data.get("resolution", {}),  # type: ignore
             )
 
+        elif action == "get_health_dashboard":
+            return await self._get_health_dashboard(tenant_id, input_data.get("time_range", {}))
+
+        elif action == "get_postmortem_report":
+            return await self._get_postmortem_report(tenant_id, input_data.get("time_range", {}))
+
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -496,6 +534,7 @@ class SystemHealthAgent(BaseAgent):
 
             metric_record = {
                 "metric_id": metric_id,
+                "tenant_id": tenant_id,
                 "service_name": service_name,
                 "timestamp": timestamp,
                 "metrics": metrics_data,
@@ -528,6 +567,76 @@ class SystemHealthAgent(BaseAgent):
             "metrics_collected": len(metrics_data),
             "timestamp": timestamp,
             "alerts_triggered": alerts_triggered,
+        }
+
+    async def _collect_platform_metrics(
+        self, tenant_id: str, targets: list[dict[str, Any]] | None = None
+    ) -> dict[str, Any]:
+        """Collect infrastructure metrics (CPU, memory, disk, network) across services."""
+        self.logger.info("Collecting platform infrastructure metrics")
+        if targets is not None:
+            target_list = targets
+        else:
+            target_list = (self.prometheus_scrape_targets or []) + (self.monitor_resource_ids or [])
+
+        collected: dict[str, dict[str, Any]] = {}
+        for target in target_list:
+            service_name = target.get("name") or target.get("service") or target.get("id")
+            if not service_name:
+                continue
+            if target.get("resource_id"):
+                metrics_data = await self._query_azure_resource_metrics(target["resource_id"])
+            else:
+                metrics_data = await self._scrape_prometheus_target(target)
+            if metrics_data.get("error"):
+                collected[service_name] = metrics_data
+                continue
+            await self._collect_metrics(tenant_id, service_name, metrics_data)
+            collected[service_name] = metrics_data
+
+        return {
+            "services": collected,
+            "total_services": len(collected),
+            "collected_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _collect_application_metrics(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Collect application-level metrics from analytics events."""
+        self.logger.info("Collecting application metrics from analytics module")
+        start_time, _ = self._parse_time_range(time_range)
+        records = self.analytics_client.list_records(since=start_time)
+
+        aggregated: dict[str, dict[str, list[float]]] = {}
+        for record in records:
+            service_name = (
+                record.metadata.get("service_name")
+                or record.metadata.get("service")
+                or record.metadata.get("agent_id")
+                or record.metadata.get("agent")
+                or (record.name.split(".")[0] if "." in record.name else "platform")
+            )
+            aggregated.setdefault(service_name, {})
+            aggregated[service_name].setdefault(record.category, []).append(record.value)
+
+        summarized: dict[str, dict[str, Any]] = {}
+        for service_name, categories in aggregated.items():
+            metrics_data: dict[str, Any] = {}
+            if categories.get("metric"):
+                metrics_data["request_latency_ms"] = statistics.mean(categories["metric"])
+            if categories.get("error_rate"):
+                metrics_data["error_rate"] = statistics.mean(categories["error_rate"])
+            if categories.get("anomaly"):
+                metrics_data["anomaly_score"] = statistics.mean(categories["anomaly"])
+            if metrics_data:
+                await self._collect_metrics(tenant_id, service_name, metrics_data)
+                summarized[service_name] = metrics_data
+
+        return {
+            "services": summarized,
+            "records_processed": len(records),
+            "collected_at": datetime.utcnow().isoformat(),
         }
 
     async def _check_health(self, service_name: str | None = None) -> dict[str, Any]:
@@ -597,7 +706,7 @@ class SystemHealthAgent(BaseAgent):
         }
 
     async def _detect_anomalies(
-        self, service_name: str, time_range: dict[str, Any]
+        self, tenant_id: str, service_name: str, time_range: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Detect anomalies in service metrics.
@@ -615,6 +724,7 @@ class SystemHealthAgent(BaseAgent):
 
         # Store anomalies
         for anomaly in anomalies:
+            anomaly["recommended_actions"] = self._recommend_actions_for_anomaly(anomaly)
             anomaly_id = await self._generate_anomaly_id()
             self.anomalies[anomaly_id] = {
                 "anomaly_id": anomaly_id,
@@ -634,14 +744,31 @@ class SystemHealthAgent(BaseAgent):
                         "affected_services": [service_name],
                     }
                 )
+                await self._create_alert(
+                    tenant_id,
+                    {
+                        "name": f"{service_name} anomaly detected",
+                        "description": f"{anomaly.get('metric')} anomaly detected",
+                        "severity": "critical",
+                        "service_name": service_name,
+                        "condition": "anomaly",
+                        "threshold": anomaly.get("expected_range"),
+                    },
+                )
 
         if anomalies:
             await self._emit_event_hub_event(
                 {
-                    "type": "anomaly",
+                    "event_name": "system_health.alert",
+                    "type": "system_health.alert",
                     "service_name": service_name,
                     "time_range": time_range,
                     "anomalies": anomalies,
+                    "recommended_actions": [
+                        action
+                        for anomaly in anomalies
+                        for action in anomaly.get("recommended_actions", [])
+                    ],
                     "timestamp": datetime.utcnow().isoformat(),
                 }
             )
@@ -798,6 +925,87 @@ class SystemHealthAgent(BaseAgent):
             "time_range": time_range,
             "values": metric_values,
             "retrieved_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _get_deployment_metrics(self, deployment_plan: dict[str, Any]) -> dict[str, Any]:
+        """Aggregate deployment metrics for release readiness checks."""
+        service_names = self._extract_service_names(deployment_plan)
+        time_range = deployment_plan.get("time_range", {"hours": 1})
+        service_summaries: dict[str, dict[str, Any]] = {}
+        overall: dict[str, list[float]] = {}
+
+        for service_name in service_names:
+            records = await self._get_service_metrics(service_name, time_range)
+            summary = self._summarize_service_metrics(records)
+            service_summaries[service_name] = summary
+            for key, value in summary.items():
+                if isinstance(value, (int, float)):
+                    overall.setdefault(key, []).append(float(value))
+
+        aggregate = {
+            key: statistics.mean(values) if values else 0.0
+            for key, values in overall.items()
+        }
+
+        return {
+            "metrics": aggregate,
+            "services": service_summaries,
+            "time_range": time_range,
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+
+    async def _get_deployment_baseline(self, deployment_plan: dict[str, Any]) -> dict[str, Any]:
+        """Provide baseline metrics for deployment comparisons."""
+        service_names = self._extract_service_names(deployment_plan)
+        time_range = deployment_plan.get("baseline_time_range", {"days": 7})
+        metric_baselines: dict[str, list[float]] = {"response_time_ms": [], "error_rate": []}
+
+        for service_name in service_names:
+            records = await self._get_service_metrics(service_name, time_range)
+            for metric_name in metric_baselines:
+                metric_baselines[metric_name].extend(
+                    self._extract_metric_series(records, metric_name)
+                )
+
+        baseline = {}
+        for metric_name, values in metric_baselines.items():
+            if not values:
+                continue
+            baseline[metric_name] = {
+                "mean": statistics.mean(values),
+                "std": statistics.pstdev(values) if len(values) > 1 else 0.0,
+            }
+
+        return baseline
+
+    async def _get_health_dashboard(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Generate health dashboard data with real-time and historical metrics."""
+        system_status = await self._get_system_status()
+        metrics_summary = self._summarize_metrics_history(time_range, tenant_id=tenant_id)
+        incident_summary = self._summarize_incidents(tenant_id, time_range)
+        alert_summary = self._summarize_alerts(tenant_id, time_range)
+
+        return {
+            "generated_at": datetime.utcnow().isoformat(),
+            "real_time": system_status,
+            "historical_metrics": metrics_summary,
+            "incident_summary": incident_summary,
+            "alert_summary": alert_summary,
+        }
+
+    async def _get_postmortem_report(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Summarize incidents and response times for postmortem analysis."""
+        incident_summary = self._summarize_incidents(tenant_id, time_range)
+        alert_summary = self._summarize_alerts(tenant_id, time_range)
+        return {
+            "generated_at": datetime.utcnow().isoformat(),
+            "incident_summary": incident_summary,
+            "alert_summary": alert_summary,
+            "time_range": time_range,
         }
 
     async def _get_alerts(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -1110,6 +1318,32 @@ class SystemHealthAgent(BaseAgent):
             return endpoints
         return []
 
+    def _load_prometheus_scrape_targets(self) -> list[dict[str, Any]]:
+        raw = os.getenv("PROMETHEUS_SCRAPE_TARGETS")
+        if not raw:
+            return []
+        try:
+            targets = json.loads(raw)
+        except json.JSONDecodeError:
+            self.logger.warning("Unable to parse PROMETHEUS_SCRAPE_TARGETS JSON")
+            return []
+        if isinstance(targets, list):
+            return targets
+        return []
+
+    def _load_monitor_resource_ids(self) -> list[dict[str, Any]]:
+        raw = os.getenv("MONITOR_RESOURCE_IDS")
+        if not raw:
+            return []
+        try:
+            resources = json.loads(raw)
+        except json.JSONDecodeError:
+            self.logger.warning("Unable to parse MONITOR_RESOURCE_IDS JSON")
+            return []
+        if isinstance(resources, list):
+            return resources
+        return []
+
     def _find_health_endpoint(self, service_name: str) -> dict[str, Any] | None:
         for endpoint in self.health_endpoints:
             if endpoint.get("name") == service_name or endpoint.get("service") == service_name:
@@ -1142,6 +1376,173 @@ class SystemHealthAgent(BaseAgent):
                 "error": str(exc),
                 "checked_at": datetime.utcnow().isoformat(),
             }
+
+    async def _scrape_prometheus_target(self, target: dict[str, Any]) -> dict[str, Any]:
+        url = target.get("url")
+        timeout_seconds = target.get("timeout_seconds", 5)
+        if not url:
+            return {"error": "missing_url"}
+        try:
+            async with httpx.AsyncClient(timeout=timeout_seconds) as client:
+                response = await client.get(url)
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            return {"error": str(exc)}
+        metrics = self._parse_prometheus_metrics(response.text)
+        metrics["metrics_source"] = "prometheus"
+        return metrics
+
+    def _parse_prometheus_metrics(self, payload: str) -> dict[str, Any]:
+        cpu_totals: dict[str, float] = {}
+        cpu_idle: dict[str, float] = {}
+        mem_total = None
+        mem_available = None
+        disk_totals: dict[str, float] = {}
+        disk_avail: dict[str, float] = {}
+        net_rx_total = 0.0
+        net_tx_total = 0.0
+        line_pattern = re.compile(
+            r"^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*\})?\s+(-?\d+(?:\.\d+)?(?:e[+-]?\d+)?)$"
+        )
+
+        for line in payload.splitlines():
+            if not line or line.startswith("#"):
+                continue
+            match = line_pattern.match(line.strip())
+            if not match:
+                continue
+            name, labels_raw, value_raw = match.groups()
+            try:
+                value = float(value_raw)
+            except ValueError:
+                continue
+            labels: dict[str, str] = {}
+            if labels_raw:
+                label_pairs = labels_raw.strip("{}").split(",")
+                for pair in label_pairs:
+                    if "=" not in pair:
+                        continue
+                    key, raw_value = pair.split("=", 1)
+                    labels[key.strip()] = raw_value.strip().strip('"')
+
+            if name == "node_cpu_seconds_total":
+                cpu = labels.get("cpu", "all")
+                cpu_totals[cpu] = cpu_totals.get(cpu, 0.0) + value
+                if labels.get("mode") == "idle":
+                    cpu_idle[cpu] = cpu_idle.get(cpu, 0.0) + value
+            elif name == "node_memory_MemTotal_bytes":
+                mem_total = value
+            elif name == "node_memory_MemAvailable_bytes":
+                mem_available = value
+            elif name == "node_filesystem_size_bytes":
+                mount = labels.get("mountpoint", "root")
+                fstype = labels.get("fstype", "")
+                if fstype in {"tmpfs", "overlay", "squashfs", "proc", "sysfs"}:
+                    continue
+                disk_totals[mount] = disk_totals.get(mount, 0.0) + value
+            elif name == "node_filesystem_avail_bytes":
+                mount = labels.get("mountpoint", "root")
+                fstype = labels.get("fstype", "")
+                if fstype in {"tmpfs", "overlay", "squashfs", "proc", "sysfs"}:
+                    continue
+                disk_avail[mount] = disk_avail.get(mount, 0.0) + value
+            elif name == "node_network_receive_bytes_total":
+                if labels.get("device") == "lo":
+                    continue
+                net_rx_total += value
+            elif name == "node_network_transmit_bytes_total":
+                if labels.get("device") == "lo":
+                    continue
+                net_tx_total += value
+
+        cpu_usage = None
+        if cpu_totals:
+            cpu_values = []
+            for cpu, total in cpu_totals.items():
+                idle = cpu_idle.get(cpu, 0.0)
+                if total > 0:
+                    cpu_values.append(1 - (idle / total))
+            if cpu_values:
+                cpu_usage = statistics.mean(cpu_values)
+
+        memory_usage = None
+        if mem_total and mem_available is not None:
+            memory_usage = (mem_total - mem_available) / mem_total
+
+        disk_usage = None
+        if disk_totals:
+            usage_values = []
+            for mount, total in disk_totals.items():
+                avail = disk_avail.get(mount, 0.0)
+                if total > 0:
+                    usage_values.append((total - avail) / total)
+            if usage_values:
+                disk_usage = statistics.mean(usage_values)
+
+        return {
+            "cpu_usage": cpu_usage,
+            "memory_usage": memory_usage,
+            "disk_usage": disk_usage,
+            "network_rx_bytes_total": net_rx_total,
+            "network_tx_bytes_total": net_tx_total,
+        }
+
+    async def _query_azure_resource_metrics(self, resource_id: str) -> dict[str, Any]:
+        if not self._metrics_query_client:
+            return {"error": "azure_monitor_unavailable"}
+        end_time = datetime.utcnow()
+        start_time = end_time - timedelta(minutes=5)
+        metric_names = [
+            "Percentage CPU",
+            "Available Memory Bytes",
+            "Total Memory Bytes",
+            "Logical Disk % Free Space",
+            "Network In Total",
+            "Network Out Total",
+        ]
+        response = await asyncio.to_thread(
+            self._metrics_query_client.query_resource,
+            resource_id=resource_id,
+            metric_names=metric_names,
+            timespan=(start_time, end_time),
+        )
+        metrics: dict[str, Any] = {"metrics_source": "azure_monitor"}
+        value_lookup: dict[str, float] = {}
+        for metric in response.metrics:
+            metric_name = getattr(metric.name, "value", None) or str(metric.name)
+            if not metric.timeseries:
+                continue
+            points = metric.timeseries[0].data
+            if not points:
+                continue
+            latest = next((point for point in reversed(points) if point.average is not None), None)
+            if not latest:
+                continue
+            value_lookup[metric_name] = float(latest.average)
+
+        cpu_value = value_lookup.get("Percentage CPU")
+        if cpu_value is not None:
+            metrics["cpu_usage"] = cpu_value / 100.0
+
+        available_memory = value_lookup.get("Available Memory Bytes")
+        total_memory = value_lookup.get("Total Memory Bytes")
+        if available_memory is not None and total_memory:
+            metrics["memory_usage"] = (total_memory - available_memory) / total_memory
+        elif available_memory is not None:
+            metrics["memory_available_bytes"] = available_memory
+
+        disk_free = value_lookup.get("Logical Disk % Free Space")
+        if disk_free is not None:
+            metrics["disk_usage"] = (100.0 - disk_free) / 100.0
+
+        network_in = value_lookup.get("Network In Total")
+        if network_in is not None:
+            metrics["network_rx_bytes_total"] = network_in
+        network_out = value_lookup.get("Network Out Total")
+        if network_out is not None:
+            metrics["network_tx_bytes_total"] = network_out
+
+        return metrics
 
     async def _publish_health_status(self, services: dict[str, dict[str, Any]]) -> None:
         timestamp = datetime.utcnow().isoformat()
@@ -1358,8 +1759,13 @@ class SystemHealthAgent(BaseAgent):
         if "start" in time_range:
             start = datetime.fromisoformat(time_range["start"])
         else:
-            days = int(time_range.get("days", 1))
-            start = end - timedelta(days=days)
+            if "hours" in time_range:
+                start = end - timedelta(hours=int(time_range.get("hours", 1)))
+            elif "minutes" in time_range:
+                start = end - timedelta(minutes=int(time_range.get("minutes", 60)))
+            else:
+                days = int(time_range.get("days", 1))
+                start = end - timedelta(days=days)
         return start, end
 
     def _summarize_trend(self, values: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1742,6 +2148,186 @@ class SystemHealthAgent(BaseAgent):
 
         return recommendations
 
+    def _extract_service_names(self, deployment_plan: dict[str, Any]) -> list[str]:
+        service_names = deployment_plan.get("services") or deployment_plan.get("service_names")
+        if isinstance(service_names, list) and service_names:
+            return [str(name) for name in service_names]
+        if deployment_plan.get("service_name"):
+            return [str(deployment_plan["service_name"])]
+        return [
+            endpoint.get("name") or endpoint.get("service")
+            for endpoint in self.health_endpoints
+            if endpoint.get("name") or endpoint.get("service")
+        ] or ["platform"]
+
+    def _extract_metric_series(self, records: list[dict[str, Any]], metric_name: str) -> list[float]:
+        values: list[float] = []
+        for record in records:
+            if isinstance(record.get("metrics"), dict):
+                value = record["metrics"].get(metric_name)
+            elif record.get("metric") == metric_name:
+                value = record.get("value")
+            else:
+                value = None
+            if value is None:
+                continue
+            try:
+                values.append(float(value))
+            except (TypeError, ValueError):
+                continue
+        return values
+
+    def _summarize_service_metrics(self, records: list[dict[str, Any]]) -> dict[str, Any]:
+        summary: dict[str, Any] = {}
+        for metric_name in [
+            "response_time_ms",
+            "error_rate",
+            "cpu_usage",
+            "memory_usage",
+            "disk_usage",
+        ]:
+            values = self._extract_metric_series(records, metric_name)
+            if values:
+                summary[metric_name] = statistics.mean(values)
+        return summary
+
+    def _summarize_metrics_history(
+        self, time_range: dict[str, Any], tenant_id: str | None = None
+    ) -> dict[str, Any]:
+        start_time, end_time = self._parse_time_range(time_range)
+        summaries: dict[str, dict[str, list[float]]] = {}
+        total_records = 0
+
+        for record in self.metrics.values():
+            if tenant_id and record.get("tenant_id") != tenant_id:
+                continue
+            timestamp = record.get("timestamp")
+            if timestamp:
+                parsed = (
+                    datetime.fromisoformat(timestamp)
+                    if isinstance(timestamp, str)
+                    else timestamp
+                )
+                if parsed < start_time or parsed > end_time:
+                    continue
+            total_records += 1
+            service_name = record.get("service_name", "unknown")
+            metrics_data = record.get("metrics", {})
+            if not isinstance(metrics_data, dict):
+                continue
+            for metric_name, value in metrics_data.items():
+                if isinstance(value, (int, float)):
+                    summaries.setdefault(service_name, {}).setdefault(metric_name, []).append(
+                        float(value)
+                    )
+
+        summarized: dict[str, dict[str, float]] = {}
+        for service_name, metrics in summaries.items():
+            summarized[service_name] = {
+                name: statistics.mean(values) for name, values in metrics.items() if values
+            }
+
+        return {"total_records": total_records, "services": summarized}
+
+    def _summarize_incidents(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
+        start_time, end_time = self._parse_time_range(time_range)
+        incidents = self.incident_store.list(tenant_id)
+        filtered: list[dict[str, Any]] = []
+        resolution_times: list[float] = []
+
+        for incident in incidents:
+            created_at = incident.get("created_at")
+            created_dt = datetime.fromisoformat(created_at) if created_at else None
+            if created_dt and (created_dt < start_time or created_dt > end_time):
+                continue
+            filtered.append(incident)
+            resolved_at = incident.get("resolved_at")
+            if resolved_at and created_dt:
+                resolved_dt = datetime.fromisoformat(resolved_at)
+                resolution_times.append((resolved_dt - created_dt).total_seconds() / 60)
+
+        severity_counts: dict[str, int] = {}
+        for incident in filtered:
+            severity = incident.get("severity", "unknown")
+            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+
+        return {
+            "total_incidents": len(filtered),
+            "severity_counts": severity_counts,
+            "average_resolution_minutes": (
+                statistics.mean(resolution_times) if resolution_times else 0.0
+            ),
+        }
+
+    def _summarize_alerts(self, tenant_id: str, time_range: dict[str, Any]) -> dict[str, Any]:
+        start_time, end_time = self._parse_time_range(time_range)
+        alerts = self.alert_store.list(tenant_id)
+        filtered: list[dict[str, Any]] = []
+        response_times: list[float] = []
+
+        for alert in alerts:
+            created_at = alert.get("created_at")
+            created_dt = datetime.fromisoformat(created_at) if created_at else None
+            if created_dt and (created_dt < start_time or created_dt > end_time):
+                continue
+            filtered.append(alert)
+            acknowledged_at = alert.get("acknowledged_at")
+            if acknowledged_at and created_dt:
+                ack_dt = datetime.fromisoformat(acknowledged_at)
+                response_times.append((ack_dt - created_dt).total_seconds() / 60)
+
+        severity_counts: dict[str, int] = {}
+        for alert in filtered:
+            severity = alert.get("severity", "unknown")
+            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+
+        return {
+            "total_alerts": len(filtered),
+            "severity_counts": severity_counts,
+            "average_response_minutes": (
+                statistics.mean(response_times) if response_times else 0.0
+            ),
+        }
+
+    def _recommend_actions_for_anomaly(self, anomaly: dict[str, Any]) -> list[str]:
+        metric = anomaly.get("metric", "")
+        recommendations = []
+        if "error" in metric:
+            recommendations.extend(
+                [
+                    "Inspect recent deployments for regressions.",
+                    "Review service logs for failing requests.",
+                ]
+            )
+        if "response" in metric or "latency" in metric:
+            recommendations.extend(
+                [
+                    "Check downstream dependency latency.",
+                    "Scale service instances or increase resources.",
+                ]
+            )
+        if "cpu" in metric:
+            recommendations.append("Scale CPU resources or rebalance workloads.")
+        if "memory" in metric:
+            recommendations.append("Increase memory allocation or investigate leaks.")
+        if "disk" in metric:
+            recommendations.append("Clear disk space or expand storage.")
+        if "network" in metric:
+            recommendations.append("Inspect network throughput and packet loss.")
+        if not recommendations:
+            recommendations.append("Investigate recent changes and correlated metrics.")
+        return recommendations
+
+    async def get_metrics(self, deployment_plan: dict[str, Any]) -> dict[str, Any]:
+        """Expose monitoring metrics for deployment workflows."""
+        return await self._get_deployment_metrics(deployment_plan)
+
+    async def get_baseline(self, deployment_plan: dict[str, Any]) -> dict[str, Any]:
+        """Expose baseline metrics for deployment workflows."""
+        return await self._get_deployment_baseline(deployment_plan)
+
     def _sanitize_text(self, value: str) -> str:
         """Redact PII-like patterns from loggable strings."""
         if not value:
@@ -1777,4 +2363,6 @@ class SystemHealthAgent(BaseAgent):
             "health_checks",
             "performance_monitoring",
             "dashboard_creation",
+            "postmortem_reporting",
+            "deployment_health_gate",
         ]

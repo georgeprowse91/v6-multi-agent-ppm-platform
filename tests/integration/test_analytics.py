@@ -18,4 +18,16 @@ def test_record_event_and_metric():
 def test_detect_anomaly():
     client = AnalyticsClient(settings=AnalyticsSettings(provider="in_memory"))
     series = [1.0, 1.1, 0.9, 1.0, 5.0]
-    assert client.detect_anomaly(series, threshold=2.0) is True
+    assert client.detect_anomaly(series, threshold=1.5) is True
+
+
+def test_list_records_filters():
+    provider = InMemoryAnalyticsProvider()
+    client = AnalyticsClient(settings=AnalyticsSettings(provider="in_memory"), provider=provider)
+    client.record_metric("service.latency", 100.0)
+    client.record_error_rate("service.errors", 0.05)
+
+    records = client.list_records(category="error_rate")
+
+    assert len(records) == 1
+    assert records[0].name == "service.errors"

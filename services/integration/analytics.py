@@ -37,6 +37,9 @@ class AnalyticsProvider:
     def record(self, record: AnalyticsRecord) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
+    def list_records(self) -> List[AnalyticsRecord]:  # pragma: no cover - interface
+        raise NotImplementedError
+
 
 class InMemoryAnalyticsProvider(AnalyticsProvider):
     def __init__(self) -> None:
@@ -44,6 +47,9 @@ class InMemoryAnalyticsProvider(AnalyticsProvider):
 
     def record(self, record: AnalyticsRecord) -> None:
         self.records.append(record)
+
+    def list_records(self) -> List[AnalyticsRecord]:
+        return list(self.records)
 
 
 class SynapseAnalyticsProvider(AnalyticsProvider):
@@ -81,6 +87,10 @@ class SynapseAnalyticsProvider(AnalyticsProvider):
                 },
             )
 
+    def list_records(self) -> List[AnalyticsRecord]:
+        logger.warning("Synapse analytics provider does not support listing records")
+        return []
+
 
 class AzureMonitorAnalyticsProvider(AnalyticsProvider):
     def __init__(self, connection_string: str) -> None:
@@ -94,6 +104,10 @@ class AzureMonitorAnalyticsProvider(AnalyticsProvider):
                 "record": record,
             },
         )
+
+    def list_records(self) -> List[AnalyticsRecord]:
+        logger.warning("Azure Monitor analytics provider does not support listing records")
+        return []
 
 
 class AnalyticsClient:
@@ -139,6 +153,27 @@ class AnalyticsClient:
         self, name: str, score: float, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         self._record("anomaly", name, score, metadata)
+
+    def list_records(
+        self,
+        *,
+        category: Optional[str] = None,
+        name_prefix: Optional[str] = None,
+        since: Optional[datetime] = None,
+    ) -> List[AnalyticsRecord]:
+        records = self.provider.list_records()
+        filtered: List[AnalyticsRecord] = []
+        if since and since.tzinfo is None:
+            since = since.replace(tzinfo=timezone.utc)
+        for record in records:
+            if category and record.category != category:
+                continue
+            if name_prefix and not record.name.startswith(name_prefix):
+                continue
+            if since and record.timestamp < since:
+                continue
+            filtered.append(record)
+        return filtered
 
     def detect_anomaly(self, series: Iterable[float], threshold: float = 2.5) -> bool:
         values = list(series)
