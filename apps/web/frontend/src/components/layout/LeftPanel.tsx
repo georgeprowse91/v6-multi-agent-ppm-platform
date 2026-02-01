@@ -63,6 +63,26 @@ const workflowNav: NavItem[] = [
     ),
   },
   {
+    id: 'intake-new',
+    label: 'New Intake',
+    path: '/intake/new',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7.5a2 2 0 00-.586-1.414l-3.5-3.5A2 2 0 0012.5 2H6a2 2 0 00-2 1zm7 1.5L14.5 7H11a1 1 0 01-1-1V4.5zM7 11a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H8a1 1 0 01-1-1z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'intake-approvals',
+    label: 'Intake Approvals',
+    path: '/intake/approvals',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M9 2a1 1 0 011 1v1h4a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h4V3a1 1 0 011-1zm1 4V5H6v10h8V6h-4zm-1 3a1 1 0 011.707-.707l1 1a1 1 0 010 1.414l-2 2a1 1 0 01-1.414 0l-1-1a1 1 0 011.414-1.414l.293.293 1.293-1.293a1 1 0 01.707-.293z" />
+      </svg>
+    ),
+  },
+  {
     id: 'workflow-monitoring',
     label: 'Workflow Monitor',
     path: '/workflows/monitoring',

@@ -45,6 +45,12 @@ from connector_hub_proxy import ConnectorHubClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 from gating import evaluate_activity_access, next_required_activity, stage_progress  # noqa: E402
 from knowledge_store import KnowledgeStore  # noqa: E402
+from intake_models import (  # noqa: E402
+    IntakeDecision,
+    IntakeRequest,
+    IntakeRequestCreate,
+)
+from intake_store import IntakeStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 from methodologies import available_methodologies, get_methodology_map  # noqa: E402
@@ -126,6 +132,7 @@ TIMELINES_PATH = STORAGE_DIR / "timelines.json"
 SPREADSHEETS_PATH = STORAGE_DIR / "spreadsheets.json"
 TREES_PATH = STORAGE_DIR / "trees.json"
 AGENT_SETTINGS_PATH = STORAGE_DIR / "agent_settings.json"
+INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 
 SESSION_COOKIE = "ppm_session"
@@ -149,6 +156,7 @@ timeline_store = TimelineStore(TIMELINES_PATH)
 spreadsheet_store = SpreadsheetStore(SPREADSHEETS_PATH)
 tree_store = TreeStore(TREES_PATH)
 agent_settings_store = AgentSettingsStore(AGENT_SETTINGS_PATH)
+intake_store = IntakeStore(INTAKE_REQUESTS_PATH)
 logger = logging.getLogger("web-ui")
 
 
@@ -1345,6 +1353,35 @@ async def api_status(request: Request) -> dict[str, Any]:
         )
         response.raise_for_status()
         return response.json()
+
+
+@api_router.get("/api/intake", response_model=list[IntakeRequest])
+def list_intake_requests(status: str | None = None) -> list[IntakeRequest]:
+    return intake_store.list_requests(status=status)
+
+
+@api_router.post("/api/intake", response_model=IntakeRequest, status_code=201)
+def create_intake_request(payload: IntakeRequestCreate) -> IntakeRequest:
+    return intake_store.create_request(payload)
+
+
+@api_router.get("/api/intake/{request_id}", response_model=IntakeRequest)
+def get_intake_request(request_id: str) -> IntakeRequest:
+    request = intake_store.get_request(request_id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Intake request not found")
+    return request
+
+
+@api_router.post("/api/intake/{request_id}/decision", response_model=IntakeRequest)
+def decide_intake_request(request_id: str, payload: IntakeDecision) -> IntakeRequest:
+    try:
+        request = intake_store.update_decision(request_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not request:
+        raise HTTPException(status_code=404, detail="Intake request not found")
+    return request
 
 
 @api_router.post("/api/workflows/start", response_model=WorkflowStartResponse)
