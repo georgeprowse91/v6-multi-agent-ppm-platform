@@ -6,6 +6,17 @@ default:
     required: true
     severity: error
 
+project:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: true
+    severity: warning
+
 projects:
   - field: id
     required: true
@@ -16,6 +27,20 @@ projects:
   - field: status
     required: true
     severity: warning
+
+task:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: true
+    severity: warning
+  - field: project_id
+    required: true
+    severity: error
 
 tasks:
   - field: id
@@ -31,6 +56,20 @@ tasks:
     required: true
     severity: error
 
+resource:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: role
+    required: true
+    severity: warning
+  - field: email
+    required: false
+    severity: warning
+
 resources:
   - field: id
     required: true
@@ -45,6 +84,14 @@ resources:
     required: false
     severity: warning
 
+vendor:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+
 vendors:
   - field: id
     required: true
@@ -52,6 +99,17 @@ vendors:
   - field: name
     required: true
     severity: error
+
+risk:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: severity
+    required: true
+    severity: warning
 
 risks:
   - field: id
@@ -61,5 +119,49 @@ risks:
     required: true
     severity: error
   - field: severity
+    required: true
+    severity: warning
+
+test_case:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: true
+    severity: warning
+
+test_cases:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: true
+    severity: warning
+
+compliance_record:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
+    required: true
+    severity: warning
+
+compliance_records:
+  - field: id
+    required: true
+    severity: error
+  - field: name
+    required: true
+    severity: error
+  - field: status
     required: true
     severity: warning

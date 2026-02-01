@@ -205,3 +205,65 @@ async def test_data_sync_discards_duplicates(tmp_path):
 
     assert first["status"] == "success"
     assert second["status"] == "duplicate"
+
+
+@pytest.mark.asyncio
+async def test_data_sync_retry_queue_reprocess(tmp_path):
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+            "retry_queue_store_path": tmp_path / "retries.json",
+        }
+    )
+    await agent.initialize()
+
+    await agent._enqueue_retry(
+        tenant_id="tenant-sync",
+        entity_type="project",
+        data={"id": "proj-9", "name": "Retry Project"},
+        source_system="jira",
+        reason="unit-test",
+    )
+
+    retry_queue = await agent.process({"action": "get_retry_queue", "tenant_id": "tenant-sync"})
+    assert retry_queue["retry_count"] == 1
+    retry_id = retry_queue["retries"][0]["retry_id"]
+
+    result = await agent.process(
+        {"action": "reprocess_retry", "tenant_id": "tenant-sync", "retry_id": retry_id}
+    )
+    assert result["status"] == "success"
+
+
+@pytest.mark.asyncio
+async def test_data_sync_quality_metrics(tmp_path):
+    agent = DataSyncAgent(
+        config={
+            "master_record_store_path": tmp_path / "master.json",
+            "sync_event_store_path": tmp_path / "events.json",
+        }
+    )
+    await agent.initialize()
+
+    validation = await agent._validate_data(
+        "project",
+        {
+            "id": "proj-99",
+            "name": "Quality Project",
+            "status": "active",
+            "updated_at": "2024-02-01T10:00:00",
+        },
+    )
+    await agent._record_quality_metrics(
+        tenant_id="tenant-sync",
+        entity_type="project",
+        source_system="jira",
+        validation_result=validation,
+    )
+
+    report = await agent.process(
+        {"action": "get_quality_report", "tenant_id": "tenant-sync", "entity_type": "project"}
+    )
+    assert report["total_records"] == 1
+    assert report["avg_completeness_score"] >= 0

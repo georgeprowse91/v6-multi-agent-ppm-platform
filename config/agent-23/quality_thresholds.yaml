@@ -1,6 +1,75 @@
-projects: 0.92
-tasks: 0.9
-resources: 0.9
-vendors: 0.88
-risks: 0.9
-default: 0.9
+projects:
+  overall: 0.92
+  completeness: 0.9
+  consistency: 0.9
+  timeliness: 0.85
+project:
+  overall: 0.92
+  completeness: 0.9
+  consistency: 0.9
+  timeliness: 0.85
+tasks:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+task:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+resources:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+resource:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+vendors:
+  overall: 0.88
+  completeness: 0.86
+  consistency: 0.9
+  timeliness: 0.85
+vendor:
+  overall: 0.88
+  completeness: 0.86
+  consistency: 0.9
+  timeliness: 0.85
+risks:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+risk:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+test_cases:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+test_case:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+compliance_records:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+compliance_record:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85
+default:
+  overall: 0.9
+  completeness: 0.88
+  consistency: 0.9
+  timeliness: 0.85

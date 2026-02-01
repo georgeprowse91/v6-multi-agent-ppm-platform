@@ -1,11 +1,31 @@
 pipelines:
   - name: sync-projects
     description: "ETL pipeline for project master data."
+  - name: sync-tasks
+    description: "ETL pipeline for task master data."
   - name: sync-resources
     description: "ETL pipeline for resource master data."
+  - name: sync-vendors
+    description: "ETL pipeline for vendor master data."
+  - name: sync-risks
+    description: "ETL pipeline for risk master data."
+  - name: sync-test-cases
+    description: "ETL pipeline for test case master data."
+  - name: sync-compliance-records
+    description: "ETL pipeline for compliance record master data."
 
 functions:
   - name: normalize-projects
     description: "Normalize project payloads before persistence."
+  - name: normalize-tasks
+    description: "Normalize task payloads before persistence."
   - name: enrich-resources
     description: "Enrich resource records with derived attributes."
+  - name: normalize-vendors
+    description: "Normalize vendor payloads before persistence."
+  - name: normalize-risks
+    description: "Normalize risk payloads before persistence."
+  - name: normalize-test-cases
+    description: "Normalize test case payloads before persistence."
+  - name: normalize-compliance-records
+    description: "Normalize compliance record payloads before persistence."

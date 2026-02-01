@@ -10,11 +10,44 @@ mappings:
       project_id: project_id
       assignee_id: assignee_id
       due_date: due_date
+      updated_at: updated_at
     defaults:
       status: "open"
     transformations:
       - field: name
         operation: strip
+  - name: Jira projects to projects
+    entity_type: projects
+    source_system: jira
+    field_mappings:
+      id: id
+      key: id
+      name: name
+      status: status
+      project_type: category
+      lead_id: owner_id
+      updated_at: updated_at
+    defaults:
+      status: "active"
+  - name: Jira risks to risks
+    entity_type: risks
+    source_system: jira
+    field_mappings:
+      id: id
+      summary: name
+      status: status
+      severity: severity
+      project_id: project_id
+      updated_at: updated_at
+  - name: Jira test cases to test_cases
+    entity_type: test_cases
+    source_system: jira
+    field_mappings:
+      id: id
+      summary: name
+      status: status
+      priority: priority
+      updated_at: updated_at
   - name: Planview projects to projects
     entity_type: projects
     source_system: planview
@@ -26,6 +59,7 @@ mappings:
       end_date: end_date
       owner_id: owner_id
       budget: budget
+      updated_at: updated_at
   - name: Workday workers to resources
     entity_type: resources
     source_system: workday
@@ -35,6 +69,8 @@ mappings:
       role: role
       email: email
       department: department
+      status: status
+      updated_at: updated_at
   - name: SAP vendors to vendors
     entity_type: vendors
     source_system: sap
@@ -44,3 +80,48 @@ mappings:
       status: status
       category: category
       primary_contact: primary_contact
+      updated_at: updated_at
+  - name: SAP compliance records to compliance_records
+    entity_type: compliance_records
+    source_system: sap
+    field_mappings:
+      id: id
+      name: name
+      status: status
+      policy_id: policy_id
+      owner_id: owner_id
+      effective_date: effective_date
+      expiry_date: expiry_date
+      updated_at: updated_at
+  - name: Smartsheet sheets to projects
+    entity_type: projects
+    source_system: smartsheet
+    field_mappings:
+      id: id
+      name: name
+      status: status
+      created_at: created_at
+      updated_at: updated_at
+    defaults:
+      status: "active"
+  - name: Azure DevOps projects to projects
+    entity_type: projects
+    source_system: azure_devops
+    field_mappings:
+      id: id
+      name: name
+      state: status
+      updated_at: updated_at
+  - name: Azure DevOps work items to tasks
+    entity_type: tasks
+    source_system: azure_devops
+    field_mappings:
+      id: id
+      title: name
+      state: status
+      assigned_to: assignee_id
+      created_at: created_at
+      updated_at: updated_at
+    transformations:
+      - field: name
+        operation: strip

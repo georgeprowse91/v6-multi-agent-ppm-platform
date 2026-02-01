@@ -190,6 +190,7 @@ class DataSyncAgent(BaseAgent):
         self.seen_record_hashes: dict[str, set[str]] = {}
         self.latency_records: list[dict[str, Any]] = []
         self.quality_records: list[dict[str, Any]] = []
+        self.sync_logs: list[dict[str, Any]] = []
         self.sync_state_store = TenantStateStore(
             Path(config.get("sync_state_store_path", "data/sync_state.json") if config else "data/sync_state.json")
         )
@@ -252,6 +253,8 @@ class DataSyncAgent(BaseAgent):
             "register_schema",
             "get_quality_report",
             "process_retries",
+            "reprocess_retry",
+            "get_retry_queue",
             "get_dashboard",
         ]
 
@@ -385,6 +388,12 @@ class DataSyncAgent(BaseAgent):
         elif action == "process_retries":
             return await self._process_retry_queue(tenant_id)
 
+        elif action == "reprocess_retry":
+            return await self._reprocess_retry(tenant_id, input_data.get("retry_id"))
+
+        elif action == "get_retry_queue":
+            return await self._get_retry_queue(tenant_id)
+
         elif action == "get_dashboard":
             return await self._get_dashboard(tenant_id)
 
@@ -401,6 +410,14 @@ class DataSyncAgent(BaseAgent):
         """
         sync_started_at = datetime.utcnow()
         self.logger.info(f"Synchronizing {entity_type} from {source_system}")
+        await self._record_sync_log(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            source_system=source_system,
+            status="started",
+            mode="single",
+            started_at=sync_started_at,
+        )
         await self._publish_event(
             "sync.start",
             {
@@ -412,6 +429,16 @@ class DataSyncAgent(BaseAgent):
         )
 
         if self._is_duplicate_record(tenant_id, entity_type, data):
+            await self._record_sync_log(
+                tenant_id=tenant_id,
+                entity_type=entity_type,
+                source_system=source_system,
+                status="duplicate",
+                mode="single",
+                started_at=sync_started_at,
+                finished_at=datetime.utcnow(),
+                details={"reason": "Duplicate record discarded"},
+            )
             await self._publish_event(
                 "sync.complete",
                 {
@@ -441,6 +468,19 @@ class DataSyncAgent(BaseAgent):
             validation_result=validation_result,
         )
         if not validation_result.get("valid"):
+            await self._record_sync_log(
+                tenant_id=tenant_id,
+                entity_type=entity_type,
+                source_system=source_system,
+                status="failed",
+                mode="single",
+                started_at=sync_started_at,
+                finished_at=datetime.utcnow(),
+                details={
+                    "error": "validation_failed",
+                    "errors": validation_result.get("errors"),
+                },
+            )
             await self._enqueue_retry(
                 tenant_id,
                 entity_type,
@@ -517,6 +557,17 @@ class DataSyncAgent(BaseAgent):
                 sync_started_at,
                 sync_finished_at,
             )
+            await self._record_sync_log(
+                tenant_id=tenant_id,
+                entity_type=entity_type,
+                source_system=source_system,
+                status="success",
+                mode="single",
+                master_id=master_id,
+                started_at=sync_started_at,
+                finished_at=sync_finished_at,
+                details={"action": "updated" if existing_master else "created"},
+            )
             await self._publish_event(
                 "sync.complete",
                 {
@@ -545,6 +596,16 @@ class DataSyncAgent(BaseAgent):
                 mapped_data,
                 source_system,
                 reason=str(exc),
+            )
+            await self._record_sync_log(
+                tenant_id=tenant_id,
+                entity_type=entity_type,
+                source_system=source_system,
+                status="failed",
+                mode="single",
+                started_at=sync_started_at,
+                finished_at=datetime.utcnow(),
+                details={"error": str(exc)},
             )
             await self._publish_event(
                 "data_sync.failure",
@@ -600,6 +661,15 @@ class DataSyncAgent(BaseAgent):
                 "started_at": sync_started_at.isoformat(),
             },
         )
+        await self._record_sync_log(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            source_system=source_system,
+            status="started",
+            mode=sync_mode,
+            started_at=sync_started_at,
+            details={"filters": filters},
+        )
 
         if sync_mode == "incremental":
             records, new_cursor = await self._fetch_incremental_records(
@@ -642,6 +712,16 @@ class DataSyncAgent(BaseAgent):
                 "started_at": sync_started_at.isoformat(),
                 "finished_at": sync_finished_at.isoformat(),
             },
+        )
+        await self._record_sync_log(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            source_system=source_system,
+            status="completed",
+            mode=sync_mode,
+            started_at=sync_started_at,
+            finished_at=sync_finished_at,
+            details={"record_count": len(records)},
         )
 
         return {
@@ -975,6 +1055,7 @@ class DataSyncAgent(BaseAgent):
             "errors": errors,
             "warnings": warnings,
             "validated_at": datetime.utcnow().isoformat(),
+            "data": data,
         }
 
     async def _define_mapping(self, mapping_config: dict[str, Any]) -> dict[str, Any]:
@@ -1118,7 +1199,7 @@ class DataSyncAgent(BaseAgent):
             for key, value in payload.items()
         }
 
-    def _load_quality_thresholds(self) -> dict[str, float]:
+    def _load_quality_thresholds(self) -> dict[str, float | dict[str, float]]:
         thresholds_path = (
             Path(self.config.get("quality_thresholds_path", "config/agent-23/quality_thresholds.yaml"))
             if self.config
@@ -1132,10 +1213,16 @@ class DataSyncAgent(BaseAgent):
         except (OSError, yaml.YAMLError) as exc:
             self.logger.warning("quality_thresholds_load_failed", extra={"error": str(exc)})
             return {}
-        thresholds: dict[str, float] = {}
+        thresholds: dict[str, float | dict[str, float]] = {}
         for key, value in payload.items():
             if isinstance(value, (int, float)):
                 thresholds[key] = float(value)
+            elif isinstance(value, dict):
+                thresholds[key] = {
+                    metric: float(metric_value)
+                    for metric, metric_value in value.items()
+                    if isinstance(metric_value, (int, float))
+                }
         return thresholds
 
     def _load_schema_registry(self) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
@@ -1256,6 +1343,12 @@ class DataSyncAgent(BaseAgent):
         source_system: str,
         validation_result: dict[str, Any],
     ) -> None:
+        completeness_score, consistency_score, timeliness_score, age_seconds = (
+            self._compute_quality_dimensions(entity_type, validation_result)
+        )
+        quality_score = (
+            completeness_score + consistency_score + timeliness_score
+        ) / 3
         record = {
             "tenant_id": tenant_id,
             "entity_type": entity_type,
@@ -1264,9 +1357,16 @@ class DataSyncAgent(BaseAgent):
             "error_count": len(validation_result.get("errors", [])),
             "warning_count": len(validation_result.get("warnings", [])),
             "validated_at": validation_result.get("validated_at"),
+            "completeness_score": completeness_score,
+            "consistency_score": consistency_score,
+            "timeliness_score": timeliness_score,
+            "quality_score": quality_score,
+            "age_seconds": age_seconds,
         }
         self.quality_records.append(record)
         await self._store_record("data_quality_metrics", self._quality_record_key(record), record)
+        await self._ingest_quality_metric(record)
+        await self._store_quality_report(tenant_id, entity_type)
         await self._evaluate_quality_thresholds(tenant_id, entity_type)
 
     async def _get_quality_report(
@@ -1281,29 +1381,72 @@ class DataSyncAgent(BaseAgent):
         total = len(records)
         valid_count = sum(1 for record in records if record.get("valid"))
         error_rate = (total - valid_count) / total if total else 0.0
+        avg_completeness = (
+            sum(record.get("completeness_score", 0.0) for record in records) / total
+            if total
+            else 0.0
+        )
+        avg_consistency = (
+            sum(record.get("consistency_score", 0.0) for record in records) / total
+            if total
+            else 0.0
+        )
+        avg_timeliness = (
+            sum(record.get("timeliness_score", 0.0) for record in records) / total
+            if total
+            else 0.0
+        )
+        quality_score = (
+            (avg_completeness + avg_consistency + avg_timeliness) / 3
+            if total
+            else 0.0
+        )
         return {
             "tenant_id": tenant_id,
             "entity_type": entity_type,
             "total_records": total,
             "valid_records": valid_count,
             "error_rate": error_rate,
+            "avg_completeness_score": avg_completeness,
+            "avg_consistency_score": avg_consistency,
+            "avg_timeliness_score": avg_timeliness,
+            "quality_score": quality_score,
             "records": records[-25:],
         }
 
     async def _evaluate_quality_thresholds(self, tenant_id: str, entity_type: str) -> None:
-        threshold = self.quality_thresholds.get(entity_type, self.quality_thresholds.get("default", 0.9))
+        threshold_config = self.quality_thresholds.get(
+            entity_type, self.quality_thresholds.get("default", 0.9)
+        )
         report = await self._get_quality_report(tenant_id, entity_type)
         if report["total_records"] == 0:
             return
-        quality_score = report["valid_records"] / report["total_records"]
-        if quality_score < threshold:
+        breaches = []
+        if isinstance(threshold_config, dict):
+            overall_threshold = threshold_config.get("overall")
+            if overall_threshold is not None and report["quality_score"] < overall_threshold:
+                breaches.append("overall")
+            for metric in ("completeness", "consistency", "timeliness"):
+                metric_threshold = threshold_config.get(metric)
+                metric_key = f"avg_{metric}_score"
+                if metric_threshold is not None and report.get(metric_key, 1.0) < metric_threshold:
+                    breaches.append(metric)
+        else:
+            overall_threshold = float(threshold_config)
+            if report["quality_score"] < overall_threshold:
+                breaches.append("overall")
+        if breaches:
             await self._publish_event(
                 "data_quality.alert",
                 {
                     "tenant_id": tenant_id,
                     "entity_type": entity_type,
-                    "quality_score": quality_score,
-                    "threshold": threshold,
+                    "quality_score": report["quality_score"],
+                    "thresholds": threshold_config,
+                    "breaches": breaches,
+                    "completeness_score": report.get("avg_completeness_score"),
+                    "consistency_score": report.get("avg_consistency_score"),
+                    "timeliness_score": report.get("avg_timeliness_score"),
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             )
@@ -1367,6 +1510,36 @@ class DataSyncAgent(BaseAgent):
             "remaining": len(self.retry_queue_store.list(tenant_id)),
         }
 
+    async def _reprocess_retry(self, tenant_id: str, retry_id: str | None) -> dict[str, Any]:
+        if not retry_id:
+            raise ValueError("retry_id is required")
+        payload = self.retry_queue_store.get(tenant_id, retry_id)
+        if not payload:
+            raise ValueError(f"Retry item not found: {retry_id}")
+        try:
+            await self._sync_data(
+                tenant_id,
+                payload.get("entity_type"),
+                payload.get("data"),
+                payload.get("source_system"),
+            )
+            self.retry_queue_store.delete(tenant_id, retry_id)
+            return {"retry_id": retry_id, "status": "success"}
+        except Exception as exc:
+            payload["attempts"] = payload.get("attempts", 0) + 1
+            payload["last_attempt_at"] = datetime.utcnow().isoformat()
+            payload["last_error"] = str(exc)
+            self.retry_queue_store.upsert(tenant_id, retry_id, payload)
+            return {"retry_id": retry_id, "status": "failed", "error": str(exc)}
+
+    async def _get_retry_queue(self, tenant_id: str) -> dict[str, Any]:
+        retries = self.retry_queue_store.list(tenant_id)
+        return {
+            "tenant_id": tenant_id,
+            "retry_count": len(retries),
+            "retries": retries,
+        }
+
     async def _get_dashboard(self, tenant_id: str) -> dict[str, Any]:
         sync_status = await self._get_sync_status({})
         quality_report = await self._get_quality_report(tenant_id, None)
@@ -1386,6 +1559,7 @@ class DataSyncAgent(BaseAgent):
             "quality_report": quality_report,
             "average_sync_lag_seconds": average_lag,
             "sync_state": state_records,
+            "sync_logs": self.sync_logs[-25:],
         }
 
     def _load_pipeline_config(self) -> tuple[list[str], list[str]]:
@@ -1450,9 +1624,11 @@ class DataSyncAgent(BaseAgent):
         _ensure_connector_paths()
         try:
             from base_connector import ConnectorCategory, ConnectorConfig
+            from azure_devops_connector import AzureDevOpsConnector
             from jira_connector import JiraConnector
             from planview_connector import PlanviewConnector
             from sap_connector import SapConnector
+            from smartsheet_connector import SmartsheetConnector
             from workday_connector import WorkdayConnector
         except Exception as exc:
             self.logger.warning("connector_import_failed", extra={"error": str(exc)})
@@ -1499,6 +1675,26 @@ class DataSyncAgent(BaseAgent):
             self.connectors["workday"] = WorkdayConnector(workday_config)
         except Exception as exc:
             self.logger.warning("workday_connector_failed", extra={"error": str(exc)})
+        try:
+            smartsheet_config = ConnectorConfig(
+                connector_id="smartsheet",
+                name="Smartsheet",
+                category=ConnectorCategory.PM,
+                instance_url=os.getenv("SMARTSHEET_API_URL", ""),
+            )
+            self.connectors["smartsheet"] = SmartsheetConnector(smartsheet_config)
+        except Exception as exc:
+            self.logger.warning("smartsheet_connector_failed", extra={"error": str(exc)})
+        try:
+            ado_config = ConnectorConfig(
+                connector_id="azure_devops",
+                name="Azure DevOps",
+                category=ConnectorCategory.PM,
+                instance_url=os.getenv("AZURE_DEVOPS_ORG_URL", ""),
+            )
+            self.connectors["azure_devops"] = AzureDevOpsConnector(ado_config)
+        except Exception as exc:
+            self.logger.warning("azure_devops_connector_failed", extra={"error": str(exc)})
 
     async def _initialize_service_bus(self) -> None:
         if self.config and self.config.get("event_bus"):
@@ -1756,6 +1952,22 @@ class DataSyncAgent(BaseAgent):
         except Exception as exc:  # pragma: no cover - network dependent
             self.logger.warning("log_analytics_upload_failed", extra={"error": str(exc)})
 
+    async def _ingest_quality_metric(self, record: dict[str, Any]) -> None:
+        if not self.log_analytics_client:
+            return
+        rule_id = os.getenv("LOG_ANALYTICS_RULE_ID")
+        stream_name = os.getenv("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics")
+        if not rule_id:
+            return
+        try:
+            await self.log_analytics_client.upload(
+                rule_id=rule_id,
+                stream_name=stream_name,
+                logs=[record],
+            )
+        except Exception as exc:  # pragma: no cover - network dependent
+            self.logger.warning("log_analytics_quality_upload_failed", extra={"error": str(exc)})
+
     async def _generate_master_id(self, entity_type: str) -> str:
         """Generate unique master ID."""
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -1966,10 +2178,15 @@ class DataSyncAgent(BaseAgent):
         """Apply conflict resolution strategy."""
         if self.conflict_resolution_strategy == "last_write_wins":
             return self._resolve_by_timestamp(master_record, new_data, conflicts)
+        elif self.conflict_resolution_strategy == "timestamp_based":
+            return self._resolve_by_timestamp(master_record, new_data, conflicts)
         elif self.conflict_resolution_strategy == "authoritative_source":
             return self._resolve_by_authority(master_record, new_data, conflicts)
         elif self.conflict_resolution_strategy == "prefer_existing":
             return self._resolve_prefer_existing(master_record, new_data, conflicts)
+        elif self.conflict_resolution_strategy == "manual":
+            self.logger.info("conflict_manual_review_required", extra={"conflicts": conflicts})
+            return master_record.get("data", {}).copy()
         else:
             return new_data
 
@@ -2207,6 +2424,89 @@ class DataSyncAgent(BaseAgent):
                 except ValueError:
                     continue
         return None
+
+    def _compute_quality_dimensions(
+        self, entity_type: str, validation_result: dict[str, Any]
+    ) -> tuple[float, float, float, float | None]:
+        data = validation_result.get("data") or {}
+        required_fields = self._get_required_fields(entity_type)
+        completeness_score = 1.0
+        if required_fields:
+            present = sum(
+                1
+                for field in required_fields
+                if data.get(field) not in (None, "", [])
+            )
+            completeness_score = present / len(required_fields)
+
+        error_count = len(validation_result.get("errors", []))
+        if error_count == 0:
+            consistency_score = 1.0
+        else:
+            divisor = max(len(required_fields), 1)
+            consistency_score = max(0.0, 1 - (error_count / divisor))
+
+        timestamp = self._extract_timestamp(data) if isinstance(data, dict) else None
+        age_seconds = None
+        if timestamp:
+            age_seconds = max((datetime.utcnow() - timestamp).total_seconds(), 0.0)
+            if self.sync_latency_sla_seconds <= 0:
+                timeliness_score = 1.0
+            elif age_seconds <= self.sync_latency_sla_seconds:
+                timeliness_score = 1.0
+            else:
+                timeliness_score = max(
+                    0.0,
+                    1 - (age_seconds / (self.sync_latency_sla_seconds * 2)),
+                )
+        else:
+            timeliness_score = 1.0
+
+        return completeness_score, consistency_score, timeliness_score, age_seconds
+
+    def _get_required_fields(self, entity_type: str) -> list[str]:
+        required_fields: list[str] = []
+        schema = self.schema_registry.get(entity_type)
+        if schema:
+            schema_required = schema.get("required")
+            if isinstance(schema_required, list):
+                required_fields.extend(str(field) for field in schema_required)
+        for rule in self.validation_rules.get(entity_type, []):
+            if rule.get("required") and rule.get("field"):
+                required_fields.append(rule["field"])
+        return list(dict.fromkeys(required_fields))
+
+    async def _store_quality_report(self, tenant_id: str, entity_type: str) -> None:
+        report = await self._get_quality_report(tenant_id, entity_type)
+        report_id = f"{tenant_id}:{entity_type}:{datetime.utcnow().isoformat()}"
+        await self._store_record("data_quality_reports", report_id, report)
+
+    async def _record_sync_log(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        source_system: str,
+        status: str,
+        mode: str,
+        started_at: datetime,
+        finished_at: datetime | None = None,
+        master_id: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        log_record = {
+            "log_id": f"SYNCLOG-{len(self.sync_logs) + 1}",
+            "tenant_id": tenant_id,
+            "entity_type": entity_type,
+            "source_system": source_system,
+            "status": status,
+            "mode": mode,
+            "started_at": started_at.isoformat(),
+            "finished_at": finished_at.isoformat() if finished_at else None,
+            "master_id": master_id,
+            "details": details or {},
+        }
+        self.sync_logs.append(log_record)
+        await self._store_record("sync_logs", log_record["log_id"], log_record)
 
     def _find_potential_duplicates(self, records: list[tuple]) -> list[list[str]]:
         duplicates: list[set[str]] = []
