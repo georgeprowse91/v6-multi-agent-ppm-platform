@@ -44,12 +44,15 @@ export interface TimelineItem {
   progress?: number; // 0-100
   color?: string;
   dependencies?: string[];
+  isMilestone?: boolean;
+  gateStatus?: 'on-track' | 'delayed';
 }
 
 export interface TimelineContent {
   items: TimelineItem[];
   viewStart?: string;
   viewEnd?: string;
+  wbs?: TreeContent;
 }
 
 export interface SpreadsheetCell {
