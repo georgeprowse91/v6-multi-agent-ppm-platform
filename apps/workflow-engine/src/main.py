@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel
 
 from tools.runtime_paths import bootstrap_runtime_paths
@@ -281,7 +281,13 @@ async def delete_definition(workflow_id: str, http_request: Request) -> dict[str
 
 @app.post("/workflows/start", response_model=WorkflowRunResponse)
 async def start_workflow(
-    request: WorkflowStartRequest, http_request: Request
+    request: WorkflowStartRequest,
+    http_request: Request,
+    idempotency_key: str | None = Header(
+        default=None,
+        alias="Idempotency-Key",
+        description="Optional key to ensure workflow creation is idempotent.",
+    ),
 ) -> WorkflowRunResponse:
     _require_roles(http_request, ROLE_POLICIES["workflow:start"])
     if request.tenant_id != http_request.state.auth.tenant_id:
@@ -294,28 +300,41 @@ async def start_workflow(
     first_step_id = steps[0]["id"]
     run_id = str(uuid4())
     instance = store.create(
-        run_id, request.workflow_id, request.tenant_id, request.payload, first_step_id
-    )
-    dispatcher.dispatch_step(run_id, first_step_id, request.actor)
-
-    emit_audit_event(
+        run_id=run_id,
+        workflow_id=request.workflow_id,
         tenant_id=request.tenant_id,
-        actor=request.actor,
-        action="workflow.started",
-        resource={"id": run_id, "type": "workflow", "definition": definition.get("name")},
-        classification=request.classification,
+        payload=request.payload,
+        current_step_id=first_step_id,
+        idempotency_key=idempotency_key,
     )
-    await runtime._publish_event(  # noqa: SLF001 - workflow runtime manages event publishing
-        "workflow.started",
-        {
-            "run_id": instance.run_id,
-            "workflow_id": instance.workflow_id,
-            "tenant_id": instance.tenant_id,
-            "actor": request.actor,
-        },
-    )
+    is_new_run = instance.run_id == run_id
+    if is_new_run:
+        dispatcher.dispatch_step(instance.run_id, first_step_id, request.actor)
+        emit_audit_event(
+            tenant_id=request.tenant_id,
+            actor=request.actor,
+            action="workflow.started",
+            resource={
+                "id": instance.run_id,
+                "type": "workflow",
+                "definition": definition.get("name"),
+            },
+            classification=request.classification,
+        )
+        await runtime._publish_event(  # noqa: SLF001 - workflow runtime manages event publishing
+            "workflow.started",
+            {
+                "run_id": instance.run_id,
+                "workflow_id": instance.workflow_id,
+                "tenant_id": instance.tenant_id,
+                "actor": request.actor,
+            },
+        )
 
-    logger.info("workflow_started", extra={"run_id": run_id, "workflow_id": request.workflow_id})
+    logger.info(
+        "workflow_started" if is_new_run else "workflow_start_idempotent",
+        extra={"run_id": instance.run_id, "workflow_id": request.workflow_id},
+    )
     return WorkflowRunResponse(
         run_id=instance.run_id,
         workflow_id=instance.workflow_id,

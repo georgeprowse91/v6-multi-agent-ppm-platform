@@ -28,6 +28,7 @@ class WorkflowInstance:
     status: str
     payload: dict[str, Any]
     current_step_id: str | None
+    idempotency_key: str | None
     created_at: str
     updated_at: str
 
@@ -103,6 +104,7 @@ class WorkflowStore:
                     status TEXT NOT NULL,
                     payload TEXT NOT NULL,
                     current_step_id TEXT,
+                    idempotency_key TEXT UNIQUE,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
@@ -156,6 +158,14 @@ class WorkflowStore:
             columns = self._columns(conn, "workflow_instances")
             if "current_step_id" not in columns:
                 conn.execute("ALTER TABLE workflow_instances ADD COLUMN current_step_id TEXT")
+            if "idempotency_key" not in columns:
+                conn.execute("ALTER TABLE workflow_instances ADD COLUMN idempotency_key TEXT")
+            conn.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS ux_workflow_instances_idempotency_key
+                ON workflow_instances (idempotency_key)
+                """
+            )
 
     @staticmethod
     def _columns(conn: sqlite3.Connection, table: str) -> set[str]:
@@ -275,23 +285,45 @@ class WorkflowStore:
         tenant_id: str,
         payload: dict[str, Any],
         current_step_id: str | None = None,
+        idempotency_key: str | None = None,
     ) -> WorkflowInstance:
         now = datetime.now(timezone.utc).isoformat()
-        instance = WorkflowInstance(
-            run_id=run_id,
-            workflow_id=workflow_id,
-            tenant_id=tenant_id,
-            status="running",
-            payload=payload,
-            current_step_id=current_step_id,
-            created_at=now,
-            updated_at=now,
-        )
         with self._connect() as conn:
+            if idempotency_key:
+                row = conn.execute(
+                    """
+                    SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at
+                    FROM workflow_instances WHERE idempotency_key = ?
+                    """,
+                    (idempotency_key,),
+                ).fetchone()
+                if row:
+                    return self._instance_from_row(row)
+            instance = WorkflowInstance(
+                run_id=run_id,
+                workflow_id=workflow_id,
+                tenant_id=tenant_id,
+                status="running",
+                payload=payload,
+                current_step_id=current_step_id,
+                idempotency_key=idempotency_key,
+                created_at=now,
+                updated_at=now,
+            )
             conn.execute(
                 """
-                INSERT INTO workflow_instances (run_id, workflow_id, tenant_id, status, payload, current_step_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO workflow_instances (
+                    run_id,
+                    workflow_id,
+                    tenant_id,
+                    status,
+                    payload,
+                    current_step_id,
+                    idempotency_key,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     instance.run_id,
@@ -300,6 +332,7 @@ class WorkflowStore:
                     instance.status,
                     json.dumps(instance.payload),
                     instance.current_step_id,
+                    instance.idempotency_key,
                     instance.created_at,
                     instance.updated_at,
                 ),
@@ -329,7 +362,7 @@ class WorkflowStore:
         with self._connect() as conn:
             cursor = conn.execute(
                 """
-                SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, created_at, updated_at
+                SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at
                 FROM workflow_instances WHERE run_id = ?
                 """,
                 (run_id,),
@@ -337,39 +370,35 @@ class WorkflowStore:
             row = cursor.fetchone()
             if not row:
                 return None
-            return WorkflowInstance(
-                run_id=row[0],
-                workflow_id=row[1],
-                tenant_id=row[2],
-                status=row[3],
-                payload=json.loads(row[4]),
-                current_step_id=row[5],
-                created_at=row[6],
-                updated_at=row[7],
-            )
+            return self._instance_from_row(row)
 
     def list_instances(self, tenant_id: str) -> list[WorkflowInstance]:
         with self._connect() as conn:
             rows = conn.execute(
                 """
-                SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, created_at, updated_at
+                SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at
                 FROM workflow_instances WHERE tenant_id = ? ORDER BY created_at DESC
                 """,
                 (tenant_id,),
             ).fetchall()
         return [
-            WorkflowInstance(
-                run_id=row[0],
-                workflow_id=row[1],
-                tenant_id=row[2],
-                status=row[3],
-                payload=json.loads(row[4]),
-                current_step_id=row[5],
-                created_at=row[6],
-                updated_at=row[7],
-            )
+            self._instance_from_row(row)
             for row in rows
         ]
+
+    @staticmethod
+    def _instance_from_row(row: tuple[Any, ...]) -> WorkflowInstance:
+        return WorkflowInstance(
+            run_id=row[0],
+            workflow_id=row[1],
+            tenant_id=row[2],
+            status=row[3],
+            payload=json.loads(row[4]),
+            current_step_id=row[5],
+            idempotency_key=row[6],
+            created_at=row[7],
+            updated_at=row[8],
+        )
 
     def upsert_step_state(
         self, run_id: str, step_id: str, status: str, attempts: int, output: dict[str, Any]
