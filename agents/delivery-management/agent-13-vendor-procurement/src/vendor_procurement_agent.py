@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import uuid
+from collections import Counter, defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -191,13 +192,24 @@ class ProcurementConnectorService:
 class ProcurementEventPublisher:
     """Publishes procurement lifecycle events to configured sinks."""
 
-    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+    def __init__(
+        self,
+        config: dict[str, Any] | None = None,
+        logger: logging.Logger | None = None,
+        event_bus: "EventBusClient | None" = None,
+    ):
         self.config = config or {}
         self.logger = logger or logging.getLogger(__name__)
+        self.event_bus = event_bus or EventBusClient(self.config.get("event_bus"))
 
     async def publish(self, event: dict[str, Any]) -> dict[str, Any]:
         self.logger.info("Publishing procurement event %s", event.get("event_type"))
-        return {"status": "published", "event_id": event.get("event_id")}
+        bus_result = await self.event_bus.publish(event)
+        return {
+            "status": "published",
+            "event_id": event.get("event_id"),
+            "event_bus": bus_result,
+        }
 
 
 class LocalApprovalAgent:
@@ -223,18 +235,31 @@ class VendorMLService:
         self.logger = logger or logging.getLogger(__name__)
         self.model_metadata: dict[str, Any] = {}
         self.training_runs: list[dict[str, Any]] = []
+        self.training_data = self.config.get("training_data", [])
+        self.feature_weights: dict[str, float] = {}
+        self.feature_stats: dict[str, float] = {}
+        self.feature_order = [
+            "quality_rating",
+            "on_time_delivery_rate",
+            "compliance_rating",
+            "risk_score",
+            "dispute_count",
+            "total_spend",
+        ]
 
     async def train_models(self, vendors: list[dict[str, Any]]) -> dict[str, Any]:
         run_id = f"ml-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
         avg_risk = (
             sum(v.get("risk_score", 50) for v in vendors) / len(vendors) if vendors else 50
         )
+        self._train_recommendation_model(vendors)
         self.model_metadata = {
             "run_id": run_id,
             "trained_at": datetime.utcnow().isoformat(),
             "vendor_count": len(vendors),
             "avg_risk": avg_risk,
             "provider": "azure_ml" if self.config.get("azure_ml_enabled") else "heuristic",
+            "feature_weights": self.feature_weights,
         }
         self.training_runs.append(self.model_metadata)
         return self.model_metadata
@@ -261,13 +286,7 @@ class VendorMLService:
         ]
         scored = []
         for vendor in candidates:
-            metrics = vendor.get("performance_metrics", {})
-            score = (
-                metrics.get("quality_rating", 0) * 10
-                + metrics.get("on_time_delivery_rate", 0) * 0.4
-                + metrics.get("compliance_rating", 0) * 0.3
-                - vendor.get("risk_score", 50) * 0.2
-            )
+            score = self.score_vendor(vendor)
             scored.append((vendor.get("vendor_id"), score))
         ranked = sorted(scored, key=lambda x: x[1], reverse=True)
         return [vendor_id for vendor_id, _ in ranked[:top_n] if vendor_id]
@@ -294,13 +313,342 @@ class VendorMLService:
         }
 
     def rank_vendors(self, vendors: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        def _score(entry: dict[str, Any]) -> float:
+        return sorted(vendors, key=self.score_vendor, reverse=True)
+
+    def score_vendor(self, vendor: dict[str, Any]) -> float:
+        features = self._prepare_features(vendor)
+        if not self.feature_weights:
+            metrics = vendor.get("performance_metrics", {})
             return (
-                entry.get("performance_rating", 0) * 10
-                - entry.get("risk_score", 50) * 0.2
+                metrics.get("quality_rating", 0) * 10
+                + metrics.get("on_time_delivery_rate", 0) * 0.4
+                + metrics.get("compliance_rating", 0) * 0.3
+                - vendor.get("risk_score", 50) * 0.2
+            )
+        score = 0.0
+        for name, value in features.items():
+            weight = self.feature_weights.get(name, 0.0)
+            score += value * weight
+        return score
+
+    def _prepare_features(self, vendor: dict[str, Any]) -> dict[str, float]:
+        metrics = vendor.get("performance_metrics", {})
+        return {
+            "quality_rating": metrics.get("quality_rating", 0) * 20,
+            "on_time_delivery_rate": metrics.get("on_time_delivery_rate", 0),
+            "compliance_rating": metrics.get("compliance_rating", 0),
+            "risk_score": 100 - vendor.get("risk_score", 50),
+            "dispute_count": max(0, 10 - vendor.get("dispute_count", 0)),
+            "total_spend": min(vendor.get("total_spend", 0) / 1000, 100),
+        }
+
+    def _train_recommendation_model(self, vendors: list[dict[str, Any]]) -> None:
+        training_rows = self.training_data or []
+        if not training_rows and vendors:
+            training_rows = [
+                {
+                    **self._prepare_features(vendor),
+                    "label": 1 if vendor.get("risk_score", 50) < 50 else 0,
+                }
+                for vendor in vendors
+            ]
+
+        if not training_rows:
+            self.feature_weights = {}
+            return
+
+        positives = defaultdict(list)
+        negatives = defaultdict(list)
+        for row in training_rows:
+            label = 1 if row.get("label", 0) else 0
+            target = positives if label else negatives
+            for feature in self.feature_order:
+                target[feature].append(float(row.get(feature, 0)))
+
+        weights: dict[str, float] = {}
+        for feature in self.feature_order:
+            pos_avg = sum(positives[feature]) / len(positives[feature]) if positives[feature] else 0
+            neg_avg = sum(negatives[feature]) / len(negatives[feature]) if negatives[feature] else 0
+            weights[feature] = pos_avg - neg_avg
+
+        total = sum(abs(value) for value in weights.values()) or 1.0
+        self.feature_weights = {key: value / total for key, value in weights.items()}
+
+
+class RiskDatabaseClient:
+    """Client for vendor risk and sanctions databases."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.risk_sources = self.config.get("risk_sources", [])
+        self.timeout = self.config.get("timeout", 8)
+        self.mock_responses = self.config.get("mock_responses", {})
+
+    def check_vendor(self, vendor_data: dict[str, Any]) -> dict[str, Any]:
+        vendor_key = vendor_data.get("legal_name") or vendor_data.get("tax_id") or ""
+        if vendor_key in self.mock_responses:
+            return self.mock_responses[vendor_key]
+        if not self.risk_sources:
+            return {}
+
+        results = {
+            "sanctions_check": "Unknown",
+            "anti_corruption_check": "Unknown",
+            "credit_check": "Unknown",
+            "watchlist_hits": [],
+            "sources": [],
+        }
+
+        payload = {
+            "vendor_name": vendor_data.get("legal_name"),
+            "tax_id": vendor_data.get("tax_id"),
+            "country": vendor_data.get("address", {}).get("country"),
+        }
+
+        for source in self.risk_sources:
+            response = self._query_source(source, payload)
+            if not response:
+                continue
+            status = response.get("status", "").lower()
+            category = source.get("category", "sanctions")
+            check_key = {
+                "sanctions": "sanctions_check",
+                "anti_corruption": "anti_corruption_check",
+                "credit": "credit_check",
+            }.get(category, "sanctions_check")
+            results[check_key] = "Fail" if status in {"hit", "fail", "blocked"} else "Pass"
+            results["watchlist_hits"].extend(response.get("hits", []))
+            results["sources"].append(
+                {
+                    "name": source.get("name"),
+                    "status": results[check_key],
+                    "response_id": response.get("response_id"),
+                }
             )
 
-        return sorted(vendors, key=_score, reverse=True)
+        return results
+
+    def _query_source(self, source: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+        endpoint = source.get("endpoint")
+        if not endpoint:
+            return {}
+        headers = {"Content-Type": "application/json"}
+        api_key = source.get("api_key") or self.config.get("api_key")
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        request_payload = json.dumps(payload).encode("utf-8")
+        req = request.Request(endpoint, data=request_payload, headers=headers, method="POST")
+        try:
+            with request.urlopen(req, timeout=self.timeout) as response:
+                content = json.loads(response.read().decode("utf-8"))
+                return {
+                    "status": content.get("status", "unknown"),
+                    "hits": content.get("hits", []),
+                    "response_id": content.get("response_id"),
+                }
+        except Exception as exc:  # noqa: BLE001 - external calls best-effort
+            self.logger.warning("Risk source %s failed: %s", source.get("name"), exc)
+            return {}
+
+
+class EventBusClient:
+    """Publishes and dispatches procurement events to an enterprise event bus."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.endpoint = self.config.get("endpoint")
+        self.timeout = self.config.get("timeout", 5)
+        self.enabled = self.config.get("enabled", True)
+        self._handlers: dict[str, list[Any]] = defaultdict(list)
+        self._local_queue: deque[dict[str, Any]] = deque()
+
+    def register_handler(self, event_type: str, handler: Any) -> None:
+        self._handlers[event_type].append(handler)
+
+    async def publish(self, event: dict[str, Any]) -> dict[str, Any]:
+        if not self.enabled:
+            return {"status": "disabled", "event_id": event.get("event_id")}
+
+        transport_status = "queued"
+        if self.endpoint:
+            try:
+                payload = json.dumps(event).encode("utf-8")
+                headers = {"Content-Type": "application/json"}
+                req = request.Request(self.endpoint, data=payload, headers=headers, method="POST")
+                with request.urlopen(req, timeout=self.timeout) as response:
+                    response.read()
+                transport_status = "sent"
+            except Exception as exc:  # noqa: BLE001 - external call best-effort
+                self.logger.warning("Event bus publish failed: %s", exc)
+                transport_status = "error"
+
+        self._local_queue.append(event)
+        dispatched = await self.dispatch(event)
+        return {
+            "status": transport_status,
+            "event_id": event.get("event_id"),
+            "dispatched_handlers": dispatched,
+        }
+
+    async def dispatch(self, event: dict[str, Any]) -> int:
+        handlers = self._handlers.get(event.get("event_type"), [])
+        dispatched = 0
+        for handler in handlers:
+            result = handler(event)
+            if hasattr(result, "__await__"):
+                await result
+            dispatched += 1
+        return dispatched
+
+    async def process_queue(self) -> int:
+        processed = 0
+        while self._local_queue:
+            event = self._local_queue.popleft()
+            processed += await self.dispatch(event)
+        return processed
+
+
+class ProcurementClassifier:
+    """Naive Bayes text classifier for procurement request categorization."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.training_data = self.config.get("training_data", [])
+        self.token_counts: dict[str, Counter[str]] = defaultdict(Counter)
+        self.category_counts: Counter[str] = Counter()
+        self.vocab: set[str] = set()
+        if self.training_data:
+            self._train(self.training_data)
+
+    def predict(self, text: str, fallback: str = "services") -> str:
+        tokens = self._tokenize(text)
+        if not self.token_counts:
+            return self._heuristic(text, fallback=fallback)
+        scores: dict[str, float] = {}
+        vocab_size = len(self.vocab) or 1
+        for category, counts in self.token_counts.items():
+            total_tokens = sum(counts.values()) + vocab_size
+            score = 0.0
+            for token in tokens:
+                score += (counts.get(token, 0) + 1) / total_tokens
+            scores[category] = score
+        if not scores:
+            return self._heuristic(text, fallback=fallback)
+        return max(scores.items(), key=lambda item: item[1])[0]
+
+    def _train(self, training_data: list[dict[str, Any]]) -> None:
+        for row in training_data:
+            text = str(row.get("text", ""))
+            category = str(row.get("category", "services"))
+            tokens = self._tokenize(text)
+            self.token_counts[category].update(tokens)
+            self.category_counts[category] += 1
+            self.vocab.update(tokens)
+
+    def _tokenize(self, text: str) -> list[str]:
+        return re.findall(r"[a-zA-Z0-9]+", text.lower())
+
+    def _heuristic(self, text: str, fallback: str = "services") -> str:
+        description = text.lower()
+        if "software" in description or "license" in description:
+            return "software"
+        if "cloud" in description or "aws" in description or "azure" in description:
+            return "cloud"
+        if "consultant" in description or "consulting" in description:
+            return "consulting"
+        return fallback
+
+
+class FinancialManagementClient:
+    """Client for budget checks against a financial management service."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.endpoint = self.config.get("endpoint")
+        self.api_key = self.config.get("api_key")
+        self.timeout = self.config.get("timeout", 5)
+        self.budget_data = self.config.get("budget_data", {})
+
+    def get_budget_status(self, request_data: dict[str, Any]) -> dict[str, Any]:
+        if self.endpoint:
+            response = self._call_budget_api(request_data)
+            if response:
+                return response
+
+        project_id = request_data.get("project_id") or "default"
+        program_id = request_data.get("program_id")
+        key = program_id or project_id
+        budget_info = self.budget_data.get(key, {"total": 0, "committed": 0})
+        remaining = budget_info.get("total", 0) - budget_info.get("committed", 0)
+        estimated_cost = request_data.get("estimated_cost", 0)
+        return {
+            "available": remaining >= estimated_cost,
+            "remaining_budget": max(0, remaining - estimated_cost),
+            "budget_total": budget_info.get("total", 0),
+            "budget_committed": budget_info.get("committed", 0),
+        }
+
+    def _call_budget_api(self, request_data: dict[str, Any]) -> dict[str, Any]:
+        payload = json.dumps(request_data).encode("utf-8")
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        req = request.Request(self.endpoint, data=payload, headers=headers, method="POST")
+        try:
+            with request.urlopen(req, timeout=self.timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception as exc:  # noqa: BLE001 - external calls best-effort
+            self.logger.warning("Budget API call failed: %s", exc)
+            return {}
+
+
+class PerformanceAnalyticsClient:
+    """Client for analytics services (delivery history, issue tracker, PM metrics)."""
+
+    def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
+        self.config = config or {}
+        self.logger = logger or logging.getLogger(__name__)
+        self.endpoint = self.config.get("endpoint")
+        self.api_key = self.config.get("api_key")
+        self.timeout = self.config.get("timeout", 6)
+        self.performance_data = self.config.get("performance_data", {})
+
+    def get_vendor_summary(self, vendor_id: str) -> dict[str, Any]:
+        if self.endpoint:
+            response = self._call_analytics_api({"vendor_id": vendor_id})
+            if response:
+                return response
+        return self.performance_data.get(
+            vendor_id,
+            {
+                "deliveries": [],
+                "quality_scores": [],
+                "compliance_incidents": [],
+                "sla_records": [],
+                "issue_tracker": [],
+                "total_spend": 0,
+                "contract_count": 0,
+                "dispute_count": 0,
+            },
+        )
+
+    def _call_analytics_api(self, payload: dict[str, Any]) -> dict[str, Any]:
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        req = request.Request(
+            self.endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST"
+        )
+        try:
+            with request.urlopen(req, timeout=self.timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception as exc:  # noqa: BLE001 - external calls best-effort
+            self.logger.warning("Analytics API call failed: %s", exc)
+            return {}
 
 
 class FormRecognizerClient:
@@ -441,6 +789,8 @@ class VendorProcurementAgent(BaseAgent):
         self.event_store = TenantStateStore(event_store_path)
         self.db_service: DatabaseStorageService | None = None
         self.document_service: DocumentManagementService | None = None
+        self.risk_client = RiskDatabaseClient(config.get("risk_config") if config else None)
+        self.event_bus = EventBusClient(config.get("event_bus") if config else None)
         self.procurement_connector = ProcurementConnectorService(
             config.get("procurement_connectors") if config else None
         )
@@ -448,11 +798,21 @@ class VendorProcurementAgent(BaseAgent):
             config.get("erp_ap_connectors") if config else None
         )
         self.event_publisher = ProcurementEventPublisher(
-            config.get("event_publisher") if config else None
+            config.get("event_publisher") if config else None,
+            event_bus=self.event_bus,
         )
         self.ml_service = VendorMLService(config.get("ml_config") if config else None)
         self.form_recognizer = FormRecognizerClient(
             config.get("form_recognizer") if config else None
+        )
+        self.request_classifier = ProcurementClassifier(
+            config.get("classification_config") if config else None
+        )
+        self.financial_client = FinancialManagementClient(
+            config.get("financial_config") if config else None
+        )
+        self.analytics_client = PerformanceAnalyticsClient(
+            config.get("analytics_config") if config else None
         )
         self.enable_openai_rfp = (
             config.get("enable_openai_rfp", False) if config else False
@@ -544,14 +904,13 @@ class VendorProcurementAgent(BaseAgent):
             )
 
         await self.ml_service.train_models(list(self.vendors.values()))
+        self._register_event_handlers()
 
         if self.form_recognizer.is_configured():
             self.logger.info("Form Recognizer configured for contract clause extraction.")
         else:
             self.logger.info("Form Recognizer not configured; falling back to regex extraction.")
 
-        # Future work: Connect to third-party risk databases (Dun & Bradstreet)
-        # Future work: Set up Azure Service Bus for procurement event publishing
         # Future work: Initialize Azure Key Vault for storing vendor credentials
 
         self.logger.info("Vendor & Procurement Management Agent initialized")
@@ -1919,6 +2278,37 @@ class VendorProcurementAgent(BaseAgent):
 
     # Helper methods
 
+    def _register_event_handlers(self) -> None:
+        self.event_bus.register_handler("delivery.delayed", self._handle_delivery_delayed)
+        self.event_bus.register_handler("contract.signed", self._handle_contract_signed)
+        self.event_bus.register_handler("vendor.flagged", self._handle_vendor_flagged)
+
+    async def _handle_delivery_delayed(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload", {})
+        vendor_id = payload.get("vendor_id")
+        if not vendor_id or vendor_id not in self.vendors:
+            return
+        vendor = self.vendors[vendor_id]
+        metrics = vendor.get("performance_metrics", {})
+        metrics["delivery_timeliness"] = max(0, metrics.get("delivery_timeliness", 100) - 5)
+        metrics["on_time_delivery_rate"] = metrics["delivery_timeliness"]
+        vendor["performance_metrics"] = metrics
+
+    async def _handle_contract_signed(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload", {})
+        contract_id = payload.get("contract_id")
+        if contract_id and contract_id in self.contracts:
+            self.contracts[contract_id]["status"] = "Active"
+
+    async def _handle_vendor_flagged(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload", {})
+        vendor_id = payload.get("vendor_id")
+        if not vendor_id or vendor_id not in self.vendors:
+            return
+        vendor = self.vendors[vendor_id]
+        vendor["status"] = "flagged"
+        vendor["risk_score"] = min(100, vendor.get("risk_score", 50) + 20)
+
     async def _publish_event(
         self,
         event_type: str,
@@ -1987,8 +2377,16 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _run_compliance_checks(self, vendor_data: dict[str, Any]) -> dict[str, Any]:
         """Run compliance checks on vendor."""
-        # Future work: Integrate with sanctions lists, anti-corruption databases
-        return {"sanctions_check": "Pass", "anti_corruption_check": "Pass", "credit_check": "Pass"}
+        checks = self.risk_client.check_vendor(vendor_data)
+        if not checks:
+            return {
+                "sanctions_check": "Pass",
+                "anti_corruption_check": "Pass",
+                "credit_check": "Pass",
+                "watchlist_hits": [],
+                "sources": [],
+            }
+        return checks
 
     async def _calculate_vendor_risk(
         self, vendor_data: dict[str, Any], compliance_checks: dict[str, Any]
@@ -1999,22 +2397,12 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _categorize_procurement_request(self, request_data: dict[str, Any]) -> str:
         """Categorize procurement request using AI."""
-        # Future work: Use Azure ML for classification
-        description = request_data.get("description", "").lower()
-
-        if "software" in description or "license" in description:
-            return "software"
-        elif "cloud" in description or "aws" in description or "azure" in description:
-            return "cloud"
-        elif "consultant" in description or "consulting" in description:
-            return "consulting"
-        else:
-            return "services"
+        description = request_data.get("description", "")
+        return self.request_classifier.predict(description, fallback="services")
 
     async def _check_budget_availability(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Check budget availability for procurement."""
-        # Future work: Integrate with Financial Management Agent
-        return {"available": True, "remaining_budget": 100000}
+        return self.financial_client.get_budget_status(request_data)
 
     async def _suggest_vendors(self, category: str, request_data: dict[str, Any]) -> list[str]:
         """Suggest vendors based on category and requirements."""
@@ -2275,28 +2663,40 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _collect_vendor_performance_data(self, vendor_id: str) -> dict[str, Any]:
         """Collect vendor performance data."""
-        # Future work: Query historical data
-        return {"total_spend": 0, "contract_count": 0, "dispute_count": 0}
+        return self.analytics_client.get_vendor_summary(vendor_id)
 
     async def _calculate_delivery_timeliness(self, vendor_id: str) -> float:
         """Calculate vendor delivery timeliness percentage."""
-        # Future work: Calculate from historical deliveries
-        return 95.0
+        summary = self.analytics_client.get_vendor_summary(vendor_id)
+        deliveries = summary.get("deliveries", [])
+        if not deliveries:
+            return 95.0
+        on_time = sum(1 for record in deliveries if record.get("on_time"))
+        return round((on_time / len(deliveries)) * 100, 2)
 
     async def _calculate_quality_rating(self, vendor_id: str) -> float:
         """Calculate vendor quality rating."""
-        # Future work: Calculate from quality metrics
-        return 4.5  # Out of 5
+        summary = self.analytics_client.get_vendor_summary(vendor_id)
+        scores = summary.get("quality_scores", [])
+        if not scores:
+            return 4.5
+        return round(sum(scores) / len(scores), 2)
 
     async def _calculate_compliance_score(self, vendor_id: str) -> float:
         """Calculate vendor compliance score."""
-        # Future work: Calculate from compliance incidents
-        return 98.0
+        summary = self.analytics_client.get_vendor_summary(vendor_id)
+        incidents = summary.get("compliance_incidents", [])
+        score = max(0, 100 - (len(incidents) * 5))
+        return float(score)
 
     async def _calculate_sla_adherence(self, vendor_id: str) -> float:
         """Calculate SLA adherence percentage."""
-        # Future work: Calculate from SLA tracking
-        return 97.0
+        summary = self.analytics_client.get_vendor_summary(vendor_id)
+        sla_records = summary.get("sla_records", [])
+        if not sla_records:
+            return 97.0
+        met = sum(1 for record in sla_records if record.get("met"))
+        return round((met / len(sla_records)) * 100, 2)
 
     async def _analyze_performance_trend(self, vendor_id: str) -> str:
         """Analyze vendor performance trend."""
@@ -2328,8 +2728,8 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _get_vendor_issues(self, vendor_id: str) -> list[dict[str, Any]]:
         """Get recent issues with vendor."""
-        # Future work: Query issue tracking system
-        return []
+        summary = self.analytics_client.get_vendor_summary(vendor_id)
+        return summary.get("issue_tracker", [])
 
     async def _extract_vendor_insights(
         self,

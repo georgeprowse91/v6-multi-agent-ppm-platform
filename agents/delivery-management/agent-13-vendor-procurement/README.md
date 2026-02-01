@@ -39,6 +39,13 @@ Additional vendor procurement configuration (set via agent config or environment
 - `procurement_connectors.connectors`: per-connector configuration payloads for SAP Ariba, Coupa, Oracle Procurement, and Dynamics 365 integrations.
 - `erp_ap_connectors.enabled_connectors`: enable ERP/AP connectors for payment initiation.
 - `ml_config.azure_ml_enabled`: toggles Azure ML training mode for vendor recommendations and risk scoring.
+- `ml_config.training_data`: optional training data used for ML-based vendor scoring.
+- `risk_config.risk_sources`: list of third-party risk/sanctions API definitions (`name`, `endpoint`, `category`, `api_key`).
+- `risk_config.mock_responses`: map of vendor names to mock compliance responses for testing.
+- `event_bus.enabled` / `event_bus.endpoint`: enable publishing events to Azure Service Bus-compatible HTTP endpoint.
+- `classification_config.training_data`: training corpus for procurement request categorization.
+- `financial_config.endpoint` / `financial_config.budget_data`: budget service endpoint or local budget map for budget checks.
+- `analytics_config.endpoint` / `analytics_config.performance_data`: analytics service endpoint or local performance data for SLA and delivery metrics.
 - `use_external_approval_agent`: enable the centralized approval workflow agent instead of the local auto-approval fallback.
 - `enable_openai_rfp`: enable OpenAI-based RFP generation.
 - `enable_ai_scoring`: enable AI-based proposal scoring.
