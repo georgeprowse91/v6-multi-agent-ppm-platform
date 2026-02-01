@@ -16,6 +16,7 @@ def build_agent_config(tmp_path, **overrides):
         "event_bus": EventCollector(),
         "resource_store_path": tmp_path / "resources.json",
         "allocation_store_path": tmp_path / "allocations.json",
+        "default_tenant_id": "tenant-a",
         **overrides,
     }
 
@@ -134,6 +135,116 @@ async def test_resource_capacity_skill_matching(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_resource_capacity_hr_sync_publishes_events(tmp_path):
+    events = EventCollector()
+    profiles = [
+        {
+            "employee_id": "hr-1",
+            "name": "Riley",
+            "role": "Analyst",
+            "skills": ["sql"],
+            "status": "Active",
+            "source_system": "workday",
+        }
+    ]
+    agent = ResourceCapacityAgent(
+        config=build_agent_config(
+            tmp_path,
+            event_bus=events,
+            hr_profiles=profiles,
+        )
+    )
+    await agent.initialize()
+
+    assert any(topic == "resource.added" for topic, _ in events.events)
+
+    profiles[0]["status"] = "Inactive"
+    await agent._sync_hr_systems()
+
+    assert any(topic == "resource.updated" for topic, _ in events.events)
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_training_influences_matching(tmp_path):
+    training_records = [
+        {
+            "resource_id": "res-train",
+            "skills": ["kubernetes"],
+            "completed": ["kubernetes-fundamentals"],
+            "weekly_hours": 4,
+        }
+    ]
+    agent = ResourceCapacityAgent(
+        config=build_agent_config(
+            tmp_path,
+            training_records=training_records,
+            skill_matching_threshold=0.0,
+        )
+    )
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "add_resource",
+            "tenant_id": "tenant-a",
+            "resource": {
+                "resource_id": "res-train",
+                "name": "Kai",
+                "role": "Engineer",
+                "skills": [],
+                "location": "Remote",
+            },
+        }
+    )
+    await agent._sync_training_records()
+
+    response = await agent.process(
+        {"action": "match_skills", "skills_required": ["kubernetes"], "project_context": {}}
+    )
+
+    assert response["candidates"][0]["resource_id"] == "res-train"
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_approval_routing(tmp_path):
+    class FakeApprovalClient:
+        async def request_approval(self, request, *, tenant_id, correlation_id, approver_hint=None):
+            return {"approval_id": "approval-1", "status": "pending", "approvers": [approver_hint]}
+
+        async def record_decision(
+            self, approval_id, *, decision, approver_id, comments, tenant_id, correlation_id
+        ):
+            return {"status": decision}
+
+    approval_client = FakeApprovalClient()
+    agent = ResourceCapacityAgent(
+        config=build_agent_config(
+            tmp_path,
+            approval_client=approval_client,
+            approval_routing={"default_approver": "resource_lead"},
+        )
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "request_resource",
+            "tenant_id": "tenant-a",
+            "request": {
+                "project_id": "proj-1",
+                "required_skills": ["python"],
+                "start_date": "2024-03-01",
+                "end_date": "2024-04-01",
+                "requested_by": "user-1",
+            },
+        }
+    )
+
+    assert response["approval"]["approval_id"] == "approval-1"
+    assert response["approver"] == "resource_lead"
+
+
+@pytest.mark.asyncio
 async def test_resource_capacity_forecasting(tmp_path):
     agent = ResourceCapacityAgent(
         config=build_agent_config(tmp_path, forecast_horizon_months=3)
@@ -171,6 +282,7 @@ async def test_resource_capacity_forecasting(tmp_path):
 
     assert len(forecast["future_capacity"]) == 3
     assert len(forecast["future_demand"]) == 3
+    assert "assumptions" in forecast
 
 
 @pytest.mark.asyncio
@@ -269,3 +381,25 @@ async def test_resource_capacity_enforces_allocation_constraints(tmp_path):
                 },
             }
         )
+
+
+@pytest.mark.asyncio
+async def test_resource_capacity_performance_scoring(tmp_path):
+    agent = ResourceCapacityAgent(config=build_agent_config(tmp_path))
+    await agent.initialize()
+
+    await agent.db_service.store(
+        "project_performance",
+        "perf-1",
+        {
+            "resource_id": "res-perf",
+            "on_time_rate": 0.9,
+            "quality_score": 0.95,
+            "completion_rate": 0.92,
+            "customer_satisfaction": 0.88,
+        },
+    )
+
+    score = await agent._get_performance_score("res-perf", {})
+
+    assert score >= 0.88

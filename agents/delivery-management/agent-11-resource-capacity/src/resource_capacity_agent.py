@@ -8,7 +8,9 @@ and programs. Provides real-time insights into availability, utilization and ski
 Specification: agents/delivery-management/agent-11-resource-capacity/README.md
 """
 
+import asyncio
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -428,6 +430,136 @@ class NotificationService:
         raise RuntimeError("No notification client configured")
 
 
+class LearningManagementClient:
+    def __init__(
+        self,
+        moodle_endpoint: str | None,
+        moodle_token: str | None,
+        coursera_endpoint: str | None,
+        coursera_token: str | None,
+        training_records: list[dict[str, Any]] | None = None,
+    ) -> None:
+        self.moodle_endpoint = moodle_endpoint
+        self.moodle_token = moodle_token
+        self.coursera_endpoint = coursera_endpoint
+        self.coursera_token = coursera_token
+        self.training_records = training_records or []
+
+    def is_configured(self) -> bool:
+        return bool(
+            self.training_records
+            or (self.moodle_endpoint and self.moodle_token)
+            or (self.coursera_endpoint and self.coursera_token)
+        )
+
+    def fetch_training_records(self, resource_ids: list[str]) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        if self.training_records:
+            record_index = {
+                record.get("resource_id"): record for record in self.training_records
+            }
+            for resource_id in resource_ids:
+                if resource_id in record_index:
+                    records.append(record_index[resource_id])
+            return records
+        if self.moodle_endpoint and self.moodle_token:
+            records.extend(self._fetch_moodle_records(resource_ids))
+        if self.coursera_endpoint and self.coursera_token:
+            records.extend(self._fetch_coursera_records(resource_ids))
+        return records
+
+    def _fetch_moodle_records(self, resource_ids: list[str]) -> list[dict[str, Any]]:
+        import requests
+
+        response = requests.get(
+            f"{self.moodle_endpoint}/api/training-records",
+            headers={"Authorization": f"Bearer {self.moodle_token}"},
+            params={"resource_ids": ",".join(resource_ids)},
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return cast(list[dict[str, Any]], payload.get("records", []))
+
+    def _fetch_coursera_records(self, resource_ids: list[str]) -> list[dict[str, Any]]:
+        import requests
+
+        response = requests.get(
+            f"{self.coursera_endpoint}/api/training-records",
+            headers={"Authorization": f"Bearer {self.coursera_token}"},
+            params={"resource_ids": ",".join(resource_ids)},
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return cast(list[dict[str, Any]], payload.get("records", []))
+
+
+class ApprovalWorkflowClient:
+    def __init__(self, approval_agent: Any | None, event_bus: Any | None) -> None:
+        self.approval_agent = approval_agent
+        self.event_bus = event_bus
+
+    async def request_approval(
+        self,
+        request: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
+        approver_hint: str | None = None,
+    ) -> dict[str, Any]:
+        payload = {
+            "request_type": "resource_change",
+            "request_id": request.get("request_id"),
+            "requester": request.get("requested_by", "unknown"),
+            "details": {
+                "project_id": request.get("project_id"),
+                "required_skills": request.get("required_skills", []),
+                "start_date": request.get("start_date"),
+                "end_date": request.get("end_date"),
+                "effort": request.get("effort", 1.0),
+                "approver_hint": approver_hint,
+            },
+            "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+        }
+        if self.approval_agent:
+            return await self.approval_agent.process(payload)
+        if self.event_bus:
+            await self.event_bus.publish("approval.requested", payload)
+        return {"status": "pending", "approval_id": None, "approvers": []}
+
+    async def record_decision(
+        self,
+        approval_id: str,
+        *,
+        decision: str,
+        approver_id: str,
+        comments: str | None,
+        tenant_id: str,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        payload = {
+            "approval_id": approval_id,
+            "decision": decision,
+            "approver_id": approver_id,
+            "comments": comments,
+            "context": {"tenant_id": tenant_id, "correlation_id": correlation_id},
+        }
+        if self.approval_agent:
+            return await self.approval_agent.process(payload)
+        if self.event_bus:
+            await self.event_bus.publish("approval.decision", payload)
+        return {"status": decision}
+
+
+class SimpleAnalyticsClient:
+    def __init__(self) -> None:
+        self.metrics: list[tuple[str, float, dict[str, Any]]] = []
+
+    def record_metric(self, name: str, value: float, metadata: dict[str, Any] | None = None) -> None:
+        self.metrics.append((name, value, metadata or {}))
+
+
 class ResourceCapacityAgent(BaseAgent):
     """
     Resource & Capacity Management Agent - Manages resource pool, capacity planning, and allocation.
@@ -464,10 +596,10 @@ class ResourceCapacityAgent(BaseAgent):
         self.skill_match_weights = (
             config.get(
                 "skill_match_weights",
-                {"skills": 0.7, "availability": 0.2, "cost": 0.1},
+                {"skills": 0.6, "availability": 0.2, "cost": 0.1, "performance": 0.1},
             )
             if config
-            else {"skills": 0.7, "availability": 0.2, "cost": 0.1}
+            else {"skills": 0.6, "availability": 0.2, "cost": 0.1, "performance": 0.1}
         )
         self.default_working_hours_per_day = (
             config.get("working_hours_per_day", 8) if config else 8
@@ -507,6 +639,8 @@ class ResourceCapacityAgent(BaseAgent):
         self.allocations: dict[str, Any] = {}
         self.demand_requests: dict[str, Any] = {}
         self.utilization_metrics: dict[str, Any] = {}
+        self.training_records: dict[str, dict[str, Any]] = {}
+        self.performance_scores: dict[str, float] = {}
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
@@ -523,6 +657,40 @@ class ResourceCapacityAgent(BaseAgent):
         self.notification_service: NotificationService | None = None
         self.redis_client: Any | None = None
         self._skills_indexed = False
+        self.analytics_client = config.get("analytics_client") if config else None
+        if self.analytics_client is None:
+            if importlib.util.find_spec("pydantic_settings") is None:
+                self.analytics_client = SimpleAnalyticsClient()
+            else:
+                from services.integration.analytics import AnalyticsClient
+
+                self.analytics_client = AnalyticsClient()
+        self.org_structure = config.get("org_structure", {}) if config else {}
+        self.approval_routing = config.get("approval_routing", {}) if config else {}
+        self.default_tenant_id = config.get("default_tenant_id", "system") if config else "system"
+        training_records = config.get("training_records") if config else None
+        self.training_client = config.get("training_client") if config else None
+        if self.training_client is None:
+            self.training_client = LearningManagementClient(
+                os.getenv("MOODLE_LMS_ENDPOINT"),
+                os.getenv("MOODLE_LMS_TOKEN"),
+                os.getenv("COURSERA_BUSINESS_ENDPOINT"),
+                os.getenv("COURSERA_BUSINESS_TOKEN"),
+                training_records=training_records,
+            )
+        approval_agent = config.get("approval_agent") if config else None
+        self.approval_client = config.get("approval_client") if config else None
+        if self.approval_client is None:
+            self.approval_client = ApprovalWorkflowClient(approval_agent, self.event_bus)
+        self.attrition_rate = float(config.get("attrition_rate", 0.0) if config else 0.0)
+        self.seasonality_factors = config.get("seasonality_factors", {}) if config else {}
+        self.training_capacity_impact = float(
+            config.get("training_capacity_impact", 0.1) if config else 0.1
+        )
+        self.skill_development_uplift = float(
+            config.get("skill_development_uplift", 0.05) if config else 0.05
+        )
+        self.hr_profile_provider = config.get("hr_profile_provider") if config else None
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -565,12 +733,12 @@ class ResourceCapacityAgent(BaseAgent):
             self.redis_client = Redis.from_url(redis_url, decode_responses=True)
 
         await self._sync_hr_systems()
+        await self._sync_training_records()
         await self._refresh_capacity_allocations()
 
         self.logger.info(
             "Using local calendar storage for working hours and leave tracking"
         )
-        # Future work: Connect to learning management systems for training/certifications
 
         self.logger.info("Resource & Capacity Management Agent initialized")
         self._subscribe_to_events()
@@ -740,6 +908,8 @@ class ResourceCapacityAgent(BaseAgent):
         location = resource_data.get("location", "Unknown")
         cost_rate = resource_data.get("cost_rate", 0.0)
         certifications = resource_data.get("certifications", [])
+        training_record = resource_data.get("training_record")
+        training_metadata = {}
 
         # Create resource profile
         resource_profile = {
@@ -754,7 +924,15 @@ class ResourceCapacityAgent(BaseAgent):
             "team_memberships": resource_data.get("team_memberships", []),
             "created_at": datetime.utcnow().isoformat(),
             "status": "Active",
+            "training": training_metadata,
+            "training_load": 0.0,
         }
+
+        self.resource_pool[resource_id] = resource_profile
+        if training_record:
+            training_metadata = await self._apply_training_record(resource_id, training_record)
+            resource_profile["training"] = training_metadata
+            resource_profile["training_load"] = training_metadata.get("training_load", 0.0)
 
         # Initialize capacity calendar
         calendar_entry = {
@@ -783,8 +961,7 @@ class ResourceCapacityAgent(BaseAgent):
         )
         await self._store_canonical_profile(resource_id, canonical_profile, resource_profile)
         await self._index_skills()
-        # Future work: Sync with Azure AD
-        # Future work: Publish resource.added event
+        await self._publish_resource_event("resource.added", resource_profile)
 
         self.logger.info(f"Added resource: {resource_id}")
 
@@ -850,6 +1027,16 @@ class ResourceCapacityAgent(BaseAgent):
 
         # Route to approver
         approver = await self._determine_approver(request)
+        approval_payload = {}
+        if self.approval_client:
+            approval_payload = await self.approval_client.request_approval(
+                request,
+                tenant_id=tenant_id,
+                correlation_id=request_id,
+                approver_hint=approver,
+            )
+            request["approval_id"] = approval_payload.get("approval_id")
+            request["approval_status"] = approval_payload.get("status")
 
         if self.db_service:
             await self.db_service.store("resource_requests", request_id, request)
@@ -863,11 +1050,16 @@ class ResourceCapacityAgent(BaseAgent):
             "status": "Pending",
             "recommended_candidates": available_candidates,
             "approver": approver,
+            "approval": approval_payload,
             "next_steps": f"Request routed to {approver} for approval",
         }
 
     async def _approve_request(
-        self, request_id: str, approval_decision: dict[str, Any], *, tenant_id: str
+        self,
+        request_id: str,
+        approval_decision: dict[str, Any],
+        *,
+        tenant_id: str,
     ) -> dict[str, Any]:
         """
         Approve or reject a resource request.
@@ -883,6 +1075,17 @@ class ResourceCapacityAgent(BaseAgent):
         approved = approval_decision.get("approved", False)
         selected_resource = approval_decision.get("selected_resource_id")
         comments = approval_decision.get("comments", "")
+        approver_id = approval_decision.get("approver_id", "unknown")
+        approval_id = request.get("approval_id")
+        if approval_id and self.approval_client:
+            await self.approval_client.record_decision(
+                approval_id,
+                decision="approved" if approved else "rejected",
+                approver_id=approver_id,
+                comments=comments,
+                tenant_id=tenant_id,
+                correlation_id=request_id,
+            )
 
         if approved and selected_resource:
             # Create allocation
@@ -981,6 +1184,7 @@ class ResourceCapacityAgent(BaseAgent):
             "skills": float(self.skill_match_weights.get("skills", 0.7)),
             "availability": float(self.skill_match_weights.get("availability", 0.2)),
             "cost": float(self.skill_match_weights.get("cost", 0.1)),
+            "performance": float(self.skill_match_weights.get("performance", 0.1)),
         }
         total_weight = sum(weights.values()) or 1.0
         normalized_weights = {key: value / total_weight for key, value in weights.items()}
@@ -988,7 +1192,7 @@ class ResourceCapacityAgent(BaseAgent):
         matches: list[dict[str, Any]] = []
         for resource_id, resource in self.resource_pool.items():
             resource_skills = {
-                skill.lower() for skill in resource.get("skills", []) if skill
+                skill.lower() for skill in self._get_effective_skills(resource) if skill
             }
             skill_score = (
                 len(resource_skills.intersection(required_skills)) / len(required_skills)
@@ -1000,11 +1204,13 @@ class ResourceCapacityAgent(BaseAgent):
                 continue
             cost_rate = float(resource.get("cost_rate", 0.0))
             cost_score = 1.0 - (cost_rate / max_cost) if max_cost else 1.0
+            performance_score = await self._get_performance_score(resource_id, {})
 
             weighted_score = (
                 normalized_weights["skills"] * skill_score
                 + normalized_weights["availability"] * availability_score
                 + normalized_weights["cost"] * cost_score
+                + normalized_weights["performance"] * performance_score
             )
             matches.append(
                 {
@@ -1015,6 +1221,7 @@ class ResourceCapacityAgent(BaseAgent):
                     "match_score": skill_score,
                     "availability_score": availability_score,
                     "cost_score": cost_score,
+                    "performance_score": performance_score,
                     "weighted_score": weighted_score,
                 }
             )
@@ -1060,7 +1267,7 @@ class ResourceCapacityAgent(BaseAgent):
                             "resource_id": resource_id,
                             "resource_name": resource.get("name"),
                             "role": resource.get("role"),
-                            "skills": resource.get("skills", []),
+                            "skills": self._get_effective_skills(resource),
                             "match_score": semantic_score,
                             "weighted_score": semantic_score,
                             "availability_score": resource.get("availability", 0.0),
@@ -1135,20 +1342,40 @@ class ResourceCapacityAgent(BaseAgent):
         )
         capacity_forecast = forecaster.forecast(capacity_series, self.forecast_horizon_months)
         demand_forecast = forecaster.forecast(demand_series, self.forecast_horizon_months)
-        future_capacity = [
-            {"month": index + 1, "capacity": max(0.0, value)}
-            for index, value in enumerate(capacity_forecast)
-        ]
-        future_demand = [
-            {"month": index + 1, "demand": max(0.0, value)}
-            for index, value in enumerate(demand_forecast)
-        ]
+        future_capacity = self._adjust_capacity_forecast(capacity_forecast)
+        future_demand = self._adjust_demand_forecast(demand_forecast)
 
         # Identify bottlenecks
         bottlenecks = await self._identify_capacity_bottlenecks(future_capacity, future_demand)
 
         # Generate recommendations
         recommendations = await self._generate_capacity_recommendations(bottlenecks)
+        assumptions = {
+            "attrition_rate": self._get_attrition_rate(),
+            "seasonality_factors": self.seasonality_factors,
+            "training_capacity_impact": self.training_capacity_impact,
+            "skill_development_uplift": self.skill_development_uplift,
+        }
+        if self.db_service:
+            await self.db_service.store(
+                "capacity_forecasts",
+                f"forecast-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+                {
+                    "created_at": datetime.utcnow().isoformat(),
+                    "forecast": {
+                        "future_capacity": future_capacity,
+                        "future_demand": future_demand,
+                    },
+                    "assumptions": assumptions,
+                },
+            )
+        if self.analytics_client:
+            self.analytics_client.record_metric("capacity.current", current_capacity)
+            self.analytics_client.record_metric("demand.current", current_demand)
+            self.analytics_client.record_metric(
+                "utilization.current",
+                current_demand / current_capacity if current_capacity else 0.0,
+            )
 
         return {
             "forecast_horizon_months": self.forecast_horizon_months,
@@ -1164,6 +1391,7 @@ class ResourceCapacityAgent(BaseAgent):
             "future_demand": future_demand,
             "bottlenecks": bottlenecks,
             "recommendations": recommendations,
+            "assumptions": assumptions,
         }
 
     async def _plan_capacity(self, planning_horizon: dict[str, Any]) -> dict[str, Any]:
@@ -1391,7 +1619,7 @@ class ResourceCapacityAgent(BaseAgent):
         over_allocated = [u for u in utilization_data if u["utilization"] > 1.0]
         under_utilized = [u for u in utilization_data if u["utilization"] < 0.5]
 
-        return {
+        result = {
             "total_resources": len(utilization_data),
             "average_utilization": average_utilization,
             "target_utilization": self.utilization_target,
@@ -1402,6 +1630,11 @@ class ResourceCapacityAgent(BaseAgent):
             "under_utilized_resources": under_utilized,
             "utilization_by_resource": utilization_data,
         }
+        if self.analytics_client:
+            self.analytics_client.record_metric("utilization.average", average_utilization)
+            self.analytics_client.record_metric("utilization.over_allocated", len(over_allocated))
+            self.analytics_client.record_metric("utilization.under_utilized", len(under_utilized))
+        return result
 
     async def _identify_conflicts(self, filters: dict[str, Any]) -> dict[str, Any]:
         """
@@ -1574,8 +1807,12 @@ class ResourceCapacityAgent(BaseAgent):
         def _handle_schedule_change(payload: dict[str, Any]) -> None:
             self.logger.info("Received schedule change event", extra={"payload": payload})
 
+        def _handle_approval_decision(payload: dict[str, Any]) -> None:
+            asyncio.create_task(self._process_approval_decision(payload))
+
         try:
             self.event_bus.subscribe("schedule.changed", _handle_schedule_change)
+            self.event_bus.subscribe("approval.decision", _handle_approval_decision)
         except Exception as exc:
             self.logger.warning("Failed to subscribe to schedule events", extra={"error": str(exc)})
 
@@ -1585,12 +1822,23 @@ class ResourceCapacityAgent(BaseAgent):
             profiles.extend(await self._fetch_azure_ad_profiles())
         profiles.extend(await self._fetch_workday_profiles())
         profiles.extend(await self._fetch_sap_profiles())
+        if self.hr_profile_provider:
+            profiles.extend(list(self.hr_profile_provider()))
+        elif self.config:
+            profiles.extend(self.config.get("hr_profiles", []))
 
         merged = self._merge_profiles(profiles)
+        active_resource_ids: set[str] = set()
+        if not self.resource_pool:
+            for resource in self.resource_store.list(self.default_tenant_id):
+                resource_id = resource.get("resource_id")
+                if resource_id:
+                    self.resource_pool[resource_id] = resource
         for profile in merged:
             resource_id = profile.get("employee_id")
             if not resource_id:
                 continue
+            active_resource_ids.add(resource_id)
             resource_profile = {
                 "resource_id": resource_id,
                 "name": profile.get("name"),
@@ -1604,8 +1852,25 @@ class ResourceCapacityAgent(BaseAgent):
                 "created_at": profile.get("created_at", datetime.utcnow().isoformat()),
                 "source_system": profile.get("source_system", "unknown"),
             }
-            self.resource_pool[resource_id] = resource_profile
-            await self._store_canonical_profile(resource_id, profile, resource_profile)
+            existing = self.resource_pool.get(resource_id)
+            if not existing:
+                self.resource_pool[resource_id] = resource_profile
+                await self._store_canonical_profile(resource_id, profile, resource_profile)
+                self.resource_store.upsert(
+                    self.default_tenant_id, resource_id, resource_profile
+                )
+                await self._publish_resource_event("resource.added", resource_profile)
+            else:
+                if self._has_resource_changed(existing, resource_profile):
+                    self.resource_pool[resource_id] = resource_profile
+                    await self._store_canonical_profile(resource_id, profile, resource_profile)
+                    self.resource_store.upsert(
+                        self.default_tenant_id, resource_id, resource_profile
+                    )
+                    await self._publish_resource_event("resource.updated", resource_profile)
+            if profile.get("status") == "Inactive":
+                await self._deactivate_resource(resource_id, reason="hr_status")
+        await self._deactivate_missing_resources(active_resource_ids)
         await self._index_skills()
 
     async def _fetch_azure_ad_profiles(self) -> list[dict[str, Any]]:
@@ -1724,7 +1989,7 @@ class ResourceCapacityAgent(BaseAgent):
         documents = []
         embedding_client = self.embedding_client or EmbeddingClient(None, None, None)
         for resource_id, resource in self.resource_pool.items():
-            skills_text = " ".join(resource.get("skills", []))
+            skills_text = " ".join(self._get_effective_skills(resource))
             documents.append(
                 {
                     "@search.action": "mergeOrUpload",
@@ -1738,6 +2003,40 @@ class ResourceCapacityAgent(BaseAgent):
             )
         self.search_client.upload_documents(documents)
         self._skills_indexed = True
+
+    async def _sync_training_records(self) -> None:
+        if not self.training_client or not self.training_client.is_configured():
+            return
+        resource_ids = list(self.resource_pool.keys())
+        if not resource_ids:
+            return
+        records = self.training_client.fetch_training_records(resource_ids)
+        for record in records:
+            resource_id = record.get("resource_id")
+            if not resource_id:
+                continue
+            self.training_records[resource_id] = record
+            await self._apply_training_record(resource_id, record)
+        await self._index_skills()
+
+    async def _process_approval_decision(self, payload: dict[str, Any]) -> None:
+        approval_id = payload.get("approval_id")
+        request_id = payload.get("request_id")
+        if not approval_id or not request_id:
+            return
+        decision = payload.get("decision")
+        if decision not in {"approved", "rejected"}:
+            return
+        await self._approve_request(
+            request_id,
+            {
+                "approved": decision == "approved",
+                "selected_resource_id": payload.get("selected_resource_id"),
+                "comments": payload.get("comments", ""),
+                "approver_id": payload.get("approver_id", "unknown"),
+            },
+            tenant_id=payload.get("tenant_id", self.default_tenant_id),
+        )
 
     async def _refresh_capacity_allocations(self) -> None:
         allocations = []
@@ -1931,8 +2230,30 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _determine_approver(self, request: dict[str, Any]) -> str:
         """Determine who should approve the request."""
-        # Future work: Implement approval routing logic
-        return "resource_manager"
+        default_approver = self.approval_routing.get("default_approver", "resource_manager")
+        requester = request.get("requested_by")
+        requester_profile = self.org_structure.get(requester, {}) if requester else {}
+        if requester_profile.get("manager"):
+            return requester_profile["manager"]
+        department = request.get("department") or requester_profile.get("department")
+        if department:
+            dept_mapping = self.approval_routing.get("by_department", {})
+            if department in dept_mapping:
+                return dept_mapping[department]
+        role = request.get("role") or requester_profile.get("role")
+        if role:
+            role_mapping = self.approval_routing.get("by_role", {})
+            if role in role_mapping:
+                return role_mapping[role]
+        effort = float(request.get("effort", 0))
+        for threshold in sorted(
+            self.approval_routing.get("effort_thresholds", []),
+            key=lambda item: float(item.get("threshold", 0)),
+            reverse=True,
+        ):
+            if effort >= float(threshold.get("threshold", 0)):
+                return threshold.get("approver", default_approver)
+        return default_approver
 
     async def _calculate_skill_match_score(
         self, resource_skills: set, required_skills: set
@@ -1949,12 +2270,32 @@ class ResourceCapacityAgent(BaseAgent):
         self, resource_id: str, project_context: dict[str, Any]
     ) -> float:
         """Get historical performance score for resource."""
-        # Future work: Query historical project performance data
-        return 0.85  # Baseline
+        if resource_id in self.performance_scores:
+            return self.performance_scores[resource_id]
+        score = 0.85
+        if self.db_service:
+            records = await self.db_service.query(
+                "project_performance", {"resource_id": resource_id}, limit=50
+            )
+            if records:
+                score = self._calculate_performance_score(records, project_context)
+        self.performance_scores[resource_id] = score
+        if self.db_service:
+            await self.db_service.store(
+                "resource_performance_scores",
+                resource_id,
+                {"resource_id": resource_id, "score": score, "calculated_at": datetime.utcnow().isoformat()},
+            )
+        return score
 
     async def _calculate_total_capacity(self) -> float:
         """Calculate total resource capacity in FTE."""
-        return len(self.resource_pool)  # Simplified
+        total_capacity = 0.0
+        for resource in self.resource_pool.values():
+            if resource.get("status") != "Active":
+                continue
+            total_capacity += float(resource.get("availability", 0.0))
+        return total_capacity
 
     async def _calculate_total_demand(self) -> float:
         """Calculate total resource demand in FTE."""
@@ -2228,7 +2569,19 @@ class ResourceCapacityAgent(BaseAgent):
 
         # Update availability
         availability = max(0, 100 - total_allocation) / 100
+        training_load = float(self.resource_pool.get(resource_id, {}).get("training_load", 0.0))
+        availability = max(0.0, availability - training_load)
         self.resource_pool[resource_id]["availability"] = availability
+        if self.db_service:
+            await self.db_service.store(
+                "resource_availability",
+                resource_id,
+                {
+                    "resource_id": resource_id,
+                    "availability": availability,
+                    "updated_at": datetime.utcnow().isoformat(),
+                },
+            )
 
     async def _calculate_day_availability(
         self,
@@ -2435,6 +2788,217 @@ class ResourceCapacityAgent(BaseAgent):
             "unfilled_requests": unfilled,
             "remaining_capacity": availability,
         }
+
+    async def _apply_training_record(
+        self, resource_id: str, record: dict[str, Any]
+    ) -> dict[str, Any]:
+        resource = self.resource_pool.get(resource_id)
+        if not resource:
+            return {}
+        completed = record.get("completed", [])
+        in_progress = record.get("in_progress", [])
+        scheduled = record.get("scheduled", [])
+        certifications = record.get("certifications", [])
+        skills = record.get("skills", [])
+        training_load = self._calculate_training_load(record)
+        training_metadata = {
+            "completed": completed,
+            "in_progress": in_progress,
+            "scheduled": scheduled,
+            "certifications": certifications,
+            "skills": skills,
+            "training_load": training_load,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        resource["training"] = training_metadata
+        resource["training_load"] = training_load
+        resource["certifications"] = list(
+            {*(resource.get("certifications", []) or []), *certifications}
+        )
+        resource["skills"] = list(
+            {*(resource.get("skills", []) or []), *skills}
+        )
+        if self.db_service:
+            await self.db_service.store(
+                "resource_training",
+                resource_id,
+                {"resource_id": resource_id, **training_metadata},
+            )
+        await self._update_resource_availability(resource_id)
+        return training_metadata
+
+    def _calculate_training_load(self, record: dict[str, Any]) -> float:
+        weekly_hours = record.get("weekly_hours")
+        total_hours = record.get("total_hours")
+        weeks = record.get("weeks", 1)
+        if weekly_hours is None and total_hours is not None:
+            weekly_hours = float(total_hours) / max(float(weeks or 1), 1.0)
+        if weekly_hours is None:
+            weekly_hours = 0.0
+        total_work_hours = self.default_working_hours_per_day * len(self.default_working_days)
+        return min(max(float(weekly_hours) / max(total_work_hours, 1.0), 0.0), 1.0)
+
+    def _get_effective_skills(self, resource: dict[str, Any]) -> list[str]:
+        skills = set(resource.get("skills", []) or [])
+        training = resource.get("training", {}) if resource else {}
+        for skill in training.get("skills", []) or []:
+            skills.add(skill)
+        for cert in training.get("certifications", []) or []:
+            skills.add(cert)
+        return list(skills)
+
+    def _calculate_performance_score(
+        self, records: list[dict[str, Any]], project_context: dict[str, Any]
+    ) -> float:
+        weights = {
+            "on_time_rate": 0.35,
+            "quality_score": 0.3,
+            "completion_rate": 0.2,
+            "customer_satisfaction": 0.15,
+        }
+        total = 0.0
+        for record in records:
+            on_time = self._normalize_score(record.get("on_time_rate", 0.85))
+            quality = self._normalize_score(record.get("quality_score", 0.85))
+            completion = self._normalize_score(record.get("completion_rate", 0.85))
+            satisfaction = self._normalize_score(record.get("customer_satisfaction", 0.85))
+            total += (
+                weights["on_time_rate"] * on_time
+                + weights["quality_score"] * quality
+                + weights["completion_rate"] * completion
+                + weights["customer_satisfaction"] * satisfaction
+            )
+        average = total / max(len(records), 1)
+        context_boost = 0.0
+        if project_context.get("priority") == "high":
+            context_boost += 0.02
+        return min(1.0, max(0.0, average + context_boost))
+
+    def _normalize_score(self, value: Any) -> float:
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return 0.85
+        if numeric > 1.0:
+            numeric = numeric / 100.0
+        return min(1.0, max(0.0, numeric))
+
+    def _get_attrition_rate(self) -> float:
+        if self.attrition_rate:
+            return self.attrition_rate
+        return 0.0
+
+    def _seasonality_multiplier(self, month_offset: int) -> float:
+        now = datetime.utcnow()
+        target_month = (now.month - 1 + month_offset) % 12 + 1
+        return float(self.seasonality_factors.get(str(target_month), 1.0))
+
+    def _adjust_capacity_forecast(self, forecast: list[float]) -> list[dict[str, Any]]:
+        adjusted: list[dict[str, Any]] = []
+        attrition_rate = self._get_attrition_rate()
+        training_adjustments = self._training_capacity_adjustments(len(forecast))
+        uplift = self._skill_development_multiplier()
+        for index, value in enumerate(forecast):
+            seasonality = self._seasonality_multiplier(index)
+            adjusted_value = max(
+                0.0,
+                (value * (1 - attrition_rate) * seasonality * uplift)
+                - training_adjustments[index],
+            )
+            adjusted.append({"month": index + 1, "capacity": adjusted_value})
+        return adjusted
+
+    def _adjust_demand_forecast(self, forecast: list[float]) -> list[dict[str, Any]]:
+        adjusted: list[dict[str, Any]] = []
+        pipeline_adjustments = self._pipeline_demand_adjustments(len(forecast))
+        for index, value in enumerate(forecast):
+            seasonality = self._seasonality_multiplier(index)
+            adjusted_value = max(0.0, (value + pipeline_adjustments[index]) * seasonality)
+            adjusted.append({"month": index + 1, "demand": adjusted_value})
+        return adjusted
+
+    def _training_capacity_adjustments(self, horizon: int) -> list[float]:
+        adjustments = [0.0 for _ in range(horizon)]
+        total_work_hours = self.default_working_hours_per_day * len(self.default_working_days)
+        if total_work_hours == 0:
+            return adjustments
+        for record in self.training_records.values():
+            for session in record.get("scheduled", []) or []:
+                date_str = session.get("date")
+                hours = float(session.get("hours", 0.0))
+                if not date_str:
+                    continue
+                session_date = datetime.fromisoformat(date_str)
+                month_offset = (
+                    (session_date.year - datetime.utcnow().year) * 12
+                    + session_date.month
+                    - datetime.utcnow().month
+                )
+                if 0 <= month_offset < horizon:
+                    adjustments[month_offset] += hours / max(total_work_hours, 1.0)
+        return [value * self.training_capacity_impact for value in adjustments]
+
+    def _pipeline_demand_adjustments(self, horizon: int) -> list[float]:
+        adjustments = [0.0 for _ in range(horizon)]
+        pipeline = self.config.get("pipeline_forecast", []) if self.config else []
+        for entry in pipeline:
+            month = int(entry.get("month", 0)) - 1
+            demand = float(entry.get("demand", 0.0))
+            if 0 <= month < horizon:
+                adjustments[month] += demand
+        return adjustments
+
+    def _skill_development_multiplier(self) -> float:
+        if not self.training_records:
+            return 1.0
+        completed_count = sum(
+            len(record.get("completed", []) or []) for record in self.training_records.values()
+        )
+        resource_count = max(len(self.resource_pool), 1)
+        uplift = min(self.skill_development_uplift, completed_count / (resource_count * 10))
+        return 1.0 + uplift
+
+    async def _deactivate_resource(self, resource_id: str, *, reason: str) -> None:
+        resource = self.resource_pool.get(resource_id)
+        if not resource:
+            return
+        if resource.get("status") == "Inactive":
+            return
+        resource["status"] = "Inactive"
+        resource["deactivated_at"] = datetime.utcnow().isoformat()
+        resource["deactivation_reason"] = reason
+        self.resource_pool[resource_id] = resource
+        self.resource_store.upsert(self.default_tenant_id, resource_id, resource)
+        await self._publish_resource_event("resource.updated", resource)
+
+    async def _deactivate_missing_resources(self, active_resource_ids: set[str]) -> None:
+        if not active_resource_ids:
+            return
+        for resource_id, resource in list(self.resource_pool.items()):
+            if resource_id in active_resource_ids:
+                continue
+            source = resource.get("source_system")
+            if source in {"azure_ad", "workday", "sap_successfactors"}:
+                await self._deactivate_resource(resource_id, reason="missing_from_hr_sync")
+
+    def _has_resource_changed(
+        self, existing: dict[str, Any], updated: dict[str, Any]
+    ) -> bool:
+        fields = [
+            "name",
+            "role",
+            "skills",
+            "location",
+            "cost_rate",
+            "certifications",
+            "availability",
+            "status",
+            "source_system",
+        ]
+        for field in fields:
+            if existing.get(field) != updated.get(field):
+                return True
+        return False
 
     async def _forecast_capacity_for_scenario(
         self, scenario: dict[str, Any]
