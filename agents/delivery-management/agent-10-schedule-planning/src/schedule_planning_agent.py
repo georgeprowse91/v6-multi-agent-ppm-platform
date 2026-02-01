@@ -24,6 +24,7 @@ from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 from services.integration import (
+    AIModelService,
     AnalyticsClient,
     CacheClient,
     CacheSettings,
@@ -32,6 +33,7 @@ from services.integration import (
     EventEnvelope,
     ExternalSyncClient,
     ExternalSyncSettings,
+    ModelTask,
     PersistenceSettings,
     SqlRepository,
     create_sql_engine,
@@ -80,6 +82,8 @@ class SchedulePlanningAgent(BaseAgent):
         self.enable_external_sync = config.get("enable_external_sync", False) if config else False
         self.enable_calendar_sync = config.get("enable_calendar_sync", False) if config else False
         self.enable_cache = config.get("enable_cache", True) if config else True
+        self.enable_ai_model_service = config.get("enable_ai_model_service", True) if config else True
+        self.enable_ml_simulation = config.get("enable_ml_simulation", True) if config else True
         self.cache_ttl_seconds = config.get("cache_ttl_seconds", 600) if config else 600
 
         schedule_store_path = (
@@ -104,7 +108,9 @@ class SchedulePlanningAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
-        self.integration_event_bus = EventBusClient() if self.enable_event_publishing else None
+        self.integration_event_bus = (
+            config.get("integration_event_bus") if config else None
+        ) or (EventBusClient() if self.enable_event_publishing else None)
         self.analytics_client = AnalyticsClient() if self.enable_analytics else None
         self.cache_client = (
             CacheClient(
@@ -118,6 +124,7 @@ class SchedulePlanningAgent(BaseAgent):
             else None
         )
         self.azure_ml_client = AzureMLClient() if self.enable_azure_ml else None
+        self.ai_model_service = AIModelService() if self.enable_ai_model_service else None
         self.databricks_client = (
             DatabricksMonteCarloClient(seed=self.simulation_seed)
             if self.enable_databricks
@@ -142,6 +149,7 @@ class SchedulePlanningAgent(BaseAgent):
             else None
         )
         self.duration_model_id: str | None = None
+        self.ai_duration_model_id: str | None = None
         self._sql_engine = None
         if self.enable_persistence:
             persistence_settings = PersistenceSettings()
@@ -154,6 +162,8 @@ class SchedulePlanningAgent(BaseAgent):
         if self.change_agent is None:
             change_config = config.get("change_agent_config", {}) if config else {}
             self.change_agent = ChangeConfigurationAgent(config=change_config)
+        self.financial_agent = config.get("financial_agent") if config else None
+        self.program_agent = config.get("program_agent") if config else None
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -170,6 +180,10 @@ class SchedulePlanningAgent(BaseAgent):
         # Future work: Initialize Outlook/Google Calendar integration for milestone sync
         # Future work: Set up Azure Service Bus/Event Grid for schedule event publishing
         # Future work: Initialize Azure Synapse Analytics for historical performance analysis
+
+        if self.event_bus:
+            self.event_bus.subscribe("risk.updated", self._handle_risk_event)
+            self.event_bus.subscribe("resource.updated", self._handle_resource_event)
 
         self.logger.info("Schedule & Planning Agent initialized")
 
@@ -354,6 +368,8 @@ class SchedulePlanningAgent(BaseAgent):
         # Define dependencies
         # Future work: Use AI to suggest dependencies based on task relationships
         dependencies = await self._suggest_dependencies(tasks_with_durations)
+        for dependency in dependencies:
+            await self._publish_dependency_added({"schedule_id": schedule_id}, dependency)
 
         # Calculate early/late start/finish dates using CPM
         scheduled_tasks = await self._calculate_cpm_dates(tasks_with_durations, dependencies)
@@ -437,6 +453,9 @@ class SchedulePlanningAgent(BaseAgent):
         Returns duration estimates with confidence intervals.
         """
         self.logger.info("Estimating task durations")
+        cached = await self._get_cached_duration_estimates(project_context, tasks)
+        if cached:
+            return cached
 
         team_performance = float(project_context.get("team_performance", 1.0))
         if self.azure_ml_client and not self.duration_model_id:
@@ -448,26 +467,40 @@ class SchedulePlanningAgent(BaseAgent):
             )
             self.duration_model_id = artifact.model_id
 
-        duration_estimates = {}
+        if self.ai_model_service and not self.ai_duration_model_id:
+            historical = await self._get_historical_durations("project", "medium")
+            training = self.ai_model_service.train_model(ModelTask.SCHEDULE_ESTIMATION, historical)
+            self.ai_duration_model_id = training.record.model_id
+            self.ai_model_service.deploy_model(self.ai_duration_model_id)
+
+        duration_estimates: dict[str, dict[str, Any]] = {}
 
         for task in tasks:
             task_id = task.get("task_id")
+            if not task_id:
+                continue
             task_name = task.get("name", "")
             complexity = task.get("complexity", "medium")
 
-            # Query historical data for similar tasks
-            # Future work: Integrate with Azure Synapse Analytics
             historical_data = await self._get_historical_durations(task_name, complexity)
 
-            if self.azure_ml_client and self.duration_model_id:
-                most_likely = self.azure_ml_client.predict_duration(self.duration_model_id, complexity)
-                historical_data = historical_data or [most_likely]
+            ml_estimate = None
+            if self.ai_model_service and self.ai_duration_model_id:
+                features = self._build_duration_features(task, project_context)
+                ml_estimate = self.ai_model_service.predict(self.ai_duration_model_id, features)
 
-            optimistic, most_likely, pessimistic = await self._calculate_pert_estimate(
-                task, historical_data
+            azure_estimate = None
+            if self.azure_ml_client and self.duration_model_id:
+                azure_estimate = self.azure_ml_client.predict_duration(self.duration_model_id, complexity)
+
+            base_estimate = await self._combine_duration_estimates(
+                historical_data, ml_estimate, azure_estimate
             )
 
-            # Calculate expected duration using PERT formula
+            optimistic, most_likely, pessimistic = await self._calculate_pert_estimate(
+                task, historical_data, base_estimate
+            )
+
             expected_duration = (optimistic + 4 * most_likely + pessimistic) / 6
 
             duration_estimates[task_id] = {
@@ -475,11 +508,12 @@ class SchedulePlanningAgent(BaseAgent):
                 "most_likely": most_likely,
                 "pessimistic": pessimistic,
                 "expected": expected_duration,
-                "confidence": 0.80,  # Future work: Calculate actual confidence
+                "confidence": await self._estimate_confidence(historical_data),
                 "unit": "days",
             }
 
-        return duration_estimates  # type: ignore
+        await self._cache_duration_estimates(project_context, tasks, duration_estimates)
+        return duration_estimates
 
     async def _map_dependencies(
         self, schedule_id: str, dependencies: list[dict[str, Any]]
@@ -510,13 +544,18 @@ class SchedulePlanningAgent(BaseAgent):
         schedule["dependencies"] = validated_dependencies
         self.dependencies[schedule_id] = validated_dependencies
 
+        if self.enable_persistence and self._sql_engine:
+            await self._persist_schedule(schedule)
+
+        for dependency in validated_dependencies:
+            await self._publish_dependency_added(schedule, dependency)
+
         # Generate network diagram data
         network_diagram = await self._generate_network_diagram(
             schedule.get("tasks", []), validated_dependencies
         )
 
-        # Future work: Store in database
-        # Future work: Publish dependencies.mapped event
+        await self._publish_schedule_updated(schedule, "dependencies.updated")
 
         return {
             "schedule_id": schedule_id,
@@ -558,10 +597,18 @@ class SchedulePlanningAgent(BaseAgent):
             max(task.get("late_finish", 0) for task in tasks_with_slack) if tasks_with_slack else 0
         )
 
-        # Update schedule
+        previous_path = schedule.get("critical_path", [])
         schedule["tasks"] = tasks_with_slack
         schedule["critical_path"] = [t["task_id"] for t in critical_path_tasks]
         schedule["project_duration_days"] = project_duration
+
+        if self.enable_persistence and self._sql_engine:
+            await self._persist_schedule(schedule)
+
+        if previous_path != schedule["critical_path"]:
+            await self._publish_critical_path_changed(schedule, previous_path, schedule["critical_path"])
+
+        await self._publish_schedule_updated(schedule, "schedule.updated")
 
         return {
             "schedule_id": schedule_id,
@@ -593,7 +640,6 @@ class SchedulePlanningAgent(BaseAgent):
         resource_availability = await self._get_resource_availability(resources)
 
         # Apply resource leveling
-        # Future work: Use optimization algorithm (RCPSP solver)
         leveled_schedule = await self._resource_leveling(tasks, dependencies, resource_availability)
 
         # Recalculate critical path with resource constraints
@@ -603,6 +649,12 @@ class SchedulePlanningAgent(BaseAgent):
         utilization = await self._calculate_resource_utilization(
             leveled_schedule, resource_availability
         )
+
+        schedule["tasks"] = leveled_schedule
+        schedule["resource_leveled_at"] = datetime.utcnow().isoformat()
+        if self.enable_persistence and self._sql_engine:
+            await self._persist_schedule(schedule)
+        await self._publish_schedule_updated(schedule, "schedule.resource_leveled")
 
         return {
             "schedule_id": schedule_id,
@@ -621,6 +673,11 @@ class SchedulePlanningAgent(BaseAgent):
         Returns probabilistic completion dates.
         """
         self.logger.info(f"Running Monte Carlo simulation for schedule: {schedule_id}")
+
+        if self.cache_client:
+            cached = self.cache_client.get(self._simulation_cache_key(schedule_id))
+            if cached and cached.get("iterations") == iterations:
+                return {"schedule_id": schedule_id, **cached}
 
         schedule = self.schedules.get(schedule_id)
         if not schedule:
@@ -670,6 +727,17 @@ class SchedulePlanningAgent(BaseAgent):
             p90 = monte_carlo.percentiles.get(90, 0)
             p95 = monte_carlo.percentiles.get(95, 0)
             distribution_stats = monte_carlo.statistics
+        elif self.ai_model_service and self.enable_ml_simulation:
+            simulation_results = await self._run_ml_simulation(tasks, dependencies, iterations)
+            p50 = await self._calculate_percentile(simulation_results, 50)
+            p80 = await self._calculate_percentile(simulation_results, 80)
+            p90 = await self._calculate_percentile(simulation_results, 90)
+            p95 = await self._calculate_percentile(simulation_results, 95)
+            distribution_stats = {
+                "min": min(simulation_results) if simulation_results else 0,
+                "max": max(simulation_results) if simulation_results else 0,
+                "mean": sum(simulation_results) / len(simulation_results) if simulation_results else 0,
+            }
         else:
             monte_carlo = await self.scenario_engine.run_monte_carlo(
                 iterations=iterations,
@@ -690,6 +758,37 @@ class SchedulePlanningAgent(BaseAgent):
 
         risk_drivers = await self._extract_risk_drivers(task_samples, simulation_results)
 
+        schedule["simulation"] = {
+            "iterations": iterations,
+            "p50_duration": p50,
+            "p80_duration": p80,
+            "p90_duration": p90,
+            "p95_duration": p95,
+            "risk_score": risk_score,
+            "distribution": distribution_stats,
+        }
+        if self.enable_persistence and self._sql_engine:
+            await self._persist_simulation(schedule, iterations, p50, p80, p90, p95, risk_score, distribution_stats)
+
+        await self._publish_schedule_simulated(schedule, iterations, p50, p80, p90, p95, risk_score)
+
+        response = {
+            "schedule_id": schedule_id,
+            "iterations": iterations,
+            "baseline_duration": schedule.get("project_duration_days", 0),
+            "p50_duration": p50,
+            "p80_duration": p80,
+            "p90_duration": p90,
+            "p95_duration": p95,
+            "risk_score": risk_score,
+            "risk_drivers": risk_drivers,
+            "distribution": distribution_stats,
+        }
+
+        if self.cache_client:
+            cache_key = self._simulation_cache_key(schedule_id)
+            self.cache_client.set(cache_key, response, ttl_seconds=self.cache_ttl_seconds)
+
         if self.analytics_client:
             self.analytics_client.record_metric(
                 "schedule.monte_carlo_p80",
@@ -702,18 +801,7 @@ class SchedulePlanningAgent(BaseAgent):
                 {"schedule_id": schedule_id},
             )
 
-        return {
-            "schedule_id": schedule_id,
-            "iterations": iterations,
-            "baseline_duration": schedule.get("project_duration_days", 0),
-            "p50_duration": p50,
-            "p80_duration": p80,
-            "p90_duration": p90,
-            "p95_duration": p95,
-            "risk_score": risk_score,
-            "risk_drivers": risk_drivers,
-            "distribution": distribution_stats,
-        }
+        return response
 
     async def _track_milestones(self, schedule_id: str) -> dict[str, Any]:
         """
@@ -911,7 +999,8 @@ class SchedulePlanningAgent(BaseAgent):
         schedule_variance_pct = sv / baseline_duration if baseline_duration else 0
 
         # Calculate schedule performance index (SPI)
-        spi = await self._calculate_spi(schedule, baseline)
+        earned_value = await self._calculate_earned_value(schedule, baseline, tenant_id=tenant_id)
+        spi = earned_value.get("schedule_performance_index", 1.0)
 
         # Identify delayed tasks
         delayed_tasks = await self._identify_delayed_tasks(schedule, baseline)
@@ -969,6 +1058,7 @@ class SchedulePlanningAgent(BaseAgent):
             "schedule_variance_days": sv,
             "schedule_variance_pct": schedule_variance_pct,
             "schedule_performance_index": spi,
+            "earned_value": earned_value,
             "variance_status": "Ahead" if sv > 0 else "Behind" if sv < 0 else "On Track",
             "delayed_tasks": delayed_tasks,
             "critical_path_changes": critical_path_changes,
@@ -1042,6 +1132,16 @@ class SchedulePlanningAgent(BaseAgent):
                         schedule,
                         ttl_seconds=self.cache_ttl_seconds,
                     )
+        if not schedule and self.enable_persistence and self._sql_engine:
+            schedule = await self._load_schedule_from_db(schedule_id)
+            if schedule:
+                self.schedules[schedule_id] = schedule
+                if self.cache_client:
+                    self.cache_client.set(
+                        self._schedule_cache_key(tenant_id, schedule_id),
+                        schedule,
+                        ttl_seconds=self.cache_ttl_seconds,
+                    )
         return schedule
 
     # Helper methods
@@ -1053,6 +1153,22 @@ class SchedulePlanningAgent(BaseAgent):
 
     def _schedule_cache_key(self, tenant_id: str, schedule_id: str) -> str:
         return f"schedule:{tenant_id}:{schedule_id}"
+
+    def _simulation_cache_key(self, schedule_id: str) -> str:
+        return f"schedule:simulation:{schedule_id}"
+
+    def _duration_cache_key(self, project_id: str, task_signature: str) -> str:
+        return f"schedule:duration:{project_id}:{task_signature}"
+
+    def _parse_datetime(self, value: Any) -> datetime | None:
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str) and value:
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError:
+                return None
+        return None
 
     async def _generate_baseline_id(self, schedule_id: str) -> str:
         """Generate unique baseline ID."""
@@ -1111,7 +1227,7 @@ class SchedulePlanningAgent(BaseAgent):
         return payload
 
     async def _publish_schedule_created(self, schedule: dict[str, Any]) -> None:
-        if not self.integration_event_bus:
+        if not self.integration_event_bus and not self.event_bus:
             return
         envelope = EventEnvelope(
             event_type="schedule.created",
@@ -1124,6 +1240,8 @@ class SchedulePlanningAgent(BaseAgent):
             },
         )
         self.integration_event_bus.publish_event(envelope)
+        if self.event_bus:
+            await self.event_bus.publish("schedule.created", envelope.to_payload())
 
     async def _publish_task_updated(
         self, schedule: dict[str, Any], task: dict[str, Any], event_type: str = "task.updated"
@@ -1141,6 +1259,94 @@ class SchedulePlanningAgent(BaseAgent):
             },
         )
         self.integration_event_bus.publish_event(envelope)
+
+    async def _publish_schedule_updated(self, schedule: dict[str, Any], event_type: str) -> None:
+        if not self.integration_event_bus and not self.event_bus:
+            return
+        envelope = EventEnvelope(
+            event_type=event_type,
+            subject=f"schedule/{schedule.get('schedule_id')}",
+            data={
+                "schedule_id": schedule.get("schedule_id"),
+                "project_id": schedule.get("project_id"),
+                "status": schedule.get("status"),
+                "updated_at": datetime.utcnow().isoformat(),
+            },
+        )
+        if self.integration_event_bus:
+            self.integration_event_bus.publish_event(envelope)
+        if self.event_bus:
+            await self.event_bus.publish(event_type, envelope.to_payload())
+
+    async def _publish_dependency_added(
+        self, schedule: dict[str, Any], dependency: dict[str, Any]
+    ) -> None:
+        if not self.integration_event_bus and not self.event_bus:
+            return
+        envelope = EventEnvelope(
+            event_type="dependency.added",
+            subject=f"schedule/{schedule.get('schedule_id')}/dependency/{dependency.get('predecessor')}-{dependency.get('successor')}",
+            data={
+                "schedule_id": schedule.get("schedule_id"),
+                "predecessor": dependency.get("predecessor"),
+                "successor": dependency.get("successor"),
+                "type": dependency.get("type"),
+                "lag": dependency.get("lag"),
+            },
+        )
+        if self.integration_event_bus:
+            self.integration_event_bus.publish_event(envelope)
+        if self.event_bus:
+            await self.event_bus.publish("dependency.added", envelope.to_payload())
+
+    async def _publish_critical_path_changed(
+        self, schedule: dict[str, Any], previous: list[str], current: list[str]
+    ) -> None:
+        if not self.integration_event_bus and not self.event_bus:
+            return
+        envelope = EventEnvelope(
+            event_type="critical_path.changed",
+            subject=f"schedule/{schedule.get('schedule_id')}/critical-path",
+            data={
+                "schedule_id": schedule.get("schedule_id"),
+                "previous": previous,
+                "current": current,
+            },
+        )
+        if self.integration_event_bus:
+            self.integration_event_bus.publish_event(envelope)
+        if self.event_bus:
+            await self.event_bus.publish("critical_path.changed", envelope.to_payload())
+
+    async def _publish_schedule_simulated(
+        self,
+        schedule: dict[str, Any],
+        iterations: int,
+        p50: float,
+        p80: float,
+        p90: float,
+        p95: float,
+        risk_score: float,
+    ) -> None:
+        if not self.integration_event_bus and not self.event_bus:
+            return
+        envelope = EventEnvelope(
+            event_type="schedule.simulated",
+            subject=f"schedule/{schedule.get('schedule_id')}/simulation",
+            data={
+                "schedule_id": schedule.get("schedule_id"),
+                "iterations": iterations,
+                "p50_duration": p50,
+                "p80_duration": p80,
+                "p90_duration": p90,
+                "p95_duration": p95,
+                "risk_score": risk_score,
+            },
+        )
+        if self.integration_event_bus:
+            self.integration_event_bus.publish_event(envelope)
+        if self.event_bus:
+            await self.event_bus.publish("schedule.simulated", envelope.to_payload())
 
     async def _submit_change_request(
         self,
@@ -1178,7 +1384,19 @@ class SchedulePlanningAgent(BaseAgent):
             return
         with Session(self._sql_engine) as session:
             repo = SqlRepository(session)
-            schedule_row = repo.add_schedule(schedule.get("schedule_id", "schedule"), schedule.get("status", "draft"))
+            start_date = self._parse_datetime(schedule.get("start_date"))
+            end_date = self._parse_datetime(schedule.get("end_date"))
+            schedule_row = repo.upsert_schedule(
+                schedule_key=schedule.get("schedule_id", "schedule"),
+                name=schedule.get("schedule_id", "schedule"),
+                status=schedule.get("status", "draft"),
+                project_id=schedule.get("project_id", ""),
+                start_date=start_date,
+                end_date=end_date,
+            )
+
+            repo.clear_schedule_children(schedule_row.id)
+
             for task in schedule.get("tasks", []):
                 repo.add_task(
                     schedule_id=schedule_row.id,
@@ -1188,6 +1406,15 @@ class SchedulePlanningAgent(BaseAgent):
                     status=task.get("status", "planned"),
                 )
                 await self._publish_task_updated(schedule, task)
+                for resource in task.get("resources", []):
+                    repo.add_resource_allocation(
+                        schedule_id=schedule_row.id,
+                        task_key=task.get("task_id", ""),
+                        resource_id=resource.get("id", "default"),
+                        skill=resource.get("skill", ""),
+                        units=float(resource.get("units", 1.0)),
+                        performance_score=float(resource.get("performance", 1.0)),
+                    )
 
             for dependency in schedule.get("dependencies", []):
                 repo.add_dependency(
@@ -1210,11 +1437,67 @@ class SchedulePlanningAgent(BaseAgent):
                     "milestones": schedule.get("milestones", []),
                 },
             )
+            await self._pull_external_updates(schedule)
         if self.enable_calendar_sync:
             self.external_sync_client.sync_calendar(
                 schedule.get("schedule_id", ""),
                 schedule.get("milestones", []),
             )
+
+    async def _pull_external_updates(self, schedule: dict[str, Any]) -> None:
+        if not self.external_sync_client:
+            return
+        updates = self.external_sync_client.pull_updates(schedule.get("schedule_id", ""))
+        if not updates:
+            return
+        conflicts: list[dict[str, Any]] = []
+        for update in updates:
+            payload = update.payload
+            conflicts.extend(self._apply_external_update(schedule, payload, update.timestamp.isoformat()))
+
+        schedule.setdefault("external_sync", {})
+        schedule["external_sync"]["last_synced_at"] = datetime.utcnow().isoformat()
+        schedule["external_sync"]["conflicts"] = conflicts
+
+        if self.enable_persistence and self._sql_engine:
+            await self._persist_schedule(schedule)
+
+        if conflicts:
+            await self._publish_schedule_updated(schedule, "schedule.sync.conflict")
+        else:
+            await self._publish_schedule_updated(schedule, "schedule.synced")
+
+    def _apply_external_update(
+        self, schedule: dict[str, Any], payload: dict[str, Any], timestamp: str
+    ) -> list[dict[str, Any]]:
+        conflicts: list[dict[str, Any]] = []
+        tasks = schedule.get("tasks", [])
+        task_map = {task.get("task_id"): task for task in tasks}
+        for incoming in payload.get("tasks", []):
+            task_id = incoming.get("task_id")
+            if not task_id:
+                continue
+            existing = task_map.get(task_id)
+            if not existing:
+                tasks.append(incoming)
+                continue
+            if existing.get("duration") != incoming.get("duration"):
+                conflicts.append(
+                    {
+                        "task_id": task_id,
+                        "field": "duration",
+                        "local": existing.get("duration"),
+                        "external": incoming.get("duration"),
+                        "resolved_at": timestamp,
+                        "resolution": "external",
+                    }
+                )
+            existing.update(incoming)
+        schedule["tasks"] = tasks
+        for milestone in payload.get("milestones", []):
+            schedule.setdefault("milestones", [])
+            schedule["milestones"].append(milestone)
+        return conflicts
 
     async def _wbs_to_tasks(self, wbs: dict[str, Any]) -> list[dict[str, Any]]:
         """Convert WBS to flat task list."""
@@ -1239,20 +1522,101 @@ class SchedulePlanningAgent(BaseAgent):
         # Future work: Query Azure Synapse Analytics
         return [5.0, 7.0, 6.0]  # Baseline
 
+    async def _get_cached_duration_estimates(
+        self, project_context: dict[str, Any], tasks: list[dict[str, Any]]
+    ) -> dict[str, dict[str, Any]] | None:
+        if not self.cache_client:
+            return None
+        project_id = project_context.get("project_id", "default")
+        signature = ",".join(sorted(task.get("task_id", "") for task in tasks))
+        cache_key = self._duration_cache_key(project_id, signature)
+        cached = self.cache_client.get(cache_key)
+        return cached  # type: ignore
+
+    async def _cache_duration_estimates(
+        self,
+        project_context: dict[str, Any],
+        tasks: list[dict[str, Any]],
+        estimates: dict[str, dict[str, Any]],
+    ) -> None:
+        if not self.cache_client:
+            return
+        project_id = project_context.get("project_id", "default")
+        signature = ",".join(sorted(task.get("task_id", "") for task in tasks))
+        cache_key = self._duration_cache_key(project_id, signature)
+        self.cache_client.set(cache_key, estimates, ttl_seconds=self.cache_ttl_seconds)
+
+    def _build_duration_features(
+        self, task: dict[str, Any], project_context: dict[str, Any]
+    ) -> dict[str, Any]:
+        complexity = task.get("complexity", "medium")
+        complexity_factor = {"low": 0.8, "medium": 1.0, "high": 1.3}.get(complexity, 1.0)
+        resources = task.get("resources", []) or project_context.get("resources", [])
+        skill_factor = self._calculate_skill_factor(resources)
+        performance_factor = self._calculate_performance_factor(resources, project_context)
+        return {
+            "weight": skill_factor * performance_factor,
+            "complexity": complexity_factor,
+        }
+
+    def _calculate_skill_factor(self, resources: list[dict[str, Any]]) -> float:
+        if not resources:
+            return 1.0
+        scores = [float(resource.get("skill_level", 1.0)) for resource in resources]
+        return max(0.5, min(1.5, sum(scores) / len(scores)))
+
+    def _calculate_performance_factor(
+        self, resources: list[dict[str, Any]], project_context: dict[str, Any]
+    ) -> float:
+        team_performance = float(project_context.get("team_performance", 1.0))
+        resource_scores = [
+            float(resource.get("performance", team_performance)) for resource in resources
+        ] or [team_performance]
+        avg = sum(resource_scores) / len(resource_scores)
+        return max(0.5, min(1.5, 1 / avg if avg > 0 else 1.0))
+
+    async def _combine_duration_estimates(
+        self,
+        historical_data: list[float],
+        ml_estimate: float | None,
+        azure_estimate: float | None,
+    ) -> float:
+        candidates = [value for value in [ml_estimate, azure_estimate] if value]
+        if historical_data:
+            candidates.append(sum(historical_data) / len(historical_data))
+        if not candidates:
+            return 5.0
+        return sum(candidates) / len(candidates)
+
+    async def _estimate_confidence(self, historical_data: list[float]) -> float:
+        if len(historical_data) < 2:
+            return 0.7
+        avg = sum(historical_data) / len(historical_data)
+        variance = sum((value - avg) ** 2 for value in historical_data) / len(historical_data)
+        spread = variance**0.5
+        confidence = 1.0 - min(0.5, spread / max(avg, 1.0))
+        return max(0.5, min(0.95, confidence))
+
     async def _calculate_pert_estimate(
-        self, task: dict[str, Any], historical_data: list[float]
+        self, task: dict[str, Any], historical_data: list[float], base_estimate: float
     ) -> tuple[float, float, float]:
         """Calculate PERT estimates (optimistic, most likely, pessimistic)."""
-        # Future work: Use ML model for better estimates
         if historical_data:
             avg = sum(historical_data) / len(historical_data)
-            optimistic = avg * 0.8
-            most_likely = avg
-            pessimistic = avg * 1.3
+            variance = sum((value - avg) ** 2 for value in historical_data) / len(historical_data)
+            spread = max(0.5, variance**0.5)
         else:
-            optimistic = 3.0
-            most_likely = 5.0
-            pessimistic = 8.0
+            avg = base_estimate or 5.0
+            spread = max(1.0, avg * 0.25)
+
+        base = base_estimate or avg
+        complexity = task.get("complexity", "medium")
+        complexity_factor = {"low": 0.9, "medium": 1.0, "high": 1.2}.get(complexity, 1.0)
+        base *= complexity_factor
+
+        optimistic = max(0.5, base - spread)
+        most_likely = max(0.5, base)
+        pessimistic = max(optimistic + 0.5, base + spread * 1.3)
 
         return optimistic, most_likely, pessimistic
 
@@ -1275,7 +1639,7 @@ class SchedulePlanningAgent(BaseAgent):
         if not tasks:
             return []
 
-        def _priority(task: dict[str, Any]) -> int:
+        def _priority(task: dict[str, Any]) -> float:
             name = (task.get("name") or "").lower()
             keywords = [
                 ("init", 1),
@@ -1287,10 +1651,16 @@ class SchedulePlanningAgent(BaseAgent):
                 ("deploy", 6),
                 ("close", 7),
             ]
+            base = 3.0
             for key, score in keywords:
                 if key in name:
-                    return score
-            return 3
+                    base = float(score)
+                    break
+            if self.ai_model_service and self.enable_dependency_ai and self.ai_duration_model_id:
+                features = {"weight": len(name) / 10 if name else 1.0, "complexity": base / 3}
+                ai_score = self.ai_model_service.predict(self.ai_duration_model_id, features)
+                return base + ai_score / 10
+            return base
 
         ordered = sorted(tasks, key=_priority) if self.enable_dependency_ai else tasks
         dependencies: list[dict[str, Any]] = []
@@ -1578,8 +1948,8 @@ class SchedulePlanningAgent(BaseAgent):
         dependencies: list[dict[str, Any]],
         resource_availability: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Apply resource leveling to schedule."""
-        leveled = await self._forward_pass(tasks, dependencies)
+        """Apply resource leveling using a simple RCPSP serial schedule generation scheme."""
+        forward = await self._forward_pass(tasks, dependencies)
         capacities: dict[str, float] = {}
         for key, value in resource_availability.items():
             if isinstance(value, dict):
@@ -1588,21 +1958,49 @@ class SchedulePlanningAgent(BaseAgent):
                 capacities[key] = float(value)
 
         usage: dict[str, dict[int, float]] = {key: {} for key in capacities}
-        ordered = sorted(leveled, key=lambda t: t.get("early_start", 0))
+        task_map = {task["task_id"]: dict(task) for task in forward}
+        predecessors: dict[str, list[str]] = {task["task_id"]: [] for task in forward}
+        for dep in dependencies:
+            pred = dep.get("predecessor")
+            succ = dep.get("successor")
+            if pred in predecessors and succ in task_map:
+                predecessors[succ].append(pred)
 
-        for task in ordered:
-            duration = max(1, int(math.ceil(float(task.get("duration", 0) or 0))))
-            required_resources = task.get("resources", [{"id": "default", "units": 1.0}])
-            start = int(task.get("early_start", 0))
-            while True:
-                if self._resources_available(usage, capacities, required_resources, start, duration):
-                    self._allocate_resources(usage, required_resources, start, duration)
-                    task["resource_start"] = start
-                    task["resource_finish"] = start + duration
-                    break
-                start += 1
+        remaining = set(task_map.keys())
+        scheduled: list[dict[str, Any]] = []
+        time_cursor = 0
 
-        return ordered
+        def ready_tasks(current_time: int) -> list[dict[str, Any]]:
+            ready = []
+            for task_id in remaining:
+                preds = predecessors.get(task_id, [])
+                if all(task_map[p].get("resource_finish", 0) <= current_time for p in preds):
+                    ready.append(task_map[task_id])
+            return ready
+
+        while remaining:
+            available = ready_tasks(time_cursor)
+            if not available:
+                time_cursor += 1
+                continue
+
+            available.sort(key=lambda t: (t.get("early_finish", 0), t.get("duration", 0)))
+            for task in available:
+                duration = max(1, int(math.ceil(float(task.get("duration", 0) or 0))))
+                required_resources = task.get("resources", [{"id": "default", "units": 1.0}])
+                start = max(time_cursor, int(task.get("early_start", 0)))
+                while True:
+                    if self._resources_available(usage, capacities, required_resources, start, duration):
+                        self._allocate_resources(usage, required_resources, start, duration)
+                        task["resource_start"] = start
+                        task["resource_finish"] = start + duration
+                        scheduled.append(task)
+                        remaining.remove(task["task_id"])
+                        break
+                    start += 1
+            time_cursor += 1
+
+        return scheduled
 
     async def _calculate_resource_utilization(
         self, schedule: list[dict[str, Any]], resource_availability: dict[str, Any]
@@ -1690,6 +2088,107 @@ class SchedulePlanningAgent(BaseAgent):
         forward = await self._forward_pass(tasks, dependencies)
         duration = max((task.get("early_finish", 0) for task in forward), default=0)
         return float(duration)
+
+    async def _run_ml_simulation(
+        self,
+        tasks: list[dict[str, Any]],
+        dependencies: list[dict[str, Any]],
+        iterations: int,
+    ) -> list[float]:
+        rng = random.Random(self.simulation_seed)
+        results: list[float] = []
+        for _ in range(iterations):
+            sampled = []
+            for task in tasks:
+                base = float(task.get("duration", 0) or 0)
+                variance = float(task.get("duration_estimate", {}).get("pessimistic", base)) - base
+                variance = max(0.5, variance)
+                duration = max(0.5, rng.gauss(base, variance / 2))
+                sampled.append(dict(task, duration=duration))
+            duration_total = await self._calculate_simulated_duration(sampled, dependencies)
+            results.append(duration_total)
+        return results
+
+    async def _persist_simulation(
+        self,
+        schedule: dict[str, Any],
+        iterations: int,
+        p50: float,
+        p80: float,
+        p90: float,
+        p95: float,
+        risk_score: float,
+        distribution: dict[str, Any],
+    ) -> None:
+        if not self._sql_engine:
+            return
+        with Session(self._sql_engine) as session:
+            repo = SqlRepository(session)
+            schedule_row = repo.get_schedule_by_key(schedule.get("schedule_id", "schedule"))
+            if not schedule_row:
+                return
+            repo.add_simulation_record(
+                schedule_id=schedule_row.id,
+                iterations=iterations,
+                p50=p50,
+                p80=p80,
+                p90=p90,
+                p95=p95,
+                risk_score=risk_score,
+                distribution=distribution,
+            )
+
+    async def _load_schedule_from_db(self, schedule_id: str) -> dict[str, Any] | None:
+        if not self._sql_engine:
+            return None
+        with Session(self._sql_engine) as session:
+            repo = SqlRepository(session)
+            schedule_row = repo.get_schedule_by_key(schedule_id)
+            if not schedule_row:
+                return None
+            tasks = [
+                {
+                    "task_id": record.task_key,
+                    "name": record.name,
+                    "duration": record.duration_days,
+                    "status": record.status,
+                }
+                for record in repo.get_tasks(schedule_row.id)
+            ]
+            dependencies = [
+                {
+                    "predecessor": dep.predecessor_task_key,
+                    "successor": dep.successor_task_key,
+                    "type": dep.dependency_type,
+                    "lag": dep.lag_days,
+                }
+                for dep in repo.get_dependencies(schedule_row.id)
+            ]
+            allocations: dict[str, list[dict[str, Any]]] = {}
+            for allocation in repo.get_resource_allocations(schedule_row.id):
+                allocations.setdefault(allocation.task_key, []).append(
+                    {
+                        "id": allocation.resource_id,
+                        "skill": allocation.skill,
+                        "units": allocation.units,
+                        "performance": allocation.performance_score,
+                    }
+                )
+            for task in tasks:
+                task["resources"] = allocations.get(task["task_id"], [])
+
+            return {
+                "schedule_id": schedule_row.schedule_key,
+                "project_id": schedule_row.project_id,
+                "status": schedule_row.status,
+                "tasks": tasks,
+                "dependencies": dependencies,
+                "start_date": schedule_row.start_date.isoformat()
+                if schedule_row.start_date
+                else None,
+                "end_date": schedule_row.end_date.isoformat() if schedule_row.end_date else None,
+                "loaded_from_db": True,
+            }
 
     async def _calculate_percentile(self, data: list[float], percentile: int) -> float:
         """Calculate percentile value."""
@@ -1824,10 +2323,87 @@ class SchedulePlanningAgent(BaseAgent):
         actual = schedule.get("project_duration_days", 0)
         return planned - actual  # type: ignore
 
-    async def _calculate_spi(self, schedule: dict[str, Any], baseline: dict[str, Any]) -> float:
-        """Calculate Schedule Performance Index."""
-        # Future work: Calculate actual SPI using earned value
-        return 1.0  # Baseline
+    async def _calculate_earned_value(
+        self, schedule: dict[str, Any], baseline: dict[str, Any], *, tenant_id: str
+    ) -> dict[str, Any]:
+        project_id = schedule.get("project_id", "")
+        financials = await self._fetch_financial_actuals(project_id, tenant_id=tenant_id)
+        progress = await self._fetch_schedule_progress(schedule, baseline)
+
+        budget_at_completion = float(financials.get("budget_at_completion", 0))
+        actual_cost = float(financials.get("actual_cost", 0))
+        planned_value = budget_at_completion * float(progress.get("planned_percent", 0))
+        earned_value = budget_at_completion * float(progress.get("percent_complete", 0))
+
+        cpi = earned_value / actual_cost if actual_cost > 0 else 1.0
+        spi = earned_value / planned_value if planned_value > 0 else 1.0
+
+        result = {
+            "budget_at_completion": budget_at_completion,
+            "actual_cost": actual_cost,
+            "planned_value": planned_value,
+            "earned_value": earned_value,
+            "percent_complete": progress.get("percent_complete", 0),
+            "planned_percent": progress.get("planned_percent", 0),
+            "cost_performance_index": cpi,
+            "schedule_performance_index": spi,
+            "calculated_at": datetime.utcnow().isoformat(),
+        }
+
+        if self.enable_persistence and self._sql_engine:
+            await self._persist_earned_value(schedule, result)
+        return result
+
+    async def _fetch_financial_actuals(
+        self, project_id: str, *, tenant_id: str
+    ) -> dict[str, Any]:
+        if self.financial_agent:
+            response = await self.financial_agent.process(
+                {
+                    "action": "calculate_evm",
+                    "project_id": project_id,
+                    "tenant_id": tenant_id,
+                    "context": {"tenant_id": tenant_id},
+                }
+            )
+            return {
+                "budget_at_completion": response.get("budget_at_completion", 0),
+                "actual_cost": response.get("actual_cost", 0),
+            }
+        return {"budget_at_completion": 0.0, "actual_cost": 0.0}
+
+    async def _fetch_schedule_progress(
+        self, schedule: dict[str, Any], baseline: dict[str, Any]
+    ) -> dict[str, float]:
+        tasks = schedule.get("tasks", [])
+        if not tasks:
+            return {"percent_complete": 0.0, "planned_percent": 0.0}
+        complete = sum(1 for task in tasks if task.get("status") in {"done", "completed"})
+        percent_complete = complete / len(tasks)
+        planned_duration = baseline.get("project_duration_days", 0) or 1
+        actual_duration = schedule.get("project_duration_days", 0) or 1
+        planned_percent = min(1.0, actual_duration / planned_duration)
+        return {
+            "percent_complete": percent_complete,
+            "planned_percent": planned_percent,
+        }
+
+    async def _persist_earned_value(self, schedule: dict[str, Any], earned_value: dict[str, Any]) -> None:
+        if not self._sql_engine:
+            return
+        with Session(self._sql_engine) as session:
+            repo = SqlRepository(session)
+            schedule_row = repo.get_schedule_by_key(schedule.get("schedule_id", "schedule"))
+            if not schedule_row:
+                return
+            repo.add_earned_value_record(
+                schedule_id=schedule_row.id,
+                planned_value=float(earned_value.get("planned_value", 0)),
+                earned_value=float(earned_value.get("earned_value", 0)),
+                actual_cost=float(earned_value.get("actual_cost", 0)),
+                spi=float(earned_value.get("schedule_performance_index", 1.0)),
+                cpi=float(earned_value.get("cost_performance_index", 1.0)),
+            )
 
     async def _identify_delayed_tasks(
         self, schedule: dict[str, Any], baseline: dict[str, Any]
@@ -1880,6 +2456,30 @@ class SchedulePlanningAgent(BaseAgent):
             burndown.append({"day": day, "remaining_points": remaining})
 
         return burndown
+
+    def _handle_risk_event(self, payload: dict[str, Any]) -> None:
+        project_id = payload.get("project_id")
+        severity = payload.get("severity") or payload.get("impact")
+        if not project_id:
+            return
+        for schedule in self.schedules.values():
+            if schedule.get("project_id") != project_id:
+                continue
+            if severity in {"high", "critical"}:
+                for task in schedule.get("tasks", []):
+                    task["duration"] = float(task.get("duration", 0) or 0) * 1.1
+                schedule["risk_adjusted_at"] = datetime.utcnow().isoformat()
+
+    def _handle_resource_event(self, payload: dict[str, Any]) -> None:
+        resource_id = payload.get("resource_id")
+        allocation = payload.get("allocation")
+        if not resource_id or allocation is None:
+            return
+        for schedule in self.schedules.values():
+            for task in schedule.get("tasks", []):
+                for resource in task.get("resources", []):
+                    if resource.get("id") == resource_id:
+                        resource["units"] = float(allocation)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

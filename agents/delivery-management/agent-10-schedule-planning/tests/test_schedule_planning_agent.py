@@ -4,6 +4,11 @@ from pathlib import Path
 
 import pytest
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.append(str(REPO_ROOT))
+
+from services.integration.event_bus import EventBusClient, InMemoryEventBusProvider
+
 
 class DummyEventBus:
     async def publish(self, *args, **kwargs) -> None:
@@ -11,8 +16,7 @@ class DummyEventBus:
 
 
 def _load_agent_class() -> type:
-    repo_root = Path(__file__).resolve().parents[4]
-    sys.path.append(str(repo_root))
+    repo_root = REPO_ROOT
     sys.path.append(
         str(
             repo_root
@@ -64,6 +68,16 @@ async def test_create_schedule_and_syncs(tmp_path: Path) -> None:
     assert agent.external_sync_client is not None
     assert agent.external_sync_client.pushed
     assert agent.external_sync_client.calendar_events
+    schedule = agent.schedules[schedule_id]
+    task_id = schedule["tasks"][0]["task_id"]
+    agent.external_sync_client.record_pull(
+        "jira",
+        schedule_id,
+        {"tasks": [{"task_id": task_id, "duration": 10}]},
+    )
+    await agent._sync_external_tools(schedule)
+    assert schedule["external_sync"]["conflicts"]
+    assert schedule["tasks"][0]["duration"] == 10
 
 
 @pytest.mark.anyio
@@ -109,3 +123,67 @@ async def test_databricks_monte_carlo(tmp_path: Path) -> None:
     simulation = await agent._run_monte_carlo(schedule_id, iterations=50)
     assert simulation["iterations"] == 50
     assert simulation["p80_duration"] >= 0
+
+
+@pytest.mark.anyio
+async def test_event_publishing_and_persistence(tmp_path: Path) -> None:
+    SchedulePlanningAgent = _load_agent_class()
+    provider = InMemoryEventBusProvider()
+    event_bus = EventBusClient(provider=provider)
+    agent = SchedulePlanningAgent(
+        config={
+            "schedule_store_path": str(tmp_path / "schedules.json"),
+            "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
+            "enable_persistence": True,
+            "sql_connection_string": f"sqlite+pysqlite:///{tmp_path / 'schedule.db'}",
+            "integration_event_bus": event_bus,
+            "event_bus": DummyEventBus(),
+        }
+    )
+
+    wbs = {
+        "1": {"name": "Plan"},
+        "2": {"name": "Build"},
+        "3": {"name": "Deploy"},
+    }
+    result = await agent._create_schedule("project-3", wbs, tenant_id="tenant-c")
+    schedule_id = result["schedule_id"]
+    agent.schedules[schedule_id]["critical_path"] = []
+    await agent._calculate_critical_path(schedule_id)
+    await agent._run_monte_carlo(schedule_id, iterations=25)
+
+    events = list(provider.drain(event_bus.settings.service_bus_topic))
+    event_types = {event["event_type"] for event in events}
+    assert "schedule.created" in event_types
+    assert "dependency.added" in event_types
+    assert "critical_path.changed" in event_types
+    assert "schedule.simulated" in event_types
+
+    loaded = await agent._load_schedule_from_db(schedule_id)
+    assert loaded is not None
+    assert loaded["schedule_id"] == schedule_id
+
+
+@pytest.mark.anyio
+async def test_resource_leveling_rcpsp(tmp_path: Path) -> None:
+    SchedulePlanningAgent = _load_agent_class()
+    agent = SchedulePlanningAgent(
+        config={
+            "schedule_store_path": str(tmp_path / "schedules.json"),
+            "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
+            "enable_persistence": False,
+            "event_bus": DummyEventBus(),
+        }
+    )
+
+    wbs = {
+        "1": {"name": "Design"},
+        "2": {"name": "Build"},
+    }
+    result = await agent._create_schedule("project-4", wbs, tenant_id="tenant-d")
+    schedule_id = result["schedule_id"]
+    resources = {"default": {"capacity": 1.0}}
+    output = await agent._resource_constrained_schedule(schedule_id, resources)
+    leveled = output["leveled_schedule"]
+    assert all("resource_start" in task for task in leveled)
+    assert all("resource_finish" in task for task in leveled)
