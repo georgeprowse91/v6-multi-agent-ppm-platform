@@ -3,6 +3,25 @@ import pytest
 from compliance_regulatory_agent import ComplianceRegulatoryAgent
 
 
+class DummyEventBus:
+    def __init__(self) -> None:
+        self.published: list[tuple[str, dict]] = []
+
+    def subscribe(self, _topic: str, _handler) -> None:
+        return None
+
+    async def publish(self, topic: str, payload: dict) -> None:
+        self.published.append((topic, payload))
+
+
+class DummySecurityAgent:
+    async def process(self, _payload: dict) -> dict:
+        return {
+            "security_scans": ["scan1"],
+            "audit_logs": ["security-log"],
+        }
+
+
 @pytest.mark.asyncio
 async def test_compliance_regulatory_persists_evidence_and_policy_check(tmp_path):
     agent = ComplianceRegulatoryAgent(
@@ -136,3 +155,85 @@ async def test_compliance_external_monitoring_adds_updates(tmp_path, monkeypatch
     )
 
     assert response["external_monitoring"]["updates"]
+
+
+@pytest.mark.asyncio
+async def test_compliance_evidence_aggregation_includes_security(tmp_path):
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "seed_frameworks": True,
+            "event_bus": DummyEventBus(),
+            "agent_clients": {"security": DummySecurityAgent()},
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    mapping = await agent.process(
+        {
+            "action": "map_controls_to_project",
+            "tenant_id": "tenant-c",
+            "project_id": "project-2",
+            "mapping": {"industry": "technology", "geography": "global"},
+        }
+    )
+    assert mapping["applicable_controls"] > 0
+
+    assessment = await agent.process(
+        {
+            "action": "assess_compliance",
+            "project_id": "project-2",
+            "assessment": {"tenant_id": "tenant-c"},
+        }
+    )
+    assert assessment["evidence_summary"]["security_scans"]
+
+
+@pytest.mark.asyncio
+async def test_compliance_event_handler_publishes_alerts(tmp_path):
+    bus = DummyEventBus()
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "seed_frameworks": True,
+            "event_bus": bus,
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    await agent.process(
+        {
+            "action": "map_controls_to_project",
+            "tenant_id": "tenant-c",
+            "project_id": "project-3",
+            "mapping": {"industry": "technology", "geography": "global"},
+        }
+    )
+    await agent._handle_compliance_event(
+        {"project_id": "project-3", "event_type": "deployment.completed"}
+    )
+
+    topics = [topic for topic, _payload in bus.published]
+    assert "compliance.alert.raised" in topics
+
+
+@pytest.mark.asyncio
+async def test_compliance_certification_report_generation(tmp_path):
+    agent = ComplianceRegulatoryAgent(
+        config={
+            "seed_frameworks": True,
+            "event_bus": DummyEventBus(),
+            "evidence_store_path": tmp_path / "evidence.json",
+        }
+    )
+    await agent.initialize()
+
+    report = await agent.process(
+        {
+            "action": "generate_compliance_report",
+            "report_type": "soc2",
+            "filters": {"project_id": "project-4", "industry": "technology"},
+        }
+    )
+
+    assert report["report_type"] == "soc2"
