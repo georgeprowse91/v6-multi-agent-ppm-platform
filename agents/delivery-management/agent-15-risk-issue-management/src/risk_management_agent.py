@@ -194,6 +194,114 @@ class KnowledgeBaseQueryService:
         return [item for item in results if item.get("strategy")]
 
 
+class RiskNLPExtractor:
+    """Extract risks from text using a transformer model with fallback heuristics."""
+
+    def __init__(
+        self,
+        *,
+        model_name: str = "bert-base-uncased",
+        pipeline_task: str = "zero-shot-classification",
+        labels: list[str] | None = None,
+        threshold: float = 0.6,
+        max_sentences: int = 80,
+    ) -> None:
+        self.model_name = model_name
+        self.pipeline_task = pipeline_task
+        self.labels = labels or ["risk", "no risk"]
+        self.threshold = threshold
+        self.max_sentences = max_sentences
+        self._pipeline = None
+
+    def is_available(self) -> bool:
+        return importlib.util.find_spec("transformers") is not None
+
+    def extract_risks(self, documents: list[dict[str, Any] | str]) -> list[dict[str, Any]]:
+        sentences = self._collect_sentences(documents)
+        if not sentences:
+            return []
+        self._ensure_pipeline()
+        if self._pipeline is None:
+            return self._heuristic_risks(sentences)
+        return self._model_risks(sentences)
+
+    def _ensure_pipeline(self) -> None:
+        if self._pipeline is not None or not self.is_available():
+            return
+        from transformers import pipeline
+
+        try:
+            self._pipeline = pipeline(self.pipeline_task, model=self.model_name)
+        except Exception:
+            self._pipeline = None
+
+    def _collect_sentences(self, documents: list[dict[str, Any] | str]) -> list[str]:
+        sentences: list[str] = []
+        for document in documents:
+            if isinstance(document, dict):
+                text = str(document.get("content") or document.get("text") or document)
+            else:
+                text = str(document)
+            for sentence in re.split(r"(?<=[.!?])\s+", text):
+                cleaned = sentence.strip()
+                if cleaned:
+                    sentences.append(cleaned)
+            if len(sentences) >= self.max_sentences:
+                break
+        return sentences[: self.max_sentences]
+
+    def _heuristic_risks(self, sentences: list[str]) -> list[dict[str, Any]]:
+        keywords = ("risk", "delay", "overrun", "issue", "compliance", "shortage")
+        extracted: list[dict[str, Any]] = []
+        for sentence in sentences:
+            lowered = sentence.lower()
+            if any(keyword in lowered for keyword in keywords):
+                extracted.append(
+                    {
+                        "title": sentence[:80],
+                        "description": sentence,
+                        "category": "nlp",
+                        "source": "heuristic_nlp",
+                    }
+                )
+        return extracted
+
+    def _model_risks(self, sentences: list[str]) -> list[dict[str, Any]]:
+        extracted: list[dict[str, Any]] = []
+        for sentence in sentences:
+            if self.pipeline_task == "zero-shot-classification":
+                result = self._pipeline(sentence, self.labels)
+                scores = dict(zip(result.get("labels", []), result.get("scores", [])))
+                risk_score = scores.get(self.labels[0], 0.0)
+                if risk_score >= self.threshold:
+                    extracted.append(
+                        {
+                            "title": sentence[:80],
+                            "description": sentence,
+                            "category": "nlp",
+                            "source": "transformer",
+                            "confidence": risk_score,
+                        }
+                    )
+            else:
+                result = self._pipeline(sentence)
+                if isinstance(result, list):
+                    result = result[0] if result else {}
+                label = str(result.get("label", "")).lower()
+                score = float(result.get("score", 0.0))
+                if "risk" in label or score >= self.threshold:
+                    extracted.append(
+                        {
+                            "title": sentence[:80],
+                            "description": sentence,
+                            "category": "nlp",
+                            "source": "transformer",
+                            "confidence": score,
+                        }
+                    )
+        return extracted
+
+
 class RiskManagementAgent(BaseAgent):
     """
     Risk Management Agent - Identifies, assesses and monitors risks.
@@ -287,6 +395,32 @@ class RiskManagementAgent(BaseAgent):
         self.synapse_manager: SynapseManager | None = None
         self.event_bus = None
         self.risk_events: list[dict[str, Any]] = []
+        self.risk_nlp_extractor = (
+            config.get("risk_nlp_extractor")
+            if config
+            else None
+        )
+        if not self.risk_nlp_extractor:
+            self.risk_nlp_extractor = RiskNLPExtractor(
+                model_name=(config.get("risk_nlp_model_name") if config else "bert-base-uncased"),
+                pipeline_task=(config.get("risk_nlp_pipeline_task") if config else "zero-shot-classification"),
+                labels=(config.get("risk_nlp_labels") if config else None),
+                threshold=float(config.get("risk_nlp_threshold", 0.6)) if config else 0.6,
+                max_sentences=int(config.get("risk_nlp_max_sentences", 80)) if config else 80,
+            )
+        self.schedule_agent_endpoint = (
+            config.get("schedule_agent_endpoint") if config else None
+        ) or (config.get("related_agent_endpoints", {}).get("schedule") if config else None)
+        self.financial_agent_endpoint = (
+            config.get("financial_agent_endpoint") if config else None
+        ) or (config.get("related_agent_endpoints", {}).get("financial") if config else None)
+        self.schedule_baseline_fixture = config.get("schedule_baseline_fixture", {}) if config else {}
+        self.financial_distribution_fixture = (
+            config.get("financial_distribution_fixture", {}) if config else {}
+        )
+        self.simulation_offload = config.get("simulation_offload", {}) if config else {}
+        self.latest_schedule_signals: dict[str, Any] = {}
+        self.latest_financial_signals: dict[str, Any] = {}
 
     async def initialize(self) -> None:
         """Initialize database connections, analytics tools, and AI models."""
@@ -329,6 +463,10 @@ class RiskManagementAgent(BaseAgent):
                 self.event_bus = get_event_bus()
             except Exception:
                 self.event_bus = None
+        if self.event_bus and hasattr(self.event_bus, "subscribe"):
+            self.event_bus.subscribe("schedule.baseline.locked", self._handle_schedule_baseline_event)
+            self.event_bus.subscribe("schedule.delay", self._handle_schedule_delay_event)
+            self.event_bus.subscribe("financial.budget.updated", self._handle_financial_update_event)
 
         if self.synapse_manager:
             self.synapse_manager.ensure_pools()
@@ -747,6 +885,7 @@ class RiskManagementAgent(BaseAgent):
             "due_date": mitigation_data.get("due_date"),
             "status": "Planned",
             "recommended_strategies": recommended_strategies,
+            "effectiveness": mitigation_data.get("effectiveness"),
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -759,6 +898,10 @@ class RiskManagementAgent(BaseAgent):
         # Calculate residual risk
         residual_risk = await self._calculate_residual_risk(risk, mitigation_plan)
         risk["residual_risk"] = residual_risk
+        if mitigation_plan.get("effectiveness") is None:
+            mitigation_plan["effectiveness"] = round(
+                max(0.0, 1 - (residual_risk / max(risk.get("score", 1), 1))), 2
+            )
 
         if self.db_service:
             await self.db_service.store("mitigation_plans", plan_id, mitigation_plan)
@@ -904,10 +1047,14 @@ class RiskManagementAgent(BaseAgent):
             r for r in self.risk_register.values() if r.get("project_id") == project_id
         ]
 
-        # Future work: Integrate with Schedule and Financial agents for baseline data
-        # Future work: Use Azure Batch for distributed Monte Carlo computation
-        simulation_results = await self._perform_monte_carlo_simulation(
-            project_id, project_risks, iterations
+        schedule_distribution = await self._fetch_schedule_baseline(project_id)
+        financial_distribution = await self._fetch_financial_distribution(project_id)
+        simulation_results = await self._offload_or_simulate(
+            project_id,
+            project_risks,
+            iterations,
+            schedule_distribution=schedule_distribution,
+            financial_distribution=financial_distribution,
         )
 
         # Calculate percentiles
@@ -927,13 +1074,40 @@ class RiskManagementAgent(BaseAgent):
                     "iterations": iterations,
                     "schedule": simulation_results["schedule"][:100],
                     "cost": simulation_results["cost"][:100],
+                    "schedule_distribution": schedule_distribution,
+                    "financial_distribution": financial_distribution,
                 }
             ],
             domain="simulation",
         )
+        simulation_record = {
+            "project_id": project_id,
+            "iterations": iterations,
+            "schedule_p50": schedule_p50,
+            "schedule_p80": schedule_p80,
+            "schedule_p95": schedule_p95,
+            "cost_p50": cost_p50,
+            "cost_p80": cost_p80,
+            "cost_p95": cost_p95,
+            "schedule_sample": simulation_results["schedule"][:100],
+            "cost_sample": simulation_results["cost"][:100],
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+        if self.db_service:
+            record_id = f"{project_id}-simulation-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+            await self.db_service.store("risk_simulations", record_id, simulation_record)
         await self._publish_risk_event(
             "risk.simulation_completed",
             {"project_id": project_id, "iterations": iterations},
+        )
+        await self._publish_risk_event(
+            "risk.simulated",
+            {
+                "project_id": project_id,
+                "iterations": iterations,
+                "schedule_p80": schedule_p80,
+                "cost_p80": cost_p80,
+            },
         )
         return {
             "project_id": project_id,
@@ -1111,6 +1285,7 @@ class RiskManagementAgent(BaseAgent):
                     "sensitivity_score": sensitivity.get("score"),
                     "impact_on_schedule": sensitivity.get("schedule_impact"),
                     "impact_on_cost": sensitivity.get("cost_impact"),
+                    "tornado_range": sensitivity.get("tornado_range"),
                 }
             )
 
@@ -1119,11 +1294,22 @@ class RiskManagementAgent(BaseAgent):
             sensitivity_results, key=lambda x: x["sensitivity_score"], reverse=True
         )
 
-        return {
+        results = {
             "project_id": project_id,
             "sensitivity_analysis": sorted_results,
             "most_sensitive_risk": sorted_results[0] if sorted_results else None,
         }
+        if sorted_results:
+            await self._store_risk_dataset(
+                "sensitivity_analysis",
+                [{"project_id": project_id, "results": sorted_results}],
+                domain="analytics",
+            )
+            await self._publish_risk_event(
+                "risk.sensitivity_analyzed",
+                {"project_id": project_id, "risk_count": len(sorted_results)},
+            )
+        return results
 
     async def _get_top_risks(self, project_id: str | None, limit: int = 10) -> list[dict[str, Any]]:
         """
@@ -1408,9 +1594,12 @@ class RiskManagementAgent(BaseAgent):
         self, documents: list[dict[str, Any] | str]
     ) -> list[dict[str, Any]]:
         """Extract potential risks from documents using NLP."""
+        extracted: list[dict[str, Any]] = []
+        if self.risk_nlp_extractor:
+            extracted.extend(self.risk_nlp_extractor.extract_risks(documents))
         if self.cognitive_search_service:
-            return self.cognitive_search_service.extract_risks(documents)
-        return []
+            extracted.extend(self.cognitive_search_service.extract_risks(documents))
+        return extracted
 
     async def _initial_risk_assessment(self, risk_data: dict[str, Any]) -> dict[str, Any]:
         """Perform initial risk assessment."""
@@ -1493,8 +1682,29 @@ class RiskManagementAgent(BaseAgent):
 
     async def _calculate_quantitative_impact(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Calculate quantitative impact on schedule and cost."""
-        # Future work: Integrate with Schedule and Financial agents
-        return {"schedule_impact_days": 0, "cost_impact": 0}
+        project_id = risk.get("project_id")
+        schedule_distribution = await self._fetch_schedule_baseline(project_id)
+        financial_distribution = await self._fetch_financial_distribution(project_id)
+        baseline_duration = schedule_distribution.get("baseline_duration_days", 100.0)
+        baseline_cost = financial_distribution.get("baseline_cost", 1_000_000.0)
+        probability = min(1.0, max(0.0, (risk.get("probability", 3) / 5)))
+        impact_factor = risk.get("impact", 3) / 5
+        schedule_variance = schedule_distribution.get("mean_delay_days")
+        if schedule_variance is None:
+            schedule_variance = baseline_duration * 0.1
+        cost_variance = financial_distribution.get("mean_cost_overrun")
+        if cost_variance is None:
+            cost_variance = baseline_cost * 0.05
+        expected_schedule = probability * impact_factor * schedule_variance
+        expected_cost = probability * impact_factor * cost_variance
+        return {
+            "schedule_impact_days": round(expected_schedule, 2),
+            "cost_impact": round(expected_cost, 2),
+            "baseline_duration_days": baseline_duration,
+            "baseline_cost": baseline_cost,
+            "probability": probability,
+            "impact_factor": impact_factor,
+        }
 
     async def _recommend_mitigation_strategies(self, risk: dict[str, Any]) -> list[str]:
         """Recommend mitigation strategies from knowledge base."""
@@ -1555,14 +1765,21 @@ class RiskManagementAgent(BaseAgent):
         risk["score"] = risk["probability"] * risk.get("impact", 3)
 
     async def _perform_monte_carlo_simulation(
-        self, project_id: str, risks: list[dict[str, Any]], iterations: int
+        self,
+        project_id: str,
+        risks: list[dict[str, Any]],
+        iterations: int,
+        schedule_distribution: dict[str, Any] | None = None,
+        financial_distribution: dict[str, Any] | None = None,
     ) -> dict[str, list[float]]:
         """Perform Monte Carlo simulation."""
         if iterations <= 0:
             return {"schedule": [], "cost": []}
 
-        baseline_schedule_days = 100.0
-        baseline_cost = 1_000_000.0
+        schedule_distribution = schedule_distribution or {}
+        financial_distribution = financial_distribution or {}
+        baseline_schedule_days = float(schedule_distribution.get("baseline_duration_days", 100.0))
+        baseline_cost = float(financial_distribution.get("baseline_cost", 1_000_000.0))
         numpy_spec = importlib.util.find_spec("numpy")
         if numpy_spec:
             import numpy as np
@@ -1572,8 +1789,8 @@ class RiskManagementAgent(BaseAgent):
             )
             impact_levels = np.array([risk.get("impact", 3) for risk in risks], dtype=float)
 
-            schedule_impact_days = impact_levels * 5.0
-            cost_impact = impact_levels * 50_000.0
+            schedule_impact_days = impact_levels * (baseline_schedule_days * 0.1 / 5.0)
+            cost_impact = impact_levels * (baseline_cost * 0.05 / 5.0)
 
             rng = np.random.default_rng()
             if risks:
@@ -1600,8 +1817,8 @@ class RiskManagementAgent(BaseAgent):
                 probability = min(1.0, max(0.0, (risk.get("probability", 3) / 5)))
                 impact = risk.get("impact", 3)
                 if random.random() < probability:
-                    schedule += impact * 5.0
-                    cost += impact * 50_000.0
+                    schedule += impact * (baseline_schedule_days * 0.1 / 5.0)
+                    cost += impact * (baseline_cost * 0.05 / 5.0)
             schedule_results.append(schedule)
             cost_results.append(cost)
 
@@ -1617,16 +1834,44 @@ class RiskManagementAgent(BaseAgent):
 
     async def _get_mitigation_status(self, project_id: str | None) -> dict[str, Any]:
         """Get mitigation plan status summary."""
-        # Future work: Query mitigation plans
-        return {"total_plans": 0, "planned": 0, "in_progress": 0, "completed": 0}
+        plans = list(self.mitigation_plans.values())
+        if self.db_service:
+            try:
+                plans = await self.db_service.query("mitigation_plans", limit=500)
+            except Exception:
+                plans = plans
+        if project_id:
+            valid_risks = {
+                risk_id
+                for risk_id, risk in self.risk_register.items()
+                if risk.get("project_id") == project_id
+            }
+            plans = [plan for plan in plans if plan.get("risk_id") in valid_risks]
+
+        status_counts = {"planned": 0, "in_progress": 0, "completed": 0, "total_plans": len(plans)}
+        for plan in plans:
+            status = str(plan.get("status", "planned")).lower().replace(" ", "_")
+            if status in status_counts:
+                status_counts[status] += 1
+        return status_counts
 
     async def _analyze_risk_sensitivity(self, risk: dict[str, Any]) -> dict[str, Any]:
         """Analyze sensitivity of outcomes to this risk."""
-        # Future work: Perform tornado diagram analysis
+        quantitative = await self._calculate_quantitative_impact(risk)
+        schedule = quantitative.get("schedule_impact_days", 0)
+        cost = quantitative.get("cost_impact", 0)
+        low_factor = 0.7
+        high_factor = 1.3
         return {
-            "score": risk.get("score", 0) * 2,  # Baseline
-            "schedule_impact": 5,
-            "cost_impact": 10000,
+            "score": risk.get("score", 0) * 2,
+            "schedule_impact": schedule,
+            "cost_impact": cost,
+            "tornado_range": {
+                "schedule_low": round(schedule * low_factor, 2),
+                "schedule_high": round(schedule * high_factor, 2),
+                "cost_low": round(cost * low_factor, 2),
+                "cost_high": round(cost * high_factor, 2),
+            },
         }
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -1796,6 +2041,122 @@ class RiskManagementAgent(BaseAgent):
         self.risk_events.append(event)
         if self.event_bus:
             await self.event_bus.publish(event_type, payload)
+
+    async def _offload_or_simulate(
+        self,
+        project_id: str,
+        risks: list[dict[str, Any]],
+        iterations: int,
+        *,
+        schedule_distribution: dict[str, Any],
+        financial_distribution: dict[str, Any],
+    ) -> dict[str, list[float]]:
+        offload_result = await self._submit_simulation_job(
+            project_id,
+            risks,
+            iterations,
+            schedule_distribution=schedule_distribution,
+            financial_distribution=financial_distribution,
+        )
+        if offload_result:
+            return offload_result
+        return await self._perform_monte_carlo_simulation(
+            project_id,
+            risks,
+            iterations,
+            schedule_distribution=schedule_distribution,
+            financial_distribution=financial_distribution,
+        )
+
+    async def _submit_simulation_job(
+        self,
+        project_id: str,
+        risks: list[dict[str, Any]],
+        iterations: int,
+        *,
+        schedule_distribution: dict[str, Any],
+        financial_distribution: dict[str, Any],
+    ) -> dict[str, list[float]] | None:
+        azure_batch_endpoint = self.simulation_offload.get("azure_batch_endpoint")
+        databricks_endpoint = self.simulation_offload.get("databricks_endpoint")
+        if not azure_batch_endpoint and not databricks_endpoint:
+            return None
+        payload = {
+            "project_id": project_id,
+            "iterations": iterations,
+            "risks": risks,
+            "schedule_distribution": schedule_distribution,
+            "financial_distribution": financial_distribution,
+        }
+        endpoint = azure_batch_endpoint or databricks_endpoint
+        response = await self._post_json(endpoint, payload) if endpoint else None
+        if not response:
+            return None
+        results = response.get("results") if isinstance(response, dict) else None
+        if isinstance(results, dict) and "schedule" in results and "cost" in results:
+            return {
+                "schedule": results.get("schedule", []),
+                "cost": results.get("cost", []),
+            }
+        return None
+
+    async def _fetch_schedule_baseline(self, project_id: str | None) -> dict[str, Any]:
+        if project_id and project_id in self.latest_schedule_signals:
+            return self.latest_schedule_signals[project_id]
+        if isinstance(self.schedule_baseline_fixture, dict) and self.schedule_baseline_fixture:
+            return self.schedule_baseline_fixture
+        if not project_id or not self.schedule_agent_endpoint:
+            return {"baseline_duration_days": 100.0}
+        payload = {"action": "get_schedule_baseline", "project_id": project_id}
+        response = await self._post_json(self.schedule_agent_endpoint, payload)
+        if response:
+            return response
+        return {"baseline_duration_days": 100.0}
+
+    async def _fetch_financial_distribution(self, project_id: str | None) -> dict[str, Any]:
+        if project_id and project_id in self.latest_financial_signals:
+            return self.latest_financial_signals[project_id]
+        if isinstance(self.financial_distribution_fixture, dict) and self.financial_distribution_fixture:
+            return self.financial_distribution_fixture
+        if not project_id or not self.financial_agent_endpoint:
+            return {"baseline_cost": 1_000_000.0}
+        payload = {"action": "get_cost_distribution", "project_id": project_id}
+        response = await self._post_json(self.financial_agent_endpoint, payload)
+        if response:
+            return response
+        return {"baseline_cost": 1_000_000.0}
+
+    async def _post_json(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+        try:
+            req = url_request.Request(
+                endpoint,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with url_request.urlopen(req, timeout=5) as response:
+                body = response.read().decode("utf-8")
+                return json.loads(body)
+        except Exception:
+            return None
+
+    async def _handle_schedule_baseline_event(self, payload: dict[str, Any]) -> None:
+        project_id = payload.get("project_id")
+        if not project_id:
+            return
+        self.latest_schedule_signals[project_id] = payload
+
+    async def _handle_schedule_delay_event(self, payload: dict[str, Any]) -> None:
+        project_id = payload.get("project_id")
+        if not project_id:
+            return
+        self.latest_schedule_signals[project_id] = payload
+
+    async def _handle_financial_update_event(self, payload: dict[str, Any]) -> None:
+        project_id = payload.get("project_id")
+        if not project_id:
+            return
+        self.latest_financial_signals[project_id] = payload
 
     async def _collect_external_risk_signals(self, project_id: str) -> list[dict[str, Any]]:
         signals: list[dict[str, Any]] = []
