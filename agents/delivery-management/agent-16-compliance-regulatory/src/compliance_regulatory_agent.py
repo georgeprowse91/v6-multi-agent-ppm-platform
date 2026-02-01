@@ -51,6 +51,44 @@ from agents.runtime.src.policy import (  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 
 
+class ComplianceRuleEngine:
+    """Simple rules engine to evaluate compliance evidence against control requirements."""
+
+    def evaluate(self, control: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
+        requirements = control.get("requirements", [])
+        if not requirements:
+            requirements = ["implemented", "evidence", "tested"]
+
+        score = 0.0
+        max_score = float(len(requirements))
+        gaps: list[str] = []
+
+        requirement_checks = {
+            "implemented": evidence.get("implementation_status") == "Implemented",
+            "evidence": evidence.get("evidence_uploaded", False),
+            "tested": evidence.get("recently_tested", False),
+            "audit_logs": bool(evidence.get("audit_logs")),
+            "risk_mitigation": bool(evidence.get("risk_mitigations")),
+            "quality_tests": bool(evidence.get("quality_results")),
+            "deployment_checks": bool(evidence.get("deployment_evidence")),
+            "data_privacy": evidence.get("privacy_impact_assessed", False),
+        }
+
+        for requirement in requirements:
+            passed = requirement_checks.get(requirement, False)
+            if passed:
+                score += 1
+            else:
+                gaps.append(requirement)
+
+        compliance_score = (score / max_score * 100) if max_score else 0.0
+        return {
+            "score": compliance_score,
+            "gaps": gaps,
+            "met": compliance_score >= 90,
+        }
+
+
 class ComplianceRegulatoryAgent(BaseAgent):
     """
     Compliance & Regulatory Agent - Ensures adherence to policies and regulations.
@@ -140,6 +178,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.notification_service = NotificationService(
             config.get("notifications") if config else None
         )
+        self.agent_clients = config.get("agent_clients", {}) if config else {}
+        self.rule_engine = ComplianceRuleEngine()
 
         # Data stores (will be replaced with database)
         self.regulation_library: dict[str, Any] = {}
@@ -150,6 +190,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.evidence: dict[str, Any] = {}
         self.regulatory_changes: dict[str, Any] = {}
         self.control_embeddings: dict[str, dict[str, float]] = {}
+        self.compliance_reports: dict[str, Any] = {}
+        self.compliance_alerts: list[dict[str, Any]] = []
 
     async def initialize(self) -> None:
         """Initialize database connections, GRC integrations, and AI models."""
@@ -170,6 +212,25 @@ class ComplianceRegulatoryAgent(BaseAgent):
         db_config = self.config.get("database_storage", {}) if self.config else {}
         self.db_service = DatabaseStorageService(db_config)
         self.logger.info("Database Storage Service initialized")
+
+        await self._seed_regulatory_frameworks()
+
+        if self.event_bus and hasattr(self.event_bus, "subscribe"):
+            self.event_bus.subscribe(
+                "release.deployed", self._handle_compliance_event  # type: ignore[arg-type]
+            )
+            self.event_bus.subscribe(
+                "deployment.completed", self._handle_compliance_event  # type: ignore[arg-type]
+            )
+            self.event_bus.subscribe(
+                "config.changed", self._handle_compliance_event  # type: ignore[arg-type]
+            )
+            self.event_bus.subscribe(
+                "quality.test.completed", self._handle_compliance_event  # type: ignore[arg-type]
+            )
+            self.event_bus.subscribe(
+                "risk.updated", self._handle_compliance_event  # type: ignore[arg-type]
+            )
 
         self.logger.info("Compliance & Regulatory Agent initialized")
 
@@ -194,6 +255,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "monitor_regulatory_changes",
             "get_compliance_dashboard",
             "generate_compliance_report",
+            "verify_release_compliance",
         ]
 
         if action not in valid_actions:
@@ -315,6 +377,12 @@ class ComplianceRegulatoryAgent(BaseAgent):
         elif action == "generate_compliance_report":
             return await self._generate_compliance_report(
                 input_data.get("report_type", "summary"), input_data.get("filters", {})
+            )
+
+        elif action == "verify_release_compliance":
+            return await self._verify_release_compliance(
+                input_data.get("release_id"),
+                input_data.get("release", {}),
             )
 
         else:
@@ -448,8 +516,12 @@ class ComplianceRegulatoryAgent(BaseAgent):
         """
         self.logger.info(f"Mapping controls to project: {project_id}")
 
+        project_profile = self._build_project_profile(project_id, mapping_data)
+
         # Determine applicable regulations
-        applicable_regulations = await self._determine_applicable_regulations(project_id)
+        applicable_regulations = await self._determine_applicable_regulations(
+            project_id, project_profile
+        )
 
         # Get all controls for applicable regulations
         applicable_controls = []
@@ -464,6 +536,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
         mapping = {
             "mapping_id": mapping_id,
             "project_id": project_id,
+            "process_id": mapping_data.get("process_id"),
+            "project_profile": project_profile,
             "applicable_regulations": applicable_regulations,
             "applicable_controls": applicable_controls,
             "control_status": {},
@@ -497,7 +571,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "mapping_id": mapping_id,
             "project_id": project_id,
             "applicable_regulations": len(applicable_regulations),
+            "applicable_regulation_ids": applicable_regulations,
             "applicable_controls": len(applicable_controls),
+            "applicable_control_ids": applicable_controls,
             "policy_decision": policy_decision,
             "compliance_checklist": [
                 {
@@ -519,16 +595,24 @@ class ComplianceRegulatoryAgent(BaseAgent):
         """
         self.logger.info(f"Assessing compliance for project: {project_id}")
 
+        tenant_id = assessment_data.get("tenant_id", "unknown")
+        correlation_id = assessment_data.get("correlation_id", str(uuid.uuid4()))
         mapping = self.compliance_mappings.get(project_id)
         if not mapping:
             # Create mapping first
-            await self._map_controls_to_project(project_id, {})
+            await self._map_controls_to_project(
+                project_id,
+                assessment_data.get("mapping", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
             mapping = self.compliance_mappings.get(project_id)
 
         # Assess each control
         control_assessments = []
         gaps = []
 
+        evidence_bundle = await self._gather_evidence_from_agents(project_id)
         for control_id, status in mapping["control_status"].items():  # type: ignore
             control = self.control_registry.get(control_id)
             if not control:
@@ -539,13 +623,27 @@ class ComplianceRegulatoryAgent(BaseAgent):
             evidence_provided = status.get("evidence_uploaded", False)
             recently_tested = await self._is_recently_tested(control, status)
 
+            control_evidence = {
+                "implementation_status": status.get("implementation_status"),
+                "evidence_uploaded": status.get("evidence_uploaded", False),
+                "recently_tested": recently_tested,
+                "audit_logs": evidence_bundle.get("audit_logs", []),
+                "risk_mitigations": evidence_bundle.get("risk_mitigations", []),
+                "quality_results": evidence_bundle.get("quality_results", []),
+                "deployment_evidence": evidence_bundle.get("deployment_evidence", []),
+                "privacy_impact_assessed": evidence_bundle.get("privacy_impact_assessed", False),
+            }
+            evaluation = self.rule_engine.evaluate(control, control_evidence)
+
             assessment = {
                 "control_id": control_id,
                 "description": control.get("description"),
                 "implemented": implemented,
                 "evidence_provided": evidence_provided,
                 "recently_tested": recently_tested,
-                "compliant": implemented and evidence_provided and recently_tested,
+                "compliant": evaluation["met"],
+                "evaluation_score": evaluation["score"],
+                "evaluation_gaps": evaluation["gaps"],
             }
 
             control_assessments.append(assessment)
@@ -557,6 +655,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                         "description": control.get("description"),
                         "gap_type": await self._identify_gap_type(assessment),
                         "remediation": await self._recommend_remediation(assessment),
+                        "evaluation_gaps": evaluation["gaps"],
                     }
                 )
 
@@ -573,6 +672,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "gaps_identified": len(gaps),
             "gaps": gaps,
             "control_assessments": control_assessments,
+            "evidence_summary": evidence_bundle,
             "assessment_date": datetime.utcnow().isoformat(),
         }
 
@@ -1041,6 +1141,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
             *external_updates,
         ]
 
+        if all_updates:
+            await self._sync_regulatory_updates(all_updates)
+
         new_obligations = [
             update
             for update in all_updates
@@ -1071,6 +1174,38 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "tasks_created": tasks_created,
             "last_check": datetime.utcnow().isoformat(),
         }
+
+    async def _sync_regulatory_updates(self, updates: list[dict[str, Any]]) -> None:
+        for update in updates:
+            regulation_name = update.get("regulation")
+            if not regulation_name:
+                continue
+            regulation_id = None
+            for existing_id, regulation in self.regulation_library.items():
+                if regulation.get("name") == regulation_name:
+                    regulation_id = existing_id
+                    break
+            if not regulation_id:
+                regulation_id = f"REG-{uuid.uuid4().hex[:6].upper()}"
+                regulation_record = {
+                    "regulation_id": regulation_id,
+                    "name": regulation_name,
+                    "description": update.get("description", ""),
+                    "jurisdiction": [update.get("region")] if update.get("region") else [],
+                    "industry": [],
+                    "effective_date": update.get("effective_date"),
+                    "obligations": [],
+                    "related_controls": [],
+                    "applicability_rules": {
+                        "applies_to_all": False,
+                        "jurisdiction_filter": [update.get("region")] if update.get("region") else [],
+                        "industry_filter": [],
+                    },
+                    "metadata": {"source_url": update.get("source_url")},
+                    "created_at": datetime.utcnow().isoformat(),
+                }
+                self.regulation_library[regulation_id] = regulation_record
+                await self.db_service.store("regulations", regulation_id, regulation_record)
 
     async def _extract_regulatory_updates(
         self,
@@ -1252,6 +1387,144 @@ class ComplianceRegulatoryAgent(BaseAgent):
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"EV-{timestamp}"
 
+    async def _seed_regulatory_frameworks(self) -> None:
+        if self.regulation_library or self.control_registry:
+            return
+        if self.config and not self.config.get("seed_frameworks", True):
+            return
+
+        frameworks = {
+            "REG-ISO-27001": {
+                "name": "ISO 27001",
+                "description": "Information security management system requirements.",
+                "jurisdiction": ["global"],
+                "industry": ["technology", "finance", "healthcare", "public"],
+                "effective_date": "2022-10-25",
+                "related_controls": [],
+                "applicability_rules": {
+                    "applies_to_all": True,
+                    "jurisdiction_filter": ["global"],
+                    "industry_filter": [],
+                },
+            },
+            "REG-SOC-2": {
+                "name": "SOC 2",
+                "description": "Trust Services Criteria for service organizations.",
+                "jurisdiction": ["global"],
+                "industry": ["technology", "services", "saas"],
+                "effective_date": "2017-05-01",
+                "related_controls": [],
+                "applicability_rules": {
+                    "applies_to_all": False,
+                    "jurisdiction_filter": [],
+                    "industry_filter": ["technology", "services", "saas"],
+                },
+            },
+            "REG-GDPR": {
+                "name": "GDPR",
+                "description": "EU General Data Protection Regulation.",
+                "jurisdiction": ["eu", "eea", "uk"],
+                "industry": [],
+                "effective_date": "2018-05-25",
+                "related_controls": [],
+                "applicability_rules": {
+                    "applies_to_all": False,
+                    "jurisdiction_filter": ["eu", "eea", "uk"],
+                    "industry_filter": [],
+                },
+            },
+        }
+
+        controls = [
+            {
+                "control_id": "CTL-ISO-01",
+                "description": "Maintain an information security policy approved by management.",
+                "regulation": "REG-ISO-27001",
+                "control_type": "preventive",
+                "owner": "security",
+                "requirements": ["implemented", "evidence"],
+                "test_frequency": "annually",
+            },
+            {
+                "control_id": "CTL-ISO-02",
+                "description": "Perform regular risk assessments and document mitigations.",
+                "regulation": "REG-ISO-27001",
+                "control_type": "detective",
+                "owner": "risk",
+                "requirements": ["implemented", "risk_mitigation", "evidence"],
+                "test_frequency": "quarterly",
+            },
+            {
+                "control_id": "CTL-SOC2-01",
+                "description": "Monitor system availability and incident response.",
+                "regulation": "REG-SOC-2",
+                "control_type": "detective",
+                "owner": "operations",
+                "requirements": ["implemented", "quality_tests", "evidence"],
+                "test_frequency": "quarterly",
+            },
+            {
+                "control_id": "CTL-SOC2-02",
+                "description": "Maintain audit logs for changes and access.",
+                "regulation": "REG-SOC-2",
+                "control_type": "preventive",
+                "owner": "security",
+                "requirements": ["implemented", "audit_logs", "evidence"],
+                "test_frequency": "monthly",
+            },
+            {
+                "control_id": "CTL-GDPR-01",
+                "description": "Conduct data protection impact assessments for personal data.",
+                "regulation": "REG-GDPR",
+                "control_type": "preventive",
+                "owner": "privacy",
+                "requirements": ["implemented", "data_privacy", "evidence"],
+                "test_frequency": "annually",
+            },
+            {
+                "control_id": "CTL-GDPR-02",
+                "description": "Ensure data subject rights requests are tracked and fulfilled.",
+                "regulation": "REG-GDPR",
+                "control_type": "detective",
+                "owner": "privacy",
+                "requirements": ["implemented", "quality_tests", "evidence"],
+                "test_frequency": "quarterly",
+            },
+        ]
+
+        for regulation_id, regulation in frameworks.items():
+            regulation["regulation_id"] = regulation_id
+            regulation["created_at"] = datetime.utcnow().isoformat()
+            self.regulation_library[regulation_id] = regulation
+            await self.db_service.store("regulations", regulation_id, regulation)
+
+        for control in controls:
+            control_id = control["control_id"]
+            control_payload = {
+                **control,
+                "evidence_requirements": control.get("evidence_requirements", []),
+                "status": "Active",
+                "last_test_date": None,
+                "last_test_result": None,
+                "created_at": datetime.utcnow().isoformat(),
+            }
+            self.control_registry[control_id] = control_payload
+            regulation_id = control_payload.get("regulation")
+            if regulation_id in self.regulation_library:
+                self.regulation_library[regulation_id]["related_controls"].append(control_id)
+            await self.db_service.store("controls", control_id, control_payload)
+
+    def _build_project_profile(self, project_id: str, mapping_data: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "project_id": project_id,
+            "industry": mapping_data.get("industry", ""),
+            "geography": mapping_data.get("geography", mapping_data.get("region", "")),
+            "data_types": mapping_data.get("data_types", []),
+            "hosting": mapping_data.get("hosting", ""),
+            "process_id": mapping_data.get("process_id"),
+            "process_type": mapping_data.get("process_type", ""),
+        }
+
     async def _parse_regulation_text(self, text: str) -> list[dict[str, Any]]:
         """Parse regulation text to extract obligations."""
         metadata = await self._extract_regulation_metadata({"text": text})
@@ -1291,10 +1564,96 @@ class ComplianceRegulatoryAgent(BaseAgent):
         scores.sort(key=lambda item: item[1], reverse=True)
         return [control_id for control_id, _ in scores[:5]]
 
-    async def _determine_applicable_regulations(self, project_id: str) -> list[str]:
+    async def _determine_applicable_regulations(
+        self, project_id: str, project_profile: dict[str, Any]
+    ) -> list[str]:
         """Determine which regulations apply to project."""
-        # Future work: Use project metadata to filter regulations
-        return list(self.regulation_library.keys())[:3]  # Baseline
+        applicable = []
+        for regulation_id, regulation in self.regulation_library.items():
+            if self._matches_regulation(project_profile, regulation):
+                applicable.append(regulation_id)
+
+        if not applicable:
+            return list(self.regulation_library.keys())[:3]
+        return applicable
+
+    def _matches_regulation(self, project_profile: dict[str, Any], regulation: dict[str, Any]) -> bool:
+        rules = regulation.get("applicability_rules", {})
+        if rules.get("applies_to_all"):
+            return True
+
+        industry = str(project_profile.get("industry", "")).lower()
+        geography = str(project_profile.get("geography", "")).lower()
+        data_types = [str(item).lower() for item in project_profile.get("data_types", [])]
+
+        jurisdiction_filter = [str(item).lower() for item in rules.get("jurisdiction_filter", [])]
+        industry_filter = [str(item).lower() for item in rules.get("industry_filter", [])]
+
+        jurisdiction_match = not jurisdiction_filter or geography in jurisdiction_filter
+        industry_match = not industry_filter or industry in industry_filter
+
+        if regulation.get("name", "").upper() == "GDPR":
+            return jurisdiction_match or "personal" in data_types or "pii" in data_types
+
+        return jurisdiction_match and industry_match
+
+    async def _gather_evidence_from_agents(self, project_id: str) -> dict[str, Any]:
+        evidence_summary = {
+            "risk_mitigations": [],
+            "quality_results": [],
+            "audit_logs": [],
+            "deployment_evidence": [],
+            "privacy_impact_assessed": False,
+        }
+
+        risk_agent = self.agent_clients.get("risk")
+        quality_agent = self.agent_clients.get("quality")
+        release_agent = self.agent_clients.get("release")
+
+        if risk_agent:
+            response = await self._call_agent(
+                risk_agent,
+                {"action": "get_risk_summary", "project_id": project_id},
+            )
+            evidence_summary["risk_mitigations"] = response.get("mitigations", []) or response.get(
+                "risk_mitigations", []
+            )
+
+        if quality_agent:
+            response = await self._call_agent(
+                quality_agent,
+                {"action": "get_quality_summary", "project_id": project_id},
+            )
+            evidence_summary["quality_results"] = response.get(
+                "test_results", []
+            ) or response.get("quality_results", [])
+
+        if release_agent:
+            response = await self._call_agent(
+                release_agent,
+                {"action": "get_release_audit_logs", "project_id": project_id},
+            )
+            evidence_summary["audit_logs"] = response.get("audit_logs", [])
+            evidence_summary["deployment_evidence"] = response.get(
+                "deployment_evidence", []
+            ) or response.get("deployment_logs", [])
+
+        evidence_summary["privacy_impact_assessed"] = bool(
+            evidence_summary["risk_mitigations"]
+        )
+
+        return evidence_summary
+
+    async def _call_agent(self, agent: Any, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            response = await agent.process(payload)
+        except Exception as exc:  # pragma: no cover - defensive
+            self.logger.warning(
+                "Agent evidence collection failed",
+                extra={"error": str(exc), "payload": payload},
+            )
+            return {}
+        return response if isinstance(response, dict) else {}
 
     async def _is_recently_tested(self, control: dict[str, Any], status: dict[str, Any]) -> bool:
         """Check if control has been tested recently."""
@@ -1315,11 +1674,16 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _identify_gap_type(self, assessment: dict[str, Any]) -> str:
         """Identify type of compliance gap."""
-        if not assessment["implemented"]:
+        evaluation_gaps = assessment.get("evaluation_gaps", [])
+        if "risk_mitigation" in evaluation_gaps:
+            return "Missing Risk Mitigation"
+        if "audit_logs" in evaluation_gaps:
+            return "Missing Audit Logs"
+        if not assessment.get("implemented"):
             return "Not Implemented"
-        elif not assessment["evidence_provided"]:
+        elif not assessment.get("evidence_provided"):
             return "Missing Evidence"
-        elif not assessment["recently_tested"]:
+        elif not assessment.get("recently_tested"):
             return "Overdue Testing"
         else:
             return "Unknown"
@@ -1332,6 +1696,8 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "Not Implemented": "Implement control and document procedures",
             "Missing Evidence": "Upload evidence of control implementation",
             "Overdue Testing": "Schedule and perform control testing",
+            "Missing Risk Mitigation": "Document risk mitigations and link to controls",
+            "Missing Audit Logs": "Enable and retain audit logging for control scope",
             "Unknown": "Review control status",
         }
 
@@ -1462,8 +1828,40 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _get_control_testing_status(self, project_id: str | None) -> dict[str, Any]:
         """Get control testing status."""
-        # Future work: Query control test records
-        return {"overdue_tests": 0, "upcoming_tests": 0, "recently_tested": 0}
+        overdue_tests = 0
+        upcoming_tests = 0
+        recently_tested = 0
+
+        mappings = (
+            {project_id: self.compliance_mappings.get(project_id)}
+            if project_id
+            else self.compliance_mappings
+        )
+        for mapping in mappings.values():
+            if not mapping:
+                continue
+            for control_id, status in mapping.get("control_status", {}).items():
+                control = self.control_registry.get(control_id, {})
+                last_test = status.get("last_tested")
+                if not last_test:
+                    overdue_tests += 1
+                    continue
+                if await self._is_recently_tested(control, status):
+                    recently_tested += 1
+                else:
+                    overdue_tests += 1
+
+                next_test_date = await self._calculate_next_test_date(control)
+                if next_test_date:
+                    next_test = datetime.fromisoformat(next_test_date)
+                    if (next_test - datetime.utcnow()).days <= 14:
+                        upcoming_tests += 1
+
+        return {
+            "overdue_tests": overdue_tests,
+            "upcoming_tests": upcoming_tests,
+            "recently_tested": recently_tested,
+        }
 
     async def _get_upcoming_audits(self, project_id: str | None) -> list[dict[str, Any]]:
         """Get upcoming audits."""
@@ -1491,21 +1889,113 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 findings.extend(audit.get("findings", []))
         return findings[:10]  # Most recent 10
 
+    async def _verify_release_compliance(
+        self, release_id: str | None, release_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        project_id = release_data.get("project_id") or release_data.get("project") or "unknown"
+        assessment = await self._assess_compliance(
+            project_id,
+            {
+                "tenant_id": release_data.get("tenant_id", "unknown"),
+                "correlation_id": release_data.get("correlation_id", str(uuid.uuid4())),
+                "mapping": release_data.get("mapping", {}),
+            },
+        )
+        threshold = float(self.config.get("release_compliance_threshold", 85)) if self.config else 85
+        return {
+            "release_id": release_id,
+            "project_id": project_id,
+            "compliance_score": assessment.get("compliance_score", 0),
+            "compliance_met": assessment.get("compliance_score", 0) >= threshold,
+            "gaps": assessment.get("gaps", []),
+            "assessment_date": assessment.get("assessment_date"),
+        }
+
+    async def _handle_compliance_event(self, event: dict[str, Any]) -> None:
+        project_id = event.get("project_id")
+        if not project_id:
+            return
+        assessment = await self._assess_compliance(
+            project_id,
+            {
+                "tenant_id": event.get("tenant_id", "unknown"),
+                "correlation_id": event.get("correlation_id", str(uuid.uuid4())),
+                "mapping": event.get("mapping", {}),
+            },
+        )
+        if assessment.get("gaps"):
+            alert = {
+                "alert_id": f"ALERT-{uuid.uuid4().hex[:8]}",
+                "project_id": project_id,
+                "gaps": assessment.get("gaps", []),
+                "compliance_score": assessment.get("compliance_score", 0),
+                "created_at": datetime.utcnow().isoformat(),
+                "trigger": event.get("event_type") or event.get("type"),
+            }
+            self.compliance_alerts.append(alert)
+            await self.db_service.store("compliance_alerts", alert["alert_id"], alert)
+            await self._publish_event("compliance.alert.raised", alert)
+
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary compliance report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+        project_id = filters.get("project_id")
+        assessment = None
+        if project_id:
+            assessment = await self._assess_compliance(project_id, {"mapping": filters})
+        report_data = {
+            "assessment": assessment,
+            "alerts": [
+                alert
+                for alert in self.compliance_alerts
+                if not project_id or alert.get("project_id") == project_id
+            ],
+            "latest_audits": list(self.audits.values())[:5],
+        }
+        return await self._store_report("summary", report_data)
 
     async def _generate_detailed_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate detailed compliance report."""
-        return {
-            "report_type": "detailed",
-            "data": {},
-            "generated_at": datetime.utcnow().isoformat(),
+        project_id = filters.get("project_id")
+        mappings = (
+            {project_id: self.compliance_mappings.get(project_id)}
+            if project_id
+            else self.compliance_mappings
+        )
+        report_data = {
+            "mappings": mappings,
+            "controls": self.control_registry,
+            "regulations": self.regulation_library,
+            "evidence": self.evidence,
+            "audits": self.audits,
         }
+        return await self._store_report("detailed", report_data)
 
     async def _generate_audit_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate audit report."""
-        return {"report_type": "audit", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+        project_id = filters.get("project_id")
+        audits = [
+            audit
+            for audit in self.audits.values()
+            if not project_id or audit.get("project_id") == project_id
+        ]
+        report_data = {
+            "audits": audits,
+            "control_summary": await self._generate_control_summary(project_id) if project_id else [],
+            "findings": [finding for audit in audits for finding in audit.get("findings", [])],
+        }
+        return await self._store_report("audit", report_data)
+
+    async def _store_report(self, report_type: str, data: dict[str, Any]) -> dict[str, Any]:
+        report_id = f"REP-{report_type.upper()}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        report = {
+            "report_id": report_id,
+            "report_type": report_type,
+            "data": data,
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+        self.compliance_reports[report_id] = report
+        await self.db_service.store("compliance_reports", report_id, report)
+        return report
 
     async def _extract_regulation_metadata(
         self, regulation_data: dict[str, Any]
@@ -1888,4 +2378,6 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "compliance_reporting",
             "automated_control_testing",
             "external_regulatory_monitoring",
+            "compliance_alerting",
+            "compliance_release_verification",
         ]
