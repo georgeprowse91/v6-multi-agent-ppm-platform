@@ -15,6 +15,20 @@ import type { CanvasType } from '@ppm/canvas-engine';
 export type MessageRole = 'user' | 'assistant' | 'system';
 
 /**
+ * Assistant AI state model for UX standards
+ */
+export type AIState =
+  | 'idle'
+  | 'thinking'
+  | 'streaming'
+  | 'tool_use'
+  | 'needs_user_input'
+  | 'completed'
+  | 'uncertain'
+  | 'error'
+  | 'refusal';
+
+/**
  * Categories for action chips
  */
 export type ActionCategory =
@@ -153,6 +167,19 @@ export interface AssistantMessage {
   /** Whether this is a gating warning message */
   isWarning?: boolean;
 
+  /** Assistant state when message was created */
+  aiState?: AIState;
+
+  /** Optional list of sources or citations */
+  sources?: string[];
+
+  /** Provenance metadata */
+  provenance?: {
+    generated: boolean;
+    modelOrTool?: string;
+    showModelOrTool?: boolean;
+  };
+
   /** Context info when message was sent */
   context?: MessageContext;
 }
@@ -222,29 +249,29 @@ export type SuggestionTrigger =
  */
 export const CATEGORY_COLORS: Record<ActionCategory, { bg: string; text: string; border: string }> = {
   create: {
-    bg: 'var(--color-success-50, #ecfdf5)',
-    text: 'var(--color-success-700, #15803d)',
-    border: 'var(--color-success-200, #bbf7d0)',
+    bg: 'var(--color-state-success-bg)',
+    text: 'var(--color-state-success-fg)',
+    border: 'var(--color-state-success-fg)',
   },
   review: {
-    bg: 'var(--color-info-50, #eff6ff)',
-    text: 'var(--color-info-700, #1d4ed8)',
-    border: 'var(--color-info-200, #bfdbfe)',
+    bg: 'var(--color-state-info-bg)',
+    text: 'var(--color-state-info-fg)',
+    border: 'var(--color-state-info-fg)',
   },
   approve: {
-    bg: 'var(--color-warning-50, #fffbeb)',
-    text: 'var(--color-warning-700, #b45309)',
-    border: 'var(--color-warning-200, #fde68a)',
+    bg: 'var(--color-state-warning-bg)',
+    text: 'var(--color-state-warning-fg)',
+    border: 'var(--color-state-warning-fg)',
   },
   analyse: {
-    bg: 'var(--color-primary-50, #eef2ff)',
-    text: 'var(--color-primary-700, #4338ca)',
-    border: 'var(--color-primary-200, #c7d2fe)',
+    bg: 'var(--color-brand-orange-100)',
+    text: 'var(--color-brand-orange-500)',
+    border: 'var(--color-brand-orange-500)',
   },
   navigate: {
-    bg: 'var(--color-neutral-50, #fafafa)',
-    text: 'var(--color-neutral-700, #404040)',
-    border: 'var(--color-neutral-200, #e5e5e5)',
+    bg: 'var(--color-surface-subtle)',
+    text: 'var(--color-text-primary)',
+    border: 'var(--color-border-default)',
   },
 };
 

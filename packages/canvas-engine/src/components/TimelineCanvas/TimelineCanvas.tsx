@@ -95,7 +95,7 @@ function TimelineBar({ item, viewStart, totalDays, onDragStart, readOnly }: Time
           style={{
             left: `${leftPercent}%`,
             width: `${Math.max(widthPercent, 2)}%`,
-            backgroundColor: item.color || 'var(--color-primary-500, #6366f1)',
+            backgroundColor: item.color || 'var(--color-dataviz-series-primary)',
           }}
           title={`${item.name}: ${formatDate(item.startDate)} - ${formatDate(item.endDate)}`}
           role={readOnly ? 'img' : 'slider'}

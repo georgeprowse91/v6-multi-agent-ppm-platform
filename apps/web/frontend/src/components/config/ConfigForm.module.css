@@ -90,9 +90,9 @@
 }
 
 .submit {
-  background: var(--color-primary-600);
+  background: var(--color-button-primary-bg);
   border: none;
-  color: white;
+  color: var(--color-button-primary-text);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);

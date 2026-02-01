@@ -20,8 +20,8 @@ body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
-  color: var(--color-neutral-900);
-  background-color: var(--color-neutral-50);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -59,7 +59,7 @@ h6 {
 }
 
 a {
-  color: var(--color-primary-600);
+  color: var(--color-text-link);
   text-decoration: none;
 }
 
@@ -89,6 +89,6 @@ button {
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }

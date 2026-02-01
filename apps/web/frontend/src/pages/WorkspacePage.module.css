@@ -76,14 +76,14 @@
 }
 
 .primaryAction {
-  background-color: var(--color-primary-600);
-  color: white;
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
 }
 
 .secondaryAction {
-  background-color: white;
-  border-color: var(--color-neutral-200);
-  color: var(--color-neutral-700);
+  background-color: var(--color-surface-card);
+  border-color: var(--color-border-default);
+  color: var(--color-text-primary);
 }
 
 .activityNote {

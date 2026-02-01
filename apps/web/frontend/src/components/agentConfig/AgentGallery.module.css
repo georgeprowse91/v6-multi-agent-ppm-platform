@@ -26,8 +26,8 @@
 
 .error button {
   padding: var(--space-2) var(--space-4);
-  background-color: var(--color-primary-600);
-  color: white;
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
   border-radius: var(--radius-md);
   cursor: pointer;
 }
@@ -606,15 +606,15 @@
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: white;
-  background-color: var(--color-primary-600);
+  color: var(--color-button-primary-text);
+  background-color: var(--color-button-primary-bg);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: var(--color-primary-700);
+  background-color: var(--color-button-primary-hover);
 }
 
 .saveButton:disabled {

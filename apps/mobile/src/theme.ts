@@ -1,25 +1,27 @@
+import { tokens } from '../../../design-system/tokens/tokens';
+
 export const colors = {
-  background: '#0f172a',
-  surface: '#111827',
-  card: '#1f2937',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  accent: '#38bdf8',
-  success: '#4ade80',
-  warning: '#facc15',
-  danger: '#f87171',
+  background: tokens.color.darkMode.surfacePage,
+  surface: tokens.color.darkMode.surfaceCard,
+  card: tokens.color.darkMode.surfaceCard,
+  text: tokens.color.darkMode.textPrimary,
+  muted: tokens.color.darkMode.textSecondary,
+  accent: tokens.color.brand.orange500,
+  success: tokens.color.state.success.fg,
+  warning: tokens.color.state.warning.fg,
+  danger: tokens.color.state.error.fg,
 };
 
 export const spacing = {
-  xs: 8,
-  sm: 12,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  xs: tokens.spacingPx.sm,
+  sm: tokens.spacingPx.md,
+  md: tokens.spacingPx.lg,
+  lg: tokens.spacingPx.xl,
+  xl: tokens.spacingPx['2xl'],
 };
 
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
+  sm: tokens.radiusPx.md,
+  md: tokens.radiusPx.lg,
+  lg: tokens.radiusPx.pill,
 };

@@ -76,6 +76,8 @@ export function AssistantPanel() {
     generateSuggestions,
     showGatingWarning,
     clearActionChips,
+    aiState,
+    setAiState,
   } = useAssistantStore();
 
   const [inputValue, setInputValue] = useState('');
@@ -86,6 +88,7 @@ export function AssistantPanel() {
   const [scopeResearchResult, setScopeResearchResult] = useState<ScopeResearchResult | null>(
     null
   );
+  const [scopeResearchPreviewOpen, setScopeResearchPreviewOpen] = useState(false);
   const [promptSearch, setPromptSearch] = useState('');
   const [selectedPrompt, setSelectedPrompt] = useState<PromptDefinition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -258,6 +261,8 @@ export function AssistantPanel() {
     setScopeResearchLoading(true);
     setScopeResearchError(null);
     setScopeResearchResult(null);
+    setScopeResearchPreviewOpen(false);
+    setAiState('tool_use');
 
     try {
       const response = await fetch(`/v1/projects/${context.projectId}/scope/research`, {
@@ -285,11 +290,17 @@ export function AssistantPanel() {
         usedExternalResearch: data.used_external_research ?? false,
       });
       if (data.notice) {
-        addAssistantMessage(data.notice);
+        addAssistantMessage(data.notice, undefined, false, {
+          sources: data.sources ?? [],
+        });
       }
+      setAiState('completed');
     } catch (error) {
       setScopeResearchError('Unable to complete scope research. Please try again.');
-      addAssistantMessage('Scope research failed. Please try again.', undefined, true);
+      addAssistantMessage('Scope research failed. Please try again.', undefined, true, {
+        aiState: 'error',
+      });
+      setAiState('error');
     } finally {
       setScopeResearchLoading(false);
     }
@@ -336,6 +347,27 @@ export function AssistantPanel() {
             </div>
           </div>
         ))
+      )}
+    </div>
+  );
+
+  const renderPreviewSection = (title: string, items: ScopeResearchItem[]) => (
+    <div className={styles.researchPreviewSection}>
+      <h4 className={styles.researchSectionTitle}>{title}</h4>
+      {items.length === 0 ? (
+        <p className={styles.researchEmpty}>No suggestions yet.</p>
+      ) : (
+        <div className={styles.researchPreviewList}>
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className={`${styles.researchPreviewItem} ${styles[`preview${item.status}`]}`}
+            >
+              <span className={styles.researchPreviewStatus}>{item.status}</span>
+              <span>{item.text}</span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -550,10 +582,12 @@ export function AssistantPanel() {
     if (!inputValue.trim()) return;
 
     addUserMessage(inputValue.trim());
+    setAiState('thinking');
 
     // Simple local response (no backend in this PR)
     setTimeout(() => {
       handleLocalResponse(inputValue.trim());
+      setAiState('completed');
     }, 300);
 
     setInputValue('');
@@ -711,6 +745,10 @@ export function AssistantPanel() {
       {/* Header */}
       <div className={styles.header}>
         <h2 className={styles.title}>Assistant</h2>
+        <div className={styles.aiState} aria-live="polite">
+          <span className={styles.aiStateIndicator} data-state={aiState} />
+          <span className={styles.aiStateLabel}>{aiState.replace(/_/g, ' ')}</span>
+        </div>
         <button
           className={styles.collapseButton}
           onClick={toggleRightPanel}
@@ -879,7 +917,10 @@ export function AssistantPanel() {
               <button
                 type="button"
                 className={styles.modalClose}
-                onClick={() => setScopeResearchOpen(false)}
+                onClick={() => {
+                  setScopeResearchOpen(false);
+                  setScopeResearchPreviewOpen(false);
+                }}
               >
                 ✕
               </button>
@@ -912,6 +953,11 @@ export function AssistantPanel() {
                 {scopeResearchResult.notice && (
                   <p className={styles.researchNotice}>{scopeResearchResult.notice}</p>
                 )}
+                {scopeResearchResult.sources.length === 0 && (
+                  <p className={styles.noSourcesNotice}>
+                    No sources provided for this response.
+                  </p>
+                )}
                 {renderResearchSection(
                   'Scope statements',
                   'scope',
@@ -933,6 +979,26 @@ export function AssistantPanel() {
                     </ul>
                   </div>
                 )}
+                <div className={styles.researchPreviewActions}>
+                  <button
+                    type="button"
+                    className={styles.modalSecondary}
+                    onClick={() => setScopeResearchPreviewOpen((prev) => !prev)}
+                  >
+                    {scopeResearchPreviewOpen ? 'Hide preview' : 'Preview changes'}
+                  </button>
+                </div>
+                {scopeResearchPreviewOpen && (
+                  <div className={styles.researchPreview}>
+                    <h4>Preview & diff</h4>
+                    <p className={styles.researchPreviewHint}>
+                      Review accepted/rejected items before applying changes to the project.
+                    </p>
+                    {renderPreviewSection('Scope statements', scopeResearchResult.scope)}
+                    {renderPreviewSection('Requirements', scopeResearchResult.requirements)}
+                    {renderPreviewSection('WBS items', scopeResearchResult.wbs)}
+                  </div>
+                )}
                 <div className={styles.modalActions}>
                   <button
                     type="button"
@@ -943,10 +1009,22 @@ export function AssistantPanel() {
                         ...scopeResearchResult.requirements,
                         ...scopeResearchResult.wbs,
                       ].filter((item) => item.status === 'accepted').length;
+                      if (!scopeResearchPreviewOpen) {
+                        setScopeResearchPreviewOpen(true);
+                        return;
+                      }
+                      const confirmed = window.confirm(
+                        'Apply these scope updates to the project workspace?'
+                      );
+                      if (!confirmed) return;
                       addAssistantMessage(
-                        `Captured ${acceptedCount} scope items for review in the project workspace.`
+                        `Captured ${acceptedCount} scope items for review in the project workspace.`,
+                        undefined,
+                        false,
+                        { sources: scopeResearchResult.sources }
                       );
                       setScopeResearchOpen(false);
+                      setScopeResearchPreviewOpen(false);
                     }}
                   >
                     Apply selections
@@ -977,6 +1055,13 @@ function MessageBubble({ message, onChipClick }: MessageBubbleProps) {
       }`}
     >
       <div className={styles.messageContent}>{message.content}</div>
+      {message.sources && message.sources.length > 0 && (
+        <ul className={styles.messageSources}>
+          {message.sources.map((source) => (
+            <li key={source}>{source}</li>
+          ))}
+        </ul>
+      )}
       {message.actionChips && message.actionChips.length > 0 && (
         <div className={styles.messageChips}>
           {message.actionChips.map((chip) => (
@@ -989,12 +1074,21 @@ function MessageBubble({ message, onChipClick }: MessageBubbleProps) {
           ))}
         </div>
       )}
-      <time className={styles.messageTime}>
-        {message.timestamp.toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
-      </time>
+      <div className={styles.messageMeta}>
+        {message.role === 'assistant' && (
+          <span className={styles.generatedBadge}>Generated</span>
+        )}
+        {message.role === 'assistant' &&
+          (!message.sources || message.sources.length === 0) && (
+            <span className={styles.noSourcesBadge}>No sources</span>
+          )}
+        <time className={styles.messageTime}>
+          {message.timestamp.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </time>
+      </div>
     </div>
   );
 }

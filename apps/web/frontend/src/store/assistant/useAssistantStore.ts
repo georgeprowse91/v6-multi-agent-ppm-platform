@@ -13,6 +13,7 @@ import type {
   ActionChip,
   AssistantContext,
   AssistantMessage,
+  AIState,
   PrerequisiteInfo,
   SuggestionApiResponse,
   SuggestionTrigger,
@@ -32,10 +33,18 @@ interface AssistantStoreState {
   // Loading state for suggestions
   isGeneratingSuggestions: boolean;
 
+  // Current AI state
+  aiState: AIState;
+
   // Actions - Messages
   addMessage: (message: Omit<AssistantMessage, 'id' | 'timestamp'>) => void;
   addUserMessage: (content: string) => void;
-  addAssistantMessage: (content: string, actionChips?: ActionChip[], isWarning?: boolean) => void;
+  addAssistantMessage: (
+    content: string,
+    actionChips?: ActionChip[],
+    isWarning?: boolean,
+    overrides?: Partial<AssistantMessage>
+  ) => void;
   addSystemMessage: (content: string) => void;
   clearMessages: () => void;
 
@@ -64,6 +73,9 @@ interface AssistantStoreState {
     activity: MethodologyActivity,
     incompletePrereqs: PrerequisiteInfo[]
   ) => void;
+
+  // Actions - AI state
+  setAiState: (state: AIState) => void;
 }
 
 export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
@@ -72,6 +84,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   context: null,
   actionChips: [],
   isGeneratingSuggestions: false,
+  aiState: 'idle',
 
   // Message actions
   addMessage: (message) => {
@@ -89,7 +102,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
     get().addMessage({ role: 'user', content });
   },
 
-  addAssistantMessage: (content, actionChips, isWarning) => {
+  addAssistantMessage: (content, actionChips, isWarning, overrides) => {
     const newMessage: AssistantMessage = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
@@ -97,6 +110,13 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
       content,
       actionChips,
       isWarning,
+      aiState: get().aiState,
+      sources: [],
+      provenance: {
+        generated: true,
+        modelOrTool: 'PPM Assistant',
+        showModelOrTool: false,
+      },
       context: get().context
         ? {
             activityId: get().context?.currentActivityId ?? undefined,
@@ -105,6 +125,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
             stageName: get().context?.currentStageName ?? undefined,
           }
         : undefined,
+      ...overrides,
     };
     set((state) => ({
       messages: [...state.messages, newMessage],
@@ -283,6 +304,10 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
 
     set({ actionChips: chips });
     get().addAssistantMessage(warningMessage, chips, true);
+  },
+
+  setAiState: (state) => {
+    set({ aiState: state });
   },
 }));
 

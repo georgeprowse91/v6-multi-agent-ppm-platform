@@ -42,18 +42,18 @@
 }
 
 .actionButton:focus-visible {
-  outline: 2px solid var(--color-primary-500, #6366f1);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: 2px;
 }
 
 .primaryAction {
-  background-color: var(--color-primary-600, #4f46e5);
-  border-color: var(--color-primary-600, #4f46e5);
-  color: white;
+  background-color: var(--color-button-primary-bg);
+  border-color: var(--color-button-primary-border);
+  color: var(--color-button-primary-text);
 }
 
 .primaryAction:hover {
-  border-color: var(--color-primary-700, #4338ca);
+  border-color: var(--color-button-primary-border);
 }
 
 .formatGroup {

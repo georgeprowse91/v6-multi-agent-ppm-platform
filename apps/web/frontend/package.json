@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 10",
     "lint:fix": "eslint . --ext ts,tsx --fix",
+    "lint:tokens": "node scripts/check-design-tokens.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

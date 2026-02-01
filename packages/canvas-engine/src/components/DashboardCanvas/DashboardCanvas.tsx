@@ -89,7 +89,7 @@ function MockChart({ type, title }: { type: string; title: string }) {
           <svg className={styles.lineChart} viewBox="0 0 100 50" preserveAspectRatio="none">
             <polyline
               fill="none"
-              stroke="var(--color-primary-500, #6366f1)"
+              stroke="var(--color-dataviz-series-primary)"
               strokeWidth="2"
               points="0,40 20,25 40,35 60,15 80,20 100,10"
             />
@@ -97,26 +97,26 @@ function MockChart({ type, title }: { type: string; title: string }) {
         )}
         {type === 'pie' && (
           <svg className={styles.pieChart} viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="var(--color-primary-200, #c7d2fe)" />
+            <circle cx="50" cy="50" r="40" fill="var(--color-dataviz-series-secondary)" />
             <path
               d="M 50 50 L 50 10 A 40 40 0 0 1 85 65 Z"
-              fill="var(--color-primary-500, #6366f1)"
+              fill="var(--color-dataviz-series-primary)"
             />
             <path
               d="M 50 50 L 85 65 A 40 40 0 0 1 25 75 Z"
-              fill="var(--color-primary-400, #818cf8)"
+              fill="var(--color-dataviz-series-tertiary)"
             />
           </svg>
         )}
         {type === 'area' && (
           <svg className={styles.areaChart} viewBox="0 0 100 50" preserveAspectRatio="none">
             <path
-              fill="var(--color-primary-100, #e0e7ff)"
+              fill="var(--color-dataviz-series-secondary)"
               d="M 0,50 L 0,40 20,25 40,35 60,15 80,20 100,10 100,50 Z"
             />
             <polyline
               fill="none"
-              stroke="var(--color-primary-500, #6366f1)"
+              stroke="var(--color-dataviz-series-primary)"
               strokeWidth="2"
               points="0,40 20,25 40,35 60,15 80,20 100,10"
             />
@@ -177,7 +177,7 @@ function TrendLineChart({ points }: { points: HealthTrendPoint[] }) {
     <svg className={styles.trendChart} viewBox="0 0 100 40" preserveAspectRatio="none">
       <polyline
         fill="none"
-        stroke="var(--color-primary-500, #6366f1)"
+        stroke="var(--color-dataviz-series-primary)"
         strokeWidth="2"
         points={line}
       />
