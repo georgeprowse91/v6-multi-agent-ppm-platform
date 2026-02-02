@@ -4,8 +4,8 @@
   justify-content: space-between;
   height: var(--header-height);
   padding: 0 var(--space-4);
-  background-color: white;
-  border-bottom: 1px solid var(--color-neutral-200);
+  background-color: var(--color-surface-page);
+  border-bottom: 1px solid var(--color-border-default);
   flex-shrink: 0;
 }
 
@@ -30,7 +30,7 @@
 
 .logoText {
   font-size: var(--font-size-lg);
-  color: var(--color-neutral-900);
+  color: var(--color-text-primary);
 }
 
 .breadcrumb ol {
@@ -46,27 +46,27 @@
   display: flex;
   align-items: center;
   font-size: var(--font-size-sm);
-  color: var(--color-neutral-500);
+  color: var(--color-text-secondary);
 }
 
 .breadcrumb a {
-  color: var(--color-neutral-600);
+  color: var(--color-text-secondary);
   text-decoration: none;
 }
 
 .breadcrumb a:hover {
-  color: var(--color-primary-600);
+  color: var(--color-text-primary);
   text-decoration: underline;
 }
 
 .breadcrumb span[aria-current='page'] {
-  color: var(--color-neutral-900);
+  color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
 }
 
 .separator {
   margin: 0 var(--space-2);
-  color: var(--color-neutral-300);
+  color: var(--color-border-subtle);
 }
 
 .right {
@@ -75,16 +75,30 @@
   gap: var(--space-2);
 }
 
+.languageSelector {
+  display: flex;
+  align-items: center;
+}
+
+.languageSelect {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
 .helpButton {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: 6px 12px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-neutral-200);
-  background: white;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
   font-size: var(--font-size-sm);
-  color: var(--color-neutral-600);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: background-color var(--transition-fast),
     color var(--transition-fast),
@@ -92,9 +106,9 @@
 }
 
 .helpButton:hover {
-  background-color: var(--color-neutral-100);
-  color: var(--color-neutral-800);
-  border-color: var(--color-neutral-300);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-subtle);
 }
 
 .iconButton {
@@ -104,17 +118,18 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);
-  color: var(--color-neutral-500);
+  color: var(--color-text-secondary);
   transition: background-color var(--transition-fast),
     color var(--transition-fast);
 }
 
 .iconButton:hover {
-  background-color: var(--color-neutral-100);
-  color: var(--color-neutral-700);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-primary);
 }
 
 .userMenu {
+  position: relative;
   margin-left: var(--space-2);
 }
 
@@ -128,7 +143,7 @@
 }
 
 .userButton:hover {
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-surface-subtle);
 }
 
 .avatar {
@@ -146,8 +161,54 @@
 
 .userName {
   font-size: var(--font-size-sm);
-  color: var(--color-neutral-700);
+  color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
+}
+
+.userMenuPanel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  min-width: 200px;
+  box-shadow: var(--shadow-level-2);
+  z-index: 10;
+}
+
+.menuSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.menuLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.menuSelect {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 @media (max-width: 768px) {

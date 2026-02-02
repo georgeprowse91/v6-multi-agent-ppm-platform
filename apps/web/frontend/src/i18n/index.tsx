@@ -1,48 +1,59 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { IntlProvider, useIntl } from 'react-intl';
 import en from './locales/en.json';
-import pseudo from './locales/pseudo.json';
+import de from './locales/de.json';
 
-export type Locale = 'en' | 'pseudo';
+export type Locale = 'en' | 'de';
 
-type Messages = typeof en;
+type Messages = Record<string, string>;
 
 interface I18nContextValue {
   locale: Locale;
-  t: (key: string) => string;
   setLocale: (locale: Locale) => void;
 }
 
+const STORAGE_KEY = 'ppm-locale';
+
 const messages: Record<Locale, Messages> = {
   en,
-  pseudo,
+  de,
 };
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
-function resolveMessage(bundle: Messages, key: string): string | undefined {
-  const result = key.split('.').reduce<unknown>((current, part) => {
-    if (!current || typeof current !== 'object') return undefined;
-    return (current as Record<string, unknown>)[part];
-  }, bundle as unknown);
-  return typeof result === 'string' ? result : undefined;
-}
-
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('en');
 
-  const value = useMemo<I18nContextValue>(() => {
-    const bundle = messages[locale] ?? messages.en;
-    const t = (key: string) => resolveMessage(bundle, key) ?? key;
-    return { locale, t, setLocale };
+  useEffect(() => {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === 'en' || stored === 'de') {
+      setLocale(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, locale);
+    document.documentElement.lang = locale;
   }, [locale]);
 
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  const value = useMemo<I18nContextValue>(() => ({ locale, setLocale }), [locale]);
+
+  return (
+    <I18nContext.Provider value={value}>
+      <IntlProvider locale={locale} messages={messages[locale]} defaultLocale="en">
+        {children}
+      </IntlProvider>
+    </I18nContext.Provider>
+  );
 }
 
 export function useTranslation() {
   const context = useContext(I18nContext);
+  const intl = useIntl();
   if (!context) {
     throw new Error('useTranslation must be used within I18nProvider');
   }
-  return context;
+  const t = (id: string, values?: Record<string, string | number>) =>
+    intl.formatMessage({ id, defaultMessage: id }, values);
+  return { ...context, t };
 }

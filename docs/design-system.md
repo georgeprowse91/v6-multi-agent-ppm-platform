@@ -28,6 +28,17 @@ import { tokens } from '../../design-system/tokens/tokens';
 ## Dark mode
 Dark mode overrides are in the CSS variables under `[data-theme='dark']`. Theme mode is set by the web `ThemeProvider` using system preference with localStorage override (`ppm-theme-mode`).
 
+## High-contrast mode
+High-contrast overrides live under `[data-theme='high-contrast']` and should only adjust semantic tokens (text, surface, border, focus) while keeping component styles intact. The web app stores the setting in `ppm-theme-mode` and exposes it in user settings.
+
+Recommended semantic token overrides:
+- `--color-text-primary`: high-contrast foreground
+- `--color-text-secondary`: subdued but readable foreground
+- `--color-surface-page` / `--color-surface-card`: high-contrast backgrounds
+- `--color-border-default`: visible outlines
+- `--color-button-primary-bg` / `--color-button-primary-text`: emphasize primary actions
+- `--focus-ring-color`: clearly visible focus states
+
 ## Token Adoption Checklist
 - [ ] Use semantic tokens (text/surface/border/state) instead of raw hex values.
 - [ ] Use `--color-button-primary-bg` + `--color-button-primary-text` for primary buttons.

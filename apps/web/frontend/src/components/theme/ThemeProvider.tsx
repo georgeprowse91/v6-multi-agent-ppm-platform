@@ -1,6 +1,6 @@
-import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark' | 'high-contrast';
 
 type ThemeContextValue = {
   mode: ThemeMode;
@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-    if (stored === 'light' || stored === 'dark') {
+    if (stored === 'light' || stored === 'dark' || stored === 'high-contrast') {
       setModeState(stored);
       return;
     }
@@ -45,3 +45,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export { ThemeContext };
 export type { ThemeMode, ThemeContextValue };
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider');
+  }
+  return context;
+}
