@@ -11,6 +11,8 @@ import { LoginScreen } from './src/screens/LoginScreen';
 import { TenantSelectionScreen } from './src/screens/TenantSelectionScreen';
 import { MethodologiesScreen } from './src/screens/MethodologiesScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { CanvasScreen } from './src/screens/CanvasScreen';
+import { ApprovalsScreen } from './src/screens/ApprovalsScreen';
 import { ConnectorsScreen } from './src/screens/ConnectorsScreen';
 import { AssistantScreen } from './src/screens/AssistantScreen';
 
@@ -42,6 +44,8 @@ const WorkspaceTabs = () => {
         options={{ title: tenantId ? `Methodologies (${tenantId})` : 'Methodologies' }}
       />
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Canvas" component={CanvasScreen} />
+      <Tab.Screen name="Approvals" component={ApprovalsScreen} />
       <Tab.Screen name="Connectors" component={ConnectorsScreen} />
       <Tab.Screen name="Assistant" component={AssistantScreen} />
     </Tab.Navigator>
