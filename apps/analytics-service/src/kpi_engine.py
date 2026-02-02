@@ -23,6 +23,31 @@ class KpiSnapshot:
     normalized: dict[str, float]
 
 
+@dataclass(frozen=True)
+class KpiTrendPoint:
+    timestamp: datetime
+    value: float | None
+
+
+@dataclass(frozen=True)
+class KpiTrendSeries:
+    metric: str
+    points: list[KpiTrendPoint]
+    slope: float | None
+    forecast: float | None
+    forecast_method: str | None
+    recent_change: float | None
+
+
+@dataclass(frozen=True)
+class KpiTrendSnapshot:
+    project_id: str
+    tenant_id: str
+    computed_at: datetime
+    period_count: int
+    series: list[KpiTrendSeries]
+
+
 class AnalyticsDataClient:
     def __init__(self, base_url: str, timeout: float = 10.0) -> None:
         self._client = httpx.AsyncClient(base_url=base_url.rstrip("/"), timeout=timeout)
@@ -172,6 +197,50 @@ def apply_what_if_adjustments(snapshot: KpiSnapshot, adjustments: dict[str, Any]
         computed_at=datetime.now(timezone.utc),
         metrics=adjusted_metrics,
         normalized=normalized,
+    )
+
+
+def compute_kpi_trends(
+    *,
+    project_id: str,
+    tenant_id: str,
+    snapshots: list[Any],
+    metrics: list[str] | None = None,
+    period_count: int = 6,
+) -> KpiTrendSnapshot:
+    selected_metrics = metrics or [
+        "schedule_variance",
+        "cost_variance",
+        "risk_score",
+        "quality_score",
+        "resource_utilization",
+    ]
+    limited_snapshots = snapshots[-period_count:] if period_count > 0 else snapshots
+    series_list: list[KpiTrendSeries] = []
+    for metric_name in selected_metrics:
+        points = [
+            KpiTrendPoint(timestamp=snapshot.captured_at, value=snapshot.metrics.get(metric_name))
+            for snapshot in limited_snapshots
+        ]
+        values = [point.value for point in points if point.value is not None]
+        slope, forecast, method = _forecast_metric(values)
+        recent_change = _compute_recent_change(values)
+        series_list.append(
+            KpiTrendSeries(
+                metric=metric_name,
+                points=points,
+                slope=slope,
+                forecast=forecast,
+                forecast_method=method,
+                recent_change=recent_change,
+            )
+        )
+    return KpiTrendSnapshot(
+        project_id=project_id,
+        tenant_id=tenant_id,
+        computed_at=datetime.now(timezone.utc),
+        period_count=period_count,
+        series=series_list,
     )
 
 
@@ -328,6 +397,41 @@ def _extract_actual_cost(data: dict[str, Any]) -> float | None:
         if value is not None:
             return value
     return None
+
+
+def _forecast_metric(values: list[float]) -> tuple[float | None, float | None, str | None]:
+    if not values:
+        return None, None, None
+    if len(values) < 2:
+        return 0.0, values[-1], "moving_average"
+    slope, intercept = _linear_regression(values)
+    if slope is None or intercept is None:
+        return None, None, None
+    forecast = slope * len(values) + intercept
+    return slope, forecast, "linear_regression"
+
+
+def _linear_regression(values: list[float]) -> tuple[float | None, float | None]:
+    n = len(values)
+    if n < 2:
+        return None, None
+    x_values = list(range(n))
+    sum_x = sum(x_values)
+    sum_y = sum(values)
+    sum_xx = sum(x * x for x in x_values)
+    sum_xy = sum(x * y for x, y in zip(x_values, values))
+    denominator = n * sum_xx - sum_x * sum_x
+    if denominator == 0:
+        return None, None
+    slope = (n * sum_xy - sum_x * sum_y) / denominator
+    intercept = (sum_y - slope * sum_x) / n
+    return slope, intercept
+
+
+def _compute_recent_change(values: list[float]) -> float | None:
+    if len(values) < 2:
+        return None
+    return values[-1] - values[0]
 
 
 def _build_summary(snapshot: KpiSnapshot) -> str:

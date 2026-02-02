@@ -89,6 +89,32 @@ class MetricsStore:
             )
         return snapshots
 
+    def list_recent_snapshots(
+        self, tenant_id: str, project_id: str, limit: int = 6
+    ) -> list[KpiSnapshot]:
+        with sqlite3.connect(self.path) as conn:
+            rows = conn.execute(
+                """
+                SELECT tenant_id, project_id, captured_at, metrics_json
+                FROM kpi_metrics
+                WHERE tenant_id = ? AND project_id = ?
+                ORDER BY captured_at DESC
+                LIMIT ?
+                """,
+                (tenant_id, project_id, limit),
+            ).fetchall()
+        snapshots: list[KpiSnapshot] = []
+        for tenant_id, project_id, captured_at, metrics_json in rows:
+            snapshots.append(
+                KpiSnapshot(
+                    tenant_id=tenant_id,
+                    project_id=project_id,
+                    captured_at=datetime.fromisoformat(captured_at),
+                    metrics=_parse_metrics(metrics_json),
+                )
+            )
+        return list(reversed(snapshots))
+
 
 def _parse_metrics(payload: str) -> dict[str, float | None]:
     try:

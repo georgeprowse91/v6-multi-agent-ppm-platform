@@ -85,6 +85,15 @@ const knowledgeNav: NavItem[] = [
   },
 ];
 
+const analyticsNav: NavItem[] = [
+  {
+    id: 'analytics-dashboard',
+    label: 'Analytics Dashboard',
+    path: '/analytics/dashboard',
+    icon: 'artifact.dashboard',
+  },
+];
+
 export function LeftPanel() {
   const location = useLocation();
   const { leftPanelCollapsed, toggleLeftPanel, session } = useAppStore();
@@ -121,6 +130,7 @@ export function LeftPanel() {
     'knowledge-documents': t('nav.documents'),
     'knowledge-lessons': t('nav.lessons'),
     prompts: 'Prompt Library',
+    'analytics-dashboard': 'Analytics Dashboard',
   };
 
   const tourTargets: Record<string, string> = {
@@ -248,6 +258,30 @@ export function LeftPanel() {
                   aria-label={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
                   data-nav-item="true"
                   data-tour={tourTargets[item.id] ?? undefined}
+                >
+                  <Icon semantic={item.icon} decorative className={styles.icon} />
+                  {!leftPanelCollapsed && (
+                    <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className={styles.section}>
+          {!leftPanelCollapsed && <h3 className={styles.sectionTitle}>Analytics</h3>}
+          <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
+            {analyticsNav.map((item) => (
+              <li key={item.id}>
+                <Link
+                  to={item.path!}
+                  className={`${styles.navItem} ${
+                    location.pathname === item.path ? styles.active : ''
+                  }`}
+                  title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                  aria-label={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                  data-nav-item="true"
                 >
                   <Icon semantic={item.icon} decorative className={styles.icon} />
                   {!leftPanelCollapsed && (

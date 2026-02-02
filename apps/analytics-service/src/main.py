@@ -25,6 +25,7 @@ from kpi_engine import (  # noqa: E402
     AnalyticsKpiEngine,
     KpiSnapshot,
     apply_what_if_adjustments,
+    compute_kpi_trends,
     generate_narrative,
 )
 from metrics_store import MetricsStore  # noqa: E402
@@ -167,6 +168,28 @@ class HealthTrendResponse(BaseModel):
     history_limit: int
 
 
+class KpiTrendPointResponse(BaseModel):
+    timestamp: str
+    value: float | None
+
+
+class KpiTrendSeriesResponse(BaseModel):
+    metric: str
+    points: list[KpiTrendPointResponse]
+    slope: float | None
+    forecast: float | None
+    forecast_method: str | None
+    recent_change: float | None
+
+
+class KpiTrendResponse(BaseModel):
+    project_id: str
+    computed_at: str
+    period_count: int
+    series: list[KpiTrendSeriesResponse]
+    warnings: list[dict[str, Any]]
+
+
 class WhatIfRequest(BaseModel):
     scenario: str
     adjustments: dict[str, Any] = Field(default_factory=dict)
@@ -269,6 +292,48 @@ def _detect_warnings(raw_metrics: dict[str, float | None]) -> list[dict[str, Any
     resource_utilization = raw_metrics.get("resource_utilization")
     if resource_utilization is not None and resource_utilization > 0.95:
         warnings.append({"type": "resource_strain", "message": "Resource load above 95%"})
+    return warnings
+
+
+def _detect_trend_warnings(series_list: list[KpiTrendSeriesResponse]) -> list[dict[str, Any]]:
+    warnings: list[dict[str, Any]] = []
+    forecast_lookup = {series.metric: series.forecast for series in series_list}
+    schedule_forecast = forecast_lookup.get("schedule_variance")
+    if schedule_forecast is not None and schedule_forecast < -0.1:
+        warnings.append(
+            {
+                "type": "schedule_forecast_slip",
+                "message": "Forecast shows schedule variance slipping beyond 10%.",
+                "forecast": schedule_forecast,
+            }
+        )
+    cost_forecast = forecast_lookup.get("cost_variance")
+    if cost_forecast is not None and cost_forecast > 0.1:
+        warnings.append(
+            {
+                "type": "cost_forecast_overrun",
+                "message": "Forecast suggests cost variance above 10%.",
+                "forecast": cost_forecast,
+            }
+        )
+    risk_forecast = forecast_lookup.get("risk_score")
+    if risk_forecast is not None and risk_forecast > 0.35:
+        warnings.append(
+            {
+                "type": "risk_forecast_spike",
+                "message": "Risk exposure forecast trending high.",
+                "forecast": risk_forecast,
+            }
+        )
+    resource_forecast = forecast_lookup.get("resource_utilization")
+    if resource_forecast is not None and resource_forecast > 0.95:
+        warnings.append(
+            {
+                "type": "resource_forecast_strain",
+                "message": "Resource utilization forecast exceeds 95%.",
+                "forecast": resource_forecast,
+            }
+        )
     return warnings
 
 
@@ -583,6 +648,53 @@ async def get_project_health_trends(project_id: str, request: Request) -> Health
         project_id=project_id,
         points=points,
         history_limit=health_snapshot_store.history_limit,
+    )
+
+
+@api_router.get("/api/analytics/trends", response_model=KpiTrendResponse)
+async def get_kpi_trends(project_id: str, request: Request) -> KpiTrendResponse:
+    assert metrics_store is not None
+    assert kpi_engine is not None
+    tenant_id = request.state.auth.tenant_id
+    snapshots = metrics_store.list_recent_snapshots(tenant_id, project_id, limit=6)
+    if not snapshots:
+        snapshot = await kpi_engine.compute_kpis(project_id, tenant_id)
+        snapshots = metrics_store.list_recent_snapshots(tenant_id, project_id, limit=6)
+        if not snapshots:
+            snapshots = [
+                metrics_store.add_snapshot(tenant_id, project_id, snapshot.metrics)
+            ]
+    trends = compute_kpi_trends(
+        project_id=project_id,
+        tenant_id=tenant_id,
+        snapshots=snapshots,
+        period_count=min(6, len(snapshots)),
+    )
+    series_response = [
+        KpiTrendSeriesResponse(
+            metric=series.metric,
+            points=[
+                KpiTrendPointResponse(
+                    timestamp=point.timestamp.isoformat(),
+                    value=point.value,
+                )
+                for point in series.points
+            ],
+            slope=series.slope,
+            forecast=series.forecast,
+            forecast_method=series.forecast_method,
+            recent_change=series.recent_change,
+        )
+        for series in trends.series
+    ]
+    warnings = _detect_trend_warnings(series_response)
+    kpi_handles.requests.add(1, {"operation": "get_kpi_trends", "tenant_id": tenant_id})
+    return KpiTrendResponse(
+        project_id=project_id,
+        computed_at=trends.computed_at.isoformat(),
+        period_count=trends.period_count,
+        series=series_response,
+        warnings=warnings,
     )
 
 
