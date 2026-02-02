@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import ReactFlow, {
   addEdge,
   Background,
@@ -67,6 +67,25 @@ interface WorkflowDefinitionRecord {
   nodes: Array<Node<WorkflowNodeData>>;
   edges: Array<Edge>;
   definition: Record<string, unknown>;
+}
+
+interface WorkflowStepDefinition {
+  id: string;
+  type?: StepType;
+  next?: string;
+  default_next?: string;
+  branches?: Array<{
+    name?: string;
+    condition?: WorkflowCondition;
+    next?: string;
+  }>;
+  condition?: WorkflowCondition;
+  config?: {
+    trigger?: string;
+    agent?: string;
+    action?: string;
+    connector_id?: string;
+  };
 }
 
 const buildInitialNodes = (): Array<Node<WorkflowNodeData>> => [
@@ -211,23 +230,32 @@ const detectCycles = (nodeIds: string[], edges: Edge[]) => {
 
 const buildGraphFromDefinition = (definition: Record<string, unknown>) => {
   const definitionSteps = (definition as { steps?: unknown }).steps;
-  const steps = Array.isArray(definitionSteps) ? definitionSteps : [];
-  const nodes: Array<Node<WorkflowNodeData>> = steps.map((step: any, index: number) => ({
-    id: step.id,
-    position: { x: 120 + index * 220, y: 120 },
-    data: {
-      label: step.id,
-      step_type: step.type ?? 'task',
-      trigger: step.config?.trigger,
-      agent_id: step.config?.agent,
-      action: step.config?.action,
-      connector_id: step.config?.connector_id,
-      condition: step.condition,
-    },
-  }));
+  const steps = Array.isArray(definitionSteps)
+    ? (definitionSteps as WorkflowStepDefinition[])
+    : [];
+  const nodes: Array<Node<WorkflowNodeData>> = steps.map((step, index) => {
+    const nodeId = step.id ?? `step-${index + 1}`;
+    const stepType = step.type ?? 'task';
+    return {
+      id: nodeId,
+      position: { x: 120 + index * 220, y: 120 },
+      data: {
+        label: nodeId,
+        step_type: stepType,
+        trigger: step.config?.trigger,
+        agent_id: step.config?.agent,
+        action: step.config?.action,
+        connector_id: step.config?.connector_id,
+        condition: step.condition,
+      },
+    };
+  });
 
   const edges: Edge[] = [];
-  steps.forEach((step: any) => {
+  steps.forEach((step) => {
+    if (!step.id) {
+      return;
+    }
     if (step.next) {
       edges.push({
         id: `${step.id}-next`,
@@ -236,7 +264,7 @@ const buildGraphFromDefinition = (definition: Record<string, unknown>) => {
       });
     }
     if (Array.isArray(step.branches)) {
-      step.branches.forEach((branch: any, index: number) => {
+      step.branches.forEach((branch, index) => {
         if (branch.next) {
           edges.push({
             id: `${step.id}-branch-${index}`,
@@ -717,7 +745,9 @@ export function WorkflowDesigner() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onNodeClick={(_, node) => setSelectedNodeId(node.id)}
+            onNodeClick={(_: MouseEvent, node: Node<WorkflowNodeData>) =>
+              setSelectedNodeId(node.id)
+            }
             onPaneClick={() => setSelectedNodeId(null)}
             onConnect={onConnect}
             fitView
