@@ -42,3 +42,26 @@ export const getSession = async () => apiFetch('/session');
 export const loginUrl = () => `${API_BASE_URL}/login`;
 
 export const logout = async () => apiFetch('/logout', { method: 'POST' });
+
+export const fetchPortfolioSummary = async (tenantId?: string | null) =>
+  apiFetch('/api/portfolios/summary', { tenantId });
+
+export const fetchPortfolios = async (tenantId?: string | null) =>
+  apiFetch('/api/portfolios', { tenantId });
+
+export const fetchProjects = async (tenantId?: string | null) =>
+  apiFetch('/api/projects', { tenantId });
+
+export const fetchApprovals = async (tenantId?: string | null, status?: string) => {
+  const query = status ? `?status=${encodeURIComponent(status)}` : '';
+  return apiFetch(`/api/workflows/approvals${query}`, { tenantId });
+};
+
+export const fetchCanvasSnapshot = async (projectId: string, tenantId?: string | null) =>
+  apiFetch(`/api/canvas/${projectId}`, { tenantId });
+
+export const fetchProjectHealth = async (projectId: string, tenantId?: string | null) =>
+  apiFetch(`/api/dashboard/${projectId}/health`, { tenantId });
+
+export const fetchProjectKpis = async (projectId: string, tenantId?: string | null) =>
+  apiFetch(`/api/dashboard/${projectId}/kpis`, { tenantId });
