@@ -4,6 +4,7 @@ export { useMethodologyStore } from './methodology';
 export { useAssistantStore, CATEGORY_COLORS, CATEGORY_ICONS } from './assistant';
 export { useAgentConfigStore, CATEGORY_INFO } from './agentConfig';
 export { useCoeditStore } from './documents';
+export { usePromptStore } from './prompts';
 export type {
   EntitySelection,
   Activity,

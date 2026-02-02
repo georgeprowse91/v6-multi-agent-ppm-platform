@@ -1,7 +1,7 @@
 # Assistant Panel Prompt Library
 
 ## Overview
-The assistant panel now includes a structured prompt library that provides reusable, context-aware prompts for common project management tasks. Prompts are stored centrally in `apps/web/data/prompts.json` and surfaced in the UI as “Next actions” chips that align with the current project stage. The same prompt definitions are forwarded to the orchestration service so downstream agents receive the prompt ID and full description when a user selects a library prompt.
+The assistant panel includes a structured prompt library that provides reusable, context-aware prompts for common project management tasks. Prompts are stored in the browser (local storage) and surfaced in the UI as “Next actions” chips that align with the current project stage. Prompt definitions are forwarded to the orchestration service so downstream agents receive the prompt ID, description, and tags when a user selects a library prompt.
 
 ## Prompt library structure
 Each prompt entry includes:
@@ -18,6 +18,11 @@ Prompts are filtered by the current methodology stage to keep suggestions releva
 - **Planning** prompts show during planning activities.
 - **Execution & Monitoring** prompts show during execution or monitoring activities.
 - **Procurement/Vendor** and **Compliance** prompts show when their tags apply, with general prompts (such as risk identification and vendor evaluation) always available.
+
+## Managing prompts
+1. Go to **Configuration → Prompt Library** to create new prompts (label, description, tags).
+2. Edit or delete existing prompts from the manager or directly in the assistant panel.
+3. Updates are saved locally so the latest prompt content appears in the assistant panel immediately.
 
 ## Using prompts in the assistant panel
 1. Open the assistant panel and review the “Next actions” prompt chips.

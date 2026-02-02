@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppStore } from '@/store/useAppStore';
 import { useMethodologyStore, type MethodologyActivity } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
@@ -22,9 +23,15 @@ import {
   type AssistantMessage,
   type PrerequisiteInfo,
 } from '@/store/assistant';
+import { usePromptStore } from '@/store/prompts';
 import { Icon } from '@/components/icon/Icon';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
-import promptsData from '../../../../data/prompts.json';
+import {
+  formatPromptTags,
+  normalizePromptTags,
+  validatePromptFields,
+  type PromptFieldErrors,
+} from '@/utils/prompts';
 import styles from './AssistantPanel.module.css';
 
 type ScopeResearchStatus = 'pending' | 'accepted' | 'rejected';
@@ -80,6 +87,7 @@ export function AssistantPanel() {
     aiState,
     setAiState,
   } = useAssistantStore();
+  const { prompts, hydratePrompts, updatePrompt, deletePrompt } = usePromptStore();
 
   const [inputValue, setInputValue] = useState('');
   const [scopeResearchOpen, setScopeResearchOpen] = useState(false);
@@ -92,6 +100,15 @@ export function AssistantPanel() {
   const [scopeResearchPreviewOpen, setScopeResearchPreviewOpen] = useState(false);
   const [promptSearch, setPromptSearch] = useState('');
   const [selectedPrompt, setSelectedPrompt] = useState<PromptDefinition | null>(null);
+  const [promptEditId, setPromptEditId] = useState<string | null>(null);
+  const [promptEditFields, setPromptEditFields] = useState({
+    label: '',
+    description: '',
+    tags: '',
+  });
+  const [promptEditErrors, setPromptEditErrors] = useState<PromptFieldErrors>({});
+  const [promptEditStatus, setPromptEditStatus] = useState<string | null>(null);
+  const [assistantError, setAssistantError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevActivityIdRef = useRef<string | null>(null);
@@ -110,10 +127,10 @@ export function AssistantPanel() {
   }, [context?.currentStageId, context?.currentStageName]);
 
   const promptChips = useMemo(() => {
-    const prompts = promptsData as PromptDefinition[];
+    const promptList = prompts;
     const normalizedSearch = promptSearch.trim().toLowerCase();
 
-    return prompts.filter((prompt) => {
+    return promptList.filter((prompt) => {
       const matchesAlways =
         ALWAYS_INCLUDED_PROMPTS.has(prompt.id) || prompt.tags.includes('general');
       const matchesStage =
@@ -139,7 +156,26 @@ export function AssistantPanel() {
 
       return searchTarget.includes(normalizedSearch);
     });
-  }, [promptSearch, promptStageTags]);
+  }, [promptSearch, promptStageTags, prompts]);
+
+  useEffect(() => {
+    hydratePrompts();
+  }, [hydratePrompts]);
+
+  useEffect(() => {
+    if (!selectedPrompt) return;
+    const updatedPrompt = prompts.find((prompt) => prompt.id === selectedPrompt.id);
+    if (!updatedPrompt) {
+      setSelectedPrompt(null);
+      return;
+    }
+    if (updatedPrompt.description !== selectedPrompt.description) {
+      setSelectedPrompt(updatedPrompt);
+      setInputValue((prev) =>
+        prev.trim() === selectedPrompt.description.trim() ? updatedPrompt.description : prev
+      );
+    }
+  }, [prompts, selectedPrompt]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -379,6 +415,60 @@ export function AssistantPanel() {
     inputRef.current?.focus();
   };
 
+  const startPromptEdit = (prompt: PromptDefinition) => {
+    setPromptEditId(prompt.id);
+    setPromptEditFields({
+      label: prompt.label,
+      description: prompt.description,
+      tags: formatPromptTags(prompt.tags),
+    });
+    setPromptEditErrors({});
+    setPromptEditStatus(null);
+  };
+
+  const handlePromptEditChange = (
+    field: 'label' | 'description' | 'tags',
+    value: string
+  ) => {
+    setPromptEditFields((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePromptEditSave = () => {
+    if (!promptEditId) return;
+    const errors = validatePromptFields({
+      label: promptEditFields.label,
+      description: promptEditFields.description,
+      tags: promptEditFields.tags,
+    });
+    setPromptEditErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+    updatePrompt(promptEditId, {
+      label: promptEditFields.label.trim(),
+      description: promptEditFields.description.trim(),
+      tags: normalizePromptTags(promptEditFields.tags),
+    });
+    setPromptEditId(null);
+    setPromptEditStatus('Prompt updated.');
+  };
+
+  const handlePromptEditCancel = () => {
+    setPromptEditId(null);
+    setPromptEditErrors({});
+    setPromptEditStatus(null);
+  };
+
+  const handlePromptDelete = (prompt: PromptDefinition) => {
+    const confirmed = window.confirm(`Delete "${prompt.label}"?`);
+    if (!confirmed) return;
+    deletePrompt(prompt.id);
+    if (selectedPrompt?.id === prompt.id) {
+      setSelectedPrompt(null);
+    }
+    setPromptEditStatus('Prompt deleted.');
+  };
+
   // Handle chip click
   const handleChipClick = useCallback(
     (chip: ActionChip) => {
@@ -578,19 +668,63 @@ export function AssistantPanel() {
   };
 
   // Handle text input submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-
-    addUserMessage(inputValue.trim());
+    const messageText = inputValue.trim();
+    addUserMessage(messageText);
     setAiState('thinking');
+    setAssistantError(null);
 
-    // Simple local response (no backend in this PR)
-    setTimeout(() => {
-      handleLocalResponse(inputValue.trim());
+    const promptPayload = selectedPrompt
+      ? {
+          prompt_id: selectedPrompt.id,
+          prompt_description: selectedPrompt.description,
+          prompt_tags: selectedPrompt.tags,
+        }
+      : null;
+
+    if (context?.projectId) {
+      try {
+        const response = await fetch('/api/assistant/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: context.projectId,
+            message: messageText,
+            ...(promptPayload ?? {}),
+          }),
+        });
+
+        if (!response.ok) {
+          const detail = await response.json().catch(() => null);
+          throw new Error(detail?.detail ?? 'Unable to send assistant request.');
+        }
+
+        const data = await response.json();
+        const responseText =
+          typeof data.response === 'string'
+            ? data.response
+            : JSON.stringify(data.response ?? data, null, 2);
+        addAssistantMessage(responseText);
+        setAiState('completed');
+      } catch (error) {
+        setAssistantError(
+          'Unable to reach the assistant service. Showing local suggestions instead.'
+        );
+        addAssistantMessage(
+          'Unable to reach the assistant service. Showing local suggestions instead.',
+          undefined,
+          true,
+          { aiState: 'error' }
+        );
+        handleLocalResponse(messageText);
+        setAiState('error');
+      }
+    } else {
+      handleLocalResponse(messageText);
       setAiState('completed');
-    }, 300);
-
+    }
     setInputValue('');
     setSelectedPrompt(null);
   };
@@ -818,8 +952,11 @@ export function AssistantPanel() {
 
       {/* Prompt Library */}
       <div className={styles.promptArea}>
-        <div className={styles.chipsHeader}>
+        <div className={styles.promptHeader}>
           <span className={styles.chipsLabel}>Next actions</span>
+          <Link className={styles.promptManageLink} to="/config/prompts">
+            Manage prompts
+          </Link>
         </div>
         <input
           type="search"
@@ -829,21 +966,112 @@ export function AssistantPanel() {
           onChange={(event) => setPromptSearch(event.target.value)}
           aria-label="Search prompt library"
         />
+        {promptEditStatus && (
+          <p className={styles.promptStatus} role="status">
+            {promptEditStatus}
+          </p>
+        )}
         {promptChips.length === 0 ? (
           <p className={styles.promptEmpty}>No prompts match this stage yet.</p>
         ) : (
           <div className={styles.promptChipsList}>
             {promptChips.map((prompt) => (
-              <button
-                key={prompt.id}
-                type="button"
-                className={styles.promptChip}
-                onClick={() => handlePromptClick(prompt)}
-                title={prompt.description}
-              >
-                <span className={styles.promptChipLabel}>{prompt.label}</span>
-              </button>
+              <div key={prompt.id} className={styles.promptRow}>
+                <button
+                  type="button"
+                  className={styles.promptChip}
+                  onClick={() => handlePromptClick(prompt)}
+                  title={prompt.description}
+                >
+                  <span className={styles.promptChipLabel}>{prompt.label}</span>
+                </button>
+                <div className={styles.promptRowActions}>
+                  <button
+                    type="button"
+                    className={styles.promptAction}
+                    onClick={() => startPromptEdit(prompt)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.promptAction} ${styles.promptActionDanger}`}
+                    onClick={() => handlePromptDelete(prompt)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
             ))}
+          </div>
+        )}
+        {promptEditId && (
+          <div className={styles.promptEditor}>
+            <div className={styles.promptEditorHeader}>
+              <span>Edit prompt</span>
+              <button
+                type="button"
+                className={styles.promptEditorCancel}
+                onClick={handlePromptEditCancel}
+              >
+                Cancel
+              </button>
+            </div>
+            <label className={styles.promptField}>
+              <span className={styles.promptFieldLabel}>Label</span>
+              <input
+                type="text"
+                value={promptEditFields.label}
+                onChange={(event) =>
+                  handlePromptEditChange('label', event.target.value)
+                }
+              />
+              {promptEditErrors.label && (
+                <span className={styles.promptFieldError}>{promptEditErrors.label}</span>
+              )}
+            </label>
+            <label className={styles.promptField}>
+              <span className={styles.promptFieldLabel}>Description</span>
+              <textarea
+                value={promptEditFields.description}
+                onChange={(event) =>
+                  handlePromptEditChange('description', event.target.value)
+                }
+              />
+              {promptEditErrors.description && (
+                <span className={styles.promptFieldError}>
+                  {promptEditErrors.description}
+                </span>
+              )}
+            </label>
+            <label className={styles.promptField}>
+              <span className={styles.promptFieldLabel}>Tags</span>
+              <input
+                type="text"
+                value={promptEditFields.tags}
+                onChange={(event) => handlePromptEditChange('tags', event.target.value)}
+                placeholder="initiation, planning"
+              />
+              {promptEditErrors.tags && (
+                <span className={styles.promptFieldError}>{promptEditErrors.tags}</span>
+              )}
+            </label>
+            <div className={styles.promptEditorActions}>
+              <button
+                type="button"
+                className={styles.promptEditorSecondary}
+                onClick={handlePromptEditCancel}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.promptEditorPrimary}
+                onClick={handlePromptEditSave}
+              >
+                Save changes
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -877,25 +1105,32 @@ export function AssistantPanel() {
 
       {/* Input Area */}
       <form className={styles.inputArea} onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="Ask about your project..."
-          value={inputValue}
-          onChange={handleInputChange}
-          ref={inputRef}
-        />
-        <button
-          type="submit"
-          className={styles.sendButton}
-          disabled={!inputValue.trim()}
-          title="Send message"
-        >
-          <Icon
-            semantic="communication.send"
-            label="Send message"
+        {assistantError && (
+          <p className={styles.inputError} role="alert">
+            {assistantError}
+          </p>
+        )}
+        <div className={styles.inputRow}>
+          <input
+            type="text"
+            className={styles.input}
+            placeholder="Ask about your project..."
+            value={inputValue}
+            onChange={handleInputChange}
+            ref={inputRef}
           />
-        </button>
+          <button
+            type="submit"
+            className={styles.sendButton}
+            disabled={!inputValue.trim()}
+            title="Send message"
+          >
+            <Icon
+              semantic="communication.send"
+              label="Send message"
+            />
+          </button>
+        </div>
       </form>
 
       {scopeResearchOpen && (

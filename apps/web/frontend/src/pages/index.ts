@@ -11,3 +11,4 @@ export { IntakeFormPage } from './IntakeFormPage';
 export { IntakeStatusPage } from './IntakeStatusPage';
 export { IntakeApprovalsPage } from './IntakeApprovalsPage';
 export { LoginPage } from './LoginPage';
+export { PromptManager } from './PromptManager';

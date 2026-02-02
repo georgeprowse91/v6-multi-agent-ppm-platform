@@ -14,6 +14,7 @@ import {
   IntakeStatusPage,
   IntakeApprovalsPage,
   LoginPage,
+  PromptManager,
 } from '@/pages';
 
 export function App() {
@@ -57,6 +58,7 @@ export function App() {
           path="/config/workflows"
           element={<ConfigPage type="workflows" />}
         />
+        <Route path="/config/prompts" element={<PromptManager />} />
 
         {/* Workflow pages */}
         <Route path="/approvals" element={<ApprovalsPage />} />

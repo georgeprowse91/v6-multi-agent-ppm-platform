@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { PromptDefinition } from '@/types/prompt';
-import prompts from '../../../data/prompts.json';
+import { defaultPrompts } from '@/store/prompts';
 
 describe('prompt library', () => {
   it('includes required fields on each prompt', () => {
-    const promptList = prompts as PromptDefinition[];
+    const promptList = defaultPrompts as PromptDefinition[];
     expect(Array.isArray(promptList)).toBe(true);
     promptList.forEach((prompt) => {
       expect(prompt.id).toBeTruthy();

@@ -1,0 +1,194 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-neutral-500);
+  font-size: var(--font-size-base);
+}
+
+.status {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-sm);
+}
+
+.panel {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-200);
+  background: white;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.panelTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.fieldLabel {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-700);
+}
+
+.field input,
+.field textarea {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-neutral-200);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  background: var(--color-surface-input);
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+}
+
+.fieldError {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger-600);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.primaryButton {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-brand-orange-500);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.secondaryButton {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-neutral-200);
+  background: white;
+  color: var(--color-neutral-600);
+  cursor: pointer;
+}
+
+.promptList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.promptCard {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-neutral-200);
+  background: var(--color-surface-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.promptHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.promptTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.promptDescription {
+  margin: 0;
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-sm);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.tag {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.promptActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.actionButton {
+  border: none;
+  background: none;
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.actionButtonDanger {
+  color: var(--color-danger-600);
+}
+
+.emptyState {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+}

@@ -223,6 +223,25 @@
   flex-shrink: 0;
 }
 
+.promptHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  gap: var(--space-3);
+}
+
+.promptManageLink {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-brand-orange-500);
+  text-decoration: none;
+}
+
+.promptManageLink:hover {
+  text-decoration: underline;
+}
+
 .promptSearch {
   width: 100%;
   padding: var(--space-2) var(--space-3);
@@ -242,7 +261,14 @@
 
 .promptChipsList {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.promptRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
 }
 
@@ -258,6 +284,8 @@
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  flex: 1;
+  justify-content: flex-start;
 }
 
 .promptChip:hover {
@@ -269,10 +297,124 @@
   line-height: 1.2;
 }
 
+.promptRowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.promptAction {
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  padding: 0;
+}
+
+.promptAction:hover {
+  color: var(--color-text-primary);
+}
+
+.promptActionDanger {
+  color: var(--color-danger-600);
+}
+
+.promptStatus {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
 .promptEmpty {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+.promptEditor {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.promptEditorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.promptEditorCancel {
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+}
+
+.promptField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.promptFieldLabel {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.promptField input,
+.promptField textarea {
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  background: var(--color-surface-input);
+}
+
+.promptField textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.promptFieldError {
+  color: var(--color-danger-600);
+  font-size: var(--font-size-xs);
+}
+
+.promptEditorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.promptEditorPrimary {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-brand-orange-500);
+  color: white;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.promptEditorSecondary {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
 }
 
 /* Action Chip Button */
@@ -448,12 +590,25 @@
 /* Input Area */
 .inputArea {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-border-default);
   flex-shrink: 0;
   background-color: var(--color-surface-card);
+}
+
+.inputError {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger-600);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .input {

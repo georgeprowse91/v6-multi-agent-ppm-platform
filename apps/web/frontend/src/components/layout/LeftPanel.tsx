@@ -35,6 +35,12 @@ const configNav: NavItem[] = [
     path: '/config/workflows',
     icon: 'ai.automation',
   },
+  {
+    id: 'prompts',
+    label: 'Prompt Library',
+    path: '/config/prompts',
+    icon: 'communication.assistant',
+  },
 ];
 
 const workflowNav: NavItem[] = [
@@ -114,6 +120,7 @@ export function LeftPanel() {
     'workflow-monitoring': t('nav.workflowMonitor'),
     'knowledge-documents': t('nav.documents'),
     'knowledge-lessons': t('nav.lessons'),
+    prompts: 'Prompt Library',
   };
 
   const tourTargets: Record<string, string> = {
