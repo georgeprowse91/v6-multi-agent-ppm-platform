@@ -58,6 +58,12 @@ from pipeline_models import (  # noqa: E402
     PipelineItemUpdate,
 )
 from pipeline_store import PipelineStore  # noqa: E402
+from workflow_models import (  # noqa: E402
+    WorkflowDefinitionPayload,
+    WorkflowDefinitionRecord,
+    WorkflowDefinitionSummary,
+)
+from workflow_store import WorkflowDefinitionStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402
 from llm.client import LLMClient, LLMProviderError  # noqa: E402
 from methodologies import (  # noqa: E402
@@ -148,6 +154,7 @@ TREES_PATH = STORAGE_DIR / "trees.json"
 AGENT_SETTINGS_PATH = STORAGE_DIR / "agent_settings.json"
 INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
+WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
@@ -175,6 +182,7 @@ tree_store = TreeStore(TREES_PATH)
 agent_settings_store = AgentSettingsStore(AGENT_SETTINGS_PATH)
 intake_store = IntakeStore(INTAKE_REQUESTS_PATH)
 pipeline_store = PipelineStore(PIPELINE_STATE_PATH)
+workflow_definition_store = WorkflowDefinitionStore(WORKFLOW_DEFINITIONS_PATH)
 logger = logging.getLogger("web-ui")
 
 
@@ -1115,6 +1123,70 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 app.add_middleware(PermissionMiddleware)
 
 
+def _detect_workflow_cycles(nodes: list[str], edges: list[tuple[str, str]]) -> bool:
+    adjacency: dict[str, list[str]] = {node_id: [] for node_id in nodes}
+    for source, target in edges:
+        if source in adjacency:
+            adjacency[source].append(target)
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(node_id: str) -> bool:
+        if node_id in visiting:
+            return True
+        if node_id in visited:
+            return False
+        visiting.add(node_id)
+        for neighbor in adjacency.get(node_id, []):
+            if visit(neighbor):
+                return True
+        visiting.remove(node_id)
+        visited.add(node_id)
+        return False
+
+    return any(visit(node_id) for node_id in nodes)
+
+
+def _validate_workflow_payload(payload: WorkflowDefinitionPayload) -> None:
+    if not payload.nodes:
+        raise HTTPException(status_code=422, detail="Workflow must include at least one node")
+    node_ids = {node.id for node in payload.nodes}
+    missing_refs = [
+        edge for edge in payload.edges if edge.source not in node_ids or edge.target not in node_ids
+    ]
+    if missing_refs:
+        raise HTTPException(status_code=422, detail="Workflow contains edges to unknown nodes")
+    edges = [(edge.source, edge.target) for edge in payload.edges]
+    if _detect_workflow_cycles(list(node_ids), edges):
+        raise HTTPException(status_code=422, detail="Workflow contains a cycle")
+    for node in payload.nodes:
+        if node.data.step_type in {"task", "api"} and not (node.data.agent_id and node.data.action):
+            raise HTTPException(
+                status_code=422,
+                detail=f"Node '{node.id}' requires agent and action configuration",
+            )
+
+
+async def _sync_workflow_definition(
+    request: Request, workflow_id: str, definition: dict[str, Any]
+) -> None:
+    session = _require_session(request)
+    workflow_url = os.getenv("WORKFLOW_ENGINE_URL", "http://localhost:8082")
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            response = await client.put(
+                f"{workflow_url}/v1/workflows/definitions/{workflow_id}",
+                headers={
+                    "Authorization": f"Bearer {session['access_token']}",
+                    "X-Tenant-ID": session["tenant_id"],
+                },
+                json={"definition": definition},
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            logger.warning("Failed to sync workflow definition", exc_info=exc)
+
+
 def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
@@ -1879,6 +1951,58 @@ def update_pipeline_item(
     if not item:
         raise HTTPException(status_code=404, detail="Pipeline item not found")
     return item
+
+
+@api_router.get("/api/workflows", response_model=list[WorkflowDefinitionSummary])
+@permission_required("config.manage")
+def list_workflow_definitions(request: Request) -> list[WorkflowDefinitionSummary]:
+    _require_session(request)
+    return workflow_definition_store.list_summaries()
+
+
+@api_router.get("/api/workflows/{workflow_id}", response_model=WorkflowDefinitionRecord)
+@permission_required("config.manage")
+def get_workflow_definition(workflow_id: str, request: Request) -> WorkflowDefinitionRecord:
+    _require_session(request)
+    record = workflow_definition_store.get(workflow_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Workflow definition not found")
+    return record
+
+
+@api_router.post("/api/workflows", response_model=WorkflowDefinitionRecord)
+@permission_required("config.manage")
+async def create_workflow_definition(
+    request: Request, payload: WorkflowDefinitionPayload
+) -> WorkflowDefinitionRecord:
+    _validate_workflow_payload(payload)
+    record = workflow_definition_store.upsert(payload)
+    await _sync_workflow_definition(request, payload.workflow_id, payload.definition)
+    return record
+
+
+@api_router.put("/api/workflows/{workflow_id}", response_model=WorkflowDefinitionRecord)
+@permission_required("config.manage")
+async def update_workflow_definition(
+    workflow_id: str, request: Request, payload: WorkflowDefinitionPayload
+) -> WorkflowDefinitionRecord:
+    if payload.workflow_id != workflow_id:
+        raise HTTPException(status_code=422, detail="workflow_id mismatch")
+    _validate_workflow_payload(payload)
+    record = workflow_definition_store.upsert(payload)
+    await _sync_workflow_definition(request, workflow_id, payload.definition)
+    return record
+
+
+@api_router.delete("/api/workflows/{workflow_id}")
+@permission_required("config.manage")
+def delete_workflow_definition(workflow_id: str, request: Request) -> dict[str, str]:
+    _require_session(request)
+    record = workflow_definition_store.get(workflow_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Workflow definition not found")
+    workflow_definition_store.delete(workflow_id)
+    return {"status": "deleted"}
 
 
 @api_router.post("/api/workflows/start", response_model=WorkflowStartResponse)

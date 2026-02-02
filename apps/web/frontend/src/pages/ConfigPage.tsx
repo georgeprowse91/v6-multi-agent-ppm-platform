@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
 import type { AgentConfig, AgentParameter } from '@/store/agentConfig/types';
 import type { ConfigField, Connector } from '@/store/connectors/types';
@@ -613,13 +614,18 @@ export function ConfigPage({ type }: ConfigPageProps) {
                     Update routing entries to define how workflow requests are orchestrated.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={handleAddRoutingEntry}
-                >
-                  Add routing entry
-                </button>
+                <div className={styles.workflowActions}>
+                  <Link className={styles.secondaryButton} to="/workflows/designer">
+                    Open workflow designer
+                  </Link>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={handleAddRoutingEntry}
+                  >
+                    Add routing entry
+                  </button>
+                </div>
               </div>
             )}
             {!workflowsLoading && !workflowsError && routingEntries.length === 0 && (

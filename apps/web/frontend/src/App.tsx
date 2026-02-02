@@ -6,6 +6,7 @@ import {
   ConfigPage,
   ApprovalsPage,
   WorkflowMonitoringPage,
+  WorkflowDesigner,
   DocumentSearchPage,
   LessonsLearnedPage,
   GlobalSearchPage,
@@ -67,6 +68,7 @@ export function App() {
         {/* Workflow pages */}
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
+        <Route path="/workflows/designer" element={<WorkflowDesigner />} />
         <Route path="/marketplace/connectors" element={<ConnectorMarketplacePage />} />
         <Route path="/intake/new" element={<IntakeFormPage />} />
         <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
