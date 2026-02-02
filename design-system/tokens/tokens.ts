@@ -68,6 +68,17 @@ export const tokens = {
       border: '#333333',
       inputBg: '#333333',
     },
+    highContrastMode: {
+      surfacePage: '#000000',
+      surfaceCard: '#000000',
+      textPrimary: '#FFFFFF',
+      textSecondary: '#E5E5E5',
+      border: '#FFFFFF',
+      inputBg: '#000000',
+      focusRing: '#FFD400',
+      buttonPrimaryBg: '#FFFFFF',
+      buttonPrimaryText: '#000000',
+    },
   },
   typography: {
     fontFamily: {

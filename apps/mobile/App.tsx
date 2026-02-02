@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { useAppContext, AppProvider } from './src/context/AppContext';
 import { colors } from './src/theme';
+import { I18nProvider, useTranslation } from './src/i18n';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { TenantSelectionScreen } from './src/screens/TenantSelectionScreen';
 import { MethodologiesScreen } from './src/screens/MethodologiesScreen';
@@ -21,6 +22,7 @@ const Stack = createNativeStackNavigator();
 
 const WorkspaceTabs = () => {
   const { tenantId, logout } = useAppContext();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -32,8 +34,13 @@ const WorkspaceTabs = () => {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
         headerRight: () => (
-          <Pressable onPress={logout} style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Sign out</Text>
+          <Pressable
+            onPress={logout}
+            style={styles.headerButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('mobile.signOut')}
+          >
+            <Text style={styles.headerButtonText}>{t('mobile.signOut')}</Text>
           </Pressable>
         ),
       }}
@@ -41,19 +48,44 @@ const WorkspaceTabs = () => {
       <Tab.Screen
         name="Methodologies"
         component={MethodologiesScreen}
-        options={{ title: tenantId ? `Methodologies (${tenantId})` : 'Methodologies' }}
+        options={{
+          title: tenantId
+            ? t('mobile.tabs.methodologiesWithTenant', { tenantId })
+            : t('mobile.tabs.methodologies'),
+        }}
       />
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Canvas" component={CanvasScreen} />
-      <Tab.Screen name="Approvals" component={ApprovalsScreen} />
-      <Tab.Screen name="Connectors" component={ConnectorsScreen} />
-      <Tab.Screen name="Assistant" component={AssistantScreen} />
+      <Tab.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{ title: t('mobile.tabs.dashboard') }}
+      />
+      <Tab.Screen
+        name="Canvas"
+        component={CanvasScreen}
+        options={{ title: t('mobile.tabs.canvas') }}
+      />
+      <Tab.Screen
+        name="Approvals"
+        component={ApprovalsScreen}
+        options={{ title: t('mobile.tabs.approvals') }}
+      />
+      <Tab.Screen
+        name="Connectors"
+        component={ConnectorsScreen}
+        options={{ title: t('mobile.tabs.connectors') }}
+      />
+      <Tab.Screen
+        name="Assistant"
+        component={AssistantScreen}
+        options={{ title: t('mobile.tabs.assistant') }}
+      />
     </Tab.Navigator>
   );
 };
 
 const RootNavigator = () => {
   const { session, loading, refreshSession, tenantId } = useAppContext();
+  const { t } = useTranslation();
 
   useEffect(() => {
     void refreshSession();
@@ -63,7 +95,7 @@ const RootNavigator = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color={colors.accent} size="large" />
-        <Text style={styles.loadingText}>Loading session...</Text>
+        <Text style={styles.loadingText}>{t('mobile.loadingSession')}</Text>
       </View>
     );
   }
@@ -93,12 +125,14 @@ const navigationTheme = {
 };
 
 const AppRoot = () => (
-  <AppProvider>
-    <NavigationContainer theme={navigationTheme}>
-      <StatusBar style="light" />
-      <RootNavigator />
-    </NavigationContainer>
-  </AppProvider>
+  <I18nProvider>
+    <AppProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </NavigationContainer>
+    </AppProvider>
+  </I18nProvider>
 );
 
 export default AppRoot;

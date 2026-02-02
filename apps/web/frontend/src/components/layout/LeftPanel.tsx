@@ -124,13 +124,13 @@ export function LeftPanel() {
   const labelOverrides: Record<string, string> = {
     agents: t('nav.agents'),
     connectors: t('nav.connectors'),
-    workflows: 'Workflow Routing',
+    workflows: t('nav.workflowRouting'),
     approvals: t('nav.approvals'),
     'workflow-monitoring': t('nav.workflowMonitor'),
     'knowledge-documents': t('nav.documents'),
     'knowledge-lessons': t('nav.lessons'),
-    prompts: 'Prompt Library',
-    'analytics-dashboard': 'Analytics Dashboard',
+    prompts: t('nav.promptLibrary'),
+    'analytics-dashboard': t('nav.analyticsDashboard'),
   };
 
   const tourTargets: Record<string, string> = {
@@ -159,8 +159,9 @@ export function LeftPanel() {
       className={`${styles.panel} ${leftPanelCollapsed ? styles.collapsed : ''}`}
     >
       <div className={styles.header}>
-        {!leftPanelCollapsed && <h2 className={styles.title}>Navigation</h2>}
+        {!leftPanelCollapsed && <h2 className={styles.title}>{t('nav.navigation')}</h2>}
         <button
+          type="button"
           className={styles.collapseButton}
           onClick={toggleLeftPanel}
           title={leftPanelCollapsed ? 'Expand panel' : 'Collapse panel'}

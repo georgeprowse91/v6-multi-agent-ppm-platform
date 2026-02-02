@@ -66,22 +66,26 @@ export function AuditLogPage() {
         </div>
       )}
 
-      {allowed && loading && <div className={styles.loading}>Loading audit events...</div>}
+      {allowed && loading && (
+        <div className={styles.loading} role="status" aria-live="polite">
+          {t('audit.loading')}
+        </div>
+      )}
 
       {allowed && !loading && events.length === 0 && (
         <div className={styles.empty}>{t('audit.empty')}</div>
       )}
 
       {allowed && !loading && events.length > 0 && (
-        <div className={styles.tableWrapper} role="region" aria-label="Audit log table">
+        <div className={styles.tableWrapper} role="region" aria-label={t('audit.tableLabel')}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Timestamp</th>
-                <th scope="col">Actor</th>
-                <th scope="col">Action</th>
-                <th scope="col">Resource</th>
-                <th scope="col">Outcome</th>
+                <th scope="col">{t('audit.column.timestamp')}</th>
+                <th scope="col">{t('audit.column.actor')}</th>
+                <th scope="col">{t('audit.column.action')}</th>
+                <th scope="col">{t('audit.column.resource')}</th>
+                <th scope="col">{t('audit.column.outcome')}</th>
               </tr>
             </thead>
             <tbody>

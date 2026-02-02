@@ -2,55 +2,58 @@ import { Link } from 'react-router-dom';
 import { useCanvasStore, SAMPLE_ARTIFACT_IDS } from '@/store/useCanvasStore';
 import { Icon } from '@/components/icon/Icon';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { useTranslation } from '@/i18n';
 import type { IconSemantic } from '@/components/icon/iconMap';
 import styles from './HomePage.module.css';
 
-const quickLinks: { title: string; description: string; path: string; icon: IconSemantic }[] = [
-  {
-    title: 'Portfolios',
-    description: 'Manage strategic portfolios and investments',
-    path: '/portfolio/demo',
-    icon: 'domain.portfolio',
-  },
-  {
-    title: 'Programs',
-    description: 'Coordinate related projects and initiatives',
-    path: '/program/demo',
-    icon: 'domain.program',
-  },
-  {
-    title: 'Projects',
-    description: 'Execute and track individual projects',
-    path: '/project/demo',
-    icon: 'domain.project',
-  },
-];
-
-const configLinks = [
-  {
-    title: 'Agents',
-    description: 'Configure AI agents and their capabilities',
-    path: '/config/agents',
-  },
-  {
-    title: 'Connectors',
-    description: 'Manage integrations with external systems',
-    path: '/config/connectors',
-  },
-  {
-    title: 'Connector Marketplace',
-    description: 'Enable, configure, and track connector availability',
-    path: '/marketplace/connectors',
-  },
-  {
-    title: 'Workflows',
-    description: 'Adjust workflow routing and orchestration settings',
-    path: '/config/workflows',
-  },
-];
-
 export function HomePage() {
   const { artifacts, openArtifact } = useCanvasStore();
+  const { t } = useTranslation();
+
+  const quickLinks: { title: string; description: string; path: string; icon: IconSemantic }[] =
+    [
+      {
+        title: t('home.quickLinks.portfolios.title'),
+        description: t('home.quickLinks.portfolios.description'),
+        path: '/portfolio/demo',
+        icon: 'domain.portfolio',
+      },
+      {
+        title: t('home.quickLinks.programs.title'),
+        description: t('home.quickLinks.programs.description'),
+        path: '/program/demo',
+        icon: 'domain.program',
+      },
+      {
+        title: t('home.quickLinks.projects.title'),
+        description: t('home.quickLinks.projects.description'),
+        path: '/project/demo',
+        icon: 'domain.project',
+      },
+    ];
+
+  const configLinks = [
+    {
+      title: t('home.config.agents.title'),
+      description: t('home.config.agents.description'),
+      path: '/config/agents',
+    },
+    {
+      title: t('home.config.connectors.title'),
+      description: t('home.config.connectors.description'),
+      path: '/config/connectors',
+    },
+    {
+      title: t('home.config.marketplace.title'),
+      description: t('home.config.marketplace.description'),
+      path: '/marketplace/connectors',
+    },
+    {
+      title: t('home.config.workflows.title'),
+      description: t('home.config.workflows.description'),
+      path: '/config/workflows',
+    },
+  ];
 
   const handleOpenCharter = () => {
     const artifact = artifacts[SAMPLE_ARTIFACT_IDS.charter];
@@ -81,53 +84,65 @@ export function HomePage() {
     <div className={styles.page}>
       <OnboardingTour />
       <header className={styles.header} data-tour="home-header">
-        <h1 className={styles.title}>Welcome to PPM Platform</h1>
-        <p className={styles.subtitle}>
-          Multi-agent project, program, and portfolio management
-        </p>
+        <h1 className={styles.title}>{t('home.title')}</h1>
+        <p className={styles.subtitle}>{t('home.subtitle')}</p>
       </header>
 
       <section className={styles.section} data-tour="home-canvas">
-        <h2 className={styles.sectionTitle}>Open Canvas</h2>
-        <p className={styles.sectionDescription}>
-          Try the new Canvas framework with multi-tab management
-        </p>
+        <h2 className={styles.sectionTitle}>{t('home.openCanvas.title')}</h2>
+        <p className={styles.sectionDescription}>{t('home.openCanvas.description')}</p>
         <div className={styles.canvasButtons}>
-          <button onClick={handleOpenCharter} className={styles.canvasButton}>
+          <button
+            type="button"
+            onClick={handleOpenCharter}
+            className={styles.canvasButton}
+          >
             <span className={styles.canvasIcon}>
               <Icon semantic="artifact.document" decorative />
             </span>
-            Open Charter (Doc)
+            {t('home.openCanvas.charter')}
           </button>
-          <button onClick={handleOpenWBS} className={styles.canvasButton}>
+          <button type="button" onClick={handleOpenWBS} className={styles.canvasButton}>
             <span className={styles.canvasIcon}>
               <Icon semantic="artifact.tree" decorative />
             </span>
-            Open WBS (Tree)
+            {t('home.openCanvas.wbs')}
           </button>
-          <button onClick={handleOpenTimeline} className={styles.canvasButton}>
+          <button
+            type="button"
+            onClick={handleOpenTimeline}
+            className={styles.canvasButton}
+          >
             <span className={styles.canvasIcon}>
               <Icon semantic="artifact.timeline" decorative />
             </span>
-            Open Timeline
+            {t('home.openCanvas.timeline')}
           </button>
-          <button onClick={handleOpenSpreadsheet} className={styles.canvasButton}>
+          <button
+            type="button"
+            onClick={handleOpenSpreadsheet}
+            className={styles.canvasButton}
+          >
             <span className={styles.canvasIcon}>
               <Icon semantic="artifact.spreadsheet" decorative />
             </span>
-            Open Spreadsheet
+            {t('home.openCanvas.spreadsheet')}
           </button>
-          <button onClick={handleOpenDashboard} className={styles.canvasButton}>
+          <button
+            type="button"
+            onClick={handleOpenDashboard}
+            className={styles.canvasButton}
+          >
             <span className={styles.canvasIcon}>
               <Icon semantic="artifact.dashboard" decorative />
             </span>
-            Open Dashboard
+            {t('home.openCanvas.dashboard')}
           </button>
         </div>
       </section>
 
       <section className={styles.section} data-tour="home-quick-access">
-        <h2 className={styles.sectionTitle}>Quick Access</h2>
+        <h2 className={styles.sectionTitle}>{t('home.quickAccess')}</h2>
         <div className={styles.cardGrid}>
           {quickLinks.map((link) => (
             <Link key={link.path} to={link.path} className={styles.card}>
@@ -142,7 +157,7 @@ export function HomePage() {
       </section>
 
       <section className={styles.section} data-tour="home-configuration">
-        <h2 className={styles.sectionTitle}>Configuration</h2>
+        <h2 className={styles.sectionTitle}>{t('home.configuration')}</h2>
         <div className={styles.linkList}>
           {configLinks.map((link) => (
             <Link key={link.path} to={link.path} className={styles.linkItem}>

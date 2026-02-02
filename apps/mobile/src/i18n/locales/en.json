@@ -1,0 +1,11 @@
+{
+  "mobile.signOut": "Sign out",
+  "mobile.loadingSession": "Loading session...",
+  "mobile.tabs.methodologies": "Methodologies",
+  "mobile.tabs.methodologiesWithTenant": "Methodologies ({tenantId})",
+  "mobile.tabs.dashboard": "Dashboard",
+  "mobile.tabs.canvas": "Canvas",
+  "mobile.tabs.approvals": "Approvals",
+  "mobile.tabs.connectors": "Connectors",
+  "mobile.tabs.assistant": "Assistant"
+}

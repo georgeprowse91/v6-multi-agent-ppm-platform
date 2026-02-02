@@ -312,3 +312,24 @@
   --color-neutral-400: #B5BCC4;
   --color-neutral-500: #B5BCC4;
 }
+
+[data-theme='high-contrast'] {
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #E5E5E5;
+  --color-text-link: #FFD400;
+  --color-surface-page: #000000;
+  --color-surface-card: #000000;
+  --color-surface-subtle: #111111;
+  --color-surface-input: #000000;
+  --color-border-default: #FFFFFF;
+  --color-border-subtle: #FFFFFF;
+  --color-border-strong: #FFFFFF;
+  --color-border-disabled: #E5E5E5;
+  --color-button-primary-bg: #FFFFFF;
+  --color-button-primary-text: #000000;
+  --color-button-primary-hover: #E5E5E5;
+  --color-button-primary-border: #FFFFFF;
+  --focus-ring-color: #FFD400;
+  --color-neutral-400: #E5E5E5;
+  --color-neutral-500: #E5E5E5;
+}
