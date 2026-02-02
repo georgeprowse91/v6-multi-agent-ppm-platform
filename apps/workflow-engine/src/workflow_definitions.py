@@ -128,4 +128,55 @@ def validate_definition(definition: dict[str, Any]) -> list[str]:
                     f"steps[{index}].config: task '{step_id}' requires agent/action or endpoint"
                 )
 
+    edges: list[tuple[str, str]] = []
+    for step in steps:
+        step_id = step.get("id")
+        if not step_id:
+            continue
+        next_step = step.get("next")
+        if isinstance(next_step, list):
+            edges.extend((step_id, target) for target in next_step if target)
+        elif next_step:
+            edges.append((step_id, next_step))
+        default_next = step.get("default_next")
+        if default_next:
+            edges.append((step_id, default_next))
+        for branch in step.get("branches") or []:
+            target = branch.get("next")
+            if target:
+                edges.append((step_id, target))
+        join = step.get("join")
+        if join:
+            edges.append((step_id, join))
+        exit_step = step.get("exit")
+        if exit_step:
+            edges.append((step_id, exit_step))
+
+    if _has_cycle(step_ids, edges):
+        errors.append("workflow: graph contains a cycle")
+
     return errors
+
+
+def _has_cycle(step_ids: set[str], edges: list[tuple[str, str]]) -> bool:
+    adjacency: dict[str, list[str]] = {step_id: [] for step_id in step_ids}
+    for source, target in edges:
+        if source in adjacency and target in adjacency:
+            adjacency[source].append(target)
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(step_id: str) -> bool:
+        if step_id in visiting:
+            return True
+        if step_id in visited:
+            return False
+        visiting.add(step_id)
+        for neighbor in adjacency.get(step_id, []):
+            if visit(neighbor):
+                return True
+        visiting.remove(step_id)
+        visited.add(step_id)
+        return False
+
+    return any(visit(step_id) for step_id in step_ids)

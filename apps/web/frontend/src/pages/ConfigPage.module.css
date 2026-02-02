@@ -217,6 +217,12 @@
   gap: var(--space-4);
 }
 
+.workflowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .workflowTitle {
   margin: 0;
   font-size: var(--font-size-lg);
