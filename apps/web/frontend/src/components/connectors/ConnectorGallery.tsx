@@ -53,7 +53,7 @@ export function ConnectorGallery() {
     uploadCertificationDocument,
   } = useConnectorStore();
   const { session } = useAppStore();
-  const canManage = canManageConfig(session.user?.roles);
+  const canManage = canManageConfig(session.user?.permissions);
   const [certModalOpen, setCertModalOpen] = useState(false);
   const [certModalConnector, setCertModalConnector] = useState<Connector | null>(null);
   const statusOptions: { value: Connector['status'] | 'all'; label: string }[] = [

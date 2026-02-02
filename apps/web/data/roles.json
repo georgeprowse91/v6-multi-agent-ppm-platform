@@ -1,0 +1,55 @@
+{
+  "roles": [
+    {
+      "id": "PMO_ADMIN",
+      "name": "PMO Admin",
+      "description": "Full access to configuration, approvals, and analytics.",
+      "permissions": [
+        "portfolio.view",
+        "methodology.edit",
+        "intake.approve",
+        "config.manage",
+        "analytics.view",
+        "audit.view",
+        "roles.manage"
+      ]
+    },
+    {
+      "id": "PM",
+      "name": "Project Manager",
+      "description": "Manage portfolio work and configuration.",
+      "permissions": [
+        "portfolio.view",
+        "config.manage",
+        "analytics.view"
+      ]
+    },
+    {
+      "id": "TEAM_MEMBER",
+      "name": "Team Member",
+      "description": "View portfolio workspaces and execution status.",
+      "permissions": [
+        "portfolio.view"
+      ]
+    },
+    {
+      "id": "AUDITOR",
+      "name": "Auditor",
+      "description": "View analytics and audit activity.",
+      "permissions": [
+        "portfolio.view",
+        "analytics.view",
+        "audit.view"
+      ]
+    },
+    {
+      "id": "COLLABORATOR",
+      "name": "Collaborator",
+      "description": "View portfolio workspaces and collaborate on delivery.",
+      "permissions": [
+        "portfolio.view"
+      ]
+    }
+  ],
+  "assignments": []
+}

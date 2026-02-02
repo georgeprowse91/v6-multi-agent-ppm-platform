@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { hasPermission } from '@/auth/permissions';
 import { useAppStore } from '@/store';
 import styles from './AnalyticsDashboard.module.css';
 
@@ -56,15 +57,22 @@ const buildChartPath = (values: Array<number | null>, width = 320, height = 160)
 };
 
 export function AnalyticsDashboard() {
-  const { currentSelection } = useAppStore();
+  const { currentSelection, session } = useAppStore();
   const [projectId, setProjectId] = useState(
     currentSelection?.id ?? 'demo-project'
   );
   const [data, setData] = useState<TrendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const canViewAnalytics = hasPermission(session.user?.permissions, 'analytics.view');
 
   const loadTrends = useCallback(async () => {
+    if (!canViewAnalytics) {
+      setLoading(false);
+      setError('You do not have permission to view analytics.');
+      setData(null);
+      return;
+    }
     if (!projectId) return;
     setLoading(true);
     setError(null);
@@ -83,7 +91,7 @@ export function AnalyticsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [canViewAnalytics, projectId]);
 
   useEffect(() => {
     if (currentSelection?.id && currentSelection.id !== projectId) {
@@ -92,8 +100,12 @@ export function AnalyticsDashboard() {
   }, [currentSelection, projectId]);
 
   useEffect(() => {
-    void loadTrends();
-  }, [loadTrends]);
+    if (canViewAnalytics) {
+      void loadTrends();
+    } else {
+      setLoading(false);
+    }
+  }, [canViewAnalytics, loadTrends]);
 
   const timestampLabels = useMemo(
     () => data?.series?.[0]?.points.map((point) => point.timestamp) ?? [],
@@ -121,16 +133,22 @@ export function AnalyticsDashboard() {
             className={styles.button}
             type="button"
             onClick={loadTrends}
-            disabled={loading}
+            disabled={loading || !canViewAnalytics}
           >
             {loading ? 'Loading…' : 'Refresh'}
           </button>
         </div>
       </header>
 
+      {!canViewAnalytics && (
+        <div className={styles.emptyState}>
+          You do not have permission to view analytics dashboards.
+        </div>
+      )}
+
       {error && <div className={styles.emptyState}>{error}</div>}
 
-      {data?.warnings?.length ? (
+      {canViewAnalytics && data?.warnings?.length ? (
         <div className={styles.warningPanel}>
           <div className={styles.warningTitle}>Predictive Warnings</div>
           {data.warnings.map((warning) => (
@@ -142,7 +160,7 @@ export function AnalyticsDashboard() {
         </div>
       ) : null}
 
-      {!loading && data?.series?.length ? (
+      {canViewAnalytics && !loading && data?.series?.length ? (
         <div className={styles.grid}>
           {data.series.map((series) => (
             <div key={series.metric} className={styles.card}>

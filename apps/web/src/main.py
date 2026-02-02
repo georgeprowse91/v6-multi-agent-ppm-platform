@@ -24,6 +24,7 @@ from fastapi.responses import (
 from fastapi.staticfiles import StaticFiles
 from jwt import InvalidTokenError
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
@@ -137,6 +138,7 @@ DATA_DIR = WEB_ROOT / "data"
 STORAGE_DIR = WEB_ROOT / "storage"
 TEMPLATES_PATH = DATA_DIR / "templates.json"
 PROJECTS_PATH = DATA_DIR / "projects.json"
+ROLES_SEED_PATH = DATA_DIR / "roles.json"
 KNOWLEDGE_DB_PATH = DATA_DIR / "knowledge.db"
 WORKSPACE_STATE_PATH = STORAGE_DIR / "workspace_state.json"
 TIMELINES_PATH = STORAGE_DIR / "timelines.json"
@@ -145,6 +147,7 @@ TREES_PATH = STORAGE_DIR / "trees.json"
 AGENT_SETTINGS_PATH = STORAGE_DIR / "agent_settings.json"
 INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
+ROLES_PATH = STORAGE_DIR / "roles.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
 
@@ -192,6 +195,18 @@ class SessionInfo(BaseModel):
     subject: str | None = None
     tenant_id: str | None = None
     roles: list[str] | None = None
+
+
+class RoleDefinition(BaseModel):
+    id: str
+    name: str
+    permissions: list[str] = Field(default_factory=list)
+    description: str | None = None
+
+
+class RoleAssignment(BaseModel):
+    user_id: str
+    role_ids: list[str] = Field(default_factory=list)
 
 
 class WorkflowStartRequest(BaseModel):
@@ -935,6 +950,20 @@ def _dev_session() -> dict[str, Any] | None:
     }
 
 
+ROLE_ALIASES: dict[str, str] = {
+    "tenant_owner": "PMO_ADMIN",
+    "portfolio_admin": "PMO_ADMIN",
+    "project_manager": "PM",
+    "analyst": "TEAM_MEMBER",
+    "auditor": "AUDITOR",
+    "collaborator": "COLLABORATOR",
+}
+
+
+def _normalize_role_ids(roles: set[str]) -> set[str]:
+    return {ROLE_ALIASES.get(role, role) for role in roles if role}
+
+
 def _require_roles(request: Request, allowed_roles: set[str]) -> dict[str, Any]:
     session = _require_session(request)
     roles = session.get("roles") or []
@@ -956,8 +985,8 @@ def _roles_from_request(request: Request, session: dict[str, Any]) -> set[str]:
 
 
 def _is_agent_admin(request: Request, session: dict[str, Any]) -> bool:
-    roles = _roles_from_request(request, session)
-    return bool(roles.intersection({"tenant_owner", "portfolio_admin"}))
+    roles = _normalize_role_ids(_roles_from_request(request, session))
+    return bool(roles.intersection({"PMO_ADMIN"}))
 
 
 def _oidc_enabled() -> bool:
@@ -990,6 +1019,76 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
         handle.write("\n")
+
+
+def _load_roles_payload() -> dict[str, Any]:
+    if ROLES_PATH.exists():
+        return _load_json(ROLES_PATH, {"roles": [], "assignments": []})
+    seed = _load_json(ROLES_SEED_PATH, {"roles": [], "assignments": []})
+    if seed:
+        _write_json(ROLES_PATH, seed)
+    return seed
+
+
+def _list_roles() -> list[RoleDefinition]:
+    payload = _load_roles_payload()
+    return [RoleDefinition.model_validate(item) for item in payload.get("roles", [])]
+
+
+def _list_role_assignments() -> list[RoleAssignment]:
+    payload = _load_roles_payload()
+    return [
+        RoleAssignment.model_validate(item) for item in payload.get("assignments", [])
+    ]
+
+
+def _role_ids_for_user(user_id: str) -> set[str]:
+    for assignment in _list_role_assignments():
+        if assignment.user_id == user_id:
+            return set(assignment.role_ids)
+    return set()
+
+
+def _permissions_for_user(request: Request, session: dict[str, Any]) -> set[str]:
+    role_ids = set(_roles_from_request(request, session))
+    subject = session.get("subject")
+    if subject:
+        role_ids |= _role_ids_for_user(subject)
+    role_ids = _normalize_role_ids(role_ids)
+    roles = {role.id: role for role in _list_roles()}
+    permissions: set[str] = set()
+    for role_id in role_ids:
+        role = roles.get(role_id)
+        if role:
+            permissions.update(role.permissions)
+    return permissions
+
+
+def permission_required(*permissions: str):
+    required = {perm for perm in permissions if perm}
+
+    def decorator(func):
+        setattr(func, "required_permissions", required)
+        return func
+
+    return decorator
+
+
+class PermissionMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        endpoint = request.scope.get("endpoint")
+        required = getattr(endpoint, "required_permissions", None)
+        if required:
+            session = _session_from_request(request)
+            if not session:
+                return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+            permissions = _permissions_for_user(request, session)
+            if not permissions.intersection(required):
+                return JSONResponse(status_code=403, content={"detail": "Permission denied"})
+        return await call_next(request)
+
+
+app.add_middleware(PermissionMiddleware)
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -1344,6 +1443,109 @@ async def session_info(request: Request) -> SessionInfo:
     )
 
 
+@api_router.get("/api/roles", response_model=list[RoleDefinition])
+async def list_roles(request: Request) -> list[RoleDefinition]:
+    _require_session(request)
+    return _list_roles()
+
+
+@api_router.post("/api/roles", response_model=RoleDefinition, status_code=201)
+@permission_required("roles.manage")
+async def create_role(payload: RoleDefinition) -> RoleDefinition:
+    roles_payload = _load_roles_payload()
+    roles = [RoleDefinition.model_validate(item) for item in roles_payload.get("roles", [])]
+    existing_index = next((idx for idx, role in enumerate(roles) if role.id == payload.id), None)
+    if existing_index is None:
+        roles.append(payload)
+    else:
+        roles[existing_index] = payload
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": [role.model_dump() for role in roles],
+            "assignments": roles_payload.get("assignments", []),
+        },
+    )
+    return payload
+
+
+@api_router.put("/api/roles/{role_id}", response_model=RoleDefinition)
+@permission_required("roles.manage")
+async def update_role(role_id: str, payload: RoleDefinition) -> RoleDefinition:
+    if role_id != payload.id:
+        raise HTTPException(status_code=422, detail="Role ID mismatch")
+    roles_payload = _load_roles_payload()
+    roles = [RoleDefinition.model_validate(item) for item in roles_payload.get("roles", [])]
+    existing_index = next((idx for idx, role in enumerate(roles) if role.id == role_id), None)
+    if existing_index is None:
+        raise HTTPException(status_code=404, detail="Role not found")
+    roles[existing_index] = payload
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": [role.model_dump() for role in roles],
+            "assignments": roles_payload.get("assignments", []),
+        },
+    )
+    return payload
+
+
+@api_router.delete("/api/roles/{role_id}", status_code=204)
+@permission_required("roles.manage")
+async def delete_role(role_id: str) -> Response:
+    roles_payload = _load_roles_payload()
+    roles = [RoleDefinition.model_validate(item) for item in roles_payload.get("roles", [])]
+    updated_roles = [role for role in roles if role.id != role_id]
+    if len(updated_roles) == len(roles):
+        raise HTTPException(status_code=404, detail="Role not found")
+    assignments = [
+        RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])
+    ]
+    for assignment in assignments:
+        assignment.role_ids = [rid for rid in assignment.role_ids if rid != role_id]
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": [role.model_dump() for role in updated_roles],
+            "assignments": [assignment.model_dump() for assignment in assignments],
+        },
+    )
+    return Response(status_code=204)
+
+
+@api_router.get("/api/roles/assignments", response_model=list[RoleAssignment])
+@permission_required("roles.manage")
+async def list_role_assignments(request: Request) -> list[RoleAssignment]:
+    _require_session(request)
+    return _list_role_assignments()
+
+
+@api_router.post("/api/roles/assignments", response_model=RoleAssignment)
+@permission_required("roles.manage")
+async def upsert_role_assignment(payload: RoleAssignment) -> RoleAssignment:
+    roles_payload = _load_roles_payload()
+    roles = roles_payload.get("roles", [])
+    assignments = [
+        RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])
+    ]
+    existing_index = next(
+        (idx for idx, assignment in enumerate(assignments) if assignment.user_id == payload.user_id),
+        None,
+    )
+    if existing_index is None:
+        assignments.append(payload)
+    else:
+        assignments[existing_index] = payload
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": roles,
+            "assignments": [assignment.model_dump() for assignment in assignments],
+        },
+    )
+    return payload
+
+
 @api_router.get("/login")
 async def login(request: Request) -> RedirectResponse:
     if not _oidc_enabled():
@@ -1529,13 +1731,10 @@ async def api_status(request: Request) -> dict[str, Any]:
 
 
 @api_router.get("/api/methodology/editor", response_model=MethodologyEditorPayload)
+@permission_required("methodology.edit")
 async def get_methodology_editor(
     request: Request, methodology_id: str | None = None
 ) -> MethodologyEditorPayload:
-    _require_roles(
-        request,
-        {"PMO_ADMIN", "tenant_owner", "portfolio_admin"},
-    )
     available = available_methodologies()
     if not methodology_id:
         methodology_id = (
@@ -1547,13 +1746,10 @@ async def get_methodology_editor(
 
 
 @api_router.post("/api/methodology/editor", response_model=MethodologyEditorPayload)
+@permission_required("methodology.edit")
 async def update_methodology_editor(
     payload: MethodologyEditorPayload, request: Request
 ) -> MethodologyEditorPayload:
-    _require_roles(
-        request,
-        {"PMO_ADMIN", "tenant_owner", "portfolio_admin"},
-    )
     _validate_methodology_prereqs(payload.stages)
 
     existing_map = get_methodology_map(payload.methodology_id)
@@ -1624,6 +1820,7 @@ def get_intake_request(request_id: str) -> IntakeRequest:
 
 
 @api_router.post("/api/intake/{request_id}/decision", response_model=IntakeRequest)
+@permission_required("intake.approve")
 def decide_intake_request(request_id: str, payload: IntakeDecision) -> IntakeRequest:
     try:
         request = intake_store.update_decision(request_id, payload)
@@ -1688,6 +1885,7 @@ async def api_start_workflow(request: Request, payload: WorkflowStartRequest) ->
 
 
 @api_router.get("/api/workspace/{project_id}", response_model=WorkspaceStateResponse)
+@permission_required("portfolio.view")
 async def get_workspace_state(project_id: str, request: Request) -> WorkspaceStateResponse:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
@@ -1696,6 +1894,7 @@ async def get_workspace_state(project_id: str, request: Request) -> WorkspaceSta
 
 
 @api_router.post("/api/workspace/{project_id}/select", response_model=WorkspaceStateResponse)
+@permission_required("portfolio.view")
 async def update_workspace_selection(
     project_id: str, payload: WorkspaceSelectionUpdate, request: Request
 ) -> WorkspaceStateResponse:
@@ -1718,6 +1917,7 @@ async def update_workspace_selection(
 
 
 @api_router.post("/api/workspace/{project_id}/activity-completion", response_model=WorkspaceStateResponse)
+@permission_required("portfolio.view")
 async def update_activity_completion(
     project_id: str, payload: ActivityCompletionUpdate, request: Request
 ) -> WorkspaceStateResponse:
@@ -2855,6 +3055,7 @@ async def recommend_lessons(payload: LessonRecommendationRequest) -> list[Lesson
 
 
 @api_router.get("/api/dashboard/{project_id}/health")
+@permission_required("analytics.view")
 async def get_dashboard_health(project_id: str, request: Request) -> Response:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
@@ -2870,6 +3071,7 @@ async def get_dashboard_health(project_id: str, request: Request) -> Response:
 
 
 @api_router.get("/api/dashboard/{project_id}/trends")
+@permission_required("analytics.view")
 async def get_dashboard_trends(project_id: str, request: Request) -> Response:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
@@ -2885,6 +3087,7 @@ async def get_dashboard_trends(project_id: str, request: Request) -> Response:
 
 
 @api_router.get("/api/dashboard/{project_id}/quality")
+@permission_required("analytics.view")
 async def get_dashboard_quality(project_id: str, request: Request) -> Response:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
@@ -2900,6 +3103,7 @@ async def get_dashboard_quality(project_id: str, request: Request) -> Response:
 
 
 @api_router.post("/api/dashboard/{project_id}/what-if")
+@permission_required("analytics.view")
 async def create_dashboard_what_if(
     project_id: str, payload: DashboardWhatIfRequest, request: Request
 ) -> Response:
@@ -2917,6 +3121,7 @@ async def create_dashboard_what_if(
 
 
 @api_router.get("/api/dashboard/{project_id}/kpis")
+@permission_required("analytics.view")
 async def get_dashboard_kpis(project_id: str, request: Request) -> Response:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
@@ -2932,6 +3137,7 @@ async def get_dashboard_kpis(project_id: str, request: Request) -> Response:
 
 
 @api_router.get("/api/dashboard/{project_id}/narrative")
+@permission_required("analytics.view")
 async def get_dashboard_narrative(project_id: str, request: Request) -> Response:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
@@ -2947,6 +3153,7 @@ async def get_dashboard_narrative(project_id: str, request: Request) -> Response
 
 
 @api_router.get("/api/analytics/powerbi/{report_type}")
+@permission_required("analytics.view")
 async def get_powerbi_embed(report_type: str, request: Request) -> Response:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
@@ -3140,6 +3347,7 @@ async def get_document_canvas_document(document_id: str, request: Request) -> di
 
 
 @api_router.get("/api/audit/evidence/export")
+@permission_required("audit.view")
 async def export_audit_evidence(request: Request) -> Response:
     session = _require_session(request)
     audit_url = os.getenv("AUDIT_LOG_SERVICE_URL")

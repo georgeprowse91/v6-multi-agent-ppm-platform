@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { hasPermission } from '@/auth/permissions';
+import { useAppStore } from '@/store';
 import styles from './MethodologyEditor.module.css';
 
 const API_BASE = '/v1';
@@ -72,6 +74,7 @@ const createGateCriteria = (): MethodologyGateCriteria => ({
 });
 
 export function MethodologyEditor() {
+  const { session } = useAppStore();
   const [methodologyId] = useState('hybrid');
   const [payload, setPayload] = useState<MethodologyEditorPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +82,7 @@ export function MethodologyEditor() {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const canEdit = hasPermission(session.user?.permissions, 'methodology.edit');
 
   const activityIds = useMemo(() => {
     if (!payload) {
@@ -228,6 +232,10 @@ export function MethodologyEditor() {
   };
 
   const handleSave = async () => {
+    if (!canEdit) {
+      setError('You do not have permission to edit methodology settings.');
+      return;
+    }
     if (!payload) {
       return;
     }
@@ -285,6 +293,11 @@ export function MethodologyEditor() {
           Manage stages, activities, prerequisites, exit criteria, and gate criteria for{' '}
           <span className={styles.inlineCode}>{payload.methodology_id}</span>.
         </p>
+        {!canEdit && (
+          <div className={`${styles.alert} ${styles.alertError}`}>
+            You do not have permission to edit methodology settings.
+          </div>
+        )}
         {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
         {successMessage && (
           <div className={`${styles.alert} ${styles.alertSuccess}`}>{successMessage}</div>
@@ -317,6 +330,7 @@ export function MethodologyEditor() {
                   : current
               )
             }
+            disabled={!canEdit}
           >
             Add stage
           </button>
@@ -350,10 +364,18 @@ export function MethodologyEditor() {
                 />
               </label>
               <div className={styles.actionsRow}>
-                <button type="button" onClick={() => moveStage(stageIndex, -1)}>
+                <button
+                  type="button"
+                  onClick={() => moveStage(stageIndex, -1)}
+                  disabled={!canEdit}
+                >
                   Move up
                 </button>
-                <button type="button" onClick={() => moveStage(stageIndex, 1)}>
+                <button
+                  type="button"
+                  onClick={() => moveStage(stageIndex, 1)}
+                  disabled={!canEdit}
+                >
                   Move down
                 </button>
                 <button
@@ -368,6 +390,7 @@ export function MethodologyEditor() {
                       return { ...current, stages };
                     })
                   }
+                  disabled={!canEdit}
                 >
                   Remove stage
                 </button>
@@ -398,6 +421,7 @@ export function MethodologyEditor() {
                         ),
                       }))
                     }
+                    disabled={!canEdit}
                   >
                     Remove
                   </button>
@@ -412,6 +436,7 @@ export function MethodologyEditor() {
                     exit_criteria: [...current.exit_criteria, ''],
                   }))
                 }
+                disabled={!canEdit}
               >
                 Add exit criterion
               </button>
@@ -429,6 +454,7 @@ export function MethodologyEditor() {
                       activities: [...current.activities, createActivity()],
                     }))
                   }
+                  disabled={!canEdit}
                 >
                   Add activity
                 </button>
@@ -440,12 +466,14 @@ export function MethodologyEditor() {
                     <button
                       type="button"
                       onClick={() => moveActivity(stageIndex, activityIndex, -1)}
+                      disabled={!canEdit}
                     >
                       Move up
                     </button>
                     <button
                       type="button"
                       onClick={() => moveActivity(stageIndex, activityIndex, 1)}
+                      disabled={!canEdit}
                     >
                       Move down
                     </button>
@@ -460,6 +488,7 @@ export function MethodologyEditor() {
                           ),
                         }))
                       }
+                      disabled={!canEdit}
                     >
                       Remove activity
                     </button>
@@ -500,6 +529,7 @@ export function MethodologyEditor() {
                             recommended_canvas_tab: event.target.value,
                           }))
                         }
+                        disabled={!canEdit}
                       >
                         {canvasTabs.map((tab) => (
                           <option key={tab} value={tab}>
@@ -518,6 +548,7 @@ export function MethodologyEditor() {
                             category: event.target.value,
                           }))
                         }
+                        disabled={!canEdit}
                       >
                         <option value="methodology">methodology</option>
                         <option value="monitoring">monitoring</option>
@@ -562,6 +593,7 @@ export function MethodologyEditor() {
                               ),
                             }))
                           }
+                          disabled={!canEdit}
                         >
                           Remove
                         </button>
@@ -576,6 +608,7 @@ export function MethodologyEditor() {
                           prerequisites: [...current.prerequisites, ''],
                         }))
                       }
+                      disabled={!canEdit}
                     >
                       Add prerequisite
                     </button>
@@ -606,6 +639,7 @@ export function MethodologyEditor() {
                   : current
               )
             }
+            disabled={!canEdit}
           >
             Add gate
           </button>
@@ -678,6 +712,7 @@ export function MethodologyEditor() {
                       return { ...current, gates };
                     })
                   }
+                  disabled={!canEdit}
                 >
                   Remove gate
                 </button>
@@ -707,6 +742,7 @@ export function MethodologyEditor() {
                       return { ...current, gates };
                     })
                   }
+                  disabled={!canEdit}
                 >
                   Add criterion
                 </button>
@@ -842,6 +878,7 @@ export function MethodologyEditor() {
                         return { ...current, gates };
                       })
                     }
+                    disabled={!canEdit}
                   >
                     Remove criterion
                   </button>
@@ -857,7 +894,7 @@ export function MethodologyEditor() {
           type="button"
           className={styles.buttonPrimary}
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !canEdit}
         >
           {saving ? 'Saving…' : 'Save methodology'}
         </button>

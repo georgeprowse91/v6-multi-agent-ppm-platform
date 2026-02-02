@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { hasPermission } from '@/auth/permissions';
+import { useAppStore } from '@/store';
 import styles from './IntakeApprovalsPage.module.css';
 
 const API_BASE = '/v1';
@@ -33,11 +35,13 @@ interface IntakeRequest {
 }
 
 export function IntakeApprovalsPage() {
+  const { session } = useAppStore();
   const [requests, setRequests] = useState<IntakeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewerId, setReviewerId] = useState(DEFAULT_REVIEWER);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const canApprove = hasPermission(session.user?.permissions, 'intake.approve');
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -58,6 +62,10 @@ export function IntakeApprovalsPage() {
   };
 
   const submitDecision = async (requestId: string, decision: 'approved' | 'rejected') => {
+    if (!canApprove) {
+      setError('You do not have permission to approve intake requests.');
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/intake/${requestId}/decision`, {
         method: 'POST',
@@ -93,6 +101,12 @@ export function IntakeApprovalsPage() {
           Refresh
         </button>
       </header>
+
+      {!canApprove && (
+        <div className={styles.errorState}>
+          You do not have permission to submit intake decisions.
+        </div>
+      )}
 
       <div className={styles.reviewerRow}>
         <label>
@@ -149,12 +163,14 @@ export function IntakeApprovalsPage() {
               <button
                 className={styles.rejectButton}
                 onClick={() => submitDecision(request.request_id, 'rejected')}
+                disabled={!canApprove}
               >
                 Reject
               </button>
               <button
                 className={styles.approveButton}
                 onClick={() => submitDecision(request.request_id, 'approved')}
+                disabled={!canApprove}
               >
                 Approve
               </button>

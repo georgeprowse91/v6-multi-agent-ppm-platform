@@ -34,6 +34,7 @@ export interface User {
   avatarUrl?: string;
   tenantId: string;
   roles: string[];
+  permissions: string[];
 }
 
 export interface SessionState {

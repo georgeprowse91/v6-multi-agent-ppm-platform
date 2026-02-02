@@ -30,7 +30,14 @@ describe('TourProvider', () => {
       session: {
         authenticated: true,
         loading: false,
-        user: { id: 'user-1', name: 'User', email: 'u@example.com', tenantId: 't1', roles: [] },
+        user: {
+          id: 'user-1',
+          name: 'User',
+          email: 'u@example.com',
+          tenantId: 't1',
+          roles: [],
+          permissions: [],
+        },
       },
     });
 
@@ -52,7 +59,14 @@ describe('TourProvider', () => {
       session: {
         authenticated: true,
         loading: false,
-        user: { id: 'user-1', name: 'User', email: 'u@example.com', tenantId: 't1', roles: [] },
+        user: {
+          id: 'user-1',
+          name: 'User',
+          email: 'u@example.com',
+          tenantId: 't1',
+          roles: [],
+          permissions: [],
+        },
       },
     });
 

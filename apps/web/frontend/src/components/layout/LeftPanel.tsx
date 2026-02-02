@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCallback } from 'react';
 import { useAppStore } from '@/store';
 import { useTranslation } from '@/i18n';
-import { canViewAuditLogs } from '@/auth/permissions';
+import { canViewAuditLogs, hasPermission } from '@/auth/permissions';
 import { MethodologyNav } from '@/components/methodology';
 import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
@@ -98,7 +98,8 @@ export function LeftPanel() {
   const location = useLocation();
   const { leftPanelCollapsed, toggleLeftPanel, session } = useAppStore();
   const { t } = useTranslation();
-  const showAuditLogs = canViewAuditLogs(session.user?.roles);
+  const showAuditLogs = canViewAuditLogs(session.user?.permissions);
+  const showRoleManager = hasPermission(session.user?.permissions, 'roles.manage');
 
   const handleNavKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLUListElement>) => {
@@ -131,6 +132,7 @@ export function LeftPanel() {
     'knowledge-lessons': t('nav.lessons'),
     prompts: t('nav.promptLibrary'),
     'analytics-dashboard': t('nav.analyticsDashboard'),
+    'role-manager': 'Role Management',
   };
 
   const tourTargets: Record<string, string> = {
@@ -142,6 +144,16 @@ export function LeftPanel() {
 
   const configItems = [
     ...configNav,
+    ...(showRoleManager
+      ? [
+          {
+            id: 'role-manager',
+            label: 'Role Management',
+            path: '/admin/roles',
+            icon: 'actions.edit',
+          },
+        ]
+      : []),
     ...(showAuditLogs
       ? [
           {

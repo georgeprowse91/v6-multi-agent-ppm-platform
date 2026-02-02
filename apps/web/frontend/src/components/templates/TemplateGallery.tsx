@@ -80,7 +80,7 @@ export function TemplateGallery() {
   const { fetchAgents, applyTemplateAgents } = useAgentConfigStore();
   const { fetchConnectors, applyTemplateConnectors } = useConnectorStore();
   const { session } = useAppStore();
-  const canApply = canManageConfig(session.user?.roles);
+  const canApply = canManageConfig(session.user?.permissions);
 
   useEffect(() => {
     const loadTemplates = async () => {

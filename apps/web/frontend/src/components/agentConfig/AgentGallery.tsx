@@ -42,7 +42,7 @@ export function AgentGallery({ projectId = 'project-apollo' }: AgentGalleryProps
     saveAgentConfig,
   } = useAgentConfigStore();
   const { session } = useAppStore();
-  const canConfigure = canManageConfig(session.user?.roles);
+  const canConfigure = canManageConfig(session.user?.permissions);
 
   // Initialize store
   useEffect(() => {

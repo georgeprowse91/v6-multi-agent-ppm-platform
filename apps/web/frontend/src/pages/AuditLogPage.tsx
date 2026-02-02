@@ -21,7 +21,7 @@ export function AuditLogPage() {
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const allowed = canViewAuditLogs(session.user?.roles);
+  const allowed = canViewAuditLogs(session.user?.permissions);
 
   useEffect(() => {
     if (!allowed) {

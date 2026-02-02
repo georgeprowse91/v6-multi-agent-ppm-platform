@@ -78,6 +78,7 @@ describe('ConnectorGallery', () => {
           email: 'user@example.com',
           tenantId: 'tenant-alpha',
           roles: ['portfolio_admin'],
+          permissions: ['config.manage'],
         },
       },
     });

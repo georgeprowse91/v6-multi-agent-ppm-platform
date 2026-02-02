@@ -1,0 +1,140 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.field input,
+.field textarea {
+  border: 1px solid #cbd5f5;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.buttonPrimary {
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buttonSecondary {
+  background: #e2e8f0;
+  color: #1e293b;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buttonDanger {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.notice {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.assignmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.assignmentRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.emptyState {
+  color: #64748b;
+  font-size: 0.9rem;
+}
