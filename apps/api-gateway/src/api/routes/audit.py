@@ -2,7 +2,7 @@
 Audit log API routes.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request, Response
 from pydantic import BaseModel
 from security.audit_log import get_audit_log_store
 
@@ -22,12 +22,18 @@ class AuditEventResponse(BaseModel):
 
 @router.get("/audit/events", response_model=list[AuditEventResponse])
 async def list_audit_events(
-    request: Request, limit: int = 200, offset: int = 0
+    request: Request,
+    response: Response,
+    limit: int = Query(200, ge=1, le=500),
+    offset: int = Query(0, ge=0),
 ) -> list[AuditEventResponse]:
     store = get_audit_log_store()
     events = store.list_events(
         tenant_id=request.state.auth.tenant_id,
-        limit=min(limit, 500),
+        limit=limit,
         offset=offset,
     )
+    response.headers["X-Total-Count"] = str(len(events))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
     return [AuditEventResponse(**event) for event in events]

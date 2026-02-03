@@ -20,10 +20,18 @@ async def health_check():
     Returns:
         Basic health status of the API
     """
+    from api.main import orchestrator
+
+    checks = {
+        "api": True,
+        "orchestrator": orchestrator is not None and orchestrator.initialized,
+    }
+    status = "healthy" if all(checks.values()) else "degraded"
     return {
-        "status": "healthy",
+        "status": status,
         "timestamp": datetime.utcnow().isoformat(),
         "service": "multi-agent-ppm-platform",
+        "checks": checks,
     }
 
 

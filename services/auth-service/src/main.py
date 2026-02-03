@@ -11,8 +11,9 @@ from fastapi import APIRouter, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (REPO_ROOT, OBSERVABILITY_ROOT):
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -20,6 +21,8 @@ from auth import authenticate_request, validate_token  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from packages.version import API_VERSION
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 logger = logging.getLogger("auth-service")
 logging.basicConfig(level=logging.INFO)
@@ -30,11 +33,14 @@ configure_tracing("auth-service")
 configure_metrics("auth-service")
 app.add_middleware(TraceMiddleware, service_name="auth-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="auth-service")
+app.add_middleware(SecurityHeadersMiddleware)
+register_error_handlers(app)
 
 
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "auth-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class LoginRequest(BaseModel):
@@ -173,7 +179,24 @@ async def _exchange_token(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"oidc_discovery": "unknown", "token_endpoint": "unknown"}
+    token_url = _get_env("AUTH_TOKEN_URL")
+    discovery_url = _get_env("AUTH_OIDC_DISCOVERY_URL", "IDENTITY_OIDC_DISCOVERY_URL")
+    issuer = _get_env("AUTH_ISSUER", "IDENTITY_ISSUER")
+    if discovery_url or issuer:
+        discovery_url = discovery_url or f"{issuer.rstrip('/')}/.well-known/openid-configuration"
+        try:
+            oidc_config = await _load_oidc_config(discovery_url)
+            dependencies["oidc_discovery"] = "ok"
+            token_url = token_url or oidc_config.get("token_endpoint")
+        except Exception:  # noqa: BLE001
+            dependencies["oidc_discovery"] = "down"
+    else:
+        dependencies["oidc_discovery"] = "degraded"
+
+    dependencies["token_endpoint"] = "ok" if token_url else "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")

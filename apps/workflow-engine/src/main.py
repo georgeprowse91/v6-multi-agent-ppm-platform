@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, FastAPI, Header, HTTPException, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, FastAPI, Header, HTTPException, Query, Request, Response
+from pydantic import BaseModel, Field
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -38,6 +38,8 @@ from agent_client import get_agent_client  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from workflow_audit import emit_audit_event  # noqa: E402
 from workflow_definitions import (  # noqa: E402
     load_definition,
@@ -63,11 +65,13 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 configure_tracing("workflow-engine")
 configure_metrics("workflow-engine")
 app.add_middleware(TraceMiddleware, service_name="workflow-engine")
 app.add_middleware(RequestMetricsMiddleware, service_name="workflow-engine")
+register_error_handlers(app)
 store = WorkflowStore(DB_PATH)
 bootstrap_runtime_paths()
 from approval_workflow_agent import ApprovalWorkflowAgent  # noqa: E402
@@ -81,6 +85,7 @@ dispatcher = WorkflowDispatcher()
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "workflow-engine"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class WorkflowStartRequest(BaseModel):
@@ -201,7 +206,21 @@ def _get_definition(workflow_id: str) -> dict[str, Any]:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"workflow_store": "unknown", "definitions": "unknown"}
+    try:
+        store.ping()
+        dependencies["workflow_store"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["workflow_store"] = "down"
+    try:
+        if DEFINITIONS_DIR.exists():
+            dependencies["definitions"] = "ok"
+        else:
+            dependencies["definitions"] = "down"
+    except Exception:  # noqa: BLE001
+        dependencies["definitions"] = "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -220,9 +239,14 @@ async def startup_event() -> None:
 
 
 @api_router.get("/workflows/definitions", response_model=list[WorkflowDefinitionResponse])
-async def list_definitions(http_request: Request) -> list[WorkflowDefinitionResponse]:
+async def list_definitions(
+    http_request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[WorkflowDefinitionResponse]:
     _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
-    return [
+    definitions = [
         WorkflowDefinitionResponse(
             workflow_id=definition.workflow_id,
             name=definition.name,
@@ -232,6 +256,11 @@ async def list_definitions(http_request: Request) -> list[WorkflowDefinitionResp
         )
         for definition in store.list_definitions()
     ]
+    sliced = definitions[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(definitions))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.post("/workflows/definitions", response_model=WorkflowDefinitionResponse)
@@ -387,9 +416,14 @@ async def get_workflow(run_id: str, http_request: Request) -> WorkflowRunRespons
 
 
 @api_router.get("/workflows", response_model=list[WorkflowRunResponse])
-async def list_workflows(http_request: Request) -> list[WorkflowRunResponse]:
+async def list_workflows(
+    http_request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[WorkflowRunResponse]:
     _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
-    return [
+    runs = [
         WorkflowRunResponse(
             run_id=instance.run_id,
             workflow_id=instance.workflow_id,
@@ -401,6 +435,11 @@ async def list_workflows(http_request: Request) -> list[WorkflowRunResponse]:
         )
         for instance in store.list_instances(http_request.state.auth.tenant_id)
     ]
+    sliced = runs[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(runs))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.post("/workflows/{run_id}/resume", response_model=WorkflowRunResponse)
@@ -431,14 +470,20 @@ async def resume_workflow(run_id: str, http_request: Request) -> WorkflowRunResp
 
 
 @api_router.get("/workflows/{run_id}/timeline", response_model=list[WorkflowEventResponse])
-async def workflow_timeline(run_id: str, http_request: Request) -> list[WorkflowEventResponse]:
+async def workflow_timeline(
+    run_id: str,
+    http_request: Request,
+    response: Response,
+    limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+) -> list[WorkflowEventResponse]:
     _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     instance = store.get(run_id)
     if not instance:
         raise HTTPException(status_code=404, detail="Workflow not found")
     if instance.tenant_id != http_request.state.auth.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
-    return [
+    events = [
         WorkflowEventResponse(
             event_id=event.event_id,
             run_id=event.run_id,
@@ -449,6 +494,11 @@ async def workflow_timeline(run_id: str, http_request: Request) -> list[Workflow
         )
         for event in store.list_events(run_id)
     ]
+    sliced = events[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(events))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.post("/workflows/{run_id}/status", response_model=WorkflowRunResponse)
@@ -481,11 +531,15 @@ async def update_workflow(
 
 @api_router.get("/approvals", response_model=list[WorkflowApprovalResponse])
 async def list_approvals(
-    http_request: Request, status: str | None = None
+    http_request: Request,
+    response: Response,
+    status: str | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> list[WorkflowApprovalResponse]:
     _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     approvals = store.list_approvals(http_request.state.auth.tenant_id, status=status)
-    return [
+    responses = [
         WorkflowApprovalResponse(
             approval_id=approval.approval_id,
             run_id=approval.run_id,
@@ -501,6 +555,11 @@ async def list_approvals(
         )
         for approval in approvals
     ]
+    sliced = responses[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(responses))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.get("/approvals/{approval_id}", response_model=WorkflowApprovalResponse)

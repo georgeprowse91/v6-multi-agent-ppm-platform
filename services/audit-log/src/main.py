@@ -10,10 +10,9 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-import yaml
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -36,6 +35,9 @@ from audit_storage import AuditRetentionPolicy, get_worm_storage  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.config import load_yaml  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 
 def _load_schema() -> dict[str, Any]:
@@ -84,20 +86,35 @@ class AuditIngestResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "audit-log"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 app = FastAPI(title="Audit Log Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("audit-log")
 configure_metrics("audit-log")
 app.add_middleware(TraceMiddleware, service_name="audit-log")
 app.add_middleware(RequestMetricsMiddleware, service_name="audit-log")
+register_error_handlers(app)
 
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"worm_storage": "unknown", "retention_config": "unknown"}
+    try:
+        get_worm_storage().ping()
+        dependencies["worm_storage"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["worm_storage"] = "down"
+    try:
+        _load_policies()
+        dependencies["retention_config"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["retention_config"] = "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -116,8 +133,8 @@ def _serialize_event(event: AuditEventOut) -> dict[str, Any]:
 
 
 def _load_retention_policy(classification: str) -> AuditRetentionPolicy:
-    retention_cfg = yaml.safe_load(RETENTION_CONFIG_PATH.read_text())
-    classification_cfg = yaml.safe_load(CLASSIFICATION_CONFIG_PATH.read_text())
+    retention_cfg = load_yaml(RETENTION_CONFIG_PATH)
+    classification_cfg = load_yaml(CLASSIFICATION_CONFIG_PATH)
     policy_id = next(
         (
             level.get("retention_policy")

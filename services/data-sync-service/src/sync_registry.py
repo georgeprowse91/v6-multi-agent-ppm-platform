@@ -74,6 +74,9 @@ class SyncScheduler:
             if thread.is_alive():
                 thread.join(timeout=1)
 
+    def is_running(self) -> bool:
+        return any(thread.is_alive() for thread in self._threads.values())
+
     def run_job(self, connector: str, entity: str, dry_run: bool = False) -> SyncResult:
         job = self.registry.get_job(connector, entity)
         if not job:

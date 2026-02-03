@@ -71,6 +71,10 @@ class LineageStore:
                 "CREATE INDEX IF NOT EXISTS idx_lineage_events_work_item_id ON lineage_events(work_item_id)"
             )
 
+    def ping(self) -> None:
+        with self._connect() as conn:
+            conn.execute("SELECT 1")
+
     def _serialize(self, value: dict[str, Any] | list[str] | None) -> str | None:
         if value is None:
             return None

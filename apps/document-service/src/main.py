@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, FastAPI, HTTPException, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -30,6 +30,8 @@ from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E4
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.crypto import get_encryption_key  # noqa: E402
 from security.dlp import DLPFinding, ensure_dlp_environment, scan_payload  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("document-service")
@@ -38,10 +40,12 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Document Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/health", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("document-service")
 configure_metrics("document-service")
 app.add_middleware(TraceMiddleware, service_name="document-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="document-service")
+register_error_handlers(app)
 
 store: DocumentStore | None = None
 kpi_handles = build_kpi_handles("document-service")
@@ -56,6 +60,7 @@ documents_stored = configure_metrics("document-service").create_counter(
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "document-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class DocumentRequest(BaseModel):
@@ -107,7 +112,19 @@ def _get_store() -> DocumentStore:
 @app.get("/health", response_model=HealthResponse)
 @app.get("/healthz", response_model=HealthResponse)
 async def health() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"document_store": "unknown", "dlp_policy": "unknown"}
+    try:
+        _get_store().ping()
+        dependencies["document_store"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["document_store"] = "down"
+    try:
+        ensure_dlp_environment()
+        dependencies["dlp_policy"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["dlp_policy"] = "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -197,10 +214,18 @@ async def create_document(request: Request, payload: DocumentRequest) -> Documen
 
 
 @api_router.get("/documents", response_model=list[DocumentResponse])
-async def list_documents(request: Request) -> list[DocumentResponse]:
+async def list_documents(
+    request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[DocumentResponse]:
     store = _get_store()
     tenant_id = request.state.auth.tenant_id
-    records = store.list_documents(tenant_id)
+    records = store.list_documents(tenant_id, limit=limit, offset=offset)
+    response.headers["X-Total-Count"] = str(store.count_documents(tenant_id))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
     return [_build_response(record, []) for record in records]
 
 

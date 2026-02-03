@@ -95,6 +95,10 @@ class WorkflowStore:
                 )
                 """
             )
+
+    def ping(self) -> None:
+        with self._connect() as conn:
+            conn.execute("SELECT 1")
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS workflow_instances (

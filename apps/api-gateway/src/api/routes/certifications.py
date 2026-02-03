@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, Request, Response, UploadFile
 from pydantic import BaseModel, Field
 
 from api.certification_storage import CertificationRecord, CertificationStore, _now
@@ -88,13 +88,22 @@ def _to_response(record: CertificationRecord) -> CertificationRecordResponse:
 
 @router.get("/certifications", response_model=list[CertificationRecordResponse])
 async def list_certifications(
-    http_request: Request, connector_id: str | None = None
+    http_request: Request,
+    response: Response,
+    connector_id: str | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> list[CertificationRecordResponse]:
     auth = http_request.state.auth
     records = _get_store().list_records(auth.tenant_id)
     if connector_id:
         records = [record for record in records if record.connector_id == connector_id]
-    return [_to_response(record) for record in records]
+    responses = [_to_response(record) for record in records]
+    sliced = responses[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(responses))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/certifications/{connector_id}", response_model=CertificationRecordResponse)

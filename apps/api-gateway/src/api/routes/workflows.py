@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 
 from api.runtime_bootstrap import bootstrap_runtime_paths
@@ -125,8 +125,12 @@ def _get_runtime(request: Request) -> WorkflowRuntime:
 
 
 @router.get("/workflows/definitions", response_model=list[WorkflowDefinitionResponse])
-async def list_definitions() -> list[WorkflowDefinitionResponse]:
-    return [
+async def list_definitions(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[WorkflowDefinitionResponse]:
+    definitions = [
         WorkflowDefinitionResponse(
             workflow_id=definition.workflow_id,
             name=definition.name,
@@ -136,6 +140,11 @@ async def list_definitions() -> list[WorkflowDefinitionResponse]:
         )
         for definition in store.list_definitions()
     ]
+    sliced = definitions[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(definitions))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.post("/workflows/definitions", response_model=WorkflowDefinitionResponse)
@@ -176,8 +185,13 @@ async def start_workflow(
 
 
 @router.get("/workflows/instances", response_model=list[WorkflowRunResponse])
-async def list_instances(http_request: Request) -> list[WorkflowRunResponse]:
-    return [
+async def list_instances(
+    http_request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[WorkflowRunResponse]:
+    instances = [
         WorkflowRunResponse(
             run_id=instance.run_id,
             workflow_id=instance.workflow_id,
@@ -189,6 +203,11 @@ async def list_instances(http_request: Request) -> list[WorkflowRunResponse]:
         )
         for instance in store.list_instances(http_request.state.auth.tenant_id)
     ]
+    sliced = instances[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(instances))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/workflows/instances/{run_id}", response_model=WorkflowRunResponse)
@@ -231,13 +250,19 @@ async def resume_workflow(run_id: str, http_request: Request) -> WorkflowRunResp
 
 
 @router.get("/workflows/instances/{run_id}/timeline", response_model=list[WorkflowEventResponse])
-async def workflow_timeline(run_id: str, http_request: Request) -> list[WorkflowEventResponse]:
+async def workflow_timeline(
+    run_id: str,
+    http_request: Request,
+    response: Response,
+    limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+) -> list[WorkflowEventResponse]:
     instance = store.get(run_id)
     if not instance:
         raise HTTPException(status_code=404, detail="Workflow not found")
     if instance.tenant_id != http_request.state.auth.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
-    return [
+    events = [
         WorkflowEventResponse(
             event_id=event.event_id,
             run_id=event.run_id,
@@ -248,11 +273,21 @@ async def workflow_timeline(run_id: str, http_request: Request) -> list[Workflow
         )
         for event in store.list_events(run_id)
     ]
+    sliced = events[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(events))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/workflows/approvals", response_model=list[WorkflowApprovalResponse])
 async def list_approvals(
-    http_request: Request, status: str | None = None, approver_id: str | None = None
+    http_request: Request,
+    response: Response,
+    status: str | None = None,
+    approver_id: str | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> list[WorkflowApprovalResponse]:
     approvals = store.list_approvals(http_request.state.auth.tenant_id, status=status)
     if approver_id:
@@ -261,7 +296,7 @@ async def list_approvals(
             for approval in approvals
             if approver_id in approval.metadata.get("approvers", [])
         ]
-    return [
+    responses = [
         WorkflowApprovalResponse(
             approval_id=approval.approval_id,
             run_id=approval.run_id,
@@ -277,6 +312,11 @@ async def list_approvals(
         )
         for approval in approvals
     ]
+    sliced = responses[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(responses))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/workflows/approvals/{approval_id}", response_model=WorkflowApprovalDetailResponse)

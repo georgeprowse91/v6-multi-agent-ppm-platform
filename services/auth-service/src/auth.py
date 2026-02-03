@@ -13,6 +13,8 @@ from fastapi import HTTPException, Request
 from jwt import InvalidTokenError
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from security.errors import error_payload
+
 logger = logging.getLogger("auth-service")
 
 
@@ -193,6 +195,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         except HTTPException as exc:
             from fastapi.responses import JSONResponse
 
-            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+            message = exc.detail if isinstance(exc.detail, str) else "Request failed"
+            payload = error_payload(message=message, code=f"http_{exc.status_code}", details=exc.detail)
+            return JSONResponse(status_code=exc.status_code, content=payload)
         request.state.auth = auth_context
         return await call_next(request)

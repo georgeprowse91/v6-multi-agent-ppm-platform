@@ -31,6 +31,9 @@ class DocumentStore:
     def __init__(self, db_path: Path, encryption_key: str) -> None:
         self.db_path = db_path
         self._encryption_key = encryption_key
+        if os.getenv("ENVIRONMENT", "development").lower() == "production":
+            if str(self.db_path) == ":memory:":
+                raise ValueError("in-memory document store is not allowed in production")
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
 
@@ -128,13 +131,25 @@ class DocumentStore:
             metadata=metadata,
         )
 
-    def list_documents(self, tenant_id: str) -> list[DocumentRecord]:
+    def list_documents(self, tenant_id: str, *, limit: int, offset: int) -> list[DocumentRecord]:
         with self._connect() as conn:
             rows = conn.execute(
-                "SELECT * FROM documents WHERE tenant_id = ? ORDER BY created_at DESC",
-                (tenant_id,),
+                "SELECT * FROM documents WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (tenant_id, limit, offset),
             ).fetchall()
         return [self._serialize(row) for row in rows]
+
+    def count_documents(self, tenant_id: str) -> int:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS count FROM documents WHERE tenant_id = ?",
+                (tenant_id,),
+            ).fetchone()
+        return int(row["count"]) if row else 0
+
+    def ping(self) -> None:
+        with self._connect() as conn:
+            conn.execute("SELECT 1")
 
     def get_document(self, tenant_id: str, document_id: str) -> DocumentRecord | None:
         with self._connect() as conn:

@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, FastAPI, File, HTTPException, Query, Request, Response, UploadFile
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -21,6 +21,8 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from orchestrator import AgentOrchestrator  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("orchestration-service")
@@ -31,11 +33,13 @@ api_router = APIRouter(prefix="/v1")
 app.add_middleware(
     AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/health/ready", "/version"}
 )
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("orchestration-service")
 configure_metrics("orchestration-service")
 configure_logging("orchestration-service")
 app.add_middleware(TraceMiddleware, service_name="orchestration-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="orchestration-service")
+register_error_handlers(app)
 
 orchestrator = AgentOrchestrator()
 
@@ -43,6 +47,7 @@ orchestrator = AgentOrchestrator()
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "orchestration-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class DependencyRequest(BaseModel):
@@ -82,7 +87,14 @@ async def shutdown() -> None:
 @app.get("/health", response_model=HealthResponse)
 @app.get("/healthz", response_model=HealthResponse)
 async def health() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {
+        "orchestrator": "ok" if orchestrator.initialized else "down",
+        "leader_elector": "ok"
+        if getattr(app.state, "leader_elector", None) is not None
+        else "down",
+    }
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -106,16 +118,34 @@ async def readiness(request: Request) -> dict[str, bool | dict[str, bool]]:
 
 
 @api_router.get("/agents", response_model=list[str])
-async def list_agents() -> list[str]:
-    return sorted(orchestrator.agents.keys())
+async def list_agents(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[str]:
+    agents = sorted(orchestrator.agents.keys())
+    sliced = agents[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(agents))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.get("/dependencies", response_model=list[DependencyRequest])
-async def list_dependencies() -> list[DependencyRequest]:
-    return [
+async def list_dependencies(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[DependencyRequest]:
+    deps = [
         DependencyRequest(agent_id=dep.agent_id, depends_on=dep.depends_on)
         for dep in orchestrator.list_dependencies()
     ]
+    sliced = deps[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(deps))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.post("/dependencies", response_model=DependencyRequest)

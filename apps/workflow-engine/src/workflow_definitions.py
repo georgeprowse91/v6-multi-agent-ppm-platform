@@ -3,15 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import yaml
 from workflow_storage import WorkflowStore
+from security.config import load_yaml
 
 from jsonschema import Draft202012Validator, FormatChecker
 
 
 def load_definition(path: Path, schema_path: Path) -> dict[str, Any]:
-    definition = yaml.safe_load(path.read_text())
-    schema = yaml.safe_load(schema_path.read_text())
+    definition = load_yaml(path)
+    schema = load_yaml(schema_path)
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(definition), key=lambda err: err.path)
     if errors:

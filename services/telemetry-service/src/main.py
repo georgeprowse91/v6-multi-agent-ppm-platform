@@ -23,6 +23,8 @@ from packages.version import API_VERSION  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 logger = logging.getLogger("telemetry-service")
 logging.basicConfig(level=logging.INFO)
@@ -31,6 +33,7 @@ logging.basicConfig(level=logging.INFO)
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "telemetry-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class TelemetryEnvelope(BaseModel):
@@ -50,10 +53,12 @@ class TelemetryResponse(BaseModel):
 app = FastAPI(title="Telemetry Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("telemetry-service")
 configure_metrics("telemetry-service")
 app.add_middleware(TraceMiddleware, service_name="telemetry-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="telemetry-service")
+register_error_handlers(app)
 
 telemetry_ingest_total = configure_metrics("telemetry-service").create_counter(
     name="telemetry_ingest_total",
@@ -64,7 +69,9 @@ telemetry_ingest_total = configure_metrics("telemetry-service").create_counter(
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"otel_pipeline": "ok" if PIPELINE else "down"}
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")

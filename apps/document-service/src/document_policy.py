@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Any, cast
 
-import yaml
+from security.config import load_yaml
 
 logger = logging.getLogger("document-policy")
 DEFAULT_POLICY_BUNDLE_PATH = (
@@ -21,7 +21,7 @@ class PolicyDecision:
 
 def _load_policy_bundle() -> dict[str, Any]:
     bundle_path = Path(DEFAULT_POLICY_BUNDLE_PATH)
-    return cast(dict[str, Any], yaml.safe_load(bundle_path.read_text()))
+    return cast(dict[str, Any], load_yaml(bundle_path))
 
 
 def _get_field(data: dict[str, Any], path: str) -> Any:

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, cast
 
-import yaml
+from security.config import load_yaml
 
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -14,8 +14,8 @@ def list_job_manifests() -> list[Path]:
 
 
 def load_job_manifest(path: Path) -> dict[str, Any]:
-    payload = cast(dict[str, Any], yaml.safe_load(path.read_text()))
-    schema = cast(dict[str, Any], yaml.safe_load(SCHEMA_PATH.read_text()))
+    payload = cast(dict[str, Any], load_yaml(path))
+    schema = cast(dict[str, Any], load_yaml(SCHEMA_PATH))
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(payload), key=lambda err: err.path)
     if errors:

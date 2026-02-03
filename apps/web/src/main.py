@@ -77,6 +77,9 @@ from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E4
 from oidc_client import OIDCClient  # noqa: E402
 from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store  # noqa: E402
+from security.config import load_yaml as load_yaml_config  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from security.prompt_safety import evaluate_prompt  # noqa: E402
 from security.secrets import resolve_secret  # noqa: E402
 from search_service import SearchService  # noqa: E402
@@ -173,6 +176,8 @@ configure_tracing("web-ui")
 configure_metrics("web-ui")
 app.add_middleware(TraceMiddleware, service_name="web-ui")
 app.add_middleware(RequestMetricsMiddleware, service_name="web-ui")
+app.add_middleware(SecurityHeadersMiddleware)
+register_error_handlers(app)
 
 knowledge_store: KnowledgeStore | None = None
 workspace_state_store = WorkspaceStateStore(WORKSPACE_STATE_PATH)
@@ -189,6 +194,7 @@ logger = logging.getLogger("web-ui")
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "web-ui"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class UIConfig(BaseModel):
@@ -624,8 +630,7 @@ def _load_connector_manifest(manifest_path: str) -> dict[str, Any] | None:
     if not manifest_file.exists():
         return None
     try:
-        with manifest_file.open("r", encoding="utf-8") as handle:
-            payload = yaml.safe_load(handle)
+        payload = load_yaml_config(manifest_file)
     except (OSError, yaml.YAMLError):
         return None
     if not isinstance(payload, dict):
@@ -685,7 +690,14 @@ def _load_connector_registry() -> list[dict[str, Any]]:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {
+        "knowledge_store": "ok" if knowledge_store else "down",
+        "intake_store": "ok" if intake_store else "down",
+        "pipeline_store": "ok" if pipeline_store else "down",
+        "workflow_definitions": "ok" if WORKFLOW_DEFINITIONS_PATH.exists() else "down",
+    }
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -1214,8 +1226,10 @@ async def _delete_workflow_definition(request: Request, workflow_id: str) -> Non
 def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    with path.open("r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle) or {}
+    try:
+        return load_yaml_config(path) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
 
 
 def _load_methodology_storage() -> dict[str, Any]:

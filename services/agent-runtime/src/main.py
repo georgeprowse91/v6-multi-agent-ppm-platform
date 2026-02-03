@@ -9,14 +9,20 @@ from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
 from packages.version import API_VERSION  # noqa: E402
 from runtime import AgentRuntime  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 app = FastAPI(title="Agent Runtime Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
+app.add_middleware(SecurityHeadersMiddleware)
+register_error_handlers(app)
 
 runtime = AgentRuntime()
 
@@ -36,6 +42,7 @@ async def stop_event_bus() -> None:
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "agent-runtime"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class AgentExecuteRequest(BaseModel):
@@ -76,7 +83,9 @@ class EventPublishRequest(BaseModel):
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"event_bus": "ok" if runtime.event_bus else "down"}
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")

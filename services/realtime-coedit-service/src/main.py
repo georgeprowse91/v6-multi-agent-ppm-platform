@@ -10,7 +10,16 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    FastAPI,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -24,6 +33,8 @@ from packages.version import API_VERSION  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 logger = logging.getLogger("realtime-coedit-service")
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +45,7 @@ MAX_HISTORY = int(os.getenv("COEDIT_MAX_HISTORY", "25"))
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "realtime-coedit-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class SessionCreateRequest(BaseModel):
@@ -109,10 +121,12 @@ class CoeditSession:
 app = FastAPI(title="Realtime Coedit Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("realtime-coedit-service")
 configure_metrics("realtime-coedit-service")
 app.add_middleware(TraceMiddleware, service_name="realtime-coedit-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="realtime-coedit-service")
+register_error_handlers(app)
 
 _sessions: dict[str, CoeditSession] = {}
 _document_history: dict[str, list[DocumentHistoryEntry]] = {}
@@ -172,6 +186,11 @@ def _serialize_session(session: CoeditSession) -> SessionResponse:
     )
 
 
+def _paginate(items: list[Any], *, offset: int, limit: int) -> tuple[list[Any], int]:
+    total = len(items)
+    return items[offset : offset + limit], total
+
+
 async def _broadcast(session: CoeditSession, payload: dict[str, Any]) -> None:
     dead: set[WebSocket] = set()
     for connection in session.connections:
@@ -185,7 +204,9 @@ async def _broadcast(session: CoeditSession, payload: dict[str, Any]) -> None:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"session_store": "ok", "history_buffer": "ok"}
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -271,8 +292,18 @@ async def persist_session(
 
 
 @api_router.get("/documents/{document_id}/history", response_model=list[DocumentHistoryEntry])
-async def document_history(document_id: str) -> list[DocumentHistoryEntry]:
-    return _document_history.get(document_id, [])
+async def document_history(
+    document_id: str,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[DocumentHistoryEntry]:
+    entries = _document_history.get(document_id, [])
+    sliced, total = _paginate(entries, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.websocket("/ws/documents/{document_id}")

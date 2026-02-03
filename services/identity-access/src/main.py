@@ -16,7 +16,7 @@ import jwt
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from jwt import InvalidTokenError
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -49,6 +49,8 @@ from scim_models import (  # noqa: E402
 )
 from scim_store import ScimStore  # noqa: E402
 from security.auth import authenticate_request  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from security.secrets import resolve_secret  # noqa: E402
 
 logger = logging.getLogger("identity-access")
@@ -58,6 +60,7 @@ logging.basicConfig(level=logging.INFO)
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "identity-access"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class AuthValidateRequest(BaseModel):
@@ -101,6 +104,8 @@ configure_tracing("identity-access")
 configure_metrics("identity-access")
 app.add_middleware(TraceMiddleware, service_name="identity-access")
 app.add_middleware(RequestMetricsMiddleware, service_name="identity-access")
+app.add_middleware(SecurityHeadersMiddleware)
+register_error_handlers(app)
 
 token_validation_failures = configure_metrics("identity-access").create_counter(
     name="identity_token_validation_failures_total",
@@ -122,14 +127,30 @@ async def auth_tenant_middleware(request: Request, call_next):
     try:
         auth_context = await authenticate_request(request)
     except HTTPException as exc:
-        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+        message = exc.detail if isinstance(exc.detail, str) else "Request failed"
+        payload = {"error": {"message": message, "code": f"http_{exc.status_code}", "details": exc.detail}}
+        return JSONResponse(status_code=exc.status_code, content=payload)
     request.state.auth = auth_context
     return await call_next(request)
 
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"scim_db": "unknown", "saml_config": "unknown"}
+    try:
+        scim_store.ping()
+        dependencies["scim_db"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["scim_db"] = "down"
+    try:
+        load_saml_config()
+        dependencies["saml_config"] = "ok"
+    except SamlUnavailableError:
+        dependencies["saml_config"] = "degraded"
+    except Exception:  # noqa: BLE001
+        dependencies["saml_config"] = "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")

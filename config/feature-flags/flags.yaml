@@ -1,1 +1,4 @@
-flags: []
+flags:
+  - name: schema_promotions
+    enabled: true
+    description: Allow schema promotion workflows in the data service.

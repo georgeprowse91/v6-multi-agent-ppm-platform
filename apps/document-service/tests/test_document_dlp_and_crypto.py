@@ -40,7 +40,7 @@ def test_create_document_with_pii_is_denied_when_policy_blocks(tmp_path, monkeyp
     )
     assert response.status_code == 403
     payload = response.json()
-    assert payload["detail"]["reasons"]
+    assert payload["error"]["details"]["reasons"]
 
 
 def test_create_document_with_minor_pii_is_advisory_and_returns_advisories(

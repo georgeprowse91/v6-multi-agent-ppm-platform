@@ -9,8 +9,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-import yaml
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -29,6 +28,9 @@ from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E4
 from quality import QualityResult, compute_quality  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
 from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
+from security.config import load_yaml  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
 from storage import LineageRecord, LineageStore  # noqa: E402
 
@@ -50,6 +52,7 @@ class RetentionPolicy:
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "data-lineage-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class QualityPayload(BaseModel):
@@ -140,10 +143,12 @@ class RetentionStatusResponse(BaseModel):
 app = FastAPI(title="Data Lineage Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("data-lineage-service")
 configure_metrics("data-lineage-service")
 app.add_middleware(TraceMiddleware, service_name="data-lineage-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-lineage-service")
+register_error_handlers(app)
 
 
 @app.on_event("startup")
@@ -165,7 +170,17 @@ async def shutdown() -> None:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    store = get_store()
+    scheduler = getattr(app.state, "retention_scheduler", None)
+    dependencies = {"store": "unknown", "retention_scheduler": "unknown"}
+    try:
+        store.ping()
+        dependencies["store"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["store"] = "down"
+    dependencies["retention_scheduler"] = "ok" if scheduler else "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -187,17 +202,17 @@ def _get_retention_scheduler(request: Request) -> RetentionScheduler | None:
 
 def _load_rules() -> dict[str, Any]:
     rules_path = Path(os.getenv("DATA_LINEAGE_RULES_PATH", DEFAULT_RULES_PATH))
-    return yaml.safe_load(rules_path.read_text())
+    return load_yaml(rules_path)
 
 
 def _load_classification_config() -> dict[str, Any]:
     path = Path(os.getenv("DATA_LINEAGE_CLASSIFICATION_LEVELS", DEFAULT_CLASSIFICATION_CONFIG))
-    return yaml.safe_load(path.read_text())
+    return load_yaml(path)
 
 
 def _load_retention_config() -> dict[str, Any]:
     path = Path(os.getenv("DATA_LINEAGE_RETENTION_POLICIES", DEFAULT_RETENTION_CONFIG))
-    return yaml.safe_load(path.read_text())
+    return load_yaml(path)
 
 
 def _retention_policy(classification: str) -> RetentionPolicy:
@@ -265,6 +280,11 @@ def _remediation_response(
         remediated_payload=result.remediated_payload,
         quality=QualityPayload(**quality.__dict__) if quality else None,
     )
+
+
+def _paginate(items: list[Any], *, offset: int, limit: int) -> tuple[list[Any], int]:
+    total = len(items)
+    return items[offset : offset + limit], total
 
 
 def _extract_work_item_id(target: dict[str, Any]) -> str | None:
@@ -344,6 +364,9 @@ async def list_events(
     request: Request,
     connector_id: str | None = None,
     work_item_id: str | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    response: Response,
     store: LineageStore = Depends(get_store),
 ) -> list[LineageEventOut]:
     auth = request.state.auth
@@ -355,7 +378,11 @@ async def list_events(
         except HTTPException:
             continue
         visible.append(_record_to_response(record))
-    return visible
+    sliced, total = _paginate(visible, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.get("/lineage/events/{lineage_id}", response_model=LineageEventOut)

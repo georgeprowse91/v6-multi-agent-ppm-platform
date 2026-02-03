@@ -43,6 +43,9 @@ class WORMStorage:
     def prune_expired(self, now: datetime | None = None) -> int:
         raise NotImplementedError
 
+    def ping(self) -> None:
+        raise NotImplementedError
+
 
 class LocalEncryptedWORMStorage(WORMStorage):
     def __init__(self, root: Path, encryption_key: str) -> None:
@@ -107,6 +110,10 @@ class LocalEncryptedWORMStorage(WORMStorage):
             except Exception:
                 continue
         return deleted
+
+    def ping(self) -> None:
+        if not self.root.exists():
+            raise WORMStorageError("Local WORM storage root missing")
 
 
 class AzureBlobWORMStorage(WORMStorage):
@@ -177,6 +184,11 @@ class AzureBlobWORMStorage(WORMStorage):
                         extra={"blob": blob.name, "error": str(exc)},
                     )
         return deleted
+
+    def ping(self) -> None:
+        container_client = self.client.get_container_client(self.container)
+        if not container_client.exists():
+            raise WORMStorageError("Azure WORM container missing")
 
 
 def get_worm_storage() -> WORMStorage:

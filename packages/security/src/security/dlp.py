@@ -9,6 +9,8 @@ from typing import Any
 
 import yaml
 
+from security.config import resolve_config
+
 logger = logging.getLogger("security-dlp")
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -59,6 +61,7 @@ def _load_policy(path: Path | None = None) -> DLPPolicy:
     if not policy_path.exists():
         raise FileNotFoundError(f"DLP policy file not found: {policy_path}")
     data = yaml.safe_load(policy_path.read_text(encoding="utf-8")) or {}
+    data = resolve_config(data)
     return DLPPolicy(
         classifications=data.get("classifications", {}),
         finding_enforcement=data.get("finding_enforcement", {}),

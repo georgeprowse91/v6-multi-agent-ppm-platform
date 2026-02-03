@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, FastAPI, HTTPException, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response
 from opentelemetry.metrics import Observation
 from pydantic import BaseModel, Field
 
@@ -37,6 +37,8 @@ from observability.metrics import (  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from scheduler import AnalyticsScheduler  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from packages.version import API_VERSION
 
 from agents.common.health_recommendations import (  # noqa: E402
@@ -52,10 +54,12 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Analytics Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("analytics-service")
 configure_metrics("analytics-service")
 app.add_middleware(TraceMiddleware, service_name="analytics-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="analytics-service")
+register_error_handlers(app)
 
 scheduler: AnalyticsScheduler | None = None
 run_loop_task: asyncio.Task | None = None
@@ -115,6 +119,7 @@ configure_metrics("analytics-service").create_observable_gauge(
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "analytics-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class JobRequest(BaseModel):
@@ -488,7 +493,14 @@ async def shutdown() -> None:
 @app.get("/health", response_model=HealthResponse)
 @app.get("/healthz", response_model=HealthResponse)
 async def health() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {
+        "scheduler": "ok" if scheduler else "down",
+        "health_snapshots": "ok" if health_snapshot_store else "down",
+        "metrics_store": "ok" if metrics_store else "down",
+        "kpi_engine": "ok" if kpi_engine else "down",
+    }
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -501,10 +513,20 @@ async def version() -> dict[str, str]:
 
 
 @api_router.get("/jobs", response_model=list[JobResponse])
-async def list_jobs(request: Request) -> list[JobResponse]:
+async def list_jobs(
+    request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[JobResponse]:
     assert scheduler is not None
     tenant_id = request.state.auth.tenant_id
-    return [_job_to_response(job) for job in scheduler.list_jobs(tenant_id)]
+    jobs = [_job_to_response(job) for job in scheduler.list_jobs(tenant_id)]
+    sliced = jobs[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(jobs))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.post("/jobs", response_model=JobResponse)

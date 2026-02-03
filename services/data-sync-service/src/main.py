@@ -8,9 +8,8 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-import yaml
-from fastapi import APIRouter, FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Response
+from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -26,6 +25,9 @@ from data_sync_status import get_status_store  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.config import load_yaml  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
 from sync_log_store import get_sync_log_store  # noqa: E402
 from sync_registry import (  # noqa: E402
@@ -43,6 +45,7 @@ DEFAULT_RULES_DIR = REPO_ROOT / "services" / "data-sync-service" / "rules"
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "data-sync-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class SyncRunRequest(BaseModel):
@@ -128,10 +131,12 @@ class ConflictResponse(BaseModel):
 app = FastAPI(title="Data Sync Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("data-sync-service")
 configure_metrics("data-sync-service")
 app.add_middleware(TraceMiddleware, service_name="data-sync-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-sync-service")
+register_error_handlers(app)
 
 build_default_registry()
 scheduler = get_scheduler()
@@ -145,7 +150,12 @@ data_sync_jobs_total = configure_metrics("data-sync-service").create_counter(
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {
+        "scheduler": "ok" if scheduler.is_running() else "down",
+        "queue": "ok" if os.getenv("SERVICE_BUS_CONNECTION_STRING") else "degraded",
+    }
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -171,7 +181,7 @@ def _load_rules() -> list[SyncRule]:
     rules_dir = Path(os.getenv("DATA_SYNC_RULES_DIR", str(DEFAULT_RULES_DIR)))
     rules: list[SyncRule] = []
     for path in sorted(rules_dir.glob("*.yaml")):
-        data = yaml.safe_load(path.read_text())
+        data = load_yaml(path)
         if not data:
             continue
         rule = SyncRule(**data)
@@ -236,7 +246,11 @@ async def get_sync_status(job_id: str) -> SyncStatusResponse:
 
 
 @api_router.get("/sync/jobs", response_model=list[SyncJobSummary])
-async def list_sync_jobs() -> list[SyncJobSummary]:
+async def list_sync_jobs(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[SyncJobSummary]:
     registry = get_registry()
     jobs: list[SyncJobSummary] = []
     for job in registry.list_jobs():
@@ -255,7 +269,11 @@ async def list_sync_jobs() -> list[SyncJobSummary]:
                 last_error=state.last_error,
             )
         )
-    return jobs
+    sliced, total = _paginate(jobs, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.post("/sync/jobs/{connector}/{entity}/run", response_model=SyncLogResponse)
@@ -282,13 +300,26 @@ async def run_sync_job(connector: str, entity: str, dry_run: bool = False) -> Sy
 
 
 @api_router.get("/sync/logs", response_model=list[SyncLogResponse])
-async def list_sync_logs(limit: int = 50) -> list[SyncLogResponse]:
+async def list_sync_logs(
+    response: Response,
+    limit: int = Query(50, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[SyncLogResponse]:
     log_store = get_sync_log_store()
-    return [SyncLogResponse(**log.__dict__) for log in log_store.list_recent(limit=limit)]
+    logs = [SyncLogResponse(**log.__dict__) for log in log_store.list_recent(limit=limit + offset)]
+    sliced, total = _paginate(logs, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.get("/sync/summary", response_model=list[SyncSummaryResponse])
-async def get_sync_summary() -> list[SyncSummaryResponse]:
+async def get_sync_summary(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[SyncSummaryResponse]:
     log_store = get_sync_log_store()
     registry = get_registry()
     summaries: list[SyncSummaryResponse] = []
@@ -307,15 +338,34 @@ async def get_sync_summary() -> list[SyncSummaryResponse]:
                 last_status=state.last_status,
             )
         )
-    return summaries
+    sliced, total = _paginate(summaries, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @api_router.get("/sync/conflicts", response_model=list[ConflictResponse])
-async def list_conflicts(limit: int = 50) -> list[ConflictResponse]:
+async def list_conflicts(
+    response: Response,
+    limit: int = Query(50, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[ConflictResponse]:
     conflict_store = get_conflict_store()
-    return [
-        ConflictResponse(**record.__dict__) for record in conflict_store.list_recent(limit=limit)
+    conflicts = [
+        ConflictResponse(**record.__dict__)
+        for record in conflict_store.list_recent(limit=limit + offset)
     ]
+    sliced, total = _paginate(conflicts, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
+
+
+def _paginate(items: list[Any], *, offset: int, limit: int) -> tuple[list[Any], int]:
+    total = len(items)
+    return items[offset : offset + limit], total
 
 
 app.include_router(api_router)

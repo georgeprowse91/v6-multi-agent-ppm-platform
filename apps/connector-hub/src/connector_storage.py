@@ -49,6 +49,10 @@ class ConnectorStore:
                 """
             )
 
+    def ping(self) -> None:
+        with self._connect() as conn:
+            conn.execute("SELECT 1")
+
     def _serialize(self, row: sqlite3.Row) -> ConnectorRecord:
         return ConnectorRecord(
             connector_id=row["connector_id"],

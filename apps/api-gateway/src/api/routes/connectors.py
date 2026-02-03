@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from api.circuit_breaker import CircuitBreaker
@@ -302,7 +302,11 @@ class RegulatoryComplianceConfigRequest(BaseModel):
 
 
 @router.get("/connectors/categories", response_model=list[CategoryInfo])
-async def list_categories():
+async def list_categories(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+):
     """
     List all connector categories with their metadata.
     """
@@ -368,11 +372,20 @@ async def list_categories():
             )
         )
 
-    return categories
+    sliced = categories[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(categories))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/connectors", response_model=list[ConnectorListItemResponse])
-async def list_connectors(category: str | None = None):
+async def list_connectors(
+    response: Response,
+    category: str | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+):
     """
     List all available connectors with their configuration status.
 
@@ -421,7 +434,11 @@ async def list_connectors(category: str | None = None):
         )
         result.append(item)
 
-    return result
+    sliced = result[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(result))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/connectors/{connector_id}", response_model=ConnectorListItemResponse)

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 from jsonschema import Draft202012Validator, FormatChecker, SchemaError
@@ -19,14 +19,18 @@ from jsonschema import Draft202012Validator, FormatChecker, SchemaError
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
+FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
+from feature_flags import is_feature_enabled  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from storage import (  # noqa: E402
     DataServiceStore,
     EntityRecord,
@@ -45,6 +49,7 @@ SCHEMA_DIR = REPO_ROOT / "data" / "schemas"
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "data-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class SchemaRegistrationRequest(BaseModel):
@@ -119,10 +124,12 @@ class RetentionStatusResponse(BaseModel):
 app = FastAPI(title="Data Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("data-service")
 configure_metrics("data-service")
 app.add_middleware(TraceMiddleware, service_name="data-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-service")
+register_error_handlers(app)
 
 
 @app.on_event("startup")
@@ -161,7 +168,17 @@ def get_retention_scheduler() -> RetentionScheduler | None:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    store = get_store()
+    scheduler = get_retention_scheduler()
+    dependencies = {"database": "unknown", "retention_scheduler": "unknown"}
+    try:
+        await store.ping()
+        dependencies["database"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["database"] = "down"
+    dependencies["retention_scheduler"] = "ok" if scheduler else "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -205,17 +222,34 @@ async def register_schema(
 
 
 @api_router.get("/schemas", response_model=list[SchemaSummaryResponse])
-async def list_schemas(store: DataServiceStore = Depends(get_store)) -> list[SchemaSummaryResponse]:
+async def list_schemas(
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    store: DataServiceStore = Depends(get_store),
+) -> list[SchemaSummaryResponse]:
     summaries = await store.list_schema_summaries()
-    return [SchemaSummaryResponse(**summary.__dict__) for summary in summaries]
+    sliced, total = _paginate(summaries, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return [SchemaSummaryResponse(**summary.__dict__) for summary in sliced]
 
 
 @api_router.get("/schemas/{schema_name}/versions", response_model=list[SchemaResponse])
 async def list_schema_versions(
-    schema_name: str, store: DataServiceStore = Depends(get_store)
+    schema_name: str,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    store: DataServiceStore = Depends(get_store),
 ) -> list[SchemaResponse]:
     records = await store.list_schema_versions(schema_name)
-    return [_schema_response(record) for record in records]
+    sliced, total = _paginate(records, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return [_schema_response(record) for record in sliced]
 
 
 @api_router.get("/schemas/{schema_name}/latest", response_model=SchemaResponse)
@@ -240,10 +274,19 @@ async def get_schema_version(
 
 @api_router.get("/schemas/{schema_name}/promotions", response_model=list[SchemaPromotionResponse])
 async def list_schema_promotions(
-    schema_name: str, store: DataServiceStore = Depends(get_store)
+    schema_name: str,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    store: DataServiceStore = Depends(get_store),
 ) -> list[SchemaPromotionResponse]:
+    _require_feature("schema_promotions")
     promotions = await store.list_schema_promotions(schema_name)
-    return [SchemaPromotionResponse(**promo.__dict__) for promo in promotions]
+    sliced, total = _paginate(promotions, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return [SchemaPromotionResponse(**promo.__dict__) for promo in sliced]
 
 
 @api_router.post(
@@ -256,6 +299,7 @@ async def promote_schema_version(
     request: SchemaPromotionRequest,
     store: DataServiceStore = Depends(get_store),
 ) -> SchemaPromotionResponse:
+    _require_feature("schema_promotions")
     record = await store.get_schema(schema_name, version)
     if not record:
         raise HTTPException(status_code=404, detail="Schema version not found")
@@ -295,12 +339,16 @@ async def get_entity(
 @api_router.get("/entities/{schema_name}", response_model=list[EntityResponse])
 async def list_entities(
     schema_name: str,
+    response: Response,
     tenant_id: str | None = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     store: DataServiceStore = Depends(get_store),
 ) -> list[EntityResponse]:
     records = await store.list_entities(schema_name, tenant_id, skip, limit)
+    response.headers["X-Total-Count"] = str(await store.count_entities(schema_name, tenant_id))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(skip)
     return [_entity_response(record) for record in records]
 
 
@@ -431,6 +479,17 @@ def _group_records_by_schema(records: list[dict[str, Any]]) -> dict[str, list[di
             continue
         grouped[schema_name].append(record)
     return grouped
+
+
+def _paginate(items: list[Any], *, offset: int, limit: int) -> tuple[list[Any], int]:
+    total = len(items)
+    return items[offset : offset + limit], total
+
+
+def _require_feature(flag_name: str) -> None:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    if not is_feature_enabled(flag_name, environment=environment, default=False):
+        raise HTTPException(status_code=403, detail=f"Feature flag '{flag_name}' is disabled")
 
 
 app.include_router(api_router)

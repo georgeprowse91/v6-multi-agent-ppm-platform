@@ -7,15 +7,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import yaml
+from security.config import load_yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RBAC_ROLES_PATH = REPO_ROOT / "config" / "rbac" / "roles.yaml"
 
 
 def _load_role_ids() -> set[str]:
-    with RBAC_ROLES_PATH.open("r", encoding="utf-8") as handle:
-        payload = yaml.safe_load(handle) or {}
+    payload = load_yaml(RBAC_ROLES_PATH) or {}
     return {role.get("id") for role in payload.get("roles", []) if role.get("id")}
 
 
@@ -70,6 +69,10 @@ class ScimStore:
                 )
                 """
             )
+
+    def ping(self) -> None:
+        with self._connect() as conn:
+            conn.execute("SELECT 1")
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS groups (

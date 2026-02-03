@@ -50,6 +50,8 @@ from packages.version import API_VERSION  # noqa: E402
 from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -101,6 +103,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(AuthTenantMiddleware)
 app.add_middleware(FieldMaskingMiddleware)
@@ -109,6 +112,7 @@ configure_metrics("api-gateway")
 configure_logging("api-gateway")
 app.add_middleware(TraceMiddleware, service_name="api-gateway")
 app.add_middleware(RequestMetricsMiddleware, service_name="api-gateway")
+register_error_handlers(app)
 
 # Global orchestrator instance
 orchestrator = None

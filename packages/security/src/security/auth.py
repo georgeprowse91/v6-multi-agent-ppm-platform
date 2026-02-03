@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from security.errors import error_payload
 from security.iam import map_groups_to_roles
 
 logger = logging.getLogger("security-auth")
@@ -193,7 +194,9 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         try:
             auth_context = await authenticate_request(request, self._config)
         except HTTPException as exc:
-            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+            message = exc.detail if isinstance(exc.detail, str) else "Request failed"
+            payload = error_payload(message=message, code=f"http_{exc.status_code}", details=exc.detail)
+            return JSONResponse(status_code=exc.status_code, content=payload)
 
         request.state.auth = auth_context
         return await call_next(request)

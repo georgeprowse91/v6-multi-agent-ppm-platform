@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
@@ -28,12 +29,15 @@ from packages.version import API_VERSION  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 logger = logging.getLogger("notification-service")
 logging.basicConfig(level=logging.INFO)
 
 DEFAULT_TEMPLATES_DIR = REPO_ROOT / "services" / "notification-service" / "templates"
 DEFAULT_OUTBOX_DIR = REPO_ROOT / "services" / "notification-service" / "outbox"
+DEFAULT_DLQ_DIR = REPO_ROOT / "services" / "notification-service" / "dead-letter"
 HTTP_TIMEOUT = 5
 RATE_LIMIT = os.getenv("NOTIFICATION_SERVICE_RATE_LIMIT", "100/minute")
 
@@ -47,6 +51,7 @@ http_retry = retry(
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "notification-service"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class NotificationRequest(BaseModel):
@@ -70,16 +75,27 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 configure_tracing("notification-service")
 configure_metrics("notification-service")
 app.add_middleware(TraceMiddleware, service_name="notification-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="notification-service")
+register_error_handlers(app)
 
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    templates_dir = Path(os.getenv("NOTIFICATION_TEMPLATES_DIR", str(DEFAULT_TEMPLATES_DIR)))
+    outbox_dir = Path(os.getenv("NOTIFICATION_OUTBOX_DIR", str(DEFAULT_OUTBOX_DIR)))
+    dlq_dir = Path(os.getenv("NOTIFICATION_DLQ_DIR", str(DEFAULT_DLQ_DIR)))
+    dependencies = {
+        "templates": "ok" if templates_dir.exists() else "down",
+        "outbox": "ok" if outbox_dir.exists() or outbox_dir.parent.exists() else "degraded",
+        "dead_letter": "ok" if dlq_dir.exists() or dlq_dir.parent.exists() else "degraded",
+    }
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -111,6 +127,16 @@ def _deliver(rendered: str, recipient: str | None, channel: str, delivery_id: st
         out_file.write_text(rendered, encoding="utf-8")
         destination = str(out_file)
     return delivery_id, destination
+
+
+def _write_dead_letter(payload: dict[str, Any], error: str) -> None:
+    dlq_dir = Path(os.getenv("NOTIFICATION_DLQ_DIR", str(DEFAULT_DLQ_DIR)))
+    dlq_dir.mkdir(parents=True, exist_ok=True)
+    record = payload.copy()
+    record["error"] = error
+    record["failed_at"] = datetime.now(timezone.utc).isoformat()
+    dlq_path = dlq_dir / f"{record.get('delivery_id', 'unknown')}.json"
+    dlq_path.write_text(json.dumps(record, indent=2), encoding="utf-8")
 
 
 def _parse_channel_priority() -> list[str]:
@@ -308,6 +334,19 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
             )
     else:
         detail = f"Notification delivery failed: {last_error}" if last_error else "No channel available"
+        try:
+            _write_dead_letter(
+                {
+                    "delivery_id": delivery_id,
+                    "template": request.template,
+                    "channel": request.channel,
+                    "recipient": request.recipient,
+                    "variables": request.variables,
+                },
+                error=detail,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("notification_dlq_write_failed", extra={"error": str(exc)})
         raise HTTPException(status_code=502, detail=detail)
 
     timestamp = datetime.now(timezone.utc)

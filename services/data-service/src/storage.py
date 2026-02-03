@@ -21,6 +21,7 @@ from sqlalchemy import (
     select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.sql import text
 
 logger = logging.getLogger("data-service")
 
@@ -111,6 +112,10 @@ class DataServiceStore:
     async def initialize(self) -> None:
         async with self.engine.begin() as connection:
             await connection.run_sync(metadata.create_all)
+
+    async def ping(self) -> None:
+        async with self.engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
 
     async def register_schema(
         self, name: str, schema: dict[str, Any], version: int | None = None
@@ -307,6 +312,16 @@ class DataServiceStore:
             result = await session.execute(statement)
             rows = result.fetchall()
         return [self._entity_from_row(row) for row in rows]
+
+    async def count_entities(self, schema_name: str, tenant_id: str | None = None) -> int:
+        async with self.session_factory() as session:
+            statement = select(func.count(CANONICAL_ENTITIES_TABLE.c.id)).where(
+                CANONICAL_ENTITIES_TABLE.c.schema_name == schema_name
+            )
+            if tenant_id:
+                statement = statement.where(CANONICAL_ENTITIES_TABLE.c.tenant_id == tenant_id)
+            result = await session.execute(statement)
+        return int(result.scalar_one())
 
     async def prune_entities(self, older_than: datetime) -> int:
         async with self.session_factory() as session:

@@ -6,11 +6,14 @@ from typing import Any
 
 import yaml
 
+from security.config import resolve_config
+
 
 def _load_mapping(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"groups": {}, "roles": []}
-    return yaml.safe_load(path.read_text()) or {"groups": {}, "roles": []}
+    data = yaml.safe_load(path.read_text()) or {"groups": {}, "roles": []}
+    return resolve_config(data)
 
 
 def map_groups_to_roles(claims: dict[str, Any]) -> list[str]:

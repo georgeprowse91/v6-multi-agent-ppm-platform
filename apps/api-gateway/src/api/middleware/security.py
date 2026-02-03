@@ -9,13 +9,14 @@ from typing import Any, cast
 
 import httpx
 import jwt
-import yaml
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from security.config import load_yaml
+from security.errors import error_payload
 logger = logging.getLogger("api-gateway-security")
 
 
@@ -28,7 +29,7 @@ class AuthContext:
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
-    return cast(dict[str, Any], yaml.safe_load(path.read_text()))
+    return cast(dict[str, Any], load_yaml(path))
 
 
 def _load_rbac() -> tuple[dict[str, Any], dict[str, Any]]:
@@ -415,12 +416,19 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         tenant_id = request.headers.get("X-Tenant-ID")
 
         if not token or not tenant_id:
-            return JSONResponse(status_code=401, content={"detail": "Missing JWT or tenant header"})
+            payload = error_payload(
+                message="Missing JWT or tenant header",
+                code="http_401",
+                details="Missing JWT or tenant header",
+            )
+            return JSONResponse(status_code=401, content=payload)
 
         try:
             claims = await _validate_jwt(token)
         except HTTPException as exc:
-            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+            message = exc.detail if isinstance(exc.detail, str) else "Request failed"
+            payload = error_payload(message=message, code=f"http_{exc.status_code}", details=exc.detail)
+            return JSONResponse(status_code=exc.status_code, content=payload)
 
         roles_claim = os.getenv("IDENTITY_ROLES_CLAIM", "roles")
         roles = _get_claim(claims, roles_claim) or claims.get("role") or claims.get("groups") or []
@@ -430,9 +438,13 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         tenant_claim = os.getenv("IDENTITY_TENANT_CLAIM", "tenant_id")
         claim_tenant = _get_claim(claims, tenant_claim)
         if not claim_tenant:
-            return JSONResponse(status_code=403, content={"detail": "Tenant claim missing"})
+            payload = error_payload(
+                message="Tenant claim missing", code="http_403", details="Tenant claim missing"
+            )
+            return JSONResponse(status_code=403, content=payload)
         if claim_tenant != tenant_id:
-            return JSONResponse(status_code=403, content={"detail": "Tenant mismatch"})
+            payload = error_payload(message="Tenant mismatch", code="http_403", details="Tenant mismatch")
+            return JSONResponse(status_code=403, content=payload)
 
         auth_context = AuthContext(
             tenant_id=tenant_id,
@@ -453,8 +465,15 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
             await _evaluate_abac(auth_context, permission, resource, request)
         except (HTTPException, json.JSONDecodeError) as exc:
             if isinstance(exc, HTTPException):
-                return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
-            return JSONResponse(status_code=400, content={"detail": "Invalid JSON payload"})
+                message = exc.detail if isinstance(exc.detail, str) else "Request failed"
+                payload = error_payload(
+                    message=message, code=f"http_{exc.status_code}", details=exc.detail
+                )
+                return JSONResponse(status_code=exc.status_code, content=payload)
+            payload = error_payload(
+                message="Invalid JSON payload", code="http_400", details="Invalid JSON payload"
+            )
+            return JSONResponse(status_code=400, content=payload)
 
         response = await call_next(request)
         return response

@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 
 # Add services to path
@@ -106,8 +106,11 @@ def require_agent_config_permission(request: Request) -> str:
 # Agent Configuration Endpoints
 @router.get("/agents/config", response_model=list[AgentConfigModel])
 async def list_agent_configs(
+    response: Response,
     category: str | None = None,
     enabled: bool | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ):
     """
     List all agent configurations.
@@ -128,7 +131,12 @@ async def list_agent_configs(
     if enabled is not None:
         agents = [a for a in agents if a.enabled == enabled]
 
-    return [AgentConfigModel(**a.to_dict()) for a in agents]
+    responses = [AgentConfigModel(**a.to_dict()) for a in agents]
+    sliced = responses[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(responses))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get("/agents/config/categories")
@@ -201,11 +209,21 @@ async def update_agent_config(
 
 # Project-specific Agent Configuration Endpoints
 @router.get("/projects/{project_id}/agents/config", response_model=list[ProjectAgentConfigModel])
-async def list_project_agent_configs(project_id: str):
+async def list_project_agent_configs(
+    project_id: str,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+):
     """List all agent configurations for a specific project."""
     store = get_agent_config_store()
     configs = store.list_project_agent_configs(project_id)
-    return [ProjectAgentConfigModel(**c.to_dict()) for c in configs]
+    responses = [ProjectAgentConfigModel(**c.to_dict()) for c in configs]
+    sliced = responses[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(responses))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
 
 
 @router.get(

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-import yaml
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -25,6 +24,9 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from policy_config import DEFAULT_POLICY_BUNDLE_PATH  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.config import load_yaml  # noqa: E402
+from security.errors import register_error_handlers  # noqa: E402
+from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 logger = logging.getLogger("policy-engine")
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +38,7 @@ SCHEMA_PATH = (
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "policy-engine"
+    dependencies: dict[str, str] = Field(default_factory=dict)
 
 
 class PolicyEvaluationRequest(BaseModel):
@@ -76,10 +79,12 @@ class ABACEvaluationResponse(BaseModel):
 app = FastAPI(title="Policy Engine", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("policy-engine")
 configure_metrics("policy-engine")
 app.add_middleware(TraceMiddleware, service_name="policy-engine")
 app.add_middleware(RequestMetricsMiddleware, service_name="policy-engine")
+register_error_handlers(app)
 
 
 @app.on_event("startup")
@@ -87,7 +92,7 @@ async def register_policy_schema() -> None:
     data_service_url = os.getenv("DATA_SERVICE_URL")
     if not data_service_url:
         return
-    schema = yaml.safe_load(SCHEMA_PATH.read_text())
+    schema = load_yaml(SCHEMA_PATH)
     payload = {"name": "policy-bundle", "schema": schema}
     tenant_id = os.getenv("DATA_SERVICE_TENANT_ID", "system")
     try:
@@ -104,7 +109,19 @@ async def register_policy_schema() -> None:
 
 @app.get("/healthz", response_model=HealthResponse)
 async def healthz() -> HealthResponse:
-    return HealthResponse()
+    dependencies = {"policy_bundle": "unknown", "rbac_config": "unknown"}
+    try:
+        _load_default_policies()
+        dependencies["policy_bundle"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["policy_bundle"] = "down"
+    try:
+        _load_rbac_config()
+        dependencies["rbac_config"] = "ok"
+    except Exception:  # noqa: BLE001
+        dependencies["rbac_config"] = "down"
+    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
+    return HealthResponse(status=status, dependencies=dependencies)
 
 
 @app.get("/version")
@@ -118,13 +135,13 @@ async def version() -> dict[str, str]:
 
 def _load_default_policies() -> dict[str, Any]:
     bundle_path = Path(os.getenv("POLICY_BUNDLE_PATH", str(DEFAULT_POLICY_BUNDLE_PATH)))
-    data = yaml.safe_load(bundle_path.read_text())
+    data = load_yaml(bundle_path)
     _validate_bundle(data)
     return data
 
 
 def _validate_bundle(bundle: dict[str, Any]) -> None:
-    schema = yaml.safe_load(SCHEMA_PATH.read_text())
+    schema = load_yaml(SCHEMA_PATH)
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(bundle), key=lambda err: err.path)
     if errors:
@@ -138,9 +155,9 @@ def _load_rbac_config() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]
     permissions_path = repo_root / "config" / "rbac" / "permissions.yaml"
     field_path = repo_root / "config" / "rbac" / "field-level.yaml"
     return (
-        yaml.safe_load(roles_path.read_text()),
-        yaml.safe_load(permissions_path.read_text()),
-        yaml.safe_load(field_path.read_text()),
+        load_yaml(roles_path),
+        load_yaml(permissions_path),
+        load_yaml(field_path),
     )
 
 
@@ -151,7 +168,7 @@ def _load_abac_config() -> dict[str, Any]:
     )
     if not policy_path.exists():
         return {"policies": [], "default_decision": "allow"}
-    return yaml.safe_load(policy_path.read_text())
+    return load_yaml(policy_path)
 
 
 def _build_role_permissions(roles_cfg: dict[str, Any]) -> dict[str, set[str]]:
