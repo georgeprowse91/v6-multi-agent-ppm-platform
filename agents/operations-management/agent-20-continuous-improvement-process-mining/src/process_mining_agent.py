@@ -82,7 +82,7 @@ class ProcessMiningAgent(BaseAgent):
         if self.event_bus is None:
             try:
                 self.event_bus = get_event_bus()
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 self.event_bus = None
         self.event_topics = (
             config.get(
@@ -1094,7 +1094,7 @@ class ProcessMiningAgent(BaseAgent):
             if not data:
                 return []
             parsed: dict[str, Any] = json.loads(data)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
         logs: list[dict[str, Any]] = []
         for tenant_records in parsed.values():

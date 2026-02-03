@@ -544,7 +544,7 @@ class ProjectDefinitionAgent(BaseAgent):
                 )
                 try:
                     snippets = await search_web(safe_query, result_limit=result_limit)
-                except Exception as exc:  # pragma: no cover - defensive
+                except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                     self.logger.warning(
                         "Search failed; falling back to templates", extra={"error": str(exc)}
                     )
@@ -1215,7 +1215,7 @@ class ProjectDefinitionAgent(BaseAgent):
                                 "project_id": project_id,
                             }
                         )
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning(
                     "Form Recognizer extraction failed",
                     extra={"project_id": project_id, "error": str(exc)},
@@ -1439,7 +1439,7 @@ class ProjectDefinitionAgent(BaseAgent):
             try:
                 graph_edges = await self.graph_client.get_relationships(stakeholders)
                 edges.extend(graph_edges)
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Graph API lookup failed", extra={"error": str(exc)})
 
         node_set = {node for edge in edges for node in edge}
@@ -1575,7 +1575,7 @@ class ProjectDefinitionAgent(BaseAgent):
             if hasattr(self.openai_client, "complete"):
                 response = await self.openai_client.complete(prompt)
                 return response if isinstance(response, str) else str(response)
-        except Exception as exc:  # pragma: no cover - defensive
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
             self.logger.warning("OpenAI generation failed", extra={"error": str(exc)})
         return None
 
@@ -1586,7 +1586,7 @@ class ProjectDefinitionAgent(BaseAgent):
         try:
             parsed = self._parse_wbs_response(response)
             return parsed if parsed else None
-        except Exception:  # pragma: no cover - defensive
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):  # pragma: no cover - defensive
             return None
 
     def _parse_wbs_response(self, response: str) -> dict[str, Any]:
@@ -1642,7 +1642,7 @@ class ProjectDefinitionAgent(BaseAgent):
             elif hasattr(client, "upsert"):
                 await client.upsert("requirements", requirements)
             return "synced"
-        except Exception as exc:  # pragma: no cover - defensive
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
             self.logger.warning(
                 "External requirements sync failed",
                 extra={"tool": tool_name, "error": str(exc)},
@@ -1670,7 +1670,7 @@ class ProjectDefinitionAgent(BaseAgent):
                     }
                 )
                 return
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Cognitive Search indexing failed", extra={"error": str(exc)})
         self.search_index.add(artifact_id, content, {"type": artifact_type, **metadata})
 

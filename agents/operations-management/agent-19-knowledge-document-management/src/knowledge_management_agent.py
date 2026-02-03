@@ -566,7 +566,7 @@ class KnowledgeManagementAgent(BaseAgent):
         tenant_id = payload.get("tenant_id") or "default"
         try:
             await self._ingest_agent_output(tenant_id, payload)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning(f"Failed to ingest cognitive summary: {exc}")
 
     async def _ingest_agent_outputs(self, source: dict[str, Any]) -> list[dict[str, Any]]:
@@ -603,7 +603,7 @@ class KnowledgeManagementAgent(BaseAgent):
             try:
                 records = connector.read("pages", filters=source.get("filters"))
                 documents.extend(records)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning(f"Confluence crawl failed: {exc}")
             return documents
 
@@ -614,7 +614,7 @@ class KnowledgeManagementAgent(BaseAgent):
         try:
             records = connector.read("pages", filters=source.get("filters"))
             documents.extend(records)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning(f"Confluence crawl failed: {exc}")
         return documents
 
@@ -1589,7 +1589,7 @@ class KnowledgeManagementAgent(BaseAgent):
             )
             self._confluence_connector = ConfluenceConnector(connector_config)
             return self._confluence_connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning(f"Failed to initialize Confluence connector: {exc}")
             return None
 
@@ -1683,7 +1683,7 @@ class KnowledgeManagementAgent(BaseAgent):
             return
         try:
             await self.event_bus.publish(topic, payload)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning(f"Failed to publish event {topic}: {exc}")
 
     def _register_integrations(self) -> None:

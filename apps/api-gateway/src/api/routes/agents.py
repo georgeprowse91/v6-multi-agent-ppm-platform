@@ -5,7 +5,7 @@ Agent API Routes
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from agents.runtime import AgentResponse
 
@@ -40,8 +40,10 @@ async def process_query(request: QueryRequest):
         )
         return AgentResponse.model_validate(result).model_dump()
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="Invalid agent response") from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/agents")

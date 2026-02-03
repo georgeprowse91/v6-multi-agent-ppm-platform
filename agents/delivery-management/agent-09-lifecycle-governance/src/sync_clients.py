@@ -70,7 +70,7 @@ class ExternalSyncService:
         try:
             response = write("lifecycle_gate", payload)
             return SyncOutcome(system=name, status="synced", details={"response": response})
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             if self.logger:
                 self.logger.warning("External sync failed", extra={"system": name, "error": str(exc)})
             return SyncOutcome(system=name, status="failed", details={"error": str(exc)})

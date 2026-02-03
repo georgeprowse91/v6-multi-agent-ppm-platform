@@ -268,7 +268,7 @@ class BaseAgent(ABC):
                 )
                 return response.model_dump()
 
-        except Exception as e:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as e:
             self.logger.error(f"Error in agent {self.agent_id}: {str(e)}", exc_info=True)
             execution_time = (datetime.utcnow() - start_time).total_seconds()
             self._log_event(

@@ -1541,7 +1541,7 @@ class WorkflowEngineAgent(BaseAgent):
         try:
             result = await self._handle_task_message(message)
             await self.task_queue.ack_task(message.message_id)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             await self._mark_task_failed(
                 message.tenant_id,
                 message.task_id,

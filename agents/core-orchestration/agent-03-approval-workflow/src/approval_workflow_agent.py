@@ -216,11 +216,11 @@ class ApprovalWorkflowAgent(BaseAgent):
             return
         try:
             self.service_bus_admin.get_topic(topic)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             self.service_bus_admin.create_topic(topic)
         try:
             self.service_bus_admin.get_subscription(topic, subscription)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             self.service_bus_admin.create_subscription(topic, subscription)
 
     async def _initialize_graph_client(self) -> None:
@@ -1034,7 +1034,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         async with httpx.AsyncClient() as client:
             try:
                 await client.post(url, json=payload)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.error(f"Failed to send notification to {url}: {exc}")
 
     async def _schedule_escalations(
@@ -1295,7 +1295,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         )
         try:
             self.event_bus_client.publish_event(envelope)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Failed to publish approval event: %s", exc)
 
     def _subscribe_to_approval_responses(self) -> None:
@@ -1344,7 +1344,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         try:
             self.event_bus_client.subscribe(handler)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Failed to subscribe to approval responses: %s", exc)
 
     def _default_templates(self) -> dict[str, dict[str, str]]:

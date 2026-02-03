@@ -169,7 +169,7 @@ class KnowledgeBaseQueryService:
                             "source": "confluence",
                         }
                     )
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 results = results
 
         sharepoint_connector = self.document_service._get_connector()
@@ -188,7 +188,7 @@ class KnowledgeBaseQueryService:
                             "source": "sharepoint",
                         }
                     )
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 results = results
 
         return [item for item in results if item.get("strategy")]
@@ -263,7 +263,7 @@ class RiskNLPExtractor:
             self._sklearn_model = model
             self._trained = True
             return True
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             self._sklearn_model = None
             self._vectorizer = None
             self._trained = False
@@ -287,7 +287,7 @@ class RiskNLPExtractor:
 
         try:
             self._pipeline = pipeline(self.pipeline_task, model=self.model_name)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             self._pipeline = None
 
     def _collect_sentences(self, documents: list[dict[str, Any] | str]) -> list[str]:
@@ -326,7 +326,7 @@ class RiskNLPExtractor:
         try:
             features = self._vectorizer.transform(sentences)
             probabilities = self._sklearn_model.predict_proba(features)[:, 1]
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return self._heuristic_risks(sentences)
         for sentence, probability in zip(sentences, probabilities):
             if probability >= self.threshold:
@@ -566,7 +566,7 @@ class RiskManagementAgent(BaseAgent):
         if not self.event_bus:
             try:
                 self.event_bus = get_event_bus()
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 self.event_bus = None
         if self.event_bus and hasattr(self.event_bus, "subscribe"):
             self.event_bus.subscribe("schedule.baseline.locked", self._handle_schedule_baseline_event)
@@ -1372,7 +1372,7 @@ class RiskManagementAgent(BaseAgent):
                     tenant_id=tenant_id,
                     correlation_id=external_context.get("correlation_id", "n/a"),
                 )
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning(
                     "External risk research failed",
                     extra={"error": str(exc), "project_id": project_id},
@@ -1550,7 +1550,7 @@ class RiskManagementAgent(BaseAgent):
 
         try:
             external_risks = await self.research_risks(domain, region, categories)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning(
                 "Risk research failed",
                 extra={
@@ -1688,7 +1688,7 @@ class RiskManagementAgent(BaseAgent):
                 )
                 added.append(created)
                 existing_signatures.add(signature)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning(
                     "Failed to merge external risk",
                     extra={"error": str(exc), "project_id": project_id},
@@ -1785,7 +1785,7 @@ class RiskManagementAgent(BaseAgent):
                         documents.extend(json.loads(path.read_text()))
                     else:
                         documents.append(path.read_text())
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 documents = documents
 
         if documents:
@@ -1795,7 +1795,7 @@ class RiskManagementAgent(BaseAgent):
         if self.risk_nlp_extractor and hasattr(self.risk_nlp_extractor, "train"):
             try:
                 self.risk_nlp_extractor.train(documents)
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 return
 
     async def _build_risk_features(self, risk: dict[str, Any]) -> dict[str, Any]:
@@ -1859,7 +1859,7 @@ class RiskManagementAgent(BaseAgent):
             self._local_probability_model.fit(samples, probability_targets)
             self._local_impact_model = GradientBoostingRegressor(random_state=42)
             self._local_impact_model.fit(samples, impact_targets)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             self._local_probability_model = None
             self._local_impact_model = None
 
@@ -1875,7 +1875,7 @@ class RiskManagementAgent(BaseAgent):
                         owner = await getattr(self.resource_management_service, method)(risk)
                         if owner:
                             return owner
-                    except Exception:
+                    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                         continue
         return risk.get("owner")
 
@@ -1908,7 +1908,7 @@ class RiskManagementAgent(BaseAgent):
                     task["status"] = response.get("status", "created")
                     task["external_id"] = response.get("task_id") or response.get("id")
                     task["system"] = connector_type
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 continue
 
         return created
@@ -1969,7 +1969,7 @@ class RiskManagementAgent(BaseAgent):
                     "probability": self._coerce_rating(round(probability_pred), fallback=risk.get("probability", 3)),
                     "impact": self._coerce_rating(round(impact_pred), fallback=risk.get("impact", 3)),
                 }
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 pass
 
         history = self.risk_histories.get(risk.get("risk_id"), [])
@@ -2169,7 +2169,7 @@ class RiskManagementAgent(BaseAgent):
         if self.db_service:
             try:
                 plans = await self.db_service.query("mitigation_plans", limit=500)
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 plans = plans
         if project_id:
             valid_risks = {
@@ -2468,7 +2468,7 @@ class RiskManagementAgent(BaseAgent):
             with url_request.urlopen(req, timeout=5) as response:
                 body = response.read().decode("utf-8")
                 return json.loads(body)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return None
 
     async def _handle_schedule_baseline_event(self, payload: dict[str, Any]) -> None:
@@ -2564,7 +2564,7 @@ class RiskManagementAgent(BaseAgent):
         for connector_type, service in self.project_management_services.items():
             try:
                 tasks = await service.get_tasks(project_id, filters={"labels": ["risk"]}, limit=25)
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 tasks = []
             for task in tasks:
                 signals.append(

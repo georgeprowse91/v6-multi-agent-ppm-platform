@@ -11,7 +11,7 @@ from typing import Any, cast
 
 from azure.core.exceptions import HttpResponseError, ResourceModifiedError
 from azure.storage.blob import BlobServiceClient
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from security.secrets import resolve_secret
 
 
@@ -87,7 +87,7 @@ class LocalEncryptedWORMStorage(WORMStorage):
             try:
                 decrypted = self.fernet.decrypt(path.read_bytes())
                 events.append(cast(dict[str, Any], json.loads(decrypted)))
-            except Exception:
+            except (InvalidToken, OSError, json.JSONDecodeError):
                 continue
         return events
 
@@ -107,7 +107,7 @@ class LocalEncryptedWORMStorage(WORMStorage):
                 if cutoff <= now:
                     path.unlink()
                     deleted += 1
-            except Exception:
+            except (InvalidToken, OSError, json.JSONDecodeError):
                 continue
         return deleted
 

@@ -161,7 +161,7 @@ class Orchestrator:
                     "orchestrator.task.completed",
                     {"task_id": task.task_id, "success": result_payload.get("success", False)},
                 )
-            except Exception as exc:  # noqa: BLE001
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
                 result_payload = {
                     "success": False,
                     "error": str(exc),
@@ -194,7 +194,7 @@ class Orchestrator:
                 result = await task.agent.execute(input_data)
                 if not self._retry_policy.should_retry(None, result):
                     return result
-            except Exception as exc:  # noqa: BLE001
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
                 last_error = exc
                 if not self._retry_policy.should_retry(exc, None):
                     raise

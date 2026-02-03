@@ -589,7 +589,7 @@ class DataSyncAgent(BaseAgent):
                 "action": "updated" if existing_master else "created",
                 "latency_seconds": latency_seconds,
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             await self._enqueue_retry(
                 tenant_id,
                 entity_type,
@@ -684,7 +684,7 @@ class DataSyncAgent(BaseAgent):
         for record in records:
             try:
                 result = await self._sync_data(tenant_id, entity_type, record, source_system)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 result = {"status": "failed", "error": str(exc)}
             results.append(result)
 
@@ -751,7 +751,7 @@ class DataSyncAgent(BaseAgent):
                 records = connector.read_changes(entity_type, cursor=cursor, filters=filters)
                 new_cursor = getattr(connector, "last_cursor", None)
                 return records, new_cursor
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning("cdc_fetch_failed", extra={"error": str(exc)})
 
         query_filters = dict(filters)
@@ -781,7 +781,7 @@ class DataSyncAgent(BaseAgent):
                 return connector.read(entity_type, filters=filters)
             except TypeError:
                 return connector.read(entity_type)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning(
                     "connector_read_failed",
                     extra={"entity_type": entity_type, "error": str(exc)},
@@ -1493,7 +1493,7 @@ class DataSyncAgent(BaseAgent):
                 )
                 successes += 1
                 self.retry_queue_store.delete(tenant_id, retry_id)
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 payload["attempts"] = attempts + 1
                 payload["last_attempt_at"] = datetime.utcnow().isoformat()
                 self.retry_queue_store.upsert(tenant_id, retry_id, payload)
@@ -1521,7 +1521,7 @@ class DataSyncAgent(BaseAgent):
             )
             self.retry_queue_store.delete(tenant_id, retry_id)
             return {"retry_id": retry_id, "status": "success"}
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             payload["attempts"] = payload.get("attempts", 0) + 1
             payload["last_attempt_at"] = datetime.utcnow().isoformat()
             payload["last_error"] = str(exc)
@@ -1607,7 +1607,7 @@ class DataSyncAgent(BaseAgent):
                 continue
             try:
                 secret = client.get_secret(secret_name)
-            except Exception as exc:  # pragma: no cover - network dependent
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
                 self.logger.warning(
                     "keyvault_secret_unavailable",
                     extra={"secret": secret_name, "error": str(exc)},
@@ -1626,7 +1626,7 @@ class DataSyncAgent(BaseAgent):
             from sap_connector import SapConnector
             from smartsheet_connector import SmartsheetConnector
             from workday_connector import WorkdayConnector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("connector_import_failed", extra={"error": str(exc)})
             return
 
@@ -1639,7 +1639,7 @@ class DataSyncAgent(BaseAgent):
                 instance_url=os.getenv("PLANVIEW_INSTANCE_URL", ""),
             )
             self.connectors["planview"] = PlanviewConnector(planview_config)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("planview_connector_failed", extra={"error": str(exc)})
         try:
             sap_config = ConnectorConfig(
@@ -1649,7 +1649,7 @@ class DataSyncAgent(BaseAgent):
                 instance_url=os.getenv("SAP_URL", ""),
             )
             self.connectors["sap"] = SapConnector(sap_config)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("sap_connector_failed", extra={"error": str(exc)})
         try:
             jira_config = ConnectorConfig(
@@ -1659,7 +1659,7 @@ class DataSyncAgent(BaseAgent):
                 instance_url=os.getenv("JIRA_INSTANCE_URL", ""),
             )
             self.connectors["jira"] = JiraConnector(jira_config)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("jira_connector_failed", extra={"error": str(exc)})
         try:
             workday_config = ConnectorConfig(
@@ -1669,7 +1669,7 @@ class DataSyncAgent(BaseAgent):
                 instance_url=os.getenv("WORKDAY_API_URL", ""),
             )
             self.connectors["workday"] = WorkdayConnector(workday_config)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("workday_connector_failed", extra={"error": str(exc)})
         try:
             smartsheet_config = ConnectorConfig(
@@ -1679,7 +1679,7 @@ class DataSyncAgent(BaseAgent):
                 instance_url=os.getenv("SMARTSHEET_API_URL", ""),
             )
             self.connectors["smartsheet"] = SmartsheetConnector(smartsheet_config)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("smartsheet_connector_failed", extra={"error": str(exc)})
         try:
             ado_config = ConnectorConfig(
@@ -1689,7 +1689,7 @@ class DataSyncAgent(BaseAgent):
                 instance_url=os.getenv("AZURE_DEVOPS_ORG_URL", ""),
             )
             self.connectors["azure_devops"] = AzureDevOpsConnector(ado_config)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("azure_devops_connector_failed", extra={"error": str(exc)})
 
     async def _initialize_service_bus(self) -> None:
@@ -1712,7 +1712,7 @@ class DataSyncAgent(BaseAgent):
             self.service_bus_topic_sender = self.service_bus_client.get_topic_sender(
                 topic_name=self.service_bus_topic_name
             )
-        except Exception as exc:  # pragma: no cover - network dependent
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
             self.logger.warning("service_bus_sender_unavailable", extra={"error": str(exc)})
 
     async def _initialize_event_grid(self) -> None:
@@ -1749,7 +1749,7 @@ class DataSyncAgent(BaseAgent):
                         factory_name=factory_name,
                         pipeline_name=pipeline_name,
                     )
-                except Exception as exc:  # pragma: no cover - network dependent
+                except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
                     self.logger.warning(
                         "data_factory_pipeline_unavailable",
                         extra={"pipeline": pipeline_name, "error": str(exc)},
@@ -1793,13 +1793,13 @@ class DataSyncAgent(BaseAgent):
             try:  # pragma: no cover - network dependent
                 async with self.service_bus_topic_sender:
                     await self.service_bus_topic_sender.send_messages(message)
-            except Exception as exc:  # pragma: no cover - network dependent
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
                 self.logger.warning("service_bus_topic_publish_failed", extra={"error": str(exc)})
         if self.service_bus_queue_sender:
             try:  # pragma: no cover - network dependent
                 async with self.service_bus_queue_sender:
                     await self.service_bus_queue_sender.send_messages(message)
-            except Exception as exc:  # pragma: no cover - network dependent
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
                 self.logger.warning("service_bus_queue_publish_failed", extra={"error": str(exc)})
 
     async def _publish_event_grid_event(self, topic: str, payload: dict[str, Any]) -> None:
@@ -1815,7 +1815,7 @@ class DataSyncAgent(BaseAgent):
         }
         try:  # pragma: no cover - network dependent
             await self.event_grid_client.send([event])
-        except Exception as exc:  # pragma: no cover - network dependent
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
             self.logger.warning("event_grid_publish_failed", extra={"error": str(exc)})
 
     def _is_duplicate_record(self, tenant_id: str, entity_type: str, data: dict[str, Any]) -> bool:
@@ -1895,7 +1895,7 @@ class DataSyncAgent(BaseAgent):
                         "payload": payload,
                     },
                 )
-            except Exception as exc:  # pragma: no cover - network dependent
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
                 self.logger.warning(
                     "data_factory_pipeline_trigger_failed",
                     extra={"pipeline": pipeline_name, "error": str(exc)},
@@ -1945,7 +1945,7 @@ class DataSyncAgent(BaseAgent):
                 stream_name=stream_name,
                 logs=[record],
             )
-        except Exception as exc:  # pragma: no cover - network dependent
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
             self.logger.warning("log_analytics_upload_failed", extra={"error": str(exc)})
 
     async def _ingest_quality_metric(self, record: dict[str, Any]) -> None:
@@ -1961,7 +1961,7 @@ class DataSyncAgent(BaseAgent):
                 stream_name=stream_name,
                 logs=[record],
             )
-        except Exception as exc:  # pragma: no cover - network dependent
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
             self.logger.warning("log_analytics_quality_upload_failed", extra={"error": str(exc)})
 
     async def _generate_master_id(self, entity_type: str) -> str:

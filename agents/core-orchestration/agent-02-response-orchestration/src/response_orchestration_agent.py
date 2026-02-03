@@ -220,7 +220,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         try:
             snippets = await search_web(query)
             summary = await summarize_snippets(snippets, purpose=purpose)
-        except Exception as exc:  # pragma: no cover - defensive
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
             self.logger.warning("External research failed", extra={"error": str(exc)})
             return {
                 "purpose": purpose,
@@ -559,7 +559,7 @@ class ResponseOrchestrationAgent(BaseAgent):
             except (httpx.TimeoutException, TimeoutError):
                 last_error = "Agent timeout"
                 self.logger.warning(f"Agent {agent_id} timed out")
-            except Exception as e:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as e:
                 last_error = str(e)
                 self.logger.error(f"Error invoking agent {agent_id}: {str(e)}")
 
@@ -663,12 +663,12 @@ class ResponseOrchestrationAgent(BaseAgent):
                 loaded = self.agent_registry_loader()
                 if isinstance(loaded, dict):
                     self.agent_registry.update(loaded)
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Agent registry loader failed", exc_info=exc)
         if self.agent_registry_path:
             try:
                 registry_payload = json.loads(Path(self.agent_registry_path).read_text())
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Agent registry path could not be read", exc_info=exc)
                 return
             if isinstance(registry_payload, dict):
@@ -689,7 +689,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         if self.cache_backend:
             try:
                 cached = self.cache_backend.get(cache_key)
-            except Exception:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):  # pragma: no cover - defensive
                 cached = None
             if cached:
                 self._cache_hits.add(1)
@@ -710,7 +710,7 @@ class ResponseOrchestrationAgent(BaseAgent):
             try:
                 self.cache_backend.set(cache_key, result, ttl=self.cache_ttl)
                 return
-            except Exception:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):  # pragma: no cover - defensive
                 pass
         if self.cache_max_entries and len(self._cache) >= self.cache_max_entries:
             self._cache.pop(next(iter(self._cache)), None)

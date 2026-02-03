@@ -1338,7 +1338,7 @@ class ProjectLifecycleAgent(BaseAgent):
         try:
             self.event_bus.subscribe("risk.updated", self._handle_risk_event)
             self.event_bus.subscribe("resource.updated", self._handle_resource_event)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Event bus subscription failed", extra={"error": str(exc)})
 
     async def _handle_risk_event(self, payload: dict[str, Any]) -> None:

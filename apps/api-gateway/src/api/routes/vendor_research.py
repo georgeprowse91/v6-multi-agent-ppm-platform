@@ -3,7 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 router = APIRouter()
 
@@ -46,5 +46,7 @@ async def research_vendor(vendor_id: str, request: VendorResearchRequest):
             }
         )
         return VendorResearchResponse.model_validate(result).model_dump()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="Invalid vendor research response") from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

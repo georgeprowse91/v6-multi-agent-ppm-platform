@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+import httpx
+
 from conflict_store import get_conflict_store
 from jira_client import JiraIssue, get_jira_client
 from lineage_client import get_lineage_client
@@ -126,7 +128,7 @@ class JiraTasksSyncJob:
                         self._emit_lineage_event(lineage_client, issue, task_id, payload)
                     else:
                         skipped += 1
-        except Exception as exc:  # noqa: BLE001
+        except (OSError, ValueError, httpx.HTTPError) as exc:
             errors.append(str(exc))
 
         end = datetime.now(timezone.utc)
@@ -175,7 +177,7 @@ class JiraTasksSyncJob:
             try:
                 self.jira_client.update_issue(external_id, fields)
                 success_count += 1
-            except Exception as exc:  # noqa: BLE001
+            except (ValueError, httpx.HTTPError) as exc:
                 errors.append(f"Failed to update {external_id}: {exc}")
         status = "success" if not errors else ("partial" if success_count else "error")
         return {
@@ -218,5 +220,5 @@ class JiraTasksSyncJob:
         }
         try:
             lineage_client.emit_event(lineage_payload)
-        except Exception:  # noqa: BLE001
+        except (ValueError, httpx.HTTPError):
             return

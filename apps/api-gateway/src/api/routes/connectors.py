@@ -686,7 +686,7 @@ async def enable_connector(connector_id: str, http_request: Request):
                             if key != "secret"
                         }
                     )
-            except Exception as exc:  # pragma: no cover - defensive guard
+            except (ConnectionError, RuntimeError, TimeoutError, TypeError, ValueError) as exc:
                 registration_payload["status"] = "failed"
                 registration_payload["reason"] = str(exc)
                 logger.exception("Webhook registration failed for %s", connector_id)
@@ -812,7 +812,7 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
             result = connector.test_connection()
         else:
             result = handler(test_config)
-    except Exception as exc:
+    except (ConnectionError, RuntimeError, TimeoutError, TypeError, ValueError) as exc:
         circuit_breaker.record_failure(connector_id)
         raise HTTPException(
             status_code=502,
@@ -942,7 +942,7 @@ async def handle_connector_webhook(connector_id: str, request: Request):
 
     try:
         result = handler(payload, headers)
-    except Exception as exc:
+    except (ConnectionError, RuntimeError, TimeoutError, TypeError, ValueError) as exc:
         circuit_breaker.record_failure(connector_id)
         raise HTTPException(status_code=502, detail="Connector webhook processing failed") from exc
     else:

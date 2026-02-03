@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from pydantic import BaseModel, Field
+from sqlalchemy.exc import SQLAlchemyError
 
 from jsonschema import Draft202012Validator, FormatChecker, SchemaError
 
@@ -174,7 +175,7 @@ async def healthz() -> HealthResponse:
     try:
         await store.ping()
         dependencies["database"] = "ok"
-    except Exception:  # noqa: BLE001
+    except SQLAlchemyError:
         dependencies["database"] = "down"
     dependencies["retention_scheduler"] = "ok" if scheduler else "down"
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"

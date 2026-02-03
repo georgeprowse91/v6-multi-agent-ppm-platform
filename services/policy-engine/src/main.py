@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import yaml
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -113,12 +114,12 @@ async def healthz() -> HealthResponse:
     try:
         _load_default_policies()
         dependencies["policy_bundle"] = "ok"
-    except Exception:  # noqa: BLE001
+    except (HTTPException, OSError, ValueError, yaml.YAMLError):
         dependencies["policy_bundle"] = "down"
     try:
         _load_rbac_config()
         dependencies["rbac_config"] = "ok"
-    except Exception:  # noqa: BLE001
+    except (OSError, ValueError, yaml.YAMLError):
         dependencies["rbac_config"] = "down"
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
     return HealthResponse(status=status, dependencies=dependencies)

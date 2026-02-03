@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from azure.core.exceptions import HttpResponseError, ResourceModifiedError
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -31,7 +32,9 @@ RETENTION_CONFIG_PATH = REPO_ROOT / "config" / "retention" / "policies.yaml"
 CLASSIFICATION_CONFIG_PATH = REPO_ROOT / "config" / "data-classification" / "levels.yaml"
 
 from packages.version import API_VERSION  # noqa: E402
-from audit_storage import AuditRetentionPolicy, get_worm_storage  # noqa: E402
+import yaml
+
+from audit_storage import AuditRetentionPolicy, WORMStorageError, get_worm_storage  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
@@ -106,12 +109,12 @@ async def healthz() -> HealthResponse:
     try:
         get_worm_storage().ping()
         dependencies["worm_storage"] = "ok"
-    except Exception:  # noqa: BLE001
+    except (HttpResponseError, OSError, WORMStorageError):
         dependencies["worm_storage"] = "down"
     try:
         _load_policies()
         dependencies["retention_config"] = "ok"
-    except Exception:  # noqa: BLE001
+    except (OSError, ValueError, yaml.YAMLError):
         dependencies["retention_config"] = "down"
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
     return HealthResponse(status=status, dependencies=dependencies)
@@ -179,7 +182,7 @@ async def ingest_event(payload: AuditEventIn) -> AuditIngestResponse:
     storage = get_worm_storage()
     try:
         storage.persist_event(event_id, _serialize_event(event), retention_policy)
-    except Exception as exc:
+    except (HttpResponseError, OSError, ResourceModifiedError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     logger.info("audit_event_ingested", extra={"event_id": event_id})

@@ -589,8 +589,12 @@ class CosmosDocumentStore(DocumentStore):
 
     def read(self, doc_id: str) -> Optional[Dict[str, Any]]:
         try:
+            from azure.cosmos.exceptions import CosmosHttpResponseError  # type: ignore
+        except ImportError:  # pragma: no cover - optional dependency
+            CosmosHttpResponseError = RuntimeError
+        try:
             return self._container.read_item(item=doc_id, partition_key=doc_id)
-        except Exception:
+        except (CosmosHttpResponseError, KeyError, ValueError):
             return None
 
 

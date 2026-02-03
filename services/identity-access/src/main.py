@@ -8,6 +8,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
+from sqlite3 import Error as SqliteError
 from sqlite3 import IntegrityError
 from typing import Any
 
@@ -140,14 +141,14 @@ async def healthz() -> HealthResponse:
     try:
         scim_store.ping()
         dependencies["scim_db"] = "ok"
-    except Exception:  # noqa: BLE001
+    except SqliteError:
         dependencies["scim_db"] = "down"
     try:
         load_saml_config()
         dependencies["saml_config"] = "ok"
     except SamlUnavailableError:
         dependencies["saml_config"] = "degraded"
-    except Exception:  # noqa: BLE001
+    except (RuntimeError, ValueError, OSError):
         dependencies["saml_config"] = "down"
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
     return HealthResponse(status=status, dependencies=dependencies)

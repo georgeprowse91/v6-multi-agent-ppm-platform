@@ -134,7 +134,7 @@ class ProcurementConnectorService:
 
         try:
             return connector_class(connector_config)
-        except Exception as exc:  # noqa: BLE001 - connector constructors can fail
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - connector constructors can fail
             self.logger.warning("Connector %s failed to initialize: %s", name, exc)
             return None
 
@@ -154,7 +154,7 @@ class ProcurementConnectorService:
             try:
                 result = getattr(connector, method)(payload)
                 results.append({"connector": name, "status": "ok", "method": method, "result": result})
-            except Exception as exc:  # noqa: BLE001 - external connectors may raise
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external connectors may raise
                 results.append(
                     {
                         "connector": name,
@@ -584,7 +584,7 @@ class RiskDatabaseClient:
                     "hits": content.get("hits", []),
                     "response_id": content.get("response_id"),
                 }
-        except Exception as exc:  # noqa: BLE001 - external calls best-effort
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external calls best-effort
             self.logger.warning("Risk source %s failed: %s", source.get("name"), exc)
             return {}
 
@@ -617,7 +617,7 @@ class EventBusClient:
                 with request.urlopen(req, timeout=self.timeout) as response:
                     response.read()
                 transport_status = "sent"
-            except Exception as exc:  # noqa: BLE001 - external call best-effort
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external call best-effort
                 self.logger.warning("Event bus publish failed: %s", exc)
                 transport_status = "error"
 
@@ -738,7 +738,7 @@ class FinancialManagementClient:
         try:
             with request.urlopen(req, timeout=self.timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
-        except Exception as exc:  # noqa: BLE001 - external calls best-effort
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external calls best-effort
             self.logger.warning("Budget API call failed: %s", exc)
             return {}
 
@@ -783,7 +783,7 @@ class PerformanceAnalyticsClient:
         try:
             with request.urlopen(req, timeout=self.timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
-        except Exception as exc:  # noqa: BLE001 - external calls best-effort
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external calls best-effort
             self.logger.warning("Analytics API call failed: %s", exc)
             return {}
 
@@ -815,7 +815,7 @@ class FormRecognizerClient:
             with request.urlopen(req, timeout=10) as response:
                 content = response.read().decode("utf-8")
                 return json.loads(content)
-        except Exception as exc:  # noqa: BLE001 - remote call best-effort
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - remote call best-effort
             self.logger.warning("Form Recognizer call failed: %s", exc)
             return None
 
@@ -2333,7 +2333,7 @@ class VendorProcurementAgent(BaseAgent):
 
         try:
             research = await self.research_vendor(resolved_name, resolved_domain)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning(
                 "Vendor research failed",
                 extra={"error": str(exc), "vendor_id": vendor_id, "correlation_id": correlation_id},

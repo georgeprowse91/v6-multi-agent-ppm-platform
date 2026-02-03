@@ -99,7 +99,7 @@ class ExternalSyncClient:
             else:
                 return None
             return self._connectors[connector_type]
-        except Exception as exc:  # noqa: BLE001 - connector constructors can fail
+        except (ConnectionError, RuntimeError, TypeError, ValueError) as exc:
             logger.warning("Failed to initialize %s connector: %s", connector_type, exc)
             return None
 
@@ -109,7 +109,7 @@ class ExternalSyncClient:
             if connector and hasattr(connector, "write"):
                 try:
                     connector.write("sheets", [payload])
-                except Exception as exc:  # noqa: BLE001 - external connectors may fail
+                except (ConnectionError, RuntimeError, TimeoutError, ValueError) as exc:
                     logger.warning("Failed to push schedule to %s: %s", system, exc)
             self._pushed.append(ExternalSyncRecord(system=system, schedule_id=schedule_id, payload=payload))
 
@@ -134,7 +134,7 @@ class ExternalSyncClient:
                     }
                     try:
                         connector.write("events", [event_payload])
-                    except Exception as exc:  # noqa: BLE001 - external connectors may fail
+                    except (ConnectionError, RuntimeError, TimeoutError, ValueError) as exc:
                         logger.warning("Failed to sync calendar event to %s: %s", system, exc)
             self._calendar_events.append(
                 ExternalSyncRecord(system=system, schedule_id=schedule_id, payload={"milestones": milestones})

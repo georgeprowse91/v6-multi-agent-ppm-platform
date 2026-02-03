@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
+from sqlite3 import Error as SqliteError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -176,7 +177,7 @@ async def healthz() -> HealthResponse:
     try:
         store.ping()
         dependencies["store"] = "ok"
-    except Exception:  # noqa: BLE001
+    except SqliteError:
         dependencies["store"] = "down"
     dependencies["retention_scheduler"] = "ok" if scheduler else "down"
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"

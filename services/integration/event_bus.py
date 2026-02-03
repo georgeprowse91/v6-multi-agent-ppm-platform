@@ -291,7 +291,7 @@ class EventBusClient:
             try:
                 operation()
                 return
-            except Exception as exc:  # pragma: no cover - retry logic
+            except (ConnectionError, RuntimeError, TimeoutError, ValueError) as exc:
                 attempt += 1
                 if attempt >= self.retry_policy.max_attempts:
                     raise

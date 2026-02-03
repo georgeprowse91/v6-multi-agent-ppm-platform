@@ -62,7 +62,7 @@ class CosmosDocumentStore(DocumentStore):
     def read(self, doc_id: str) -> dict[str, Any] | None:
         try:
             return self._container.read_item(item=doc_id, partition_key=doc_id)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return None
 
     def query(self, record_type: str, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
@@ -82,7 +82,7 @@ class CosmosDocumentStore(DocumentStore):
                 enable_cross_partition_query=True,
             )
             return list(items)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
 
     def close(self) -> None:
@@ -238,7 +238,7 @@ class LifecyclePersistence:
         try:
             records = self.store.query(record_type, tenant_id, project_id)
             return records or list(fallback)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return list(fallback)
 
     def _build_record(

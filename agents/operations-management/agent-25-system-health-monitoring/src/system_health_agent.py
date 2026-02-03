@@ -1323,7 +1323,7 @@ class SystemHealthAgent(BaseAgent):
         while True:
             try:
                 await self._check_all_services_health()
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning("Health probe failure", extra={"error": str(exc)})
             await asyncio.sleep(self.health_probe_interval_seconds)
 

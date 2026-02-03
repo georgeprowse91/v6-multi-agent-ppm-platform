@@ -1405,7 +1405,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 else record.get("Account.Name"),
                 "email": record.get("Email"),
             }
-        except Exception as exc:  # noqa: BLE001
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
             self.logger.warning("CRM sync failed: %s", exc)
             return await self._sync_with_crm_rest(stakeholder_data)
 
@@ -1437,7 +1437,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 "email": payload.get("email") or email,
                 "raw": payload,
             }
-        except Exception as exc:  # noqa: BLE001
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
             self.logger.warning("CRM REST sync failed: %s", exc)
             return {}
 
@@ -1467,7 +1467,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             if response.status_code >= 400:
                 return {"status": "error", "code": response.status_code}
             return {"status": "ok"}
-        except Exception as exc:  # noqa: BLE001
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
             self.logger.warning("CRM upsert failed: %s", exc)
             return {"status": "error", "reason": str(exc)}
 

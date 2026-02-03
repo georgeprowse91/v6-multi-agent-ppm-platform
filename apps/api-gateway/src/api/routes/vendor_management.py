@@ -3,7 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 router = APIRouter()
 
@@ -45,8 +45,10 @@ async def get_vendor_profile(vendor_id: str):
     try:
         result = await agent.process({"action": "get_vendor_profile", "vendor_id": vendor_id})
         return VendorProfileResponse.model_validate(result).model_dump()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="Invalid vendor profile response") from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.patch("/vendors/{vendor_id}", response_model=VendorUpdateResponse)
@@ -70,8 +72,10 @@ async def update_vendor_profile(vendor_id: str, request: VendorUpdateRequest):
             }
         )
         return VendorUpdateResponse.model_validate(result).model_dump()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="Invalid vendor update response") from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/vendors", response_model=VendorListResponse)
@@ -104,5 +108,7 @@ async def list_vendors(
     try:
         result = await agent.process({"action": "list_vendor_profiles", "criteria": criteria})
         return VendorListResponse.model_validate(result).model_dump()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="Invalid vendor list response") from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

@@ -1934,7 +1934,7 @@ class ProgramManagementAgent(BaseAgent):
         model_name = ml_config.get("model_name", "program_health_model")
         try:
             self.health_model = Model(self.ml_workspace, name=model_name)
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             await self._train_health_model(model_name=model_name)
 
     async def _initialize_llm(self) -> None:
@@ -2062,7 +2062,7 @@ class ProgramManagementAgent(BaseAgent):
             return await self.dependency_container.read_item(
                 item=program_id, partition_key=program_id
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return {}
 
     async def _read_dependency_graph(self, program_id: str) -> dict[str, Any]:

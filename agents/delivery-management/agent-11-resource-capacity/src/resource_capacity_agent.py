@@ -418,7 +418,7 @@ class TimeSeriesForecaster:
         try:
             from prophet import Prophet
             import pandas as pd
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return None
         if len(series) < 2:
             return None
@@ -455,7 +455,7 @@ class TimeSeriesForecaster:
             forecasts = data.get("forecast")
             if isinstance(forecasts, list):
                 return [float(value) for value in forecasts]
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return None
         return None
 
@@ -570,7 +570,7 @@ class NotificationService:
         if self.acs_connection_string and self.acs_sender:
             try:
                 from azure.communication.email import EmailClient
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 raise RuntimeError(
                     "Azure Communication Services email client unavailable."
                 ) from exc
@@ -2064,7 +2064,7 @@ class ResourceCapacityAgent(BaseAgent):
         await self.event_bus.publish(event_name, payload)
         try:
             self.event_publisher.publish(event_name, payload)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Service bus publish failed", extra={"error": str(exc)})
 
     async def _notify_requester(self, request: dict[str, Any]) -> None:
@@ -2075,7 +2075,7 @@ class ResourceCapacityAgent(BaseAgent):
         content = f"Request status: {request.get('status')}"
         try:
             self.notification_service.send_email(requester, subject, content)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Failed to send requester notification", extra={"error": str(exc)})
 
     async def _notify_project_manager(self, request: dict[str, Any]) -> None:
@@ -2086,7 +2086,7 @@ class ResourceCapacityAgent(BaseAgent):
         content = f"Allocated resource: {request.get('allocated_resource')}"
         try:
             self.notification_service.send_email(manager, subject, content)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Failed to send manager notification", extra={"error": str(exc)})
 
     def _subscribe_to_events(self) -> None:
@@ -2099,7 +2099,7 @@ class ResourceCapacityAgent(BaseAgent):
         try:
             self.event_bus.subscribe("schedule.changed", _handle_schedule_change)
             self.event_bus.subscribe("approval.decision", _handle_approval_decision)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Failed to subscribe to schedule events", extra={"error": str(exc)})
 
     async def _sync_hr_systems(self) -> None:
@@ -2196,7 +2196,7 @@ class ResourceCapacityAgent(BaseAgent):
                     )
                 busy_count = len([event for event in busy_events if event.get("showAs") != "free"])
                 availability = max(0.0, 1.0 - min(busy_count / 20, 1.0))
-            except Exception:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 availability = 1.0
             profiles.append(
                 {
@@ -2217,7 +2217,7 @@ class ResourceCapacityAgent(BaseAgent):
         try:
             from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
             from connectors.workday.src.workday_connector import WorkdayConnector
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
         try:
             config = ConnectorConfig(
@@ -2239,7 +2239,7 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return profiles
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Workday sync failed", extra={"error": str(exc)})
             return []
 
@@ -2249,7 +2249,7 @@ class ResourceCapacityAgent(BaseAgent):
             from connectors.sap_successfactors.src.sap_successfactors_connector import (
                 SapSuccessFactorsConnector,
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
         try:
             config = ConnectorConfig(
@@ -2271,7 +2271,7 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return profiles
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("SAP SuccessFactors sync failed", extra={"error": str(exc)})
             return []
 
@@ -2375,7 +2375,7 @@ class ResourceCapacityAgent(BaseAgent):
         try:
             from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
             from connectors.planview.src.planview_connector import PlanviewConnector
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
         try:
             config = ConnectorConfig(
@@ -2403,7 +2403,7 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return allocations
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Planview allocation sync failed", extra={"error": str(exc)})
             return []
 
@@ -2441,7 +2441,7 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return allocations
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Tempo allocation sync failed", extra={"error": str(exc)})
             return []
 
@@ -2505,7 +2505,7 @@ class ResourceCapacityAgent(BaseAgent):
                 timeout=30,
             )
             response.raise_for_status()
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             self.logger.warning("Azure ML model registration failed", extra={"error": str(exc)})
 
     async def _acquire_lock(self, key: str, ttl_seconds: int = 10) -> bool:
@@ -3454,7 +3454,7 @@ class ResourceCapacityAgent(BaseAgent):
         if self.redis_client:
             try:
                 self.redis_client.close()
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning("Failed to close Redis client", extra={"error": str(exc)})
         if self.db_service:
             try:
@@ -3463,7 +3463,7 @@ class ResourceCapacityAgent(BaseAgent):
                     f"resource-capacity-cleanup-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
                     {"status": "cleanup", "timestamp": datetime.utcnow().isoformat()},
                 )
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning("Failed to flush events", extra={"error": str(exc)})
         self.repository.close()
 

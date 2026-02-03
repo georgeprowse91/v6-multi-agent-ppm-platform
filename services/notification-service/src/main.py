@@ -326,7 +326,7 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
                 "notification_channel_retry_exhausted",
                 extra={"channel": channel, "error": str(exc), "delivery_id": delivery_id},
             )
-        except Exception as exc:  # noqa: BLE001
+        except (OSError, ValueError, httpx.HTTPError) as exc:
             last_error = exc
             logger.warning(
                 "notification_channel_failed",
@@ -345,7 +345,7 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
                 },
                 error=detail,
             )
-        except Exception as exc:  # noqa: BLE001
+        except (OSError, TypeError, ValueError) as exc:
             logger.warning("notification_dlq_write_failed", extra={"error": str(exc)})
         raise HTTPException(status_code=502, detail=detail)
 

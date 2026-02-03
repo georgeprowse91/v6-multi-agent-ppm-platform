@@ -51,7 +51,7 @@ class DurableTask:
                 if asyncio.iscoroutine(result):
                     result = await result
                 return result
-            except Exception as exc:  # pragma: no cover - retry paths
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - retry paths
                 attempt += 1
                 if attempt >= self.retry_policy.max_attempts:
                     raise
@@ -74,7 +74,7 @@ class DurableWorkflow:
                 context.results[task.name] = result
                 executed.append(task)
             return context
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             await self._compensate(executed, context, exc)
             raise
 
@@ -119,7 +119,7 @@ class DurableWorkflowEngine:
         try:
             result = await workflow.run(context)
             return result
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             if self.monitor:
                 self.monitor.workflow_failed(context, workflow.name, exc)
             raise

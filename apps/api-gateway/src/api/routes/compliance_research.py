@@ -3,7 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 router = APIRouter()
 
@@ -45,5 +45,7 @@ async def research_compliance(project_id: str, request: ComplianceResearchReques
             }
         )
         return ComplianceResearchResponse.model_validate(result).model_dump()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="Invalid compliance response") from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

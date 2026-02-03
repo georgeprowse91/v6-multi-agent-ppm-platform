@@ -39,7 +39,7 @@ async def list_risks(
                 filters={"project_id": project_id, "portfolio_id": portfolio_id},
                 limit=500,
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             risks = list(agent.risk_register.values())
     if project_id:
         risks = [risk for risk in risks if risk.get("project_id") == project_id]
@@ -55,7 +55,7 @@ async def get_risk(risk_id: str) -> dict[str, Any]:
     if agent.db_service:
         try:
             risk = await agent.db_service.retrieve("risks", risk_id) or risk
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             risk = risk
     if not risk:
         raise HTTPException(status_code=404, detail="Risk not found")
@@ -75,7 +75,7 @@ async def get_mitigation_plan(risk_id: str) -> dict[str, Any]:
     if agent.db_service:
         try:
             plan = await agent.db_service.retrieve("mitigation_plans", plan_id) or plan
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             plan = plan
     if not plan:
         raise HTTPException(status_code=404, detail="Mitigation plan not found")
@@ -104,7 +104,7 @@ async def get_risk_assessments(risk_id: str) -> dict[str, Any]:
                 filters={"risk_id": risk_id},
                 limit=100,
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             assessments = []
     return {"risk_id": risk_id, "assessments": assessments}
 
@@ -120,7 +120,7 @@ async def get_risk_impacts(risk_id: str) -> dict[str, Any]:
                 filters={"risk_id": risk_id},
                 limit=100,
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             impacts = []
     return {"risk_id": risk_id, "impacts": impacts}
 
@@ -140,7 +140,7 @@ async def get_risk_simulations(risk_id: str) -> dict[str, Any]:
                 filters={"project_id": project_id} if project_id else None,
                 limit=100,
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             simulations = []
     return {"risk_id": risk_id, "simulations": simulations}
 
@@ -160,6 +160,6 @@ async def get_risk_triggers(risk_id: str) -> dict[str, Any]:
                 filters={"risk_id": risk_id},
                 limit=100,
             )
-        except Exception:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             triggers = triggers
     return {"risk_id": risk_id, "triggers": triggers}

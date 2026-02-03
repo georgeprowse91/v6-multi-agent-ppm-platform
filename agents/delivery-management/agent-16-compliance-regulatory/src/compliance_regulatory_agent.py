@@ -1179,7 +1179,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         if self.enable_regulatory_monitoring and domain:
             try:
                 external_monitoring = await self.monitor_regulations(domain, region)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning(
                     "External regulatory monitoring failed",
                     extra={"error": str(exc), "correlation_id": correlation_id},
@@ -1356,7 +1356,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         if self.enable_regulatory_monitoring and domain:
             try:
                 external_monitoring = await self.monitor_regulations(domain, region)
-            except Exception as exc:  # pragma: no cover - defensive
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
                 self.logger.warning(
                     "External compliance monitoring failed", extra={"error": str(exc)}
                 )
@@ -1740,7 +1740,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
     async def _call_agent(self, agent: Any, payload: dict[str, Any]) -> dict[str, Any]:
         try:
             response = await agent.process(payload)
-        except Exception as exc:  # pragma: no cover - defensive
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
             self.logger.warning(
                 "Agent evidence collection failed",
                 extra={"error": str(exc), "payload": payload},

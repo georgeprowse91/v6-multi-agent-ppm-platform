@@ -189,7 +189,7 @@ async def healthz() -> HealthResponse:
             oidc_config = await _load_oidc_config(discovery_url)
             dependencies["oidc_discovery"] = "ok"
             token_url = token_url or oidc_config.get("token_endpoint")
-        except Exception:  # noqa: BLE001
+        except (ValueError, httpx.HTTPError):
             dependencies["oidc_discovery"] = "down"
     else:
         dependencies["oidc_discovery"] = "degraded"

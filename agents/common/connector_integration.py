@@ -134,7 +134,7 @@ class DocumentManagementService:
             )
             self._connector = SharePointConnector(connector_config)
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize SharePoint connector: {exc}")
             return None
 
@@ -190,7 +190,7 @@ class DocumentManagementService:
                 "status": "published",
                 "published_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to publish document: {exc}")
             return {
                 "document_id": None,
@@ -226,7 +226,7 @@ class DocumentManagementService:
             if documents:
                 return documents[0]
             return None
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to retrieve document: {exc}")
             return None
 
@@ -269,7 +269,7 @@ class DocumentManagementService:
             if folder_path:
                 query_filters["folder"] = folder_path
             return connector.read("documents", filters=query_filters, limit=limit)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to list documents: {exc}")
             return []
 
@@ -310,7 +310,7 @@ class GRCIntegrationService:
                     )
                     self._connector = ArcherConnector(connector_config)
                     return self._connector
-                except Exception as exc:
+                except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                     logger.warning(f"Failed to initialize Archer connector: {exc}")
                     return None
 
@@ -328,7 +328,7 @@ class GRCIntegrationService:
             )
             self._connector = ServiceNowGrcConnector(connector_config)
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize ServiceNow GRC connector: {exc}")
             return None
 
@@ -368,7 +368,7 @@ class GRCIntegrationService:
                 "status": "synced",
                 "synced_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to sync control: {exc}")
             return {
                 "control_id": control.control_id,
@@ -420,7 +420,7 @@ class GRCIntegrationService:
                 "status": "synced",
                 "synced_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to sync risk: {exc}")
             return {
                 "risk_id": risk.risk_id,
@@ -463,7 +463,7 @@ class GRCIntegrationService:
 
         try:
             return connector.read("risks", filters=filters, limit=limit)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to retrieve risks: {exc}")
             return []
 
@@ -487,7 +487,7 @@ class GRCIntegrationService:
 
         try:
             return connector.read("profiles", limit=limit)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to retrieve profiles: {exc}")
             return []
 
@@ -569,7 +569,7 @@ class ERPIntegrationService:
                 return None
             self._connector_type = connector_type
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize ERP connector ({connector_type}): {exc}")
             return None
 
@@ -601,7 +601,7 @@ class ERPIntegrationService:
                 "external_id": result[0].get("id") if result else None,
                 "synced_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to sync financial data: {exc}")
             return {
                 "status": "failed",
@@ -633,7 +633,7 @@ class ERPIntegrationService:
 
         try:
             return connector.read("transactions", filters=filters, limit=limit)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to retrieve transactions: {exc}")
             return []
 
@@ -664,7 +664,7 @@ class ERPIntegrationService:
                 "journal_entry_id": result[0].get("id") if result else None,
                 "posted_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to post journal entry: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -728,7 +728,7 @@ class ITSMIntegrationService:
                 return None
             self._connector_type = connector_type
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize ITSM connector ({connector_type}): {exc}")
             return None
 
@@ -760,7 +760,7 @@ class ITSMIntegrationService:
                 "change_id": result[0].get("id") if result else None,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to create change request: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -794,7 +794,7 @@ class ITSMIntegrationService:
                 "ticket_id": result[0].get("id") if result else ticket_id,
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to update ticket: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -823,7 +823,7 @@ class ITSMIntegrationService:
         try:
             resource_type = "issues" if self._connector_type == "jira" else "incidents"
             return connector.read(resource_type, filters=filters, limit=limit)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to retrieve incidents: {exc}")
             return []
 
@@ -912,7 +912,7 @@ class ProjectManagementService:
                 return None
             self._connector_type = connector_type
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize PM connector ({connector_type}): {exc}")
             return None
 
@@ -950,7 +950,7 @@ class ProjectManagementService:
                 "project_id": result[0].get("id") if result else None,
                 "synced_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to sync project: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -983,7 +983,7 @@ class ProjectManagementService:
         try:
             task_filters = {"project_id": project_id, **(filters or {})}
             return connector.read(self._task_resource_type(), filters=task_filters, limit=limit)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to retrieve tasks: {exc}")
             return []
 
@@ -1029,7 +1029,7 @@ class ProjectManagementService:
                 }
                 for result in (results or [])
             ]
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to create tasks: {exc}")
             return [{"status": "failed", "error": str(exc)}]
 
@@ -1062,7 +1062,7 @@ class ProjectManagementService:
                 "project_id": result[0].get("project_id") if result else project_id,
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to update schedule: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -1150,7 +1150,7 @@ class NotificationService:
                 logger.warning("Unsupported notification connector type - using mock notification service")
                 return None
             return self._connectors[connector_type]
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize notification connector ({connector_type}): {exc}")
             return None
 
@@ -1319,7 +1319,7 @@ class NotificationService:
                 "sent_at": datetime.now(timezone.utc).isoformat(),
                 "metadata": metadata,
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to send email: {exc}")
             return {
                 "status": "failed",
@@ -1357,7 +1357,7 @@ class NotificationService:
                     "message_id": result[0].get("sid") if result else None,
                     "sent_at": datetime.now(timezone.utc).isoformat(),
                 }
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 logger.error(f"Failed to send SMS via Twilio: {exc}")
                 return {"status": "failed", "to": to, "error": str(exc)}
 
@@ -1373,7 +1373,7 @@ class NotificationService:
                     category=ConnectorCategory.COLLABORATION,
                 )
                 connector = AzureCommunicationServicesConnector(connector_config)
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 logger.warning("ACS connector unavailable: %s", exc)
                 connector = None
             if connector is None:
@@ -1391,7 +1391,7 @@ class NotificationService:
                     "message_id": result[0].get("messageId") if result else None,
                     "sent_at": datetime.now(timezone.utc).isoformat(),
                 }
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 logger.error(f"Failed to send SMS via ACS: {exc}")
                 return {"status": "failed", "to": to, "error": str(exc)}
 
@@ -1571,7 +1571,7 @@ class NotificationService:
                 "message_id": result[0].get("id") if result else None,
                 "sent_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to send Teams message: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -1596,7 +1596,7 @@ class NotificationService:
                 "message_id": result[0].get("ts") if result else None,
                 "sent_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to send Slack message: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -1685,7 +1685,7 @@ class NotificationService:
                     "message_id": result[0].get("id") if result else None,
                     "sent_at": datetime.now(timezone.utc).isoformat(),
                 }
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 logger.error(f"Failed to send push notification via connector: {exc}")
         namespace = self.config.get("notification_hubs_namespace") or os.getenv(
             "AZURE_NOTIFICATION_HUBS_NAMESPACE"
@@ -1784,7 +1784,7 @@ class CalendarIntegrationService:
             else:
                 return None
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning("Failed to initialize calendar connector (%s): %s", provider, exc)
             return None
 
@@ -1811,7 +1811,7 @@ class CalendarIntegrationService:
                 "provider": connector.CONNECTOR_ID,
                 "event_id": result[0].get("id") if result else None,
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to create calendar event: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -1821,7 +1821,7 @@ class CalendarIntegrationService:
             return []
         try:
             return connector.read("events", filters=filters)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to list calendar events: {exc}")
             return []
 
@@ -1843,7 +1843,7 @@ class CalendarIntegrationService:
                 "timeMax": end.isoformat(),
             }
             return connector.read("events", filters=filters)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to get calendar availability: {exc}")
             return []
 
@@ -1881,7 +1881,7 @@ class MLPredictionService:
             )
             self._connector = AzureMLConnector(connector_config)
             return self._connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize Azure ML connector: {exc}")
             return None
 
@@ -1913,7 +1913,7 @@ class MLPredictionService:
                 "result": result[0] if result else None,
                 "predicted_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to run classification prediction: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -1944,7 +1944,7 @@ class MLPredictionService:
                 "result": result[0] if result else None,
                 "predicted_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to forecast timeseries: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -1975,7 +1975,7 @@ class MLPredictionService:
                 "result": result[0] if result else None,
                 "predicted_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.error(f"Failed to detect anomalies: {exc}")
             return {"status": "failed", "error": str(exc)}
 
@@ -2013,7 +2013,7 @@ class DocumentationPublishingService:
             )
             self._confluence_connector = ConfluenceConnector(connector_config)
             return self._confluence_connector
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.warning(f"Failed to initialize Confluence connector: {exc}")
             return None
 
@@ -2068,7 +2068,7 @@ class DocumentationPublishingService:
                     "status": "published",
                     "published_at": datetime.now(timezone.utc).isoformat(),
                 }
-            except Exception as exc:
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 logger.warning(f"Confluence publish failed, falling back to SharePoint: {exc}")
 
         # Fall back to SharePoint
@@ -2434,7 +2434,7 @@ class DatabaseStorageService:
             finally:
                 cursor.close()
                 connection.close()
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.exception(
                 "Azure SQL store failed for %s/%s: %s", collection, record_id, exc
             )
@@ -2472,7 +2472,7 @@ class DatabaseStorageService:
             finally:
                 cursor.close()
                 connection.close()
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.exception(
                 "Azure SQL retrieve failed for %s/%s: %s", collection, record_id, exc
             )
@@ -2524,7 +2524,7 @@ class DatabaseStorageService:
             finally:
                 cursor.close()
                 connection.close()
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.exception("Azure SQL query failed for %s: %s", collection, exc)
             return []
 
@@ -2550,7 +2550,7 @@ class DatabaseStorageService:
         try:
             container = self._get_cosmos_container_client(collection)
             result = container.upsert_item(payload)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.exception(
                 "Cosmos DB store failed for %s/%s: %s", collection, record_id, exc
             )
@@ -2576,7 +2576,7 @@ class DatabaseStorageService:
         try:
             container = self._get_cosmos_container_client(collection)
             item = container.read_item(item=record_id, partition_key=record_id)
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.exception(
                 "Cosmos DB retrieve failed for %s/%s: %s", collection, record_id, exc
             )
@@ -2619,6 +2619,6 @@ class DatabaseStorageService:
                 if len(results) >= limit:
                     break
             return results
-        except Exception as exc:
+        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             logger.exception("Cosmos DB query failed for %s: %s", collection, exc)
             return []
