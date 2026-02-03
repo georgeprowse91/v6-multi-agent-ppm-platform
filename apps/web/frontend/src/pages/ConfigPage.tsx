@@ -611,7 +611,8 @@ export function ConfigPage({ type }: ConfigPageProps) {
                 <div>
                   <h2 className={styles.workflowTitle}>Default Routing Rules</h2>
                   <p className={styles.workflowHint}>
-                    Update routing entries to define how workflow requests are orchestrated.
+                    Update routing entries to define how workflow requests are orchestrated, or
+                    open the workflow designer to build multi-agent flows.
                   </p>
                 </div>
                 <div className={styles.workflowActions}>

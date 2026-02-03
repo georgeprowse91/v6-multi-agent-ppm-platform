@@ -304,6 +304,13 @@ export function WorkflowDesigner() {
     () => nodes.find((node) => node.id === selectedNodeId) ?? null,
     [nodes, selectedNodeId]
   );
+  const selectedAgentActions = useMemo(() => {
+    if (!selectedNode?.data.agent_id) {
+      return [];
+    }
+    const agent = agents.find((candidate) => candidate.agent_id === selectedNode.data.agent_id);
+    return agent?.capabilities ?? [];
+  }, [agents, selectedNode?.data.agent_id]);
 
   useEffect(() => {
     const fetchBasics = async () => {
@@ -355,6 +362,11 @@ export function WorkflowDesigner() {
         if (['task', 'api'].includes(node.data.step_type)) {
           if (!node.data.agent_id || !node.data.action) {
             messages.push(`Step ${node.id} needs an agent and action.`);
+          }
+        }
+        if (node.data.step_type === 'decision') {
+          if (!node.data.condition || !node.data.condition.field.trim()) {
+            messages.push(`Decision step ${node.id} needs a condition.`);
           }
         }
         const outgoing = candidateEdges.filter((edge) => edge.source === node.id);
@@ -701,9 +713,21 @@ export function WorkflowDesigner() {
                   Action
                   <input
                     className={styles.input}
+                    list={
+                      selectedAgentActions.length > 0
+                        ? `workflow-actions-${selectedNode.id}`
+                        : undefined
+                    }
                     value={selectedNode.data.action ?? ''}
                     onChange={(event) => updateSelectedNode({ action: event.target.value })}
                   />
+                  {selectedAgentActions.length > 0 && (
+                    <datalist id={`workflow-actions-${selectedNode.id}`}>
+                      {selectedAgentActions.map((action) => (
+                        <option key={action} value={action} />
+                      ))}
+                    </datalist>
+                  )}
                 </label>
                 <label className={styles.label}>
                   Connector

@@ -1165,6 +1165,13 @@ def _validate_workflow_payload(payload: WorkflowDefinitionPayload) -> None:
                 status_code=422,
                 detail=f"Node '{node.id}' requires agent and action configuration",
             )
+        if node.data.step_type == "decision" and not (
+            node.data.condition and node.data.condition.field.strip()
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=f"Node '{node.id}' requires a condition for decision logic",
+            )
 
 
 async def _sync_workflow_definition(
@@ -1185,6 +1192,23 @@ async def _sync_workflow_definition(
             response.raise_for_status()
         except httpx.HTTPError as exc:
             logger.warning("Failed to sync workflow definition", exc_info=exc)
+
+
+async def _delete_workflow_definition(request: Request, workflow_id: str) -> None:
+    session = _require_session(request)
+    workflow_url = os.getenv("WORKFLOW_ENGINE_URL", "http://localhost:8082")
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            response = await client.delete(
+                f"{workflow_url}/v1/workflows/definitions/{workflow_id}",
+                headers={
+                    "Authorization": f"Bearer {session['access_token']}",
+                    "X-Tenant-ID": session["tenant_id"],
+                },
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            logger.warning("Failed to delete workflow definition", exc_info=exc)
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -1996,12 +2020,13 @@ async def update_workflow_definition(
 
 @api_router.delete("/api/workflows/{workflow_id}")
 @permission_required("config.manage")
-def delete_workflow_definition(workflow_id: str, request: Request) -> dict[str, str]:
+async def delete_workflow_definition(workflow_id: str, request: Request) -> dict[str, str]:
     _require_session(request)
     record = workflow_definition_store.get(workflow_id)
     if not record:
         raise HTTPException(status_code=404, detail="Workflow definition not found")
     workflow_definition_store.delete(workflow_id)
+    await _delete_workflow_definition(request, workflow_id)
     return {"status": "deleted"}
 
 
