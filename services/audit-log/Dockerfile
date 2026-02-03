@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.6
 # Multi-Agent PPM Platform - audit-log Dockerfile
 
 # Build stage
@@ -11,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files
-COPY requirements.txt pyproject.toml ./
+COPY --from=repo-root requirements.txt pyproject.toml ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
@@ -36,10 +37,11 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code and shared tooling
-COPY --chown=appuser:appuser pyproject.toml ./
-COPY --chown=appuser:appuser tools ./tools
-COPY --chown=appuser:appuser config ./config
-COPY --chown=appuser:appuser services/audit-log ./services/audit-log
+COPY --chown=appuser:appuser --from=repo-root pyproject.toml ./
+COPY --chown=appuser:appuser --from=repo-root tools ./tools
+COPY --chown=appuser:appuser --from=repo-root config ./config
+COPY --chown=appuser:appuser --from=repo-root packages ./packages
+COPY --chown=appuser:appuser . ./services/audit-log
 
 # Switch to non-root user
 USER appuser

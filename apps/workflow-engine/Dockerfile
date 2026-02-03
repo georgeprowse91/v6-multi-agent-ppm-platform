@@ -1,9 +1,17 @@
+# syntax=docker/dockerfile:1.6
 FROM python:3.11-slim
 
 WORKDIR /app
 ENV PYTHONPATH=/app
 
-COPY . /app
+COPY --from=repo-root pyproject.toml ./
+COPY --from=repo-root tools ./tools
+COPY --from=repo-root config ./config
+COPY --from=repo-root packages ./packages
+COPY --from=repo-root agents ./agents
+COPY . /app/apps/workflow-engine
+
+RUN mkdir -p /app/services
 
 
 RUN useradd -m -u 10001 appuser && chown -R appuser:appuser /app

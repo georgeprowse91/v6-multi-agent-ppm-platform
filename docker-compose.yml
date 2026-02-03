@@ -4,8 +4,10 @@ services:
   # API Service
   api:
     build:
-      context: .
-      dockerfile: apps/api-gateway/Dockerfile
+      context: ./apps/api-gateway
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
     ports:
       - "8000:8000"
     environment:
@@ -40,8 +42,10 @@ services:
 
   workflow-engine:
     build:
-      context: .
-      dockerfile: apps/workflow-engine/Dockerfile
+      context: ./apps/workflow-engine
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
     ports:
       - "8080:8080"
     environment:
