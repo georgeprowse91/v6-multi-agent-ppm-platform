@@ -30,7 +30,9 @@ class ScopeResearchResponse(BaseModel):
 
 
 @router.post("/projects/{project_id}/scope/research", response_model=ScopeResearchResponse)
-async def generate_scope_research(project_id: str, request: ScopeResearchRequest):
+async def generate_scope_research(
+    project_id: str, request: ScopeResearchRequest
+) -> ScopeResearchResponse:
     """Trigger scope research using the Project Definition & Scope agent."""
     from api.main import orchestrator
 
@@ -51,7 +53,7 @@ async def generate_scope_research(project_id: str, request: ScopeResearchRequest
                 "search_result_limit": request.search_result_limit,
             }
         )
-        return ScopeResearchResponse.model_validate(result).model_dump()
+        return ScopeResearchResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid scope research response") from exc
     except (RuntimeError, ValueError) as exc:

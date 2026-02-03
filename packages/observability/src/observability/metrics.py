@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 import os
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any
 
 from opentelemetry import metrics
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
@@ -15,11 +16,12 @@ from prometheus_client import Counter, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+from starlette.types import ASGIApp
 
 logger = logging.getLogger("observability.metrics")
 
 _CONFIGURED = False
-_METER = None
+_METER: Any | None = None
 
 
 @dataclass(frozen=True)
@@ -29,24 +31,26 @@ class KPIHandles:
 
 
 class RequestMetricsMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, service_name: str) -> None:
+    def __init__(self, app: ASGIApp, service_name: str) -> None:
         super().__init__(app)
         meter = configure_metrics(service_name)
-        self._requests = meter.create_counter(
+        self._requests: Any = meter.create_counter(
             name="http_requests_total",
             description="HTTP requests processed",
             unit="1",
         )
-        self._latency = meter.create_histogram(
+        self._latency: Any = meter.create_histogram(
             name="http_request_duration_seconds",
             description="HTTP request duration in seconds",
             unit="s",
         )
-        self._service_name = service_name
+        self._service_name: str = service_name
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         start = time.perf_counter()
-        response = cast(Response, await call_next(request))
+        response = await call_next(request)
         elapsed = time.perf_counter() - start
         attributes = {
             "service": self._service_name,
@@ -59,9 +63,11 @@ class RequestMetricsMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def configure_metrics(service_name: str):
+def configure_metrics(service_name: str) -> Any:
     global _CONFIGURED, _METER
     if _CONFIGURED:
+        if _METER is None:
+            raise RuntimeError("Metrics meter is not configured")
         return _METER
 
     endpoint = os.getenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")

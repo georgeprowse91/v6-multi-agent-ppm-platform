@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 
@@ -60,7 +60,7 @@ class WebhookEventStore:
     def _load_all(self) -> list[dict[str, Any]]:
         if not self.storage_path.exists():
             return []
-        return json.loads(self.storage_path.read_text())
+        return cast(list[dict[str, Any]], json.loads(self.storage_path.read_text()))
 
     def _save_all(self, events: list[dict[str, Any]]) -> None:
         self.storage_path.write_text(json.dumps(events, indent=2))

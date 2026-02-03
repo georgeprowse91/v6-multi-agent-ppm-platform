@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -13,7 +13,7 @@ def _load_mapping(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"groups": {}, "roles": []}
     data = yaml.safe_load(path.read_text()) or {"groups": {}, "roles": []}
-    return resolve_config(data)
+    return cast(dict[str, Any], resolve_config(data))
 
 
 def map_groups_to_roles(claims: dict[str, Any]) -> list[str]:

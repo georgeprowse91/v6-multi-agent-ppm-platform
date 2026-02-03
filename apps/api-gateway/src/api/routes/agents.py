@@ -21,7 +21,7 @@ class QueryRequest(BaseModel):
 
 
 @router.post("/query", response_model=AgentResponse)
-async def process_query(request: QueryRequest):
+async def process_query(request: QueryRequest) -> AgentResponse:
     """
     Process a natural language query through the agent system.
 
@@ -38,7 +38,7 @@ async def process_query(request: QueryRequest):
             context=request.context,
             prompt=request.prompt,
         )
-        return AgentResponse.model_validate(result).model_dump()
+        return AgentResponse.model_validate(result)
 
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid agent response") from exc
@@ -47,7 +47,7 @@ async def process_query(request: QueryRequest):
 
 
 @router.get("/agents")
-async def list_agents():
+async def list_agents() -> dict[str, Any]:
     """
     List all available agents.
 
@@ -65,7 +65,7 @@ async def list_agents():
 
 
 @router.get("/agents/{agent_id}")
-async def get_agent_info(agent_id: str):
+async def get_agent_info(agent_id: str) -> dict[str, Any]:
     """
     Get information about a specific agent.
     """

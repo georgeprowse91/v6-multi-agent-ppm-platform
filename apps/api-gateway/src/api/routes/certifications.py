@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, cast
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, Response, UploadFile
 from pydantic import BaseModel, Field
@@ -66,7 +66,7 @@ def _to_response(record: CertificationRecord) -> CertificationRecordResponse:
     return CertificationRecordResponse(
         connector_id=record.connector_id,
         tenant_id=record.tenant_id,
-        compliance_status=record.compliance_status,
+        compliance_status=cast(CertificationStatus, record.compliance_status),
         certification_date=record.certification_date,
         expires_at=record.expires_at,
         audit_reference=record.audit_reference,

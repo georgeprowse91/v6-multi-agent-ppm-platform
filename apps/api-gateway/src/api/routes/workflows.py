@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
@@ -101,12 +101,12 @@ class WorkflowApprovalDecisionRequest(BaseModel):
 def _get_definition(workflow_id: str) -> dict[str, Any]:
     stored = store.get_definition(workflow_id)
     if stored:
-        return stored.definition
+        return cast(dict[str, Any], stored.definition)
     path = DEFINITIONS_DIR / f"{workflow_id}.workflow.yaml"
     if not path.exists():
         raise HTTPException(status_code=404, detail="Workflow definition not found")
     try:
-        definition = load_definition(path, SCHEMA_PATH)
+        definition = cast(dict[str, Any], load_definition(path, SCHEMA_PATH))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     store.upsert_definition(workflow_id, definition)

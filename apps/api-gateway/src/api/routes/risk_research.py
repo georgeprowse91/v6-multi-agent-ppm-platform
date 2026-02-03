@@ -24,7 +24,9 @@ class RiskResearchResponse(BaseModel):
 
 
 @router.post("/projects/{project_id}/risks/research", response_model=RiskResearchResponse)
-async def research_project_risks(project_id: str, request: RiskResearchRequest):
+async def research_project_risks(
+    project_id: str, request: RiskResearchRequest
+) -> RiskResearchResponse:
     """Trigger external risk research using the Risk & Issue Management agent."""
     from api.main import orchestrator
 
@@ -45,7 +47,7 @@ async def research_project_risks(project_id: str, request: RiskResearchRequest):
                 "categories": request.categories or [],
             }
         )
-        return RiskResearchResponse.model_validate(result).model_dump()
+        return RiskResearchResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid risk research response") from exc
     except (RuntimeError, ValueError) as exc:

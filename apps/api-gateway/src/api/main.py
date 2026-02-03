@@ -10,7 +10,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI
+from typing import Any
+
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -125,7 +127,7 @@ orchestrator = None
 
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     """Initialize application on startup."""
     global orchestrator
     logger.info("Starting Multi-Agent PPM Platform...")
@@ -160,7 +162,7 @@ async def startup_event():
 
 
 @app.on_event("shutdown")
-async def shutdown_event():
+async def shutdown_event() -> None:
     """Clean up resources on shutdown."""
     global orchestrator
     logger.info("Shutting down Multi-Agent PPM Platform...")
@@ -179,9 +181,9 @@ async def shutdown_event():
     logger.info("Application shut down successfully")
 
 
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]
 @app.get("/healthz")
-async def healthz():
+async def healthz() -> dict[str, Any]:
     """Lightweight health check for local dev and probes."""
     return {
         "status": "ok",
@@ -191,16 +193,16 @@ async def healthz():
     }
 
 
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]
 @app.get("/version")
-async def version():
+async def version() -> dict[str, str]:
     """Return API version metadata."""
     return _version_payload()
 
 
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """Root endpoint - API information."""
     return {
         "name": "Multi-Agent PPM Platform API",
@@ -213,7 +215,7 @@ api_v1 = APIRouter(prefix="/v1")
 
 
 @api_v1.get("/status")
-async def get_status():
+async def get_status() -> dict[str, Any]:
     """Get platform status."""
     return {
         "status": "healthy",
@@ -242,7 +244,7 @@ app.include_router(api_v1)
 
 
 @app.exception_handler(PPMPlatformError)
-async def platform_exception_handler(request, exc):
+async def platform_exception_handler(request: Request, exc: PPMPlatformError) -> JSONResponse:
     """Handle platform-specific exceptions."""
     status_code = exception_to_http_status(exc)
     logger.warning("Platform exception: %s", exc, exc_info=True)
@@ -258,7 +260,7 @@ async def platform_exception_handler(request, exc):
 
 # Global exception handler
 @app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle all uncaught exceptions."""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     return JSONResponse(

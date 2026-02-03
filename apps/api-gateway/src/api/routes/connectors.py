@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import sys
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -92,7 +93,7 @@ def get_circuit_breaker() -> CircuitBreaker:
     return _circuit_breaker
 
 
-def get_webhook_handler(connector_id: str):
+def get_webhook_handler(connector_id: str) -> Callable[..., Any] | None:
     webhook_path = CONNECTORS_ROOT / connector_id / "src" / "webhooks.py"
     if not webhook_path.exists():
         return None
@@ -104,7 +105,7 @@ def get_webhook_handler(connector_id: str):
     return getattr(module, "handle_webhook", None)
 
 
-def get_webhook_registrar(connector_id: str):
+def get_webhook_registrar(connector_id: str) -> Callable[..., Any] | None:
     webhook_path = CONNECTORS_ROOT / connector_id / "src" / "webhooks.py"
     if not webhook_path.exists():
         return None
@@ -116,7 +117,7 @@ def get_webhook_registrar(connector_id: str):
     return getattr(module, "register_webhook", None)
 
 
-def get_test_connection_handler(connector_id: str):
+def get_test_connection_handler(connector_id: str) -> tuple[str | None, Any]:
     connector_class = get_connector_class(connector_id)
     if connector_class and callable(getattr(connector_class, "test_connection", None)):
         return ("class", connector_class)
@@ -172,7 +173,7 @@ def _sanitize_headers(headers: dict[str, str]) -> dict[str, str]:
     return filtered
 
 
-def _ensure_connector_is_available(definition) -> None:
+def _ensure_connector_is_available(definition: Any) -> None:
     if definition.status == ConnectorStatus.COMING_SOON:
         raise HTTPException(
             status_code=400,
@@ -306,7 +307,7 @@ async def list_categories(
     response: Response,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-):
+) -> list[CategoryInfo]:
     """
     List all connector categories with their metadata.
     """
@@ -385,7 +386,7 @@ async def list_connectors(
     category: str | None = None,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-):
+) -> list[ConnectorListItemResponse]:
     """
     List all available connectors with their configuration status.
 
@@ -442,7 +443,7 @@ async def list_connectors(
 
 
 @router.get("/connectors/{connector_id}", response_model=ConnectorListItemResponse)
-async def get_connector(connector_id: str):
+async def get_connector(connector_id: str) -> ConnectorListItemResponse:
     """
     Get a specific connector with its configuration.
     """
@@ -480,7 +481,7 @@ async def get_connector(connector_id: str):
 @router.put("/connectors/{connector_id}/config", response_model=ConnectorConfigResponse)
 async def update_connector_config(
     connector_id: str, request: ConnectorConfigRequest, http_request: Request
-):
+) -> ConnectorConfigResponse:
     """
     Update connector configuration.
 
@@ -549,7 +550,7 @@ async def update_connector_config(
 @router.put("/connectors/regulatory_compliance/config", response_model=ConnectorConfigResponse)
 async def update_regulatory_compliance_config(
     request: RegulatoryComplianceConfigRequest, http_request: Request
-):
+) -> ConnectorConfigResponse:
     connector_id = "regulatory_compliance"
     definition = get_connector_definition(connector_id)
     if not definition:
@@ -617,7 +618,7 @@ async def update_regulatory_compliance_config(
 
 
 @router.post("/connectors/{connector_id}/enable", response_model=ConnectorConfigResponse)
-async def enable_connector(connector_id: str, http_request: Request):
+async def enable_connector(connector_id: str, http_request: Request) -> ConnectorConfigResponse:
     """
     Enable a connector.
 
@@ -713,7 +714,7 @@ async def enable_connector(connector_id: str, http_request: Request):
 
 
 @router.post("/connectors/{connector_id}/disable", response_model=ConnectorConfigResponse)
-async def disable_connector(connector_id: str, http_request: Request):
+async def disable_connector(connector_id: str, http_request: Request) -> ConnectorConfigResponse:
     """
     Disable a connector.
     """
@@ -761,7 +762,9 @@ async def disable_connector(connector_id: str, http_request: Request):
 
 
 @router.post("/connectors/{connector_id}/test", response_model=TestConnectionResponse)
-async def test_connection(connector_id: str, request: TestConnectionRequest):
+async def test_connection(
+    connector_id: str, request: TestConnectionRequest
+) -> TestConnectionResponse:
     """
     Test connection to the external system.
 
@@ -841,7 +844,9 @@ async def test_connection(connector_id: str, request: TestConnectionRequest):
 
 
 @router.post("/connectors/regulatory_compliance/test", response_model=TestConnectionResponse)
-async def test_regulatory_compliance_connection(request: RegulatoryComplianceConfigRequest):
+async def test_regulatory_compliance_connection(
+    request: RegulatoryComplianceConfigRequest,
+) -> TestConnectionResponse:
     connector_id = "regulatory_compliance"
     definition = get_connector_definition(connector_id)
     if not definition:
@@ -888,7 +893,7 @@ async def get_regulatory_audit_logs(
     regulation: str | None = None,
     limit: int = 100,
     offset: int = 0,
-):
+) -> dict[str, Any]:
     connector_id = "regulatory_compliance"
     definition = get_connector_definition(connector_id)
     if not definition:
@@ -908,7 +913,7 @@ async def get_regulatory_audit_logs(
 
 
 @router.post("/connectors/{connector_id}/webhook")
-async def handle_connector_webhook(connector_id: str, request: Request):
+async def handle_connector_webhook(connector_id: str, request: Request) -> dict[str, Any]:
     """
     Receive webhook notifications from external systems.
     """
@@ -976,7 +981,7 @@ async def handle_connector_webhook(connector_id: str, request: Request):
 
 
 @router.delete("/connectors/{connector_id}/config")
-async def delete_connector_config(connector_id: str, http_request: Request):
+async def delete_connector_config(connector_id: str, http_request: Request) -> dict[str, str]:
     """
     Delete a connector configuration.
     """

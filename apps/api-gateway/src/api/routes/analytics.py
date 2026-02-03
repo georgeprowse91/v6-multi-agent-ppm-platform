@@ -44,17 +44,19 @@ async def _proxy_request(
 
 
 @router.get("/projects/{project_id}/health")
-async def project_health(project_id: str, request: Request):
+async def project_health(project_id: str, request: Request) -> Any:
     return await _proxy_request(request, "GET", f"/api/projects/{project_id}/health")
 
 
 @router.get("/projects/{project_id}/health/trends")
-async def project_health_trends(project_id: str, request: Request):
+async def project_health_trends(project_id: str, request: Request) -> Any:
     return await _proxy_request(request, "GET", f"/api/projects/{project_id}/health/trends")
 
 
 @router.post("/projects/{project_id}/health/what-if")
-async def project_health_what_if(project_id: str, request: Request, payload: dict[str, Any]):
+async def project_health_what_if(
+    project_id: str, request: Request, payload: dict[str, Any]
+) -> Any:
     return await _proxy_request(
         request, "POST", f"/api/projects/{project_id}/health/what-if", payload
     )

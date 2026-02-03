@@ -24,7 +24,9 @@ class ComplianceResearchResponse(BaseModel):
 @router.post(
     "/projects/{project_id}/compliance/research", response_model=ComplianceResearchResponse
 )
-async def research_compliance(project_id: str, request: ComplianceResearchRequest):
+async def research_compliance(
+    project_id: str, request: ComplianceResearchRequest
+) -> ComplianceResearchResponse:
     """Trigger external regulatory monitoring using the Compliance agent."""
     from api.main import orchestrator
 
@@ -44,7 +46,7 @@ async def research_compliance(project_id: str, request: ComplianceResearchReques
                 "region": request.region,
             }
         )
-        return ComplianceResearchResponse.model_validate(result).model_dump()
+        return ComplianceResearchResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid compliance response") from exc
     except (RuntimeError, ValueError) as exc:

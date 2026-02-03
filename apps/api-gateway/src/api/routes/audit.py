@@ -2,6 +2,8 @@
 Audit log API routes.
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Query, Request, Response
 from pydantic import BaseModel
 from security.audit_log import get_audit_log_store
@@ -13,11 +15,11 @@ class AuditEventResponse(BaseModel):
     event_id: str
     timestamp: str
     tenant_id: str
-    actor: dict
+    actor: dict[str, Any]
     action: str
-    resource: dict
+    resource: dict[str, Any]
     outcome: str
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
 
 
 @router.get("/audit/events", response_model=list[AuditEventResponse])

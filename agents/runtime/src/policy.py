@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -37,14 +37,20 @@ def _apply_rule(bundle: dict[str, Any], rule: dict[str, Any]) -> bool:
     operator = rule.get("operator")
     expected = rule.get("value")
     if operator == "equals":
-        return value == expected
+        return bool(value == expected)
     if operator == "not_equals":
-        return value != expected
+        return bool(value != expected)
     if operator == "contains":
-        return expected in str(value or "")
+        return str(expected or "") in str(value or "")
     if operator == "not_contains":
-        return expected not in str(value or "")
+        return str(expected or "") not in str(value or "")
     if operator in {"gte", "lte"}:
+        if value is None or expected is None:
+            return False
+        if not isinstance(value, (int, float, str)) or not isinstance(
+            expected, (int, float, str)
+        ):
+            return False
         try:
             current = float(value)
             target = float(expected)
@@ -73,4 +79,4 @@ def evaluate_policy_bundle(bundle: dict[str, Any], policy_bundle: dict[str, Any]
 
 def load_default_policy_bundle(path: Path | None = None) -> dict[str, Any]:
     bundle_path = path or DEFAULT_POLICY_BUNDLE_PATH
-    return yaml.safe_load(bundle_path.read_text())
+    return cast(dict[str, Any], yaml.safe_load(bundle_path.read_text()))

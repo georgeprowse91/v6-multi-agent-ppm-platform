@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 
@@ -104,7 +104,7 @@ class CertificationStore:
     def _load_all(self) -> list[dict[str, Any]]:
         if not self.storage_path.exists():
             return []
-        return json.loads(self.storage_path.read_text())
+        return cast(list[dict[str, Any]], json.loads(self.storage_path.read_text()))
 
     def _save_all(self, records: list[dict[str, Any]]) -> None:
         self.storage_path.write_text(json.dumps(records, indent=2))

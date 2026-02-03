@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import NoReturn
 from urllib.parse import urlparse
 
 _DEFAULT_MOUNT_PATH = Path("/mnt/secrets-store")
@@ -11,7 +12,7 @@ class SecretResolutionError(ValueError):
     pass
 
 
-def _raise_unresolved(reference_type: str) -> None:
+def _raise_unresolved(reference_type: str) -> NoReturn:
     raise SecretResolutionError(f"secret reference could not be resolved: {reference_type}")
 
 

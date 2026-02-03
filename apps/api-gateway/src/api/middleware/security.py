@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -14,9 +15,12 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+from starlette.types import ASGIApp
 
 from security.config import load_yaml
 from security.errors import error_payload
+
 logger = logging.getLogger("api-gateway-security")
 
 
@@ -143,7 +147,7 @@ async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(discovery_url)
         response.raise_for_status()
-        data = response.json()
+        data = cast(dict[str, Any], response.json())
     _OIDC_CONFIG_CACHE[discovery_url] = data
     return data
 
@@ -388,10 +392,12 @@ async def _evaluate_abac(
 
 
 class AuthTenantMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, *args, **kwargs) -> None:
+    def __init__(self, app: ASGIApp, *args: Any, **kwargs: Any) -> None:
         super().__init__(app, *args, **kwargs)
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         exempt_paths = {
             "/",
             "/healthz",
@@ -480,7 +486,9 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
 
 
 class FieldMaskingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         response = await call_next(request)
         if not hasattr(request.state, "auth"):
             return response
@@ -489,7 +497,7 @@ class FieldMaskingMiddleware(BaseHTTPMiddleware):
         if "application/json" not in content_type.lower():
             return response
 
-        body = b"".join([chunk async for chunk in response.body_iterator])
+        body = b"".join([chunk async for chunk in cast(Any, response).body_iterator])
         if not body:
             return response
 

@@ -6,7 +6,7 @@ Provides CRUD endpoints for agent configuration management.
 
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
@@ -94,7 +94,7 @@ def check_user_permission(request: Request) -> str:
         email=auth.claims.get("email") if isinstance(auth.claims, dict) else None,
     )
     if store.can_user_configure_agents(auth.subject, auth.tenant_id):
-        return auth.subject
+        return cast(str, auth.subject)
     raise HTTPException(status_code=403, detail="User does not have permission to configure agents")
 
 
@@ -111,7 +111,7 @@ async def list_agent_configs(
     enabled: bool | None = None,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-):
+) -> list[AgentConfigModel]:
     """
     List all agent configurations.
 
@@ -140,7 +140,7 @@ async def list_agent_configs(
 
 
 @router.get("/agents/config/categories")
-async def list_agent_categories():
+async def list_agent_categories() -> dict[str, list[dict[str, str]]]:
     """List all available agent categories."""
     return {
         "categories": [{"value": cat.value, "label": cat.name.title()} for cat in AgentCategory]
@@ -148,7 +148,7 @@ async def list_agent_categories():
 
 
 @router.get("/agents/config/{catalog_id}", response_model=AgentConfigModel)
-async def get_agent_config(catalog_id: str):
+async def get_agent_config(catalog_id: str) -> AgentConfigModel:
     """Get configuration for a specific agent."""
     store = get_agent_config_store()
     agent = store.get_agent(catalog_id)
@@ -165,7 +165,7 @@ async def update_agent_config(
     updates: AgentConfigUpdateModel,
     http_request: Request,
     user_id: str = Depends(require_agent_config_permission),
-):
+) -> AgentConfigModel:
     """
     Update configuration for a specific agent.
 
@@ -175,7 +175,7 @@ async def update_agent_config(
 
     store = get_agent_config_store()
 
-    update_dict = {}
+    update_dict: dict[str, Any] = {}
     if updates.enabled is not None:
         update_dict["enabled"] = updates.enabled
     if updates.parameters is not None:
@@ -214,7 +214,7 @@ async def list_project_agent_configs(
     response: Response,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-):
+) -> list[ProjectAgentConfigModel]:
     """List all agent configurations for a specific project."""
     store = get_agent_config_store()
     configs = store.list_project_agent_configs(project_id)
@@ -229,7 +229,9 @@ async def list_project_agent_configs(
 @router.get(
     "/projects/{project_id}/agents/config/{agent_id}", response_model=ProjectAgentConfigModel | None
 )
-async def get_project_agent_config(project_id: str, agent_id: str):
+async def get_project_agent_config(
+    project_id: str, agent_id: str
+) -> ProjectAgentConfigModel | None:
     """Get project-specific configuration for an agent."""
     store = get_agent_config_store()
     config = store.get_project_agent_config(project_id, agent_id)
@@ -249,7 +251,7 @@ async def set_project_agent_config(
     config: ProjectAgentConfigUpdateModel,
     http_request: Request,
     user_id: str = Depends(require_agent_config_permission),
-):
+) -> ProjectAgentConfigModel:
     """
     Set project-specific configuration for an agent.
 
@@ -285,7 +287,7 @@ async def set_project_agent_config(
 
 
 @router.get("/projects/{project_id}/agents/enabled")
-async def get_enabled_agents_for_project(project_id: str):
+async def get_enabled_agents_for_project(project_id: str) -> dict[str, Any]:
     """Get list of enabled agents for a specific project."""
     store = get_agent_config_store()
     agents = store.get_enabled_agents_for_project(project_id)
@@ -306,7 +308,7 @@ async def get_enabled_agents_for_project(project_id: str):
 
 
 @router.get("/projects/{project_id}/agents/{agent_id}/enabled")
-async def check_agent_enabled_for_project(project_id: str, agent_id: str):
+async def check_agent_enabled_for_project(project_id: str, agent_id: str) -> dict[str, Any]:
     """Check if a specific agent is enabled for a project."""
     store = get_agent_config_store()
     enabled = store.is_agent_enabled_for_project(project_id, agent_id)

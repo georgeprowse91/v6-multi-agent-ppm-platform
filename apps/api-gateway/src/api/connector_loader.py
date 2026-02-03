@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from typing import Any
 
 _CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = {
     "jira": ("jira_connector", "JiraConnector"),
@@ -33,7 +34,7 @@ _CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = {
 }
 
 
-def get_connector_class(connector_id: str):
+def get_connector_class(connector_id: str) -> type[Any] | None:
     module_info = _CONNECTOR_CLASS_MAP.get(connector_id)
     if not module_info:
         return None

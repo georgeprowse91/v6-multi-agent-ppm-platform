@@ -10,6 +10,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("api-gateway.leader-election")
 
@@ -131,7 +132,9 @@ class LeaderElector:
         context = ssl.create_default_context(cafile=str(SERVICE_ACCOUNT_CA))
         return context
 
-    def _request(self, method: str, path: str, payload: dict | None = None) -> dict | None:
+    def _request(
+        self, method: str, path: str, payload: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
         url = f"{self._api_base()}{path}"
         data = json.dumps(payload).encode("utf-8") if payload else None
         request = urllib.request.Request(url, data=data, method=method, headers=self._headers())
@@ -149,7 +152,7 @@ class LeaderElector:
             logger.warning("leader_election_http_error", extra={"status": exc.code})
             return None
 
-    def _get_configmap(self) -> dict | None:
+    def _get_configmap(self) -> dict[str, Any] | None:
         path = f"/api/v1/namespaces/{self.namespace}/configmaps/{self.name}"
         return self._request("GET", path)
 
@@ -170,7 +173,7 @@ class LeaderElector:
         response = self._request("POST", path, body)
         return response is not None
 
-    def _update_configmap(self, metadata: dict, now: float) -> bool:
+    def _update_configmap(self, metadata: dict[str, Any], now: float) -> bool:
         resource_version = metadata.get("resourceVersion")
         if not resource_version:
             return False

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -13,6 +14,8 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+from starlette.types import ASGIApp
 
 from security.errors import error_payload
 from security.iam import map_groups_to_roles
@@ -80,7 +83,7 @@ async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(discovery_url)
         response.raise_for_status()
-        data = response.json()
+        data = cast(dict[str, Any], response.json())
     _OIDC_CONFIG_CACHE[discovery_url] = data
     return data
 
@@ -182,12 +185,14 @@ async def authenticate_request(request: Request, config: AuthConfig | None = Non
 
 
 class AuthTenantMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, exempt_paths: set[str] | None = None) -> None:
+    def __init__(self, app: ASGIApp, exempt_paths: set[str] | None = None) -> None:
         super().__init__(app)
-        self._config = _load_config()
-        self._exempt_paths = exempt_paths or {"/healthz"}
+        self._config: AuthConfig = _load_config()
+        self._exempt_paths: set[str] = exempt_paths or {"/healthz"}
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         if request.url.path in self._exempt_paths:
             return await call_next(request)
 

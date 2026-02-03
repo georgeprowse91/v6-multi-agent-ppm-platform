@@ -25,7 +25,9 @@ class VendorResearchResponse(BaseModel):
 
 
 @router.post("/vendors/{vendor_id}/research", response_model=VendorResearchResponse)
-async def research_vendor(vendor_id: str, request: VendorResearchRequest):
+async def research_vendor(
+    vendor_id: str, request: VendorResearchRequest
+) -> VendorResearchResponse:
     """Trigger external vendor research using the Vendor & Procurement agent."""
     from api.main import orchestrator
 
@@ -45,7 +47,7 @@ async def research_vendor(vendor_id: str, request: VendorResearchRequest):
                 "domain": request.domain,
             }
         )
-        return VendorResearchResponse.model_validate(result).model_dump()
+        return VendorResearchResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid vendor research response") from exc
     except (RuntimeError, ValueError) as exc:

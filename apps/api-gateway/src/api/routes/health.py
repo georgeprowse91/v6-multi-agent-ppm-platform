@@ -3,6 +3,7 @@ Health Check API Routes
 """
 
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -11,9 +12,9 @@ from api.limiter import limiter
 router = APIRouter()
 
 
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]
 @router.get("/health")
-async def health_check():
+async def health_check() -> dict[str, Any]:
     """
     Health check endpoint for load balancers and monitoring.
 
@@ -35,9 +36,9 @@ async def health_check():
     }
 
 
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]
 @router.get("/health/ready")
-async def readiness_check(request: Request):
+async def readiness_check(request: Request) -> dict[str, Any]:
     """
     Readiness check - indicates if the service is ready to accept traffic.
 
@@ -72,9 +73,9 @@ async def readiness_check(request: Request):
     }
 
 
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]
 @router.get("/health/live")
-async def liveness_check():
+async def liveness_check() -> dict[str, Any]:
     """
     Liveness check - indicates if the service is alive.
 

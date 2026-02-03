@@ -31,7 +31,7 @@ class VendorListResponse(BaseModel):
 
 
 @router.get("/vendors/{vendor_id}", response_model=VendorProfileResponse)
-async def get_vendor_profile(vendor_id: str):
+async def get_vendor_profile(vendor_id: str) -> VendorProfileResponse:
     """Get a vendor profile by ID."""
     from api.main import orchestrator
 
@@ -44,7 +44,7 @@ async def get_vendor_profile(vendor_id: str):
 
     try:
         result = await agent.process({"action": "get_vendor_profile", "vendor_id": vendor_id})
-        return VendorProfileResponse.model_validate(result).model_dump()
+        return VendorProfileResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid vendor profile response") from exc
     except (RuntimeError, ValueError) as exc:
@@ -52,7 +52,7 @@ async def get_vendor_profile(vendor_id: str):
 
 
 @router.patch("/vendors/{vendor_id}", response_model=VendorUpdateResponse)
-async def update_vendor_profile(vendor_id: str, request: VendorUpdateRequest):
+async def update_vendor_profile(vendor_id: str, request: VendorUpdateRequest) -> VendorUpdateResponse:
     """Update fields on a vendor profile."""
     from api.main import orchestrator
 
@@ -71,7 +71,7 @@ async def update_vendor_profile(vendor_id: str, request: VendorUpdateRequest):
                 "updates": request.updates,
             }
         )
-        return VendorUpdateResponse.model_validate(result).model_dump()
+        return VendorUpdateResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid vendor update response") from exc
     except (RuntimeError, ValueError) as exc:
@@ -84,7 +84,7 @@ async def list_vendors(
     status: str | None = Query(default=None),
     min_rating: float | None = Query(default=None),
     max_risk_score: float | None = Query(default=None),
-):
+) -> VendorListResponse:
     """List vendor profiles with optional filtering."""
     from api.main import orchestrator
 
@@ -95,7 +95,7 @@ async def list_vendors(
     if not agent:
         raise HTTPException(status_code=404, detail="Vendor & Procurement agent not available")
 
-    criteria = {}
+    criteria: dict[str, Any] = {}
     if category:
         criteria["category"] = category
     if status:
@@ -107,7 +107,7 @@ async def list_vendors(
 
     try:
         result = await agent.process({"action": "list_vendor_profiles", "criteria": criteria})
-        return VendorListResponse.model_validate(result).model_dump()
+        return VendorListResponse.model_validate(result)
     except ValidationError as exc:
         raise HTTPException(status_code=500, detail="Invalid vendor list response") from exc
     except (RuntimeError, ValueError) as exc:

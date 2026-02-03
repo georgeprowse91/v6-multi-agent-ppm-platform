@@ -48,7 +48,7 @@ async def list_lineage(
     request: Request,
     work_item_id: str | None = None,
     connector_id: str | None = None,
-):
+) -> Any:
     if not work_item_id and not connector_id:
         raise HTTPException(
             status_code=400, detail="work_item_id or connector_id query parameter is required"

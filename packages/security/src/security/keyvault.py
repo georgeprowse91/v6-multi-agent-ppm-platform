@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, TYPE_CHECKING
 
 try:
     from azure.identity import DefaultAzureCredential
@@ -8,6 +9,11 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     DefaultAzureCredential = None
     SecretClient = None
+
+if TYPE_CHECKING:
+    from azure.keyvault.secrets import SecretClient as SecretClientType
+else:  # pragma: no cover - optional dependency
+    SecretClientType = Any
 
 
 class KeyVaultUnavailableError(RuntimeError):
@@ -24,7 +30,9 @@ class KeyVaultClient:
         if not DefaultAzureCredential or not SecretClient:
             raise KeyVaultUnavailableError("Azure Key Vault SDK not installed")
         credential = DefaultAzureCredential()
-        self._client = SecretClient(vault_url=config.vault_url, credential=credential)
+        self._client: SecretClientType = SecretClient(
+            vault_url=config.vault_url, credential=credential
+        )
 
     def get_secret(self, name: str) -> str | None:
         secret = self._client.get_secret(name)

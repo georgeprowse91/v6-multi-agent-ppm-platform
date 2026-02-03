@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
-from typing import cast
+from typing import Any
 
 from opentelemetry import propagate, trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -15,6 +16,7 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+from starlette.types import ASGIApp
 
 logger = logging.getLogger("observability.tracing")
 
@@ -54,7 +56,9 @@ def get_trace_id() -> str | None:
 
 
 @contextmanager
-def start_agent_span(agent_name: str, attributes: dict[str, str] | None = None):
+def start_agent_span(
+    agent_name: str, attributes: dict[str, str] | None = None
+) -> Iterator[Any]:
     tracer = trace.get_tracer(agent_name)
     with tracer.start_as_current_span(
         f"agent.execute.{agent_name}", kind=SpanKind.INTERNAL
@@ -66,11 +70,13 @@ def start_agent_span(agent_name: str, attributes: dict[str, str] | None = None):
 
 
 class TraceMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, service_name: str) -> None:
+    def __init__(self, app: ASGIApp, service_name: str) -> None:
         super().__init__(app)
-        self._service_name = service_name
+        self._service_name: str = service_name
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         tracer = trace.get_tracer(self._service_name)
         context = propagate.extract(dict(request.headers))
         span_name = f"{request.method} {request.url.path}"
@@ -81,7 +87,7 @@ class TraceMiddleware(BaseHTTPMiddleware):
             span.set_attribute("http.scheme", request.url.scheme)
             span.set_attribute("http.client_ip", request.client.host if request.client else "")
             span.set_attribute("http.user_agent", request.headers.get("user-agent", ""))
-            response = cast(Response, await call_next(request))
+            response = await call_next(request)
             span.set_attribute("http.status_code", response.status_code)
             if response.status_code >= 500:
                 span.set_status(Status(StatusCode.ERROR))

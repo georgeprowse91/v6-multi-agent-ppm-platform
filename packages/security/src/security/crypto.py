@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import cast
 
 from cryptography.fernet import Fernet
 
@@ -32,7 +33,7 @@ def encrypt_text(plaintext: str, *, key: str | None = None, env_var: str | None 
         raise EncryptionKeyError("encryption key is required to encrypt data")
     fernet = _build_fernet(key)
     token = fernet.encrypt(plaintext.encode("utf-8"))
-    return token.decode("utf-8")
+    return cast(str, token.decode("utf-8"))
 
 
 def decrypt_text(ciphertext: str, *, key: str | None = None, env_var: str | None = None) -> str:
@@ -41,4 +42,4 @@ def decrypt_text(ciphertext: str, *, key: str | None = None, env_var: str | None
     if not key:
         raise EncryptionKeyError("encryption key is required to decrypt data")
     fernet = _build_fernet(key)
-    return fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8")
+    return cast(str, fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8"))
