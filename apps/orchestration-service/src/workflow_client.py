@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -13,26 +13,39 @@ class WorkflowClient:
         timeout: float | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
-        self.base_url = base_url or os.getenv("WORKFLOW_ENGINE_URL", "http://workflow-engine:8080")
+        fallback_url = os.getenv("WORKFLOW_ENGINE_URL")
+        self.base_url = base_url or fallback_url or "http://workflow-engine:8080"
         if timeout is None:
             timeout = float(os.getenv("WORKFLOW_ENGINE_TIMEOUT_S", "10"))
-        self.timeout = timeout
-        self.transport = transport
+        self.timeout: float = timeout
+        self.transport: httpx.AsyncBaseTransport | None = transport
 
     async def start_workflow(
         self, payload: dict[str, Any], headers: dict[str, str]
     ) -> dict[str, Any]:
-        return await self._request_json("POST", "/v1/workflows/start", headers=headers, json=payload)
+        response = await self._request_json(
+            "POST",
+            "/v1/workflows/start",
+            headers=headers,
+            json=payload,
+        )
+        return cast(dict[str, Any], response)
 
     async def list_workflows(self, headers: dict[str, str]) -> list[dict[str, Any]]:
         response = await self._request_json("GET", "/v1/workflows", headers=headers)
-        return list(response)
+        return cast(list[dict[str, Any]], response)
 
     async def get_workflow(self, run_id: str, headers: dict[str, str]) -> dict[str, Any]:
-        return await self._request_json("GET", f"/v1/workflows/{run_id}", headers=headers)
+        response = await self._request_json("GET", f"/v1/workflows/{run_id}", headers=headers)
+        return cast(dict[str, Any], response)
 
     async def resume_workflow(self, run_id: str, headers: dict[str, str]) -> dict[str, Any]:
-        return await self._request_json("POST", f"/v1/workflows/{run_id}/resume", headers=headers)
+        response = await self._request_json(
+            "POST",
+            f"/v1/workflows/{run_id}/resume",
+            headers=headers,
+        )
+        return cast(dict[str, Any], response)
 
     async def _request_json(
         self,

@@ -616,7 +616,10 @@ class WorkflowStore:
                         json.dumps(metadata),
                     ),
                 )
-        return self.get_approval(approval_id)
+        approval = self.get_approval(approval_id)
+        if not approval:
+            raise RuntimeError("Approval record was not persisted.")
+        return approval
 
     def get_approval(self, approval_id: str) -> WorkflowApproval | None:
         with self._connect() as conn:

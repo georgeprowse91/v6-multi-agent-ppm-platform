@@ -12,7 +12,7 @@ from api.limiter import limiter
 router = APIRouter()
 
 
-@limiter.exempt  # type: ignore[untyped-decorator]
+@limiter.exempt
 @router.get("/health")
 async def health_check() -> dict[str, Any]:
     """
@@ -36,7 +36,7 @@ async def health_check() -> dict[str, Any]:
     }
 
 
-@limiter.exempt  # type: ignore[untyped-decorator]
+@limiter.exempt
 @router.get("/health/ready")
 async def readiness_check(request: Request) -> dict[str, Any]:
     """
@@ -73,7 +73,7 @@ async def readiness_check(request: Request) -> dict[str, Any]:
     }
 
 
-@limiter.exempt  # type: ignore[untyped-decorator]
+@limiter.exempt
 @router.get("/health/live")
 async def liveness_check() -> dict[str, Any]:
     """
