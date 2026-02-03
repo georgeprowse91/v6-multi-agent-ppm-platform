@@ -435,53 +435,53 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            dockerfile: apps/api-gateway/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/api-gateway
           - service: admin-console
-            dockerfile: apps/admin-console/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/admin-console
           - service: analytics-service
-            dockerfile: apps/analytics-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/analytics-service
           - service: connector-hub
-            dockerfile: apps/connector-hub/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/connector-hub
           - service: document-service
-            dockerfile: apps/document-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/document-service
           - service: orchestration-service
-            dockerfile: apps/orchestration-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/orchestration-service
           - service: workflow-engine
-            dockerfile: apps/workflow-engine/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: apps/workflow-engine
           - service: web
-            dockerfile: apps/web/Dockerfile
+            dockerfile: Dockerfile
             context: apps/web
           - service: audit-log
-            dockerfile: services/audit-log/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/audit-log
           - service: data-lineage-service
-            dockerfile: services/data-lineage-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/data-lineage-service
           - service: data-service
-            dockerfile: services/data-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/data-service
           - service: data-sync-service
-            dockerfile: services/data-sync-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/data-sync-service
           - service: identity-access
-            dockerfile: services/identity-access/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/identity-access
           - service: notification-service
-            dockerfile: services/notification-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/notification-service
           - service: policy-engine
-            dockerfile: services/policy-engine/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/policy-engine
           - service: telemetry-service
-            dockerfile: services/telemetry-service/Dockerfile
-            context: .
+            dockerfile: Dockerfile
+            context: services/telemetry-service
     steps:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
@@ -502,6 +502,8 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
+          build-contexts: |
+            repo-root=.
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ghcr.io/${{ github.repository }}-${{ matrix.service }}:latest
@@ -564,8 +566,10 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@4a22e7d1270e7d10e1acfe4da8df1c1e8d9f9a2a
         with:
-          context: .
-          file: apps/api-gateway/Dockerfile
+          context: apps/api-gateway
+          file: Dockerfile
+          build-contexts: |
+            repo-root=.
           push: true
           tags: |
             ${{ env.AZURE_CONTAINER_REGISTRY }}/multi-agent-ppm:latest

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.6
 # Multi-Agent PPM Platform - API Gateway Dockerfile
 
 # Build stage
@@ -11,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files
-COPY requirements.txt pyproject.toml ./
+COPY --from=repo-root requirements.txt pyproject.toml ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
@@ -36,11 +37,15 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
-COPY --chown=ppm:ppm apps/api-gateway/src ./apps/api-gateway/src
-COPY --chown=ppm:ppm apps/orchestration-service/src ./apps/orchestration-service/src
-COPY --chown=ppm:ppm agents ./agents
-COPY --chown=ppm:ppm tools ./tools
-COPY --chown=ppm:ppm config ./config
+COPY --chown=ppm:ppm . ./apps/api-gateway
+COPY --chown=ppm:ppm --from=repo-root apps/orchestration-service/src ./apps/orchestration-service/src
+COPY --chown=ppm:ppm --from=repo-root agents ./agents
+COPY --chown=ppm:ppm --from=repo-root tools ./tools
+COPY --chown=ppm:ppm --from=repo-root config ./config
+COPY --chown=ppm:ppm --from=repo-root packages ./packages
+COPY --chown=ppm:ppm --from=repo-root services/agent-config ./services/agent-config
+COPY --chown=ppm:ppm --from=repo-root connectors ./connectors
+COPY --chown=ppm:ppm --from=repo-root data ./data
 
 # Switch to non-root user
 USER ppm
