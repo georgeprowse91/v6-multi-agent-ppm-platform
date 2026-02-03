@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -36,7 +36,7 @@ class AgentClient:
                 f"/agents/{agent_id}/execute", json=request_payload, headers=headers
             )
             response.raise_for_status()
-            return response.json()
+            return cast(dict[str, Any], response.json())
 
 
 def get_agent_client() -> AgentClient | None:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from agent_client import AgentClient
@@ -30,6 +30,19 @@ class WorkflowRuntime:
         self.agent_client = agent_client
         self.circuit_breakers = circuit_breakers or CircuitBreakerRegistry()
         self.event_bus = event_bus or self._load_event_bus()
+
+    def _require_instance(self, run_id: str) -> WorkflowInstance:
+        instance = self.store.get(run_id)
+        if not instance:
+            raise ValueError("Workflow instance not found")
+        return instance
+
+    def _as_optional_str(self, value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        return str(value)
 
     async def start(
         self, instance: WorkflowInstance, definition: dict[str, Any], actor: dict[str, Any]
@@ -106,7 +119,7 @@ class WorkflowRuntime:
                     "step_id": approval.step_id,
                 },
             )
-            return self.store.get(instance.run_id)
+            return self._require_instance(instance.run_id)
 
         self.store.upsert_step_state(
             approval.run_id,
@@ -132,7 +145,7 @@ class WorkflowRuntime:
             },
         )
         self.store.update_status(instance.run_id, "running", approval.step_id)
-        instance = self.store.get(instance.run_id)
+        instance = self._require_instance(instance.run_id)
         definition_record = self.store.get_definition(instance.workflow_id)
         if not definition_record:
             return instance
@@ -148,7 +161,7 @@ class WorkflowRuntime:
         next_step_id = self._next_step_id(step, instance.payload)
         if next_step_id:
             self.store.update_status(instance.run_id, "running", next_step_id)
-            return self.store.get(instance.run_id)
+            return self._require_instance(instance.run_id)
         self.store.update_status(instance.run_id, "completed", None)
         self.store.add_event(instance.run_id, "completed", "Workflow completed")
         await self._publish_event(
@@ -159,7 +172,7 @@ class WorkflowRuntime:
                 "tenant_id": instance.tenant_id,
             },
         )
-        return self.store.get(instance.run_id)
+        return self._require_instance(instance.run_id)
 
     @dataclass
     class StepExecutionResult:
@@ -192,7 +205,7 @@ class WorkflowRuntime:
                     "reason": "Workflow has no steps",
                 },
             )
-            return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+            return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
         step_map = {step["id"]: step for step in steps}
         step = step_map.get(step_id)
@@ -210,7 +223,7 @@ class WorkflowRuntime:
                     "reason": f"Unknown step {step_id}",
                 },
             )
-            return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+            return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
         step_type = step["type"]
         existing_state = self.store.get_step_state(instance.run_id, step_id)
@@ -219,7 +232,7 @@ class WorkflowRuntime:
             and existing_state.status == "completed"
             and step_type not in {"loop", "decision"}
         ):
-            instance = self.store.get(instance.run_id)
+            instance = self._require_instance(instance.run_id)
             return self.StepExecutionResult(instance, "completed", instance.current_step_id)
         await self._publish_event(
             "workflow.step.started",
@@ -253,7 +266,7 @@ class WorkflowRuntime:
                         "reason": f"Parallel step {step_id} missing branches or join",
                     },
                 )
-                return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
             self.store.upsert_step_state(
                 instance.run_id,
@@ -280,7 +293,7 @@ class WorkflowRuntime:
                 },
             )
             return self.StepExecutionResult(
-                self.store.get(instance.run_id),
+                self._require_instance(instance.run_id),
                 "parallel",
                 None,
                 parallel_branches=branch_ids,
@@ -306,7 +319,7 @@ class WorkflowRuntime:
                 if next_step_id:
                     self.store.update_status(instance.run_id, "running", next_step_id)
                     return self.StepExecutionResult(
-                        self.store.get(instance.run_id), "completed", next_step_id
+                        self._require_instance(instance.run_id), "completed", next_step_id
                     )
                 self.store.update_status(instance.run_id, "completed", None)
                 self.store.add_event(instance.run_id, "completed", "Workflow completed")
@@ -319,7 +332,7 @@ class WorkflowRuntime:
                     },
                 )
                 return self.StepExecutionResult(
-                    self.store.get(instance.run_id), "completed", None
+                    self._require_instance(instance.run_id), "completed", None
                 )
             if existing_approval and existing_approval.status == "rejected":
                 self.store.update_status(instance.run_id, "rejected", step_id)
@@ -330,7 +343,7 @@ class WorkflowRuntime:
                     step_id,
                 )
                 return self.StepExecutionResult(
-                    self.store.get(instance.run_id), "rejected", None
+                    self._require_instance(instance.run_id), "rejected", None
                 )
             approval = await self._ensure_approval(instance, step, actor)
             self.store.update_status(instance.run_id, "waiting_approval", step_id)
@@ -341,7 +354,7 @@ class WorkflowRuntime:
                 step_id,
             )
             return self.StepExecutionResult(
-                self.store.get(instance.run_id), "waiting_approval", None
+                self._require_instance(instance.run_id), "waiting_approval", None
             )
 
         step_output: dict[str, Any] = {}
@@ -375,7 +388,7 @@ class WorkflowRuntime:
                     "reason": f"Circuit open for step {step_id}",
                 },
             )
-            return self.StepExecutionResult(self.store.get(instance.run_id), "paused", None)
+            return self.StepExecutionResult(self._require_instance(instance.run_id), "paused", None)
 
         if simulate_timeout and step.get("timeout_seconds"):
             self.store.update_step_error(
@@ -400,7 +413,7 @@ class WorkflowRuntime:
                     "reason": f"Step {step_id} timed out",
                 },
             )
-            return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+            return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
         if failures_before_success and attempts <= failures_before_success:
             return await self._prepare_retry(
@@ -444,7 +457,7 @@ class WorkflowRuntime:
                         "reason": f"Agent client not configured for step {step_id}",
                     },
                 )
-                return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
             if not agent_id or not action:
                 self.store.upsert_step_state(
                     instance.run_id, step_id, "failed", attempts, step_output
@@ -469,7 +482,7 @@ class WorkflowRuntime:
                         "reason": f"Task step {step_id} missing agent/action",
                     },
                 )
-                return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
             resolved_config = {
                 key: self._resolve_reference(value, instance.payload)
                 for key, value in agent_config.items()
@@ -530,7 +543,7 @@ class WorkflowRuntime:
                         "reason": f"API step {step_id} missing endpoint",
                     },
                 )
-                return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
             method = str(config.get("method", "POST")).upper()
             headers = config.get("headers", {})
             body = config.get("payload", {})
@@ -578,7 +591,7 @@ class WorkflowRuntime:
             if next_step_id:
                 self.store.update_status(instance.run_id, "running", next_step_id)
                 return self.StepExecutionResult(
-                    self.store.get(instance.run_id), "completed", next_step_id
+                    self._require_instance(instance.run_id), "completed", next_step_id
                 )
             self.store.update_status(instance.run_id, "completed", None)
             self.store.add_event(instance.run_id, "completed", "Workflow completed")
@@ -590,7 +603,7 @@ class WorkflowRuntime:
                     "tenant_id": instance.tenant_id,
                 },
             )
-            return self.StepExecutionResult(self.store.get(instance.run_id), "completed", None)
+            return self.StepExecutionResult(self._require_instance(instance.run_id), "completed", None)
 
         self.store.upsert_step_state(
             instance.run_id, step_id, "completed", attempts, step_output
@@ -619,7 +632,7 @@ class WorkflowRuntime:
         if next_step_id:
             self.store.update_status(instance.run_id, "running", next_step_id)
             return self.StepExecutionResult(
-                self.store.get(instance.run_id), "completed", next_step_id
+                self._require_instance(instance.run_id), "completed", next_step_id
             )
         self.store.update_status(instance.run_id, "completed", None)
         self.store.add_event(instance.run_id, "completed", "Workflow completed")
@@ -631,7 +644,7 @@ class WorkflowRuntime:
                 "tenant_id": instance.tenant_id,
             },
         )
-        return self.StepExecutionResult(self.store.get(instance.run_id), "completed", None)
+        return self.StepExecutionResult(self._require_instance(instance.run_id), "completed", None)
 
     async def _prepare_retry(
         self,
@@ -659,7 +672,7 @@ class WorkflowRuntime:
                     f"Circuit opened for step {step_id} after failure",
                     step_id,
                 )
-                return self.StepExecutionResult(self.store.get(instance.run_id), "paused", None)
+                return self.StepExecutionResult(self._require_instance(instance.run_id), "paused", None)
         if attempts < max_attempts:
             self.store.upsert_step_state(
                 instance.run_id, step_id, "retrying", attempts, step_output
@@ -671,7 +684,7 @@ class WorkflowRuntime:
                 step_id,
             )
             return self.StepExecutionResult(
-                self.store.get(instance.run_id),
+                self._require_instance(instance.run_id),
                 "retrying",
                 step_id,
                 should_retry=True,
@@ -688,7 +701,7 @@ class WorkflowRuntime:
             step_id,
         )
         await self._run_compensation(instance, step, actor, reason="retries_exhausted")
-        return self.StepExecutionResult(self.store.get(instance.run_id), "failed", None)
+        return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
     def _maybe_trigger_parallel_join(
         self,
@@ -711,7 +724,7 @@ class WorkflowRuntime:
             if branch
         ]
         if all(state and state.status == "completed" for state in completed):
-            return join_step_id
+            return self._as_optional_str(join_step_id)
         self.store.update_status(run_id, "waiting_parallel", parallel_step.get("id"))
         return None
 
@@ -731,7 +744,7 @@ class WorkflowRuntime:
                     "reason": "Workflow has no steps",
                 },
             )
-            return self.store.get(instance.run_id)
+            return self._require_instance(instance.run_id)
 
         step_map = {step["id"]: step for step in steps}
         current_step_id = instance.current_step_id or steps[0]["id"]
@@ -752,7 +765,7 @@ class WorkflowRuntime:
                         "reason": f"Unknown step {current_step_id}",
                     },
                 )
-                return self.store.get(instance.run_id)
+                return self._require_instance(instance.run_id)
 
             step_type = step["type"]
             if step_type == "parallel":
@@ -769,7 +782,7 @@ class WorkflowRuntime:
                         return instance
                 current_step_id = join_step_id
                 self.store.update_status(instance.run_id, "running", current_step_id)
-                instance = self.store.get(instance.run_id)
+                instance = self._require_instance(instance.run_id)
                 continue
             if step_type == "approval":
                 existing_approval = self.store.find_approval_for_step(
@@ -791,7 +804,7 @@ class WorkflowRuntime:
                     )
                     current_step_id = self._next_step_id(step, instance.payload)
                     self.store.update_status(instance.run_id, "running", current_step_id)
-                    instance = self.store.get(instance.run_id)
+                    instance = self._require_instance(instance.run_id)
                     continue
                 if existing_approval and existing_approval.status == "rejected":
                     self.store.update_status(instance.run_id, "rejected", current_step_id)
@@ -801,7 +814,7 @@ class WorkflowRuntime:
                         f"Approval {existing_approval.approval_id} rejected",
                         current_step_id,
                     )
-                    return self.store.get(instance.run_id)
+                    return self._require_instance(instance.run_id)
                 approval = await self._ensure_approval(instance, step, actor)
                 self.store.update_status(instance.run_id, "waiting_approval", current_step_id)
                 self.store.add_event(
@@ -810,7 +823,7 @@ class WorkflowRuntime:
                     f"Waiting on approval {approval.approval_id}",
                     current_step_id,
                 )
-                return self.store.get(instance.run_id)
+                return self._require_instance(instance.run_id)
             result = await self.execute_step(
                 instance, definition, actor, current_step_id, skip_parallel_join=True
             )
@@ -823,7 +836,7 @@ class WorkflowRuntime:
                 current_step_id = result.next_step_id
                 continue
             current_step_id = result.next_step_id
-            instance = self.store.get(instance.run_id)
+            instance = self._require_instance(instance.run_id)
 
         self.store.update_status(instance.run_id, "completed", None)
         self.store.add_event(instance.run_id, "completed", "Workflow completed")
@@ -835,7 +848,7 @@ class WorkflowRuntime:
                 "tenant_id": instance.tenant_id,
             },
         )
-        return self.store.get(instance.run_id)
+        return self._require_instance(instance.run_id)
 
     def _get_circuit_breaker(
         self, step: dict[str, Any], instance: WorkflowInstance
@@ -902,19 +915,21 @@ class WorkflowRuntime:
             condition = step.get("condition")
             should_continue = condition and self._evaluate_condition(condition, payload)
             if max_iterations and attempts >= max_iterations:
-                return step.get("exit") or step.get("default_next")
+                return self._as_optional_str(step.get("exit") or step.get("default_next"))
             if should_continue:
-                return step.get("next")
-            return step.get("exit") or step.get("default_next") or step.get("next")
+                return self._as_optional_str(step.get("next"))
+            return self._as_optional_str(
+                step.get("exit") or step.get("default_next") or step.get("next")
+            )
 
         if step["type"] != "decision":
-            return step.get("next")
+            return self._as_optional_str(step.get("next"))
 
         for branch in step.get("branches", []):
             condition = branch.get("condition")
             if condition and self._evaluate_condition(condition, payload):
-                return branch.get("next")
-        return step.get("default_next") or step.get("next")
+                return self._as_optional_str(branch.get("next"))
+        return self._as_optional_str(step.get("default_next") or step.get("next"))
 
     def _evaluate_condition(self, condition: dict[str, Any], payload: dict[str, Any]) -> bool:
         field = condition.get("field")
@@ -925,9 +940,9 @@ class WorkflowRuntime:
         if operator == "exists":
             return resolved is not None
         if operator == "equals":
-            return resolved == value
+            return bool(resolved == value)
         if operator == "not_equals":
-            return resolved != value
+            return bool(resolved != value)
         if operator == "greater_than":
             return resolved is not None and resolved > value
         if operator == "less_than":
@@ -1057,7 +1072,7 @@ class WorkflowRuntime:
         start_step_id: str,
         stop_step_id: str | None,
     ) -> WorkflowInstance:
-        current_step_id = start_step_id
+        current_step_id: str | None = start_step_id
         while current_step_id and current_step_id != stop_step_id:
             result = await self.execute_step(
                 instance, definition, actor, current_step_id, skip_parallel_join=True
@@ -1076,7 +1091,7 @@ class WorkflowRuntime:
                 continue
             for branch in step.get("branches", []):
                 if branch.get("next") == step_id:
-                    return step
+                    return cast(dict[str, Any], step)
         return None
 
     def _resolve_reference(self, value: Any, payload: dict[str, Any]) -> Any:

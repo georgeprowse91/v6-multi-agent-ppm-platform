@@ -9,17 +9,20 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
 import httpx
 import structlog
-from persistence import WorkflowState, build_state_store, make_state_key
+from persistence import OrchestrationStateStore, WorkflowState, build_state_store, make_state_key
 from workflow_client import WorkflowClient
 
 from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
 from observability.metrics import agent_request_count, agent_request_latency
 from tools.runtime_paths import bootstrap_runtime_paths
+
+if TYPE_CHECKING:
+    from response_orchestration_agent import ResponseOrchestrationAgent
 
 logger = logging.getLogger(__name__)
 MAX_AGENT_CONCURRENCY = int(os.getenv("MAX_AGENT_CONCURRENCY", "5"))
@@ -50,12 +53,12 @@ class AgentOrchestrator:
     Manages agent lifecycle, routing, and coordination.
     """
 
-    def __init__(self, workflow_client: WorkflowClient | None = None):
-        self.agents = {}
-        self.catalog_agents = {}
+    def __init__(self, workflow_client: WorkflowClient | None = None) -> None:
+        self.agents: dict[str, BaseAgent] = {}
+        self.catalog_agents: dict[str, BaseAgent] = {}
         self.initialized = False
-        self.intent_router = None
-        self.response_orchestrator = None
+        self.intent_router: BaseAgent | None = None
+        self.response_orchestrator: BaseAgent | None = None
         self.policy_bundle_path = DEFAULT_POLICY_BUNDLE_PATH
         self.dependencies: dict[str, list[str]] = {}
         self.agent_states: dict[str, AgentLifecycleState] = {}
@@ -67,10 +70,10 @@ class AgentOrchestrator:
                 "apps/orchestration-service/storage/orchestration-state.json",
             )
         )
-        self.state_store = build_state_store(state_path)
+        self.state_store: OrchestrationStateStore = build_state_store(state_path)
         self._agent_semaphore = asyncio.Semaphore(MAX_AGENT_CONCURRENCY)
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         """Initialize all 25 agents."""
         logger.info("Initializing Agent Orchestrator...")
         logger.info("Using policy bundle: %s", self.policy_bundle_path)
@@ -84,12 +87,14 @@ class AgentOrchestrator:
         from response_orchestration_agent import ResponseOrchestrationAgent
 
         self.intent_router = IntentRouterAgent()
-        await self.intent_router.initialize()
-        self._register_agent(self.intent_router)
+        intent_router = self.intent_router
+        await intent_router.initialize()
+        self._register_agent(intent_router)
 
         self.response_orchestrator = ResponseOrchestrationAgent()
-        await self.response_orchestrator.initialize()
-        self._register_agent(self.response_orchestrator)
+        response_orchestrator = self.response_orchestrator
+        await response_orchestrator.initialize()
+        self._register_agent(response_orchestrator)
 
         # Load all other agents
         await self._load_governance_agents()  # Agents 3, 16
@@ -99,7 +104,8 @@ class AgentOrchestrator:
         await self._load_platform_agents()  # Agents 18, 19, 20, 22, 23, 24, 25
 
         if self.response_orchestrator:
-            self.response_orchestrator.agent_registry = self.agents
+            response_orchestrator = cast("ResponseOrchestrationAgent", self.response_orchestrator)
+            response_orchestrator.agent_registry = self.agents
 
         self.initialized = True
         logger.info(f"Orchestrator initialized with {len(self.agents)} agents")
@@ -286,7 +292,7 @@ class AgentOrchestrator:
                 agent_request_count.labels(agent_name, outcome).inc()
                 agent_request_latency.labels(agent_name).observe(duration)
 
-    async def _load_governance_agents(self):
+    async def _load_governance_agents(self) -> None:
         """Initialize governance agents."""
         logger.info("Loading governance agents...")
 
@@ -308,7 +314,7 @@ class AgentOrchestrator:
 
         logger.info("Governance agents loaded")
 
-    async def _load_portfolio_agents(self):
+    async def _load_portfolio_agents(self) -> None:
         """Initialize portfolio management agents."""
         logger.info("Loading portfolio agents...")
 
@@ -339,7 +345,7 @@ class AgentOrchestrator:
 
         logger.info("Portfolio agents loaded")
 
-    async def _load_delivery_agents(self):
+    async def _load_delivery_agents(self) -> None:
         """Initialize delivery agents."""
         logger.info("Loading delivery agents...")
 
@@ -376,7 +382,7 @@ class AgentOrchestrator:
 
         logger.info("Delivery agents loaded")
 
-    async def _load_operations_agents(self):
+    async def _load_operations_agents(self) -> None:
         """Initialize operations agents."""
         logger.info("Loading operations agents...")
 
@@ -413,7 +419,7 @@ class AgentOrchestrator:
 
         logger.info("Operations agents loaded")
 
-    async def _load_platform_agents(self):
+    async def _load_platform_agents(self) -> None:
         """Initialize platform agents."""
         logger.info("Loading platform agents...")
 
@@ -519,9 +525,9 @@ class AgentOrchestrator:
                 "context": {**(context or {}), "correlation_id": correlation_id},
             }
         )
-        return cast(dict[str, Any], orchestration_response.model_dump())
+        return orchestration_response.model_dump()
 
-    def get_agent(self, agent_id: str):
+    def get_agent(self, agent_id: str) -> BaseAgent | None:
         """Get agent by ID."""
         agent = self.agents.get(agent_id)
         if agent:
@@ -532,7 +538,7 @@ class AgentOrchestrator:
         """Get total number of loaded agents."""
         return len(self.agents)
 
-    def list_agents(self) -> list:
+    def list_agents(self) -> list[dict[str, Any]]:
         """List all loaded agents."""
         return [
             {
@@ -543,7 +549,7 @@ class AgentOrchestrator:
             for agent_id, agent in self.agents.items()
         ]
 
-    def _register_agent(self, agent) -> None:
+    def _register_agent(self, agent: BaseAgent) -> None:
         catalog_id = getattr(agent, "catalog_id", None)
         if not catalog_id:
             from agents.runtime.src.agent_catalog import get_catalog_id
@@ -556,7 +562,7 @@ class AgentOrchestrator:
         if catalog_id:
             self.catalog_agents[catalog_id] = agent
 
-    async def cleanup(self):
+    async def cleanup(self) -> None:
         """Clean up all agents."""
         logger.info("Cleaning up orchestrator...")
         for agent_id, agent in self.agents.items():

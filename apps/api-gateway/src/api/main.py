@@ -181,7 +181,7 @@ async def shutdown_event() -> None:
     logger.info("Application shut down successfully")
 
 
-@limiter.exempt  # type: ignore[untyped-decorator]
+@limiter.exempt
 @app.get("/healthz")
 async def healthz() -> dict[str, Any]:
     """Lightweight health check for local dev and probes."""
@@ -193,14 +193,14 @@ async def healthz() -> dict[str, Any]:
     }
 
 
-@limiter.exempt  # type: ignore[untyped-decorator]
+@limiter.exempt
 @app.get("/version")
 async def version() -> dict[str, str]:
     """Return API version metadata."""
     return _version_payload()
 
 
-@limiter.exempt  # type: ignore[untyped-decorator]
+@limiter.exempt
 @app.get("/")
 async def root() -> dict[str, str]:
     """Root endpoint - API information."""

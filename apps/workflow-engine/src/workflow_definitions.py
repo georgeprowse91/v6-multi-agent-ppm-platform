@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from workflow_storage import WorkflowStore
 from security.config import load_yaml
@@ -10,8 +10,8 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 def load_definition(path: Path, schema_path: Path) -> dict[str, Any]:
-    definition = load_yaml(path)
-    schema = load_yaml(schema_path)
+    definition = cast(dict[str, Any], load_yaml(path))
+    schema = cast(dict[str, Any], load_yaml(schema_path))
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(definition), key=lambda err: err.path)
     if errors:

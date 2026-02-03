@@ -458,6 +458,8 @@ async def resume_workflow(run_id: str, http_request: Request) -> WorkflowRunResp
     store.update_status(run_id, "running", step_id)
     dispatcher.dispatch_step(run_id, step_id, {"id": http_request.state.auth.subject})
     instance = store.get(run_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail="Workflow not found")
     return WorkflowRunResponse(
         run_id=instance.run_id,
         workflow_id=instance.workflow_id,
