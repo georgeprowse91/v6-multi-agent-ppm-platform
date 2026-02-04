@@ -165,6 +165,14 @@ const initWorkspace = () => {
   const tabs = Array.from(document.querySelectorAll(".workspace-tab"));
   let workspaceState = null;
   let activityIndex = new Map();
+  const dashboardState = {
+    charts: new Map(),
+    chartLoader: null,
+    errors: {
+      portfolio: "",
+      lifecycle: "",
+    },
+  };
 
   const setActiveTab = (targetTab) => {
     tabs.forEach((item) => {
@@ -185,6 +193,307 @@ const initWorkspace = () => {
       index.set(activity.id, { ...activity, stageId: null });
     });
     return index;
+  };
+
+  const loadChartJs = () => {
+    if (window.Chart) {
+      return Promise.resolve();
+    }
+    if (dashboardState.chartLoader) {
+      return dashboardState.chartLoader;
+    }
+    dashboardState.chartLoader = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/chart.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Chart.js failed to load"));
+      document.head.appendChild(script);
+    });
+    return dashboardState.chartLoader;
+  };
+
+  const destroyDashboardCharts = () => {
+    dashboardState.charts.forEach((chart) => chart.destroy());
+    dashboardState.charts.clear();
+  };
+
+  const formatPercent = (value) => {
+    if (typeof value !== "number") {
+      return "--";
+    }
+    return `${Math.round(value * 100)}%`;
+  };
+
+  const formatKpiValue = (kpi) => {
+    if (!kpi || typeof kpi.value !== "number") {
+      return "--";
+    }
+    if (kpi.unit === "M") {
+      return `$${kpi.value.toFixed(1)}M`;
+    }
+    if (kpi.unit === "ratio") {
+      return formatPercent(kpi.value);
+    }
+    if (kpi.unit === "%") {
+      return `${Math.round(kpi.value)}%`;
+    }
+    return kpi.value.toFixed(1);
+  };
+
+  const renderPortfolioKpis = (kpis) => {
+    const container = document.getElementById("portfolio-kpi-grid");
+    if (!container) {
+      return;
+    }
+    if (!kpis || !kpis.length) {
+      container.innerHTML = "<p>No KPI data available.</p>";
+      return;
+    }
+    container.innerHTML = kpis
+      .map(
+        (kpi) => `
+          <div class="dashboard-kpi-card">
+            <p class="dashboard-label">${kpi.label}</p>
+            <p class="dashboard-value">${formatKpiValue(kpi)}</p>
+            <p class="dashboard-subtext">
+              Target: ${formatKpiValue({ ...kpi, value: kpi.target })}
+            </p>
+          </div>
+        `,
+      )
+      .join("");
+  };
+
+  const renderLifecycleStages = (stages) => {
+    const container = document.getElementById("lifecycle-stage-list");
+    if (!container) {
+      return;
+    }
+    if (!stages || !stages.length) {
+      container.innerHTML = "<p>No stage-gate data available.</p>";
+      return;
+    }
+    container.innerHTML = stages
+      .map(
+        (stage) => `
+          <div class="stage-gate-card">
+            <div class="stage-gate-header">
+              <button type="button" class="stage-gate-button" data-stage-id="${stage.stage_id}">
+                ${stage.stage_name}
+              </button>
+              <span class="stage-gate-status ${stage.status}">${stage.status.replace("_", " ")}</span>
+            </div>
+            <div class="stage-gate-progress">
+              <div class="stage-gate-bar" style="width: ${stage.percent_complete || 0}%"></div>
+            </div>
+            <div class="stage-gate-meta">
+              <span>${stage.percent_complete || 0}% complete</span>
+              <span>${stage.gate || "Gate review"}</span>
+            </div>
+          </div>
+        `,
+      )
+      .join("");
+
+    document.querySelectorAll(".stage-gate-button").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const stageId = button.dataset.stageId;
+        if (!stageId || !workspaceState) {
+          return;
+        }
+        const stage = workspaceState.methodology_map_summary.stages.find(
+          (entry) => entry.id === stageId,
+        );
+        const activity = stage?.activities?.[0];
+        if (!activity) {
+          return;
+        }
+        const payload = await postSelection({
+          current_canvas_tab: activity.recommended_canvas_tab,
+          current_stage_id: stage.id,
+          current_activity_id: activity.id,
+          methodology: workspaceState.methodology,
+        });
+        if (payload) {
+          updateWorkspaceUI(payload);
+        }
+      });
+    });
+  };
+
+  const renderPortfolioChart = async (kpis) => {
+    const canvas = document.getElementById("portfolio-health-chart");
+    if (!canvas) {
+      return;
+    }
+    try {
+      await loadChartJs();
+    } catch (error) {
+      return;
+    }
+    if (!window.Chart || !kpis?.length) {
+      return;
+    }
+    const labels = kpis.map((kpi) => kpi.label);
+    const values = kpis.map((kpi) =>
+      typeof kpi.value === "number" ? kpi.value * (kpi.unit === "ratio" ? 100 : 1) : 0,
+    );
+    const chart = new window.Chart(canvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "KPI value",
+            data: values,
+            backgroundColor: "#2563eb",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true },
+        },
+      },
+    });
+    dashboardState.charts.set("portfolio", chart);
+  };
+
+  const renderLifecycleChart = async (stages) => {
+    const canvas = document.getElementById("lifecycle-stage-chart");
+    if (!canvas) {
+      return;
+    }
+    try {
+      await loadChartJs();
+    } catch (error) {
+      return;
+    }
+    if (!window.Chart || !stages?.length) {
+      return;
+    }
+    const labels = stages.map((stage) => stage.stage_name);
+    const values = stages.map((stage) => stage.percent_complete || 0);
+    const chart = new window.Chart(canvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "% complete",
+            data: values,
+            backgroundColor: "#10b981",
+          },
+        ],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, max: 100 } },
+      },
+    });
+    dashboardState.charts.set("lifecycle", chart);
+  };
+
+  const loadDashboardPortfolio = async () => {
+    const status = document.getElementById("portfolio-health-load-status");
+    if (status) {
+      status.textContent = "Loading portfolio health...";
+    }
+    const response = await fetch(`/api/portfolio-health?project_id=${projectId}`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      dashboardState.errors.portfolio =
+        payload?.detail || payload?.message || "Portfolio health failed to load.";
+      if (status) {
+        status.textContent = "Unable to load portfolio health.";
+      }
+      return;
+    }
+    dashboardState.errors.portfolio = "";
+    if (status) {
+      status.textContent = "Updated just now.";
+    }
+    renderPortfolioKpis(payload.kpis);
+    await renderPortfolioChart(payload.kpis);
+  };
+
+  const loadDashboardLifecycle = async () => {
+    const status = document.getElementById("lifecycle-metrics-load-status");
+    if (status) {
+      status.textContent = "Loading lifecycle metrics...";
+    }
+    const response = await fetch(`/api/lifecycle-metrics?project_id=${projectId}`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      dashboardState.errors.lifecycle =
+        payload?.detail || payload?.message || "Lifecycle metrics failed to load.";
+      if (status) {
+        status.textContent = "Unable to load lifecycle metrics.";
+      }
+      return;
+    }
+    dashboardState.errors.lifecycle = "";
+    if (status) {
+      status.textContent = "Updated just now.";
+    }
+    renderLifecycleStages(payload.stage_gates);
+    await renderLifecycleChart(payload.stage_gates);
+  };
+
+  const renderDashboardCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    destroyDashboardCharts();
+    canvas.innerHTML = `
+      <div class="dashboard-canvas">
+        <section class="dashboard-portfolio-card">
+          <div class="dashboard-card-header">
+            <h3>Portfolio health</h3>
+            <span class="dashboard-subtext" id="portfolio-health-load-status">Loading...</span>
+          </div>
+          <div class="dashboard-kpi-grid" id="portfolio-kpi-grid">
+            <p>Loading KPIs...</p>
+          </div>
+          <div class="dashboard-chart">
+            <canvas id="portfolio-health-chart" height="160"></canvas>
+          </div>
+        </section>
+        <section class="dashboard-lifecycle-card">
+          <div class="dashboard-card-header">
+            <h3>Lifecycle stage-gates</h3>
+            <span class="dashboard-subtext" id="lifecycle-metrics-load-status">Loading...</span>
+          </div>
+          <div class="dashboard-stage-list" id="lifecycle-stage-list">
+            <p>Loading stage-gate progress...</p>
+          </div>
+          <div class="dashboard-chart">
+            <canvas id="lifecycle-stage-chart" height="200"></canvas>
+          </div>
+        </section>
+      </div>
+    `;
+
+    loadDashboardPortfolio();
+    loadDashboardLifecycle();
+  };
+
+  const renderCanvas = (tabName) => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    if (tabName === "dashboard") {
+      renderDashboardCanvas();
+      return;
+    }
+    canvas.innerHTML = `<p>${tabName} canvas is not available in this view.</p>`;
   };
 
   const renderNavigation = (summary, currentActivityId) => {
@@ -360,6 +669,7 @@ const initWorkspace = () => {
     }
     renderNavigation(payload.methodology_map_summary, payload.current_activity_id);
     renderGuidancePanel(payload);
+    renderCanvas(payload.current_canvas_tab);
     attachActivityHandlers();
   };
 

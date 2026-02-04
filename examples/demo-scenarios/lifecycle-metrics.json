@@ -1,0 +1,49 @@
+{
+  "portfolio_id": "demo-portfolio",
+  "project_id": "demo-1",
+  "as_of": "2024-08-15T12:00:00Z",
+  "summary": {
+    "avg_cycle_time_days": 42,
+    "gates_on_track": 3,
+    "gates_at_risk": 1,
+    "gates_blocked": 0
+  },
+  "stage_gates": [
+    {
+      "stage_id": "agile-discovery",
+      "stage_name": "Discovery",
+      "status": "on_track",
+      "percent_complete": 85,
+      "gate": "Discovery Gate",
+      "due_date": "2024-09-05"
+    },
+    {
+      "stage_id": "agile-planning",
+      "stage_name": "Planning",
+      "status": "at_risk",
+      "percent_complete": 62,
+      "gate": "Planning Gate",
+      "due_date": "2024-09-18"
+    },
+    {
+      "stage_id": "agile-delivery",
+      "stage_name": "Delivery",
+      "status": "on_track",
+      "percent_complete": 40,
+      "gate": "Delivery Gate",
+      "due_date": "2024-10-02"
+    },
+    {
+      "stage_id": "agile-review",
+      "stage_name": "Review",
+      "status": "on_track",
+      "percent_complete": 15,
+      "gate": "Review Gate",
+      "due_date": "2024-10-20"
+    }
+  ],
+  "capacity": {
+    "current": 0.86,
+    "target": 0.9
+  }
+}

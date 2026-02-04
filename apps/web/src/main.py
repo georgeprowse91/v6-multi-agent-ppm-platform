@@ -625,6 +625,130 @@ def _render_static_page(page: str) -> FileResponse:
     return FileResponse(STATIC_DIR / f"{page}.html")
 
 
+def _demo_mode_enabled() -> bool:
+    return os.getenv("DEMO_MODE", "").lower() in {"1", "true", "yes", "on"}
+
+
+def _load_demo_dashboard_payload(filename: str) -> dict[str, Any] | None:
+    demo_path = REPO_ROOT / "examples" / "demo-scenarios" / filename
+    if not demo_path.exists():
+        return None
+    try:
+        with demo_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return payload
+
+
+def _mock_portfolio_health(portfolio_id: str | None, project_id: str | None) -> dict[str, Any]:
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "portfolio_id": portfolio_id or "portfolio-01",
+        "project_id": project_id,
+        "as_of": now,
+        "kpis": [
+            {
+                "id": "value_delivered",
+                "label": "Value delivered",
+                "value": 4.1,
+                "target": 5.0,
+                "unit": "M",
+                "trend": "up",
+            },
+            {
+                "id": "budget_utilisation",
+                "label": "Budget utilisation",
+                "value": 0.76,
+                "target": 0.8,
+                "unit": "ratio",
+                "trend": "steady",
+            },
+            {
+                "id": "risk_exposure",
+                "label": "Risk exposure",
+                "value": 0.29,
+                "target": 0.25,
+                "unit": "ratio",
+                "trend": "down",
+            },
+            {
+                "id": "resource_capacity",
+                "label": "Resource capacity",
+                "value": 0.88,
+                "target": 0.9,
+                "unit": "ratio",
+                "trend": "up",
+            },
+            {
+                "id": "stage_gate_status",
+                "label": "Stage-gate status",
+                "value": 0.7,
+                "target": 0.8,
+                "unit": "ratio",
+                "trend": "up",
+            },
+        ],
+        "highlights": [
+            {"label": "Programs on track", "value": 7},
+            {"label": "Programs at risk", "value": 2},
+            {"label": "Portfolio NPV", "value": 11.8, "unit": "M"},
+        ],
+    }
+
+
+def _mock_lifecycle_metrics(portfolio_id: str | None, project_id: str | None) -> dict[str, Any]:
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "portfolio_id": portfolio_id or "portfolio-01",
+        "project_id": project_id,
+        "as_of": now,
+        "summary": {
+            "avg_cycle_time_days": 39,
+            "gates_on_track": 3,
+            "gates_at_risk": 1,
+            "gates_blocked": 0,
+        },
+        "stage_gates": [
+            {
+                "stage_id": "agile-discovery",
+                "stage_name": "Discovery",
+                "status": "on_track",
+                "percent_complete": 82,
+                "gate": "Discovery Gate",
+                "due_date": "2024-09-05",
+            },
+            {
+                "stage_id": "agile-planning",
+                "stage_name": "Planning",
+                "status": "at_risk",
+                "percent_complete": 58,
+                "gate": "Planning Gate",
+                "due_date": "2024-09-18",
+            },
+            {
+                "stage_id": "agile-delivery",
+                "stage_name": "Delivery",
+                "status": "on_track",
+                "percent_complete": 43,
+                "gate": "Delivery Gate",
+                "due_date": "2024-10-02",
+            },
+            {
+                "stage_id": "agile-review",
+                "stage_name": "Review",
+                "status": "on_track",
+                "percent_complete": 18,
+                "gate": "Review Gate",
+                "due_date": "2024-10-20",
+            },
+        ],
+        "capacity": {"current": 0.86, "target": 0.9},
+    }
+
+
 def _format_credentials(connector_id: str, fields: list[str]) -> list[str]:
     return [f"{connector_id.upper()}_{field.upper()}" for field in fields]
 
@@ -3499,6 +3623,32 @@ async def search_global(
             for item in results
         ],
     )
+
+
+@api_router.get("/api/portfolio-health")
+@permission_required("analytics.view")
+async def get_portfolio_health(
+    request: Request, portfolio_id: str | None = None, project_id: str | None = None
+) -> Response:
+    _require_session(request)
+    if _demo_mode_enabled():
+        payload = _load_demo_dashboard_payload("portfolio-health.json")
+        if payload:
+            return JSONResponse(content=payload)
+    return JSONResponse(content=_mock_portfolio_health(portfolio_id, project_id))
+
+
+@api_router.get("/api/lifecycle-metrics")
+@permission_required("analytics.view")
+async def get_lifecycle_metrics(
+    request: Request, portfolio_id: str | None = None, project_id: str | None = None
+) -> Response:
+    _require_session(request)
+    if _demo_mode_enabled():
+        payload = _load_demo_dashboard_payload("lifecycle-metrics.json")
+        if payload:
+            return JSONResponse(content=payload)
+    return JSONResponse(content=_mock_lifecycle_metrics(portfolio_id, project_id))
 
 
 @api_router.get("/api/dashboard/{project_id}/health")

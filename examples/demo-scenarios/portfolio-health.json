@@ -1,0 +1,62 @@
+{
+  "portfolio_id": "demo-portfolio",
+  "project_id": "demo-1",
+  "as_of": "2024-08-15T12:00:00Z",
+  "kpis": [
+    {
+      "id": "value_delivered",
+      "label": "Value delivered",
+      "value": 4.6,
+      "target": 5.0,
+      "unit": "M",
+      "trend": "up"
+    },
+    {
+      "id": "budget_utilisation",
+      "label": "Budget utilisation",
+      "value": 0.78,
+      "target": 0.8,
+      "unit": "ratio",
+      "trend": "steady"
+    },
+    {
+      "id": "risk_exposure",
+      "label": "Risk exposure",
+      "value": 0.32,
+      "target": 0.25,
+      "unit": "ratio",
+      "trend": "down"
+    },
+    {
+      "id": "resource_capacity",
+      "label": "Resource capacity",
+      "value": 0.86,
+      "target": 0.9,
+      "unit": "ratio",
+      "trend": "up"
+    },
+    {
+      "id": "stage_gate_status",
+      "label": "Stage-gate status",
+      "value": 0.7,
+      "target": 0.8,
+      "unit": "ratio",
+      "trend": "up"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Programs on track",
+      "value": 8
+    },
+    {
+      "label": "Programs at risk",
+      "value": 2
+    },
+    {
+      "label": "Portfolio NPV",
+      "value": 12.4,
+      "unit": "M"
+    }
+  ]
+}
