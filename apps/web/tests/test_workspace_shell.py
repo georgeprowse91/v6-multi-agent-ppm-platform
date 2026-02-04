@@ -13,6 +13,9 @@ def test_workspace_shell_layout_strings():
     for label in [
         "Methodology",
         "Monitoring",
+        "Approvals",
+        "Lessons Learned",
+        "Audit Log",
         "Document",
         "Tree",
         "Timeline",
@@ -24,7 +27,7 @@ def test_workspace_shell_layout_strings():
         "Select an activity to view guidance.",
     ]:
         assert label in app_js
-    assert 'window.location.pathname === "/workspace"' in app_js
+    assert 'path === "/workspace"' in app_js
 
 
 def test_workspace_css_present():
@@ -32,3 +35,17 @@ def test_workspace_css_present():
     assert ".workspace-shell" in workspace_css
     assert ".workspace-nav" in workspace_css
     assert ".workspace-assistant" in workspace_css
+
+
+def test_workspace_progress_bar_markup():
+    app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+    assert "workspace-stage-progress" in app_js
+    assert 'style="width: ${progressValue}%"' in app_js
+    assert "workspace-stage-progress-bar is-" in app_js
+
+
+def test_workspace_topbar_active_link_markup():
+    app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+    assert "workspace-top-link" in app_js
+    assert 'aria-current="page"' in app_js
+    assert "is-active" in app_js

@@ -109,8 +109,38 @@ const startWorkflow = async (workflowOutput) => {
 
 const renderWorkspaceShell = () => {
   document.body.classList.add("workspace-body");
+  const topNavItems = [
+    { path: "/approvals", label: "Approvals" },
+    { path: "/workflow-monitoring", label: "Monitoring" },
+    { path: "/document-search", label: "Search" },
+    { path: "/lessons-learned", label: "Lessons Learned" },
+    { path: "/audit-log", label: "Audit Log" },
+    { path: "/settings", label: "Settings" },
+  ];
+  const currentPath = window.location.pathname;
+  const topNavLinks = topNavItems
+    .map((item) => {
+      const isActive =
+        currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+      return `
+        <a
+          class="workspace-top-link${isActive ? " is-active" : ""}"
+          href="${item.path}"
+          ${isActive ? 'aria-current="page"' : ""}
+        >
+          ${item.label}
+        </a>
+      `;
+    })
+    .join("");
   document.body.innerHTML = `
     <div class="workspace-shell">
+      <header class="workspace-topbar" role="banner">
+        <div class="workspace-topbar-brand">PPM Workspace</div>
+        <nav class="workspace-topbar-links" aria-label="Workspace sections">
+          ${topNavLinks}
+        </nav>
+      </header>
       <aside class="workspace-nav" aria-label="Workspace navigation">
         <div class="workspace-brand">
           <span>PPM Workspace</span>
@@ -1184,6 +1214,16 @@ const initWorkspace = () => {
     const monitoringNav = document.getElementById("monitoring-nav");
     const stageMarkup = summary.stages
       .map((stage) => {
+        const progressValue = Math.round(stage.progress.percent);
+        const isComplete = progressValue >= 100;
+        const isAccessible = stage.activities.some(
+          (activity) => activity.access.allowed,
+        );
+        const progressStatus = isComplete
+          ? "complete"
+          : isAccessible
+            ? "in-progress"
+            : "locked";
         const activitiesMarkup = stage.activities
           .map((activity) => {
             const statusIcon = activity.completed
@@ -1209,8 +1249,23 @@ const initWorkspace = () => {
         return `
           <div class="workspace-stage" data-stage-id="${stage.id}">
             <div class="workspace-stage-header">
-              <span>${stage.name}</span>
-              <span>${stage.progress.percent}%</span>
+              <div class="workspace-stage-title">
+                <span>${stage.name}</span>
+                <span class="workspace-stage-percent">${progressValue}%</span>
+              </div>
+              <div
+                class="workspace-stage-progress"
+                role="progressbar"
+                aria-label="${stage.name} progress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="${progressValue}"
+              >
+                <span
+                  class="workspace-stage-progress-bar is-${progressStatus}"
+                  style="width: ${progressValue}%"
+                ></span>
+              </div>
             </div>
             <ul>${activitiesMarkup}</ul>
           </div>
