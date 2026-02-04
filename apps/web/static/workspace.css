@@ -53,9 +53,38 @@
   outline: none;
 }
 
+.workspace-top-link:focus-visible {
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.6);
+}
+
 .workspace-top-link.is-active {
   background: #1d4ed8;
   color: #ffffff;
+}
+
+.workspace-nav-toggle {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.workspace-nav-toggle:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.workspace-nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  border: none;
+  padding: 0;
+  z-index: 35;
 }
 
 .workspace-nav {
@@ -85,7 +114,7 @@
   font-size: 13px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: #e2e8f0;
 }
 
 .workspace-section ul {
@@ -128,7 +157,7 @@
   display: grid;
   gap: 6px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -167,7 +196,7 @@
 }
 
 .workspace-stage-progress-bar.is-locked {
-  background: #6b7280;
+  background: #475569;
 }
 
 .workspace-main {
@@ -245,7 +274,7 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b7280;
+  color: #475569;
 }
 
 .assistant-prompt-box {
@@ -317,7 +346,7 @@
 
 .agents-role {
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .agents-toolbar {
@@ -329,12 +358,31 @@
 @media (max-width: 1100px) {
   .workspace-shell {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "topbar"
-      "nav"
       "main"
       "assistant";
+  }
+
+  .workspace-nav {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(280px, 80vw);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    z-index: 40;
+    border-right: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .workspace-shell.is-nav-open .workspace-nav {
+    transform: translateX(0);
+  }
+
+  .workspace-shell.is-nav-open .workspace-nav-overlay {
+    display: block;
   }
 
   .workspace-nav,
@@ -343,8 +391,8 @@
   }
 
   .workspace-topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
   }
 }
 
@@ -353,7 +401,7 @@
   flex-direction: column;
   gap: 6px;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .agents-search input {
@@ -373,7 +421,7 @@
 .agents-empty {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .agent-category {
@@ -439,7 +487,7 @@
   display: flex;
   gap: 8px;
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
   margin-top: 4px;
 }
 
@@ -462,7 +510,7 @@
 .agent-description {
   margin: 0;
   font-size: 12px;
-  color: #4b5563;
+  color: #374151;
 }
 
 .agent-outputs {
@@ -481,7 +529,7 @@
 
 .agent-chip.is-muted {
   background: #f1f5f9;
-  color: #64748b;
+  color: #475569;
 }
 
 .agent-actions {
@@ -507,7 +555,7 @@
 .agents-status {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .agents-status.is-error {
@@ -561,7 +609,7 @@
 .agent-modal-description {
   margin: 0;
   font-size: 12px;
-  color: #4b5563;
+  color: #374151;
 }
 
 .agent-field {
@@ -569,7 +617,7 @@
   flex-direction: column;
   gap: 6px;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .agent-field textarea {
@@ -607,7 +655,7 @@
 .agent-modal-status {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .agent-modal-status.is-error {
@@ -646,7 +694,7 @@
   flex-direction: column;
   gap: 6px;
   font-size: 12px;
-  color: #374151;
+  color: #1f2937;
 }
 
 .templates-search input {
@@ -698,7 +746,7 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b7280;
+  color: #475569;
 }
 
 .connectors-list {
@@ -710,7 +758,7 @@
 .connectors-empty {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .connector-card,
@@ -763,17 +811,17 @@
 .connector-meta {
   margin: 0;
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .connector-credentials {
   margin: 0;
   font-size: 11px;
-  color: #374151;
+  color: #1f2937;
 }
 
 .connector-credentials.is-muted {
-  color: #6b7280;
+  color: #475569;
 }
 
 .connector-toggle {
@@ -842,7 +890,7 @@
 .connectors-status {
   margin: 0;
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .connectors-status.is-error {
@@ -974,12 +1022,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: #475569;
 }
 
 .templates-empty {
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .templates-detail {
@@ -1001,7 +1049,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: #475569;
 }
 
 .template-detail-description {
@@ -1025,7 +1073,7 @@
 
 .template-tag.is-muted {
   background: #f1f5f9;
-  color: #94a3b8;
+  color: #475569;
 }
 
 .template-instantiate {
@@ -1040,7 +1088,7 @@
 
 .templates-status {
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
   margin: 0;
 }
 
@@ -1117,7 +1165,7 @@
 
 .tree-list-subtitle {
   margin: 4px 0 0;
-  color: #6b7280;
+  color: #475569;
   font-size: 12px;
 }
 
@@ -1179,14 +1227,14 @@
 
 .tree-meta {
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .tree-note {
   font-size: 12px;
-  color: #4b5563;
+  color: #374151;
 }
 
 .tree-actions {
@@ -1205,7 +1253,7 @@
 
 .tree-move-row label {
   font-size: 11px;
-  color: #4b5563;
+  color: #374151;
   display: grid;
   gap: 4px;
 }
@@ -1221,7 +1269,7 @@
 
 .tree-status {
   font-size: 12px;
-  color: #1f2937;
+  color: #0f172a;
 }
 
 .tree-status.is-error {
@@ -1229,7 +1277,7 @@
 }
 
 .tree-empty {
-  color: #6b7280;
+  color: #475569;
   font-size: 13px;
 }
 
@@ -1256,7 +1304,7 @@
 .wbs-subtitle {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .wbs-list,
@@ -1299,7 +1347,7 @@
 
 .wbs-meta {
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .wbs-status {
@@ -1312,7 +1360,7 @@
 }
 
 .wbs-empty {
-  color: #6b7280;
+  color: #475569;
   font-size: 13px;
 }
 
@@ -1335,7 +1383,7 @@
 .gantt-subtitle {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .gantt-controls {
@@ -1399,7 +1447,7 @@
 .dependency-map-subtitle {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .dependency-map-body {
@@ -1454,7 +1502,7 @@
 .dependency-map-detail-type {
   margin: 4px 0 12px;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1464,7 +1512,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .dependency-map-detail-grid strong {
@@ -1483,7 +1531,7 @@
 .dependency-map-empty {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .dependency-map-status {
@@ -1514,7 +1562,7 @@
 .roadmap-subtitle {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .roadmap-body {
@@ -1544,7 +1592,7 @@
 .roadmap-phase-header p {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .roadmap-phase-meta {
@@ -1601,7 +1649,7 @@
 }
 
 .roadmap-milestone-empty {
-  color: #6b7280;
+  color: #475569;
 }
 
 .roadmap-status {
@@ -1620,7 +1668,7 @@
 .assistant-empty {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .assistant-actions {
@@ -1706,7 +1754,7 @@
 
 .assistant-meta {
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
   margin-top: 4px;
 }
 
@@ -1746,7 +1794,7 @@
 
 .assistant-transcript-hint {
   font-size: 11px;
-  color: #64748b;
+  color: #475569;
 }
 
 .assistant-transcript-body {
@@ -1761,7 +1809,7 @@
 .assistant-transcript-empty {
   margin: 0;
   font-size: 12px;
-  color: #64748b;
+  color: #475569;
 }
 
 .assistant-message {
@@ -1979,7 +2027,7 @@
 .document-list-status {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .document-list {
@@ -2010,7 +2058,7 @@
 
 .document-list-item .document-meta {
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -2036,7 +2084,7 @@
 .document-detail-card dt {
   font-size: 11px;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #475569;
 }
 
 .document-detail-card dd {
@@ -2144,13 +2192,13 @@
 .timeline-list-status {
   margin: 0;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .timeline-empty {
   margin: 12px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .timeline-empty.is-hidden {
@@ -2174,7 +2222,7 @@
 .timeline-table th {
   font-size: 11px;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #475569;
   letter-spacing: 0.04em;
 }
 
@@ -2369,7 +2417,7 @@
 
 .spreadsheet-header-meta {
   font-size: 11px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .spreadsheet-cell-input {
@@ -2401,7 +2449,7 @@
 
 .spreadsheet-empty {
   margin: 0;
-  color: #6b7280;
+  color: #475569;
 }
 
 .spreadsheet-import textarea {
@@ -2548,7 +2596,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .dashboard-quality-list {
@@ -2573,7 +2621,7 @@
 
 .dashboard-subtext {
   font-size: 12px;
-  color: #6b7280;
+  color: #475569;
 }
 
 .dashboard-summary-grid {
@@ -2593,7 +2641,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b7280;
+  color: #475569;
 }
 
 .dashboard-value {
@@ -2619,7 +2667,7 @@
 .dashboard-table th {
   font-size: 11px;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #475569;
   letter-spacing: 0.04em;
 }
 

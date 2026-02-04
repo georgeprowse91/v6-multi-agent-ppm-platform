@@ -8,34 +8,37 @@
     <link rel="stylesheet" href="/static/workspace.css" />
   </head>
   <body>
-    <div class="app">
-      <header>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <main class="app" id="main-content">
+      <header class="app-header">
         <h1>PPM Platform Console</h1>
         <p>Secure, tenant-aware access to workflows and portfolio services.</p>
       </header>
       <section class="card">
         <h2>Workspace Shell</h2>
         <p>Open the foundational workspace layout experience.</p>
-        <a href="/workspace">Workspace</a>
+        <a href="/workspace" class="primary-link">Workspace</a>
       </section>
-      <section class="card" id="governance-links">
+      <nav class="card" id="governance-links" aria-label="Governance &amp; Knowledge Pages">
         <h2>Governance &amp; Knowledge Pages</h2>
         <p>Preview dedicated pages for approvals, monitoring, search, lessons, and audit trails.</p>
-        <div id="governance-links-list" role="list"></div>
-      </section>
+        <ul id="governance-links-list" class="list-stack"></ul>
+      </nav>
       <section class="card">
         <h2>Session</h2>
-        <p id="session-info" class="status">Checking session...</p>
+        <p id="session-info" class="status" role="status" aria-live="polite">
+          Checking session...
+        </p>
         <div class="actions">
-          <button id="login">Sign in with OIDC</button>
-          <button id="logout" class="secondary">Sign out</button>
+          <button id="login" type="button">Sign in with OIDC</button>
+          <button id="logout" class="secondary" type="button">Sign out</button>
         </div>
       </section>
 
       <section class="card">
         <h2>API Gateway Status</h2>
-        <button id="load-status">Load Status</button>
-        <pre id="status-output"></pre>
+        <button id="load-status" type="button">Load Status</button>
+        <pre id="status-output" aria-live="polite"></pre>
       </section>
 
       <section class="card">
@@ -44,10 +47,10 @@
           Workflow ID
           <input id="workflow-id" type="text" value="intake-triage" />
         </label>
-        <button id="start-workflow">Start Workflow</button>
-        <pre id="workflow-output"></pre>
+        <button id="start-workflow" type="button">Start Workflow</button>
+        <pre id="workflow-output" aria-live="polite"></pre>
       </section>
-    </div>
+    </main>
     <script src="/static/app.js"></script>
   </body>
 </html>

@@ -4433,9 +4433,10 @@ async def workspace_shell() -> HTMLResponse:
         <link rel="stylesheet" href="/static/workspace.css" />
       </head>
       <body>
-        <div class="app">
+        <a class="skip-link" href="#main-content">Skip to main content</a>
+        <main class="app" id="main-content">
           <p>Loading workspace...</p>
-        </div>
+        </main>
         <script src="/static/workspace.js"></script>
       </body>
     </html>
