@@ -173,6 +173,17 @@ const initWorkspace = () => {
       lifecycle: "",
     },
   };
+  const wbsState = {
+    items: [],
+    draggingId: null,
+    lastUpdated: "",
+  };
+  const scheduleState = {
+    tasks: [],
+    gantt: null,
+    viewMode: "Week",
+    loading: null,
+  };
 
   const setActiveTab = (targetTab) => {
     tabs.forEach((item) => {
@@ -484,6 +495,276 @@ const initWorkspace = () => {
     loadDashboardLifecycle();
   };
 
+  const setWbsStatus = (message, isError = false) => {
+    const status = document.getElementById("wbs-status");
+    if (!status) {
+      return;
+    }
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  };
+
+  const loadWbs = async () => {
+    setWbsStatus("Loading WBS...");
+    const response = await fetch(`/api/wbs/${projectId}`);
+    if (!response.ok) {
+      setWbsStatus("Unable to load WBS data.", true);
+      return;
+    }
+    const payload = await response.json();
+    wbsState.items = payload.items || [];
+    wbsState.lastUpdated = payload.updated_at || "";
+    renderWbsList();
+    setWbsStatus(`${wbsState.items.length} WBS items loaded.`);
+  };
+
+  const updateWbsItem = async (itemId, parentId, order) => {
+    setWbsStatus("Saving order...");
+    const response = await fetch(`/api/wbs/${projectId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ item_id: itemId, parent_id: parentId, order }),
+    });
+    if (!response.ok) {
+      setWbsStatus("Unable to update WBS order.", true);
+      return;
+    }
+    const updated = await response.json();
+    wbsState.items = wbsState.items.map((item) =>
+      item.id === updated.id ? updated : item,
+    );
+    renderWbsList();
+    setWbsStatus("WBS updated.");
+  };
+
+  const renderWbsList = () => {
+    const list = document.getElementById("wbs-list");
+    if (!list) {
+      return;
+    }
+    const buildItems = (parentId, depth) => {
+      return wbsState.items
+        .filter((item) => item.parent_id === parentId)
+        .sort((a, b) => a.order - b.order)
+        .map((item) => {
+          const children = buildItems(item.id, depth + 1);
+          return `
+            <li class="wbs-item" data-item-id="${item.id}" data-parent-id="${item.parent_id || ""}" data-order="${item.order}" style="--wbs-depth: ${depth};">
+              <div class="wbs-row" draggable="true">
+                <span class="wbs-title">${item.title}</span>
+                <span class="wbs-meta">${item.owner || "Unassigned"}</span>
+              </div>
+              ${children ? `<ul class="wbs-children">${children}</ul>` : ""}
+            </li>
+          `;
+        })
+        .join("");
+    };
+    const markup = buildItems(null, 0);
+    list.innerHTML = markup || "<li class=\"wbs-empty\">No WBS items yet.</li>";
+
+    list.querySelectorAll(".wbs-row").forEach((row) => {
+      row.addEventListener("dragstart", (event) => {
+        const item = row.closest(".wbs-item");
+        if (!item || !event.dataTransfer) {
+          return;
+        }
+        wbsState.draggingId = item.dataset.itemId;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", wbsState.draggingId);
+        item.classList.add("is-dragging");
+      });
+      row.addEventListener("dragend", () => {
+        list.querySelectorAll(".wbs-item").forEach((item) => {
+          item.classList.remove("is-dragging", "is-drop-target");
+        });
+        wbsState.draggingId = null;
+      });
+    });
+
+    list.querySelectorAll(".wbs-item").forEach((item) => {
+      item.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        item.classList.add("is-drop-target");
+      });
+      item.addEventListener("dragleave", () => {
+        item.classList.remove("is-drop-target");
+      });
+      item.addEventListener("drop", (event) => {
+        event.preventDefault();
+        item.classList.remove("is-drop-target");
+        const targetId = item.dataset.itemId;
+        const draggedId =
+          event.dataTransfer?.getData("text/plain") || wbsState.draggingId;
+        if (!draggedId || draggedId === targetId) {
+          return;
+        }
+        const targetItem = wbsState.items.find((entry) => entry.id === targetId);
+        if (!targetItem) {
+          return;
+        }
+        updateWbsItem(draggedId, targetItem.parent_id, targetItem.order + 1);
+      });
+    });
+
+    list.ondragover = (event) => {
+      event.preventDefault();
+    };
+    list.ondrop = (event) => {
+      if (event.target.closest(".wbs-item")) {
+        return;
+      }
+      const draggedId =
+        event.dataTransfer?.getData("text/plain") || wbsState.draggingId;
+      if (!draggedId) {
+        return;
+      }
+      const maxOrder = Math.max(
+        0,
+        ...wbsState.items
+          .filter((item) => item.parent_id === null)
+          .map((item) => item.order),
+      );
+      updateWbsItem(draggedId, null, maxOrder + 1);
+    };
+  };
+
+  const loadGanttLibrary = () => {
+    if (window.Gantt) {
+      return Promise.resolve();
+    }
+    if (scheduleState.loading) {
+      return scheduleState.loading;
+    }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.css";
+    document.head.appendChild(link);
+    scheduleState.loading = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.min.js";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Unable to load Frappe Gantt."));
+      document.body.appendChild(script);
+    });
+    return scheduleState.loading;
+  };
+
+  const loadSchedule = async () => {
+    const status = document.getElementById("gantt-status");
+    if (status) {
+      status.textContent = "Loading schedule...";
+    }
+    const response = await fetch(`/api/schedule/${projectId}`);
+    if (!response.ok) {
+      if (status) {
+        status.textContent = "Unable to load schedule.";
+        status.classList.add("is-error");
+      }
+      return;
+    }
+    const payload = await response.json();
+    scheduleState.tasks = payload.tasks || [];
+    if (status) {
+      status.textContent = `${scheduleState.tasks.length} tasks loaded.`;
+      status.classList.remove("is-error");
+    }
+  };
+
+  const renderGantt = () => {
+    const container = document.getElementById("gantt-container");
+    if (!container || !window.Gantt) {
+      return;
+    }
+    const tasks = scheduleState.tasks.map((task) => ({
+      id: task.id,
+      name: task.name,
+      start: task.start,
+      end: task.end,
+      progress: task.progress,
+      dependencies: (task.dependencies || []).join(","),
+    }));
+    scheduleState.gantt = new window.Gantt(container, tasks, {
+      view_mode: scheduleState.viewMode,
+      bar_height: 26,
+      padding: 18,
+    });
+  };
+
+  const renderWbsCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="wbs-canvas">
+        <header class="wbs-header">
+          <div>
+            <h3>Work Breakdown Structure</h3>
+            <p class="wbs-subtitle">Drag rows to reorder and adjust priorities.</p>
+          </div>
+          <button type="button" class="secondary" id="wbs-refresh">Refresh</button>
+        </header>
+        <ul class="wbs-list" id="wbs-list"></ul>
+        <p class="wbs-status" id="wbs-status" role="status" aria-live="polite"></p>
+      </div>
+    `;
+    const refreshButton = document.getElementById("wbs-refresh");
+    if (refreshButton) {
+      refreshButton.addEventListener("click", () => loadWbs());
+    }
+    loadWbs();
+  };
+
+  const renderTimelineCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="gantt-canvas">
+        <header class="gantt-header">
+          <div>
+            <h3>Schedule timeline</h3>
+            <p class="gantt-subtitle">Review dependencies and adjust delivery windows.</p>
+          </div>
+          <div class="gantt-controls" role="toolbar" aria-label="Timeline zoom">
+            <button type="button" data-gantt-view="Day">Day</button>
+            <button type="button" data-gantt-view="Week" class="is-active">Week</button>
+            <button type="button" data-gantt-view="Month">Month</button>
+          </div>
+        </header>
+        <div id="gantt-container" class="gantt-container" aria-live="polite"></div>
+        <p class="gantt-status" id="gantt-status" role="status" aria-live="polite"></p>
+      </div>
+    `;
+
+    document.querySelectorAll("[data-gantt-view]").forEach((button) => {
+      button.addEventListener("click", () => {
+        scheduleState.viewMode = button.dataset.ganttView;
+        document.querySelectorAll("[data-gantt-view]").forEach((item) => {
+          item.classList.toggle("is-active", item === button);
+        });
+        if (scheduleState.gantt) {
+          scheduleState.gantt.change_view_mode(scheduleState.viewMode);
+        }
+      });
+    });
+
+    loadGanttLibrary()
+      .then(loadSchedule)
+      .then(() => {
+        renderGantt();
+      })
+      .catch(() => {
+        const status = document.getElementById("gantt-status");
+        if (status) {
+          status.textContent = "Gantt library failed to load.";
+          status.classList.add("is-error");
+        }
+      });
+  };
+
   const renderCanvas = (tabName) => {
     const canvas = document.querySelector(".workspace-canvas");
     if (!canvas) {
@@ -491,6 +772,14 @@ const initWorkspace = () => {
     }
     if (tabName === "dashboard") {
       renderDashboardCanvas();
+      return;
+    }
+    if (tabName === "tree") {
+      renderWbsCanvas();
+      return;
+    }
+    if (tabName === "timeline") {
+      renderTimelineCanvas();
       return;
     }
     canvas.innerHTML = `<p>${tabName} canvas is not available in this view.</p>`;
@@ -593,6 +882,25 @@ const initWorkspace = () => {
           )
           .join("")
       : "<p class=\"assistant-empty\">No prompts available for this activity.</p>";
+    const nextSteps = [];
+    if (payload.current_canvas_tab === "tree") {
+      nextSteps.push("Drag WBS rows to reprioritize and adjust the hierarchy.");
+      nextSteps.push("Drop items on the root area to promote them to the top level.");
+      nextSteps.push("Use refresh after collaborating to reload the latest structure.");
+    }
+    if (payload.current_canvas_tab === "timeline") {
+      nextSteps.push("Review dependency links and validate critical path overlaps.");
+      nextSteps.push("Use zoom controls to switch between week and month views.");
+      nextSteps.push("Confirm schedule dates with delivery owners before exporting.");
+    }
+    const nextStepsMarkup = nextSteps.length
+      ? `
+        <div class="assistant-next-steps">
+          <p class="assistant-label">Next steps</p>
+          <ul>${nextSteps.map((step) => `<li>${step}</li>`).join("")}</ul>
+        </div>
+      `
+      : "";
 
     guidance.innerHTML = `
       <div class="workspace-guidance">
@@ -626,6 +934,7 @@ const initWorkspace = () => {
           <button type="button" id="assistant-clear">Clear</button>
         </div>
         <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
+        ${nextStepsMarkup}
         <div class="workspace-guidance-actions">
           ${
             showNextRequired

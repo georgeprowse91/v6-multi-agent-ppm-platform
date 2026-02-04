@@ -1124,6 +1124,149 @@
   font-size: 13px;
 }
 
+.wbs-canvas {
+  display: grid;
+  gap: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.wbs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.wbs-header h3 {
+  margin: 0;
+}
+
+.wbs-subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.wbs-list,
+.wbs-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.wbs-item {
+  padding-left: calc(var(--wbs-depth) * 20px);
+}
+
+.wbs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: grab;
+}
+
+.wbs-item.is-dragging .wbs-row {
+  opacity: 0.6;
+}
+
+.wbs-item.is-drop-target .wbs-row {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+
+.wbs-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.wbs-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.wbs-status {
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.wbs-status.is-error {
+  color: #b91c1c;
+}
+
+.wbs-empty {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.gantt-canvas {
+  display: grid;
+  gap: 16px;
+}
+
+.gantt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.gantt-header h3 {
+  margin: 0;
+}
+
+.gantt-subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.gantt-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.gantt-controls button {
+  border: 1px solid #d1d9e6;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.gantt-controls button.is-active {
+  border-color: #4338ca;
+  background: #4338ca;
+  color: #ffffff;
+}
+
+.gantt-container {
+  min-height: 280px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  overflow: auto;
+  background: #ffffff;
+}
+
+.gantt-status {
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.gantt-status.is-error {
+  color: #b91c1c;
+}
+
 .timeline-table tr.is-highlighted {
   background: #eef2ff;
 }
@@ -1137,6 +1280,22 @@
 .assistant-actions {
   display: flex;
   gap: 10px;
+}
+
+.assistant-next-steps {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.assistant-next-steps ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 12px;
+  display: grid;
+  gap: 6px;
 }
 
 .assistant-actions button {

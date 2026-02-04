@@ -219,6 +219,44 @@ class RoleDefinition(BaseModel):
     description: str | None = None
 
 
+class WbsItem(BaseModel):
+    id: str
+    title: str
+    parent_id: str | None = None
+    order: int = 0
+    owner: str | None = None
+    status: str | None = None
+
+
+class WbsResponse(BaseModel):
+    project_id: str
+    updated_at: str
+    items: list[WbsItem] = Field(default_factory=list)
+
+
+class WbsUpdateRequest(BaseModel):
+    item_id: str
+    parent_id: str | None = None
+    order: int = 0
+
+
+class ScheduleTask(BaseModel):
+    id: str
+    name: str
+    start: str
+    end: str
+    progress: int = 0
+    dependencies: list[str] = Field(default_factory=list)
+    owner: str | None = None
+    status: str | None = None
+
+
+class ScheduleResponse(BaseModel):
+    project_id: str
+    updated_at: str
+    tasks: list[ScheduleTask] = Field(default_factory=list)
+
+
 class RoleAssignment(BaseModel):
     user_id: str
     role_ids: list[str] = Field(default_factory=list)
@@ -641,6 +679,117 @@ def _load_demo_dashboard_payload(filename: str) -> dict[str, Any] | None:
     if not isinstance(payload, dict):
         return None
     return payload
+
+
+_demo_wbs_state: dict[str, list[WbsItem]] = {}
+_demo_schedule_state: dict[str, list[ScheduleTask]] = {}
+
+
+def _default_wbs_items(project_id: str) -> list[WbsItem]:
+    return [
+        WbsItem(id=f"{project_id}-1", title="Initiation", order=0, owner="PMO"),
+        WbsItem(
+            id=f"{project_id}-1-1",
+            title="Project charter",
+            parent_id=f"{project_id}-1",
+            order=0,
+            owner="PMO",
+        ),
+        WbsItem(
+            id=f"{project_id}-1-2",
+            title="Stakeholder map",
+            parent_id=f"{project_id}-1",
+            order=1,
+            owner="Comms",
+        ),
+        WbsItem(id=f"{project_id}-2", title="Planning", order=1, owner="Delivery"),
+        WbsItem(
+            id=f"{project_id}-2-1",
+            title="Scope baseline",
+            parent_id=f"{project_id}-2",
+            order=0,
+            owner="Delivery",
+        ),
+        WbsItem(
+            id=f"{project_id}-2-2",
+            title="Resource plan",
+            parent_id=f"{project_id}-2",
+            order=1,
+            owner="People Ops",
+        ),
+        WbsItem(id=f"{project_id}-3", title="Execution", order=2, owner="Delivery"),
+        WbsItem(
+            id=f"{project_id}-3-1",
+            title="Sprint backlog",
+            parent_id=f"{project_id}-3",
+            order=0,
+            owner="Engineering",
+        ),
+        WbsItem(
+            id=f"{project_id}-3-2",
+            title="QA readiness",
+            parent_id=f"{project_id}-3",
+            order=1,
+            owner="QA",
+        ),
+    ]
+
+
+def _default_schedule_tasks(project_id: str) -> list[ScheduleTask]:
+    return [
+        ScheduleTask(
+            id=f"{project_id}-kickoff",
+            name="Kickoff & alignment",
+            start="2024-11-04",
+            end="2024-11-08",
+            progress=100,
+            dependencies=[],
+            owner="PMO",
+            status="complete",
+        ),
+        ScheduleTask(
+            id=f"{project_id}-plan",
+            name="Planning sprint",
+            start="2024-11-11",
+            end="2024-11-22",
+            progress=60,
+            dependencies=[f"{project_id}-kickoff"],
+            owner="Delivery",
+            status="in_progress",
+        ),
+        ScheduleTask(
+            id=f"{project_id}-build",
+            name="Execution build",
+            start="2024-11-25",
+            end="2024-12-20",
+            progress=25,
+            dependencies=[f"{project_id}-plan"],
+            owner="Engineering",
+            status="planned",
+        ),
+        ScheduleTask(
+            id=f"{project_id}-review",
+            name="Gate review",
+            start="2024-12-23",
+            end="2024-12-27",
+            progress=0,
+            dependencies=[f"{project_id}-build"],
+            owner="PMO",
+            status="planned",
+        ),
+    ]
+
+
+def _get_demo_wbs(project_id: str) -> list[WbsItem]:
+    if project_id not in _demo_wbs_state:
+        _demo_wbs_state[project_id] = _default_wbs_items(project_id)
+    return _demo_wbs_state[project_id]
+
+
+def _get_demo_schedule(project_id: str) -> list[ScheduleTask]:
+    if project_id not in _demo_schedule_state:
+        _demo_schedule_state[project_id] = _default_schedule_tasks(project_id)
+    return _demo_schedule_state[project_id]
 
 
 def _mock_portfolio_health(portfolio_id: str | None, project_id: str | None) -> dict[str, Any]:
@@ -3008,6 +3157,50 @@ async def export_timeline(project_id: str, request: Request) -> TimelineExportRe
         project_id=project_id,
         exported_at=datetime.now(timezone.utc),
         milestones=milestones,
+    )
+
+
+@api_router.get("/api/wbs/{project_id}", response_model=WbsResponse)
+async def get_wbs(project_id: str, request: Request) -> WbsResponse:
+    _require_session(request)
+    items = _get_demo_wbs(project_id)
+    return WbsResponse(
+        project_id=project_id,
+        updated_at=datetime.now(timezone.utc).isoformat(),
+        items=items,
+    )
+
+
+@api_router.patch("/api/wbs/{project_id}", response_model=WbsItem)
+async def update_wbs_item(
+    project_id: str,
+    payload: WbsUpdateRequest,
+    request: Request,
+) -> WbsItem:
+    _require_session(request)
+    if not _demo_mode_enabled():
+        raise HTTPException(status_code=403, detail="WBS updates are available in demo mode.")
+    items = _get_demo_wbs(project_id)
+    updated_item = None
+    for item in items:
+        if item.id == payload.item_id:
+            item.parent_id = payload.parent_id
+            item.order = payload.order
+            updated_item = item
+            break
+    if updated_item is None:
+        raise HTTPException(status_code=404, detail="WBS item not found.")
+    return updated_item
+
+
+@api_router.get("/api/schedule/{project_id}", response_model=ScheduleResponse)
+async def get_schedule(project_id: str, request: Request) -> ScheduleResponse:
+    _require_session(request)
+    tasks = _get_demo_schedule(project_id)
+    return ScheduleResponse(
+        project_id=project_id,
+        updated_at=datetime.now(timezone.utc).isoformat(),
+        tasks=tasks,
     )
 
 
