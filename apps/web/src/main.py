@@ -621,6 +621,10 @@ def _passthrough_response(response: httpx.Response) -> Response:
     )
 
 
+def _render_static_page(page: str) -> FileResponse:
+    return FileResponse(STATIC_DIR / f"{page}.html")
+
+
 def _format_credentials(connector_id: str, fields: list[str]) -> list[str]:
     return [f"{connector_id.upper()}_{field.upper()}" for field in fields]
 
@@ -1862,6 +1866,217 @@ async def api_status(request: Request) -> dict[str, Any]:
         )
         response.raise_for_status()
         return response.json()
+
+
+@api_router.get("/approvals")
+async def approvals_page() -> FileResponse:
+    return _render_static_page("approvals")
+
+
+@api_router.get("/workflow-monitoring")
+async def workflow_monitoring_page() -> FileResponse:
+    return _render_static_page("workflow-monitoring")
+
+
+@api_router.get("/document-search")
+async def document_search_page() -> FileResponse:
+    return _render_static_page("document-search")
+
+
+@api_router.get("/lessons-learned")
+async def lessons_learned_page() -> FileResponse:
+    return _render_static_page("lessons-learned")
+
+
+@api_router.get("/audit-log")
+async def audit_log_page() -> FileResponse:
+    return _render_static_page("audit-log")
+
+
+@api_router.get("/api/approvals")
+async def approvals_feed() -> dict[str, Any]:
+    return {
+        "pending_count": 24,
+        "queues": [
+            {"id": "stage-gates", "label": "Stage Gates", "count": 12},
+            {"id": "budget", "label": "Budget Changes", "count": 6},
+            {"id": "vendor", "label": "Vendor Reviews", "count": 4},
+            {"id": "compliance", "label": "Compliance", "count": 2},
+        ],
+        "items": [
+            {
+                "id": "app-1024",
+                "title": "Gate: Phase 2 Exit",
+                "project": "Phoenix",
+                "risk": "Medium",
+                "due_in": "2d",
+                "sla": "On track",
+                "approvers": [
+                    {"name": "A. Lee", "role": "Primary"},
+                    {"name": "S. Ortiz", "role": "Delegate"},
+                ],
+            },
+            {
+                "id": "app-1025",
+                "title": "Budget Change +12%",
+                "project": "Orion",
+                "risk": "High",
+                "due_in": "8h",
+                "sla": "At risk",
+                "approvers": [
+                    {"name": "S. Patel", "role": "Finance"},
+                    {"name": "M. Chung", "role": "Portfolio"},
+                ],
+            },
+        ],
+        "history": [
+            {
+                "timestamp": "09:32",
+                "action": "Gate Exit Approval",
+                "actor": "A. Lee",
+                "evidence": "Evidence pack attached",
+            },
+            {
+                "timestamp": "09:14",
+                "action": "Budget Review Delegated",
+                "actor": "S. Patel",
+                "evidence": "SLA met",
+            },
+        ],
+    }
+
+
+@api_router.get("/api/workflow-monitoring")
+async def workflow_monitoring_feed() -> dict[str, Any]:
+    return {
+        "status_board": {"healthy": 18, "warning": 4, "failed": 2},
+        "runs": [
+            {
+                "id": "WF-2041",
+                "name": "Intake Routing",
+                "status": "Success",
+                "duration": "2m 12s",
+                "agent": "Intake",
+            },
+            {
+                "id": "WF-2042",
+                "name": "Approval Escalation",
+                "status": "Failed",
+                "duration": "4m 50s",
+                "agent": "Governance",
+            },
+            {
+                "id": "WF-2043",
+                "name": "Document Sync",
+                "status": "Warning",
+                "duration": "9m 03s",
+                "agent": "SharePoint",
+            },
+        ],
+        "bottlenecks": [
+            {
+                "issue": "Approval Escalation backlog",
+                "recommendation": "Reroute to alternate approver",
+                "severity": "High",
+            },
+            {
+                "issue": "Document Sync latency",
+                "recommendation": "Increase connector concurrency",
+                "severity": "Medium",
+            },
+        ],
+    }
+
+
+@api_router.get("/api/document-search")
+async def document_search_feed() -> dict[str, Any]:
+    return {
+        "query": "business case",
+        "filters": {
+            "project": "Phoenix",
+            "confidentiality": "Confidential",
+            "stage": "Initiation",
+        },
+        "results": [
+            {
+                "id": "doc-771",
+                "title": "Business Case v5",
+                "project": "Phoenix",
+                "tags": ["ROI", "Approval", "Confidential"],
+                "summary": "Latest funding request with revised ROI assumptions.",
+            },
+            {
+                "id": "doc-772",
+                "title": "Lessons Learned ▸ Sprint 8",
+                "project": "Phoenix",
+                "tags": ["Retrospective", "Risk"],
+                "summary": "Highlights schedule recovery tactics.",
+            },
+        ],
+        "saved_searches": ["Critical approvals", "Evidence packs"],
+    }
+
+
+@api_router.get("/api/lessons-learned")
+async def lessons_learned_feed() -> dict[str, Any]:
+    return {
+        "categories": ["Schedule", "Scope", "Risk", "Vendor"],
+        "entries": [
+            {
+                "id": "lesson-201",
+                "title": "Sprint 8 Retrospective",
+                "status": "Applied 3x",
+                "theme": "Schedule",
+                "severity": "Medium",
+            },
+            {
+                "id": "lesson-202",
+                "title": "Vendor Delay Mitigation",
+                "status": "Applied 1x",
+                "theme": "Vendor",
+                "severity": "High",
+            },
+        ],
+        "recommendations": [
+            {
+                "title": "Contractual lead times",
+                "tags": ["Procurement", "SLA", "Risk"],
+                "adoption": "Reviewed",
+            }
+        ],
+    }
+
+
+@api_router.get("/api/audit-log")
+async def audit_log_feed() -> dict[str, Any]:
+    return {
+        "filters": ["Actor", "Action", "Object", "Framework", "Date"],
+        "entries": [
+            {
+                "timestamp": "09:32",
+                "action": "Approval",
+                "object": "Gate Exit",
+                "actor": "A. Lee",
+                "source": "Workflow Engine",
+                "hash": "a13f9c2",
+            },
+            {
+                "timestamp": "09:14",
+                "action": "Workflow Retry",
+                "object": "WF-2041",
+                "actor": "Orchestrator",
+                "source": "Automation",
+                "hash": "b82c4d1",
+            },
+        ],
+        "evidence_packs": [
+            {
+                "id": "pack-7",
+                "label": "Q1 Compliance Review",
+                "integrity": "SHA256",
+            }
+        ],
+    }
 
 
 @api_router.get("/api/methodology/editor", response_model=MethodologyEditorPayload)

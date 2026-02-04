@@ -4,6 +4,52 @@ const setStatus = (element, message, ok = true) => {
   element.classList.add(ok ? "ok" : "error");
 };
 
+const governancePages = [
+  {
+    path: "/approvals",
+    title: "Approvals",
+    description: "Review pending stage-gate and financial approvals with context.",
+  },
+  {
+    path: "/workflow-monitoring",
+    title: "Workflow Monitoring",
+    description: "Track workflow run health, bottlenecks, and SLA alerts.",
+  },
+  {
+    path: "/document-search",
+    title: "Document Search",
+    description: "Find artefacts across repositories with filters and previews.",
+  },
+  {
+    path: "/lessons-learned",
+    title: "Lessons Learned",
+    description: "Capture retrospectives and recommended insights.",
+  },
+  {
+    path: "/audit-log",
+    title: "Audit Log",
+    description: "Inspect tamper-evident audit entries and evidence packs.",
+  },
+];
+
+const renderGovernanceLinks = () => {
+  const container = document.getElementById("governance-links-list");
+  if (!container) {
+    return;
+  }
+  const linksMarkup = governancePages
+    .map(
+      (page) => `
+        <article class="list-item" role="listitem">
+          <a href="${page.path}">${page.title}</a>
+          <p class="meta">${page.description}</p>
+        </article>
+      `,
+    )
+    .join("");
+  container.innerHTML = `<div class="list-stack">${linksMarkup}</div>`;
+};
+
 const loadSession = async (sessionInfo) => {
   const response = await fetch("/session");
   const payload = await response.json();
@@ -497,11 +543,27 @@ const initConsole = () => {
     .getElementById("start-workflow")
     .addEventListener("click", () => startWorkflow(workflowOutput));
 
+  renderGovernanceLinks();
   loadSession(sessionInfo);
 };
 
-if (window.location.pathname === "/workspace") {
-  initWorkspace();
-} else {
-  initConsole();
-}
+const handleRoute = () => {
+  const path = window.location.pathname;
+  if (path === "/workspace") {
+    initWorkspace();
+    return;
+  }
+  if (path === "/" || path === "/index.html") {
+    initConsole();
+    return;
+  }
+  if (governancePages.some((page) => page.path === path)) {
+    return;
+  }
+  if (document.getElementById("session-info")) {
+    initConsole();
+  }
+};
+
+window.addEventListener("popstate", handleRoute);
+handleRoute();
