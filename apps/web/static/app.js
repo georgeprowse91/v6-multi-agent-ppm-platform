@@ -40,14 +40,16 @@ const renderGovernanceLinks = () => {
   const linksMarkup = governancePages
     .map(
       (page) => `
-        <article class="list-item" role="listitem">
-          <a href="${page.path}">${page.title}</a>
-          <p class="meta">${page.description}</p>
-        </article>
+        <li class="list-item">
+          <article>
+            <a href="${page.path}">${page.title}</a>
+            <p class="meta">${page.description}</p>
+          </article>
+        </li>
       `,
     )
     .join("");
-  container.innerHTML = `<div class="list-stack">${linksMarkup}</div>`;
+  container.innerHTML = linksMarkup;
 };
 
 const loadSession = async (sessionInfo) => {
@@ -134,14 +136,31 @@ const renderWorkspaceShell = () => {
     })
     .join("");
   document.body.innerHTML = `
+    <a class="skip-link" href="#workspace-main">Skip to main content</a>
     <div class="workspace-shell">
       <header class="workspace-topbar" role="banner">
         <div class="workspace-topbar-brand">PPM Workspace</div>
         <nav class="workspace-topbar-links" aria-label="Workspace sections">
           ${topNavLinks}
         </nav>
+        <button
+          type="button"
+          class="workspace-nav-toggle"
+          id="workspace-nav-toggle"
+          aria-label="Toggle workspace navigation"
+          aria-controls="workspace-nav"
+          aria-expanded="false"
+        >
+          Menu
+        </button>
       </header>
-      <aside class="workspace-nav" aria-label="Workspace navigation">
+      <button
+        type="button"
+        class="workspace-nav-overlay"
+        id="workspace-nav-overlay"
+        aria-label="Close navigation menu"
+      ></button>
+      <aside class="workspace-nav" id="workspace-nav" aria-label="Workspace navigation">
         <div class="workspace-brand">
           <span>PPM Workspace</span>
         </div>
@@ -155,29 +174,93 @@ const renderWorkspaceShell = () => {
           <h3>Monitoring</h3>
         </div>
       </aside>
-      <main class="workspace-main">
+      <main class="workspace-main" id="workspace-main">
         <div class="workspace-tabs" role="tablist" aria-label="Canvas tabs">
-          <button class="workspace-tab is-active" role="tab" aria-selected="true" data-canvas-tab="document">
+          <button
+            class="workspace-tab is-active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="document"
+            id="canvas-tab-document"
+            tabindex="0"
+          >
             Document
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="tree">Tree</button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="timeline">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="tree"
+            id="canvas-tab-tree"
+            tabindex="-1"
+          >
+            Tree
+          </button>
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="timeline"
+            id="canvas-tab-timeline"
+            tabindex="-1"
+          >
             Timeline
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="dependency-map">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="dependency-map"
+            id="canvas-tab-dependency-map"
+            tabindex="-1"
+          >
             Dependency Map
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="program-roadmap">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="program-roadmap"
+            id="canvas-tab-program-roadmap"
+            tabindex="-1"
+          >
             Program Roadmap
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="spreadsheet">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="spreadsheet"
+            id="canvas-tab-spreadsheet"
+            tabindex="-1"
+          >
             Spreadsheet
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="dashboard">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="dashboard"
+            id="canvas-tab-dashboard"
+            tabindex="-1"
+          >
             Dashboard
           </button>
         </div>
-        <section class="workspace-canvas" aria-live="polite">
+        <section
+          class="workspace-canvas"
+          id="workspace-canvas"
+          role="tabpanel"
+          aria-live="polite"
+          aria-labelledby="canvas-tab-document"
+        >
           <p>Select a canvas tab to view its workspace.</p>
         </section>
       </main>
@@ -193,6 +276,46 @@ const renderWorkspaceShell = () => {
 
 const initWorkspace = () => {
   renderWorkspaceShell();
+  const workspaceShell = document.querySelector(".workspace-shell");
+  const navToggle = document.getElementById("workspace-nav-toggle");
+  const navOverlay = document.getElementById("workspace-nav-overlay");
+  const closeWorkspaceNav = () => {
+    if (!workspaceShell) {
+      return;
+    }
+    workspaceShell.classList.remove("is-nav-open");
+    if (navToggle) {
+      navToggle.setAttribute("aria-expanded", "false");
+    }
+    if (navOverlay) {
+      navOverlay.setAttribute("aria-hidden", "true");
+    }
+  };
+  const openWorkspaceNav = () => {
+    if (!workspaceShell) {
+      return;
+    }
+    workspaceShell.classList.add("is-nav-open");
+    if (navToggle) {
+      navToggle.setAttribute("aria-expanded", "true");
+    }
+    if (navOverlay) {
+      navOverlay.setAttribute("aria-hidden", "false");
+    }
+  };
+  if (navOverlay) {
+    navOverlay.setAttribute("aria-hidden", "true");
+    navOverlay.addEventListener("click", () => closeWorkspaceNav());
+  }
+  if (navToggle) {
+    navToggle.addEventListener("click", () => {
+      if (workspaceShell?.classList.contains("is-nav-open")) {
+        closeWorkspaceNav();
+      } else {
+        openWorkspaceNav();
+      }
+    });
+  }
   const sessionInfo = document.getElementById("workspace-session");
   loadSession(sessionInfo);
   const searchParams = new URLSearchParams(window.location.search);
@@ -233,10 +356,15 @@ const initWorkspace = () => {
   };
 
   const setActiveTab = (targetTab) => {
+    const canvas = document.getElementById("workspace-canvas");
     tabs.forEach((item) => {
       const isActive = item === targetTab;
       item.classList.toggle("is-active", isActive);
       item.setAttribute("aria-selected", isActive ? "true" : "false");
+      item.setAttribute("tabindex", isActive ? "0" : "-1");
+      if (isActive && canvas && item.id) {
+        canvas.setAttribute("aria-labelledby", item.id);
+      }
     });
   };
 
@@ -911,6 +1039,18 @@ const initWorkspace = () => {
           tooltip.classList.remove("is-visible");
         }
       })
+      .on("keydown", (event, d) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (d.url) {
+            window.location.href = d.url;
+          }
+        }
+        if (event.key === "Escape" && tooltip) {
+          updateDependencyDetails(null);
+          tooltip.classList.remove("is-visible");
+        }
+      })
       .on("click", (event, d) => {
         if (d.url) {
           window.location.href = d.url;
@@ -1239,6 +1379,8 @@ const initWorkspace = () => {
                   data-activity-id="${activity.id}"
                   data-stage-id="${stage.id}"
                   data-canvas-tab="${activity.recommended_canvas_tab}"
+                  aria-pressed="${isSelected ? "true" : "false"}"
+                  aria-label="${activity.name} activity"
                 >
                   ${statusIcon} ${activity.name}
                 </button>
@@ -1287,6 +1429,8 @@ const initWorkspace = () => {
               class="workspace-activity${isSelected ? " is-selected" : ""}"
               data-activity-id="${activity.id}"
               data-canvas-tab="${activity.recommended_canvas_tab}"
+              aria-pressed="${isSelected ? "true" : "false"}"
+              aria-label="${activity.name} activity"
             >
               Available ${activity.name}
             </button>
@@ -1324,7 +1468,12 @@ const initWorkspace = () => {
       ? assistantPrompts
           .map(
             (prompt) => `
-              <button type="button" class="assistant-chip" data-prompt="${prompt}">
+              <button
+                type="button"
+                class="assistant-chip"
+                data-prompt="${prompt}"
+                aria-label="Use prompt: ${prompt}"
+              >
                 ${prompt}
               </button>
             `,
@@ -1582,7 +1731,7 @@ const initWorkspace = () => {
   };
 
   tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
+    const activateTab = () => {
       setActiveTab(tab);
       if (!workspaceState) {
         return;
@@ -1597,7 +1746,32 @@ const initWorkspace = () => {
           updateWorkspaceUI(payload);
         }
       });
+    };
+    tab.addEventListener("click", activateTab);
+    tab.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        activateTab();
+      }
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        const currentIndex = tabs.indexOf(tab);
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        tabs[nextIndex].focus();
+      }
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeWorkspaceNav();
+      const tooltip = document.getElementById("dependency-map-tooltip");
+      if (tooltip) {
+        tooltip.classList.remove("is-visible");
+      }
+      updateDependencyDetails(null);
+    }
   });
 
   loadWorkspaceState();

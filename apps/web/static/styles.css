@@ -5,13 +5,32 @@ body {
   color: #1f2a44;
 }
 
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 .app {
   max-width: 960px;
   margin: 0 auto;
   padding: 32px;
 }
 
-header {
+.app-header {
   margin-bottom: 24px;
 }
 
@@ -30,7 +49,7 @@ header {
 
 .page-subtitle {
   margin: 4px 0 0;
-  color: #52617a;
+  color: #3b4a63;
 }
 
 .page-actions {
@@ -75,6 +94,15 @@ button {
   padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
 }
 
 button:hover {
@@ -133,7 +161,7 @@ pre {
 }
 
 .meta {
-  color: #64748b;
+  color: #475569;
   font-size: 13px;
 }
 
@@ -165,6 +193,11 @@ pre {
 
 .link-list a:hover {
   text-decoration: underline;
+}
+
+.primary-link {
+  color: #1b4cdb;
+  font-weight: 600;
 }
 
 @media (max-width: 960px) {

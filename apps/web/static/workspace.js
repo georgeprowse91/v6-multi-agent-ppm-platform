@@ -21,8 +21,31 @@ const loadSession = async (sessionInfo) => {
 const renderWorkspaceShell = () => {
   document.body.classList.add("workspace-body");
   document.body.innerHTML = `
+    <a class="skip-link" href="#workspace-main">Skip to main content</a>
     <div class="workspace-shell">
-      <aside class="workspace-nav" aria-label="Workspace navigation">
+      <header class="workspace-topbar" role="banner">
+        <div class="workspace-topbar-brand">PPM Workspace</div>
+        <nav class="workspace-topbar-links" aria-label="Workspace links">
+          <a class="workspace-top-link" href="/">Console</a>
+        </nav>
+        <button
+          type="button"
+          class="workspace-nav-toggle"
+          id="workspace-nav-toggle"
+          aria-label="Toggle workspace navigation"
+          aria-controls="workspace-nav"
+          aria-expanded="false"
+        >
+          Menu
+        </button>
+      </header>
+      <button
+        type="button"
+        class="workspace-nav-overlay"
+        id="workspace-nav-overlay"
+        aria-label="Close navigation menu"
+      ></button>
+      <aside class="workspace-nav" id="workspace-nav" aria-label="Workspace navigation">
         <div class="workspace-brand">
           <span>PPM Workspace</span>
         </div>
@@ -36,23 +59,71 @@ const renderWorkspaceShell = () => {
           <h3>Monitoring</h3>
         </div>
       </aside>
-      <main class="workspace-main">
+      <main class="workspace-main" id="workspace-main">
         <div class="workspace-tabs" role="tablist" aria-label="Canvas tabs">
-          <button class="workspace-tab is-active" role="tab" aria-selected="true" data-canvas-tab="document">
+          <button
+            class="workspace-tab is-active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="document"
+            id="canvas-tab-document"
+            tabindex="0"
+          >
             Document
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="tree">Tree</button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="timeline">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="tree"
+            id="canvas-tab-tree"
+            tabindex="-1"
+          >
+            Tree
+          </button>
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="timeline"
+            id="canvas-tab-timeline"
+            tabindex="-1"
+          >
             Timeline
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="spreadsheet">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="spreadsheet"
+            id="canvas-tab-spreadsheet"
+            tabindex="-1"
+          >
             Spreadsheet
           </button>
-          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="dashboard">
+          <button
+            class="workspace-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="workspace-canvas"
+            data-canvas-tab="dashboard"
+            id="canvas-tab-dashboard"
+            tabindex="-1"
+          >
             Dashboard
           </button>
         </div>
-        <section class="workspace-canvas" aria-live="polite">
+        <section
+          class="workspace-canvas"
+          id="workspace-canvas"
+          role="tabpanel"
+          aria-live="polite"
+          aria-labelledby="canvas-tab-document"
+        >
           <p>Loading document canvas...</p>
         </section>
       </main>
@@ -132,7 +203,12 @@ const renderWorkspaceShell = () => {
           <p class="connectors-status" id="connector-status" role="status"></p>
         </section>
         <div class="connector-modal is-hidden" id="connector-modal" aria-hidden="true">
-          <div class="connector-modal-card" role="dialog" aria-modal="true">
+          <div
+            class="connector-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="connector-modal-title"
+          >
             <div class="connector-modal-header">
               <h4 id="connector-modal-title">Add connector</h4>
               <button type="button" class="connector-modal-close" id="connector-modal-close">
@@ -162,7 +238,13 @@ const renderWorkspaceShell = () => {
           </div>
         </div>
         <div class="agent-modal is-hidden" id="agent-modal" aria-hidden="true">
-          <div class="agent-modal-card" role="dialog" aria-modal="true">
+          <div
+            class="agent-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="agent-modal-title"
+            aria-describedby="agent-modal-description"
+          >
             <div class="agent-modal-header">
               <h4 id="agent-modal-title">Configure agent</h4>
               <button type="button" class="agent-modal-close" id="agent-modal-close">
@@ -194,6 +276,46 @@ const renderWorkspaceShell = () => {
 
 const initWorkspace = () => {
   renderWorkspaceShell();
+  const workspaceShell = document.querySelector(".workspace-shell");
+  const navToggle = document.getElementById("workspace-nav-toggle");
+  const navOverlay = document.getElementById("workspace-nav-overlay");
+  const closeWorkspaceNav = () => {
+    if (!workspaceShell) {
+      return;
+    }
+    workspaceShell.classList.remove("is-nav-open");
+    if (navToggle) {
+      navToggle.setAttribute("aria-expanded", "false");
+    }
+    if (navOverlay) {
+      navOverlay.setAttribute("aria-hidden", "true");
+    }
+  };
+  const openWorkspaceNav = () => {
+    if (!workspaceShell) {
+      return;
+    }
+    workspaceShell.classList.add("is-nav-open");
+    if (navToggle) {
+      navToggle.setAttribute("aria-expanded", "true");
+    }
+    if (navOverlay) {
+      navOverlay.setAttribute("aria-hidden", "false");
+    }
+  };
+  if (navOverlay) {
+    navOverlay.setAttribute("aria-hidden", "true");
+    navOverlay.addEventListener("click", () => closeWorkspaceNav());
+  }
+  if (navToggle) {
+    navToggle.addEventListener("click", () => {
+      if (workspaceShell?.classList.contains("is-nav-open")) {
+        closeWorkspaceNav();
+      } else {
+        openWorkspaceNav();
+      }
+    });
+  }
   const sessionInfo = document.getElementById("workspace-session");
   let session = null;
   loadSession(sessionInfo).then((payload) => {
@@ -259,10 +381,15 @@ const initWorkspace = () => {
   };
 
   const setActiveTab = (targetTab) => {
+    const canvas = document.getElementById("workspace-canvas");
     tabs.forEach((item) => {
       const isActive = item === targetTab;
       item.classList.toggle("is-active", isActive);
       item.setAttribute("aria-selected", isActive ? "true" : "false");
+      item.setAttribute("tabindex", isActive ? "0" : "-1");
+      if (isActive && canvas && item.id) {
+        canvas.setAttribute("aria-labelledby", item.id);
+      }
     });
   };
 
@@ -284,6 +411,16 @@ const initWorkspace = () => {
     const monitoringNav = document.getElementById("monitoring-nav");
     const stageMarkup = summary.stages
       .map((stage) => {
+        const progressValue = Math.round(stage.progress.percent);
+        const isComplete = progressValue >= 100;
+        const isAccessible = stage.activities.some(
+          (activity) => activity.access.allowed,
+        );
+        const progressStatus = isComplete
+          ? "complete"
+          : isAccessible
+            ? "in-progress"
+            : "locked";
         const activitiesMarkup = stage.activities
           .map((activity) => {
             const statusIcon = activity.completed
@@ -299,6 +436,8 @@ const initWorkspace = () => {
                   data-activity-id="${activity.id}"
                   data-stage-id="${stage.id}"
                   data-canvas-tab="${activity.recommended_canvas_tab}"
+                  aria-pressed="${isSelected ? "true" : "false"}"
+                  aria-label="${activity.name} activity"
                 >
                   ${statusIcon} ${activity.name}
                 </button>
@@ -309,8 +448,23 @@ const initWorkspace = () => {
         return `
           <div class="workspace-stage" data-stage-id="${stage.id}">
             <div class="workspace-stage-header">
-              <span>${stage.name}</span>
-              <span>${stage.progress.percent}%</span>
+              <div class="workspace-stage-title">
+                <span>${stage.name}</span>
+                <span class="workspace-stage-percent">${progressValue}%</span>
+              </div>
+              <div
+                class="workspace-stage-progress"
+                role="progressbar"
+                aria-label="${stage.name} progress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="${progressValue}"
+              >
+                <span
+                  class="workspace-stage-progress-bar is-${progressStatus}"
+                  style="width: ${progressValue}%"
+                ></span>
+              </div>
             </div>
             <ul>${activitiesMarkup}</ul>
           </div>
@@ -332,6 +486,8 @@ const initWorkspace = () => {
               class="workspace-activity${isSelected ? " is-selected" : ""}"
               data-activity-id="${activity.id}"
               data-canvas-tab="${activity.recommended_canvas_tab}"
+              aria-pressed="${isSelected ? "true" : "false"}"
+              aria-label="${activity.name} activity"
             >
               Available ${activity.name}
             </button>
@@ -369,7 +525,12 @@ const initWorkspace = () => {
       ? assistantPrompts
           .map(
             (prompt) => `
-              <button type="button" class="assistant-chip" data-prompt="${prompt}">
+              <button
+                type="button"
+                class="assistant-chip"
+                data-prompt="${prompt}"
+                aria-label="Use prompt: ${prompt}"
+              >
                 ${prompt}
               </button>
             `,
@@ -4264,7 +4425,7 @@ const initWorkspace = () => {
   };
 
   tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
+    const activateTab = () => {
       setActiveTab(tab);
       if (!workspaceState) {
         return;
@@ -4279,7 +4440,29 @@ const initWorkspace = () => {
           updateWorkspaceUI(payload);
         }
       });
+    };
+    tab.addEventListener("click", activateTab);
+    tab.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        activateTab();
+      }
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        const currentIndex = tabs.indexOf(tab);
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        tabs[nextIndex].focus();
+      }
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeWorkspaceNav();
+      closeAgentModal();
+      closeConnectorModal();
+    }
   });
 
   attachTemplateHandlers();
