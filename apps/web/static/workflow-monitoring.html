@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Monitoring | PPM Platform</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Workflow Monitoring</h1>
+          <p class="page-subtitle">Live workflow health, SLA alerts, and remediation guidance.</p>
+        </div>
+        <div class="page-actions" aria-label="Monitoring actions">
+          <button type="button">Live</button>
+          <button type="button" class="secondary">Time Range</button>
+          <button type="button" class="secondary">Export</button>
+        </div>
+      </header>
+
+      <main class="page-grid" aria-label="Workflow monitoring workspace">
+        <nav class="card" aria-label="Status board">
+          <h2>Status Board</h2>
+          <ul class="list-stack" role="list">
+            <li class="list-item" role="listitem">Healthy 18</li>
+            <li class="list-item" role="listitem">Warning 4</li>
+            <li class="list-item" role="listitem">Failed 2</li>
+          </ul>
+        </nav>
+
+        <section class="card" aria-label="Workflow runs">
+          <h2>Workflow Runs</h2>
+          <ul class="list-stack" role="list">
+            <li class="list-item" role="listitem">
+              <strong>Intake Routing ▸ Success</strong>
+              <p class="meta">Run WF-2041 · 2m 12s · Agent: Intake</p>
+            </li>
+            <li class="list-item" role="listitem">
+              <strong>Approval Escalation ▸ Failed</strong>
+              <p class="meta">Run WF-2042 · 4m 50s · Agent: Governance</p>
+            </li>
+            <li class="list-item" role="listitem">
+              <strong>Document Sync ▸ Warning</strong>
+              <p class="meta">Run WF-2043 · 9m 03s · Connector: SharePoint</p>
+            </li>
+          </ul>
+        </section>
+
+        <aside class="card" aria-label="Run detail panel">
+          <h2>Detail Panel</h2>
+          <p><span class="tag">Run</span> WF-2041</p>
+          <p class="meta">Steps timeline · Inputs/Outputs · Retry controls</p>
+          <p class="meta">SLA Status: On Track</p>
+          <div class="actions" aria-label="Run actions">
+            <button type="button">Pause</button>
+            <button type="button" class="secondary">Rerun</button>
+          </div>
+        </aside>
+      </main>
+
+      <section class="card" aria-label="Bottleneck alerts">
+        <h2>Bottleneck Alerts</h2>
+        <ul class="list-stack" role="list">
+          <li class="list-item" role="listitem">
+            <strong>Approval Escalation backlog</strong>
+            <p class="meta">Recommendation: Reroute to alternate approver</p>
+          </li>
+          <li class="list-item" role="listitem">
+            <strong>Document Sync latency</strong>
+            <p class="meta">Recommendation: Increase connector concurrency</p>
+          </li>
+        </ul>
+      </section>
+
+      <footer class="actions" aria-label="Return navigation">
+        <a href="/" class="secondary">Back to Console</a>
+      </footer>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

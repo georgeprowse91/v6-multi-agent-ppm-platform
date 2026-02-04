@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audit Log | PPM Platform</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Audit Log</h1>
+          <p class="page-subtitle">Tamper-evident approvals, workflow runs, and data changes.</p>
+        </div>
+        <div class="page-actions" aria-label="Audit log actions">
+          <button type="button">Filters</button>
+          <button type="button" class="secondary">Evidence Pack Export</button>
+        </div>
+      </header>
+
+      <main class="page-grid" aria-label="Audit log workspace">
+        <nav class="card" aria-label="Audit filters">
+          <h2>Filters</h2>
+          <ul class="list-stack" role="list">
+            <li class="list-item" role="listitem">Actor</li>
+            <li class="list-item" role="listitem">Action</li>
+            <li class="list-item" role="listitem">Object</li>
+            <li class="list-item" role="listitem">Framework</li>
+            <li class="list-item" role="listitem">Date</li>
+          </ul>
+        </nav>
+
+        <section class="card" aria-label="Audit entries">
+          <h2>Audit Entries</h2>
+          <ul class="list-stack" role="list">
+            <li class="list-item" role="listitem">
+              <strong>09:32 · Approval ▸ Gate Exit ▸ A. Lee</strong>
+              <p class="meta">Object: Phoenix Phase 2 · Source: Workflow Engine</p>
+            </li>
+            <li class="list-item" role="listitem">
+              <strong>09:14 · Workflow ▸ Retry ▸ WF-2041</strong>
+              <p class="meta">Object: Intake Routing · Source: Orchestrator</p>
+            </li>
+            <li class="list-item" role="listitem">
+              <strong>08:58 · Document ▸ Updated ▸ Charter v5</strong>
+              <p class="meta">Object: Business Case · Source: Document Service</p>
+            </li>
+          </ul>
+        </section>
+
+        <aside class="card" aria-label="Audit detail panel">
+          <h2>Detail Panel</h2>
+          <p><span class="tag">Entry metadata</span> Hash, signature</p>
+          <p><span class="tag">Related objects</span> Evidence files</p>
+          <p class="meta">Export options · Integrity verification</p>
+        </aside>
+      </main>
+
+      <footer class="actions" aria-label="Return navigation">
+        <a href="/" class="secondary">Back to Console</a>
+      </footer>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
