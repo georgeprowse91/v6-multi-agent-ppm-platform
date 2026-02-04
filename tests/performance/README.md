@@ -5,6 +5,8 @@ This directory hosts the Locust-based performance harness for exercising API end
 ## Contents
 
 - `config.yaml`: Load profile and endpoint configuration (users, request rates, duration).
+- `quick_config.yaml`: Lightweight critical-path profile for PR smoke runs (under 2 minutes).
+- `baselines.json`: Stored baseline metrics for performance comparisons in CI.
 - `locustfile.py`: Locust tasks that read the configuration and issue API requests.
 - `run_locust.py`: Helper script for running Locust using the configuration values.
 - `mock_server.py`: Minimal HTTP server for CI smoke testing.
@@ -63,6 +65,6 @@ The CSV output (`*_stats.csv`, `*_failures.csv`) and summary markdown can be sha
 
 ## Running in CI
 
-The pull request workflow starts the mock server, runs the Locust harness with `config.yaml`, and publishes a summary in the PR workflow output. The job also uploads the raw CSV results as build artifacts.
+The pull request workflow starts the mock server, runs the Locust harness with `quick_config.yaml`, compares results against `baselines.json`, and publishes a summary in the PR workflow output. The job also uploads the raw CSV results as build artifacts.
 
 For a real environment test, update `config.yaml` to point at a deployed API host and remove the mock server step in CI.

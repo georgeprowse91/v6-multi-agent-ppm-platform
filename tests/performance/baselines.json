@@ -1,0 +1,17 @@
+{
+  "threshold_pct": 20,
+  "metrics": {
+    "Aggregated": {
+      "avg_ms": 120,
+      "p95_ms": 240
+    },
+    "api_health": {
+      "avg_ms": 100,
+      "p95_ms": 200
+    },
+    "connector_sync": {
+      "avg_ms": 150,
+      "p95_ms": 300
+    }
+  }
+}
