@@ -16,6 +16,8 @@ def test_workspace_shell_layout_strings():
         "Document",
         "Tree",
         "Timeline",
+        "Dependency Map",
+        "Program Roadmap",
         "Spreadsheet",
         "Dashboard",
         "Assistant",

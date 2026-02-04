@@ -6,7 +6,15 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic.config import ConfigDict
 
-CanvasTab = Literal["document", "tree", "timeline", "spreadsheet", "dashboard"]
+CanvasTab = Literal[
+    "document",
+    "tree",
+    "timeline",
+    "dependency-map",
+    "program-roadmap",
+    "spreadsheet",
+    "dashboard",
+]
 
 
 def _utc_now() -> str:

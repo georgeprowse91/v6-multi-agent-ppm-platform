@@ -134,6 +134,12 @@ const renderWorkspaceShell = () => {
           <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="timeline">
             Timeline
           </button>
+          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="dependency-map">
+            Dependency Map
+          </button>
+          <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="program-roadmap">
+            Program Roadmap
+          </button>
           <button class="workspace-tab" role="tab" aria-selected="false" data-canvas-tab="spreadsheet">
             Spreadsheet
           </button>
@@ -161,6 +167,7 @@ const initWorkspace = () => {
   loadSession(sessionInfo);
   const searchParams = new URLSearchParams(window.location.search);
   const projectId = searchParams.get("project_id") || "default";
+  const programId = searchParams.get("program_id") || projectId;
   const urlMethodology = searchParams.get("methodology");
   const tabs = Array.from(document.querySelectorAll(".workspace-tab"));
   let workspaceState = null;
@@ -183,6 +190,16 @@ const initWorkspace = () => {
     gantt: null,
     viewMode: "Week",
     loading: null,
+  };
+  const dependencyMapState = {
+    nodes: [],
+    links: [],
+    simulation: null,
+    loading: null,
+  };
+  const roadmapState = {
+    phases: [],
+    milestones: [],
   };
 
   const setActiveTab = (targetTab) => {
@@ -650,6 +667,24 @@ const initWorkspace = () => {
     return scheduleState.loading;
   };
 
+  const loadD3Library = () => {
+    if (window.d3) {
+      return Promise.resolve();
+    }
+    if (dependencyMapState.loading) {
+      return dependencyMapState.loading;
+    }
+    dependencyMapState.loading = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://d3js.org/d3.v7.min.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Unable to load D3.js."));
+      document.body.appendChild(script);
+    });
+    return dependencyMapState.loading;
+  };
+
   const loadSchedule = async () => {
     const status = document.getElementById("gantt-status");
     if (status) {
@@ -716,6 +751,357 @@ const initWorkspace = () => {
     loadWbs();
   };
 
+  const updateDependencyDetails = (node) => {
+    const details = document.getElementById("dependency-map-details");
+    if (!details) {
+      return;
+    }
+    if (!node) {
+      details.innerHTML = `
+        <p class="dependency-map-empty">Hover a node to see dependency details.</p>
+      `;
+      return;
+    }
+    details.innerHTML = `
+      <div class="dependency-map-detail-card">
+        <h4>${node.label}</h4>
+        <p class="dependency-map-detail-type">${node.type}</p>
+        <div class="dependency-map-detail-grid">
+          <div>
+            <span>Status</span>
+            <strong>${node.status || "Pending"}</strong>
+          </div>
+          <div>
+            <span>Owner</span>
+            <strong>${node.owner || "Unassigned"}</strong>
+          </div>
+        </div>
+        <p class="dependency-map-detail-summary">${node.summary || "No summary provided."}</p>
+        ${
+          node.url
+            ? `<button type="button" class="secondary" data-open-url="${node.url}">
+                Open item
+              </button>`
+            : ""
+        }
+      </div>
+    `;
+    const openButton = details.querySelector("[data-open-url]");
+    if (openButton) {
+      openButton.addEventListener("click", () => {
+        const url = openButton.dataset.openUrl;
+        if (url) {
+          window.location.href = url;
+        }
+      });
+    }
+  };
+
+  const renderDependencyMap = () => {
+    const container = document.getElementById("dependency-map");
+    if (!container || !window.d3) {
+      return;
+    }
+    if (dependencyMapState.simulation) {
+      dependencyMapState.simulation.stop();
+    }
+    container.innerHTML = "";
+    const width = container.clientWidth || 640;
+    const height = container.clientHeight || 420;
+    const svg = window.d3
+      .create("svg")
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("role", "img")
+      .attr("aria-label", "Dependency map visualization");
+
+    const linkGroup = svg.append("g").attr("stroke", "#94a3b8").attr("stroke-opacity", 0.7);
+    const nodeGroup = svg.append("g").attr("stroke", "#ffffff").attr("stroke-width", 1.2);
+
+    const tooltip = document.getElementById("dependency-map-tooltip");
+    const color = window.d3
+      .scaleOrdinal()
+      .domain(["program", "project", "task", "milestone"])
+      .range(["#2563eb", "#0f766e", "#7c3aed", "#f97316"]);
+
+    const nodes = dependencyMapState.nodes.map((node) => ({ ...node }));
+    const links = dependencyMapState.links.map((link) => ({ ...link }));
+
+    const simulation = window.d3
+      .forceSimulation(nodes)
+      .force(
+        "link",
+        window.d3
+          .forceLink(links)
+          .id((d) => d.id)
+          .distance(140)
+          .strength(0.6),
+      )
+      .force("charge", window.d3.forceManyBody().strength(-320))
+      .force("center", window.d3.forceCenter(width / 2, height / 2))
+      .force("collision", window.d3.forceCollide().radius(42));
+
+    const link = linkGroup
+      .selectAll("line")
+      .data(links)
+      .enter()
+      .append("line")
+      .attr("stroke-width", (d) => (d.critical ? 2.6 : 1.2))
+      .attr("stroke-dasharray", (d) => (d.kind === "soft" ? "4 4" : "0"));
+
+    const node = nodeGroup
+      .selectAll("circle")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("r", 18)
+      .attr("fill", (d) => color(d.type))
+      .attr("tabindex", 0)
+      .attr("role", "button")
+      .attr("aria-label", (d) => `${d.label} dependency node`)
+      .on("mouseover", (event, d) => {
+        updateDependencyDetails(d);
+        if (tooltip) {
+          tooltip.classList.add("is-visible");
+          tooltip.innerHTML = `
+            <strong>${d.label}</strong>
+            <span>${d.type} · ${d.status || "pending"}</span>
+          `;
+        }
+      })
+      .on("mousemove", (event) => {
+        if (!tooltip) {
+          return;
+        }
+        tooltip.style.left = `${event.offsetX + 16}px`;
+        tooltip.style.top = `${event.offsetY + 16}px`;
+      })
+      .on("mouseout", () => {
+        updateDependencyDetails(null);
+        if (tooltip) {
+          tooltip.classList.remove("is-visible");
+        }
+      })
+      .on("click", (event, d) => {
+        if (d.url) {
+          window.location.href = d.url;
+        }
+      });
+
+    const label = svg
+      .append("g")
+      .selectAll("text")
+      .data(nodes)
+      .enter()
+      .append("text")
+      .text((d) => d.label)
+      .attr("font-size", 11)
+      .attr("fill", "#1f2937")
+      .attr("text-anchor", "middle")
+      .attr("dy", 32);
+
+    simulation.on("tick", () => {
+      link
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
+      node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+      label.attr("x", (d) => d.x).attr("y", (d) => d.y);
+    });
+
+    dependencyMapState.simulation = simulation;
+    container.appendChild(svg.node());
+  };
+
+  const loadDependencyMap = async () => {
+    const status = document.getElementById("dependency-map-status");
+    if (status) {
+      status.textContent = "Loading dependency map...";
+    }
+    const response = await fetch(`/api/dependency-map/${programId}`);
+    if (!response.ok) {
+      if (status) {
+        status.textContent = "Unable to load dependency map.";
+        status.classList.add("is-error");
+      }
+      return;
+    }
+    const payload = await response.json();
+    dependencyMapState.nodes = payload.nodes || [];
+    dependencyMapState.links = payload.links || [];
+    if (status) {
+      status.textContent = `${dependencyMapState.nodes.length} nodes loaded.`;
+      status.classList.remove("is-error");
+    }
+  };
+
+  const renderDependencyMapCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="dependency-map-canvas">
+        <header class="dependency-map-header">
+          <div>
+            <h3>Dependency map</h3>
+            <p class="dependency-map-subtitle">Visualize cross-project risks and upstream blockers.</p>
+          </div>
+          <button type="button" class="secondary" id="dependency-map-refresh">Refresh</button>
+        </header>
+        <div class="dependency-map-body">
+          <div class="dependency-map-chart" id="dependency-map">
+            <div class="dependency-map-tooltip" id="dependency-map-tooltip"></div>
+          </div>
+          <aside class="dependency-map-details" id="dependency-map-details">
+            <p class="dependency-map-empty">Hover a node to see dependency details.</p>
+          </aside>
+        </div>
+        <p class="dependency-map-status" id="dependency-map-status" role="status" aria-live="polite"></p>
+      </div>
+    `;
+    const refreshButton = document.getElementById("dependency-map-refresh");
+    if (refreshButton) {
+      refreshButton.addEventListener("click", () => {
+        loadDependencyMap()
+          .then(() => renderDependencyMap())
+          .catch(() => {
+            const status = document.getElementById("dependency-map-status");
+            if (status) {
+              status.textContent = "Dependency map failed to refresh.";
+              status.classList.add("is-error");
+            }
+          });
+      });
+    }
+    loadD3Library()
+      .then(loadDependencyMap)
+      .then(() => renderDependencyMap())
+      .catch(() => {
+        const status = document.getElementById("dependency-map-status");
+        if (status) {
+          status.textContent = "Dependency map visualization failed to load.";
+          status.classList.add("is-error");
+        }
+      });
+  };
+
+  const formatRoadmapDate = (value) => {
+    if (!value) {
+      return "--";
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+
+  const renderProgramRoadmapCanvas = () => {
+    const canvas = document.querySelector(".workspace-canvas");
+    if (!canvas) {
+      return;
+    }
+    canvas.innerHTML = `
+      <div class="roadmap-canvas">
+        <header class="roadmap-header">
+          <div>
+            <h3>Program roadmap</h3>
+            <p class="roadmap-subtitle">Track phases, milestones, and key delivery checkpoints.</p>
+          </div>
+          <button type="button" class="secondary" id="roadmap-refresh">Refresh</button>
+        </header>
+        <div class="roadmap-body" id="roadmap-body">
+          <p>Loading roadmap...</p>
+        </div>
+        <p class="roadmap-status" id="roadmap-status" role="status" aria-live="polite"></p>
+      </div>
+    `;
+    const refreshButton = document.getElementById("roadmap-refresh");
+    if (refreshButton) {
+      refreshButton.addEventListener("click", () => {
+        loadProgramRoadmap();
+      });
+    }
+    loadProgramRoadmap();
+  };
+
+  const renderRoadmap = () => {
+    const container = document.getElementById("roadmap-body");
+    if (!container) {
+      return;
+    }
+    const milestoneLookup = roadmapState.milestones.reduce((acc, milestone) => {
+      if (!acc[milestone.phase_id]) {
+        acc[milestone.phase_id] = [];
+      }
+      acc[milestone.phase_id].push(milestone);
+      return acc;
+    }, {});
+    container.innerHTML = roadmapState.phases
+      .map((phase) => {
+        const milestones = milestoneLookup[phase.id] || [];
+        const milestoneMarkup = milestones.length
+          ? milestones
+              .map(
+                (milestone) => `
+                  <li>
+                    <span class="roadmap-milestone-name">${milestone.name}</span>
+                    <span class="roadmap-milestone-date">${formatRoadmapDate(
+                      milestone.date,
+                    )}</span>
+                    <span class="roadmap-milestone-status">${milestone.status}</span>
+                  </li>
+                `,
+              )
+              .join("")
+          : "<li class=\"roadmap-milestone-empty\">No milestones scheduled.</li>";
+        return `
+          <section class="roadmap-phase">
+            <div class="roadmap-phase-header">
+              <div>
+                <h4>${phase.name}</h4>
+                <p>${phase.summary || "High-level phase delivery summary."}</p>
+              </div>
+              <div class="roadmap-phase-meta">
+                <span>${formatRoadmapDate(phase.start)} → ${formatRoadmapDate(phase.end)}</span>
+                <span>${phase.owner || "Unassigned"}</span>
+                <span class="roadmap-phase-status">${phase.status}</span>
+              </div>
+            </div>
+            <div class="roadmap-phase-bar">
+              <div class="roadmap-phase-progress" style="width: ${phase.progress}%;"></div>
+            </div>
+            <ul class="roadmap-milestones">${milestoneMarkup}</ul>
+          </section>
+        `;
+      })
+      .join("");
+  };
+
+  const loadProgramRoadmap = async () => {
+    const status = document.getElementById("roadmap-status");
+    if (status) {
+      status.textContent = "Loading program roadmap...";
+    }
+    const response = await fetch(`/api/program-roadmap/${programId}`);
+    if (!response.ok) {
+      if (status) {
+        status.textContent = "Unable to load program roadmap.";
+        status.classList.add("is-error");
+      }
+      return;
+    }
+    const payload = await response.json();
+    roadmapState.phases = payload.phases || [];
+    roadmapState.milestones = payload.milestones || [];
+    renderRoadmap();
+    if (status) {
+      status.textContent = `${roadmapState.phases.length} phases loaded.`;
+      status.classList.remove("is-error");
+    }
+  };
+
   const renderTimelineCanvas = () => {
     const canvas = document.querySelector(".workspace-canvas");
     if (!canvas) {
@@ -780,6 +1166,14 @@ const initWorkspace = () => {
     }
     if (tabName === "timeline") {
       renderTimelineCanvas();
+      return;
+    }
+    if (tabName === "dependency-map") {
+      renderDependencyMapCanvas();
+      return;
+    }
+    if (tabName === "program-roadmap") {
+      renderProgramRoadmapCanvas();
       return;
     }
     canvas.innerHTML = `<p>${tabName} canvas is not available in this view.</p>`;
@@ -892,6 +1286,16 @@ const initWorkspace = () => {
       nextSteps.push("Review dependency links and validate critical path overlaps.");
       nextSteps.push("Use zoom controls to switch between week and month views.");
       nextSteps.push("Confirm schedule dates with delivery owners before exporting.");
+    }
+    if (payload.current_canvas_tab === "dependency-map") {
+      nextSteps.push("Hover nodes to review upstream/downstream dependency context.");
+      nextSteps.push("Click an item to open the related project or task.");
+      nextSteps.push("Identify critical links and flag blockers early.");
+    }
+    if (payload.current_canvas_tab === "program-roadmap") {
+      nextSteps.push("Review phase owners and confirm milestone dates.");
+      nextSteps.push("Use progress bars to spot delivery slippage.");
+      nextSteps.push("Align upcoming milestones with governance checkpoints.");
     }
     const nextStepsMarkup = nextSteps.length
       ? `

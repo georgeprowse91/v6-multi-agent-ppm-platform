@@ -257,6 +257,57 @@ class ScheduleResponse(BaseModel):
     tasks: list[ScheduleTask] = Field(default_factory=list)
 
 
+class DependencyNode(BaseModel):
+    id: str
+    label: str
+    type: Literal["program", "project", "task", "milestone"]
+    status: str | None = None
+    owner: str | None = None
+    summary: str | None = None
+    url: str | None = None
+
+
+class DependencyLink(BaseModel):
+    source: str
+    target: str
+    kind: Literal["hard", "soft"] = "hard"
+    critical: bool = False
+
+
+class DependencyMapResponse(BaseModel):
+    program_id: str
+    generated_at: str
+    nodes: list[DependencyNode] = Field(default_factory=list)
+    links: list[DependencyLink] = Field(default_factory=list)
+
+
+class RoadmapPhase(BaseModel):
+    id: str
+    name: str
+    start: str
+    end: str
+    owner: str | None = None
+    status: Literal["planned", "in_progress", "at_risk", "complete"] = "planned"
+    progress: int = Field(ge=0, le=100)
+    summary: str | None = None
+
+
+class RoadmapMilestone(BaseModel):
+    id: str
+    name: str
+    date: str
+    phase_id: str
+    status: Literal["planned", "in_progress", "complete"] = "planned"
+    owner: str | None = None
+
+
+class ProgramRoadmapResponse(BaseModel):
+    program_id: str
+    generated_at: str
+    phases: list[RoadmapPhase] = Field(default_factory=list)
+    milestones: list[RoadmapMilestone] = Field(default_factory=list)
+
+
 class RoleAssignment(BaseModel):
     user_id: str
     role_ids: list[str] = Field(default_factory=list)
@@ -790,6 +841,196 @@ def _get_demo_schedule(project_id: str) -> list[ScheduleTask]:
     if project_id not in _demo_schedule_state:
         _demo_schedule_state[project_id] = _default_schedule_tasks(project_id)
     return _demo_schedule_state[project_id]
+
+
+def _mock_dependency_map(program_id: str) -> DependencyMapResponse:
+    now = datetime.now(timezone.utc).isoformat()
+    nodes = [
+        DependencyNode(
+            id=f"{program_id}-program",
+            label="Digital Core Program",
+            type="program",
+            status="in_progress",
+            owner="PMO",
+            summary="Modernize core platforms and data foundations.",
+            url=f"/workspace?program_id={program_id}",
+        ),
+        DependencyNode(
+            id=f"{program_id}-proj-crm",
+            label="CRM migration",
+            type="project",
+            status="at_risk",
+            owner="Revenue Ops",
+            summary="Move sales workflows to new CRM environment.",
+            url="/workspace?project_id=crm-migration",
+        ),
+        DependencyNode(
+            id=f"{program_id}-proj-data",
+            label="Data lake uplift",
+            type="project",
+            status="in_progress",
+            owner="Data Platform",
+            summary="Harden ingestion pipelines and governance rules.",
+            url="/workspace?project_id=data-lake-uplift",
+        ),
+        DependencyNode(
+            id=f"{program_id}-task-api",
+            label="API gateway cutover",
+            type="task",
+            status="planned",
+            owner="Engineering",
+            summary="Finalize gateway routes before CRM launch.",
+            url="/workspace?project_id=crm-migration&canvas=dependency-map",
+        ),
+        DependencyNode(
+            id=f"{program_id}-task-privacy",
+            label="Privacy review",
+            type="task",
+            status="in_progress",
+            owner="Security",
+            summary="Run DPIA and retention review for new data lake.",
+            url="/workspace?project_id=data-lake-uplift&canvas=dependency-map",
+        ),
+        DependencyNode(
+            id=f"{program_id}-milestone-ga",
+            label="Program launch",
+            type="milestone",
+            status="planned",
+            owner="PMO",
+            summary="Go-live for the unified platform release.",
+            url="/workspace?program_id=launch",
+        ),
+    ]
+    links = [
+        DependencyLink(
+            source=f"{program_id}-program",
+            target=f"{program_id}-proj-crm",
+            kind="hard",
+            critical=True,
+        ),
+        DependencyLink(
+            source=f"{program_id}-program",
+            target=f"{program_id}-proj-data",
+            kind="hard",
+            critical=False,
+        ),
+        DependencyLink(
+            source=f"{program_id}-proj-crm",
+            target=f"{program_id}-task-api",
+            kind="soft",
+            critical=True,
+        ),
+        DependencyLink(
+            source=f"{program_id}-proj-data",
+            target=f"{program_id}-task-privacy",
+            kind="hard",
+            critical=False,
+        ),
+        DependencyLink(
+            source=f"{program_id}-task-api",
+            target=f"{program_id}-milestone-ga",
+            kind="hard",
+            critical=True,
+        ),
+        DependencyLink(
+            source=f"{program_id}-task-privacy",
+            target=f"{program_id}-milestone-ga",
+            kind="soft",
+            critical=False,
+        ),
+    ]
+    return DependencyMapResponse(
+        program_id=program_id,
+        generated_at=now,
+        nodes=nodes,
+        links=links,
+    )
+
+
+def _mock_program_roadmap(program_id: str) -> ProgramRoadmapResponse:
+    now = datetime.now(timezone.utc).isoformat()
+    phases = [
+        RoadmapPhase(
+            id=f"{program_id}-phase-discovery",
+            name="Discovery & alignment",
+            start="2024-10-07",
+            end="2024-11-15",
+            owner="Strategy",
+            status="complete",
+            progress=100,
+            summary="Scope the program charter and align executive sponsors.",
+        ),
+        RoadmapPhase(
+            id=f"{program_id}-phase-design",
+            name="Design & architecture",
+            start="2024-11-18",
+            end="2025-01-10",
+            owner="Enterprise Architecture",
+            status="in_progress",
+            progress=68,
+            summary="Define integration patterns and readiness checkpoints.",
+        ),
+        RoadmapPhase(
+            id=f"{program_id}-phase-delivery",
+            name="Delivery waves",
+            start="2025-01-13",
+            end="2025-04-18",
+            owner="Delivery",
+            status="at_risk",
+            progress=42,
+            summary="Execute release waves with partner teams.",
+        ),
+        RoadmapPhase(
+            id=f"{program_id}-phase-rollout",
+            name="Rollout & adoption",
+            start="2025-04-21",
+            end="2025-06-06",
+            owner="Change Management",
+            status="planned",
+            progress=10,
+            summary="Train end users and monitor adoption KPIs.",
+        ),
+    ]
+    milestones = [
+        RoadmapMilestone(
+            id=f"{program_id}-ms-charter",
+            name="Charter signed",
+            date="2024-11-12",
+            phase_id=f"{program_id}-phase-discovery",
+            status="complete",
+            owner="PMO",
+        ),
+        RoadmapMilestone(
+            id=f"{program_id}-ms-arch",
+            name="Architecture review",
+            date="2024-12-20",
+            phase_id=f"{program_id}-phase-design",
+            status="in_progress",
+            owner="Architecture",
+        ),
+        RoadmapMilestone(
+            id=f"{program_id}-ms-wave1",
+            name="Wave 1 launch",
+            date="2025-02-14",
+            phase_id=f"{program_id}-phase-delivery",
+            status="planned",
+            owner="Delivery",
+        ),
+        RoadmapMilestone(
+            id=f"{program_id}-ms-rollout",
+            name="Adoption checkpoint",
+            date="2025-05-09",
+            phase_id=f"{program_id}-phase-rollout",
+            status="planned",
+            owner="Change",
+        ),
+    ]
+    return ProgramRoadmapResponse(
+        program_id=program_id,
+        generated_at=now,
+        phases=phases,
+        milestones=milestones,
+    )
 
 
 def _mock_portfolio_health(portfolio_id: str | None, project_id: str | None) -> dict[str, Any]:
@@ -3202,6 +3443,18 @@ async def get_schedule(project_id: str, request: Request) -> ScheduleResponse:
         updated_at=datetime.now(timezone.utc).isoformat(),
         tasks=tasks,
     )
+
+
+@api_router.get("/api/dependency-map/{program_id}", response_model=DependencyMapResponse)
+async def get_dependency_map(program_id: str, request: Request) -> DependencyMapResponse:
+    _require_session(request)
+    return _mock_dependency_map(program_id)
+
+
+@api_router.get("/api/program-roadmap/{program_id}", response_model=ProgramRoadmapResponse)
+async def get_program_roadmap(program_id: str, request: Request) -> ProgramRoadmapResponse:
+    _require_session(request)
+    return _mock_program_roadmap(program_id)
 
 
 @api_router.get("/api/spreadsheets/{project_id}/sheets", response_model=list[Sheet])
