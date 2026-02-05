@@ -46,6 +46,21 @@ def test_patch_wbs_updates_order(client, monkeypatch):
     assert stored["order"] == 42
 
 
+def test_patch_wbs_rejects_updates_when_not_in_demo_mode(client, monkeypatch):
+    monkeypatch.setenv("AUTH_DEV_TENANT_ID", "tenant-a")
+    monkeypatch.setenv("DEMO_MODE", "false")
+    initial = client.get("/api/wbs/demo-1").json()
+    item_id = initial["items"][0]["id"]
+
+    response = client.patch(
+        "/api/wbs/demo-1",
+        json={"item_id": item_id, "parent_id": None, "order": 3},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "WBS updates are available in demo mode."
+
+
 def test_get_schedule_returns_tasks(client, monkeypatch):
     monkeypatch.setenv("AUTH_DEV_TENANT_ID", "tenant-a")
     response = client.get("/api/schedule/demo-1")
@@ -53,3 +68,4 @@ def test_get_schedule_returns_tasks(client, monkeypatch):
     payload = response.json()
     assert payload["project_id"] == "demo-1"
     assert payload["tasks"]
+    assert payload["tasks"][1]["dependencies"] == ["demo-1-kickoff"]
