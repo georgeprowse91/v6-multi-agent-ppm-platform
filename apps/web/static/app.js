@@ -4,6 +4,37 @@ const setStatus = (element, message, ok = true) => {
   element.classList.add(ok ? "ok" : "error");
 };
 
+const DEMO_QUERY_PARAM = "demo";
+const DEMO_SCENARIO_BASE = "/examples/demo-scenarios";
+const DEMO_PROJECT_ID = "demo-1";
+const DEMO_PROGRAM_ID = "launch";
+const DEMO_SCENARIO_CACHE = new Map();
+
+const isProductionMode = () => {
+  const envFlag = document.documentElement?.dataset?.environment;
+  if (envFlag) {
+    return envFlag === "production";
+  }
+  const hostname = window.location.hostname;
+  return hostname && hostname !== "localhost" && hostname !== "127.0.0.1";
+};
+
+const isDemoMode = (searchParams) =>
+  searchParams.get(DEMO_QUERY_PARAM) === "true" && !isProductionMode();
+
+const loadDemoScenario = async (filename) => {
+  if (DEMO_SCENARIO_CACHE.has(filename)) {
+    return DEMO_SCENARIO_CACHE.get(filename);
+  }
+  const response = await fetch(`${DEMO_SCENARIO_BASE}/${filename}`);
+  if (!response.ok) {
+    throw new Error(`Unable to load demo scenario: ${filename}`);
+  }
+  const payload = await response.json();
+  DEMO_SCENARIO_CACHE.set(filename, payload);
+  return payload;
+};
+
 const governancePages = [
   {
     path: "/approvals",
@@ -32,17 +63,18 @@ const governancePages = [
   },
 ];
 
-const renderGovernanceLinks = () => {
+const renderGovernanceLinks = (demoQueryString) => {
   const container = document.getElementById("governance-links-list");
   if (!container) {
     return;
   }
+  const querySuffix = demoQueryString ? `?${demoQueryString}` : "";
   const linksMarkup = governancePages
     .map(
       (page) => `
         <li class="list-item">
           <article>
-            <a href="${page.path}">${page.title}</a>
+            <a href="${page.path}${querySuffix}">${page.title}</a>
             <p class="meta">${page.description}</p>
           </article>
         </li>
@@ -109,8 +141,18 @@ const startWorkflow = async (workflowOutput) => {
   workflowOutput.textContent = JSON.stringify(payload, null, 2);
 };
 
-const renderWorkspaceShell = () => {
+const renderWorkspaceShell = ({ demoQueryString, showDemoControls } = {}) => {
   document.body.classList.add("workspace-body");
+  const querySuffix = demoQueryString ? `?${demoQueryString}` : "";
+  const demoControlMarkup = showDemoControls
+    ? `
+        <div class="workspace-demo-actions">
+          <button type="button" class="secondary" id="demo-tour-start">
+            Start guided tour
+          </button>
+        </div>
+      `
+    : "";
   const topNavItems = [
     { path: "/approvals", label: "Approvals" },
     { path: "/workflow-monitoring", label: "Monitoring" },
@@ -127,7 +169,7 @@ const renderWorkspaceShell = () => {
       return `
         <a
           class="workspace-top-link${isActive ? " is-active" : ""}"
-          href="${item.path}"
+          href="${item.path}${querySuffix}"
           ${isActive ? 'aria-current="page"' : ""}
         >
           ${item.label}
@@ -143,6 +185,7 @@ const renderWorkspaceShell = () => {
         <nav class="workspace-topbar-links" aria-label="Workspace sections">
           ${topNavLinks}
         </nav>
+        ${demoControlMarkup}
         <button
           type="button"
           class="workspace-nav-toggle"
@@ -275,7 +318,20 @@ const renderWorkspaceShell = () => {
 };
 
 const initWorkspace = () => {
-  renderWorkspaceShell();
+  const searchParams = new URLSearchParams(window.location.search);
+  const demoMode = isDemoMode(searchParams);
+  const demoQueryString = demoMode ? `${DEMO_QUERY_PARAM}=true` : "";
+  const projectId = demoMode
+    ? searchParams.get("project_id") || DEMO_PROJECT_ID
+    : searchParams.get("project_id") || "default";
+  const programId = demoMode
+    ? searchParams.get("program_id") || DEMO_PROGRAM_ID
+    : searchParams.get("program_id") || projectId;
+  const urlMethodology = searchParams.get("methodology");
+
+  document.body.dataset.demo = demoMode ? "true" : "false";
+
+  renderWorkspaceShell({ demoQueryString, showDemoControls: demoMode });
   const workspaceShell = document.querySelector(".workspace-shell");
   const navToggle = document.getElementById("workspace-nav-toggle");
   const navOverlay = document.getElementById("workspace-nav-overlay");
@@ -318,10 +374,6 @@ const initWorkspace = () => {
   }
   const sessionInfo = document.getElementById("workspace-session");
   loadSession(sessionInfo);
-  const searchParams = new URLSearchParams(window.location.search);
-  const projectId = searchParams.get("project_id") || "default";
-  const programId = searchParams.get("program_id") || projectId;
-  const urlMethodology = searchParams.get("methodology");
   const tabs = Array.from(document.querySelectorAll(".workspace-tab"));
   let workspaceState = null;
   let activityIndex = new Map();
@@ -590,22 +642,37 @@ const initWorkspace = () => {
     if (status) {
       status.textContent = "Loading portfolio health...";
     }
-    const response = await fetch(`/api/portfolio-health?project_id=${projectId}`);
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
+    try {
+      let payload = null;
+      if (demoMode) {
+        payload = await loadDemoScenario("portfolio-health.json");
+      } else {
+        const response = await fetch(`/api/portfolio-health?project_id=${projectId}`);
+        payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(
+            payload?.detail ||
+              payload?.message ||
+              "Portfolio health failed to load.",
+          );
+        }
+      }
+      if (!payload) {
+        throw new Error("Missing portfolio health data.");
+      }
+      dashboardState.errors.portfolio = "";
+      if (status) {
+        status.textContent = demoMode ? "Demo data loaded." : "Updated just now.";
+      }
+      renderPortfolioKpis(payload.kpis);
+      await renderPortfolioChart(payload.kpis);
+    } catch (error) {
       dashboardState.errors.portfolio =
-        payload?.detail || payload?.message || "Portfolio health failed to load.";
+        error?.message || "Portfolio health failed to load.";
       if (status) {
         status.textContent = "Unable to load portfolio health.";
       }
-      return;
     }
-    dashboardState.errors.portfolio = "";
-    if (status) {
-      status.textContent = "Updated just now.";
-    }
-    renderPortfolioKpis(payload.kpis);
-    await renderPortfolioChart(payload.kpis);
   };
 
   const loadDashboardLifecycle = async () => {
@@ -613,22 +680,37 @@ const initWorkspace = () => {
     if (status) {
       status.textContent = "Loading lifecycle metrics...";
     }
-    const response = await fetch(`/api/lifecycle-metrics?project_id=${projectId}`);
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
+    try {
+      let payload = null;
+      if (demoMode) {
+        payload = await loadDemoScenario("lifecycle-metrics.json");
+      } else {
+        const response = await fetch(`/api/lifecycle-metrics?project_id=${projectId}`);
+        payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(
+            payload?.detail ||
+              payload?.message ||
+              "Lifecycle metrics failed to load.",
+          );
+        }
+      }
+      if (!payload) {
+        throw new Error("Missing lifecycle metrics.");
+      }
+      dashboardState.errors.lifecycle = "";
+      if (status) {
+        status.textContent = demoMode ? "Demo data loaded." : "Updated just now.";
+      }
+      renderLifecycleStages(payload.stage_gates);
+      await renderLifecycleChart(payload.stage_gates);
+    } catch (error) {
       dashboardState.errors.lifecycle =
-        payload?.detail || payload?.message || "Lifecycle metrics failed to load.";
+        error?.message || "Lifecycle metrics failed to load.";
       if (status) {
         status.textContent = "Unable to load lifecycle metrics.";
       }
-      return;
     }
-    dashboardState.errors.lifecycle = "";
-    if (status) {
-      status.textContent = "Updated just now.";
-    }
-    renderLifecycleStages(payload.stage_gates);
-    await renderLifecycleChart(payload.stage_gates);
   };
 
   const renderDashboardCanvas = () => {
@@ -681,16 +763,28 @@ const initWorkspace = () => {
 
   const loadWbs = async () => {
     setWbsStatus("Loading WBS...");
-    const response = await fetch(`/api/wbs/${projectId}`);
-    if (!response.ok) {
+    try {
+      let payload = null;
+      if (demoMode) {
+        payload = await loadDemoScenario("wbs.json");
+      } else {
+        const response = await fetch(`/api/wbs/${projectId}`);
+        if (!response.ok) {
+          throw new Error("Unable to load WBS data.");
+        }
+        payload = await response.json();
+      }
+      wbsState.items = payload.items || [];
+      wbsState.lastUpdated = payload.updated_at || "";
+      renderWbsList();
+      setWbsStatus(
+        demoMode
+          ? `${wbsState.items.length} demo WBS items loaded.`
+          : `${wbsState.items.length} WBS items loaded.`,
+      );
+    } catch (error) {
       setWbsStatus("Unable to load WBS data.", true);
-      return;
     }
-    const payload = await response.json();
-    wbsState.items = payload.items || [];
-    wbsState.lastUpdated = payload.updated_at || "";
-    renderWbsList();
-    setWbsStatus(`${wbsState.items.length} WBS items loaded.`);
   };
 
   const updateWbsItem = async (itemId, parentId, order) => {
@@ -848,19 +942,29 @@ const initWorkspace = () => {
     if (status) {
       status.textContent = "Loading schedule...";
     }
-    const response = await fetch(`/api/schedule/${projectId}`);
-    if (!response.ok) {
+    try {
+      let payload = null;
+      if (demoMode) {
+        payload = await loadDemoScenario("schedule.json");
+      } else {
+        const response = await fetch(`/api/schedule/${projectId}`);
+        if (!response.ok) {
+          throw new Error("Unable to load schedule.");
+        }
+        payload = await response.json();
+      }
+      scheduleState.tasks = payload.tasks || [];
+      if (status) {
+        status.textContent = demoMode
+          ? `${scheduleState.tasks.length} demo tasks loaded.`
+          : `${scheduleState.tasks.length} tasks loaded.`;
+        status.classList.remove("is-error");
+      }
+    } catch (error) {
       if (status) {
         status.textContent = "Unable to load schedule.";
         status.classList.add("is-error");
       }
-      return;
-    }
-    const payload = await response.json();
-    scheduleState.tasks = payload.tasks || [];
-    if (status) {
-      status.textContent = `${scheduleState.tasks.length} tasks loaded.`;
-      status.classList.remove("is-error");
     }
   };
 
@@ -1730,6 +1834,147 @@ const initWorkspace = () => {
     updateWorkspaceUI(payload);
   };
 
+  const activateTabByName = (tabName) => {
+    const targetTab = tabs.find((tab) => tab.dataset.canvasTab === tabName);
+    if (targetTab) {
+      targetTab.click();
+    }
+  };
+
+  const loadShepherdAssets = () => {
+    if (window.Shepherd) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      const stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.href =
+        "https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/css/shepherd.css";
+      document.head.appendChild(stylesheet);
+
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/js/shepherd.min.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Shepherd.js failed to load."));
+      document.head.appendChild(script);
+    });
+  };
+
+  let demoTour = null;
+
+  const buildDemoTour = () => {
+    if (!window.Shepherd) {
+      return null;
+    }
+    const tour = new window.Shepherd.Tour({
+      useModalOverlay: true,
+      defaultStepOptions: {
+        cancelIcon: { enabled: true },
+        scrollTo: { behavior: "smooth", block: "center" },
+      },
+    });
+
+    const addStepIfPresent = (step) => {
+      if (!step.attachTo?.element) {
+        tour.addStep(step);
+        return;
+      }
+      if (document.querySelector(step.attachTo.element)) {
+        tour.addStep(step);
+      }
+    };
+
+    addStepIfPresent({
+      id: "login-status",
+      title: "Login status",
+      text: "Confirm authentication state and tenant context here.",
+      attachTo: { element: "#workspace-session", on: "right" },
+    });
+
+    addStepIfPresent({
+      id: "navigation",
+      title: "Navigation hub",
+      text: "Jump between governance areas from the top navigation.",
+      attachTo: { element: ".workspace-topbar-links", on: "bottom" },
+    });
+
+    addStepIfPresent({
+      id: "dashboard",
+      title: "Dashboard insights",
+      text: "Demo KPIs and stage-gate metrics live in the dashboard tab.",
+      attachTo: { element: "#canvas-tab-dashboard", on: "bottom" },
+      beforeShowPromise: () =>
+        new Promise((resolve) => {
+          activateTabByName("dashboard");
+          setTimeout(resolve, 300);
+        }),
+    });
+
+    addStepIfPresent({
+      id: "wbs",
+      title: "WBS editing",
+      text: "Drag and reorder work packages to tune scope and ownership.",
+      attachTo: { element: "#wbs-list", on: "right" },
+      beforeShowPromise: () =>
+        new Promise((resolve) => {
+          activateTabByName("tree");
+          setTimeout(resolve, 300);
+        }),
+    });
+
+    addStepIfPresent({
+      id: "dependency-map",
+      title: "Dependency map",
+      text: "Visualize upstream blockers and cross-project risks here.",
+      attachTo: { element: "#dependency-map", on: "left" },
+      beforeShowPromise: () =>
+        new Promise((resolve) => {
+          activateTabByName("dependency-map");
+          setTimeout(resolve, 300);
+        }),
+    });
+
+    addStepIfPresent({
+      id: "approvals",
+      title: "Approvals workspace",
+      text: "Open approvals to review stage-gate, budget, and vendor decisions.",
+      attachTo: { element: 'a[href^="/approvals"]', on: "bottom" },
+    });
+
+    addStepIfPresent({
+      id: "document-search",
+      title: "Document search",
+      text: "Search the knowledge base for evidence, risks, and deliverables.",
+      attachTo: { element: 'a[href^="/document-search"]', on: "bottom" },
+    });
+
+    return tour;
+  };
+
+  const startGuidedTour = async () => {
+    if (!demoMode || isProductionMode()) {
+      return;
+    }
+    await loadShepherdAssets();
+    if (!demoTour) {
+      demoTour = buildDemoTour();
+    }
+    if (demoTour) {
+      demoTour.start();
+    }
+  };
+
+  const skipGuidedTour = () => {
+    demoTour?.cancel();
+  };
+
+  if (demoMode) {
+    window.startGuidedTour = startGuidedTour;
+    window.skipGuidedTour = skipGuidedTour;
+  }
+
   tabs.forEach((tab) => {
     const activateTab = () => {
       setActiveTab(tab);
@@ -1774,7 +2019,16 @@ const initWorkspace = () => {
     }
   });
 
-  loadWorkspaceState();
+  loadWorkspaceState().then(() => {
+    if (demoMode) {
+      startGuidedTour();
+    }
+  });
+
+  const startTourButton = document.getElementById("demo-tour-start");
+  if (startTourButton) {
+    startTourButton.addEventListener("click", () => startGuidedTour());
+  }
 };
 
 const initConsole = () => {
@@ -1795,18 +2049,147 @@ const initConsole = () => {
     .getElementById("start-workflow")
     .addEventListener("click", () => startWorkflow(workflowOutput));
 
-  renderGovernanceLinks();
+  const searchParams = new URLSearchParams(window.location.search);
+  const demoMode = isDemoMode(searchParams);
+  const demoQueryString = demoMode ? `${DEMO_QUERY_PARAM}=true` : "";
+  renderGovernanceLinks(demoQueryString);
   loadSession(sessionInfo);
+};
+
+const renderDemoApprovalData = async () => {
+  try {
+    const payload = await loadDemoScenario("approvals.json");
+    const title = document.getElementById("approval-title");
+    if (title && payload?.pending_count !== undefined) {
+      title.textContent = `Approvals ▸ Pending (${payload.pending_count})`;
+    }
+    const queueList = document.getElementById("approval-queue-list");
+    if (queueList && Array.isArray(payload?.queues)) {
+      queueList.innerHTML = payload.queues
+        .map((queue) => `<li class="list-item" role="listitem">${queue}</li>`)
+        .join("");
+    }
+    const approvalsList = document.getElementById("approval-items-list");
+    if (approvalsList && Array.isArray(payload?.approvals)) {
+      approvalsList.innerHTML = payload.approvals
+        .map(
+          (item) => `
+            <li class="list-item" role="listitem">
+              <strong>${item.title}</strong>
+              ${item.meta?.map((meta) => `<p class="meta">${meta}</p>`).join("") || ""}
+              ${
+                item.approvers
+                  ? `<p class="meta">Approvers: ${item.approvers}</p>`
+                  : ""
+              }
+            </li>
+          `,
+        )
+        .join("");
+    }
+    const historyList = document.getElementById("approval-history-list");
+    if (historyList && Array.isArray(payload?.history)) {
+      historyList.innerHTML = payload.history
+        .map(
+          (entry) => `
+            <li class="list-item" role="listitem">
+              <strong>${entry.title}</strong>
+              ${entry.meta?.map((meta) => `<p class="meta">${meta}</p>`).join("") || ""}
+            </li>
+          `,
+        )
+        .join("");
+    }
+    const contextArtefact = document.getElementById("approval-context-artefact");
+    if (contextArtefact && payload?.context?.artefact) {
+      contextArtefact.innerHTML = `<span class="tag">Artefact Preview</span> ${payload.context.artefact}`;
+    }
+    const contextImpact = document.getElementById("approval-context-impact");
+    if (contextImpact && payload?.context?.impact) {
+      contextImpact.innerHTML = `<span class="tag">Impact Summary</span> ${payload.context.impact}`;
+    }
+    const contextFooter = document.getElementById("approval-context-footer");
+    if (contextFooter && payload?.context?.footer) {
+      contextFooter.textContent = payload.context.footer;
+    }
+  } catch (error) {
+    // Keep default static copy if demo assets are missing.
+  }
+};
+
+const renderDemoWorkflowMonitoring = async () => {
+  try {
+    const payload = await loadDemoScenario("workflow-monitoring.json");
+    const statusList = document.getElementById("workflow-status-list");
+    if (statusList && payload?.status_board) {
+      statusList.innerHTML = `
+        <li class="list-item" role="listitem">Healthy ${payload.status_board.healthy}</li>
+        <li class="list-item" role="listitem">Warning ${payload.status_board.warning}</li>
+        <li class="list-item" role="listitem">Failed ${payload.status_board.failed}</li>
+      `;
+    }
+    const runList = document.getElementById("workflow-runs-list");
+    if (runList && Array.isArray(payload?.runs)) {
+      runList.innerHTML = payload.runs
+        .map(
+          (run) => `
+            <li class="list-item" role="listitem">
+              <strong>${run.title} ▸ ${run.status}</strong>
+              <p class="meta">Run ${run.run_id} · ${run.duration} · ${run.owner}</p>
+            </li>
+          `,
+        )
+        .join("");
+    }
+    const detailPanel = document.getElementById("workflow-detail-panel");
+    if (detailPanel && payload?.detail) {
+      detailPanel.innerHTML = `
+        <h2>Detail Panel</h2>
+        <p><span class="tag">Run</span> ${payload.detail.run_id}</p>
+        <p class="meta">${payload.detail.summary}</p>
+        <p class="meta">SLA Status: ${payload.detail.sla}</p>
+        <div class="actions" aria-label="Run actions">
+          <button type="button">Pause</button>
+          <button type="button" class="secondary">Rerun</button>
+        </div>
+      `;
+    }
+    const alertList = document.getElementById("workflow-alerts-list");
+    if (alertList && Array.isArray(payload?.alerts)) {
+      alertList.innerHTML = payload.alerts
+        .map(
+          (alert) => `
+            <li class="list-item" role="listitem">
+              <strong>${alert.title}</strong>
+              <p class="meta">Recommendation: ${alert.recommendation}</p>
+            </li>
+          `,
+        )
+        .join("");
+    }
+  } catch (error) {
+    // Keep default static copy if demo assets are missing.
+  }
 };
 
 const handleRoute = () => {
   const path = window.location.pathname;
+  const searchParams = new URLSearchParams(window.location.search);
+  const demoMode = isDemoMode(searchParams);
   if (path === "/workspace") {
     initWorkspace();
     return;
   }
   if (path === "/" || path === "/index.html") {
     initConsole();
+    return;
+  }
+  if (path === "/approvals" && demoMode) {
+    renderDemoApprovalData();
+    return;
+  }
+  if (path === "/workflow-monitoring" && demoMode) {
+    renderDemoWorkflowMonitoring();
     return;
   }
   if (governancePages.some((page) => page.path === path)) {

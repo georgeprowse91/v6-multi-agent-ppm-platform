@@ -1,0 +1,37 @@
+{
+  "project_id": "demo-1",
+  "tasks": [
+    {
+      "id": "task-1",
+      "name": "Discovery workshops",
+      "start": "2024-08-19",
+      "end": "2024-08-23",
+      "progress": 80,
+      "dependencies": []
+    },
+    {
+      "id": "task-2",
+      "name": "Solution blueprint",
+      "start": "2024-08-26",
+      "end": "2024-08-30",
+      "progress": 55,
+      "dependencies": ["task-1"]
+    },
+    {
+      "id": "task-3",
+      "name": "Build phase",
+      "start": "2024-09-02",
+      "end": "2024-09-20",
+      "progress": 25,
+      "dependencies": ["task-2"]
+    },
+    {
+      "id": "task-4",
+      "name": "UAT & readiness",
+      "start": "2024-09-23",
+      "end": "2024-09-27",
+      "progress": 10,
+      "dependencies": ["task-3"]
+    }
+  ]
+}

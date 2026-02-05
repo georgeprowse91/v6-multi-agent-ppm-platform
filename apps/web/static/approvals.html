@@ -10,7 +10,7 @@
     <div class="app">
       <header class="page-header">
         <div>
-          <h1 class="page-title">Approvals ▸ Pending (24)</h1>
+          <h1 class="page-title" id="approval-title">Approvals ▸ Pending (24)</h1>
           <p class="page-subtitle">Unified approval inbox across portfolios and stage-gates.</p>
         </div>
         <div class="page-actions" aria-label="Approval actions">
@@ -23,7 +23,7 @@
       <main class="page-grid" aria-label="Approvals workspace">
         <nav class="card" aria-label="Approval queues">
           <h2>Queues</h2>
-          <ul class="list-stack" role="list">
+          <ul class="list-stack" role="list" id="approval-queue-list">
             <li class="list-item" role="listitem">Stage Gates</li>
             <li class="list-item" role="listitem">Budget</li>
             <li class="list-item" role="listitem">Vendor</li>
@@ -33,7 +33,7 @@
 
         <section class="card" aria-label="Approval queue">
           <h2>Approval Queue</h2>
-          <ul class="list-stack" role="list">
+          <ul class="list-stack" role="list" id="approval-items-list">
             <li class="list-item" role="listitem">
               <strong>Gate: Phase 2 Exit</strong>
               <p class="meta">Project: Phoenix · Risk: Medium · Due in 2d</p>
@@ -54,8 +54,12 @@
 
         <aside class="card" aria-label="Context panel">
           <h2>Context Panel</h2>
-          <p><span class="tag">Artefact Preview</span> Charter v3 · Evidence log</p>
-          <p><span class="tag">Impact Summary</span> Medium risk, schedule impact 2 days.</p>
+          <p id="approval-context-artefact">
+            <span class="tag">Artefact Preview</span> Charter v3 · Evidence log
+          </p>
+          <p id="approval-context-impact">
+            <span class="tag">Impact Summary</span> Medium risk, schedule impact 2 days.
+          </p>
           <div class="actions" aria-label="Approval decision">
             <button type="button">Approve</button>
             <button type="button" class="secondary">Reject</button>
@@ -64,13 +68,15 @@
             <label for="approval-comments">Comments</label>
             <textarea id="approval-comments" rows="4" placeholder="Add review notes"></textarea>
           </div>
-          <p class="meta">Audit trail available in the timeline below.</p>
+          <p class="meta" id="approval-context-footer">
+            Audit trail available in the timeline below.
+          </p>
         </aside>
       </main>
 
       <section class="card" aria-label="Approval history timeline">
         <h2>Approval History</h2>
-        <ul class="list-stack" role="list">
+        <ul class="list-stack" role="list" id="approval-history-list">
           <li class="list-item" role="listitem">
             <strong>09:32 · Gate Exit Approval · A. Lee</strong>
             <p class="meta">Digital signature verified · Evidence pack attached</p>

@@ -23,7 +23,7 @@
       <main class="page-grid" aria-label="Workflow monitoring workspace">
         <nav class="card" aria-label="Status board">
           <h2>Status Board</h2>
-          <ul class="list-stack" role="list">
+          <ul class="list-stack" role="list" id="workflow-status-list">
             <li class="list-item" role="listitem">Healthy 18</li>
             <li class="list-item" role="listitem">Warning 4</li>
             <li class="list-item" role="listitem">Failed 2</li>
@@ -32,7 +32,7 @@
 
         <section class="card" aria-label="Workflow runs">
           <h2>Workflow Runs</h2>
-          <ul class="list-stack" role="list">
+          <ul class="list-stack" role="list" id="workflow-runs-list">
             <li class="list-item" role="listitem">
               <strong>Intake Routing ▸ Success</strong>
               <p class="meta">Run WF-2041 · 2m 12s · Agent: Intake</p>
@@ -48,7 +48,7 @@
           </ul>
         </section>
 
-        <aside class="card" aria-label="Run detail panel">
+        <aside class="card" aria-label="Run detail panel" id="workflow-detail-panel">
           <h2>Detail Panel</h2>
           <p><span class="tag">Run</span> WF-2041</p>
           <p class="meta">Steps timeline · Inputs/Outputs · Retry controls</p>
@@ -62,7 +62,7 @@
 
       <section class="card" aria-label="Bottleneck alerts">
         <h2>Bottleneck Alerts</h2>
-        <ul class="list-stack" role="list">
+        <ul class="list-stack" role="list" id="workflow-alerts-list">
           <li class="list-item" role="listitem">
             <strong>Approval Escalation backlog</strong>
             <p class="meta">Recommendation: Reroute to alternate approver</p>

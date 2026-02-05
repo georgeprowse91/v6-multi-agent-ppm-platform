@@ -10,6 +10,10 @@ Provide demo scenarios examples that demonstrate how to use the platform assets.
 - `quickstart-expected-output.json`: Snapshot of the expected response shape.
 - `quickstart-llm-response.json`: Deterministic intent-router response for mock LLM routing.
 - `quickstart-workflow.json`: Workflow engine start payload for the quickstart.
+- `approvals.json`: Demo approval inbox data for the governance workspace.
+- `workflow-monitoring.json`: Demo workflow monitoring telemetry and alert data.
+- `wbs.json`: Demo WBS hierarchy for the workspace shell.
+- `schedule.json`: Demo schedule timeline tasks for the workspace shell.
 - `README.md`: Documentation for this directory.
 
 ## How it's used
