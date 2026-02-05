@@ -1,0 +1,62 @@
+{
+  "project_id": "demo-1",
+  "updated_at": "2024-08-15T12:00:00Z",
+  "items": [
+    {
+      "id": "wbs-1",
+      "parent_id": null,
+      "order": 1,
+      "title": "Discovery & Alignment",
+      "owner": "A. Lee"
+    },
+    {
+      "id": "wbs-1-1",
+      "parent_id": "wbs-1",
+      "order": 1,
+      "title": "Stakeholder interviews",
+      "owner": "S. Ortiz"
+    },
+    {
+      "id": "wbs-1-2",
+      "parent_id": "wbs-1",
+      "order": 2,
+      "title": "Current-state assessment",
+      "owner": "M. Chung"
+    },
+    {
+      "id": "wbs-2",
+      "parent_id": null,
+      "order": 2,
+      "title": "Solution Design",
+      "owner": "J. Moreno"
+    },
+    {
+      "id": "wbs-2-1",
+      "parent_id": "wbs-2",
+      "order": 1,
+      "title": "Target architecture",
+      "owner": "K. Patel"
+    },
+    {
+      "id": "wbs-2-2",
+      "parent_id": "wbs-2",
+      "order": 2,
+      "title": "Integration blueprint",
+      "owner": "L. Chen"
+    },
+    {
+      "id": "wbs-3",
+      "parent_id": null,
+      "order": 3,
+      "title": "Delivery Plan",
+      "owner": "R. Singh"
+    },
+    {
+      "id": "wbs-3-1",
+      "parent_id": "wbs-3",
+      "order": 1,
+      "title": "Sprint backlog",
+      "owner": "T. Nguyen"
+    }
+  ]
+}

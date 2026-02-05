@@ -1,0 +1,45 @@
+{
+  "status_board": {
+    "healthy": 18,
+    "warning": 4,
+    "failed": 2
+  },
+  "runs": [
+    {
+      "title": "Intake Routing",
+      "status": "Success",
+      "run_id": "WF-2041",
+      "duration": "2m 12s",
+      "owner": "Agent: Intake"
+    },
+    {
+      "title": "Approval Escalation",
+      "status": "Failed",
+      "run_id": "WF-2042",
+      "duration": "4m 50s",
+      "owner": "Agent: Governance"
+    },
+    {
+      "title": "Document Sync",
+      "status": "Warning",
+      "run_id": "WF-2043",
+      "duration": "9m 03s",
+      "owner": "Connector: SharePoint"
+    }
+  ],
+  "detail": {
+    "run_id": "WF-2041",
+    "summary": "Steps timeline · Inputs/Outputs · Retry controls",
+    "sla": "On Track"
+  },
+  "alerts": [
+    {
+      "title": "Approval Escalation backlog",
+      "recommendation": "Reroute to alternate approver"
+    },
+    {
+      "title": "Document Sync latency",
+      "recommendation": "Increase connector concurrency"
+    }
+  ]
+}

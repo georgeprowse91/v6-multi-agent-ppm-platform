@@ -4421,7 +4421,9 @@ async def index() -> FileResponse:
 
 
 @api_router.get("/workspace")
-async def workspace_shell() -> HTMLResponse:
+async def workspace_shell(request: Request) -> HTMLResponse:
+    demo_mode = request.query_params.get("demo") == "true"
+    script_name = "app.js" if demo_mode else "workspace.js"
     html = """
     <!doctype html>
     <html lang="en">
@@ -4437,11 +4439,11 @@ async def workspace_shell() -> HTMLResponse:
         <main class="app" id="main-content">
           <p>Loading workspace...</p>
         </main>
-        <script src="/static/workspace.js"></script>
+        <script src="/static/{script_name}"></script>
       </body>
     </html>
     """
-    return HTMLResponse(html)
+    return HTMLResponse(html.format(script_name=script_name))
 
 
 app.include_router(api_router)

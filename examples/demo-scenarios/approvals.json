@@ -1,0 +1,41 @@
+{
+  "pending_count": 8,
+  "queues": ["Stage Gates", "Budget", "Vendor", "Compliance", "Change Control"],
+  "approvals": [
+    {
+      "title": "Gate: Phase 2 Exit",
+      "meta": ["Project: Phoenix · Risk: Medium · Due in 2d"],
+      "approvers": "A. Lee, S. Ortiz (deleg.)"
+    },
+    {
+      "title": "Budget Change +12%",
+      "meta": ["SLA: 8h · Portfolio: Orion"],
+      "approvers": "S. Patel, M. Chung"
+    },
+    {
+      "title": "Vendor Contract Renewal",
+      "meta": ["Escalation in 6h · Risk: Low"],
+      "approvers": "C. Ibrahim"
+    },
+    {
+      "title": "Change Request: Scope Increase",
+      "meta": ["Program: Launch · Impact: +2 weeks"],
+      "approvers": "J. Moreno"
+    }
+  ],
+  "history": [
+    {
+      "title": "09:32 · Gate Exit Approval · A. Lee",
+      "meta": ["Digital signature verified · Evidence pack attached"]
+    },
+    {
+      "title": "09:14 · Budget Review · S. Patel",
+      "meta": ["Delegated to M. Chung · SLA met"]
+    }
+  ],
+  "context": {
+    "artefact": "Charter v3 · Evidence log",
+    "impact": "Medium risk, schedule impact 2 days.",
+    "footer": "Audit trail available in the timeline below."
+  }
+}
