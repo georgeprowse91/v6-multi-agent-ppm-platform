@@ -227,6 +227,10 @@ class ConnectorConfigRequest(BaseModel):
     project_key: str = ""
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    mcp_client_id: str = ""
+    mcp_client_secret: str = ""
+    mcp_scope: str = ""
+    mcp_api_key: str = ""
     client_id: str = ""
     client_secret: str = ""
     scope: str = ""
@@ -254,6 +258,10 @@ class ConnectorConfigResponse(BaseModel):
     custom_fields: dict[str, Any]
     mcp_server_url: str
     mcp_server_id: str
+    mcp_client_id: str
+    mcp_client_secret: str
+    mcp_scope: str
+    mcp_api_key: str
     client_id: str
     client_secret: str
     scope: str
@@ -278,6 +286,10 @@ class ProjectConnectorConfigResponse(BaseModel):
     custom_fields: dict[str, Any]
     mcp_server_url: str
     mcp_server_id: str
+    mcp_client_id: str
+    mcp_client_secret: str
+    mcp_scope: str
+    mcp_api_key: str
     client_id: str
     client_secret: str
     scope: str
@@ -321,6 +333,10 @@ class ConnectorListItemResponse(BaseModel):
     custom_fields: dict[str, Any] = Field(default_factory=dict)
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    mcp_client_id: str = ""
+    mcp_client_secret: str = ""
+    mcp_scope: str = ""
+    mcp_api_key: str = ""
     client_id: str = ""
     client_secret: str = ""
     scope: str = ""
@@ -506,6 +522,10 @@ async def list_connectors(
             custom_fields=config.custom_fields if config else {},
             mcp_server_url=config.mcp_server_url if config else "",
             mcp_server_id=config.mcp_server_id if config else "",
+            mcp_client_id=config.mcp_client_id if config else "",
+            mcp_client_secret=config.mcp_client_secret if config else "",
+            mcp_scope=config.mcp_scope if config else "",
+            mcp_api_key=config.mcp_api_key if config else "",
             client_id=config.client_id if config else "",
             client_secret=config.client_secret if config else "",
             scope=config.scope if config else "",
@@ -593,6 +613,10 @@ async def list_project_connectors(
                 custom_fields=project_config.custom_fields if project_config else {},
                 mcp_server_url=project_config.mcp_server_url if project_config else "",
                 mcp_server_id=project_config.mcp_server_id if project_config else "",
+                mcp_client_id=project_config.mcp_client_id if project_config else "",
+                mcp_client_secret=project_config.mcp_client_secret if project_config else "",
+                mcp_scope=project_config.mcp_scope if project_config else "",
+                mcp_api_key=project_config.mcp_api_key if project_config else "",
                 client_id=project_config.client_id if project_config else "",
                 client_secret=project_config.client_secret if project_config else "",
                 scope=project_config.scope if project_config else "",
@@ -647,6 +671,10 @@ async def get_connector(connector_id: str) -> ConnectorListItemResponse:
         custom_fields=config.custom_fields if config else {},
         mcp_server_url=config.mcp_server_url if config else "",
         mcp_server_id=config.mcp_server_id if config else "",
+        mcp_client_id=config.mcp_client_id if config else "",
+        mcp_client_secret=config.mcp_client_secret if config else "",
+        mcp_scope=config.mcp_scope if config else "",
+        mcp_api_key=config.mcp_api_key if config else "",
         client_id=config.client_id if config else "",
         client_secret=config.client_secret if config else "",
         scope=config.scope if config else "",
@@ -686,6 +714,10 @@ async def update_connector_config(
         custom_fields=request.custom_fields,
         mcp_server_url=request.mcp_server_url,
         mcp_server_id=request.mcp_server_id,
+        mcp_client_id=request.mcp_client_id,
+        mcp_client_secret=request.mcp_client_secret,
+        mcp_scope=request.mcp_scope,
+        mcp_api_key=request.mcp_api_key,
         client_id=request.client_id,
         client_secret=request.client_secret,
         scope=request.scope,
@@ -726,6 +758,10 @@ async def update_connector_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -771,6 +807,10 @@ async def update_project_connector_config(
         custom_fields=request.custom_fields or {},
         mcp_server_url=request.mcp_server_url,
         mcp_server_id=request.mcp_server_id,
+        mcp_client_id=request.mcp_client_id,
+        mcp_client_secret=request.mcp_client_secret,
+        mcp_scope=request.mcp_scope,
+        mcp_api_key=request.mcp_api_key,
         client_id=request.client_id,
         client_secret=request.client_secret,
         scope=request.scope,
@@ -797,6 +837,10 @@ async def update_project_connector_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -841,6 +885,10 @@ async def update_regulatory_compliance_config(
         custom_fields=custom_fields,
         mcp_server_url=existing.mcp_server_url if existing else "",
         mcp_server_id=existing.mcp_server_id if existing else "",
+        mcp_client_id=existing.mcp_client_id if existing else "",
+        mcp_client_secret=existing.mcp_client_secret if existing else "",
+        mcp_scope=existing.mcp_scope if existing else "",
+        mcp_api_key=existing.mcp_api_key if existing else "",
         client_id=existing.client_id if existing else "",
         client_secret=existing.client_secret if existing else "",
         scope=existing.scope if existing else "",
@@ -881,6 +929,10 @@ async def update_regulatory_compliance_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -984,6 +1036,10 @@ async def enable_connector(connector_id: str, http_request: Request) -> Connecto
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1039,6 +1095,10 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1094,6 +1154,10 @@ async def enable_project_connector(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1140,6 +1204,10 @@ async def disable_project_connector(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        mcp_client_id=config.mcp_client_id,
+        mcp_client_secret=config.mcp_client_secret,
+        mcp_scope=config.mcp_scope,
+        mcp_api_key=config.mcp_api_key,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,

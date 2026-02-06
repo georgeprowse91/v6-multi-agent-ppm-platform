@@ -100,6 +100,10 @@ class ConnectorConfig:
     custom_fields: dict[str, Any] = field(default_factory=dict)
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    mcp_client_id: str = ""
+    mcp_client_secret: str = ""
+    mcp_scope: str = ""
+    mcp_api_key: str = ""
     client_id: str = ""
     client_secret: str = ""
     scope: str = ""
@@ -131,6 +135,10 @@ class ConnectorConfig:
             "custom_fields": self.custom_fields,
             "mcp_server_url": self.mcp_server_url,
             "mcp_server_id": self.mcp_server_id,
+            "mcp_client_id": self.mcp_client_id,
+            "mcp_client_secret": self.mcp_client_secret,
+            "mcp_scope": self.mcp_scope,
+            "mcp_api_key": self.mcp_api_key,
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "scope": self.scope,
@@ -159,6 +167,10 @@ class ConnectorConfig:
             custom_fields=data.get("custom_fields", {}),
             mcp_server_url=data.get("mcp_server_url", ""),
             mcp_server_id=data.get("mcp_server_id", ""),
+            mcp_client_id=data.get("mcp_client_id", ""),
+            mcp_client_secret=data.get("mcp_client_secret", ""),
+            mcp_scope=data.get("mcp_scope", ""),
+            mcp_api_key=data.get("mcp_api_key", ""),
             client_id=data.get("client_id", ""),
             client_secret=data.get("client_secret", ""),
             scope=data.get("scope", ""),
