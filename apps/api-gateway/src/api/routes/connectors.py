@@ -227,7 +227,11 @@ class ConnectorConfigRequest(BaseModel):
     project_key: str = ""
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    scope: str = ""
     mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
+    prefer_mcp: bool = False
     sync_direction: str = Field(default="inbound", pattern="^(inbound|outbound|bidirectional)$")
     sync_frequency: str = Field(
         default="daily",
@@ -250,7 +254,11 @@ class ConnectorConfigResponse(BaseModel):
     custom_fields: dict[str, Any]
     mcp_server_url: str
     mcp_server_id: str
+    client_id: str
+    client_secret: str
+    scope: str
     mcp_tool_map: dict[str, Any]
+    prefer_mcp: bool
     health_status: str
     created_at: str
     updated_at: str
@@ -270,7 +278,11 @@ class ProjectConnectorConfigResponse(BaseModel):
     custom_fields: dict[str, Any]
     mcp_server_url: str
     mcp_server_id: str
+    client_id: str
+    client_secret: str
+    scope: str
     mcp_tool_map: dict[str, Any]
+    prefer_mcp: bool
     health_status: str
     created_at: str
     updated_at: str
@@ -309,7 +321,11 @@ class ConnectorListItemResponse(BaseModel):
     custom_fields: dict[str, Any] = Field(default_factory=dict)
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    scope: str = ""
     mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
+    prefer_mcp: bool = False
 
 
 class ProjectConnectorListItemResponse(ConnectorListItemResponse):
@@ -490,7 +506,11 @@ async def list_connectors(
             custom_fields=config.custom_fields if config else {},
             mcp_server_url=config.mcp_server_url if config else "",
             mcp_server_id=config.mcp_server_id if config else "",
+            client_id=config.client_id if config else "",
+            client_secret=config.client_secret if config else "",
+            scope=config.scope if config else "",
             mcp_tool_map=config.mcp_tool_map if config else {},
+            prefer_mcp=config.prefer_mcp if config else False,
         )
         result.append(item)
 
@@ -573,7 +593,11 @@ async def list_project_connectors(
                 custom_fields=project_config.custom_fields if project_config else {},
                 mcp_server_url=project_config.mcp_server_url if project_config else "",
                 mcp_server_id=project_config.mcp_server_id if project_config else "",
+                client_id=project_config.client_id if project_config else "",
+                client_secret=project_config.client_secret if project_config else "",
+                scope=project_config.scope if project_config else "",
                 mcp_tool_map=project_config.mcp_tool_map if project_config else {},
+                prefer_mcp=project_config.prefer_mcp if project_config else False,
             )
         )
 
@@ -623,7 +647,11 @@ async def get_connector(connector_id: str) -> ConnectorListItemResponse:
         custom_fields=config.custom_fields if config else {},
         mcp_server_url=config.mcp_server_url if config else "",
         mcp_server_id=config.mcp_server_id if config else "",
+        client_id=config.client_id if config else "",
+        client_secret=config.client_secret if config else "",
+        scope=config.scope if config else "",
         mcp_tool_map=config.mcp_tool_map if config else {},
+        prefer_mcp=config.prefer_mcp if config else False,
     )
 
 
@@ -658,7 +686,11 @@ async def update_connector_config(
         custom_fields=request.custom_fields,
         mcp_server_url=request.mcp_server_url,
         mcp_server_id=request.mcp_server_id,
+        client_id=request.client_id,
+        client_secret=request.client_secret,
+        scope=request.scope,
         mcp_tool_map=request.mcp_tool_map,
+        prefer_mcp=request.prefer_mcp,
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -694,7 +726,11 @@ async def update_connector_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -735,7 +771,11 @@ async def update_project_connector_config(
         custom_fields=request.custom_fields or {},
         mcp_server_url=request.mcp_server_url,
         mcp_server_id=request.mcp_server_id,
+        client_id=request.client_id,
+        client_secret=request.client_secret,
+        scope=request.scope,
         mcp_tool_map=request.mcp_tool_map,
+        prefer_mcp=request.prefer_mcp,
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -757,7 +797,11 @@ async def update_project_connector_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -797,7 +841,11 @@ async def update_regulatory_compliance_config(
         custom_fields=custom_fields,
         mcp_server_url=existing.mcp_server_url if existing else "",
         mcp_server_id=existing.mcp_server_id if existing else "",
+        client_id=existing.client_id if existing else "",
+        client_secret=existing.client_secret if existing else "",
+        scope=existing.scope if existing else "",
         mcp_tool_map=existing.mcp_tool_map if existing else {},
+        prefer_mcp=existing.prefer_mcp if existing else False,
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -833,7 +881,11 @@ async def update_regulatory_compliance_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -932,7 +984,11 @@ async def enable_connector(connector_id: str, http_request: Request) -> Connecto
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -983,7 +1039,11 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -1034,7 +1094,11 @@ async def enable_project_connector(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -1076,7 +1140,11 @@ async def disable_project_connector(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        prefer_mcp=config.prefer_mcp,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),

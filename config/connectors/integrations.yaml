@@ -5,6 +5,13 @@
 planview:
   enabled: false
   base_url: "${PLANVIEW_API_URL}"
+  mcp_server_url: "${PLANVIEW_MCP_SERVER_URL}"
+  mcp_server_id: "${PLANVIEW_MCP_SERVER_ID}"
+  client_id: "${PLANVIEW_MCP_CLIENT_ID}"
+  client_secret: "${PLANVIEW_MCP_CLIENT_SECRET}"
+  scope: "${PLANVIEW_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "oauth2"
     token: "${PLANVIEW_API_TOKEN}"
@@ -19,6 +26,13 @@ planview:
 jira:
   enabled: false
   base_url: "${JIRA_URL}"
+  mcp_server_url: "${JIRA_MCP_SERVER_URL}"
+  mcp_server_id: "${JIRA_MCP_SERVER_ID}"
+  client_id: "${JIRA_MCP_CLIENT_ID}"
+  client_secret: "${JIRA_MCP_CLIENT_SECRET}"
+  scope: "${JIRA_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "api_token"
     email: "${JIRA_EMAIL}"
@@ -38,6 +52,13 @@ jira:
 azure_devops:
   enabled: false
   organization: "${AZURE_DEVOPS_ORG}"
+  mcp_server_url: "${AZURE_DEVOPS_MCP_SERVER_URL}"
+  mcp_server_id: "${AZURE_DEVOPS_MCP_SERVER_ID}"
+  client_id: "${AZURE_DEVOPS_MCP_CLIENT_ID}"
+  client_secret: "${AZURE_DEVOPS_MCP_CLIENT_SECRET}"
+  scope: "${AZURE_DEVOPS_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "pat"
     token: "${AZURE_DEVOPS_PAT}"
@@ -49,6 +70,13 @@ azure_devops:
 sap:
   enabled: false
   base_url: "${SAP_API_URL}"
+  mcp_server_url: "${SAP_MCP_SERVER_URL}"
+  mcp_server_id: "${SAP_MCP_SERVER_ID}"
+  client_id: "${SAP_MCP_CLIENT_ID}"
+  client_secret: "${SAP_MCP_CLIENT_SECRET}"
+  scope: "${SAP_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "oauth2"
   entities:
@@ -59,6 +87,13 @@ sap:
 workday:
   enabled: false
   base_url: "${WORKDAY_API_URL}"
+  mcp_server_url: "${WORKDAY_MCP_SERVER_URL}"
+  mcp_server_id: "${WORKDAY_MCP_SERVER_ID}"
+  client_id: "${WORKDAY_MCP_CLIENT_ID}"
+  client_secret: "${WORKDAY_MCP_CLIENT_SECRET}"
+  scope: "${WORKDAY_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "oauth2"
     client_id: "${WORKDAY_CLIENT_ID}"
@@ -71,6 +106,13 @@ workday:
 # Collaboration Tools
 slack:
   enabled: false
+  mcp_server_url: "${SLACK_MCP_SERVER_URL}"
+  mcp_server_id: "${SLACK_MCP_SERVER_ID}"
+  client_id: "${SLACK_MCP_CLIENT_ID}"
+  client_secret: "${SLACK_MCP_CLIENT_SECRET}"
+  scope: "${SLACK_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "bot_token"
     token: "${SLACK_BOT_TOKEN}"
@@ -81,6 +123,13 @@ slack:
 
 teams:
   enabled: false
+  mcp_server_url: "${TEAMS_MCP_SERVER_URL}"
+  mcp_server_id: "${TEAMS_MCP_SERVER_ID}"
+  client_id: "${TEAMS_MCP_CLIENT_ID}"
+  client_secret: "${TEAMS_MCP_CLIENT_SECRET}"
+  scope: "${TEAMS_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "app_credentials"
     client_id: "${TEAMS_CLIENT_ID}"
@@ -93,6 +142,13 @@ teams:
 outlook:
   enabled: false
   base_url: "${OUTLOOK_API_URL}"
+  mcp_server_url: "${OUTLOOK_MCP_SERVER_URL}"
+  mcp_server_id: "${OUTLOOK_MCP_SERVER_ID}"
+  client_id: "${OUTLOOK_MCP_CLIENT_ID}"
+  client_secret: "${OUTLOOK_MCP_CLIENT_SECRET}"
+  scope: "${OUTLOOK_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "oauth2"
     client_id: "${OUTLOOK_CLIENT_ID}"
@@ -105,6 +161,13 @@ outlook:
 google_calendar:
   enabled: false
   base_url: "${GOOGLE_CALENDAR_BASE_URL}"
+  mcp_server_url: "${GOOGLE_CALENDAR_MCP_SERVER_URL}"
+  mcp_server_id: "${GOOGLE_CALENDAR_MCP_SERVER_ID}"
+  client_id: "${GOOGLE_CALENDAR_MCP_CLIENT_ID}"
+  client_secret: "${GOOGLE_CALENDAR_MCP_CLIENT_SECRET}"
+  scope: "${GOOGLE_CALENDAR_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "oauth2"
     client_id: "${GOOGLE_CALENDAR_CLIENT_ID}"
@@ -117,6 +180,13 @@ google_calendar:
 smartsheet:
   enabled: false
   base_url: "${SMARTSHEET_API_URL}"
+  mcp_server_url: "${SMARTSHEET_MCP_SERVER_URL}"
+  mcp_server_id: "${SMARTSHEET_MCP_SERVER_ID}"
+  client_id: "${SMARTSHEET_MCP_CLIENT_ID}"
+  client_secret: "${SMARTSHEET_MCP_CLIENT_SECRET}"
+  scope: "${SMARTSHEET_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "api_token"
     token: "${SMARTSHEET_API_TOKEN}"
@@ -128,6 +198,13 @@ smartsheet:
 sharepoint:
   enabled: false
   site_url: "${SHAREPOINT_SITE_URL}"
+  mcp_server_url: "${SHAREPOINT_MCP_SERVER_URL}"
+  mcp_server_id: "${SHAREPOINT_MCP_SERVER_ID}"
+  client_id: "${SHAREPOINT_MCP_CLIENT_ID}"
+  client_secret: "${SHAREPOINT_MCP_CLIENT_SECRET}"
+  scope: "${SHAREPOINT_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "azure_ad"
   document_library: "Project Documents"
@@ -136,6 +213,13 @@ sharepoint:
 salesforce:
   enabled: false
   instance_url: "${SALESFORCE_INSTANCE_URL}"
+  mcp_server_url: "${SALESFORCE_MCP_SERVER_URL}"
+  mcp_server_id: "${SALESFORCE_MCP_SERVER_ID}"
+  client_id: "${SALESFORCE_MCP_CLIENT_ID}"
+  client_secret: "${SALESFORCE_MCP_CLIENT_SECRET}"
+  scope: "${SALESFORCE_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "oauth2"
     client_id: "${SALESFORCE_CLIENT_ID}"
@@ -148,6 +232,13 @@ salesforce:
 azure_communication_services:
   enabled: false
   base_url: "${ACS_ENDPOINT}"
+  mcp_server_url: "${AZURE_COMMUNICATION_SERVICES_MCP_SERVER_URL}"
+  mcp_server_id: "${AZURE_COMMUNICATION_SERVICES_MCP_SERVER_ID}"
+  client_id: "${AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_ID}"
+  client_secret: "${AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_SECRET}"
+  scope: "${AZURE_COMMUNICATION_SERVICES_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "api_key"
     connection_string: "${AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING}"
@@ -159,6 +250,13 @@ azure_communication_services:
 twilio:
   enabled: false
   base_url: "${TWILIO_API_URL}"
+  mcp_server_url: "${TWILIO_MCP_SERVER_URL}"
+  mcp_server_id: "${TWILIO_MCP_SERVER_ID}"
+  client_id: "${TWILIO_MCP_CLIENT_ID}"
+  client_secret: "${TWILIO_MCP_CLIENT_SECRET}"
+  scope: "${TWILIO_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "basic"
     account_sid: "${TWILIO_ACCOUNT_SID}"
@@ -170,6 +268,13 @@ notification_hubs:
   enabled: false
   namespace: "${AZURE_NOTIFICATION_HUBS_NAMESPACE}"
   hub_name: "${AZURE_NOTIFICATION_HUBS_NAME}"
+  mcp_server_url: "${AZURE_NOTIFICATION_HUBS_MCP_SERVER_URL}"
+  mcp_server_id: "${AZURE_NOTIFICATION_HUBS_MCP_SERVER_ID}"
+  client_id: "${AZURE_NOTIFICATION_HUBS_MCP_CLIENT_ID}"
+  client_secret: "${AZURE_NOTIFICATION_HUBS_MCP_CLIENT_SECRET}"
+  scope: "${AZURE_NOTIFICATION_HUBS_MCP_SCOPE}"
+  tool_map: {}
+  prefer_mcp: false
   auth:
     type: "sas"
     key_name: "${AZURE_NOTIFICATION_HUBS_SAS_KEY_NAME}"

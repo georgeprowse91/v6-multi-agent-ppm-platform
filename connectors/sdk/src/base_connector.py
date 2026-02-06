@@ -100,7 +100,11 @@ class ConnectorConfig:
     custom_fields: dict[str, Any] = field(default_factory=dict)
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    scope: str = ""
     mcp_tool_map: dict[str, Any] = field(default_factory=dict)
+    prefer_mcp: bool = False
 
     # Outbound API configuration (unused for inbound-only connectors).
     # These fields can store API endpoints, versions or default resources.
@@ -127,7 +131,11 @@ class ConnectorConfig:
             "custom_fields": self.custom_fields,
             "mcp_server_url": self.mcp_server_url,
             "mcp_server_id": self.mcp_server_id,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "scope": self.scope,
             "mcp_tool_map": self.mcp_tool_map,
+            "prefer_mcp": self.prefer_mcp,
             "api_endpoint": self.api_endpoint,
             "api_version": self.api_version,
             "resource": self.resource,
@@ -151,7 +159,11 @@ class ConnectorConfig:
             custom_fields=data.get("custom_fields", {}),
             mcp_server_url=data.get("mcp_server_url", ""),
             mcp_server_id=data.get("mcp_server_id", ""),
+            client_id=data.get("client_id", ""),
+            client_secret=data.get("client_secret", ""),
+            scope=data.get("scope", ""),
             mcp_tool_map=data.get("mcp_tool_map", {}),
+            prefer_mcp=data.get("prefer_mcp", False),
             api_endpoint=data.get("api_endpoint", ""),
             api_version=data.get("api_version", ""),
             resource=data.get("resource", ""),
