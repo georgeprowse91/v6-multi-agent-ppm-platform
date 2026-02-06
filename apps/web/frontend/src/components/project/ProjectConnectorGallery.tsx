@@ -40,6 +40,7 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
     filter,
     fetchProjectConnectors,
     fetchCategories,
+    setCertificationFilter,
     setFilter,
     resetFilter,
     getFilteredProjectConnectors,
@@ -64,12 +65,15 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
   const canManage = canManageConfig(session.user?.permissions);
   const [certModalOpen, setCertModalOpen] = useState(false);
   const [certModalConnector, setCertModalConnector] = useState<Connector | null>(null);
-  const statusOptions: { value: Connector['status'] | CertificationStatus | 'all'; label: string }[] = [
+  const statusOptions: { value: Connector['status'] | 'all'; label: string }[] = [
     { value: 'all', label: 'All Status' },
     { value: 'production', label: 'Production' },
     { value: 'available', label: 'Available' },
     { value: 'beta', label: 'Beta' },
     { value: 'coming_soon', label: 'Coming Soon' },
+  ];
+  const certificationOptions: { value: CertificationStatus | 'all'; label: string }[] = [
+    { value: 'all', label: 'All Certifications' },
     { value: 'certified', label: 'Certified' },
     { value: 'pending', label: 'Pending' },
     { value: 'expired', label: 'Expired' },
@@ -220,11 +224,25 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
           value={filter.statusFilter}
           onChange={(e) =>
             setFilter({
-              statusFilter: e.target.value as Connector['status'] | CertificationStatus | 'all',
+              statusFilter: e.target.value as Connector['status'] | 'all',
             })
           }
         >
           {statusOptions.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={styles.statusSelect}
+          value={filter.certificationFilter}
+          onChange={(e) =>
+            setCertificationFilter(e.target.value as CertificationStatus | 'all')
+          }
+        >
+          {certificationOptions.map((status) => (
             <option key={status.value} value={status.value}>
               {status.label}
             </option>

@@ -59,6 +59,7 @@ describe('ConnectorGallery', () => {
         search: '',
         category: 'all',
         statusFilter: 'all',
+        certificationFilter: 'all',
         enabledOnly: false,
       },
       selectedConnector: null,

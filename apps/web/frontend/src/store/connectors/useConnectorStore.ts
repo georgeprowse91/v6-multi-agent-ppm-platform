@@ -88,6 +88,7 @@ interface ConnectorStoreState {
 
   // Actions - Filter
   setFilter: (filter: Partial<ConnectorFilterState>) => void;
+  setCertificationFilter: (filter: ConnectorFilterState['certificationFilter']) => void;
   resetFilter: () => void;
   getFilteredConnectors: () => Connector[];
   getFilteredProjectConnectors: (projectId: string) => Connector[];
@@ -108,6 +109,7 @@ const DEFAULT_FILTER: ConnectorFilterState = {
   search: '',
   category: 'all',
   statusFilter: 'all',
+  certificationFilter: 'all',
   enabledOnly: false,
 };
 
@@ -523,6 +525,12 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     }));
   },
 
+  setCertificationFilter: (certificationFilter) => {
+    set((state) => ({
+      filter: { ...state.filter, certificationFilter },
+    }));
+  },
+
   // Reset filter
   resetFilter: () => {
     set({ filter: DEFAULT_FILTER });
@@ -554,6 +562,13 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
       filtered = filtered.filter((c) => matchesStatusFilter(c, filter.statusFilter));
     }
 
+    // Apply certification filter
+    if (filter.certificationFilter !== 'all') {
+      filtered = filtered.filter((c) =>
+        matchesCertificationFilter(c, filter.certificationFilter)
+      );
+    }
+
     // Apply enabled filter
     if (filter.enabledOnly) {
       filtered = filtered.filter((c) => c.enabled);
@@ -582,6 +597,12 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
 
     if (filter.statusFilter !== 'all') {
       filtered = filtered.filter((c) => matchesStatusFilter(c, filter.statusFilter));
+    }
+
+    if (filter.certificationFilter !== 'all') {
+      filtered = filtered.filter((c) =>
+        matchesCertificationFilter(c, filter.certificationFilter)
+      );
     }
 
     if (filter.enabledOnly) {
@@ -674,7 +695,12 @@ const getConnectorCertificationStatus = (connector: Connector): CertificationSta
 const matchesStatusFilter = (
   connector: Connector,
   filter: ConnectorFilterState['statusFilter']
-) => connector.status === filter || getConnectorCertificationStatus(connector) === filter;
+) => connector.status === filter;
+
+const matchesCertificationFilter = (
+  connector: Connector,
+  filter: ConnectorFilterState['certificationFilter']
+) => getConnectorCertificationStatus(connector) === filter;
 
 /**
  * Mock connectors for development when API is not available

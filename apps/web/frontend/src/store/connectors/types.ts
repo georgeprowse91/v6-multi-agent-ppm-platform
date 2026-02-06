@@ -233,6 +233,7 @@ export const CATEGORY_INFO: Record<ConnectorCategory, Omit<CategoryInfo, 'connec
 export interface ConnectorFilterState {
   search: string;
   category: ConnectorCategory | 'all';
-  statusFilter: ConnectorStatus | CertificationStatus | 'all';
+  statusFilter: ConnectorStatus | 'all';
+  certificationFilter: CertificationStatus | 'all';
   enabledOnly: boolean;
 }
