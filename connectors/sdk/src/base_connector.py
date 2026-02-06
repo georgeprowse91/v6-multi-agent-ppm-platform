@@ -98,6 +98,9 @@ class ConnectorConfig:
     instance_url: str = ""
     project_key: str = ""  # For project-based connectors like Jira
     custom_fields: dict[str, Any] = field(default_factory=dict)
+    api_endpoint: str = ""
+    api_version: str = ""
+    resource: str = ""
 
     # Metadata
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -116,6 +119,9 @@ class ConnectorConfig:
             "instance_url": self.instance_url,
             "project_key": self.project_key,
             "custom_fields": self.custom_fields,
+            "api_endpoint": self.api_endpoint,
+            "api_version": self.api_version,
+            "resource": self.resource,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "last_sync_at": self.last_sync_at.isoformat() if self.last_sync_at else None,
@@ -134,6 +140,9 @@ class ConnectorConfig:
             instance_url=data.get("instance_url", ""),
             project_key=data.get("project_key", ""),
             custom_fields=data.get("custom_fields", {}),
+            api_endpoint=data.get("api_endpoint", ""),
+            api_version=data.get("api_version", ""),
+            resource=data.get("resource", ""),
             created_at=datetime.fromisoformat(data["created_at"])
             if "created_at" in data
             else datetime.now(timezone.utc),
