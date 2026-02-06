@@ -10,6 +10,8 @@ from connectors.sdk.src.http_client import HttpClient
 from connectors.sdk.src.runtime import ConnectorRuntime
 from connectors.sdk.src.secrets import resolve_secret
 
+from .mappers import map_to_sap
+
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -126,9 +128,10 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
     # TODO: Implement SAP API calls here (e.g. using pyrfc or REST client).
     # For now, simply log the outbound payload for debugging.
     import logging
+    mapped_payload = map_to_sap(records)
     logging.getLogger(__name__).info(
         "Outbound payload for SAP tenant %s (include_schema=%s): %s",
         tenant_id,
         include_schema,
-        records,
+        mapped_payload,
     )
