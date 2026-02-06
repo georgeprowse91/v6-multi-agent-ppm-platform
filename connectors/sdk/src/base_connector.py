@@ -98,6 +98,9 @@ class ConnectorConfig:
     instance_url: str = ""
     project_key: str = ""  # For project-based connectors like Jira
     custom_fields: dict[str, Any] = field(default_factory=dict)
+    mcp_server_url: str = ""
+    mcp_server_id: str = ""
+    mcp_tool_map: dict[str, Any] = field(default_factory=dict)
 
     # Outbound API configuration (unused for inbound-only connectors).
     # These fields can store API endpoints, versions or default resources.
@@ -122,6 +125,9 @@ class ConnectorConfig:
             "instance_url": self.instance_url,
             "project_key": self.project_key,
             "custom_fields": self.custom_fields,
+            "mcp_server_url": self.mcp_server_url,
+            "mcp_server_id": self.mcp_server_id,
+            "mcp_tool_map": self.mcp_tool_map,
             "api_endpoint": self.api_endpoint,
             "api_version": self.api_version,
             "resource": self.resource,
@@ -143,6 +149,9 @@ class ConnectorConfig:
             instance_url=data.get("instance_url", ""),
             project_key=data.get("project_key", ""),
             custom_fields=data.get("custom_fields", {}),
+            mcp_server_url=data.get("mcp_server_url", ""),
+            mcp_server_id=data.get("mcp_server_id", ""),
+            mcp_tool_map=data.get("mcp_tool_map", {}),
             api_endpoint=data.get("api_endpoint", ""),
             api_version=data.get("api_version", ""),
             resource=data.get("resource", ""),
