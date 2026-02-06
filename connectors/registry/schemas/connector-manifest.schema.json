@@ -45,6 +45,18 @@
         "required": ["source", "target", "mapping_file"]
       },
       "minItems": 1
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "server_id": {"type": "string"},
+        "server_url": {"type": "string"},
+        "tool_map": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
     }
   },
   "required": ["id", "version", "name", "description", "owner", "category", "auth", "sync", "mappings"]
