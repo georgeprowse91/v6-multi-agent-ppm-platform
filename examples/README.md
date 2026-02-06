@@ -1,22 +1,26 @@
 # Examples
 
-## Purpose
+## Overview
 
-Provide example artifacts that demonstrate how to use the platform assets.
+This directory provides example artifacts that demonstrate how to use platform assets. Examples include connector configurations, demo scenario payloads, methodology maps, JSON schemas, and workflow definitions. They are referenced from docs and can be copied into local experiments or demos.
 
-## What's inside
+## Directory structure
 
-- `examples/connector-configs`: Subdirectory containing connector config assets for this area.
-- `examples/demo-scenarios`: Subdirectory containing demo scenario assets for this area.
-- `examples/methodology-maps`: Subdirectory containing methodology map assets for this area.
-- `examples/schema`: Schemas or validation rules for component assets.
-- `examples/workflows`: Workflow definitions and examples.
-- `examples/portfolio-intake-request.json`: JSON data asset or configuration.
-- `examples/abac-evaluation.json`: Sample ABAC evaluation request payload.
+| Folder | Description |
+| --- | --- |
+| [connector-configs/](./connector-configs/) | Example connector configurations |
+| [demo-scenarios/](./demo-scenarios/) | Demo scenario JSON payloads |
+| [methodology-maps/](./methodology-maps/) | Methodology map examples |
+| [schema/](./schema/) | Example JSON schemas |
+| [workflows/](./workflows/) | Example workflow definitions |
 
-## How it's used
+## Key files
 
-Examples are referenced from docs and can be copied into local experiments or demos.
+| File | Description |
+| --- | --- |
+| [portfolio-intake-request.json](./portfolio-intake-request.json) | Sample portfolio intake request payload |
+| [abac-evaluation.json](./abac-evaluation.json) | Sample ABAC evaluation request payload |
+| [integration_demo.py](./integration_demo.py) | Integration demo script |
 
 ## How to run / develop / test
 

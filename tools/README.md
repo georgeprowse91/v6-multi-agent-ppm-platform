@@ -1,21 +1,29 @@
 # Tools
 
-## Purpose
+## Overview
 
-Document the tooling used to automate development and CI workflows.
+This directory contains development and CI automation tooling for the multi-agent PPM platform. Tools cover code generation, formatting, linting, load testing, and local development environment setup. They are invoked by Make targets and CI pipelines.
 
-## What's inside
+## Directory structure
 
-- `tools/codegen`: Subdirectory containing codegen assets for this area.
-- `tools/format`: Subdirectory containing format assets for this area.
-- `tools/lint`: Subdirectory containing lint assets for this area.
-- `tools/load_testing`: Subdirectory containing load testing assets for this area.
-- `tools/local-dev`: Subdirectory containing local dev assets for this area.
-- `tools/__init__.py`: Python module used by this component.
+| Folder | Description |
+| --- | --- |
+| [codegen/](./codegen/) | Code generation tools |
+| [format/](./format/) | Code formatting tools |
+| [lint/](./lint/) | Code linting tools |
+| [load_testing/](./load_testing/) | Load testing runner |
+| [local-dev/](./local-dev/) | Local development environment (docker-compose) |
 
-## How it's used
+## Key files
 
-These tools are invoked by Make targets and CI pipelines.
+| File | Description |
+| --- | --- |
+| [agent_runner.py](./agent_runner.py) | Agent execution runner |
+| [agent_runner_core.py](./agent_runner_core.py) | Core agent runner logic |
+| [connector_runner.py](./connector_runner.py) | Connector execution runner |
+| [component_runner.py](./component_runner.py) | Component execution runner |
+| [runtime_paths.py](./runtime_paths.py) | Runtime path resolution utilities |
+| [__init__.py](./__init__.py) | Python package initializer |
 
 ## How to run / develop / test
 

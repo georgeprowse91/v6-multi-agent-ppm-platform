@@ -1,8 +1,27 @@
 # Configuration
 
-## Purpose
+## Overview
 
-Explain configuration assets stored under `config/` and how they are consumed by services, agents, and the web console.
+This directory contains configuration assets consumed by services, agents, and the web console of the multi-agent PPM platform. Configuration is expressed as YAML and JSON files organized by domain.
+
+## Directory structure
+
+| Folder | Description |
+| --- | --- |
+| [abac/](./abac/) | Attribute-based access control policies |
+| [agent-23/](./agent-23/) | Agent 23 specific configuration |
+| [agent-24/](./agent-24/) | Agent 24 specific configuration |
+| [agents/](./agents/) | Agent runtime and routing configuration (has schema/ subdir) |
+| [connectors/](./connectors/) | Connector integration configuration |
+| [data-classification/](./data-classification/) | Data classification levels |
+| [environments/](./environments/) | Environment-specific settings (dev, test, prod) |
+| [feature-flags/](./feature-flags/) | Feature flag toggles |
+| [iam/](./iam/) | IAM role mapping |
+| [rbac/](./rbac/) | Role-based access control |
+| [retention/](./retention/) | Data retention policies |
+| [security/](./security/) | DLP and security policies |
+| [signing/](./signing/) | Artifact signing metadata |
+| [tenants/](./tenants/) | Tenant configuration |
 
 ## What's inside
 

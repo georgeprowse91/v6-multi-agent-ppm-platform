@@ -4,14 +4,19 @@
 
 Catalog the user-facing applications and their deployment assets.
 
-## What's inside
+## Directory structure
 
-- `apps/admin-console`: Subdirectory containing admin console assets for this area.
-- `apps/analytics-service`: Subdirectory containing analytics service assets for this area.
-- `apps/api-gateway`: Subdirectory containing api gateway assets for this area.
-- `apps/connector-hub`: Subdirectory containing connector hub assets for this area.
-- `apps/document-service`: Subdirectory containing document service assets for this area.
-- `apps/orchestration-service`: Subdirectory containing orchestration service assets for this area.
+| Folder | Description |
+| --- | --- |
+| [admin-console/](./admin-console/) | Admin console application |
+| [analytics-service/](./analytics-service/) | Analytics and reporting service |
+| [api-gateway/](./api-gateway/) | API gateway (front door for client requests) |
+| [connector-hub/](./connector-hub/) | Connector hub for managing integration connectors |
+| [document-service/](./document-service/) | Document storage and management service |
+| [mobile/](./mobile/) | React Native mobile application |
+| [orchestration-service/](./orchestration-service/) | Orchestration service for agent coordination |
+| [web/](./web/) | Web console (Streamlit-based dashboard + React frontend) |
+| [workflow-engine/](./workflow-engine/) | Workflow persistence and execution engine |
 
 ## How it's used
 

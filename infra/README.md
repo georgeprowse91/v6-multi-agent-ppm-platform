@@ -1,15 +1,16 @@
 # Infrastructure
 
-## Purpose
+Infrastructure resources for deploying and operating the platform, including Kubernetes manifests, Terraform modules, observability configuration, policies, and tenant provisioning.
 
-Document infrastructure resources under `infra/`.
+## Directory structure
 
-## What's inside
-
-- `infra/kubernetes`: Kubernetes manifests and chart metadata.
-- `infra/observability`: Observability dashboards, alerts, and tracing config.
-- `infra/policies`: Policy definitions enforced by the platform.
-- `infra/terraform`: Terraform root modules and environment stacks.
+| Folder | Description |
+|--------|-------------|
+| [kubernetes/](./kubernetes/) | Kubernetes manifests, Helm charts, and cluster resource definitions |
+| [observability/](./observability/) | Observability dashboards, alerts, and tracing configuration |
+| [policies/](./policies/) | Policy definitions enforced by the platform |
+| [tenancy/](./tenancy/) | Tenant provisioning and deprovisioning scripts |
+| [terraform/](./terraform/) | Terraform root modules and environment stacks |
 
 ## How it's used
 

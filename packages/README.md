@@ -1,18 +1,26 @@
 # Packages
 
-## Purpose
+Shared packages imported by apps, services, and agents across the repository.
 
-Describe shared packages and how they support platform services.
+## Directory structure
 
-## What's inside
-
-- `packages/canvas-engine`: Subdirectory containing canvas engine assets for this area.
-- `packages/contracts`: Service contracts and schema artifacts.
-- `packages/crypto`: Subdirectory containing crypto assets for this area.
-- `packages/data-quality`: Subdirectory containing data quality assets for this area.
-- `packages/llm`: Subdirectory containing LLM assets for this area.
-- `packages/methodology-engine`: Subdirectory containing methodology engine assets for this area.
-- `packages/workflow`: Workflow dispatchers, Celery tasks, and result aggregation.
+| Folder | Description |
+|--------|-------------|
+| [canvas-engine/](./canvas-engine/) | Canvas rendering engine (TypeScript/React) for dashboards, timelines, and documents |
+| [common/](./common/) | Common Python utilities (exceptions module) |
+| [contracts/](./contracts/) | Service contracts and schema artifacts (auth, data, events, models) |
+| [crypto/](./crypto/) | Cryptographic utilities |
+| [data-quality/](./data-quality/) | Data quality rules, remediation, and schema validation |
+| [event_bus/](./event_bus/) | Event bus with Azure Service Bus support |
+| [feature-flags/](./feature-flags/) | Feature flag management |
+| [llm/](./llm/) | LLM client, prompts, and CLI |
+| [methodology-engine/](./methodology-engine/) | Project methodology engine |
+| [observability/](./observability/) | Observability (metrics, logging, tracing, OpenTelemetry) |
+| [policy/](./policy/) | Policy evaluation utilities |
+| [security/](./security/) | Security package (auth, IAM, DLP, secrets, crypto, keyvault) |
+| [testing/](./testing/) | Testing utilities |
+| [ui-kit/](./ui-kit/) | UI kit components |
+| [workflow/](./workflow/) | Workflow dispatchers, Celery tasks, and result aggregation |
 
 ## How it's used
 

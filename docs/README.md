@@ -1,33 +1,41 @@
 # Documentation Hub
 
-## Purpose
+## Overview
 
-Describe the documentation set and link the narrative to the repo assets that implement it.
+This directory contains the canonical documentation set for the multi-agent PPM platform. It covers architecture narratives, API contracts, agent specifications, compliance guidance, onboarding material, operational runbooks, and shared templates. These documents are referenced by the root README and provide the authoritative explanations for the platform architecture, data model, and operating procedures.
 
-## What's inside
+## Directory structure
 
-- `docs/agents`: Agent specs, prompts, or test assets.
-- `docs/api`: API schemas and contracts.
-- `docs/architecture`: Architecture narratives and diagrams.
-- `docs/compliance`: Compliance guidance and requirements.
-- `docs/connectors`: Connector documentation and integration guidance.
-- `docs/data`: Data assets and fixtures for this component.
-- `docs/methodology`: Methodology maps, stage gates, and templates.
-- `docs/onboarding`: Developer onboarding and environment setup guidance.
-- `docs/product`: Product documentation, including template catalog.
-- `docs/production-readiness`: Release checklists and evidence packs.
-- `docs/runbooks`: Operational runbooks for incidents, deployments, and recovery.
-- `docs/templates`: Shared template library for agent artefacts.
+| Folder | Description |
+| --- | --- |
+| [agents/](./agents/) | Agent specifications and catalog |
+| [api/](./api/) | API schemas, OpenAPI specs, and contracts |
+| [architecture/](./architecture/) | Architecture narratives, diagrams, and ADRs |
+| [compliance/](./compliance/) | Compliance guidance, DPIA, threat model |
+| [connectors/](./connectors/) | Connector documentation and integration guides |
+| [data/](./data/) | Data model, quality, and lineage docs |
+| [methodology/](./methodology/) | Methodology maps (agile, waterfall, hybrid) with templates |
+| [onboarding/](./onboarding/) | Developer onboarding guides |
+| [product/](./product/) | Product documentation, personas, user guides |
+| [production-readiness/](./production-readiness/) | Release checklists and evidence packs |
+| [runbooks/](./runbooks/) | Operational runbooks |
+| [templates/](./templates/) | Shared template library |
 
-## How it's used
+## Key files
 
-These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.
+| File | Description |
+| --- | --- |
+| [versioning.md](./versioning.md) | API and documentation versioning policy |
+| [solution-index.md](./solution-index.md) | Cross-cutting solution index |
+| [dr-runbook.md](./dr-runbook.md) | Disaster recovery runbook |
+| [design-system.md](./design-system.md) | Design system guidelines |
+| [merge-conflict-troubleshooting.md](./merge-conflict-troubleshooting.md) | Guide for resolving merge conflicts |
 
 ## Onboarding & release references
 
-- Developer onboarding guide: `docs/onboarding/developer-onboarding.md`
-- Release process: `docs/production-readiness/release-process.md`
-- Operational runbooks: `docs/runbooks/`
+- Developer onboarding guide: [docs/onboarding/developer-onboarding.md](./onboarding/developer-onboarding.md)
+- Release process: [docs/production-readiness/release-process.md](./production-readiness/release-process.md)
+- Operational runbooks: [docs/runbooks/](./runbooks/)
 
 ## How to run / develop / test
 

@@ -4,19 +4,23 @@
 
 Catalog backend services that power data sync, policy enforcement, and telemetry.
 
-## What's inside
+## Directory structure
 
-- `services/audit-log`: Subdirectory containing audit log assets for this area.
-- `services/auth-service`: Subdirectory containing authentication service assets for this area.
-- `services/data-sync-service`: Subdirectory containing data sync service assets for this area.
-- `services/data-lineage-service`: Subdirectory containing data lineage service assets for this area.
-- `services/data-service`: Subdirectory containing data service assets for this area.
-- `services/identity-access`: Subdirectory containing identity access assets for this area.
-- `services/notification-service`: Subdirectory containing notification service assets for this area.
-- `services/agent-runtime`: Subdirectory containing agent runtime assets for this area.
-- `services/policy-engine`: Subdirectory containing policy engine assets for this area.
-- `services/telemetry-service`: Subdirectory containing telemetry service assets for this area.
-- `services/realtime-coedit-service`: Subdirectory containing real-time co-editing assets for this area.
+| Folder | Description |
+| --- | --- |
+| [agent-config/](./agent-config/) | Agent configuration management |
+| [agent-runtime/](./agent-runtime/) | Agent runtime hosting and orchestration |
+| [audit-log/](./audit-log/) | Immutable audit trail service |
+| [auth-service/](./auth-service/) | Authentication (OAuth2/OIDC) |
+| [data-lineage-service/](./data-lineage-service/) | Lineage capture and quality scoring |
+| [data-service/](./data-service/) | Canonical schema and entity storage |
+| [data-sync-service/](./data-sync-service/) | Connector-driven sync jobs |
+| [identity-access/](./identity-access/) | SCIM and token validation |
+| [integration/](./integration/) | Integration utilities |
+| [notification-service/](./notification-service/) | Outbound notifications |
+| [policy-engine/](./policy-engine/) | RBAC/ABAC policy evaluation |
+| [realtime-coedit-service/](./realtime-coedit-service/) | Collaborative document editing |
+| [telemetry-service/](./telemetry-service/) | Metrics/events ingestion |
 
 ## Service descriptions & endpoints
 

@@ -10,20 +10,24 @@ AI-native Project Portfolio Management (PPM) platform with 25 specialized agents
 
 The repository delivers a production-ready, multi-agent PPM platform with validated schemas, manifests, policies, orchestration services, and deployment assets. It includes operational runbooks and evidence to build, test, scan, deploy, and operate the system in client environments.
 
-## What's inside
+## Directory structure
 
-- `apps/`: user-facing apps (API gateway, web console, admin console) and Helm packaging.
-- `agents/`: 25 domain agents plus runtime scaffolding, prompts, and tests.
-- `connectors/`: integration manifests, mappings, SDK, and registry assets.
-- `services/`: backend services (audit log, data sync, identity, notification, telemetry).
-- `data/`: canonical schemas, lineage, quality rules, and migration specs.
-- `docs/`: architecture, methodology, agent catalog, and solution overview.
-- `infra/`: Terraform, Kubernetes, observability, and policy assets.
-- `packages/`: shared Python packages used by apps/services.
-- `tools/` + `scripts/`: local tooling, lint/format, codegen, and CI checks.
-- `tests/`: contract, integration, load, security, and E2E test suites.
-- `examples/`: scenario and configuration examples.
-- `config/`: tenant and environment configuration assets.
+| Folder | Description |
+| --- | --- |
+| [agents/](./agents/) | 25 domain agents plus runtime scaffolding, prompts, and tests |
+| [apps/](./apps/) | User-facing applications (API gateway, web console, admin console, mobile) and Helm packaging |
+| [config/](./config/) | Tenant, environment, and agent configuration assets |
+| [connectors/](./connectors/) | Integration manifests, mappings, SDK, and registry assets for external systems |
+| [data/](./data/) | Canonical JSON schemas, lineage, quality rules, and migration specs |
+| [design-system/](./design-system/) | Design tokens and icon system |
+| [docs/](./docs/) | Architecture, methodology, agent catalog, and solution overview |
+| [examples/](./examples/) | Scenario and configuration examples |
+| [infra/](./infra/) | Terraform, Kubernetes, observability, and policy assets |
+| [packages/](./packages/) | Shared Python and TypeScript packages used by apps, services, and agents |
+| [scripts/](./scripts/) | CI checks, validation, and utility scripts |
+| [services/](./services/) | Backend services (audit log, data sync, identity, notification, telemetry, and more) |
+| [tests/](./tests/) | Contract, integration, load, security, and E2E test suites |
+| [tools/](./tools/) | Local tooling for lint, format, codegen, and load testing |
 
 ## How it's used
 
@@ -120,29 +124,29 @@ make check-placeholders
 
 ## Deployment (high level)
 
-- **Terraform**: infrastructure definitions live under `infra/terraform/`.
+- **Terraform**: infrastructure definitions live under [infra/terraform/](./infra/terraform/).
   ```bash
   make tf-init
   make tf-plan
   make tf-apply
   ```
-- **Kubernetes manifests**: see `infra/kubernetes/manifests/`.
+- **Kubernetes manifests**: see [infra/kubernetes/manifests/](./infra/kubernetes/manifests/).
 - **Helm charts**: each app/service has a `helm/` folder for packaging.
 
-For deeper operational guidance, start with `infra/README.md` and `docs/architecture/`.
+For deeper operational guidance, start with [infra/README.md](./infra/README.md) and [docs/architecture/](./docs/architecture/).
 
 ## Security & compliance
 
-- Security posture and architecture: `docs/architecture/security-architecture.md`.
-- Responsible disclosure: `SECURITY.md`.
-- Data policy scaffolding: `infra/policies/` and `services/policy-engine/`.
+- Security posture and architecture: [docs/architecture/security-architecture.md](./docs/architecture/security-architecture.md).
+- Responsible disclosure: [SECURITY.md](./SECURITY.md).
+- Data policy scaffolding: [infra/policies/](./infra/policies/) and [services/policy-engine/](./services/policy-engine/).
 
 ## Where to find things
 
-- **Agents** → `agents/` and `docs/agents/`.
-- **Services** → `services/`.
-- **Connectors** → `connectors/` and `docs/connectors/`.
-- **Data model** → `data/schemas/` and `docs/data/`.
+- **Agents** → [agents/](./agents/) and [docs/agents/](./docs/agents/).
+- **Services** → [services/](./services/).
+- **Connectors** → [connectors/](./connectors/) and [docs/connectors/](./docs/connectors/).
+- **Data model** → [data/schemas/](./data/schemas/) and [docs/data/](./docs/data/).
 
 ## How to verify documentation links
 
