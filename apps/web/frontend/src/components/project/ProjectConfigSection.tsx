@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AgentGallery } from './AgentGallery';
 import { ProjectConnectorGallery } from './ProjectConnectorGallery';
 import styles from './ProjectConfigSection.module.css';
 
 interface ProjectConfigSectionProps {
   projectId: string;
+  defaultTab?: ProjectConfigTab;
 }
 
 type ProjectConfigTab = 'agents' | 'connectors';
 
-export function ProjectConfigSection({ projectId }: ProjectConfigSectionProps) {
-  const [activeTab, setActiveTab] = useState<ProjectConfigTab>('agents');
+export function ProjectConfigSection({
+  projectId,
+  defaultTab = 'agents',
+}: ProjectConfigSectionProps) {
+  const [activeTab, setActiveTab] = useState<ProjectConfigTab>(defaultTab);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   return (
     <section className={styles.container}>

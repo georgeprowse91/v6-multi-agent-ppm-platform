@@ -20,6 +20,7 @@ import {
   AnalyticsDashboard,
   MethodologyEditor,
   RoleManager,
+  ProjectConfigPage,
 } from '@/pages';
 
 export function App() {
@@ -48,6 +49,14 @@ export function App() {
         <Route
           path="/project/:projectId"
           element={<WorkspacePage type="project" />}
+        />
+        <Route
+          path="/projects/:projectId/config"
+          element={<ProjectConfigPage />}
+        />
+        <Route
+          path="/projects/:projectId/config/:tab"
+          element={<ProjectConfigPage />}
         />
 
         {/* Configuration pages */}

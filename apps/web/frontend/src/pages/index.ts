@@ -17,3 +17,4 @@ export { PromptManager } from './PromptManager';
 export { AnalyticsDashboard } from './AnalyticsDashboard';
 export { MethodologyEditor } from './MethodologyEditor';
 export { RoleManager } from './RoleManager';
+export { ProjectConfigPage } from './ProjectConfigPage';
