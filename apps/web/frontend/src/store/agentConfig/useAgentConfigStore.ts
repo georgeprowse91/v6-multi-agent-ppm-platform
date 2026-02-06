@@ -404,7 +404,7 @@ export const useAgentConfigStore = create<AgentConfigStoreState>((set, get) => (
 /**
  * Mock agents for development when API is not available
  */
-function getMockAgents(): AgentConfig[] {
+export function getMockAgents(): AgentConfig[] {
   return [
     {
       catalog_id: 'agent-01-intent-router',

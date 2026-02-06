@@ -2,7 +2,7 @@
  * Agent Configuration Store exports
  */
 
-export { useAgentConfigStore, default } from './useAgentConfigStore';
+export { useAgentConfigStore, default, getMockAgents } from './useAgentConfigStore';
 export type {
   AgentCategory,
   AgentConfig,
