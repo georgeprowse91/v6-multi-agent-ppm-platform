@@ -47,6 +47,7 @@ from mcp_client.errors import (
     MCPToolNotFoundError,
     MCPTransportError,
 )
+from .mcp_mapping import map_from_mcp_response, map_to_mcp_params
 from secrets import resolve_secret
 
 logger = logging.getLogger(__name__)
@@ -158,13 +159,15 @@ class JiraConnector(BaseConnector):
 
         def mcp_call() -> dict[str, Any]:
             client = self._build_mcp_client()
-            payload = {
+            canonical_payload = {
                 "resource_type": "issues",
                 "record": record,
                 "id": issue_id,
+                "status": status_value,
             }
-            result = self._run_mcp(client.update_record(payload))
-            normalized = self._normalize_issue_record(self._extract_record(result))
+            params = map_to_mcp_params("update", canonical_payload)
+            result = self._run_mcp(client.update_record(params))
+            normalized = self._normalize_issue_record(map_from_mcp_response("update", result))
             return {
                 "id": normalized.get("id") or issue_id,
                 "key": normalized.get("key") or issue_id,
@@ -193,12 +196,14 @@ class JiraConnector(BaseConnector):
 
         def mcp_call() -> dict[str, Any]:
             client = self._build_mcp_client()
-            payload = {
+            canonical_payload = {
                 "resource_type": "issues",
                 "record": record,
+                "status": status_value,
             }
-            result = self._run_mcp(client.create_record(payload))
-            normalized = self._normalize_issue_record(self._extract_record(result))
+            params = map_to_mcp_params("create", canonical_payload)
+            result = self._run_mcp(client.create_record(params))
+            normalized = self._normalize_issue_record(map_from_mcp_response("create", result))
             created_id = normalized.get("id")
             created_key = normalized.get("key")
             return {
@@ -350,14 +355,15 @@ class JiraConnector(BaseConnector):
     ) -> list[dict[str, Any]]:
         def mcp_call() -> list[dict[str, Any]]:
             client = self._build_mcp_client()
-            payload = {
+            canonical_payload = {
                 "resource_type": resource_type,
                 "filters": filters or {},
                 "limit": limit,
                 "offset": offset,
             }
-            result = self._run_mcp(client.list_records(payload))
-            return self._extract_records(result)
+            params = map_to_mcp_params("list", canonical_payload)
+            result = self._run_mcp(client.list_records(params))
+            return map_from_mcp_response("list", result)
 
         return self._try_mcp_then_rest(
             operation="list",
