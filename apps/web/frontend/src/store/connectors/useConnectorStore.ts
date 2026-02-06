@@ -24,6 +24,9 @@ interface ConnectorStoreState {
   connectors: Connector[];
   connectorsLoading: boolean;
   connectorsError: string | null;
+  projectConnectors: Record<string, Connector[]>;
+  projectConnectorsLoading: Record<string, boolean>;
+  projectConnectorsError: Record<string, string | null>;
 
   // Categories
   categories: CategoryInfo[];
@@ -47,13 +50,21 @@ interface ConnectorStoreState {
 
   // Actions - Connectors
   fetchConnectors: () => Promise<void>;
+  fetchProjectConnectors: (projectId: string) => Promise<void>;
   fetchCategories: () => Promise<void>;
   fetchCertifications: () => Promise<void>;
   getConnector: (connectorId: string) => Connector | undefined;
   getCertification: (connectorId: string) => CertificationRecord | undefined;
   updateConnectorConfig: (connectorId: string, config: ConnectorConfigUpdate) => Promise<void>;
+  updateProjectConnectorConfig: (
+    projectId: string,
+    connectorId: string,
+    config: ConnectorConfigUpdate
+  ) => Promise<void>;
   enableConnector: (connectorId: string) => Promise<void>;
+  enableProjectConnector: (projectId: string, connectorId: string) => Promise<void>;
   disableConnector: (connectorId: string) => Promise<void>;
+  disableProjectConnector: (projectId: string, connectorId: string) => Promise<void>;
   updateCertification: (
     connectorId: string,
     payload: Partial<Omit<CertificationRecord, 'connector_id' | 'tenant_id' | 'documents' | 'updated_at'>>
@@ -66,12 +77,19 @@ interface ConnectorStoreState {
 
   // Actions - Connection Testing
   testConnection: (connectorId: string, instanceUrl?: string, projectKey?: string) => Promise<ConnectionTestResult>;
+  testProjectConnection: (
+    projectId: string,
+    connectorId: string,
+    instanceUrl?: string,
+    projectKey?: string
+  ) => Promise<ConnectionTestResult>;
   clearTestResult: () => void;
 
   // Actions - Filter
   setFilter: (filter: Partial<ConnectorFilterState>) => void;
   resetFilter: () => void;
   getFilteredConnectors: () => Connector[];
+  getFilteredProjectConnectors: (projectId: string) => Connector[];
 
   // Actions - Modal
   openConnectorModal: (connector: Connector) => void;
@@ -97,6 +115,9 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
   connectors: [],
   connectorsLoading: false,
   connectorsError: null,
+  projectConnectors: {},
+  projectConnectorsLoading: {},
+  projectConnectorsError: {},
   categories: [],
   categoriesLoading: false,
   certifications: {},
@@ -126,6 +147,41 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
       // Fall back to mock data only when the API is unreachable
       if (error instanceof TypeError && message.includes('Failed to fetch')) {
         set({ connectors: getMockConnectors() });
+      }
+    }
+  },
+
+  fetchProjectConnectors: async (projectId) => {
+    set((state) => ({
+      projectConnectorsLoading: { ...state.projectConnectorsLoading, [projectId]: true },
+      projectConnectorsError: { ...state.projectConnectorsError, [projectId]: null },
+    }));
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors`);
+      if (!response.ok) {
+        const message = `Failed to fetch connectors: ${response.statusText}`;
+        set((state) => ({
+          projectConnectorsError: { ...state.projectConnectorsError, [projectId]: message },
+          projectConnectorsLoading: { ...state.projectConnectorsLoading, [projectId]: false },
+        }));
+        return;
+      }
+      const data = await response.json();
+      set((state) => ({
+        projectConnectors: { ...state.projectConnectors, [projectId]: data },
+        projectConnectorsLoading: { ...state.projectConnectorsLoading, [projectId]: false },
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      set((state) => ({
+        projectConnectorsError: { ...state.projectConnectorsError, [projectId]: message },
+        projectConnectorsLoading: { ...state.projectConnectorsLoading, [projectId]: false },
+      }));
+      // Fall back to mock data only when the API is unreachable
+      if (error instanceof TypeError && message.includes('Failed to fetch')) {
+        set((state) => ({
+          projectConnectors: { ...state.projectConnectors, [projectId]: getMockConnectors() },
+        }));
       }
     }
   },
@@ -200,6 +256,35 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
               }
             : c
         ),
+      }));
+    }
+  },
+
+  updateProjectConnectorConfig: async (projectId, connectorId, config) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors/${connectorId}/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to update connector: ${response.statusText}`);
+      }
+      await get().fetchProjectConnectors(projectId);
+    } catch (error) {
+      set((state) => ({
+        projectConnectors: {
+          ...state.projectConnectors,
+          [projectId]: (state.projectConnectors[projectId] || []).map((c) =>
+            c.connector_id === connectorId
+              ? {
+                  ...c,
+                  ...config,
+                  configured: true,
+                }
+              : c
+          ),
+        },
       }));
     }
   },
@@ -280,6 +365,38 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     }
   },
 
+  enableProjectConnector: async (projectId, connectorId) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors/${connectorId}/enable`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Failed to enable connector: ${response.statusText}`);
+      }
+      await get().fetchProjectConnectors(projectId);
+    } catch (error) {
+      const connector = (get().projectConnectors[projectId] || []).find(
+        (item) => item.connector_id === connectorId
+      );
+      if (!connector) return;
+      set((state) => ({
+        projectConnectors: {
+          ...state.projectConnectors,
+          [projectId]: (state.projectConnectors[projectId] || []).map((c) => {
+            if (c.connector_id === connectorId) {
+              return { ...c, enabled: true };
+            }
+            if (c.category === connector.category && c.enabled) {
+              return { ...c, enabled: false };
+            }
+            return c;
+          }),
+        },
+      }));
+    }
+  },
+
   // Disable a connector
   disableConnector: async (connectorId) => {
     try {
@@ -297,6 +414,27 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
         connectors: state.connectors.map((c) =>
           c.connector_id === connectorId ? { ...c, enabled: false } : c
         ),
+      }));
+    }
+  },
+
+  disableProjectConnector: async (projectId, connectorId) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors/${connectorId}/disable`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to disable connector: ${response.statusText}`);
+      }
+      await get().fetchProjectConnectors(projectId);
+    } catch (error) {
+      set((state) => ({
+        projectConnectors: {
+          ...state.projectConnectors,
+          [projectId]: (state.projectConnectors[projectId] || []).map((c) =>
+            c.connector_id === connectorId ? { ...c, enabled: false } : c
+          ),
+        },
       }));
     }
   },
@@ -320,6 +458,38 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
       // If connection was successful, refresh connectors to get updated health status
       if (result.status === 'connected') {
         await get().fetchConnectors();
+      }
+
+      return result;
+    } catch (error) {
+      const result: ConnectionTestResult = {
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Connection test failed',
+        details: {},
+        tested_at: new Date().toISOString(),
+      };
+      set({ testResult: result, testingConnection: false });
+      return result;
+    }
+  },
+
+  testProjectConnection: async (projectId, connectorId, instanceUrl, projectKey) => {
+    set({ testingConnection: true, testResult: null });
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors/${connectorId}/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instance_url: instanceUrl || '',
+          project_key: projectKey || '',
+        }),
+      });
+
+      const result: ConnectionTestResult = await response.json();
+      set({ testResult: result, testingConnection: false });
+
+      if (result.status === 'connected') {
+        await get().fetchProjectConnectors(projectId);
       }
 
       return result;
@@ -379,6 +549,35 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     }
 
     // Apply enabled filter
+    if (filter.enabledOnly) {
+      filtered = filtered.filter((c) => c.enabled);
+    }
+
+    return filtered;
+  },
+
+  getFilteredProjectConnectors: (projectId) => {
+    const { projectConnectors, filter } = get();
+    let filtered = [...(projectConnectors[projectId] || [])];
+
+    if (filter.search) {
+      const search = filter.search.toLowerCase();
+      filtered = filtered.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search) ||
+          c.description.toLowerCase().includes(search) ||
+          c.connector_id.toLowerCase().includes(search)
+      );
+    }
+
+    if (filter.category !== 'all') {
+      filtered = filtered.filter((c) => c.category === filter.category);
+    }
+
+    if (filter.statusFilter !== 'all') {
+      filtered = filtered.filter((c) => c.status === filter.statusFilter);
+    }
+
     if (filter.enabledOnly) {
       filtered = filtered.filter((c) => c.enabled);
     }

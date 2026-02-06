@@ -10,9 +10,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  useProjectConnectorStore,
-} from '@/store/projectConnectors';
+import { useConnectorStore } from '@/store/connectors';
 import {
   CATEGORY_INFO,
   type CertificationRecord,
@@ -32,33 +30,35 @@ interface ProjectConnectorGalleryProps {
 
 export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryProps) {
   const {
-    setProjectId,
-    connectors,
-    connectorsLoading,
-    connectorsError,
+    projectConnectors,
+    projectConnectorsLoading,
+    projectConnectorsError,
     certifications,
     certificationsLoading,
     fetchCertifications,
     filter,
-    fetchConnectors,
+    fetchProjectConnectors,
     fetchCategories,
     setFilter,
     resetFilter,
-    getFilteredConnectors,
-    enableConnector,
-    disableConnector,
+    getFilteredProjectConnectors,
+    enableProjectConnector,
+    disableProjectConnector,
     openConnectorModal,
     isModalOpen,
     selectedConnector,
     closeConnectorModal,
-    updateConnectorConfig,
-    testConnection,
+    updateProjectConnectorConfig,
+    testProjectConnection,
     testingConnection,
     testResult,
     clearTestResult,
     updateCertification,
     uploadCertificationDocument,
-  } = useProjectConnectorStore();
+  } = useConnectorStore();
+  const connectors = projectConnectors[projectId] || [];
+  const connectorsLoading = projectConnectorsLoading[projectId] || false;
+  const connectorsError = projectConnectorsError[projectId] || null;
   const { session } = useAppStore();
   const canManage = canManageConfig(session.user?.permissions);
   const [certModalOpen, setCertModalOpen] = useState(false);
@@ -73,14 +73,16 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
 
   // Initialize store
   useEffect(() => {
-    setProjectId(projectId);
-    fetchConnectors();
+    fetchProjectConnectors(projectId);
     fetchCategories();
     fetchCertifications();
-  }, [fetchConnectors, fetchCategories, fetchCertifications, projectId, setProjectId]);
+  }, [fetchProjectConnectors, fetchCategories, fetchCertifications, projectId]);
 
   // Get filtered connectors
-  const filteredConnectors = useMemo(() => getFilteredConnectors(), [connectors, filter, getFilteredConnectors]);
+  const filteredConnectors = useMemo(
+    () => getFilteredProjectConnectors(projectId),
+    [connectors, filter, getFilteredProjectConnectors, projectId]
+  );
 
   // Group connectors by category
   const connectorsByCategory = useMemo(() => {
@@ -114,9 +116,9 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
     if (!canManage) return;
     if (!isConnectorToggleable(connector.status)) return;
     if (connector.enabled) {
-      await disableConnector(connector.connector_id);
+      await disableProjectConnector(projectId, connector.connector_id);
     } else {
-      await enableConnector(connector.connector_id);
+      await enableProjectConnector(projectId, connector.connector_id);
     }
   };
 
@@ -148,7 +150,7 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
       <div className={styles.container}>
         <div className={styles.error}>
           <p>Error loading connectors: {connectorsError}</p>
-          <button onClick={fetchConnectors}>Retry</button>
+          <button onClick={() => fetchProjectConnectors(projectId)}>Retry</button>
         </div>
       </div>
     );
@@ -271,8 +273,12 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
         <ConnectorConfigModal
           connector={selectedConnector}
           onClose={closeConnectorModal}
-          onSave={updateConnectorConfig}
-          onTestConnection={testConnection}
+          onSave={(connectorId, config) =>
+            updateProjectConnectorConfig(projectId, connectorId, config)
+          }
+          onTestConnection={(connectorId, instanceUrl, projectKey) =>
+            testProjectConnection(projectId, connectorId, instanceUrl, projectKey)
+          }
           testingConnection={testingConnection}
           testResult={testResult}
           clearTestResult={clearTestResult}
