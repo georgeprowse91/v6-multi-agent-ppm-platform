@@ -127,6 +127,17 @@
     ]
   },
   {
+    "id": "jira_mcp",
+    "name": "Jira (MCP)",
+    "manifest_path": "connectors/jira_mcp/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "pm",
+    "supported_sync_directions": [
+      "inbound"
+    ]
+  },
+  {
     "id": "logicgate",
     "name": "LogicGate",
     "manifest_path": "connectors/logicgate/manifest.yaml",
@@ -290,6 +301,19 @@
     ]
   },
   {
+    "id": "slack_mcp",
+    "name": "Slack (MCP)",
+    "manifest_path": "connectors/slack_mcp/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "inbound",
+      "outbound",
+      "bidirectional"
+    ]
+  },
+  {
     "id": "smartsheet",
     "name": "Smartsheet",
     "manifest_path": "connectors/smartsheet/manifest.yaml",
@@ -305,6 +329,18 @@
     "id": "teams",
     "name": "Microsoft Teams",
     "manifest_path": "connectors/teams/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "outbound",
+      "bidirectional"
+    ]
+  },
+  {
+    "id": "teams_mcp",
+    "name": "Microsoft Teams (MCP)",
+    "manifest_path": "connectors/teams_mcp/manifest.yaml",
     "status": "beta",
     "certification": "not-started",
     "category": "collaboration",

@@ -1,0 +1,33 @@
+id: "teams_mcp"
+version: "1.0.0"
+name: "Microsoft Teams (MCP)"
+description: "Sync Teams channels and messages via an MCP server."
+owner: "integration-team"
+category: "collaboration"
+auth:
+  type: "mcp"
+  fields:
+    - "server_url"
+    - "server_id"
+    - "tool_map"
+mcp:
+  server_url: "https://mcp.example.com"
+  server_id: "teams"
+  tool_map:
+    list_teams: "teams.listTeams"
+    list_channels: "teams.listChannels"
+    post_message: "teams.postMessage"
+sync:
+  modes:
+    - "full"
+    - "incremental"
+  default_schedule: "*/30 * * * *"
+  supports_webhooks: false
+  rate_limit_per_minute: 1000
+mappings:
+  - source: "project"
+    target: "project"
+    mapping_file: "mappings/project.yaml"
+  - source: "resource"
+    target: "resource"
+    mapping_file: "mappings/resource.yaml"

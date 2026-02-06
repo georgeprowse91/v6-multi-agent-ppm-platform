@@ -1,0 +1,33 @@
+id: "slack_mcp"
+version: "1.0.0"
+name: "Slack (MCP)"
+description: "Sync collaboration metadata and notifications from Slack via an MCP server."
+owner: "integration-team"
+category: "collaboration"
+auth:
+  type: "mcp"
+  fields:
+    - "server_url"
+    - "server_id"
+    - "tool_map"
+mcp:
+  server_url: "https://mcp.example.com"
+  server_id: "slack"
+  tool_map:
+    list_channels: "slack.listChannels"
+    post_message: "slack.postMessage"
+    list_users: "slack.listUsers"
+sync:
+  modes:
+    - "full"
+    - "incremental"
+  default_schedule: "*/30 * * * *"
+  supports_webhooks: false
+  rate_limit_per_minute: 1000
+mappings:
+  - source: "project"
+    target: "project"
+    mapping_file: "mappings/project.yaml"
+  - source: "resource"
+    target: "resource"
+    mapping_file: "mappings/resource.yaml"

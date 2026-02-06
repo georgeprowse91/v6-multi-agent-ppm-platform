@@ -1,0 +1,33 @@
+id: "jira_mcp"
+version: "1.0.0"
+name: "Jira (MCP)"
+description: "Sync projects and work items from Jira via an MCP server."
+owner: "integration-team"
+category: "work-management"
+auth:
+  type: "mcp"
+  fields:
+    - "server_url"
+    - "server_id"
+    - "tool_map"
+mcp:
+  server_url: "https://mcp.example.com"
+  server_id: "jira"
+  tool_map:
+    list_projects: "jira.listProjects"
+    list_work_items: "jira.listIssues"
+    upsert_work_item: "jira.upsertIssue"
+sync:
+  modes:
+    - "full"
+    - "incremental"
+  default_schedule: "0 */4 * * *"
+  supports_webhooks: false
+  rate_limit_per_minute: 600
+mappings:
+  - source: "project"
+    target: "project"
+    mapping_file: "mappings/project.yaml"
+  - source: "work_item"
+    target: "work-item"
+    mapping_file: "mappings/work-item.yaml"
