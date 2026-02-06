@@ -42,6 +42,7 @@ from mcp_client.errors import (
     MCPToolNotFoundError,
     MCPTransportError,
 )
+from .mcp_mapping import map_from_mcp_response, map_to_mcp_params
 from secrets import fetch_keyvault_secret, resolve_secret
 
 DEFAULT_TOKEN_URL = "https://api.planview.com/oauth2/token"
@@ -228,14 +229,15 @@ class PlanviewConnector(BaseConnector):
     ) -> list[dict[str, Any]]:
         def mcp_call() -> list[dict[str, Any]]:
             client = self._build_mcp_client()
-            payload = {
+            canonical_payload = {
                 "resource_type": resource_type,
                 "filters": filters or {},
                 "limit": limit,
                 "offset": offset,
             }
-            result = self._run_mcp(client.list_records(payload))
-            return self._extract_records(result)
+            params = map_to_mcp_params("list", canonical_payload)
+            result = self._run_mcp(client.list_records(params))
+            return map_from_mcp_response("list", result)
 
         return self._try_mcp_then_rest(
             operation="list",
