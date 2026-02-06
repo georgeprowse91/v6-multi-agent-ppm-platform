@@ -15,7 +15,9 @@ Credentials are obtained from environment variables:
 
 from __future__ import annotations
 
+import asyncio
 import base64
+import logging
 import os
 import sys
 from pathlib import Path
@@ -25,6 +27,9 @@ from typing import Any
 SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
+CONNECTORS_PATH = Path(__file__).resolve().parents[2]
+if str(CONNECTORS_PATH) not in sys.path:
+    sys.path.insert(0, str(CONNECTORS_PATH))
 
 from base_connector import (
     BaseConnector,
@@ -34,7 +39,17 @@ from base_connector import (
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
+from mcp_client.client import MCPClient
+from mcp_client.errors import (
+    MCPAuthenticationError,
+    MCPResponseError,
+    MCPServerError,
+    MCPToolNotFoundError,
+    MCPTransportError,
+)
 from secrets import resolve_secret
+
+logger = logging.getLogger(__name__)
 
 
 class JiraConnector(BaseConnector):
@@ -57,10 +72,12 @@ class JiraConnector(BaseConnector):
         self,
         config: ConnectorConfig,
         client: HttpClient | None = None,
+        mcp_client: MCPClient | None = None,
         transport: Any | None = None,
     ) -> None:
         super().__init__(config)
         self._client = client
+        self._mcp_client = mcp_client
         self._transport = transport  # For testing with mocked HTTP
         self._instance_url: str | None = None
         self._email: str | None = None
@@ -84,7 +101,6 @@ class JiraConnector(BaseConnector):
             if not self.authenticate():
                 raise RuntimeError("Failed to authenticate with Jira")
 
-        client = self._client or self._build_client()
         results: list[dict[str, Any]] = []
 
         for record in data:
@@ -92,60 +108,106 @@ class JiraConnector(BaseConnector):
             status_value = record.get("status")
 
             if issue_id:
-                current = client.get(
-                    f"/rest/api/3/issue/{issue_id}",
-                    params={"fields": "summary,status,updated"},
-                ).json()
-                current_fields = current.get("fields", {})
-                current_updated = current_fields.get("updated")
-                client_updated = record.get("updated") or record.get("updated_at")
-                if client_updated and current_updated and client_updated != current_updated:
-                    results.append(
-                        {
-                            "id": current.get("id") or issue_id,
-                            "key": current.get("key") or issue_id,
-                            "conflict": True,
-                            "message": "Conflict detected: issue has been updated in Jira.",
-                            "server_updated": current_updated,
-                            "client_updated": client_updated,
-                        }
-                    )
-                    continue
-
-                fields = self._build_issue_fields(record)
-                if fields:
-                    client.request(
-                        "PUT",
-                        f"/rest/api/3/issue/{issue_id}",
-                        json={"fields": fields},
-                    )
-                if status_value:
-                    self._transition_issue(client, issue_id, status_value)
-                results.append(
-                    {
-                        "id": current.get("id") or issue_id,
-                        "key": current.get("key") or issue_id,
-                        "status": status_value or self._extract_nested(
-                            current_fields, "status", "name"
-                        ),
-                    }
-                )
+                results.append(self._update_issue(record, issue_id, status_value))
                 continue
 
+            results.append(self._create_issue_record(record, status_value))
+
+        return results
+
+    def _update_issue(
+        self,
+        record: dict[str, Any],
+        issue_id: str,
+        status_value: str | None,
+    ) -> dict[str, Any]:
+        def rest_call() -> dict[str, Any]:
+            client = self._client or self._build_client()
+            current = client.get(
+                f"/rest/api/3/issue/{issue_id}",
+                params={"fields": "summary,status,updated"},
+            ).json()
+            current_fields = current.get("fields", {})
+            current_updated = current_fields.get("updated")
+            client_updated = record.get("updated") or record.get("updated_at")
+            if client_updated and current_updated and client_updated != current_updated:
+                return {
+                    "id": current.get("id") or issue_id,
+                    "key": current.get("key") or issue_id,
+                    "conflict": True,
+                    "message": "Conflict detected: issue has been updated in Jira.",
+                    "server_updated": current_updated,
+                    "client_updated": client_updated,
+                }
+
+            fields = self._build_issue_fields(record)
+            if fields:
+                client.request(
+                    "PUT",
+                    f"/rest/api/3/issue/{issue_id}",
+                    json={"fields": fields},
+                )
+            if status_value:
+                self._transition_issue(client, issue_id, status_value)
+            normalized = self._normalize_issue_record(current)
+            return {
+                "id": normalized.get("id") or issue_id,
+                "key": normalized.get("key") or issue_id,
+                "status": status_value or normalized.get("status"),
+            }
+
+        def mcp_call() -> dict[str, Any]:
+            client = self._build_mcp_client()
+            payload = {
+                "resource_type": "issues",
+                "record": record,
+                "id": issue_id,
+            }
+            result = self._run_mcp(client.update_record(payload))
+            normalized = self._normalize_issue_record(self._extract_record(result))
+            return {
+                "id": normalized.get("id") or issue_id,
+                "key": normalized.get("key") or issue_id,
+                "status": status_value or normalized.get("status"),
+            }
+
+        return self._update_record(mcp_call=mcp_call, rest_call=rest_call)
+
+    def _create_issue_record(
+        self,
+        record: dict[str, Any],
+        status_value: str | None,
+    ) -> dict[str, Any]:
+        def rest_call() -> dict[str, Any]:
+            client = self._client or self._build_client()
             created = self._create_issue(client, record)
             created_id = created.get("id")
             created_key = created.get("key")
             if status_value and (created_id or created_key):
                 self._transition_issue(client, created_key or created_id, status_value)
-            results.append(
-                {
-                    "id": created_id,
-                    "key": created_key,
-                    "status": status_value,
-                }
-            )
+            return {
+                "id": created_id,
+                "key": created_key,
+                "status": status_value,
+            }
 
-        return results
+        def mcp_call() -> dict[str, Any]:
+            client = self._build_mcp_client()
+            payload = {
+                "resource_type": "issues",
+                "record": record,
+            }
+            result = self._run_mcp(client.create_record(payload))
+            normalized = self._normalize_issue_record(self._extract_record(result))
+            created_id = normalized.get("id")
+            created_key = normalized.get("key")
+            return {
+                "id": created_id,
+                "key": created_key,
+                "status": status_value or normalized.get("status"),
+            }
+
+        return self._create_record(mcp_call=mcp_call, rest_call=rest_call)
 
     def _get_credentials(self) -> tuple[str, str, str]:
         """
@@ -206,6 +268,122 @@ class JiraConnector(BaseConnector):
             rate_limit_per_minute=600,
             retry_config=retry_config,
             transport=self._transport,
+        )
+
+    def _build_mcp_client(self) -> MCPClient:
+        if self._mcp_client:
+            return self._mcp_client
+        if not self.config.mcp_server_url:
+            raise ValueError("Jira MCP server URL is required")
+        self._mcp_client = MCPClient(
+            mcp_server_id=self.config.mcp_server_id or self.CONNECTOR_ID,
+            mcp_server_url=self.config.mcp_server_url,
+            config=self.config,
+        )
+        return self._mcp_client
+
+    def _should_use_mcp(self) -> bool:
+        return bool(self.config.prefer_mcp and self.config.mcp_server_url)
+
+    def _run_mcp(self, coroutine: Any) -> Any:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coroutine)
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coroutine)
+        finally:
+            loop.close()
+
+    def _extract_records(self, payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict):
+            for key in ("records", "items", "values", "data"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    return value
+        return []
+
+    def _extract_record(self, payload: Any) -> dict[str, Any]:
+        if isinstance(payload, dict):
+            if "record" in payload and isinstance(payload["record"], dict):
+                return payload["record"]
+            return payload
+        return {}
+
+    def _try_mcp_then_rest(
+        self,
+        *,
+        operation: str,
+        mcp_call: Any,
+        rest_call: Any,
+    ) -> Any:
+        if not self._should_use_mcp():
+            return rest_call()
+        try:
+            return mcp_call()
+        except (
+            MCPToolNotFoundError,
+            MCPAuthenticationError,
+            MCPResponseError,
+            MCPServerError,
+            MCPTransportError,
+            ValueError,
+        ) as exc:
+            logger.warning(
+                "MCP %s failed for Jira connector; falling back to REST. Error: %s",
+                operation,
+                exc,
+            )
+            return rest_call()
+
+    def _list_records(
+        self,
+        *,
+        resource_type: str,
+        filters: dict[str, Any] | None,
+        limit: int,
+        offset: int,
+        rest_call: Any,
+    ) -> list[dict[str, Any]]:
+        def mcp_call() -> list[dict[str, Any]]:
+            client = self._build_mcp_client()
+            payload = {
+                "resource_type": resource_type,
+                "filters": filters or {},
+                "limit": limit,
+                "offset": offset,
+            }
+            result = self._run_mcp(client.list_records(payload))
+            return self._extract_records(result)
+
+        return self._try_mcp_then_rest(
+            operation="list",
+            mcp_call=mcp_call,
+            rest_call=rest_call,
+        )
+
+    def _create_record(self, *, mcp_call: Any, rest_call: Any) -> dict[str, Any]:
+        return self._try_mcp_then_rest(
+            operation="create",
+            mcp_call=mcp_call,
+            rest_call=rest_call,
+        )
+
+    def _update_record(self, *, mcp_call: Any, rest_call: Any) -> dict[str, Any]:
+        return self._try_mcp_then_rest(
+            operation="update",
+            mcp_call=mcp_call,
+            rest_call=rest_call,
+        )
+
+    def _delete_record(self, *, mcp_call: Any, rest_call: Any) -> dict[str, Any]:
+        return self._try_mcp_then_rest(
+            operation="delete",
+            mcp_call=mcp_call,
+            rest_call=rest_call,
         )
 
     def authenticate(self) -> bool:
@@ -341,13 +519,35 @@ class JiraConnector(BaseConnector):
             if not self.authenticate():
                 raise RuntimeError("Failed to authenticate with Jira")
 
-        client = self._client or self._build_client()
         filters = filters or {}
 
         if resource_type == "issues":
-            return self._read_issues(client, filters, limit, offset)
+            records = self._list_records(
+                resource_type=resource_type,
+                filters=filters,
+                limit=limit,
+                offset=offset,
+                rest_call=lambda: self._read_issues(
+                    self._client or self._build_client(),
+                    filters,
+                    limit,
+                    offset,
+                ),
+            )
+            return [self._normalize_issue_record(record) for record in records]
         elif resource_type == "projects":
-            return self._read_projects(client, limit, offset)
+            records = self._list_records(
+                resource_type=resource_type,
+                filters=filters,
+                limit=limit,
+                offset=offset,
+                rest_call=lambda: self._read_projects(
+                    self._client or self._build_client(),
+                    limit,
+                    offset,
+                ),
+            )
+            return [self._normalize_project_record(record) for record in records]
         else:
             raise ValueError(f"Unsupported resource type: {resource_type}")
 
@@ -382,30 +582,7 @@ class JiraConnector(BaseConnector):
 
         data = response.json()
         for issue in data.get("issues", []):
-            fields = issue.get("fields", {})
-            issues.append(
-                {
-                    "id": issue.get("id"),
-                    "key": issue.get("key"),
-                    "summary": fields.get("summary"),
-                    "description": self._extract_description(fields.get("description")),
-                    "status": self._extract_nested(fields, "status", "name"),
-                    "status_category": self._extract_nested(
-                        fields, "status", "statusCategory", "key"
-                    ),
-                    "assignee": self._extract_nested(fields, "assignee", "displayName"),
-                    "assignee_email": self._extract_nested(
-                        fields, "assignee", "emailAddress"
-                    ),
-                    "project_key": self._extract_nested(fields, "project", "key"),
-                    "project_name": self._extract_nested(fields, "project", "name"),
-                    "issue_type": self._extract_nested(fields, "issuetype", "name"),
-                    "priority": self._extract_nested(fields, "priority", "name"),
-                    "created": fields.get("created"),
-                    "updated": fields.get("updated"),
-                    "due_date": fields.get("duedate"),
-                }
-            )
+            issues.append(self._normalize_issue_record(issue))
 
         return issues
 
@@ -428,21 +605,53 @@ class JiraConnector(BaseConnector):
 
         data = response.json()
         for project in data.get("values", []):
-            projects.append(
-                {
-                    "id": project.get("id"),
-                    "key": project.get("key"),
-                    "name": project.get("name"),
-                    "description": project.get("description"),
-                    "lead": self._extract_nested(project, "lead", "displayName"),
-                    "lead_email": self._extract_nested(project, "lead", "emailAddress"),
-                    "project_type": project.get("projectTypeKey"),
-                    "style": project.get("style"),
-                    "archived": project.get("archived", False),
-                }
-            )
+            projects.append(self._normalize_project_record(project))
 
         return projects
+
+    def _normalize_issue_record(self, record: dict[str, Any]) -> dict[str, Any]:
+        fields = record.get("fields") if isinstance(record.get("fields"), dict) else record
+        return {
+            "id": record.get("id") or record.get("issue_id"),
+            "key": record.get("key") or record.get("issue_key"),
+            "summary": fields.get("summary"),
+            "description": self._extract_description(fields.get("description")),
+            "status": self._extract_nested(fields, "status", "name") or fields.get("status"),
+            "status_category": self._extract_nested(
+                fields, "status", "statusCategory", "key"
+            )
+            or fields.get("status_category"),
+            "assignee": self._extract_nested(fields, "assignee", "displayName")
+            or fields.get("assignee"),
+            "assignee_email": self._extract_nested(fields, "assignee", "emailAddress")
+            or fields.get("assignee_email"),
+            "project_key": self._extract_nested(fields, "project", "key")
+            or fields.get("project_key"),
+            "project_name": self._extract_nested(fields, "project", "name")
+            or fields.get("project_name"),
+            "issue_type": self._extract_nested(fields, "issuetype", "name")
+            or fields.get("issue_type"),
+            "priority": self._extract_nested(fields, "priority", "name")
+            or fields.get("priority"),
+            "created": fields.get("created") or fields.get("created_at"),
+            "updated": fields.get("updated") or fields.get("updated_at"),
+            "due_date": fields.get("duedate") or fields.get("due_date"),
+        }
+
+    def _normalize_project_record(self, record: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": record.get("id"),
+            "key": record.get("key"),
+            "name": record.get("name"),
+            "description": record.get("description"),
+            "lead": self._extract_nested(record, "lead", "displayName")
+            or record.get("lead"),
+            "lead_email": self._extract_nested(record, "lead", "emailAddress")
+            or record.get("lead_email"),
+            "project_type": record.get("projectTypeKey") or record.get("project_type"),
+            "style": record.get("style"),
+            "archived": record.get("archived", False),
+        }
 
     def _extract_nested(self, data: dict[str, Any], *keys: str) -> Any | None:
         """Safely extract nested dictionary values."""
