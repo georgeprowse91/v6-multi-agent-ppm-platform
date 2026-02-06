@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCallback } from 'react';
 import { useAppStore } from '@/store';
 import { useTranslation } from '@/i18n';
-import { canViewAuditLogs, hasPermission } from '@/auth/permissions';
+import { canManageConfig, canViewAuditLogs, hasPermission } from '@/auth/permissions';
 import { MethodologyNav } from '@/components/methodology';
 import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
@@ -96,10 +96,12 @@ const analyticsNav: NavItem[] = [
 
 export function LeftPanel() {
   const location = useLocation();
-  const { leftPanelCollapsed, toggleLeftPanel, session } = useAppStore();
+  const { leftPanelCollapsed, toggleLeftPanel, session, currentSelection } = useAppStore();
   const { t } = useTranslation();
   const showAuditLogs = canViewAuditLogs(session.user?.permissions);
   const showRoleManager = hasPermission(session.user?.permissions, 'roles.manage');
+  const showProjectConfig = canManageConfig(session.user?.permissions);
+  const projectId = currentSelection?.type === 'project' ? currentSelection.id : null;
 
   const handleNavKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLUListElement>) => {
@@ -165,6 +167,17 @@ export function LeftPanel() {
         ]
       : []),
   ];
+
+  const projectConfigNav: NavItem[] = projectId
+    ? [
+        {
+          id: 'project-config',
+          label: 'Configuration',
+          path: `/projects/${projectId}/config`,
+          icon: 'actions.settings',
+        },
+      ]
+    : [];
 
   return (
     <aside
@@ -305,6 +318,32 @@ export function LeftPanel() {
             ))}
           </ul>
         </div>
+
+        {showProjectConfig && projectConfigNav.length > 0 && (
+          <div className={styles.section}>
+            {!leftPanelCollapsed && <h3 className={styles.sectionTitle}>Config</h3>}
+            <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
+              {projectConfigNav.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    to={item.path!}
+                    className={`${styles.navItem} ${
+                      location.pathname.startsWith(item.path!) ? styles.active : ''
+                    }`}
+                    title={leftPanelCollapsed ? item.label : undefined}
+                    aria-label={leftPanelCollapsed ? item.label : undefined}
+                    data-nav-item="true"
+                  >
+                    <Icon semantic={item.icon} decorative className={styles.icon} />
+                    {!leftPanelCollapsed && (
+                      <span className={styles.label}>{item.label}</span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </nav>
     </aside>
   );
