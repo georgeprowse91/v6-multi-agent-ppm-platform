@@ -48,6 +48,7 @@ from base_connector import (
     SyncDirection,
     SyncFrequency,
 )
+from project_connector_store import ProjectConnectorConfig, ProjectConnectorConfigStore
 from connector_registry import (
     ConnectorStatus,
     get_all_connectors,
@@ -65,6 +66,7 @@ router = APIRouter()
 # Initialize connector config store
 # In production, this path should come from environment
 _config_store: ConnectorConfigStore | None = None
+_project_config_store: ProjectConnectorConfigStore | None = None
 _webhook_store: WebhookEventStore | None = None
 _circuit_breaker: CircuitBreaker | None = None
 
@@ -76,6 +78,15 @@ def get_config_store() -> ConnectorConfigStore:
         storage_path = REPO_ROOT / "data" / "connectors" / "config.json"
         _config_store = ConnectorConfigStore(storage_path)
     return _config_store
+
+
+def get_project_config_store() -> ProjectConnectorConfigStore:
+    """Get or create the project connector config store."""
+    global _project_config_store
+    if _project_config_store is None:
+        storage_path = REPO_ROOT / "data" / "connectors" / "project_config.json"
+        _project_config_store = ProjectConnectorConfigStore(storage_path)
+    return _project_config_store
 
 
 def get_webhook_store() -> WebhookEventStore:
@@ -236,6 +247,23 @@ class ConnectorConfigResponse(BaseModel):
     last_sync_at: str | None
 
 
+class ProjectConnectorConfigResponse(BaseModel):
+    connector_id: str
+    project_id: str
+    name: str
+    category: str
+    enabled: bool
+    sync_direction: str
+    sync_frequency: str
+    instance_url: str
+    project_key: str
+    custom_fields: dict[str, Any]
+    health_status: str
+    created_at: str
+    updated_at: str
+    last_sync_at: str | None
+
+
 class ConnectorListItemResponse(BaseModel):
     """Response model for connector list items (combines definition and config)."""
 
@@ -262,6 +290,10 @@ class ConnectorListItemResponse(BaseModel):
     health_status: str = "unknown"
     last_sync_at: str | None = None
     custom_fields: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProjectConnectorListItemResponse(ConnectorListItemResponse):
+    project_id: str
 
 
 class TestConnectionRequest(BaseModel):
@@ -442,6 +474,82 @@ async def list_connectors(
     return sliced
 
 
+@router.get("/projects/{project_id}/connectors", response_model=list[ProjectConnectorListItemResponse])
+async def list_project_connectors(
+    project_id: str,
+    response: Response,
+    category: str | None = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[ProjectConnectorListItemResponse]:
+    """
+    List connectors with project-scoped configuration.
+    """
+    store = get_project_config_store()
+    base_store = get_config_store()
+
+    if category:
+        try:
+            cat = ConnectorCategory(category)
+            definitions = get_connectors_by_category(cat)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+    else:
+        definitions = get_all_connectors()
+
+    result: list[ProjectConnectorListItemResponse] = []
+    for definition in definitions:
+        project_config = store.get(project_id, definition.connector_id)
+        global_config = base_store.get(definition.connector_id)
+        result.append(
+            ProjectConnectorListItemResponse(
+                project_id=project_id,
+                connector_id=definition.connector_id,
+                name=definition.name,
+                description=definition.description,
+                category=definition.category.value,
+                status=definition.status.value,
+                icon=definition.icon,
+                supported_sync_directions=[d.value for d in definition.supported_sync_directions],
+                auth_type=definition.auth_type,
+                config_fields=definition.config_fields,
+                config_schema=definition.config_schema or definition.config_fields,
+                env_vars=definition.env_vars,
+                enabled=project_config.enabled if project_config else False,
+                configured=project_config is not None,
+                instance_url=project_config.instance_url if project_config else "",
+                project_key=project_config.project_key if project_config else "",
+                sync_direction=(
+                    project_config.sync_direction.value
+                    if project_config
+                    else (global_config.sync_direction.value if global_config else "inbound")
+                ),
+                sync_frequency=(
+                    project_config.sync_frequency.value
+                    if project_config
+                    else (global_config.sync_frequency.value if global_config else "daily")
+                ),
+                health_status=(
+                    project_config.health_status
+                    if project_config
+                    else (global_config.health_status if global_config else "unknown")
+                ),
+                last_sync_at=(
+                    project_config.last_sync_at.isoformat()
+                    if project_config and project_config.last_sync_at
+                    else None
+                ),
+                custom_fields=project_config.custom_fields if project_config else {},
+            )
+        )
+
+    sliced = result[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(result))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    return sliced
+
+
 @router.get("/connectors/{connector_id}", response_model=ConnectorListItemResponse)
 async def get_connector(connector_id: str) -> ConnectorListItemResponse:
     """
@@ -532,6 +640,63 @@ async def update_connector_config(
 
     return ConnectorConfigResponse(
         connector_id=config.connector_id,
+        name=config.name,
+        category=config.category.value,
+        enabled=config.enabled,
+        sync_direction=config.sync_direction.value,
+        sync_frequency=config.sync_frequency.value,
+        instance_url=config.instance_url,
+        project_key=config.project_key,
+        custom_fields=config.custom_fields,
+        health_status=config.health_status,
+        created_at=config.created_at.isoformat(),
+        updated_at=config.updated_at.isoformat(),
+        last_sync_at=config.last_sync_at.isoformat() if config.last_sync_at else None,
+    )
+
+
+@router.put(
+    "/projects/{project_id}/connectors/{connector_id}/config",
+    response_model=ProjectConnectorConfigResponse,
+)
+async def update_project_connector_config(
+    project_id: str,
+    connector_id: str,
+    request: ConnectorConfigRequest,
+) -> ProjectConnectorConfigResponse:
+    """
+    Update project-scoped connector configuration.
+    """
+    definition = get_connector_definition(connector_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
+
+    store = get_project_config_store()
+    existing = store.get(project_id, connector_id)
+    now = datetime.now(timezone.utc)
+
+    config = ProjectConnectorConfig(
+        ppm_project_id=project_id,
+        connector_id=connector_id,
+        name=definition.name,
+        category=definition.category,
+        enabled=existing.enabled if existing else False,
+        sync_direction=SyncDirection(request.sync_direction),
+        sync_frequency=SyncFrequency(request.sync_frequency),
+        instance_url=request.instance_url,
+        project_key=request.project_key,
+        custom_fields=request.custom_fields or {},
+        created_at=existing.created_at if existing else now,
+        updated_at=now,
+        last_sync_at=existing.last_sync_at if existing else None,
+        health_status=existing.health_status if existing else "unknown",
+    )
+
+    store.save(config)
+
+    return ProjectConnectorConfigResponse(
+        connector_id=config.connector_id,
+        project_id=config.ppm_project_id,
         name=config.name,
         category=config.category.value,
         enabled=config.enabled,
@@ -746,6 +911,93 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
 
     return ConnectorConfigResponse(
         connector_id=config.connector_id,
+        name=config.name,
+        category=config.category.value,
+        enabled=config.enabled,
+        sync_direction=config.sync_direction.value,
+        sync_frequency=config.sync_frequency.value,
+        instance_url=config.instance_url,
+        project_key=config.project_key,
+        custom_fields=config.custom_fields,
+        health_status=config.health_status,
+        created_at=config.created_at.isoformat(),
+        updated_at=config.updated_at.isoformat(),
+        last_sync_at=config.last_sync_at.isoformat() if config.last_sync_at else None,
+    )
+
+
+@router.post(
+    "/projects/{project_id}/connectors/{connector_id}/enable",
+    response_model=ProjectConnectorConfigResponse,
+)
+async def enable_project_connector(
+    project_id: str, connector_id: str
+) -> ProjectConnectorConfigResponse:
+    """
+    Enable a project-scoped connector.
+    """
+    definition = get_connector_definition(connector_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail=f"Connector not found: {connector_id}")
+
+    _ensure_connector_is_available(definition)
+
+    store = get_project_config_store()
+    config = store.get(project_id, connector_id)
+    if not config:
+        config = ProjectConnectorConfig(
+            ppm_project_id=project_id,
+            connector_id=connector_id,
+            name=definition.name,
+            category=definition.category,
+        )
+        store.save(config)
+
+    store.enable_connector(project_id, connector_id)
+    config = store.get(project_id, connector_id)
+
+    return ProjectConnectorConfigResponse(
+        connector_id=config.connector_id,
+        project_id=config.ppm_project_id,
+        name=config.name,
+        category=config.category.value,
+        enabled=config.enabled,
+        sync_direction=config.sync_direction.value,
+        sync_frequency=config.sync_frequency.value,
+        instance_url=config.instance_url,
+        project_key=config.project_key,
+        custom_fields=config.custom_fields,
+        health_status=config.health_status,
+        created_at=config.created_at.isoformat(),
+        updated_at=config.updated_at.isoformat(),
+        last_sync_at=config.last_sync_at.isoformat() if config.last_sync_at else None,
+    )
+
+
+@router.post(
+    "/projects/{project_id}/connectors/{connector_id}/disable",
+    response_model=ProjectConnectorConfigResponse,
+)
+async def disable_project_connector(
+    project_id: str, connector_id: str
+) -> ProjectConnectorConfigResponse:
+    """
+    Disable a project-scoped connector.
+    """
+    store = get_project_config_store()
+    config = store.get(project_id, connector_id)
+    if not config:
+        raise HTTPException(
+            status_code=404, detail=f"Connector configuration not found: {connector_id}"
+        )
+
+    config.enabled = False
+    config.updated_at = datetime.now(timezone.utc)
+    store.save(config)
+
+    return ProjectConnectorConfigResponse(
+        connector_id=config.connector_id,
+        project_id=config.ppm_project_id,
         name=config.name,
         category=config.category.value,
         enabled=config.enabled,
