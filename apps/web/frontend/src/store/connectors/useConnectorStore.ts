@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import type {
   CategoryInfo,
   CertificationRecord,
+  CertificationStatus,
   Connector,
   ConnectorCategory,
   ConnectorConfigUpdate,
@@ -140,13 +141,14 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
         return;
       }
       const data = await response.json();
-      set({ connectors: data, connectorsLoading: false });
+      const mapped = mapConnectorResponses(data);
+      set({ connectors: mapped, connectorsLoading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       set({ connectorsError: message, connectorsLoading: false });
       // Fall back to mock data only when the API is unreachable
       if (error instanceof TypeError && message.includes('Failed to fetch')) {
-        set({ connectors: getMockConnectors() });
+        set({ connectors: mapConnectorResponses(getMockConnectors()) });
       }
     }
   },
@@ -167,8 +169,9 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
         return;
       }
       const data = await response.json();
+      const mapped = mapConnectorResponses(data);
       set((state) => ({
-        projectConnectors: { ...state.projectConnectors, [projectId]: data },
+        projectConnectors: { ...state.projectConnectors, [projectId]: mapped },
         projectConnectorsLoading: { ...state.projectConnectorsLoading, [projectId]: false },
       }));
     } catch (error) {
@@ -180,7 +183,10 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
       // Fall back to mock data only when the API is unreachable
       if (error instanceof TypeError && message.includes('Failed to fetch')) {
         set((state) => ({
-          projectConnectors: { ...state.projectConnectors, [projectId]: getMockConnectors() },
+          projectConnectors: {
+            ...state.projectConnectors,
+            [projectId]: mapConnectorResponses(getMockConnectors()),
+          },
         }));
       }
     }
@@ -545,7 +551,7 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
 
     // Apply status filter
     if (filter.statusFilter !== 'all') {
-      filtered = filtered.filter((c) => c.status === filter.statusFilter);
+      filtered = filtered.filter((c) => matchesStatusFilter(c, filter.statusFilter));
     }
 
     // Apply enabled filter
@@ -575,7 +581,7 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     }
 
     if (filter.statusFilter !== 'all') {
-      filtered = filtered.filter((c) => c.status === filter.statusFilter);
+      filtered = filtered.filter((c) => matchesStatusFilter(c, filter.statusFilter));
     }
 
     if (filter.enabledOnly) {
@@ -636,6 +642,39 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     return get().connectors.find((c) => c.category === category && c.enabled);
   },
 }));
+
+const mapConnectorResponses = (connectors: Connector[]): Connector[] =>
+  connectors.map((connector) => ({
+    ...connector,
+    certification_status: normalizeCertificationStatus(
+      (connector as { certification_status?: string; certification?: string }).certification_status ??
+        (connector as { certification?: string }).certification ??
+        connector.certification_status
+    ),
+  }));
+
+const normalizeCertificationStatus = (status?: string | null): CertificationStatus => {
+  if (!status) return 'not_started';
+  const normalized = status.toLowerCase().replace(/[\s-]+/g, '_');
+  switch (normalized) {
+    case 'certified':
+    case 'pending':
+    case 'expired':
+    case 'not_certified':
+    case 'not_started':
+      return normalized;
+    default:
+      return 'not_started';
+  }
+};
+
+const getConnectorCertificationStatus = (connector: Connector): CertificationStatus =>
+  connector.certification_status ?? 'not_started';
+
+const matchesStatusFilter = (
+  connector: Connector,
+  filter: ConnectorFilterState['statusFilter']
+) => connector.status === filter || getConnectorCertificationStatus(connector) === filter;
 
 /**
  * Mock connectors for development when API is not available

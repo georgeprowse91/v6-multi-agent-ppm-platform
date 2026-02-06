@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useConnectorStore } from '@/store/connectors';
 import {
   CATEGORY_INFO,
+  type CertificationStatus,
   type CertificationRecord,
   type Connector,
   type ConnectorCategory,
@@ -63,12 +64,17 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
   const canManage = canManageConfig(session.user?.permissions);
   const [certModalOpen, setCertModalOpen] = useState(false);
   const [certModalConnector, setCertModalConnector] = useState<Connector | null>(null);
-  const statusOptions: { value: Connector['status'] | 'all'; label: string }[] = [
+  const statusOptions: { value: Connector['status'] | CertificationStatus | 'all'; label: string }[] = [
     { value: 'all', label: 'All Status' },
     { value: 'production', label: 'Production' },
     { value: 'available', label: 'Available' },
     { value: 'beta', label: 'Beta' },
     { value: 'coming_soon', label: 'Coming Soon' },
+    { value: 'certified', label: 'Certified' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'expired', label: 'Expired' },
+    { value: 'not_certified', label: 'Not certified' },
+    { value: 'not_started', label: 'Not started' },
   ];
 
   // Initialize store
@@ -214,7 +220,7 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
           value={filter.statusFilter}
           onChange={(e) =>
             setFilter({
-              statusFilter: e.target.value as Connector['status'] | 'all',
+              statusFilter: e.target.value as Connector['status'] | CertificationStatus | 'all',
             })
           }
         >
@@ -384,7 +390,7 @@ function ConnectorCard({
   const statusClassName = STATUS_BADGE_CLASSES[connector.status];
   const isToggleable = isConnectorToggleable(connector.status);
   const canToggle = canManage && isToggleable;
-  const certStatus = certification?.compliance_status ?? 'not_tracked';
+  const certStatus = connector.certification_status ?? certification?.compliance_status ?? 'not_started';
   const certLabel = CERTIFICATION_LABELS[certStatus];
   const certBadgeClass = CERTIFICATION_BADGE_CLASSES[certStatus];
 
@@ -400,7 +406,10 @@ function ConnectorCard({
         </div>
         <div className={styles.connectorTitle}>
           <h3 className={styles.connectorName}>{connector.name}</h3>
-          <span className={`${styles.statusBadge} ${statusClassName}`}>{statusLabel}</span>
+          <div className={styles.badgeRow}>
+            <span className={`${styles.statusBadge} ${statusClassName}`}>{statusLabel}</span>
+            <span className={`${styles.certificationBadge} ${certBadgeClass}`}>{certLabel}</span>
+          </div>
         </div>
         <label
           className={styles.toggleSwitch}
@@ -438,9 +447,6 @@ function ConnectorCard({
             {connector.health_status === 'unknown' && 'Not tested'}
           </span>
         )}
-        <span className={`${styles.certificationBadge} ${certBadgeClass}`}>
-          {certLabel}
-        </span>
       </div>
 
       <div className={styles.cardActions}>
@@ -1123,26 +1129,20 @@ const STATUS_BADGE_CLASSES: Record<Connector['status'], string> = {
   production: styles.statusBadgeProduction,
 };
 
-const CERTIFICATION_LABELS: Record<
-  CertificationRecord['compliance_status'] | 'not_tracked',
-  string
-> = {
+const CERTIFICATION_LABELS: Record<CertificationStatus, string> = {
   certified: 'Certified',
   pending: 'Pending',
   expired: 'Expired',
   not_certified: 'Not certified',
-  not_tracked: 'Not tracked',
+  not_started: 'Not started',
 };
 
-const CERTIFICATION_BADGE_CLASSES: Record<
-  CertificationRecord['compliance_status'] | 'not_tracked',
-  string
-> = {
+const CERTIFICATION_BADGE_CLASSES: Record<CertificationStatus, string> = {
   certified: styles.certBadgeCertified,
   pending: styles.certBadgePending,
   expired: styles.certBadgeExpired,
   not_certified: styles.certBadgeNotCertified,
-  not_tracked: styles.certBadgeNotTracked,
+  not_started: styles.certBadgeNotStarted,
 };
 
 const isConnectorToggleable = (status: Connector['status']) =>

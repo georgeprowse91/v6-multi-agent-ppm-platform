@@ -24,6 +24,7 @@ const mockConnectors = [
     sync_frequency: 'daily',
     health_status: 'healthy',
     last_sync_at: null,
+    certification_status: 'certified',
   },
 ];
 

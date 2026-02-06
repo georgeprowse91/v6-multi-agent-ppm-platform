@@ -52,7 +52,8 @@ export type CertificationStatus =
   | 'certified'
   | 'pending'
   | 'expired'
-  | 'not_certified';
+  | 'not_certified'
+  | 'not_started';
 
 /**
  * Connection test status
@@ -102,6 +103,7 @@ export interface Connector extends ConnectorDefinition {
   sync_frequency: SyncFrequency;
   health_status: HealthStatus;
   last_sync_at: string | null;
+  certification_status?: CertificationStatus;
   custom_fields?: Record<string, unknown>;
 }
 
@@ -231,6 +233,6 @@ export const CATEGORY_INFO: Record<ConnectorCategory, Omit<CategoryInfo, 'connec
 export interface ConnectorFilterState {
   search: string;
   category: ConnectorCategory | 'all';
-  statusFilter: ConnectorStatus | 'all';
+  statusFilter: ConnectorStatus | CertificationStatus | 'all';
   enabledOnly: boolean;
 }
