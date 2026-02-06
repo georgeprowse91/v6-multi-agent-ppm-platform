@@ -1,0 +1,127 @@
+from __future__ import annotations
+
+import json
+import os
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+try:
+    from cryptography.fernet import Fernet  # Optional dependency for encryption
+except Exception:
+    Fernet = None  # type: ignore
+
+from .base_connector import ConnectorCategory, ConnectorConfig
+
+
+@dataclass
+class ProjectConnectorConfig(ConnectorConfig):
+    """Configuration for a connector scoped to a PPM project."""
+
+    ppm_project_id: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        data = super().to_dict()
+        data["ppm_project_id"] = self.ppm_project_id
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ProjectConnectorConfig":
+        base = ConnectorConfig.from_dict(data)
+        return cls(
+            connector_id=base.connector_id,
+            name=base.name,
+            category=base.category,
+            enabled=base.enabled,
+            sync_direction=base.sync_direction,
+            sync_frequency=base.sync_frequency,
+            instance_url=base.instance_url,
+            project_key=base.project_key,
+            custom_fields=base.custom_fields,
+            created_at=base.created_at,
+            updated_at=base.updated_at,
+            last_sync_at=base.last_sync_at,
+            health_status=base.health_status,
+            ppm_project_id=data.get("ppm_project_id", ""),
+        )
+
+
+class ProjectConnectorConfigStore:
+    """Store connector configs per project with optional encryption."""
+
+    def __init__(self, storage_path: Path | None = None) -> None:
+        self.storage_path: Path = storage_path or Path("data/connectors/project_config.json")
+        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+        self._encryption_key = os.getenv("CONNECTOR_ENCRYPTION_KEY")
+        self._fernet = (
+            Fernet(self._encryption_key.encode()) if self._encryption_key and Fernet else None
+        )
+
+    def _load_all(self) -> dict[str, dict[str, dict[str, Any]]]:
+        if not self.storage_path.exists():
+            return {}
+        content = self.storage_path.read_text()
+        if self._fernet:
+            content = self._fernet.decrypt(content.encode()).decode()
+        return json.loads(content or "{}")
+
+    def _save_all(self, configs: dict[str, dict[str, dict[str, Any]]]) -> None:
+        content = json.dumps(configs, indent=2, default=str)
+        if self._fernet:
+            content = self._fernet.encrypt(content.encode()).decode()
+        self.storage_path.write_text(content)
+
+    def get(self, project_id: str, connector_id: str) -> ProjectConnectorConfig | None:
+        data = self._load_all().get(project_id, {}).get(connector_id)
+        return ProjectConnectorConfig.from_dict(data) if data else None
+
+    def list_project(self, project_id: str) -> list[ProjectConnectorConfig]:
+        return [
+            ProjectConnectorConfig.from_dict(config)
+            for config in self._load_all().get(project_id, {}).values()
+        ]
+
+    def save(self, config: ProjectConnectorConfig) -> None:
+        configs = self._load_all()
+        project_configs = configs.setdefault(config.ppm_project_id, {})
+        config.updated_at = datetime.now(timezone.utc)
+        project_configs[config.connector_id] = config.to_dict()
+        configs[config.ppm_project_id] = project_configs
+        self._save_all(configs)
+
+    def delete(self, project_id: str, connector_id: str) -> bool:
+        configs = self._load_all()
+        project_configs = configs.get(project_id)
+        if not project_configs or connector_id not in project_configs:
+            return False
+        del project_configs[connector_id]
+        configs[project_id] = project_configs
+        self._save_all(configs)
+        return True
+
+    def get_enabled_by_project(
+        self, project_id: str, category: ConnectorCategory
+    ) -> ProjectConnectorConfig | None:
+        for config in self.list_project(project_id):
+            if config.category == category and config.enabled:
+                return config
+        return None
+
+    def enable_connector(self, project_id: str, connector_id: str) -> bool:
+        config = self.get(project_id, connector_id)
+        if not config:
+            return False
+
+        for other in self.list_project(project_id):
+            if (
+                other.category == config.category
+                and other.connector_id != connector_id
+                and other.enabled
+            ):
+                other.enabled = False
+                self.save(other)
+
+        config.enabled = True
+        self.save(config)
+        return True
