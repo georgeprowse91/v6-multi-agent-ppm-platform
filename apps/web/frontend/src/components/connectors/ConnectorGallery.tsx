@@ -24,34 +24,50 @@ import type { IconSemantic } from '@/components/icon/iconMap';
 import { SyncStatusPanel } from './SyncStatusPanel';
 import styles from './ConnectorGallery.module.css';
 
-export function ConnectorGallery() {
+interface ConnectorGalleryProps {
+  projectId?: string;
+}
+
+export function ConnectorGallery({ projectId }: ConnectorGalleryProps) {
   const {
     connectors,
     connectorsLoading,
     connectorsError,
+    projectConnectors,
+    projectConnectorsLoading,
+    projectConnectorsError,
     certifications,
     certificationsLoading,
     fetchCertifications,
     filter,
     fetchConnectors,
+    fetchProjectConnectors,
     fetchCategories,
     setFilter,
     resetFilter,
     getFilteredConnectors,
+    getFilteredProjectConnectors,
     enableConnector,
+    enableProjectConnector,
     disableConnector,
+    disableProjectConnector,
     openConnectorModal,
     isModalOpen,
     selectedConnector,
     closeConnectorModal,
     updateConnectorConfig,
+    updateProjectConnectorConfig,
     testConnection,
+    testProjectConnection,
     testingConnection,
     testResult,
     clearTestResult,
     updateCertification,
     uploadCertificationDocument,
   } = useConnectorStore();
+  const scopedConnectors = projectId ? projectConnectors[projectId] || [] : connectors;
+  const scopedLoading = projectId ? projectConnectorsLoading[projectId] || false : connectorsLoading;
+  const scopedError = projectId ? projectConnectorsError[projectId] || null : connectorsError;
   const { session } = useAppStore();
   const canManage = canManageConfig(session.user?.permissions);
   const [certModalOpen, setCertModalOpen] = useState(false);
@@ -66,13 +82,20 @@ export function ConnectorGallery() {
 
   // Initialize store
   useEffect(() => {
-    fetchConnectors();
+    if (projectId) {
+      fetchProjectConnectors(projectId);
+    } else {
+      fetchConnectors();
+    }
     fetchCategories();
     fetchCertifications();
-  }, [fetchConnectors, fetchCategories, fetchCertifications]);
+  }, [fetchConnectors, fetchProjectConnectors, fetchCategories, fetchCertifications, projectId]);
 
   // Get filtered connectors
-  const filteredConnectors = useMemo(() => getFilteredConnectors(), [connectors, filter, getFilteredConnectors]);
+  const filteredConnectors = useMemo(
+    () => (projectId ? getFilteredProjectConnectors(projectId) : getFilteredConnectors()),
+    [projectId, scopedConnectors, filter, getFilteredConnectors, getFilteredProjectConnectors]
+  );
 
   // Group connectors by category
   const connectorsByCategory = useMemo(() => {
@@ -106,9 +129,17 @@ export function ConnectorGallery() {
     if (!canManage) return;
     if (!isConnectorToggleable(connector.status)) return;
     if (connector.enabled) {
-      await disableConnector(connector.connector_id);
+      if (projectId) {
+        await disableProjectConnector(projectId, connector.connector_id);
+      } else {
+        await disableConnector(connector.connector_id);
+      }
     } else {
-      await enableConnector(connector.connector_id);
+      if (projectId) {
+        await enableProjectConnector(projectId, connector.connector_id);
+      } else {
+        await enableConnector(connector.connector_id);
+      }
     }
   };
 
@@ -127,7 +158,9 @@ export function ConnectorGallery() {
     setCertModalOpen(false);
   };
 
-  if (connectorsLoading) {
+  const scopeSuffix = projectId ? ' for this project' : '';
+
+  if (scopedLoading) {
     return (
       <div className={styles.container}>
         <div className={styles.loading}>Loading connectors...</div>
@@ -135,12 +168,18 @@ export function ConnectorGallery() {
     );
   }
 
-  if (connectorsError && connectors.length === 0) {
+  if (scopedError && scopedConnectors.length === 0) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <p>Error loading connectors: {connectorsError}</p>
-          <button onClick={fetchConnectors}>Retry</button>
+          <p>Error loading connectors: {scopedError}</p>
+          <button
+            onClick={() =>
+              projectId ? fetchProjectConnectors(projectId) : fetchConnectors()
+            }
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -159,7 +198,7 @@ export function ConnectorGallery() {
         </div>
         <div className={styles.headerMeta}>
           <span className={styles.connectorStats}>
-            {connectors.filter((c) => c.enabled).length} of {connectors.length} connectors enabled
+            {scopedConnectors.filter((c) => c.enabled).length} of {scopedConnectors.length} connectors enabled{scopeSuffix}
           </span>
         </div>
       </div>
@@ -232,7 +271,7 @@ export function ConnectorGallery() {
       {/* Stats */}
       <div className={styles.stats}>
         <span>
-          Showing {filteredConnectors.length} of {connectors.length} connectors
+          Showing {filteredConnectors.length} of {scopedConnectors.length} connectors{scopeSuffix}
         </span>
       </div>
 
@@ -263,8 +302,16 @@ export function ConnectorGallery() {
         <ConnectorConfigModal
           connector={selectedConnector}
           onClose={closeConnectorModal}
-          onSave={updateConnectorConfig}
-          onTestConnection={testConnection}
+          onSave={(connectorId, config) =>
+            projectId
+              ? updateProjectConnectorConfig(projectId, connectorId, config)
+              : updateConnectorConfig(connectorId, config)
+          }
+          onTestConnection={(connectorId, instanceUrl, projectKey) =>
+            projectId
+              ? testProjectConnection(projectId, connectorId, instanceUrl, projectKey)
+              : testConnection(connectorId, instanceUrl, projectKey)
+          }
           testingConnection={testingConnection}
           testResult={testResult}
           clearTestResult={clearTestResult}

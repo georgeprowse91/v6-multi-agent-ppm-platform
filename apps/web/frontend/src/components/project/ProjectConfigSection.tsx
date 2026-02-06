@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AgentGallery } from './AgentGallery';
-import { ProjectConnectorGallery } from './ProjectConnectorGallery';
+import { ConnectorGallery } from '../connectors/ConnectorGallery';
 import styles from './ProjectConfigSection.module.css';
 
 interface ProjectConfigSectionProps {
@@ -47,7 +47,7 @@ export function ProjectConfigSection({
         {activeTab === 'agents' ? (
           <AgentGallery projectId={projectId} />
         ) : (
-          <ProjectConnectorGallery projectId={projectId} />
+          <ConnectorGallery projectId={projectId} />
         )}
       </div>
     </section>
