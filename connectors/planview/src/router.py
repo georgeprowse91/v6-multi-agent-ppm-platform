@@ -37,5 +37,16 @@ def sync_outbound(request: OutboundSyncRequest) -> dict[str, object]:
         include_schema=request.include_schema,
     )
     if request.live:
-        raise HTTPException(status_code=501, detail="Outbound sync not implemented for Planview")
+        # Temporary implementation: acknowledge but do not write back to Planview.
+        # TODO: Implement full outbound create/update support in a future update.
+        run_sync(
+            mapped,
+            request.tenant_id,
+            live=True,
+            include_schema=request.include_schema,
+        )
+        return {
+            "status": "dry_run",
+            "message": "Outbound sync is not yet fully implemented; data not written",
+        }
     return {"status": "dry_run", "records": mapped}
