@@ -189,3 +189,23 @@ if __name__ == "__main__":
     fixture = Path(args.fixture) if args.fixture else None
     output = run_sync(fixture, args.tenant, live=args.live)
     print(json.dumps(output, indent=2))
+
+
+# New outbound hook placeholder. Later, this should send data to Planview via real API.
+def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *, include_schema: bool) -> None:
+    """
+    Placeholder outbound handler for Planview.
+    This function currently logs the records to be written and performs no external calls.
+
+    Args:
+        records: Mapped records in the canonical schema.
+        tenant_id: Tenant identifier.
+        include_schema: Whether the mapped records include schema metadata.
+    """
+    import logging
+    logging.getLogger(__name__).info(
+        "Outbound payload for Planview tenant %s (include_schema=%s): %s",
+        tenant_id,
+        include_schema,
+        records,
+    )

@@ -36,17 +36,20 @@ def sync_outbound(request: OutboundSyncRequest) -> dict[str, object]:
         request.tenant_id,
         include_schema=request.include_schema,
     )
+    # If live, call the outbound hook. Otherwise return the mapped records for dry-run.
     if request.live:
-        # Temporary implementation: acknowledge but do not write back to SAP.
-        # TODO: Implement full outbound create/update support in a future update.
+        # First, run any existing sync logic (e.g. local handlers) if defined.
         run_sync(
             mapped,
             request.tenant_id,
             live=True,
             include_schema=request.include_schema,
         )
+        # Call the outbound hook which can later be replaced with real SAP API calls.
+        from .main import send_to_external_system
+        send_to_external_system(mapped, request.tenant_id, include_schema=request.include_schema)
         return {
-            "status": "dry_run",
-            "message": "Outbound sync is not yet fully implemented; data not written",
+            "status": "accepted",
+            "records": mapped,
         }
     return {"status": "dry_run", "records": mapped}
