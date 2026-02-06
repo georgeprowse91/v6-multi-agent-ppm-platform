@@ -1,12 +1,13 @@
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
-import logging
 from typing import Any, Iterable
+import logging
 
 
 class HrisClient(ABC):
-    """Abstract base class for HRIS clients (e.g. Workday, SAP SuccessFactors, ADP)."""
+    """
+    Abstract base class for HRIS clients (e.g. Workday, SAP SuccessFactors, ADP).
+    """
 
     @abstractmethod
     def authenticate(self) -> None:
@@ -26,7 +27,9 @@ class HrisClient(ABC):
 
 
 class NoopHrisClient(HrisClient):
-    """Placeholder HRIS client that logs calls but performs no operations."""
+    """
+    Placeholder HRIS client that logs calls but performs no operations.
+    """
 
     def __init__(self, system_name: str) -> None:
         self.system_name = system_name
@@ -40,15 +43,9 @@ class NoopHrisClient(HrisClient):
         return {}
 
     def update_employee(self, employee_id: str, data: dict[str, Any]) -> dict[str, Any]:
-        self._logger.info(
-            "Noop update_employee on %s id=%s: %s", self.system_name, employee_id, data
-        )
+        self._logger.info("Noop update_employee on %s id=%s: %s", self.system_name, employee_id, data)
         return {}
 
     def list_employees(self, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
-        self._logger.info(
-            "Noop list_employees on %s with filters=%s",
-            self.system_name,
-            filters,
-        )
+        self._logger.info("Noop list_employees on %s with filters=%s", self.system_name, filters)
         return []

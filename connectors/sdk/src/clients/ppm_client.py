@@ -1,12 +1,13 @@
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
-import logging
 from typing import Any, Iterable
+import logging
 
 
 class PpmClient(ABC):
-    """Abstract base class for PPM tool clients (e.g. Planview, Clarity, MS Project Server)."""
+    """
+    Abstract base class for PPM tool clients (e.g. Planview, Clarity, MS Project Server).
+    """
 
     @abstractmethod
     def authenticate(self) -> None:
@@ -26,7 +27,9 @@ class PpmClient(ABC):
 
 
 class NoopPpmClient(PpmClient):
-    """Placeholder PPM client that logs calls but performs no operations."""
+    """
+    Placeholder PPM client that logs calls but performs no operations.
+    """
 
     def __init__(self, system_name: str) -> None:
         self.system_name = system_name
@@ -44,9 +47,5 @@ class NoopPpmClient(PpmClient):
         return {}
 
     def list_projects(self, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
-        self._logger.info(
-            "Noop list_projects on %s with filters=%s",
-            self.system_name,
-            filters,
-        )
+        self._logger.info("Noop list_projects on %s with filters=%s", self.system_name, filters)
         return []

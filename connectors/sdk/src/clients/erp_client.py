@@ -1,12 +1,13 @@
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
-import logging
 from typing import Any, Iterable
+import logging
 
 
 class ErpClient(ABC):
-    """Abstract base class for ERP system clients (e.g. SAP, Oracle, NetSuite)."""
+    """
+    Abstract base class for ERP system clients (e.g. SAP, Oracle, NetSuite).
+    """
 
     @abstractmethod
     def authenticate(self) -> None:
@@ -26,7 +27,9 @@ class ErpClient(ABC):
 
 
 class NoopErpClient(ErpClient):
-    """Placeholder ERP client that logs calls but performs no operations."""
+    """
+    Placeholder ERP client that logs calls but performs no operations.
+    """
 
     def __init__(self, system_name: str) -> None:
         self.system_name = system_name
@@ -40,20 +43,9 @@ class NoopErpClient(ErpClient):
         return {}
 
     def update_record(self, resource: str, record_id: str, data: dict[str, Any]) -> dict[str, Any]:
-        self._logger.info(
-            "Noop update_record on %s.%s id=%s: %s",
-            self.system_name,
-            resource,
-            record_id,
-            data,
-        )
+        self._logger.info("Noop update_record on %s.%s id=%s: %s", self.system_name, resource, record_id, data)
         return {}
 
     def list_records(self, resource: str, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
-        self._logger.info(
-            "Noop list_records on %s.%s with filters=%s",
-            self.system_name,
-            resource,
-            filters,
-        )
+        self._logger.info("Noop list_records on %s.%s with filters=%s", self.system_name, resource, filters)
         return []
