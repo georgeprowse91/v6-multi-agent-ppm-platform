@@ -10,6 +10,8 @@ Supports:
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import os
 import sys
 from pathlib import Path
@@ -19,6 +21,9 @@ from typing import Any
 SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
+CONNECTORS_PATH = Path(__file__).resolve().parents[2]
+if str(CONNECTORS_PATH) not in sys.path:
+    sys.path.insert(0, str(CONNECTORS_PATH))
 
 from auth import OAuth2TokenManager
 from base_connector import (
@@ -29,9 +34,19 @@ from base_connector import (
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
+from mcp_client.client import MCPClient
+from mcp_client.errors import (
+    MCPAuthenticationError,
+    MCPResponseError,
+    MCPServerError,
+    MCPToolNotFoundError,
+    MCPTransportError,
+)
 from secrets import fetch_keyvault_secret, resolve_secret
 
 DEFAULT_TOKEN_URL = "https://api.planview.com/oauth2/token"
+
+logger = logging.getLogger(__name__)
 
 
 class PlanviewConnector(BaseConnector):
@@ -53,11 +68,13 @@ class PlanviewConnector(BaseConnector):
         *,
         client: HttpClient | None = None,
         token_manager: OAuth2TokenManager | None = None,
+        mcp_client: MCPClient | None = None,
         transport: Any | None = None,
     ) -> None:
         super().__init__(config)
         self._client = client
         self._token_manager = token_manager
+        self._mcp_client = mcp_client
         self._transport = transport
         self._instance_url: str | None = None
 
@@ -137,6 +154,94 @@ class PlanviewConnector(BaseConnector):
         )
         self._client = client
         return client
+
+    def _build_mcp_client(self) -> MCPClient:
+        if self._mcp_client:
+            return self._mcp_client
+        if not self.config.mcp_server_url:
+            raise ValueError("Planview MCP server URL is required")
+        self._mcp_client = MCPClient(
+            mcp_server_id=self.config.mcp_server_id or self.CONNECTOR_ID,
+            mcp_server_url=self.config.mcp_server_url,
+            config=self.config,
+        )
+        return self._mcp_client
+
+    def _should_use_mcp(self) -> bool:
+        return bool(self.config.prefer_mcp and self.config.mcp_server_url)
+
+    def _run_mcp(self, coroutine: Any) -> Any:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coroutine)
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coroutine)
+        finally:
+            loop.close()
+
+    def _extract_records(self, payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict):
+            for key in ("records", "items", "values", "data"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    return value
+        return []
+
+    def _try_mcp_then_rest(
+        self,
+        *,
+        operation: str,
+        mcp_call: Any,
+        rest_call: Any,
+    ) -> Any:
+        if not self._should_use_mcp():
+            return rest_call()
+        try:
+            return mcp_call()
+        except (
+            MCPToolNotFoundError,
+            MCPAuthenticationError,
+            MCPResponseError,
+            MCPServerError,
+            MCPTransportError,
+            ValueError,
+        ) as exc:
+            logger.warning(
+                "MCP %s failed for Planview connector; falling back to REST. Error: %s",
+                operation,
+                exc,
+            )
+            return rest_call()
+
+    def _list_records(
+        self,
+        *,
+        resource_type: str,
+        filters: dict[str, Any] | None,
+        limit: int,
+        offset: int,
+        rest_call: Any,
+    ) -> list[dict[str, Any]]:
+        def mcp_call() -> list[dict[str, Any]]:
+            client = self._build_mcp_client()
+            payload = {
+                "resource_type": resource_type,
+                "filters": filters or {},
+                "limit": limit,
+                "offset": offset,
+            }
+            result = self._run_mcp(client.list_records(payload))
+            return self._extract_records(result)
+
+        return self._try_mcp_then_rest(
+            operation="list",
+            mcp_call=mcp_call,
+            rest_call=rest_call,
+        )
 
     def _request(self, method: str, url: str, **kwargs: Any) -> Any:
         client = self._build_client()
@@ -222,7 +327,14 @@ class PlanviewConnector(BaseConnector):
             raise RuntimeError("Failed to authenticate with Planview")
         if resource_type != "projects":
             raise ValueError(f"Unsupported resource type: {resource_type}")
-        return self._read_projects(limit=limit, offset=offset)
+        records = self._list_records(
+            resource_type=resource_type,
+            filters=filters,
+            limit=limit,
+            offset=offset,
+            rest_call=lambda: self._read_projects(limit=limit, offset=offset),
+        )
+        return [self._normalize_project_record(record) for record in records]
 
     def get_schema(self) -> dict[str, Any]:
         return self.SCHEMA
@@ -246,20 +358,24 @@ class PlanviewConnector(BaseConnector):
             is_last_page=is_last,
         ):
             for item in page:
-                projects.append(
-                    {
-                        "id": item.get("id"),
-                        "program_id": item.get("programId") or "unassigned",
-                        "name": item.get("name"),
-                        "status": item.get("status") or "execution",
-                        "start_date": item.get("startDate"),
-                        "end_date": item.get("endDate"),
-                        "owner": item.get("owner"),
-                        "classification": item.get("classification") or "internal",
-                        "created_at": item.get("createdAt"),
-                    }
-                )
+                projects.append(self._normalize_project_record(item))
         return projects
+
+    def _normalize_project_record(self, record: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": record.get("id"),
+            "program_id": record.get("program_id")
+            or record.get("programId")
+            or record.get("program")
+            or "unassigned",
+            "name": record.get("name") or record.get("title"),
+            "status": record.get("status") or record.get("project_status") or "execution",
+            "start_date": record.get("start_date") or record.get("startDate"),
+            "end_date": record.get("end_date") or record.get("endDate"),
+            "owner": record.get("owner") or record.get("owner_name"),
+            "classification": record.get("classification") or "internal",
+            "created_at": record.get("created_at") or record.get("createdAt"),
+        }
 
 
 def create_planview_connector(
