@@ -207,6 +207,10 @@ class ConnectorDefinitionResponse(BaseModel):
     name: str
     description: str
     category: str
+    system: str
+    mcp_server_id: str
+    supported_operations: list[str]
+    mcp_preferred: bool
     status: str
     icon: str
     supported_sync_directions: list[str]
@@ -281,6 +285,10 @@ class ConnectorListItemResponse(BaseModel):
     name: str
     description: str
     category: str
+    system: str
+    mcp_server_id: str
+    supported_operations: list[str]
+    mcp_preferred: bool
     status: str  # available, coming_soon, beta
     icon: str
     supported_sync_directions: list[str]
@@ -458,6 +466,10 @@ async def list_connectors(
             name=definition.name,
             description=definition.description,
             category=definition.category.value,
+            system=definition.system,
+            mcp_server_id=definition.mcp_server_id,
+            supported_operations=definition.supported_operations,
+            mcp_preferred=definition.mcp_preferred,
             status=definition.status.value,
             icon=definition.icon,
             supported_sync_directions=[d.value for d in definition.supported_sync_directions],
@@ -523,6 +535,10 @@ async def list_project_connectors(
                 name=definition.name,
                 description=definition.description,
                 category=definition.category.value,
+                system=definition.system,
+                mcp_server_id=definition.mcp_server_id,
+                supported_operations=definition.supported_operations,
+                mcp_preferred=definition.mcp_preferred,
                 status=definition.status.value,
                 icon=definition.icon,
                 supported_sync_directions=[d.value for d in definition.supported_sync_directions],
@@ -585,6 +601,10 @@ async def get_connector(connector_id: str) -> ConnectorListItemResponse:
         name=definition.name,
         description=definition.description,
         category=definition.category.value,
+        system=definition.system,
+        mcp_server_id=definition.mcp_server_id,
+        supported_operations=definition.supported_operations,
+        mcp_preferred=definition.mcp_preferred,
         status=definition.status.value,
         icon=definition.icon,
         supported_sync_directions=[d.value for d in definition.supported_sync_directions],

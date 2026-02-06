@@ -83,6 +83,10 @@ export interface ConnectorDefinition {
   name: string;
   description: string;
   category: ConnectorCategory;
+  system: string;
+  mcp_server_id: string;
+  supported_operations: string[];
+  mcp_preferred: boolean;
   status: ConnectorStatus;
   icon: string;
   supported_sync_directions: SyncDirection[];

@@ -30,6 +30,10 @@ class ConnectorDefinition:
     name: str
     description: str
     category: ConnectorCategory
+    system: str = ""
+    mcp_server_id: str = ""
+    supported_operations: list[str] = field(default_factory=list)
+    mcp_preferred: bool = False
     status: ConnectorStatus = ConnectorStatus.COMING_SOON
     icon: str = ""  # Icon identifier for UI
     supported_sync_directions: list[SyncDirection] = field(
@@ -41,6 +45,8 @@ class ConnectorDefinition:
     env_vars: list[str] = field(default_factory=list)  # Required environment variables
 
     def __post_init__(self) -> None:
+        if not self.system:
+            self.system = self.connector_id
         if self.config_schema is None:
             self.config_schema = list(self.config_fields)
 
@@ -50,6 +56,10 @@ class ConnectorDefinition:
             "name": self.name,
             "description": self.description,
             "category": self.category.value,
+            "system": self.system,
+            "mcp_server_id": self.mcp_server_id,
+            "supported_operations": self.supported_operations,
+            "mcp_preferred": self.mcp_preferred,
             "status": self.status.value,
             "icon": self.icon,
             "supported_sync_directions": [d.value for d in self.supported_sync_directions],
@@ -181,6 +191,21 @@ JIRA_CONNECTOR = ConnectorDefinition(
         {"name": "project_key", "type": "string", "required": False, "label": "Project Key"},
     ],
     env_vars=["JIRA_INSTANCE_URL", "JIRA_EMAIL", "JIRA_API_TOKEN"],
+)
+
+JIRA_MCP_CONNECTOR = ConnectorDefinition(
+    connector_id="jira_mcp",
+    system="jira",
+    name="Jira (MCP)",
+    description="Sync projects and work items from Jira via an MCP server.",
+    category=ConnectorCategory.PM,
+    status=ConnectorStatus.BETA,
+    icon="jira",
+    supported_sync_directions=[SyncDirection.INBOUND],
+    auth_type="mcp",
+    mcp_server_id="jira",
+    supported_operations=["list", "create", "update"],
+    mcp_preferred=True,
 )
 
 AZURE_DEVOPS_CONNECTOR = ConnectorDefinition(
@@ -448,6 +473,21 @@ TEAMS_CONNECTOR = ConnectorDefinition(
     ],
 )
 
+TEAMS_MCP_CONNECTOR = ConnectorDefinition(
+    connector_id="teams_mcp",
+    system="teams",
+    name="Microsoft Teams (MCP)",
+    description="Sync Teams channels and messages via an MCP server.",
+    category=ConnectorCategory.COLLABORATION,
+    status=ConnectorStatus.BETA,
+    icon="teams",
+    supported_sync_directions=[SyncDirection.OUTBOUND, SyncDirection.BIDIRECTIONAL],
+    auth_type="mcp",
+    mcp_server_id="teams",
+    supported_operations=["list", "create"],
+    mcp_preferred=True,
+)
+
 SLACK_CONNECTOR = ConnectorDefinition(
     connector_id="slack",
     name="Slack",
@@ -470,6 +510,25 @@ SLACK_CONNECTOR = ConnectorDefinition(
         ]
     ),
     env_vars=["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"],
+)
+
+SLACK_MCP_CONNECTOR = ConnectorDefinition(
+    connector_id="slack_mcp",
+    system="slack",
+    name="Slack (MCP)",
+    description="Sync collaboration metadata and notifications from Slack via an MCP server.",
+    category=ConnectorCategory.COLLABORATION,
+    status=ConnectorStatus.BETA,
+    icon="slack",
+    supported_sync_directions=[
+        SyncDirection.INBOUND,
+        SyncDirection.OUTBOUND,
+        SyncDirection.BIDIRECTIONAL,
+    ],
+    auth_type="mcp",
+    mcp_server_id="slack",
+    supported_operations=["list", "create"],
+    mcp_preferred=True,
 )
 
 ZOOM_CONNECTOR = ConnectorDefinition(
@@ -680,6 +739,7 @@ ALL_CONNECTORS: list[ConnectorDefinition] = [
     MS_PROJECT_SERVER_CONNECTOR,
     # PM
     JIRA_CONNECTOR,
+    JIRA_MCP_CONNECTOR,
     AZURE_DEVOPS_CONNECTOR,
     MONDAY_CONNECTOR,
     ASANA_CONNECTOR,
@@ -697,7 +757,9 @@ ALL_CONNECTORS: list[ConnectorDefinition] = [
     ADP_CONNECTOR,
     # Collaboration
     TEAMS_CONNECTOR,
+    TEAMS_MCP_CONNECTOR,
     SLACK_CONNECTOR,
+    SLACK_MCP_CONNECTOR,
     ZOOM_CONNECTOR,
     # GRC
     SERVICENOW_GRC_CONNECTOR,
