@@ -55,6 +55,13 @@ from connector_registry import (
     get_connector_definition,
     get_connectors_by_category,
 )
+from connectors.mcp_client.client import MCPClient
+from connectors.mcp_client.errors import (
+    MCPAuthenticationError,
+    MCPResponseError,
+    MCPServerError,
+    MCPTransportError,
+)
 from regulatory_compliance_connector import RegulatoryComplianceConnector
 from security.audit_log import build_event, get_audit_log_store
 
@@ -551,9 +558,77 @@ class RegulatoryComplianceConfigRequest(BaseModel):
     supported_regulations: list[str] = Field(default_factory=list)
 
 
+class McpToolSchemaResponse(BaseModel):
+    name: str
+    description: str | None = None
+    input_schema: dict[str, Any] = Field(default_factory=dict)
+
+
+class McpServerToolsResponse(BaseModel):
+    system: str
+    server_id: str
+    server_url: str
+    tools: list[McpToolSchemaResponse]
+
+
+class ProjectMcpConfigRequest(BaseModel):
+    mcp_server_url: AnyHttpUrl
+    mcp_server_id: str | None = None
+    mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("mcp_server_url", mode="before")
+    @classmethod
+    def _validate_mcp_server_url(cls, value: Any) -> Any:
+        if value in (None, ""):
+            raise ValueError("mcp_server_url is required")
+        _URL_ADAPTER.validate_python(value)
+        return value
+
+    @field_validator("mcp_tool_map", mode="before")
+    @classmethod
+    def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value)
+
+
+class ProjectMcpConfigResponse(BaseModel):
+    connector_id: str
+    project_id: str
+    enabled: bool
+    mcp_server_url: str
+    mcp_server_id: str
+    mcp_tool_map: dict[str, Any]
+    mcp_tools: list[str]
+    updated_at: str
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
+
+
+def _get_mcp_definition_by_system(system: str) -> Any:
+    definitions = [definition for definition in get_all_connectors() if definition.system == system]
+    if not definitions:
+        raise HTTPException(status_code=404, detail=f"MCP server not found: {system}")
+    for definition in definitions:
+        if definition.auth_type == "mcp":
+            return definition
+    raise HTTPException(status_code=404, detail=f"MCP connector not found for system: {system}")
+
+
+def _build_project_mcp_response(
+    project_id: str, config: ProjectConnectorConfig
+) -> ProjectMcpConfigResponse:
+    return ProjectMcpConfigResponse(
+        connector_id=config.connector_id,
+        project_id=project_id,
+        enabled=config.enabled,
+        mcp_server_url=config.mcp_server_url,
+        mcp_server_id=config.mcp_server_id,
+        mcp_tool_map=config.mcp_tool_map,
+        mcp_tools=config.mcp_tools or list(config.mcp_tool_map.keys()),
+        updated_at=config.updated_at.isoformat(),
+    )
 
 
 @router.get("/connectors/categories", response_model=list[CategoryInfo])
@@ -632,6 +707,48 @@ async def list_categories(
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Offset"] = str(offset)
     return sliced
+
+
+@router.get("/mcp/servers/{system}/tools", response_model=McpServerToolsResponse)
+async def list_mcp_server_tools(system: str) -> McpServerToolsResponse:
+    """
+    List available MCP tools for a specific server/system.
+    """
+    definition = _get_mcp_definition_by_system(system)
+    config_store = get_config_store()
+    config = config_store.get(definition.connector_id)
+    if not config or not config.mcp_server_url:
+        raise HTTPException(
+            status_code=404,
+            detail=f"MCP configuration missing for system: {system}",
+        )
+
+    server_id = config.mcp_server_id or definition.mcp_server_id or system
+    client = MCPClient(
+        mcp_server_id=server_id,
+        mcp_server_url=config.mcp_server_url,
+        config=config,
+    )
+    try:
+        tools = await client.list_tools()
+    except MCPAuthenticationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except (MCPTransportError, MCPResponseError, MCPServerError) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return McpServerToolsResponse(
+        system=system,
+        server_id=server_id,
+        server_url=config.mcp_server_url,
+        tools=[
+            McpToolSchemaResponse(
+                name=tool.name,
+                description=tool.description,
+                input_schema=tool.input_schema,
+            )
+            for tool in tools
+        ],
+    )
 
 
 @router.get("/connectors", response_model=list[ConnectorListItemResponse])
@@ -1330,6 +1447,98 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         updated_at=config.updated_at.isoformat(),
         last_sync_at=config.last_sync_at.isoformat() if config.last_sync_at else None,
     )
+
+
+@router.post(
+    "/projects/{project_id}/connectors/{system}/mcp",
+    response_model=ProjectMcpConfigResponse,
+)
+async def enable_project_mcp_config(
+    project_id: str, system: str, request: ProjectMcpConfigRequest
+) -> ProjectMcpConfigResponse:
+    """
+    Enable MCP configuration for a project-scoped connector.
+    """
+    definition = _get_mcp_definition_by_system(system)
+    _ensure_connector_is_available(definition)
+
+    store = get_project_config_store()
+    existing = store.get(project_id, definition.connector_id)
+    now = datetime.now(timezone.utc)
+
+    if existing:
+        config = existing
+        config.mcp_server_url = str(request.mcp_server_url)
+        config.mcp_server_id = request.mcp_server_id or definition.mcp_server_id or system
+        config.mcp_tool_map = request.mcp_tool_map
+        config.mcp_tools = list(request.mcp_tool_map.keys())
+        config.updated_at = now
+    else:
+        config = ProjectConnectorConfig(
+            ppm_project_id=project_id,
+            connector_id=definition.connector_id,
+            name=definition.name,
+            category=definition.category,
+            mcp_server_url=str(request.mcp_server_url),
+            mcp_server_id=request.mcp_server_id or definition.mcp_server_id or system,
+            mcp_tool_map=request.mcp_tool_map,
+            mcp_tools=list(request.mcp_tool_map.keys()),
+            created_at=now,
+            updated_at=now,
+        )
+
+    store.save(config)
+    store.enable_connector(project_id, definition.connector_id)
+    updated = store.get(project_id, definition.connector_id)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Unable to enable MCP configuration")
+    return _build_project_mcp_response(project_id, updated)
+
+
+@router.put(
+    "/projects/{project_id}/connectors/{system}/mcp",
+    response_model=ProjectMcpConfigResponse,
+)
+async def update_project_mcp_config(
+    project_id: str, system: str, request: ProjectMcpConfigRequest
+) -> ProjectMcpConfigResponse:
+    """
+    Update MCP configuration for a project-scoped connector.
+    """
+    definition = _get_mcp_definition_by_system(system)
+    _ensure_connector_is_available(definition)
+
+    store = get_project_config_store()
+    existing = store.get(project_id, definition.connector_id)
+    now = datetime.now(timezone.utc)
+
+    if existing:
+        config = existing
+        config.mcp_server_url = str(request.mcp_server_url)
+        config.mcp_server_id = request.mcp_server_id or definition.mcp_server_id or system
+        config.mcp_tool_map = request.mcp_tool_map
+        config.mcp_tools = list(request.mcp_tool_map.keys())
+        config.updated_at = now
+    else:
+        config = ProjectConnectorConfig(
+            ppm_project_id=project_id,
+            connector_id=definition.connector_id,
+            name=definition.name,
+            category=definition.category,
+            enabled=False,
+            mcp_server_url=str(request.mcp_server_url),
+            mcp_server_id=request.mcp_server_id or definition.mcp_server_id or system,
+            mcp_tool_map=request.mcp_tool_map,
+            mcp_tools=list(request.mcp_tool_map.keys()),
+            created_at=now,
+            updated_at=now,
+        )
+
+    store.save(config)
+    updated = store.get(project_id, definition.connector_id)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Unable to update MCP configuration")
+    return _build_project_mcp_response(project_id, updated)
 
 
 @router.post(
