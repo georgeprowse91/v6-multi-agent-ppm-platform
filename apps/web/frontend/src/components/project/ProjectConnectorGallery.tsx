@@ -9,7 +9,7 @@
  * - Test connection functionality
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { useConnectorStore } from '@/store/connectors';
 import {
   CATEGORY_INFO,
@@ -59,6 +59,8 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
     clearTestResult,
     updateCertification,
     uploadCertificationDocument,
+    setProjectMcpEnabled,
+    updateProjectMcpToolMap,
   } = useConnectorStore();
   const connectors = projectConnectors[projectId] || [];
   const connectorsLoading = projectConnectorsLoading[projectId] || false;
@@ -287,8 +289,11 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
               onToggleEnabled={handleToggleEnabled}
               onOpenConfig={handleOpenConfig}
               onOpenCertification={handleOpenCertification}
+              onToggleMcpEnabled={setProjectMcpEnabled}
+              onUpdateMcpToolMap={updateProjectMcpToolMap}
               canManage={canManage}
               certifications={certifications}
+              projectId={projectId}
             />
           ))
         )}
@@ -336,8 +341,15 @@ interface CategorySectionProps {
   onToggleEnabled: (connector: Connector) => void;
   onOpenConfig: (connector: Connector) => void;
   onOpenCertification: (connector: Connector) => void;
+  onToggleMcpEnabled: (projectId: string, connectorId: string, enabled: boolean) => Promise<void>;
+  onUpdateMcpToolMap: (
+    projectId: string,
+    connectorId: string,
+    toolMap: Record<string, unknown>
+  ) => Promise<void>;
   canManage: boolean;
   certifications: Record<string, CertificationRecord>;
+  projectId: string;
 }
 
 function CategorySection({
@@ -346,8 +358,11 @@ function CategorySection({
   onToggleEnabled,
   onOpenConfig,
   onOpenCertification,
+  onToggleMcpEnabled,
+  onUpdateMcpToolMap,
   canManage,
   certifications,
+  projectId,
 }: CategorySectionProps) {
   const info = CATEGORY_INFO[category];
   const enabledConnector = connectors.find((c) => c.enabled);
@@ -379,6 +394,9 @@ function CategorySection({
             onOpenCertification={() => onOpenCertification(connector)}
             canManage={canManage}
             certification={certifications[connector.connector_id]}
+            onToggleMcpEnabled={onToggleMcpEnabled}
+            onUpdateMcpToolMap={onUpdateMcpToolMap}
+            projectId={projectId}
           />
         ))}
       </div>
@@ -394,8 +412,15 @@ interface ConnectorCardProps {
   onToggleEnabled: () => void;
   onOpenConfig: () => void;
   onOpenCertification: () => void;
+  onToggleMcpEnabled: (projectId: string, connectorId: string, enabled: boolean) => Promise<void>;
+  onUpdateMcpToolMap: (
+    projectId: string,
+    connectorId: string,
+    toolMap: Record<string, unknown>
+  ) => Promise<void>;
   canManage: boolean;
   certification?: CertificationRecord;
+  projectId: string;
 }
 
 function ConnectorCard({
@@ -403,8 +428,11 @@ function ConnectorCard({
   onToggleEnabled,
   onOpenConfig,
   onOpenCertification,
+  onToggleMcpEnabled,
+  onUpdateMcpToolMap,
   canManage,
   certification,
+  projectId,
 }: ConnectorCardProps) {
   const statusLabel = STATUS_LABELS[connector.status];
   const statusClassName = STATUS_BADGE_CLASSES[connector.status];
@@ -473,6 +501,16 @@ function ConnectorCard({
         )}
       </div>
 
+      {connector.connector_type === 'mcp' && (
+        <McpProjectConfigSection
+          connector={connector}
+          canManage={canManage}
+          projectId={projectId}
+          onToggleMcpEnabled={onToggleMcpEnabled}
+          onUpdateMcpToolMap={onUpdateMcpToolMap}
+        />
+      )}
+
       <div className={styles.cardActions}>
         <button
           className={styles.configButton}
@@ -494,6 +532,141 @@ function ConnectorCard({
           data-tour="certification-evidence"
         >
           {canManage ? 'Manage Evidence' : 'View Evidence'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface McpProjectConfigSectionProps {
+  connector: Connector;
+  canManage: boolean;
+  projectId: string;
+  onToggleMcpEnabled: (projectId: string, connectorId: string, enabled: boolean) => Promise<void>;
+  onUpdateMcpToolMap: (
+    projectId: string,
+    connectorId: string,
+    toolMap: Record<string, unknown>
+  ) => Promise<void>;
+}
+
+function McpProjectConfigSection({
+  connector,
+  canManage,
+  projectId,
+  onToggleMcpEnabled,
+  onUpdateMcpToolMap,
+}: McpProjectConfigSectionProps) {
+  const [mcpEnabled, setMcpEnabled] = useState(connector.mcp_enabled ?? true);
+  const [toolMap, setToolMap] = useState<Record<string, string>>(() =>
+    Object.entries(connector.mcp_tool_map ?? {}).reduce<Record<string, string>>(
+      (acc, [operation, tool]) => {
+        acc[operation] = String(tool ?? '');
+        return acc;
+      },
+      {}
+    )
+  );
+  const [saving, setSaving] = useState(false);
+  const operations = useMemo(() => {
+    if (connector.supported_operations.length) {
+      return connector.supported_operations;
+    }
+    const mapped = Object.keys(toolMap);
+    return mapped.length ? mapped : ['projects.read', 'projects.write'];
+  }, [connector.supported_operations, toolMap]);
+
+  useEffect(() => {
+    setMcpEnabled(connector.mcp_enabled ?? true);
+    setToolMap(
+      Object.entries(connector.mcp_tool_map ?? {}).reduce<Record<string, string>>(
+        (acc, [operation, tool]) => {
+          acc[operation] = String(tool ?? '');
+          return acc;
+        },
+        {}
+      )
+    );
+  }, [connector.mcp_enabled, connector.mcp_tool_map]);
+
+  const handleToggle = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!canManage) return;
+    const nextEnabled = event.target.checked;
+    setMcpEnabled(nextEnabled);
+    await onToggleMcpEnabled(projectId, connector.connector_id, nextEnabled);
+  };
+
+  const handleToolChange = (operation: string, value: string) => {
+    setToolMap((prev) => ({ ...prev, [operation]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!canManage) return;
+    setSaving(true);
+    const payload = Object.entries(toolMap).reduce<Record<string, string>>((acc, [operation, tool]) => {
+      const trimmed = tool.trim();
+      if (trimmed) {
+        acc[operation] = trimmed;
+      }
+      return acc;
+    }, {});
+    try {
+      await onUpdateMcpToolMap(projectId, connector.connector_id, payload);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={styles.mcpConfigSection}>
+      <div className={styles.mcpConfigHeader}>
+        <div>
+          <div className={styles.mcpConfigTitle}>Project MCP Configuration</div>
+          <p className={styles.mcpConfigHint}>
+            Bind project-level operations to MCP tools for this connector.
+          </p>
+        </div>
+        <label className={styles.mcpToggle}>
+          <span>Enable MCP for this project</span>
+          <span className={styles.mcpToggleSwitch}>
+            <input
+              type="checkbox"
+              checked={mcpEnabled}
+              onChange={handleToggle}
+              disabled={!canManage}
+              aria-label={`Enable MCP for ${connector.name}`}
+            />
+            <span className={styles.toggleSlider}></span>
+          </span>
+        </label>
+      </div>
+
+      <div className={styles.mcpToolMap}>
+        {operations.map((operation) => (
+          <div key={operation} className={styles.mcpToolRow}>
+            <label className={styles.mcpToolLabel} htmlFor={`${connector.connector_id}-${operation}`}>
+              {operation}
+            </label>
+            <input
+              id={`${connector.connector_id}-${operation}`}
+              className={styles.mcpToolInput}
+              type="text"
+              value={toolMap[operation] ?? ''}
+              onChange={(event) => handleToolChange(operation, event.target.value)}
+              placeholder="e.g., portfolio.read"
+              disabled={!canManage || !mcpEnabled}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.mcpToolActions}>
+        <button
+          className={styles.mcpSaveButton}
+          onClick={handleSave}
+          disabled={!canManage || saving}
+        >
+          {saving ? 'Saving...' : 'Save Tool Mapping'}
         </button>
       </div>
     </div>

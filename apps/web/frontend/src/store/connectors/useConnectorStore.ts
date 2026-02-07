@@ -66,6 +66,16 @@ interface ConnectorStoreState {
   enableProjectConnector: (projectId: string, connectorId: string) => Promise<void>;
   disableConnector: (connectorId: string) => Promise<void>;
   disableProjectConnector: (projectId: string, connectorId: string) => Promise<void>;
+  setProjectMcpEnabled: (
+    projectId: string,
+    connectorId: string,
+    enabled: boolean
+  ) => Promise<void>;
+  updateProjectMcpToolMap: (
+    projectId: string,
+    connectorId: string,
+    toolMap: Record<string, unknown>
+  ) => Promise<void>;
   updateCertification: (
     connectorId: string,
     payload: Partial<Omit<CertificationRecord, 'connector_id' | 'tenant_id' | 'documents' | 'updated_at'>>
@@ -447,6 +457,58 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
     }
   },
 
+  setProjectMcpEnabled: async (projectId, connectorId, enabled) => {
+    const connector = getProjectConnector(get(), projectId, connectorId);
+    if (!connector) return;
+    const payload = buildProjectConnectorConfigPayload(connector, { mcp_enabled: enabled });
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors/${connectorId}/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to update MCP status: ${response.statusText}`);
+      }
+      await get().fetchProjectConnectors(projectId);
+    } catch (error) {
+      set((state) => ({
+        projectConnectors: {
+          ...state.projectConnectors,
+          [projectId]: (state.projectConnectors[projectId] || []).map((c) =>
+            c.connector_id === connectorId ? { ...c, mcp_enabled: enabled } : c
+          ),
+        },
+      }));
+    }
+  },
+
+  updateProjectMcpToolMap: async (projectId, connectorId, toolMap) => {
+    const connector = getProjectConnector(get(), projectId, connectorId);
+    if (!connector) return;
+    const payload = buildProjectConnectorConfigPayload(connector, { mcp_tool_map: toolMap });
+    try {
+      const response = await fetch(`/api/projects/${projectId}/connectors/${connectorId}/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to update MCP tool map: ${response.statusText}`);
+      }
+      await get().fetchProjectConnectors(projectId);
+    } catch (error) {
+      set((state) => ({
+        projectConnectors: {
+          ...state.projectConnectors,
+          [projectId]: (state.projectConnectors[projectId] || []).map((c) =>
+            c.connector_id === connectorId ? { ...c, mcp_tool_map: toolMap } : c
+          ),
+        },
+      }));
+    }
+  },
+
   // Test connection
   testConnection: async (connectorId, instanceUrl, projectKey) => {
     set({ testingConnection: true, testResult: null });
@@ -664,6 +726,35 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
   },
 }));
 
+const getProjectConnector = (
+  state: ConnectorStoreState,
+  projectId: string,
+  connectorId: string
+) => (state.projectConnectors[projectId] || []).find(
+  (connector) => connector.connector_id === connectorId
+);
+
+const buildProjectConnectorConfigPayload = (
+  connector: Connector,
+  overrides: ConnectorConfigUpdate
+): ConnectorConfigUpdate => ({
+  instance_url: connector.instance_url || '',
+  project_key: connector.project_key || '',
+  mcp_server_url: connector.mcp_server_url || '',
+  mcp_server_id: connector.mcp_server_id || '',
+  mcp_tool_map: connector.mcp_tool_map || {},
+  mcp_scopes: connector.mcp_scopes || [],
+  mcp_tools: connector.mcp_tools || [],
+  prefer_mcp: connector.prefer_mcp ?? false,
+  mcp_enabled: connector.mcp_enabled ?? true,
+  mcp_enabled_operations: connector.mcp_enabled_operations || [],
+  mcp_disabled_operations: connector.mcp_disabled_operations || [],
+  sync_direction: connector.sync_direction,
+  sync_frequency: connector.sync_frequency,
+  custom_fields: connector.custom_fields || {},
+  ...overrides,
+});
+
 const mapConnectorResponses = (connectors: Connector[]): Connector[] =>
   connectors.map((connector) => ({
     ...connector,
@@ -792,6 +883,7 @@ function getMockConnectors(): Connector[] {
       mcp_tool_map: {
         'portfolio.read': true,
       },
+      mcp_enabled: true,
     },
     // Collaboration
     {
