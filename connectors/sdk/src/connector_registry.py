@@ -32,8 +32,10 @@ class ConnectorDefinition:
     category: ConnectorCategory
     system: str = ""
     mcp_server_id: str = ""
+    mcp_server_url: str = ""
     supported_operations: list[str] = field(default_factory=list)
-    mcp_preferred: bool = False
+    tool_map: dict[str, str] = field(default_factory=dict)
+    prefer_mcp: bool = False
     status: ConnectorStatus = ConnectorStatus.COMING_SOON
     icon: str = ""  # Icon identifier for UI
     supported_sync_directions: list[SyncDirection] = field(
@@ -58,8 +60,10 @@ class ConnectorDefinition:
             "category": self.category.value,
             "system": self.system,
             "mcp_server_id": self.mcp_server_id,
+            "mcp_server_url": self.mcp_server_url,
             "supported_operations": self.supported_operations,
-            "mcp_preferred": self.mcp_preferred,
+            "tool_map": self.tool_map,
+            "prefer_mcp": self.prefer_mcp,
             "status": self.status.value,
             "icon": self.icon,
             "supported_sync_directions": [d.value for d in self.supported_sync_directions],
@@ -94,6 +98,21 @@ OAUTH_ROTATION_FIELDS: list[dict[str, Any]] = [
         "type": "number",
         "required": False,
         "label": "Client secret rotation (days)",
+    },
+]
+
+MCP_CONFIG_FIELDS: list[dict[str, Any]] = [
+    {
+        "name": "mcp_server_url",
+        "type": "url",
+        "required": True,
+        "label": "MCP Server URL",
+    },
+    {
+        "name": "tool_map",
+        "type": "object",
+        "required": False,
+        "label": "MCP Tool Map",
     },
 ]
 
@@ -141,8 +160,9 @@ PLANVIEW_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="mcp",
     mcp_server_id="planview",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=["list", "create"],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 CLARITY_CONNECTOR = ConnectorDefinition(
@@ -178,8 +198,9 @@ CLARITY_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="mcp",
     mcp_server_id="clarity",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=["list", "create"],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 MS_PROJECT_SERVER_CONNECTOR = ConnectorDefinition(
@@ -234,8 +255,9 @@ JIRA_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="mcp",
     mcp_server_id="jira",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=["list", "create", "update"],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 AZURE_DEVOPS_CONNECTOR = ConnectorDefinition(
@@ -299,8 +321,9 @@ ASANA_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.INBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="mcp",
     mcp_server_id="asana",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=["list", "create"],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 # Document Management Category
 SHAREPOINT_CONNECTOR = ConnectorDefinition(
@@ -397,13 +420,14 @@ SAP_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="mcp",
     mcp_server_id="sap",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=[
         "list_invoices",
         "list_goods_receipts",
         "list_purchase_orders",
         "list_suppliers",
     ],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 ORACLE_CONNECTOR = ConnectorDefinition(
@@ -486,13 +510,14 @@ WORKDAY_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.INBOUND],
     auth_type="mcp",
     mcp_server_id="workday",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=[
         "list_workers",
         "list_job_profiles",
         "list_positions",
         "list_organizations",
     ],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 SAP_SUCCESSFACTORS_CONNECTOR = ConnectorDefinition(
@@ -678,8 +703,9 @@ TEAMS_MCP_CONNECTOR = ConnectorDefinition(
     supported_sync_directions=[SyncDirection.OUTBOUND, SyncDirection.BIDIRECTIONAL],
     auth_type="mcp",
     mcp_server_id="teams",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=["list", "create"],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 SLACK_CONNECTOR = ConnectorDefinition(
@@ -721,8 +747,9 @@ SLACK_MCP_CONNECTOR = ConnectorDefinition(
     ],
     auth_type="mcp",
     mcp_server_id="slack",
+    config_fields=MCP_CONFIG_FIELDS,
     supported_operations=["list", "create"],
-    mcp_preferred=True,
+    prefer_mcp=True,
 )
 
 ZOOM_CONNECTOR = ConnectorDefinition(
