@@ -23,7 +23,7 @@ from typing import Any
 import httpx
 from observability.metrics import build_kpi_handles, configure_metrics
 from observability.tracing import configure_tracing, start_agent_span
-from services.integration.analytics import AnalyticsClient
+from integrations.services.integration.analytics import AnalyticsClient
 
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore

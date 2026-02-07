@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
-from services.integration import (
+from integrations.services.integration import (
     AIModelService,
     AnalyticsClient,
     CacheClient,
@@ -39,7 +39,7 @@ from services.integration import (
     create_sql_engine,
     Base,
 )
-from services.integration.ml import AzureMLClient
+from integrations.services.integration.ml import AzureMLClient
 
 
 class SchedulePlanningAgent(BaseAgent):

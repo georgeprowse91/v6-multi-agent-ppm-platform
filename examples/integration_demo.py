@@ -2,9 +2,9 @@
 
 from sqlalchemy.orm import Session
 
-from services.integration.analytics import AnalyticsClient
-from services.integration.event_bus import EventBusClient, EventEnvelope
-from services.integration.persistence import Base, SqlRepository, create_sql_engine
+from integrations.services.integration.analytics import AnalyticsClient
+from integrations.services.integration.event_bus import EventBusClient, EventEnvelope
+from integrations.services.integration.persistence import Base, SqlRepository, create_sql_engine
 
 
 def main() -> None:

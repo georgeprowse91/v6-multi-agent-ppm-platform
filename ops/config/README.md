@@ -12,7 +12,7 @@ This directory contains configuration assets consumed by services, agents, and t
 | [agent-23/](./agent-23/) | Agent 23 specific configuration |
 | [agent-24/](./agent-24/) | Agent 24 specific configuration |
 | [agents/](./agents/) | Agent runtime and routing configuration (has schema/ subdir) |
-| [connectors/](./connectors/) | Connector integration configuration |
+| [integrations/connectors/](../../integrations/connectors/) | Connector integration configuration |
 | [data-classification/](./data-classification/) | Data classification levels |
 | [environments/](./environments/) | Environment-specific settings (dev, test, prod) |
 | [feature-flags/](./feature-flags/) | Feature flag toggles |

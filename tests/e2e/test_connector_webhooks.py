@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
+SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
 API_ROOT = REPO_ROOT / "apps" / "api-gateway" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
@@ -40,7 +40,7 @@ def _client() -> TestClient:
         sys.modules["security"] = security_module
         sys.modules["security.audit_log"] = audit_module
 
-    from api.routes import connectors as connectors_route
+    from api.routes import integrations.connectors as connectors_route
 
     app = FastAPI()
     app.include_router(connectors_route.router, prefix="/v1")
@@ -51,7 +51,7 @@ def test_webhook_payload_persisted(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("CONNECTOR_JIRA_WEBHOOK_SECRET", "secret-123")
     client = _client()
 
-    from api.routes import connectors as connectors_route
+    from api.routes import integrations.connectors as connectors_route
     from api.webhook_storage import WebhookEventStore
     from base_connector import ConnectorConfigStore
 
@@ -84,7 +84,7 @@ def test_webhook_rejects_invalid_secret(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("CONNECTOR_JIRA_WEBHOOK_SECRET", "secret-123")
     client = _client()
 
-    from api.routes import connectors as connectors_route
+    from api.routes import integrations.connectors as connectors_route
     from api.webhook_storage import WebhookEventStore
     from base_connector import ConnectorConfigStore
 

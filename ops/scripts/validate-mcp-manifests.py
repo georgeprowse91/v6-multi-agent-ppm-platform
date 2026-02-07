@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CONNECTORS_DIR = REPO_ROOT / "connectors"
+CONNECTORS_DIR = REPO_ROOT / "integrations" / "connectors"
 
 
 def _load_manifest(path: Path) -> dict:

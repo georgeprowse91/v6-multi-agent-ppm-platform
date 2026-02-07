@@ -1,10 +1,10 @@
 # Connector Inventory: Operations + MCP Coverage
 
 ## Sources of truth
-- Connector packages under `connectors/`, including each `*connector.py` and any `mappers.py`.
-- `connectors/sdk/src/connector_registry.py` for SDK-level connector definitions (including MCP metadata).
-- `connectors/registry/connectors.json` for current registry status and sync directions.
-- MCP connector manifests in `connectors/*_mcp/manifest.yaml`.
+- Connector packages under `integrations/connectors/`, including each `*connector.py` and any `mappers.py`.
+- `integrations/connectors/sdk/src/connector_registry.py` for SDK-level connector definitions (including MCP metadata).
+- `integrations/connectors/registry/connectors.json` for current registry status and sync directions.
+- MCP connector manifests in `integrations/connectors/*_mcp/manifest.yaml`.
 
 ## Inventory by system
 
@@ -233,7 +233,7 @@
 
 ## MCP server availability + tool coverage
 
-### MCP connector manifests (packages in `connectors/*_mcp`)
+### MCP connector manifests (packages in `integrations/connectors/*_mcp`)
 - **Jira MCP (`jira_mcp`)**: tools for listing projects/work items and upserting work items.
 - **Slack MCP (`slack_mcp`)**: tools for listing channels/users and posting messages.
 - **Teams MCP (`teams_mcp`)**: tools for listing teams/channels and posting messages.
@@ -249,7 +249,7 @@
 | System | REST operations today | MCP tool coverage | Coverage gaps / notes |
 | --- | --- | --- | --- |
 | **Planview** | Read projects only. | SDK registry advertises `list` + `create`. | Connector implementation is read-only; MCP mapping only supports list. No create support in REST connector. |
-| **Clarity** | Read projects only. | SDK registry advertises `list` + `create`. | No MCP package under `connectors/clarity_mcp`; REST connector is read-only (no create). |
+| **Clarity** | Read projects only. | SDK registry advertises `list` + `create`. | No MCP package under `integrations/connectors/clarity_mcp`; REST connector is read-only (no create). |
 | **Jira** | Read projects & issues; write issues (create/update). | MCP tools: list projects, list work items, upsert work item. | MCP lacks delete and explicit project write operations; REST has richer issue update logic + transitions. |
 | **Slack** | Read channels/users; write messages (post). | MCP tools: list channels, list users, post message. | Parity for current REST operations; no message-history read in either connector. |
 | **Teams** | Read teams/channels/messages; write messages. | MCP tools: list teams, list channels, post message. | MCP lacks list/read messages tool; REST can read messages via Graph endpoint. |

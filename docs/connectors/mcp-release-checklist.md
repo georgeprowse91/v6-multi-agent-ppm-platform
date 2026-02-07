@@ -5,7 +5,7 @@ visibility, per-project configuration persistence, sync flow behavior, and opera
 
 ## Registry + UI visibility
 
-- Confirm every MCP connector is listed in `connectors/registry/connectors.json`.
+- Confirm every MCP connector is listed in `integrations/connectors/registry/connectors.json`.
 - Confirm the web UI loads connector metadata via `apps/web/src/main.py` using the registry path.
 - Validate each MCP connector manifest path is present and resolves in the repo.
 

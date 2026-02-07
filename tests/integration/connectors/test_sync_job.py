@@ -17,13 +17,14 @@ pytest.importorskip("opentelemetry")
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-sys.modules.pop("connectors", None)
+sys.modules.pop("integrations.connectors", None)
+sys.modules.pop("integrations", None)
 
-from connectors.jira.src.main import run_sync
+from integrations.connectors.jira.src.main import run_sync
 
 
 def test_fixture_sync_job_maps_records() -> None:
-    fixture = Path("connectors/jira/tests/fixtures/projects.json")
+    fixture = Path("integrations/connectors/jira/tests/fixtures/projects.json")
 
     results = run_sync(fixture, "tenant-fixture")
 

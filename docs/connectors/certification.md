@@ -12,10 +12,10 @@ Certification ensures connectors enforce the same security, data quality, and op
 
 | Step | Evidence | Artifact path |
 | --- | --- | --- |
-| Schema coverage | Mapping files cover required fields | `connectors/<name>/mappings/*.yaml` |
+| Schema coverage | Mapping files cover required fields | `integrations/connectors/<name>/mappings/*.yaml` |
 | Auth validation | Token flow tested and rotated | `config/<env>/connector-auth.yaml` |
-| Sandbox tests | CRUD against vendor sandbox | `connectors/<name>/tests/` |
-| Rate-limit handling | Retry policy documented | `connectors/<name>/manifest.yaml` |
+| Sandbox tests | CRUD against vendor sandbox | `integrations/connectors/<name>/tests/` |
+| Rate-limit handling | Retry policy documented | `integrations/connectors/<name>/manifest.yaml` |
 | Security review | Secrets stored in vault | `docs/architecture/security-architecture.md` |
 | Data lineage | Lineage artifact emitted | `data/lineage/` |
 
@@ -24,7 +24,7 @@ Certification ensures connectors enforce the same security, data quality, and op
 Record certification status in the registry:
 
 ```bash
-rg -n "certification" connectors/registry/connectors.json
+rg -n "certification" integrations/connectors/registry/connectors.json
 ```
 
 ## How to verify
@@ -32,7 +32,7 @@ rg -n "certification" connectors/registry/connectors.json
 Ensure a connector has at least one mapping file:
 
 ```bash
-ls connectors/jira/mappings
+ls integrations/connectors/jira/mappings
 ```
 
 Expected output: mapping files such as `project.yaml`.
@@ -55,5 +55,5 @@ The report includes per-connector results plus a summary status.
 ## Related docs
 
 - [Connector Overview](overview.md)
-- [Connector Registry](../../connectors/registry/connectors.json)
+- [Connector Registry](../../integrations/connectors/registry/connectors.json)
 - [Data Lineage](../data/lineage.md)

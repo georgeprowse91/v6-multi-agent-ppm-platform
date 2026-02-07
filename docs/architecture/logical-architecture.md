@@ -10,7 +10,7 @@ The logical architecture organizes the platform into three logical planes:
 
 1. **Engagement plane** (API gateway, web prototype) in `apps/`.
 2. **Decision plane** (agent orchestration + domain agents) in `agents/`.
-3. **Integration and data plane** (connectors, data schemas, lineage) in `connectors/` and `data/`.
+3. **Integration and data plane** (connectors, data schemas, lineage) in `integrations/connectors/` and `data/`.
 
 These planes are orchestrated through intent routing, task planning, and policy enforcement. Each domain agent owns canonical data entities and publishes events consumed by other agents or analytics workflows.
 

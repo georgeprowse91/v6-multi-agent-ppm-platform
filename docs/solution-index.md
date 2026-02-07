@@ -6,7 +6,7 @@ Provide a concise inventory of the solution documentation in this repository, hi
 
 ## Architecture-level context
 
-The Multi-Agent PPM Platform documentation is organized by solution pillars (architecture, agents, methodologies, connectors, data, security/compliance, and operations). Each pillar maps to a dedicated doc set under `docs/` and to concrete artifacts under `agents/`, `connectors/`, `data/`, `infra/`, and `services/`. This index links those materials so readers can trace high-level concepts to concrete implementation assets.
+The Multi-Agent PPM Platform documentation is organized by solution pillars (architecture, agents, methodologies, connectors, data, security/compliance, and operations). Each pillar maps to a dedicated doc set under `docs/` and to concrete artifacts under `agents/`, `integrations/connectors/`, `data/`, `infra/`, and `services/`. This index links those materials so readers can trace high-level concepts to concrete implementation assets.
 
 ## Documentation inventory by pillar
 

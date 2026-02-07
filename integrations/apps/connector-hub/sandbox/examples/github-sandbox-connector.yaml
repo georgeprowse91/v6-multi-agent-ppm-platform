@@ -1,0 +1,19 @@
+apiVersion: ppm.integrations/connectors/v1
+kind: ConnectorSandbox
+metadata:
+  name: github-sandbox
+  owner: connector-hub
+  description: Local sandbox for GitHub connector smoke testing.
+connector:
+  type: github
+  base_url: https://api.github.com
+  auth:
+    method: token
+    token_env: GITHUB_TOKEN
+sandbox:
+  fixtures:
+    - path: /repos/georgeprowse91/multi-agent-ppm-platform
+      response_file: fixtures/repo.json
+    - path: /repos/georgeprowse91/multi-agent-ppm-platform/issues
+      response_file: fixtures/issues.json
+  rate_limit_per_minute: 120

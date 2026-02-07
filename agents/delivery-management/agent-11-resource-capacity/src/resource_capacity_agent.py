@@ -828,7 +828,7 @@ class ResourceCapacityAgent(BaseAgent):
             if importlib.util.find_spec("pydantic_settings") is None:
                 self.analytics_client = SimpleAnalyticsClient()
             else:
-                from services.integration.analytics import AnalyticsClient
+                from integrations.services.integration.analytics import AnalyticsClient
 
                 self.analytics_client = AnalyticsClient()
         self.org_structure = config.get("org_structure", {}) if config else {}
@@ -2215,8 +2215,8 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_workday_profiles(self) -> list[dict[str, Any]]:
         try:
-            from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
-            from connectors.workday.src.workday_connector import WorkdayConnector
+            from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from integrations.connectors.workday.src.workday_connector import WorkdayConnector
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
         try:
@@ -2245,8 +2245,8 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_sap_profiles(self) -> list[dict[str, Any]]:
         try:
-            from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
-            from connectors.sap_successfactors.src.sap_successfactors_connector import (
+            from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from integrations.connectors.sap_successfactors.src.sap_successfactors_connector import (
                 SapSuccessFactorsConnector,
             )
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
@@ -2373,8 +2373,8 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_planview_allocations(self) -> list[dict[str, Any]]:
         try:
-            from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
-            from connectors.planview.src.planview_connector import PlanviewConnector
+            from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from integrations.connectors.planview.src.planview_connector import PlanviewConnector
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
             return []
         try:

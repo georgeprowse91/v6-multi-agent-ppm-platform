@@ -48,7 +48,7 @@ This table summarizes whether a system is covered by REST-only connectors, MCP-o
 
 ## Registry status (runtime-ready)
 
-The authoritative registry list lives in `connectors/registry/connectors.json`.
+The authoritative registry list lives in `integrations/connectors/registry/connectors.json`.
 
 | Connector ID | Name | Category | Sync Directions | Status | Certification |
 | --- | --- | --- | --- | --- | --- |
@@ -92,11 +92,11 @@ The authoritative registry list lives in `connectors/registry/connectors.json`.
 
 - View the registry:
   ```bash
-  cat connectors/registry/connectors.json
+  cat integrations/connectors/registry/connectors.json
   ```
 - Check for connector manifests:
   ```bash
-  rg -n "manifest.yaml" connectors/*/manifest.yaml
+  rg -n "manifest.yaml" integrations/connectors/*/manifest.yaml
   ```
 
 ## Implementation status

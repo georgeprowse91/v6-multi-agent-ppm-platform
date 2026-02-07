@@ -19,10 +19,11 @@ import httpx
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-sys.modules.pop("connectors", None)
+sys.modules.pop("integrations.connectors", None)
+sys.modules.pop("integrations", None)
 
-from connectors.jira.src.main import JiraConfig, run_sync, run_write
-from connectors.sdk.src.http_client import HttpClient
+from integrations.connectors.jira.src.main import JiraConfig, run_sync, run_write
+from integrations.connectors.sdk.src.http_client import HttpClient
 
 
 def test_jira_live_sync_maps_projects() -> None:

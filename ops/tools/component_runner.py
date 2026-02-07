@@ -13,7 +13,15 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from tools.runtime_paths import agents_dir, apps_dir, connectors_dir, repo_root, services_dir
+from tools.runtime_paths import (
+    agents_dir,
+    apps_dir,
+    connectors_dir,
+    integrations_apps_dir,
+    integrations_services_dir,
+    repo_root,
+    services_dir,
+)
 
 
 @dataclass(frozen=True)
@@ -32,13 +40,31 @@ def _iter_dirs(base: Path) -> Iterable[Path]:
 def discover_apps() -> list[Component]:
     """Discover application components under apps/."""
 
-    return [Component(path.name, "app", path) for path in _iter_dirs(apps_dir())]
+    app_roots = [apps_dir()]
+    try:
+        app_roots.append(integrations_apps_dir())
+    except FileNotFoundError:
+        pass
+    return [
+        Component(path.name, "app", path)
+        for root in app_roots
+        for path in _iter_dirs(root)
+    ]
 
 
 def discover_services() -> list[Component]:
     """Discover service components under services/."""
 
-    return [Component(path.name, "service", path) for path in _iter_dirs(services_dir())]
+    service_roots = [services_dir()]
+    try:
+        service_roots.append(integrations_services_dir())
+    except FileNotFoundError:
+        pass
+    return [
+        Component(path.name, "service", path)
+        for root in service_roots
+        for path in _iter_dirs(root)
+    ]
 
 
 def discover_agents() -> list[Component]:

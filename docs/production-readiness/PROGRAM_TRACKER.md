@@ -4,7 +4,7 @@
 | --- | --- | --- | --- |
 | 1 | Fix promotion workflow injection vulnerability in GitHub Actions | Done | `.github/workflows/promotion.yml` input validation, ref restriction, least-privilege permissions. |
 | 2 | Implement Azure Key Vault integration for all secrets | Done | `infra/terraform/main.tf`, `infra/kubernetes/secret-provider-class.yaml`, `infra/kubernetes/service-account.yaml`, `infra/kubernetes/deployment.yaml`, `apps/api-gateway/helm/templates/secretproviderclass.yaml`, `apps/api-gateway/helm/values.yaml`. |
-| 3 | Add non-root users to all Dockerfiles | Done | Dockerfiles under `agents/`, `apps/`, `connectors/`, `services/` updated with non-root user. |
+| 3 | Add non-root users to all Dockerfiles | Done | Dockerfiles under `agents/`, `apps/`, `integrations/connectors/`, `services/` updated with non-root user. |
 | 4 | Fix web console authentication bypass | Done | `apps/web/src/main.py` enforces JWKS-based token verification. |
 | 5 | Disable ACR admin user in IaC | Done | `infra/terraform/main.tf` sets `admin_enabled = false`. |
 | 6 | Mask PII in lineage data | Done | `packages/security/src/security/lineage.py`, `services/data-sync-service/src/main.py`, `tests/security/test_lineage_masking.py`. |
@@ -20,10 +20,10 @@
 | 51 | Enforce SSL/TLS across services | Done | `infra/terraform/main.tf` TLS minima + `ingress.yaml` templates with TLS. |
 | 55 | Enforce HTTPS-only access on storage services | Done | `infra/terraform/main.tf` storage HTTPS-only + TLS min. |
 | 56 | Add automated vulnerability scanning to CI | Done | `.github/workflows/security-scan.yml`, `.github/workflows/secret-scan.yml`, `.github/workflows/ci.yml`. |
-| 12 | Add input validation to all schemas (JSON Schema + runtime validation at API boundaries) | Done | `services/policy-engine/src/main.py`, `apps/workflow-engine/src/main.py`, `connectors/sdk/src/runtime.py`, `agents/runtime/prompts/prompt_registry.py`, `apps/connector-hub/sandbox_registry.py`, `apps/analytics-service/job_registry.py`, `services/audit-log/src/main.py`. |
+| 12 | Add input validation to all schemas (JSON Schema + runtime validation at API boundaries) | Done | `services/policy-engine/src/main.py`, `apps/workflow-engine/src/main.py`, `integrations/connectors/sdk/src/runtime.py`, `agents/runtime/prompts/prompt_registry.py`, `integrations/apps/connector-hub/sandbox_registry.py`, `apps/analytics-service/job_registry.py`, `services/audit-log/src/main.py`. |
 | 13 | Add unique constraints to database migrations | Done | `data/migrations/versions/0001_create_core_tables.py`. |
 | 14 | Fix and expand data quality rules (make them real, executable, tested) | Done | `packages/data-quality/src/data_quality/rules.py`, `tests/test_data_quality_rules.py`. |
-| 15 | Implement missing test fixtures (deterministic fixtures for connectors/services/agents) | Done | `connectors/*/tests/fixtures/projects.json`, `tests/conftest.py`. |
+| 15 | Implement missing test fixtures (deterministic fixtures for integrations/connectors/services/agents) | Done | `integrations/connectors/*/tests/fixtures/projects.json`, `tests/conftest.py`. |
 | 16 | Add coverage gates to CI; target >= 80% automated coverage | Done | `.github/workflows/ci.yml`. |
 | 57 | Implement automated data retention enforcement (jobs/policies + tests) | Done | `services/audit-log/src/retention_job.py`, `services/audit-log/src/audit_storage.py`, `services/audit-log/tests/test_retention_job.py`. |
 | 58 | Add audit trail verification tests (prove audit events emitted and persisted immutably) | Done | `services/audit-log/tests/test_audit_log.py`. |
@@ -33,20 +33,20 @@
 | 34 | Convert orchestration service to HTTP-based interface | Done | `apps/orchestration-service/src/main.py`, `docs/api/orchestration-openapi.yaml`, `apps/orchestration-service/helm/values.yaml`. |
 | 35 | Implement analytics service job scheduler (real scheduling, persistence, tests) | Done | `apps/analytics-service/src/scheduler.py`, `apps/analytics-service/src/main.py`, `apps/analytics-service/tests/test_scheduler.py`. |
 | 36 | Implement document service storage APIs (classification/retention hooks) | Done | `apps/document-service/src/main.py`, `apps/document-service/src/policy.py`, `apps/document-service/src/storage.py`. |
-| 37 | Implement connector hub lifecycle management (enable/disable/version/health, tenant-aware) | Done | `apps/connector-hub/src/main.py`, `apps/connector-hub/src/storage.py`. |
+| 37 | Implement connector hub lifecycle management (enable/disable/version/health, tenant-aware) | Done | `integrations/apps/connector-hub/src/main.py`, `integrations/apps/connector-hub/src/storage.py`. |
 | 38 | Expand alert coverage to at least 15 alerts (SLO-related) | Done | `infra/observability/alerts/ppm-alerts.yaml`. |
 | 39 | Add distributed tracing to all services (OpenTelemetry propagation) | Done | `packages/observability/src/observability/tracing.py`, `packages/observability/src/observability/metrics.py`, service `main.py` updates. |
 | 40 | Implement custom business metrics (KPIs) with exporters | Done | `packages/observability/src/observability/metrics.py`, service KPI counters in app/service `main.py`. |
 | 41 | Add SLO dashboards and tracking | Done | `infra/observability/dashboards/ppm-slo.json`, `infra/observability/slo/ppm-slo.yaml`. |
 | 42 | Configure Azure Monitor diagnostic settings in IaC | Done | `infra/terraform/main.tf`. |
-| 77 | Ensure HTTP interfaces exist for all services | Done | `apps/orchestration-service/src/main.py`, `apps/analytics-service/src/main.py`, `apps/document-service/src/main.py`, `apps/connector-hub/src/main.py`. |
+| 77 | Ensure HTTP interfaces exist for all services | Done | `apps/orchestration-service/src/main.py`, `apps/analytics-service/src/main.py`, `apps/document-service/src/main.py`, `integrations/apps/connector-hub/src/main.py`. |
 | 79 | Define and actively monitor SLOs | Done | `infra/observability/slo/ppm-slo.yaml`, `infra/observability/dashboards/ppm-slo.json`, `infra/observability/alerts/ppm-alerts.yaml`. |
-| 28 | Implement HTTP client in connector SDK (retries, paging, rate limits, timeouts) | Done | `connectors/sdk/src/http_client.py`, `connectors/sdk/tests/test_http_client.py`. |
-| 29 | Implement Jira connector with real API calls (auth via Key Vault in prod, fixtures in CI) | Done | `connectors/jira/src/main.py`, `config/environments/prod.yaml`, `tests/integration/connectors/test_jira_connector.py`. |
-| 30 | Implement ServiceNow connector | Done | `connectors/servicenow/src/main.py`, `tests/integration/connectors/test_servicenow_connector.py`. |
-| 31 | Implement Azure DevOps connector | Done | `connectors/azure_devops/src/main.py`, `tests/integration/connectors/test_azure_devops_connector.py`. |
+| 28 | Implement HTTP client in connector SDK (retries, paging, rate limits, timeouts) | Done | `integrations/connectors/sdk/src/http_client.py`, `integrations/connectors/sdk/tests/test_http_client.py`. |
+| 29 | Implement Jira connector with real API calls (auth via Key Vault in prod, fixtures in CI) | Done | `integrations/connectors/jira/src/main.py`, `config/environments/prod.yaml`, `tests/integration/connectors/test_jira_connector.py`. |
+| 30 | Implement ServiceNow connector | Done | `integrations/connectors/servicenow/src/main.py`, `tests/integration/connectors/test_servicenow_connector.py`. |
+| 31 | Implement Azure DevOps connector | Done | `integrations/connectors/azure_devops/src/main.py`, `tests/integration/connectors/test_azure_devops_connector.py`. |
 | 32 | Add connector integration tests (mock server/recorded fixtures; deterministic CI) | Done | `tests/integration/connectors/test_jira_connector.py`, `tests/integration/connectors/test_servicenow_connector.py`, `tests/integration/connectors/test_azure_devops_connector.py`, `tests/integration/connectors/test_sync_job.py`. |
-| 33 | Implement OAuth 2.0 token refresh logic | Done | `connectors/sdk/src/auth.py`, `connectors/servicenow/src/main.py`. |
+| 33 | Implement OAuth 2.0 token refresh logic | Done | `integrations/connectors/sdk/src/auth.py`, `integrations/connectors/servicenow/src/main.py`. |
 | 76 | Enable multiple connectors syncing live data (Key Vault wiring, gated smoke workflow) | Done | `config/environments/prod.yaml`, `.github/workflows/connectors-live-smoke.yml`. |
 | 17 | Enhanced NLP for Intent Router (real classification; measurable behavior) | Done | `agents/core-orchestration/agent-01-intent-router/src/intent_router_agent.py`, `tests/agents/test_intent_router_agent.py`. |
 | 18 | Real agent-to-agent communication for response orchestration (HTTP/event bus per repo architecture) | Done | `agents/core-orchestration/agent-02-response-orchestration/src/response_orchestration_agent.py`, `agents/runtime/src/event_bus.py`, `tests/agents/test_response_orchestration_agent.py`. |

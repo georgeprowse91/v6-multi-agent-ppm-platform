@@ -6,7 +6,7 @@ Define the full 25-agent ecosystem for the Multi-Agent PPM Platform, including e
 
 ## Architecture-level context
 
-Agents form the decision plane of the platform. The Intent Router (Agent 01) classifies requests, the Response Orchestrator (Agent 02) plans multi-step execution, and domain agents (Agents 03–25) own specific PPM capabilities. Agents exchange data using the canonical schemas in `data/schemas/` and integrate through connectors registered in `connectors/registry/`.
+Agents form the decision plane of the platform. The Intent Router (Agent 01) classifies requests, the Response Orchestrator (Agent 02) plans multi-step execution, and domain agents (Agents 03–25) own specific PPM capabilities. Agents exchange data using the canonical schemas in `data/schemas/` and integrate through connectors registered in `integrations/connectors/registry/`.
 
 ## Catalog
 

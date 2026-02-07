@@ -30,8 +30,8 @@ from typing import Any
 
 # Add connector SDK to path
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
-CONNECTORS_ROOT = REPO_ROOT / "connectors"
+CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
+CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
 
 
 def _ensure_connector_paths() -> None:

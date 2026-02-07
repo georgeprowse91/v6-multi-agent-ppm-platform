@@ -19,7 +19,7 @@ dependencies:
     repository: "file://../../../apps/admin-console/helm"
   - name: connector-hub
     version: 0.1.0
-    repository: "file://../../../apps/connector-hub/helm"
+    repository: "file://../../../integrations/apps/connector-hub/helm"
   - name: analytics-service
     version: 0.1.0
     repository: "file://../../../apps/analytics-service/helm"

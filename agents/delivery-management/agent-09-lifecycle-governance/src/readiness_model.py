@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from math import exp
 from typing import Any
 
-from services.integration.ai_models import AIModelService, ModelTask
+from integrations.services.integration.ai_models import AIModelService, ModelTask
 
 
 def _sigmoid(value: float) -> float:

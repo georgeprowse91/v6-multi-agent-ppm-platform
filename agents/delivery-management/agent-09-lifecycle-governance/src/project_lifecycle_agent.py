@@ -36,7 +36,7 @@ from orchestration import (
 from monitoring import AzureMonitorClient
 from persistence import LifecyclePersistence
 from readiness_model import ReadinessScoringModel
-from services.integration.ai_models import AIModelService
+from integrations.services.integration.ai_models import AIModelService
 from summarization import CognitiveSummarizer, GateSummarizer
 from sync_clients import ExternalSyncService
 

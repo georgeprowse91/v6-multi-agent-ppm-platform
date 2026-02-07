@@ -13,7 +13,7 @@ pytest.importorskip("aiosqlite")
 pytest.importorskip("opentelemetry")
 
 from agents.runtime.src.data_service import DataServiceClient as AgentDataServiceClient
-from connectors.sdk.src.data_service_client import DataServiceClient as ConnectorDataServiceClient
+from integrations.connectors.sdk.src.data_service_client import DataServiceClient as ConnectorDataServiceClient
 
 SERVICE_ROOT = Path(__file__).resolve().parents[2] / "services" / "data-service"
 MODULE_PATH = SERVICE_ROOT / "src" / "main.py"

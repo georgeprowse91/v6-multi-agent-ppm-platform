@@ -33,8 +33,8 @@ from feature_flags import is_mcp_feature_enabled
 
 # Add connector SDK to path
 REPO_ROOT = Path(__file__).resolve().parents[5]
-CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
-CONNECTORS_ROOT = REPO_ROOT / "connectors"
+CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
+CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
 connector_src_paths = [
     path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()
 ]
@@ -57,8 +57,8 @@ from connector_registry import (
     get_connector_definition,
     get_connectors_by_category,
 )
-from connectors.mcp_client.client import MCPClient
-from connectors.mcp_client.errors import (
+from integrations.connectors.mcp_client.client import MCPClient
+from integrations.connectors.mcp_client.errors import (
     MCPAuthenticationError,
     MCPResponseError,
     MCPServerError,

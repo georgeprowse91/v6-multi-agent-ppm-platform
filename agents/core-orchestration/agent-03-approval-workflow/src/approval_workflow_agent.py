@@ -20,7 +20,7 @@ import httpx
 from agents.common.connector_integration import NotificationService
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from services.integration import AnalyticsClient, EventBusClient, EventEnvelope
+from integrations.services.integration import AnalyticsClient, EventBusClient, EventEnvelope
 
 DATA_SYNC_ROOT = Path(__file__).resolve().parents[5] / "services" / "data-sync-service" / "src"
 if str(DATA_SYNC_ROOT) not in sys.path:

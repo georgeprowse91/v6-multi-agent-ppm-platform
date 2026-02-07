@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from connectors.mcp_client.client import MCPClient as AsyncMcpClient
-from connectors.sdk.src.base_connector import (
+from integrations.connectors.mcp_client.client import MCPClient as AsyncMcpClient
+from integrations.connectors.sdk.src.base_connector import (
     ConnectorCategory,
     ConnectorConfig,
     ConnectorConfigStore,
     SyncDirection,
     SyncFrequency,
 )
-from connectors.sdk.src.operation_router import OperationRouter
+from integrations.connectors.sdk.src.operation_router import OperationRouter
 
 
 def _load_config(tmp_path: Path, **overrides) -> ConnectorConfig:

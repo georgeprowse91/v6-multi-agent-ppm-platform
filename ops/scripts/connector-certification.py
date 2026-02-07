@@ -11,8 +11,8 @@ import yaml
 from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
-SCHEMA_PATH = REPO_ROOT / "connectors" / "registry" / "schemas" / "connector-manifest.schema.json"
+REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
+SCHEMA_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "schemas" / "connector-manifest.schema.json"
 DATA_SCHEMA_DIR = REPO_ROOT / "data" / "schemas"
 
 CERTIFIABLE_STATUSES = {"beta", "production"}

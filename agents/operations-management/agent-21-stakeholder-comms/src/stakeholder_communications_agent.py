@@ -22,7 +22,7 @@ import requests
 from agents.common.connector_integration import CalendarIntegrationService, NotificationService
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from connectors.sdk.src.secrets import fetch_keyvault_secret, resolve_secret
+from integrations.connectors.sdk.src.secrets import fetch_keyvault_secret, resolve_secret
 
 if importlib.util.find_spec("slack_sdk"):
     from slack_sdk import WebClient
@@ -64,8 +64,8 @@ else:
     MetaData = None
     JSON = None
 
-if importlib.util.find_spec("connectors.salesforce.src.main"):
-    from connectors.salesforce.src.main import (
+if importlib.util.find_spec("integrations.connectors.salesforce.src.main"):
+    from integrations.connectors.salesforce.src.main import (
         SalesforceConfig,
         _build_client,
         _build_token_manager,

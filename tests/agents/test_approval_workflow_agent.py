@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 from approval_workflow_agent import ApprovalWorkflowAgent
-from services.integration import EventBusClient, EventEnvelope
+from integrations.services.integration import EventBusClient, EventEnvelope
 
 
 @pytest.mark.asyncio

@@ -8,13 +8,13 @@ Describe how connector mappings translate source-system records into the platfor
 
 Each connector includes:
 
-- A manifest (`connectors/<name>/manifest.yaml`) listing mappings and sync settings.
-- Mapping files under `connectors/<name>/mappings/` describing field-level transformations.
-- Runtime logic via the connector SDK (`connectors/sdk/src/runtime.py`).
+- A manifest (`integrations/connectors/<name>/manifest.yaml`) listing mappings and sync settings.
+- Mapping files under `integrations/connectors/<name>/mappings/` describing field-level transformations.
+- Runtime logic via the connector SDK (`integrations/connectors/sdk/src/runtime.py`).
 
 ## Mapping flow
 
-1. **Load manifest:** Connector runtime loads and validates the manifest against `connectors/registry/schemas/connector-manifest.schema.json`.
+1. **Load manifest:** Connector runtime loads and validates the manifest against `integrations/connectors/registry/schemas/connector-manifest.schema.json`.
 2. **Load mapping specs:** Each mapping file defines `source`, `target`, and a list of field mappings.
 3. **Apply mapping:** Records are transformed into canonical fields and enriched with `tenant_id`.
 
@@ -31,7 +31,7 @@ fields:
     target: name
 ```
 
-Example file: `connectors/jira/mappings/project.yaml`.
+Example file: `integrations/connectors/jira/mappings/project.yaml`.
 
 ## Validation guidance
 
@@ -42,7 +42,7 @@ Example file: `connectors/jira/mappings/project.yaml`.
 Example dry-run with Jira fixtures:
 
 ```bash
-python -m connectors.jira.src.main connectors/jira/tests/fixtures/projects.json --tenant dev-tenant
+python -m integrations.connectors.jira.src.main integrations/connectors/jira/tests/fixtures/projects.json --tenant dev-tenant
 ```
 
 ## Implementation status
@@ -54,4 +54,4 @@ python -m connectors.jira.src.main connectors/jira/tests/fixtures/projects.json 
 
 - [Connector Overview](overview.md)
 - [Data Model](../data/data-model.md)
-- [Connector SDK](../../connectors/sdk/README.md)
+- [Connector SDK](../../integrations/connectors/sdk/README.md)

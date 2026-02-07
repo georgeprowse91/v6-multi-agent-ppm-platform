@@ -16,11 +16,12 @@ Catalog backend services that power data sync, policy enforcement, and telemetry
 | [data-service/](./data-service/) | Canonical schema and entity storage |
 | [data-sync-service/](./data-sync-service/) | Connector-driven sync jobs |
 | [identity-access/](./identity-access/) | SCIM and token validation |
-| [integration/](./integration/) | Integration utilities |
 | [notification-service/](./notification-service/) | Outbound notifications |
 | [policy-engine/](./policy-engine/) | RBAC/ABAC policy evaluation |
 | [realtime-coedit-service/](./realtime-coedit-service/) | Collaborative document editing |
 | [telemetry-service/](./telemetry-service/) | Metrics/events ingestion |
+
+Integration utilities now live under [`integrations/services/integration/`](../integrations/services/integration/).
 
 ## Service descriptions & endpoints
 

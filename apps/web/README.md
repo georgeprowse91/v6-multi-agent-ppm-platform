@@ -147,7 +147,7 @@ Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid`
 To exercise the Connector Gallery in the workspace shell, run connector-hub alongside the web app:
 
 ```bash
-cd apps/connector-hub
+cd integrations/apps/connector-hub
 uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 

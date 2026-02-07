@@ -21,10 +21,11 @@ import httpx
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-sys.modules.pop("connectors", None)
+sys.modules.pop("integrations.connectors", None)
+sys.modules.pop("integrations", None)
 
-from connectors.azure_devops.src.main import AzureDevOpsConfig, run_sync
-from connectors.sdk.src.http_client import HttpClient
+from integrations.connectors.azure_devops.src.main import AzureDevOpsConfig, run_sync
+from integrations.connectors.sdk.src.http_client import HttpClient
 
 
 def test_azure_devops_live_sync_uses_continuation() -> None:

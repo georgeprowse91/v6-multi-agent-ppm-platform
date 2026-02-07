@@ -8,8 +8,8 @@ import yaml
 from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_PATH = REPO_ROOT / "connectors" / "registry" / "schemas" / "connector-manifest.schema.json"
-CONNECTORS_DIR = REPO_ROOT / "connectors"
+SCHEMA_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "schemas" / "connector-manifest.schema.json"
+CONNECTORS_DIR = REPO_ROOT / "integrations" / "connectors"
 
 
 def main() -> int:

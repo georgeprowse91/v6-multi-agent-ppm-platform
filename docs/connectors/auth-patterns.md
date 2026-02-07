@@ -6,9 +6,9 @@ Document the authentication patterns supported by connector manifests and config
 
 ## Configuration sources
 
-- Connector manifests (`connectors/<name>/manifest.yaml`) specify the auth type expected by the connector.
+- Connector manifests (`integrations/connectors/<name>/manifest.yaml`) specify the auth type expected by the connector.
 - Environment-specific configuration is stored in `config/connectors/integrations.yaml` and references secrets via environment variables.
-- Auth schema guidance lives in `connectors/registry/schemas/auth-config.schema.json`.
+- Auth schema guidance lives in `integrations/connectors/registry/schemas/auth-config.schema.json`.
 
 ## Supported patterns
 
@@ -59,7 +59,7 @@ Example mapping (JSON secret `mcp/planview` → env var):
 
 1. Store secrets in your secret manager and inject via env vars.
 2. Update `config/connectors/integrations.yaml` with the secret references.
-3. Ensure manifests and mappings are registered in `connectors/registry/connectors.json` before enabling the connector.
+3. Ensure manifests and mappings are registered in `integrations/connectors/registry/connectors.json` before enabling the connector.
 
 ## Verification steps
 
@@ -69,7 +69,7 @@ Example mapping (JSON secret `mcp/planview` → env var):
   ```
 - Validate connector manifest auth sections:
   ```bash
-  rg -n "auth:" connectors/*/manifest.yaml
+  rg -n "auth:" integrations/connectors/*/manifest.yaml
   ```
 
 ## Implementation status

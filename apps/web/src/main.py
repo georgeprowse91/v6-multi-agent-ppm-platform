@@ -160,7 +160,7 @@ INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
 WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
-CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
+CONNECTOR_REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
 METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
 
 SESSION_COOKIE = "ppm_session"

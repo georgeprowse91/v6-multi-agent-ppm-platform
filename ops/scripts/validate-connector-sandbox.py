@@ -11,10 +11,10 @@ import yaml
 from jsonschema import Draft202012Validator
 
 DEFAULT_CONFIGS = [
-    Path("apps/connector-hub/sandbox/examples/github-sandbox-connector.yaml"),
+    Path("integrations/apps/connector-hub/sandbox/examples/github-sandbox-connector.yaml"),
 ]
 
-SCHEMA_PATH = Path("apps/connector-hub/sandbox/schema/sandbox-connector.schema.json")
+SCHEMA_PATH = Path("integrations/apps/connector-hub/sandbox/schema/sandbox-connector.schema.json")
 
 
 class SandboxValidationError(Exception):

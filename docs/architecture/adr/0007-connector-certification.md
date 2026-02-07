@@ -10,7 +10,7 @@ Connectors integrate with external systems and must meet security, data quality,
 
 ## Decision
 
-Adopt a manual certification checklist documented in `docs/connectors/certification.md` and track status in `connectors/registry/connectors.json`. Connector manifests, mappings, and tests serve as evidence artifacts.
+Adopt a manual certification checklist documented in `docs/connectors/certification.md` and track status in `integrations/connectors/registry/connectors.json`. Connector manifests, mappings, and tests serve as evidence artifacts.
 
 ## Consequences
 
@@ -21,5 +21,5 @@ Adopt a manual certification checklist documented in `docs/connectors/certificat
 ## References
 
 - `docs/connectors/certification.md`
-- `connectors/registry/connectors.json`
-- `connectors/registry/schemas/connector-manifest.schema.json`
+- `integrations/connectors/registry/connectors.json`
+- `integrations/connectors/registry/schemas/connector-manifest.schema.json`

@@ -7,7 +7,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[4]
 sys.path.append(str(REPO_ROOT))
 
-from services.integration.event_bus import EventBusClient, InMemoryEventBusProvider
+from integrations.services.integration.event_bus import EventBusClient, InMemoryEventBusProvider
 
 
 class DummyEventBus:

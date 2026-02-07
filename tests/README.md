@@ -15,7 +15,7 @@ This directory contains the full test suite for the multi-agent PPM platform. Te
 | [docs/](./docs/) | Documentation tests |
 | [e2e/](./e2e/) | End-to-end tests |
 | [helpers/](./helpers/) | Test helper utilities |
-| [integration/](./integration/) | Integration tests (includes connectors/ subdir) |
+| [integration/](./integration/) | Integration tests (includes integrations/connectors/ subdir) |
 | [load/](./load/) | Load and performance tests |
 | [performance/](./performance/) | Performance benchmarking tests |
 | [policies/](./policies/) | Policy validation tests |

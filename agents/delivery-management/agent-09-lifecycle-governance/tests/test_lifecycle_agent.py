@@ -30,7 +30,7 @@ from readiness_model import ReadinessScoringModel
 from sync_clients import ExternalSyncService
 from project_lifecycle_agent import ProjectLifecycleAgent
 from monitoring import AzureMonitorClient
-from services.integration.ai_models import AIModelService
+from integrations.services.integration.ai_models import AIModelService
 
 
 class DummyEventBus:

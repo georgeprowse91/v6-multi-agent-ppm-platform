@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from services.integration.persistence import Base, InMemoryDocumentStore, SqlRepository, create_sql_engine
+from integrations.services.integration.persistence import Base, InMemoryDocumentStore, SqlRepository, create_sql_engine
 
 
 def test_sql_repository_persists_risk_record():

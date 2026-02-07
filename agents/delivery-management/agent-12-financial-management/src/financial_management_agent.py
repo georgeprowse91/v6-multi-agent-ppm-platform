@@ -23,7 +23,7 @@ from agents.common.integration_services import ForecastingModel, NaiveBayesTextC
 from agents.runtime import BaseAgent, ServiceBusEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
-from connectors.sdk.src.secrets import fetch_keyvault_secret
+from integrations.connectors.sdk.src.secrets import fetch_keyvault_secret
 
 
 class FinancialManagementAgent(BaseAgent):

@@ -17,7 +17,15 @@ def _bootstrap_paths() -> None:
     root = Path(__file__).resolve().parents[1]
     candidate_paths = [root]
 
-    for base in ("apps", "services", "agents", "packages", "connectors"):
+    for base in (
+        "apps",
+        "services",
+        "agents",
+        "packages",
+        "integrations/apps",
+        "integrations/connectors",
+        "integrations/services",
+    ):
         base_path = root / base
         if base_path.exists():
             candidate_paths.extend(path for path in base_path.glob("*/src") if path.is_dir())

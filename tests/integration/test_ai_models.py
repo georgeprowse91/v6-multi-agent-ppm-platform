@@ -1,4 +1,4 @@
-from services.integration.ai_models import AIModelService, ModelStage, ModelTask
+from integrations.services.integration.ai_models import AIModelService, ModelStage, ModelTask
 
 
 def test_ai_model_train_evaluate_deploy_predict():

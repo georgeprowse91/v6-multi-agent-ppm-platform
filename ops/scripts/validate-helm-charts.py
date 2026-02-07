@@ -15,7 +15,7 @@ DEFAULT_HELM_DIRS = [
     Path("apps/document-service/helm"),
     Path("apps/orchestration-service/helm"),
     Path("apps/web/helm"),
-    Path("apps/connector-hub/helm"),
+    Path("integrations/apps/connector-hub/helm"),
     Path("apps/workflow-engine/helm"),
     Path("services/audit-log/helm"),
     Path("services/data-sync-service/helm"),

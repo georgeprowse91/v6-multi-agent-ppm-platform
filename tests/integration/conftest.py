@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 import pytest
 
-from connectors.mcp_client import client as async_mcp_module
+from integrations.connectors.mcp_client import client as async_mcp_module
 
 
 class MockMcpServer:

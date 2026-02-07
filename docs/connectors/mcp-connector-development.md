@@ -14,13 +14,13 @@ Provide a step-by-step guide for adding MCP-backed connectors and extending MCP 
 
 ### 1) Create the MCP connector package
 
-1. Create a new connector folder under `connectors/<system>_mcp/`.
-2. Add a `manifest.yaml` that declares `auth.type: mcp`, includes MCP auth fields, and provides an `mcp.tool_map` section that maps canonical operations to MCP tool names. Use existing MCP manifests (for example, `connectors/sap_mcp/manifest.yaml`) as a template.
-3. Add mappings under `connectors/<system>_mcp/mappings/` for any canonical entities you intend to sync.
+1. Create a new connector folder under `integrations/connectors/<system>_mcp/`.
+2. Add a `manifest.yaml` that declares `auth.type: mcp`, includes MCP auth fields, and provides an `mcp.tool_map` section that maps canonical operations to MCP tool names. Use existing MCP manifests (for example, `integrations/connectors/sap_mcp/manifest.yaml`) as a template.
+3. Add mappings under `integrations/connectors/<system>_mcp/mappings/` for any canonical entities you intend to sync.
 
 ### 2) Register the connector
 
-1. Add the MCP connector entry to `connectors/registry/connectors.json` with the correct `manifest_path` and metadata.
+1. Add the MCP connector entry to `integrations/connectors/registry/connectors.json` with the correct `manifest_path` and metadata.
 2. Update the supported systems documentation to include the MCP connector ID and coverage classification.
 
 ### 3) Configure MCP defaults

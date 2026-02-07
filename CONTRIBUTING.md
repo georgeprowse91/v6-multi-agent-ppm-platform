@@ -449,8 +449,8 @@ See existing agents for examples:
 1. Create connector directory:
 
 ```bash
-mkdir -p connectors/your-system/src
-touch connectors/your-system/src/connector.py
+mkdir -p integrations/connectors/your-system/src
+touch integrations/connectors/your-system/src/connector.py
 ```
 
 2. Implement connector interface:

@@ -38,7 +38,7 @@ def test_types_reads_registry_file(client):
     assert response.status_code == 200
     payload = response.json()
     registry_path = (
-        Path(__file__).resolve().parents[3] / "connectors" / "registry" / "connectors.json"
+        Path(__file__).resolve().parents[3] / "integrations" / "connectors" / "registry" / "connectors.json"
     )
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     registry_ids = {entry["id"] for entry in registry}

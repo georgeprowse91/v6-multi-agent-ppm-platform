@@ -1,4 +1,4 @@
-from services.integration.event_bus import (
+from integrations.services.integration.event_bus import (
     EventBusClient,
     EventBusSettings,
     EventEnvelope,

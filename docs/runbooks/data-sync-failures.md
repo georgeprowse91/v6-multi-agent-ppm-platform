@@ -7,7 +7,7 @@ Restore connector syncs when jobs back up, fail, or produce partial data.
 ## Scope
 
 - Data Sync Service (`services/data-sync-service`)
-- Connector runtimes (`connectors/*/src`)
+- Connector runtimes (`integrations/connectors/*/src`)
 - Data quality and lineage artifacts (`data/quality/`, `data/lineage/`)
 
 ## Symptoms
@@ -36,14 +36,14 @@ Restore connector syncs when jobs back up, fail, or produce partial data.
 ### 1) Validate connector configuration
 
 - Confirm the connector is enabled in `config/connectors/integrations.yaml`.
-- Ensure manifest and mapping files exist (e.g., `connectors/jira/manifest.yaml`).
+- Ensure manifest and mapping files exist (e.g., `integrations/connectors/jira/manifest.yaml`).
 
 ### 2) Validate mappings
 
 - Check mapping YAML targets against canonical schemas in `data/schemas/`.
 - Run a dry-run mapping with the connector runtime (example for Jira):
   ```bash
-  python -m connectors.jira.src.main connectors/jira/tests/fixtures/projects.json --tenant dev-tenant
+  python -m integrations.connectors.jira.src.main integrations/connectors/jira/tests/fixtures/projects.json --tenant dev-tenant
   ```
 
 ### 3) Validate queue configuration
@@ -58,7 +58,7 @@ Restore connector syncs when jobs back up, fail, or produce partial data.
 
 ## Remediation steps
 
-- **Missing mappings:** Create or update mapping YAMLs under `connectors/<name>/mappings/` and re-run the sync.
+- **Missing mappings:** Create or update mapping YAMLs under `integrations/connectors/<name>/mappings/` and re-run the sync.
 - **Queue misconfiguration:** Set Service Bus environment variables or use local mode for dev.
 - **Invalid schema targets:** Update mapping targets to match `data/schemas/*.schema.json`.
 - **Backlogged jobs:** Delete stale entries in `services/data-sync-service/storage/status.json` and re-trigger `/v1/sync/run`.

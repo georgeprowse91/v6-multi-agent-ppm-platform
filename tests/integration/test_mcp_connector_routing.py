@@ -3,32 +3,21 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 import sys
-import importlib.util
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = Path(__file__).resolve().parents[1]
 sys.path = [path for path in sys.path if Path(path).resolve() != TESTS_ROOT]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-connectors_init = REPO_ROOT / "connectors" / "__init__.py"
-spec = importlib.util.spec_from_file_location(
-    "connectors",
-    connectors_init,
-    submodule_search_locations=[str(REPO_ROOT / "connectors")],
-)
-module = importlib.util.module_from_spec(spec)
-sys.modules["connectors"] = module
-if spec and spec.loader:
-    spec.loader.exec_module(module)
 
-from connectors.integration.framework import (
+from integrations.connectors.integration.framework import (
     BaseIntegrationConnector,
     ConnectorRegistry,
     IntegrationAuthType,
     IntegrationConfig,
 )
-from connectors.integration.mcp_connectors import PlanviewMcpConnector, SlackMcpConnector
-from connectors.mcp_client.errors import MCPToolNotFoundError
+from integrations.connectors.integration.mcp_connectors import PlanviewMcpConnector, SlackMcpConnector
+from integrations.connectors.mcp_client.errors import MCPToolNotFoundError
 
 
 class DummyMcpClient:

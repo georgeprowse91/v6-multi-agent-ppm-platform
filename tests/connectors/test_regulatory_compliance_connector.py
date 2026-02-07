@@ -10,7 +10,7 @@ import httpx
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
+SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
 

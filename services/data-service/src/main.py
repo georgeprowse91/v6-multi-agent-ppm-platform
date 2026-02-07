@@ -436,7 +436,7 @@ async def _resolve_schema(
 
 def _load_connector_module(connector_name: str):
     try:
-        return importlib.import_module(f"connectors.{connector_name}.src.main")
+        return importlib.import_module(f"integrations.connectors.{connector_name}.src.main")
     except ModuleNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Connector not found") from exc
 
@@ -448,7 +448,7 @@ def _resolve_fixture_path(connector_name: str, fixture_path: str | None) -> Path
             raise HTTPException(status_code=404, detail="Fixture file not found")
         return path
     default_fixture = (
-        REPO_ROOT / "connectors" / connector_name / "tests" / "fixtures" / "projects.json"
+        REPO_ROOT / "integrations" / "connectors" / connector_name / "tests" / "fixtures" / "projects.json"
     )
     if default_fixture.exists():
         return default_fixture

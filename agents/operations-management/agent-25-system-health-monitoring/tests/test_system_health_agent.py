@@ -11,7 +11,7 @@ if OBSERVABILITY_ROOT.exists() and str(OBSERVABILITY_ROOT) not in sys.path:
 
 import pytest
 
-from services.integration.analytics import (
+from integrations.services.integration.analytics import (
     AnalyticsClient,
     AnalyticsSettings,
     InMemoryAnalyticsProvider,
