@@ -65,6 +65,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Program roadmap | Track program initiatives and milestones. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/program-roadmap.xlsx](../templates/shared/program-roadmap.xlsx) |
 | Executive real-time dashboard specification | Define real-time executive KPIs, panels, and refresh cadence. | Agent 22/25 (Performance & Insights) | [docs/templates/shared/kpi-dashboard-spec.md](../templates/shared/kpi-dashboard-spec.md) |
 | SLO/alert definition | Define SLOs and alerting thresholds. | Agent 22/25 (Performance & Insights) | [docs/templates/shared/slo-alert-definition.yaml](../templates/shared/slo-alert-definition.yaml) |
+| Skills matrix | Assess team capabilities, gaps, and development needs. | Agent 11 (Resource & Capacity) | [docs/templates/shared/skills-matrix.md](../templates/shared/skills-matrix.md) |
 | Cost baseline | Time-phased budget baseline (spreadsheet). | Agent 12 (Financial Management) | [docs/templates/shared/cost-baseline.xlsx](../templates/shared/cost-baseline.xlsx) |
 
 > **Note:** Spreadsheet templates (e.g., cost baseline, risk register, stakeholder register) are stored in the repository but cannot be rendered directly in Markdown previews. Open them in Excel or Google Sheets for full functionality.
@@ -93,6 +94,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Milestone plan |  |  | [Milestone plan](../methodology/hybrid/templates/milestone-plan.xlsx) |
 | Governance pack |  |  | [Governance pack](../methodology/hybrid/templates/governance-pack.md) |
 | Decision log |  |  | [Decision log](../methodology/hybrid/templates/decision-log.md) |
+| Hybrid team management |  |  | [Hybrid team management](../methodology/hybrid/templates/hybrid-team-management.md) |
 | Hybrid resource plan |  |  | [Hybrid resource plan](../methodology/hybrid/templates/hybrid-resource-plan.md) |
 | Closure report |  | [Closure report](../methodology/waterfall/templates/closure-report.md) | [Closure report](../methodology/waterfall/templates/closure-report.md) |
 | Project management plan |  | [Waterfall PMP](../methodology/waterfall/templates/project-management-plan.md) |  |
