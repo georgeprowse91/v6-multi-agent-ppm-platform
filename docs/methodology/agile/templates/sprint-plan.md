@@ -50,6 +50,23 @@ Scrum Master, Product Owner, Delivery Team, QA Lead, Stakeholders.
 - **Participants:**
 - **Timebox:**
 
+## Pre-Planning Checklist
+- [ ] Product backlog is refined and prioritized.
+- [ ] User stories include acceptance criteria.
+- [ ] Team capacity (availability/holidays) confirmed.
+- [ ] Previous sprint retrospective actions reviewed.
+- [ ] Dependencies and risks pre-identified.
+
+## Planning Agenda
+| Time | Duration | Topic | Owner | Outcome |
+| --- | --- | --- | --- | --- |
+|  | 10 min | Sprint goal definition | Product Owner | Clear objective |
+|  | 20 min | Backlog review | Product Owner | Prioritized items selected |
+|  | 30 min | Task breakdown | Team | Tasks defined |
+|  | 15 min | Capacity planning | Scrum Master | Feasible commitment |
+|  | 10 min | Definition of Done/Ready review | Team | Quality alignment |
+|  | 5 min | Sprint backlog confirmation | Team | Commitment recorded |
+
 ## Sprint Goal
 Describe the outcome the team commits to deliver by the end of the sprint.
 

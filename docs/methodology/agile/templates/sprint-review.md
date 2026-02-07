@@ -64,6 +64,12 @@ Scrum Master, Product Owner, Delivery Team, Stakeholders.
 | --- | --- | --- | --- | --- | --- |
 |  |  |  |  |  |  |
 
+### Demo Guidelines
+- Demonstrate working functionality in the target environment.
+- Explain the business value of each item.
+- Capture stakeholder feedback and decisions.
+- Note follow-up actions or change requests.
+
 ## Incomplete Work
 | Story / ID | Reason Not Completed | Plan (Carry over / Re-estimate / Remove) |
 | --- | --- | --- |

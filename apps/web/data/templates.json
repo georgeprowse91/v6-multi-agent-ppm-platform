@@ -508,6 +508,15 @@
       "path": "docs/templates/shared/schedule-management-plan.md"
     },
     {
+      "id": "schedule-management-metrics-guide",
+      "title": "Schedule Management Metrics Guide",
+      "category": "Plans",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/schedule-management-metrics-guide.md"
+    },
+    {
       "id": "project-schedule-template",
       "title": "Project Schedule Template",
       "category": "Schedules",
@@ -515,6 +524,15 @@
         "shared"
       ],
       "path": "docs/templates/shared/project-schedule-template.md"
+    },
+    {
+      "id": "project-roadmap-template",
+      "title": "Project Roadmap Template",
+      "category": "Schedules",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/project-roadmap.md"
     },
     {
       "id": "scope-management-plan",
@@ -578,6 +596,33 @@
         "shared"
       ],
       "path": "docs/templates/shared/status-report.md"
+    },
+    {
+      "id": "meeting-templates",
+      "title": "Meeting Templates Collection",
+      "category": "Meetings",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/meeting-templates.md"
+    },
+    {
+      "id": "daily-standup-template",
+      "title": "Daily Standup Template",
+      "category": "Meetings",
+      "methodologies": [
+        "agile"
+      ],
+      "path": "docs/methodology/agile/templates/daily-standup.md"
+    },
+    {
+      "id": "pi-planning-template",
+      "title": "PI Planning Template",
+      "category": "Meetings",
+      "methodologies": [
+        "agile"
+      ],
+      "path": "docs/methodology/agile/templates/pi-planning.md"
     },
     {
       "id": "risk-report",

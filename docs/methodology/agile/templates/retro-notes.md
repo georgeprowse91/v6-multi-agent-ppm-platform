@@ -56,6 +56,24 @@ Ask the team to rate psychological safety (1–5). Capture the average and notes
 ## What Didn’t Go Well
 - 
 
+## Retrospective Techniques (Optional)
+Choose one technique to structure discussion.
+
+**Start / Stop / Continue**
+- Start: What should we begin doing?
+- Stop: What should we stop doing?
+- Continue: What should we keep doing?
+
+**Mad / Sad / Glad**
+- Mad: What frustrated us?
+- Sad: What disappointed us?
+- Glad: What made us happy?
+
+**4 Ls**
+- Liked: What did we like?
+- Learned: What did we learn?
+- Lacked: What did we lack?
+- Longed For: What did we long for?
 ## Opportunities / Experiments
 | Opportunity or Experiment | Hypothesis | Owner | Success Measure | Timebox |
 | --- | --- | --- | --- | --- |
