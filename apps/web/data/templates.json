@@ -463,6 +463,24 @@
       "path": "docs/templates/shared/quality-management-plan.md"
     },
     {
+      "id": "product-strategy-canvas",
+      "title": "Product Strategy Canvas",
+      "category": "Plans",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/product-strategy-canvas.md"
+    },
+    {
+      "id": "product-vision-template",
+      "title": "Product Vision Template",
+      "category": "Plans",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/product-vision-template.md"
+    },
+    {
       "id": "procurement-management-plan",
       "title": "Procurement Management Plan",
       "category": "Plans",
@@ -635,6 +653,24 @@
       "path": "docs/methodology/agile/templates/iteration-plan.md"
     },
     {
+      "id": "backlog-management-template",
+      "title": "Backlog Management Template",
+      "category": "Agile",
+      "methodologies": [
+        "agile"
+      ],
+      "path": "docs/methodology/agile/templates/backlog-management-template.md"
+    },
+    {
+      "id": "backlog-refinement-template",
+      "title": "Backlog Refinement Template",
+      "category": "Agile",
+      "methodologies": [
+        "agile"
+      ],
+      "path": "docs/methodology/agile/templates/backlog-refinement-template.md"
+    },
+    {
       "id": "risk-adjusted-backlog",
       "title": "Risk-adjusted Backlog",
       "category": "Agile",
@@ -659,6 +695,24 @@
         "agile-delivery",
         "lifecycle-governance"
       ]
+    },
+    {
+      "id": "user-story-template",
+      "title": "User Story Template",
+      "category": "Agile",
+      "methodologies": [
+        "agile"
+      ],
+      "path": "docs/methodology/agile/templates/user-story-template.md"
+    },
+    {
+      "id": "user-story-mapping-template",
+      "title": "User Story Mapping Template",
+      "category": "Agile",
+      "methodologies": [
+        "agile"
+      ],
+      "path": "docs/methodology/agile/templates/user-story-mapping-template.md"
     },
     {
       "id": "waterfall-risk-management-plan",
