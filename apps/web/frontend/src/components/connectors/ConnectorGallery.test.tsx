@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConnectorGallery } from './ConnectorGallery';
 import { useConnectorStore } from '@/store/connectors';
@@ -50,6 +50,9 @@ describe('ConnectorGallery', () => {
       connectors: [],
       connectorsLoading: false,
       connectorsError: null,
+      projectConnectors: {},
+      projectConnectorsLoading: {},
+      projectConnectorsError: {},
       categories: [],
       categoriesLoading: false,
       certifications: {},
@@ -102,5 +105,195 @@ describe('ConnectorGallery', () => {
     render(<ConnectorGallery />);
 
     expect(await screen.findByText('Certified')).toBeInTheDocument();
+  });
+
+  it('enables MCP tool mapping and reflects MCP state in the summary', async () => {
+    const updateConnectorConfig = vi.fn().mockResolvedValue(undefined);
+    const mockConnector = {
+      ...mockConnectors[0],
+      supported_operations: ['projects.read', 'projects.write'],
+      connector_type: 'rest',
+      mcp_server_id: null,
+      mcp_server_url: null,
+      mcp_tool_map: null,
+      mcp_scopes: [],
+    };
+
+    useAppStore.setState({
+      session: {
+        authenticated: true,
+        loading: false,
+        user: {
+          id: 'user-1',
+          name: 'User',
+          email: 'user@example.com',
+          tenantId: 'tenant-alpha',
+          roles: ['portfolio_admin'],
+          permissions: ['config.manage'],
+        },
+      },
+    });
+
+    useConnectorStore.setState({
+      connectors: [mockConnector],
+      connectorsLoading: false,
+      connectorsError: null,
+      categories: [],
+      categoriesLoading: false,
+      certifications: {},
+      certificationsLoading: false,
+      certificationsError: null,
+      filter: {
+        search: '',
+        category: 'all',
+        statusFilter: 'all',
+        certificationFilter: 'all',
+        enabledOnly: false,
+      },
+      selectedConnector: null,
+      isModalOpen: false,
+      testingConnection: false,
+      testResult: null,
+      fetchConnectors: vi.fn(),
+      fetchCategories: vi.fn(),
+      fetchCertifications: vi.fn(),
+      getFilteredConnectors: () => useConnectorStore.getState().connectors,
+      openConnectorModal: (connector) =>
+        useConnectorStore.setState({ selectedConnector: connector, isModalOpen: true }),
+      closeConnectorModal: () => useConnectorStore.setState({ selectedConnector: null, isModalOpen: false }),
+      updateConnectorConfig,
+      testConnection: vi.fn().mockResolvedValue({ status: 'success', message: 'ok' }),
+      clearTestResult: vi.fn(),
+    });
+
+    render(<ConnectorGallery />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Configure' }));
+
+    const integrationSelect = screen.getByDisplayValue('REST');
+    fireEvent.change(integrationSelect, { target: { value: 'mcp' } });
+
+    expect(screen.getByText('MCP Server')).toBeInTheDocument();
+
+    const summarySection = screen.getByText('Configuration Summary').parentElement;
+    expect(summarySection).not.toBeNull();
+    expect(within(summarySection as HTMLElement).getByText('MCP')).toBeInTheDocument();
+
+    const comboBoxes = screen.getAllByRole('combobox');
+    const mcpServerSelect = comboBoxes[1];
+    const mcpToolSelect = comboBoxes[2];
+
+    fireEvent.change(mcpServerSelect, { target: { value: 'mcp-core' } });
+    fireEvent.change(screen.getByPlaceholderText('https://mcp.example.com'), {
+      target: { value: 'https://mcp.internal' },
+    });
+    fireEvent.change(mcpToolSelect, { target: { value: 'projects.write' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Configuration' }));
+
+    await waitFor(() => {
+      expect(updateConnectorConfig).toHaveBeenCalledWith(
+        'jira',
+        expect.objectContaining({
+          connector_type: 'mcp',
+          mcp_server_id: 'mcp-core',
+          mcp_server_url: 'https://mcp.internal',
+          mcp_tool_map: { 'projects.write': true },
+        })
+      );
+    });
+  });
+
+  it('uses project-level config updates and hides MCP fields for REST', async () => {
+    const updateProjectConnectorConfig = vi.fn().mockResolvedValue(undefined);
+    const projectConnector = {
+      ...mockConnectors[0],
+      connector_type: 'mcp',
+      supported_operations: ['projects.read', 'projects.write'],
+      mcp_server_id: 'mcp-core',
+      mcp_server_url: 'https://mcp.example.com',
+      mcp_tool_map: { 'projects.read': true },
+      mcp_scopes: ['projects:read'],
+    };
+
+    useAppStore.setState({
+      session: {
+        authenticated: true,
+        loading: false,
+        user: {
+          id: 'user-1',
+          name: 'User',
+          email: 'user@example.com',
+          tenantId: 'tenant-alpha',
+          roles: ['portfolio_admin'],
+          permissions: ['config.manage'],
+        },
+      },
+    });
+
+    useConnectorStore.setState({
+      connectors: [],
+      connectorsLoading: false,
+      connectorsError: null,
+      projectConnectors: { 'project-1': [projectConnector] },
+      projectConnectorsLoading: { 'project-1': false },
+      projectConnectorsError: { 'project-1': null },
+      categories: [],
+      categoriesLoading: false,
+      certifications: {},
+      certificationsLoading: false,
+      certificationsError: null,
+      filter: {
+        search: '',
+        category: 'all',
+        statusFilter: 'all',
+        certificationFilter: 'all',
+        enabledOnly: false,
+      },
+      selectedConnector: null,
+      isModalOpen: false,
+      testingConnection: false,
+      testResult: null,
+      fetchProjectConnectors: vi.fn(),
+      fetchCategories: vi.fn(),
+      fetchCertifications: vi.fn(),
+      getFilteredProjectConnectors: (projectId) =>
+        useConnectorStore.getState().projectConnectors[projectId] || [],
+      openConnectorModal: (connector) =>
+        useConnectorStore.setState({ selectedConnector: connector, isModalOpen: true }),
+      closeConnectorModal: () => useConnectorStore.setState({ selectedConnector: null, isModalOpen: false }),
+      updateProjectConnectorConfig,
+      testProjectConnection: vi.fn().mockResolvedValue({ status: 'success', message: 'ok' }),
+      clearTestResult: vi.fn(),
+    });
+
+    render(<ConnectorGallery projectId="project-1" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Configure' }));
+
+    const integrationSelect = screen.getByDisplayValue('MCP');
+    fireEvent.change(integrationSelect, { target: { value: 'rest' } });
+
+    expect(screen.queryByText('MCP Server URL')).not.toBeInTheDocument();
+
+    const summarySection = screen.getByText('Configuration Summary').parentElement;
+    expect(summarySection).not.toBeNull();
+    expect(within(summarySection as HTMLElement).getByText('REST')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Configuration' }));
+
+    await waitFor(() => {
+      expect(updateProjectConnectorConfig).toHaveBeenCalledWith(
+        'project-1',
+        'jira',
+        expect.objectContaining({
+          connector_type: 'rest',
+          mcp_server_id: undefined,
+          mcp_server_url: undefined,
+          mcp_tool_map: undefined,
+          mcp_scopes: undefined,
+        })
+      );
+    });
   });
 });
