@@ -121,6 +121,30 @@ python -m tools.connector_runner run-connector --name jira --dry-run
 Connector credentials are supplied via `.env` (see `.env.example`) or secret managers, and connector-specific settings are stored in each `manifest.yaml` and in `config/connectors/integrations.yaml`.
 See [REST Connector Configuration](../docs/connectors/rest-connector-config.md) for the project-level configuration matrix and required fields.
 
+## MCP connectors
+
+MCP-enabled connectors support routing through an MCP server for tool execution. For each connector ID, set the MCP server URL and ID in `.env` and optionally supply MCP OAuth credentials when the MCP server requires them. Use `<CONNECTOR>_PREFER_MCP=true` to opt in.
+
+| Connector ID | Required MCP env vars | Optional MCP OAuth env vars |
+| --- | --- | --- |
+| `planview` | `PLANVIEW_MCP_SERVER_URL`, `PLANVIEW_MCP_SERVER_ID` | `PLANVIEW_MCP_CLIENT_ID`, `PLANVIEW_MCP_CLIENT_SECRET` |
+| `clarity` | `CLARITY_MCP_SERVER_URL`, `CLARITY_MCP_SERVER_ID` | `CLARITY_MCP_CLIENT_ID`, `CLARITY_MCP_CLIENT_SECRET` |
+| `jira` | `JIRA_MCP_SERVER_URL`, `JIRA_MCP_SERVER_ID` | `JIRA_MCP_CLIENT_ID`, `JIRA_MCP_CLIENT_SECRET` |
+| `azure_devops` | `AZURE_DEVOPS_MCP_SERVER_URL`, `AZURE_DEVOPS_MCP_SERVER_ID` | `AZURE_DEVOPS_MCP_CLIENT_ID`, `AZURE_DEVOPS_MCP_CLIENT_SECRET` |
+| `sap` | `SAP_MCP_SERVER_URL`, `SAP_MCP_SERVER_ID` | `SAP_MCP_CLIENT_ID`, `SAP_MCP_CLIENT_SECRET` |
+| `workday` | `WORKDAY_MCP_SERVER_URL`, `WORKDAY_MCP_SERVER_ID` | `WORKDAY_MCP_CLIENT_ID`, `WORKDAY_MCP_CLIENT_SECRET` |
+| `slack` | `SLACK_MCP_SERVER_URL`, `SLACK_MCP_SERVER_ID` | `SLACK_MCP_CLIENT_ID`, `SLACK_MCP_CLIENT_SECRET` |
+| `teams` | `TEAMS_MCP_SERVER_URL`, `TEAMS_MCP_SERVER_ID` | `TEAMS_MCP_CLIENT_ID`, `TEAMS_MCP_CLIENT_SECRET` |
+| `outlook` | `OUTLOOK_MCP_SERVER_URL`, `OUTLOOK_MCP_SERVER_ID` | `OUTLOOK_MCP_CLIENT_ID`, `OUTLOOK_MCP_CLIENT_SECRET` |
+| `google_calendar` | `GOOGLE_CALENDAR_MCP_SERVER_URL`, `GOOGLE_CALENDAR_MCP_SERVER_ID` | `GOOGLE_CALENDAR_MCP_CLIENT_ID`, `GOOGLE_CALENDAR_MCP_CLIENT_SECRET` |
+| `smartsheet` | `SMARTSHEET_MCP_SERVER_URL`, `SMARTSHEET_MCP_SERVER_ID` | `SMARTSHEET_MCP_CLIENT_ID`, `SMARTSHEET_MCP_CLIENT_SECRET` |
+| `sharepoint` | `SHAREPOINT_MCP_SERVER_URL`, `SHAREPOINT_MCP_SERVER_ID` | `SHAREPOINT_MCP_CLIENT_ID`, `SHAREPOINT_MCP_CLIENT_SECRET` |
+| `salesforce` | `SALESFORCE_MCP_SERVER_URL`, `SALESFORCE_MCP_SERVER_ID` | `SALESFORCE_MCP_CLIENT_ID`, `SALESFORCE_MCP_CLIENT_SECRET` |
+| `asana` | `ASANA_MCP_SERVER_URL`, `ASANA_MCP_SERVER_ID` | `ASANA_MCP_CLIENT_ID`, `ASANA_MCP_CLIENT_SECRET` |
+| `azure_communication_services` | `AZURE_COMMUNICATION_SERVICES_MCP_SERVER_URL`, `AZURE_COMMUNICATION_SERVICES_MCP_SERVER_ID` | `AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_ID`, `AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_SECRET` |
+| `twilio` | `TWILIO_MCP_SERVER_URL`, `TWILIO_MCP_SERVER_ID` | `TWILIO_MCP_CLIENT_ID`, `TWILIO_MCP_CLIENT_SECRET` |
+| `notification_hubs` | `AZURE_NOTIFICATION_HUBS_MCP_SERVER_URL`, `AZURE_NOTIFICATION_HUBS_MCP_SERVER_ID` | `AZURE_NOTIFICATION_HUBS_MCP_CLIENT_ID`, `AZURE_NOTIFICATION_HUBS_MCP_CLIENT_SECRET` |
+
 ## Troubleshooting
 
 - Connector not listed: ensure `manifest.yaml` exists in the connector folder.
