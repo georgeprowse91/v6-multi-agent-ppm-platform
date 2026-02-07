@@ -1,41 +1,85 @@
 # Communications Plan
 
+## Document Information
+- **Project Name:** [Enter Project Name]
+- **Project Manager:** [Name]
+- **Communications Lead:** [Name]
+- **Date:** [Date]
+- **Version:** 1.0
+- **Last Updated:** [Date]
+
 ## Purpose
-Define stakeholder communications, cadence, channels, and escalation protocols to ensure
-consistent engagement throughout delivery.
+Define stakeholder communications, cadence, channels, governance, and escalation protocols to
+ensure consistent engagement throughout delivery.
 
 ## Audience
 Communications Lead, Project/Program Manager, Stakeholders.
 
 ## Inputs
 - Stakeholder register (`docs/templates/shared/stakeholder-register.xlsx`).
+- Stakeholder analysis & mapping (`docs/templates/shared/stakeholder-analysis-and-mapping.md`).
 - Governance cadence and stage gates.
 
 ## Required Sections
-- Communications objectives
-- Stakeholder segmentation
-- Cadence and channels
-- Key messages
-- Escalation matrix
+- Communications objectives and scope
+- Stakeholder segmentation and information needs
+- Cadence, channels, and reporting tiers
+- Key messages and deliverables
+- Escalation matrix and crisis protocols
+- Measurement and continuous improvement
+
+## 0. Scope & Methodology Fit
+### Scope
+Define the scope of communication coverage (portfolio/program/project, internal/external, geographic regions, and regulatory obligations).
+
+### Methodology Fit
+Select the approach based on delivery model(s). Use one or combine:
+- **Traditional/Waterfall:** Formal reporting, phase gates, structured governance.
+- **Hybrid:** Blend formal governance with adaptive feedback loops.
+
+Document methodology-specific adjustments in sections 6–13.
 
 ## 1. Communications Objectives
-- **Objective 1:**
-- **Objective 2:**
+- **Objective 1:** [e.g., Ensure executive visibility on ROI, risk, and schedule]
+- **Objective 2:** [e.g., Align cross-functional teams on dependencies]
+- **Objective 3:** [e.g., Support end-user adoption and change readiness]
 
 ## 2. Stakeholder Segmentation
+### 2.1 Segment Definitions
 | Segment | Description | Engagement Objectives | Information Needs | Owner |
+| --- | --- | --- | --- | --- |
+| Executive Governance | Strategic decision-makers | Oversight and approvals | Business value, risk, budget |  |
+| Management | Tactical coordinators | Resource alignment | Dependencies, impacts, quality |  |
+| Delivery Teams | Implementation teams | Execution alignment | Work packages, specs, issues |  |
+| End Users/Customers | Solution recipients | Adoption readiness | Benefits, training, timeline |  |
+| External/Regulators | Compliance/partners | Assurance and coordination | Compliance status, milestones |  |
+
+### 2.2 Stakeholder Communication Preferences
+| Stakeholder | Preferred Method | Frequency | Detail Level | Best Time |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
 ## 3. Cadence & Channels
 | Audience | Channel | Frequency | Owner | Notes |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| Executive Governance | Executive dashboard + steering meeting | Monthly/Quarterly |  |  |
+| Management | Status report + coordination session | Bi-weekly |  |  |
+| Delivery Teams | Team sync + documentation review | Weekly |  |  |
+| End Users/Customers | Newsletter + info sessions | Monthly |  |  |
+
+### 3.1 Communication Channel Guidance
+- **Formal Reports:** Status reports, dashboards, decision logs.
+- **Meetings:** Steering committees, status reviews, phase gates.
+- **Digital Platforms:** PM tools, document repositories, collaboration suites.
+- **Workshops:** Requirements, training, and change impact sessions.
 
 ## 4. Key Messages
 | Topic | Message Summary | Timing | Assets |
 | --- | --- | --- | --- |
-|  |  |  |  |
+| Business Value | [ROI, benefits, value delivery] | [Monthly] | [Dashboard, summary] |
+| Schedule & Milestones | [Critical path, gate status] | [Bi-weekly] | [Plan, timeline] |
+| Risk & Issues | [Top risks, mitigation] | [Bi-weekly] | [Risk log, decisions] |
+| Change & Adoption | [Training, change impacts] | [Monthly] | [Change materials] |
 
 ## 5. Escalation Principles
 ### When to Escalate
@@ -172,6 +216,94 @@ NEXT STEPS:
 | Date | Audience | Topic | Channel | Owner |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
+
+## 12. Traditional/Waterfall Communication Framework
+### 12.1 Formal Reporting Tiers
+**Tier 1: Executive Reporting**
+- **Frequency:** Monthly
+- **Format:** Executive dashboard + formal presentation
+- **Participants:** Executive sponsors, steering committee
+- **Content:** Health scorecard, budget/schedule variance, risks, decisions required
+
+**Tier 2: Management Coordination**
+- **Frequency:** Bi-weekly
+- **Format:** Status presentation + working session
+- **Participants:** Functional managers, PMO
+- **Content:** Resource utilization, dependencies, change requests, quality metrics
+
+**Tier 3: Team Coordination**
+- **Frequency:** Weekly
+- **Format:** Team meeting + documentation review
+- **Participants:** Delivery teams
+- **Content:** Work package status, issue resolution, QA results
+
+**Tier 4: Stakeholder Engagement**
+- **Frequency:** Monthly
+- **Format:** Newsletter + information sessions
+- **Participants:** End users, customers, community
+- **Content:** Progress highlights, upcoming changes, training, FAQs
+
+### 12.2 Escalation Trigger Criteria
+- **Budget variance:** >10% of approved budget
+- **Schedule delay:** >2 weeks behind critical path
+- **Scope changes:** Major functionality modifications
+- **Quality issues:** Critical defects affecting deliverables
+
+## 13. Hybrid Communication Framework
+### 13.1 Integration Principles
+- **Transparency with Structure:** Formal governance + agile visibility.
+- **Planned and Emergent:** Scheduled communications + responsive interactions.
+- **Documentation and Demonstration:** Reports + working solution demos.
+
+### 13.2 Integrated Cadence
+- **Strategic (Quarterly):** Formal governance with agile insights.
+- **Tactical (Monthly):** Structured collaboration with adaptive elements.
+- **Operational (Weekly/Bi-weekly):** Hybrid of status reporting and agile ceremonies.
+- **Continuous Engagement:** Flexible feedback sessions and user workshops.
+
+### 13.3 Cross-Methodology Integration
+- Unified dashboards showing traditional and agile metrics.
+- Joint demonstrations and phase-gate reviews.
+- Shared escalation and risk management process.
+
+## 14. Communication Effectiveness Measurement
+### 14.1 KPIs
+- **Engagement:** Attendance rates, response times, feedback quality.
+- **Quality:** Accuracy of communications, satisfaction scores.
+- **Outcomes:** Decision speed, escalation rate, adoption readiness.
+
+### 14.2 Continuous Improvement
+- **Monthly reviews:** Adjust cadence and content.
+- **Quarterly assessments:** Stakeholder surveys and communication audits.
+- **Annual review:** Strategy refresh and tool evaluation.
+
+## 15. Tools and Templates
+### 15.1 Communication Tools
+- Project management platforms (e.g., Microsoft Project, Jira, Smartsheet).
+- Collaboration and documentation (e.g., Teams, SharePoint, Confluence).
+- Reporting and analytics (e.g., Power BI, Tableau, Excel).
+
+### 15.2 Template Library
+- Executive dashboard status report (`docs/templates/shared/status-report.md`).
+- Decision log (`docs/methodology/hybrid/templates/decision-log.md`).
+- Change request (`docs/templates/shared/change-request.md`).
+
+## 16. Implementation Checklist
+### Phase 1: Planning and Setup
+- [ ] Complete stakeholder segmentation.
+- [ ] Define communication requirements by group.
+- [ ] Establish cadence, channels, and owners.
+- [ ] Confirm escalation thresholds and contacts.
+
+### Phase 2: Launch and Execution
+- [ ] Conduct kickoff communications.
+- [ ] Begin reporting cycles.
+- [ ] Monitor communication effectiveness.
+
+### Phase 3: Ongoing Management
+- [ ] Update stakeholder needs and preferences.
+- [ ] Maintain escalation readiness.
+- [ ] Capture lessons learned.
 
 ## Completion Checklist
 - [ ] Stakeholder segments aligned with register.

@@ -52,6 +52,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Risk breakdown structure | Categorize risks for consistent analysis. | Agent 15 (Risk & Issue Management) | [docs/templates/shared/risk-breakdown-structure.yaml](../templates/shared/risk-breakdown-structure.yaml) |
 | Product breakdown structure | Decompose product components and features. | Agent 08 (Project Definition) | [docs/templates/shared/product-breakdown-structure.yaml](../templates/shared/product-breakdown-structure.yaml) |
 | Communications plan | Plan stakeholder communications. | Agent 21 (Stakeholder Comms) | [docs/templates/shared/communications-plan.md](../templates/shared/communications-plan.md) |
+| Stakeholder analysis & mapping | Identify, map, and analyze stakeholders with engagement strategies. | Agent 21 (Stakeholder Comms) | [docs/templates/shared/stakeholder-analysis-and-mapping.md](../templates/shared/stakeholder-analysis-and-mapping.md) |
 | Template customization guide | Guide consistent tailoring and governance of templates. | Agent 09 (Lifecycle & Governance) | [docs/templates/shared/template-customization-guide.md](../templates/shared/template-customization-guide.md) |
 | Stakeholder register | Track stakeholder influence and engagement. | Agent 21 (Stakeholder Comms) | [docs/templates/shared/stakeholder-register.xlsx](../templates/shared/stakeholder-register.xlsx) |
 | RFP template | Request vendor proposals. | Agent 13 (Vendor Procurement) | [docs/templates/shared/rfp-template.md](../templates/shared/rfp-template.md) |
