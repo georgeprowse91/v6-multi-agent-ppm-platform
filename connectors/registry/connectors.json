@@ -219,6 +219,17 @@
     ]
   },
   {
+    "id": "m365",
+    "name": "Microsoft 365",
+    "manifest_path": "connectors/m365/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "collaboration",
+    "supported_sync_directions": [
+      "inbound"
+    ]
+  },
+  {
     "id": "planview",
     "name": "Planview",
     "manifest_path": "connectors/planview/manifest.yaml",

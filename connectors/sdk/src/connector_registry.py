@@ -533,6 +533,91 @@ ADP_CONNECTOR = ConnectorDefinition(
 )
 
 # Collaboration Category
+M365_CONNECTOR = ConnectorDefinition(
+    connector_id="m365",
+    name="Microsoft 365",
+    description="Microsoft 365 suite for Teams, Exchange, SharePoint, Planner, OneDrive, Power BI, and Viva.",
+    category=ConnectorCategory.COLLABORATION,
+    status=ConnectorStatus.BETA,
+    icon="microsoft",
+    supported_sync_directions=[SyncDirection.INBOUND],
+    auth_type="oauth2",
+    config_fields=_with_rotation_fields(
+        [
+            {"name": "instance_url", "type": "url", "required": False, "label": "Graph API Base URL"},
+            {"name": "tenant_id", "type": "string", "required": True, "label": "Tenant ID"},
+            {
+                "name": "client_id",
+                "type": "string",
+                "required": True,
+                "label": "App (client) ID",
+            },
+            {
+                "name": "app_object_id",
+                "type": "string",
+                "required": False,
+                "label": "App Object ID",
+            },
+            {
+                "name": "scopes",
+                "type": "string",
+                "required": False,
+                "label": "OAuth Scopes (space-separated)",
+            },
+            {
+                "name": "enable_teams",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable Teams workload",
+            },
+            {
+                "name": "enable_exchange",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable Exchange/Outlook workload",
+            },
+            {
+                "name": "enable_sharepoint",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable SharePoint workload",
+            },
+            {
+                "name": "enable_planner",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable Planner workload",
+            },
+            {
+                "name": "enable_onedrive",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable OneDrive workload",
+            },
+            {
+                "name": "enable_power_bi",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable Power BI workload",
+            },
+            {
+                "name": "enable_viva",
+                "type": "boolean",
+                "required": False,
+                "label": "Enable Viva workload",
+            },
+        ]
+    ),
+    env_vars=[
+        "M365_API_URL",
+        "M365_TENANT_ID",
+        "M365_CLIENT_ID",
+        "M365_CLIENT_SECRET",
+        "M365_REFRESH_TOKEN",
+        "M365_SCOPES",
+    ],
+)
+
 TEAMS_CONNECTOR = ConnectorDefinition(
     connector_id="teams",
     name="Microsoft Teams",
@@ -845,6 +930,7 @@ ALL_CONNECTORS: list[ConnectorDefinition] = [
     SAP_SUCCESSFACTORS_CONNECTOR,
     ADP_CONNECTOR,
     # Collaboration
+    M365_CONNECTOR,
     TEAMS_CONNECTOR,
     TEAMS_MCP_CONNECTOR,
     SLACK_CONNECTOR,
