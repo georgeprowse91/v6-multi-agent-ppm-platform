@@ -12,7 +12,14 @@ Project Manager, PMO, Sponsors, Delivery Leads.
 - WBS dictionary (attach or link below).
 
 ## 1. Approved Scope Statement
-Summarize the agreed deliverables, exclusions, and acceptance criteria.
+Attach or link the approved scope statement using the project scope statement template
+(`docs/templates/shared/project-scope-statement.md`). At minimum, capture:
+- Project overview, justification, and objectives.
+- Product scope description and acceptance criteria.
+- Key deliverables and interim milestones.
+- In-scope and out-of-scope boundaries.
+- Constraints, assumptions, dependencies, and risks.
+- Change control approach and approval authority.
 
 ## 2. Work Breakdown Structure (WBS)
 Link to the approved WBS and include a snapshot or appendix reference.
