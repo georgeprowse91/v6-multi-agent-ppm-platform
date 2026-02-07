@@ -14,7 +14,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "type": {"type": "string", "enum": ["oauth2", "api_key", "basic", "token"]},
+        "type": {"type": "string", "enum": ["oauth2", "api_key", "basic", "token", "mcp"]},
         "token_url": {"type": "string"},
         "scopes": {"type": "array", "items": {"type": "string"}},
         "fields": {"type": "array", "items": {"type": "string"}}
