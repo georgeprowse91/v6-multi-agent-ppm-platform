@@ -109,6 +109,12 @@ MCP_CONFIG_FIELDS: list[dict[str, Any]] = [
         "label": "MCP Server URL",
     },
     {
+        "name": "mcp_scopes",
+        "type": "array",
+        "required": False,
+        "label": "MCP Scopes",
+    },
+    {
         "name": "tool_map",
         "type": "object",
         "required": False,
