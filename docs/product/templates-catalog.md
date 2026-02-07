@@ -16,6 +16,8 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Demand intake request | Capture intake data for triage and prioritization. | Agent 04 (Demand Intake) | [docs/templates/shared/demand-intake-request.md](../templates/shared/demand-intake-request.md) |
 | Demand intake schema | Structured schema for intake data. | Agent 04 (Demand Intake) | [docs/templates/shared/demand-intake-schema.yaml](../templates/shared/demand-intake-schema.yaml) |
 | Business case | Document investment rationale and options. | Agent 05/12 (Business Case & Investment) | [docs/templates/shared/business-case.md](../templates/shared/business-case.md) |
+| Product strategy canvas | Consolidate product vision, market context, and roadmap strategy. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/product-strategy-canvas.md](../templates/shared/product-strategy-canvas.md) |
+| Product vision template | Define product vision, mission, and success metrics. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/product-vision-template.md](../templates/shared/product-vision-template.md) |
 | ROI/NPV worksheet | Calculate ROI and NPV assumptions. | Agent 05/12 (Business Case & Investment) | [docs/templates/shared/roi-npv-worksheet.xlsx](../templates/shared/roi-npv-worksheet.xlsx) |
 | Assumption log | Track key project assumptions and validation. | Agent 05/12 (Business Case & Investment), Agent 15 (Risk & Issue) | [docs/templates/shared/assumption-log.md](../templates/shared/assumption-log.md) |
 | Variance report | Track schedule/cost variance. | Agent 10 (Schedule & Planning) | [docs/templates/shared/variance-report.md](../templates/shared/variance-report.md) |
@@ -61,7 +63,11 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | --- | --- | --- | --- |
 | Charter |  | [Project charter](../methodology/waterfall/templates/project-charter.md) | [Hybrid charter](../methodology/hybrid/templates/hybrid-charter.md) |
 | Roles & responsibilities matrix | [Roles & responsibilities](../methodology/agile/templates/roles-responsibilities.md) — Defines the key roles and responsibilities for Agile projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../methodology/waterfall/templates/roles-responsibilities.md) — Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../methodology/hybrid/templates/roles-responsibilities.md) — Defines hybrid roles and shared responsibilities where governance and Agile delivery overlap. |
+| User story mapping | [User story mapping](../methodology/agile/templates/user-story-mapping-template.md) |  |  |
+| User story template | [User story template](../methodology/agile/templates/user-story-template.md) |  |  |
 | Backlog | [Backlog](../methodology/agile/templates/backlog.csv) |  |  |
+| Backlog management | [Backlog management](../methodology/agile/templates/backlog-management-template.md) |  |  |
+| Backlog refinement | [Backlog refinement](../methodology/agile/templates/backlog-refinement-template.md) |  |  |
 | Risk-adjusted backlog | [Risk-adjusted backlog](../methodology/agile/templates/risk-adjusted-backlog.csv) |  |  |
 | Sprint plan | [Sprint plan](../methodology/agile/templates/sprint-plan.md) |  | [Sprint plan](../methodology/agile/templates/sprint-plan.md) |
 | Iteration plan | [Iteration plan](../methodology/agile/templates/iteration-plan.md) |  |  |
