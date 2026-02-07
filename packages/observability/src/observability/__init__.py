@@ -1,5 +1,10 @@
 from observability.logging import configure_logging
-from observability.metrics import KPIHandles, build_kpi_handles, configure_metrics
+from observability.metrics import (
+    KPIHandles,
+    build_kpi_handles,
+    build_mcp_client_metrics,
+    configure_metrics,
+)
 from observability.tracing import (
     TraceMiddleware,
     configure_tracing,
@@ -17,5 +22,6 @@ __all__ = [
     "configure_logging",
     "configure_metrics",
     "build_kpi_handles",
+    "build_mcp_client_metrics",
     "KPIHandles",
 ]

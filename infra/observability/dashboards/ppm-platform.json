@@ -90,6 +90,26 @@
           "legendFormat": "{{agent_name}}"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "MCP Client Latency (p95)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(mcp_client_latency_seconds_bucket[5m])) by (le, system, tool_name))",
+          "legendFormat": "{{system}} {{tool_name}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "MCP Client Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(mcp_client_requests_total{outcome=\"error\"}[5m])) / sum(rate(mcp_client_requests_total[5m]))",
+          "legendFormat": "error_rate"
+        }
+      ]
     }
   ]
 }
