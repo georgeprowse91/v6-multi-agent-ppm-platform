@@ -117,8 +117,12 @@ export interface Connector extends ConnectorDefinition {
   certification_status?: CertificationStatus;
   custom_fields?: Record<string, unknown>;
   mcp_server_url?: string;
+  mcp_tools?: string[];
   mcp_tool_map?: Record<string, unknown>;
   mcp_scopes?: string[];
+  mcp_enabled?: boolean;
+  mcp_enabled_operations?: string[];
+  mcp_disabled_operations?: string[];
   client_id?: string;
   client_secret?: string;
   scope?: string;
@@ -166,6 +170,10 @@ export interface ConnectorConfigUpdate {
   scope?: string;
   mcp_tool_map?: Record<string, unknown>;
   mcp_scopes?: string[];
+  mcp_tools?: string[];
+  mcp_enabled?: boolean;
+  mcp_enabled_operations?: string[];
+  mcp_disabled_operations?: string[];
   prefer_mcp?: boolean;
   sync_direction?: SyncDirection;
   sync_frequency?: SyncFrequency;

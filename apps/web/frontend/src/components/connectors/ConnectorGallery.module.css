@@ -514,6 +514,123 @@
   background: var(--color-bg-secondary, #f3f4f6);
 }
 
+/* MCP Config */
+.mcpConfigSection {
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  padding: var(--spacing-sm, 12px);
+  background: var(--color-bg-secondary, #f9fafb);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 12px);
+  margin-bottom: var(--spacing-sm, 12px);
+}
+
+.mcpConfigHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm, 12px);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mcpConfigTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.mcpConfigHint {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 4px 0 0 0;
+}
+
+.mcpToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #4b5563);
+}
+
+.mcpToggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.mcpToggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mcpToggleSwitch input:checked + .toggleSlider {
+  background-color: var(--color-success, #10b981);
+}
+
+.mcpToggleSwitch input:checked + .toggleSlider:before {
+  transform: translateX(20px);
+}
+
+.mcpToggleSwitch input:disabled + .toggleSlider {
+  background-color: var(--color-bg-secondary, #e5e7eb);
+  cursor: not-allowed;
+}
+
+.mcpToolMap {
+  display: grid;
+  gap: var(--spacing-sm, 12px);
+}
+
+.mcpToolRow {
+  display: grid;
+  gap: 6px;
+}
+
+.mcpToolLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #4b5563);
+}
+
+.mcpToolInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.mcpToolInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.mcpToolActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mcpSaveButton {
+  padding: 6px 14px;
+  background: var(--color-primary, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.mcpSaveButton:disabled {
+  background: var(--color-bg-secondary, #d1d5db);
+  cursor: not-allowed;
+}
+
 /* Loading and Error States */
 .loading,
 .error,
