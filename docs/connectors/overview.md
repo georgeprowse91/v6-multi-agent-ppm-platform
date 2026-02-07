@@ -88,4 +88,5 @@ Expected output: a JSON entry for Jira with a manifest path.
 - [MCP Server Configuration](mcp-server-configuration.md)
 - [MCP Connector Development Guide](mcp-connector-development.md)
 - [MCP Coverage Matrix](mcp-coverage-matrix.md)
+- [MCP Connector Release Readiness Checklist](mcp-release-checklist.md)
 - [REST Connector Configuration](rest-connector-config.md)

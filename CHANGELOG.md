@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IoT connector support for asset telemetry in project workflows.
 - Vendor procurement workflow enhancements with configurable approvals and bid comparison views.
 - Updated UX across portfolio and lifecycle dashboards for improved navigation.
+- MCP connector release readiness checklist and environment-specific deployment guidance.
 
 ### Changed
 - Product, marketing, success metrics, and solution index documentation aligned to delivered capabilities.

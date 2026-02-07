@@ -31,6 +31,23 @@ release steps, and rollback guidance.
 6. **Notify stakeholders**
    - Share deployment completion in the release channel with a rollback plan.
 
+## Environment-specific deployment plan
+
+### Development
+- Deploy during business hours to allow quick validation.
+- Run smoke tests (`/healthz`, `/v1/status`) and verify connector registry UI loads.
+- Validate MCP connector routing against a non-production MCP server endpoint.
+
+### Staging
+- Use production-like configuration, secrets, and OAuth credentials.
+- Run full regression suite and MCP routing tests before promotion.
+- Validate monitoring dashboards, alert rules, and MCP fallback metrics.
+
+### Production
+- Obtain release manager + security lead approval and change ticket closure.
+- Follow canary or phased rollout for MCP-enabled connectors when possible.
+- Monitor error budgets, MCP request latency, and fallback counts during the rollout window.
+
 ## Rollback steps
 1. Identify last known good release tag.
 2. Roll back Helm releases to prior chart versions.
