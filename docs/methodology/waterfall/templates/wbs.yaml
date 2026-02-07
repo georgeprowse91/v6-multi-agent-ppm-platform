@@ -1,3 +1,199 @@
+metadata:
+  title: Work Breakdown Structure (WBS) Template
+  methodology: waterfall
+  complexity: advanced
+  owner: Project Manager
+  last_updated: 2025-08-05
+
+document_control:
+  document_title: Work Breakdown Structure
+  project_name: "[Project Name]"
+  document_version: "1.0"
+  prepared_by: "[Author Name, Role]"
+  preparation_date: "[YYYY-MM-DD]"
+  last_updated_by: "[Name, Role]"
+  last_revision_date: "[YYYY-MM-DD]"
+
+purpose_overview: |-
+  The Work Breakdown Structure (WBS) decomposes the total project scope into
+  deliverable-oriented components. It defines 100% of the work required to
+  achieve project objectives and provides the foundation for estimating, scheduling,
+  resourcing, and performance measurement.
+
+instructions_for_use:
+  - Start from the approved scope statement and deliverables list.
+  - Run a WBS workshop with key stakeholders and delivery leads.
+  - Decompose deliverables into manageable work packages aligned to ownership.
+  - Build WBS dictionary entries for each work package.
+  - Validate using the 100% rule and ensure mutually exclusive elements.
+  - Review with stakeholders, obtain approvals, and baseline the WBS.
+  - Integrate WBS codes into the schedule, resource plan, cost estimates, and risk register.
+  - Maintain change control and version history for all updates.
+
+development_guidelines:
+  decomposition_rules:
+    - Decompose deliverables until work packages are estimable, assignable, and measurable.
+    - Target 8-80 hours of effort per work package (adjust for project size/complexity).
+    - Ensure each parent equals the sum of its children (100% rule).
+    - Use nouns for deliverables and avoid overlapping scope between siblings.
+  numbering_convention:
+    level_1: "Project (1.0)"
+    level_2: "Major Deliverable/Phase (1.1, 1.2)"
+    level_3: "Sub-deliverable (1.1.1, 1.1.2)"
+    level_4: "Work Package (1.1.1.1, 1.1.1.2)"
+    level_5: "Activity (optional) (1.1.1.1.1, 1.1.1.1.2)"
+  coding_structure:
+    - level: 1
+      format: Project ID
+      example: PRJ-001
+      description: Unique project identifier
+    - level: 2
+      format: Major Deliverable
+      example: PRJ-001.01
+      description: Major phases or components
+    - level: 3
+      format: Sub-deliverable
+      example: PRJ-001.01.01
+      description: Significant components of major deliverables
+    - level: 4
+      format: Work Package
+      example: PRJ-001.01.01.01
+      description: Assignable units of work
+    - level: 5
+      format: Activity (optional)
+      example: PRJ-001.01.01.01.01
+      description: Tasks within work packages
+
+wbs_template_formats:
+  hierarchical_outline_template: |-
+    1.0 [Project Name]
+      1.1 [Major Deliverable/Phase 1]
+        1.1.1 [Sub-deliverable 1]
+          1.1.1.1 [Work Package 1]
+          1.1.1.2 [Work Package 2]
+        1.1.2 [Sub-deliverable 2]
+          1.1.2.1 [Work Package 1]
+          1.1.2.2 [Work Package 2]
+      1.2 [Major Deliverable/Phase 2]
+        1.2.1 [Sub-deliverable 1]
+          1.2.1.1 [Work Package 1]
+          1.2.1.2 [Work Package 2]
+  tabular_columns:
+    - WBS Code
+    - Description
+    - Level
+    - Parent
+    - Responsible
+    - Duration (days)
+    - Effort (hours)
+    - Status
+  graphical_format_note: "Create a tree diagram in a tool such as MS Project, Visio, or WBS Chart Pro."
+
+wbs_dictionary_template:
+  fields:
+    - WBS Code
+    - WBS Element Name
+    - WBS Level
+    - Description
+    - Deliverables
+    - Acceptance Criteria
+    - Assumptions
+    - Constraints
+    - Dependencies
+    - Responsible Party
+    - Resource Requirements
+    - Estimated Duration
+    - Estimated Effort
+    - Estimated Cost
+    - Quality Requirements
+    - Risks
+    - References
+
+work_package_template:
+  header:
+    wbs_id: "[ID]"
+    work_package_name: "[Name]"
+    parent_element: "[Parent WBS Element]"
+  scope_of_work:
+    included: "[What is included]"
+    excluded: "[What is explicitly excluded]"
+    assumptions: "[Key assumptions]"
+  deliverables:
+    - name: "[Deliverable 1]"
+      acceptance_criteria: "[Specific measurable criteria]"
+  activities:
+    - name: "[Activity 1]"
+      description: "[Description, duration, resources]"
+  resources_required:
+    personnel: "[Role, skills, allocation, duration]"
+    equipment: "[Equipment needed]"
+    materials: "[Materials required]"
+    external_services: "[External support needed]"
+  schedule_information:
+    start_date: "[Planned start]"
+    end_date: "[Planned end]"
+    duration: "[Total duration]"
+    effort: "[Total effort hours]"
+    milestones: "[Key milestones within this work package]"
+  quality_requirements:
+    standards: "[Applicable quality standards]"
+    reviews: "[Required reviews and approvals]"
+    testing: "[Testing requirements]"
+    documentation: "[Documentation standards]"
+  dependencies:
+    predecessors: "[Work packages that must complete first]"
+    successors: "[Work packages that depend on this one]"
+    external_dependencies: "[Dependencies outside the project]"
+    resource_dependencies: "[Resource availability dependencies]"
+  risks_and_issues:
+    risks: "[Identified risks and mitigation strategies]"
+    constraints: "[Constraints affecting this work package]"
+  cost_information:
+    labor_cost: "[Amount]"
+    material_cost: "[Amount]"
+    external_cost: "[Amount]"
+    total_cost: "[Amount]"
+  acceptance_criteria:
+    - "[Criteria 1]"
+    - "[Criteria 2]"
+
+validation_checklist:
+  completeness:
+    - All project deliverables are included
+    - All phases/major deliverables are covered
+    - Nothing in scope is missing
+    - 100% rule is satisfied
+  structure:
+    - WBS is hierarchical and logical
+    - Each level follows consistent decomposition logic
+    - Work packages are at appropriate level of detail
+    - No overlap between elements at same level
+  clarity:
+    - Elements are clearly defined and unambiguous
+    - Deliverable descriptions are specific
+    - Acceptance criteria are measurable
+  manageability:
+    - Work packages are small enough to manage
+    - Work packages can be realistically estimated
+    - Ownership is clearly assigned
+    - Dependencies are identified
+  measurability:
+    - Progress can be measured for each element
+    - Completion criteria are defined
+    - Quality standards are specified
+    - Cost estimation is possible
+
+integration_points:
+  - Project Scope Statement
+  - Project Schedule
+  - Resource Assignment Matrix
+  - Cost Estimates
+  - Risk Register
+  - Quality Management Plan
+  - Communications Plan
+  - Procurement Plan
+  - Change Management Plan
+
 wbs:
   - id: 1
     name: Initiation
