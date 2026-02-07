@@ -6,6 +6,7 @@ import { canManageConfig, canViewAuditLogs, hasPermission } from '@/auth/permiss
 import { MethodologyNav } from '@/components/methodology';
 import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
+import { ProjectMcpSidebar } from '@/components/project/ProjectMcpSidebar';
 import styles from './LeftPanel.module.css';
 
 interface NavItem {
@@ -342,6 +343,15 @@ export function LeftPanel() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {projectId && !leftPanelCollapsed && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Project MCP</h3>
+            <div className={styles.mcpSidebar}>
+              <ProjectMcpSidebar />
+            </div>
           </div>
         )}
       </nav>

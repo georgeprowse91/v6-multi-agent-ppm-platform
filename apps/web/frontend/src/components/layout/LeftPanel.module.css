@@ -72,6 +72,10 @@
   margin: 0;
 }
 
+.mcpSidebar {
+  padding: 0 var(--space-2);
+}
+
 .navItem {
   display: flex;
   align-items: center;
