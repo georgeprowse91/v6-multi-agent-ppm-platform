@@ -10,6 +10,8 @@ Supports:
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import os
 import sys
 from pathlib import Path
@@ -29,9 +31,12 @@ from base_connector import (
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
+from mcp_client import MCPClient, MCPClientError
 from secrets import fetch_keyvault_secret, resolve_secret
 
 DEFAULT_TOKEN_URL = "https://clarity.example.com/oauth/token"
+
+logger = logging.getLogger(__name__)
 
 
 class ClarityConnector(BaseConnector):
@@ -59,6 +64,12 @@ class ClarityConnector(BaseConnector):
         self._token_manager = token_manager
         self._transport = transport
         self._instance_url: str | None = None
+        self._mcp_client: MCPClient | None = None
+        self._mcp_tool_map = {
+            "list_projects": "clarity.listProjects",
+            "create_project": "clarity.createProject",
+            **(config.mcp_tool_map or {}),
+        }
 
     def _get_credentials(self) -> tuple[str, str, str, str]:
         instance_url = resolve_secret(os.getenv("CLARITY_INSTANCE_URL")) or self.config.instance_url
@@ -136,6 +147,101 @@ class ClarityConnector(BaseConnector):
         )
         self._client = client
         return client
+
+    def _build_mcp_client(self) -> MCPClient:
+        if self._mcp_client:
+            return self._mcp_client
+        if not self.config.mcp_server_url:
+            raise ValueError("Clarity MCP server URL is required")
+        self._mcp_client = MCPClient(
+            mcp_server_id=self.config.mcp_server_id or self.CONNECTOR_ID,
+            mcp_server_url=self.config.mcp_server_url,
+            config=self.config,
+        )
+        return self._mcp_client
+
+    def _run_mcp(self, coroutine: Any) -> Any:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coroutine)
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coroutine)
+        finally:
+            loop.close()
+
+    def _should_use_mcp(self, tool_key: str) -> bool:
+        if not self.config.prefer_mcp:
+            return False
+        if not self.config.mcp_server_url:
+            return False
+        if not self.config.is_mcp_enabled_for(tool_key):
+            return False
+        return True
+
+    def _extract_records(self, payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict):
+            for key in ("records", "items", "values", "data"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    return value
+        return []
+
+    def _normalize_project_record(self, record: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": record.get("id"),
+            "program_id": record.get("program_id")
+            or record.get("programId")
+            or record.get("program")
+            or "unassigned",
+            "name": record.get("name"),
+            "status": record.get("status") or "execution",
+            "start_date": record.get("start_date") or record.get("startDate"),
+            "end_date": record.get("end_date") or record.get("finishDate"),
+            "owner": record.get("owner") or record.get("manager"),
+            "classification": record.get("classification") or "internal",
+            "created_at": record.get("created_at") or record.get("createdDate"),
+        }
+
+    def _list_projects_via_mcp(
+        self,
+        *,
+        filters: dict[str, Any] | None,
+        limit: int,
+        offset: int,
+        rest_call: Any,
+    ) -> list[dict[str, Any]]:
+        tool_key = "list_projects"
+        tool_name = self._mcp_tool_map.get(tool_key)
+        if not self._should_use_mcp(tool_key):
+            return rest_call()
+        if not tool_name:
+            logger.warning(
+                "MCP tool mapping missing for %s; falling back to REST for Clarity.",
+                tool_key,
+            )
+            return rest_call()
+        params = {
+            "resource_type": "projects",
+            "filters": filters or {},
+            "limit": limit,
+            "offset": offset,
+        }
+        try:
+            client = self._build_mcp_client()
+            payload = self._run_mcp(client.invoke_tool(tool_name, params))
+            records = self._extract_records(payload)
+            return [self._normalize_project_record(record) for record in records]
+        except (MCPClientError, ValueError) as exc:
+            logger.warning(
+                "MCP %s failed for Clarity connector; falling back to REST. Error: %s",
+                tool_key,
+                exc,
+            )
+            return rest_call()
 
     def _request(self, method: str, url: str, **kwargs: Any) -> Any:
         client = self._build_client()
@@ -221,7 +327,12 @@ class ClarityConnector(BaseConnector):
             raise RuntimeError("Failed to authenticate with Clarity")
         if resource_type != "projects":
             raise ValueError(f"Unsupported resource type: {resource_type}")
-        return self._read_projects(limit=limit, offset=offset)
+        return self._list_projects_via_mcp(
+            filters=filters,
+            limit=limit,
+            offset=offset,
+            rest_call=lambda: self._read_projects(limit=limit, offset=offset),
+        )
 
     def _read_projects(self, *, limit: int, offset: int) -> list[dict[str, Any]]:
         client = self._build_client()
@@ -242,19 +353,7 @@ class ClarityConnector(BaseConnector):
             is_last_page=is_last,
         ):
             for item in page:
-                projects.append(
-                    {
-                        "id": item.get("id"),
-                        "program_id": item.get("programId") or "unassigned",
-                        "name": item.get("name"),
-                        "status": item.get("status") or "execution",
-                        "start_date": item.get("startDate"),
-                        "end_date": item.get("finishDate"),
-                        "owner": item.get("manager"),
-                        "classification": item.get("classification") or "internal",
-                        "created_at": item.get("createdDate"),
-                    }
-                )
+                projects.append(self._normalize_project_record(item))
         return projects
 
     def get_schema(self) -> dict[str, Any]:
