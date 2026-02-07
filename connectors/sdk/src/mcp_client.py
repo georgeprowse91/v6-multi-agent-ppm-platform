@@ -48,8 +48,11 @@ class MCPAuthConfig:
         custom_fields = config.custom_fields or {}
         return cls(
             api_key=config.mcp_api_key or custom_fields.get("mcp_api_key"),
-            api_key_header=custom_fields.get("mcp_api_key_header", DEFAULT_API_KEY_HEADER),
-            oauth_token=custom_fields.get("mcp_oauth_token"),
+            api_key_header=(
+                config.mcp_api_key_header
+                or custom_fields.get("mcp_api_key_header", DEFAULT_API_KEY_HEADER)
+            ),
+            oauth_token=config.mcp_oauth_token or custom_fields.get("mcp_oauth_token"),
         )
 
     def with_fallback(self, other: "MCPAuthConfig") -> "MCPAuthConfig":

@@ -119,6 +119,8 @@ class ConnectorConfig:
     mcp_client_secret: str = ""
     mcp_scope: str = ""
     mcp_api_key: str = ""
+    mcp_api_key_header: str = ""
+    mcp_oauth_token: str = ""
     client_id: str = ""
     client_secret: str = ""
     scope: str = ""
@@ -157,6 +159,8 @@ class ConnectorConfig:
             "mcp_client_secret": self.mcp_client_secret,
             "mcp_scope": self.mcp_scope,
             "mcp_api_key": self.mcp_api_key,
+            "mcp_api_key_header": self.mcp_api_key_header,
+            "mcp_oauth_token": self.mcp_oauth_token,
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "scope": self.scope,
@@ -192,6 +196,8 @@ class ConnectorConfig:
             mcp_client_secret=data.get("mcp_client_secret", ""),
             mcp_scope=data.get("mcp_scope", ""),
             mcp_api_key=data.get("mcp_api_key", ""),
+            mcp_api_key_header=data.get("mcp_api_key_header", ""),
+            mcp_oauth_token=data.get("mcp_oauth_token", ""),
             client_id=data.get("client_id", ""),
             client_secret=data.get("client_secret", ""),
             scope=data.get("scope", ""),
