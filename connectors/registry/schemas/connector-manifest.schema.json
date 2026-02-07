@@ -13,6 +13,7 @@
     "tool_map": {"type": "string"},
     "mcp_server_id": {"type": "string"},
     "mcp_server_url": {"type": "string"},
+    "mcp_scopes": {"type": "array", "items": {"type": "string"}},
     "mcp_tool_map": {
       "type": "object",
       "additionalProperties": {"type": "string"}
@@ -63,6 +64,7 @@
       "properties": {
         "server_id": {"type": "string"},
         "server_url": {"type": "string"},
+        "scopes": {"type": "array", "items": {"type": "string"}},
         "tool_map": {
           "type": "object",
           "additionalProperties": {"type": "string"}

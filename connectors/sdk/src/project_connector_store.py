@@ -50,6 +50,7 @@ class ProjectConnectorConfig(ConnectorConfig):
             mcp_client_id=base.mcp_client_id,
             mcp_client_secret=base.mcp_client_secret,
             mcp_scope=base.mcp_scope,
+            mcp_scopes=base.mcp_scopes,
             mcp_api_key=base.mcp_api_key,
             mcp_api_key_header=base.mcp_api_key_header,
             mcp_oauth_token=base.mcp_oauth_token,

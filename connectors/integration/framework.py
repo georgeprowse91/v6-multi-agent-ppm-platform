@@ -44,6 +44,7 @@ class IntegrationConfig:
     mcp_client_id: Optional[str] = None
     mcp_client_secret: Optional[str] = None
     mcp_scope: Optional[str] = None
+    mcp_scopes: list[str] = field(default_factory=list)
     mcp_api_key: Optional[str] = None
     mcp_api_key_header: Optional[str] = None
     mcp_oauth_token: Optional[str] = None

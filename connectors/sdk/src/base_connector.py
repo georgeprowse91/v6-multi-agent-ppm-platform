@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -80,6 +81,12 @@ def normalize_mcp_operation(operation: str) -> str:
     return MCP_OPERATION_ALIASES.get(normalized, normalized)
 
 
+def _split_mcp_scopes(value: str) -> list[str]:
+    if not value:
+        return []
+    return [item for item in re.split(r"[,\s]+", value) if item]
+
+
 @dataclass
 class ConnectionTestResult:
     """Result of a connection test."""
@@ -118,6 +125,7 @@ class ConnectorConfig:
     mcp_client_id: str = ""
     mcp_client_secret: str = ""
     mcp_scope: str = ""
+    mcp_scopes: list[str] = field(default_factory=list)
     mcp_api_key: str = ""
     mcp_api_key_header: str = ""
     mcp_oauth_token: str = ""
@@ -157,7 +165,8 @@ class ConnectorConfig:
             "mcp_server_id": self.mcp_server_id,
             "mcp_client_id": self.mcp_client_id,
             "mcp_client_secret": self.mcp_client_secret,
-            "mcp_scope": self.mcp_scope,
+            "mcp_scope": self.mcp_scope or " ".join(self.mcp_scopes),
+            "mcp_scopes": self.mcp_scopes,
             "mcp_api_key": self.mcp_api_key,
             "mcp_api_key_header": self.mcp_api_key_header,
             "mcp_oauth_token": self.mcp_oauth_token,
@@ -180,6 +189,12 @@ class ConnectorConfig:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ConnectorConfig":
+        mcp_scopes = (
+            data.get("mcp_scopes")
+            if isinstance(data.get("mcp_scopes"), list)
+            else _split_mcp_scopes(data.get("mcp_scope", ""))
+        )
+        mcp_scope = data.get("mcp_scope", "") or " ".join(mcp_scopes)
         return cls(
             connector_id=data["connector_id"],
             name=data["name"],
@@ -194,7 +209,8 @@ class ConnectorConfig:
             mcp_server_id=data.get("mcp_server_id", ""),
             mcp_client_id=data.get("mcp_client_id", ""),
             mcp_client_secret=data.get("mcp_client_secret", ""),
-            mcp_scope=data.get("mcp_scope", ""),
+            mcp_scope=mcp_scope,
+            mcp_scopes=mcp_scopes,
             mcp_api_key=data.get("mcp_api_key", ""),
             mcp_api_key_header=data.get("mcp_api_key_header", ""),
             mcp_oauth_token=data.get("mcp_oauth_token", ""),
