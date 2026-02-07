@@ -439,6 +439,13 @@ class ConnectorConfigStore:
         config = self.get(connector_id)
         if not config:
             return False
+        try:
+            from connector_registry import get_connector_definition
+        except Exception:  # pragma: no cover - defensive
+            get_connector_definition = None  # type: ignore[assignment]
+
+        definition = get_connector_definition(connector_id) if get_connector_definition else None
+        system = definition.system if definition else None
 
         # Disable other connectors in the same category
         for other_config in self.list_all():
@@ -447,8 +454,18 @@ class ConnectorConfigStore:
                 and other_config.connector_id != connector_id
                 and other_config.enabled
             ):
-                other_config.enabled = False
-                self.save(other_config)
+                other_definition = (
+                    get_connector_definition(other_config.connector_id)
+                    if get_connector_definition
+                    else None
+                )
+                if system and other_definition and other_definition.system == system:
+                    other_config.enabled = False
+                    self.save(other_config)
+                    continue
+                if other_config.category == config.category:
+                    other_config.enabled = False
+                    self.save(other_config)
 
         # Enable this connector
         config.enabled = True

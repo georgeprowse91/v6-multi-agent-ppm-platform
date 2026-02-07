@@ -136,8 +136,12 @@ def get_webhook_registrar(connector_id: str) -> Callable[..., Any] | None:
     return getattr(module, "register_webhook", None)
 
 
-def get_test_connection_handler(connector_id: str) -> tuple[str | None, Any]:
-    connector_class = get_connector_class(connector_id)
+def get_test_connection_handler(
+    connector_id: str,
+    *,
+    config: ConnectorConfig | None = None,
+) -> tuple[str | None, Any]:
+    connector_class = get_connector_class(connector_id, config=config)
     if connector_class and callable(getattr(connector_class, "test_connection", None)):
         return ("class", connector_class)
 
@@ -1748,9 +1752,22 @@ async def test_connection(
         category=definition.category,
         instance_url=request.instance_url or (config.instance_url if config else ""),
         project_key=request.project_key or (config.project_key if config else ""),
+        mcp_server_url=config.mcp_server_url if config else "",
+        mcp_server_id=config.mcp_server_id if config else "",
+        mcp_client_id=config.mcp_client_id if config else "",
+        mcp_client_secret=config.mcp_client_secret if config else "",
+        mcp_scope=config.mcp_scope if config else "",
+        mcp_api_key=config.mcp_api_key if config else "",
+        mcp_api_key_header=config.mcp_api_key_header if config else "",
+        mcp_oauth_token=config.mcp_oauth_token if config else "",
+        mcp_tool_map=config.mcp_tool_map if config else {},
+        prefer_mcp=config.prefer_mcp if config else False,
+        mcp_enabled=config.mcp_enabled if config else True,
+        mcp_enabled_operations=config.mcp_enabled_operations if config else [],
+        mcp_disabled_operations=config.mcp_disabled_operations if config else [],
     )
 
-    handler_type, handler = get_test_connection_handler(connector_id)
+    handler_type, handler = get_test_connection_handler(connector_id, config=test_config)
     if not handler:
         return TestConnectionResponse(
             status=ConnectionStatus.FAILED.value,

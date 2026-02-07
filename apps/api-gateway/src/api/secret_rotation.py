@@ -120,7 +120,7 @@ class ConnectorSecretRotationScheduler:
             self._stamp_rotation(config, "last_client_secret_rotated_at", now)
 
     def _refresh_connector_tokens(self, config: ConnectorConfig) -> bool:
-        connector_cls = get_connector_class(config.connector_id)
+        connector_cls = get_connector_class(config.connector_id, config=config)
         if not connector_cls:
             logger.warning(
                 "rotation_missing_connector_class", extra={"connector_id": config.connector_id}
