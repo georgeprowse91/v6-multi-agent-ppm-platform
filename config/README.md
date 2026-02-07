@@ -112,6 +112,30 @@ Connector configuration and sync defaults.
 | `integration_defaults.rate_limiting.*` | Rate limiting config for sync operations. |
 | `integration_defaults.error_handling.*` | Logging, alerting, and circuit breaker settings. |
 
+## MCP connectors
+
+MCP-enabled connectors can be configured to route requests through an MCP server instead of calling the upstream API directly. Add the MCP server settings in `.env` and set the matching `<CONNECTOR>_PREFER_MCP=true` flag when you want the connector runtime to prefer MCP. Most MCP servers use OAuth client credentials, so provide the MCP client ID and secret when required by the connector.
+
+| Connector ID | MCP server URL env var | OAuth MCP credentials (if required) | Notes |
+| --- | --- | --- | --- |
+| `planview` | `PLANVIEW_MCP_SERVER_URL` | `PLANVIEW_MCP_CLIENT_ID`, `PLANVIEW_MCP_CLIENT_SECRET` | Enable with `PLANVIEW_PREFER_MCP=true`. |
+| `clarity` | `CLARITY_MCP_SERVER_URL` | `CLARITY_MCP_CLIENT_ID`, `CLARITY_MCP_CLIENT_SECRET` | Enable with `CLARITY_PREFER_MCP=true`. |
+| `jira` | `JIRA_MCP_SERVER_URL` | `JIRA_MCP_CLIENT_ID`, `JIRA_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `JIRA_PREFER_MCP=true`. |
+| `azure_devops` | `AZURE_DEVOPS_MCP_SERVER_URL` | `AZURE_DEVOPS_MCP_CLIENT_ID`, `AZURE_DEVOPS_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `AZURE_DEVOPS_PREFER_MCP=true`. |
+| `sap` | `SAP_MCP_SERVER_URL` | `SAP_MCP_CLIENT_ID`, `SAP_MCP_CLIENT_SECRET` | Enable with `SAP_PREFER_MCP=true`. |
+| `workday` | `WORKDAY_MCP_SERVER_URL` | `WORKDAY_MCP_CLIENT_ID`, `WORKDAY_MCP_CLIENT_SECRET` | Enable with `WORKDAY_PREFER_MCP=true`. |
+| `slack` | `SLACK_MCP_SERVER_URL` | `SLACK_MCP_CLIENT_ID`, `SLACK_MCP_CLIENT_SECRET` | Enable with `SLACK_PREFER_MCP=true`. |
+| `teams` | `TEAMS_MCP_SERVER_URL` | `TEAMS_MCP_CLIENT_ID`, `TEAMS_MCP_CLIENT_SECRET` | Enable with `TEAMS_PREFER_MCP=true`. |
+| `outlook` | `OUTLOOK_MCP_SERVER_URL` | `OUTLOOK_MCP_CLIENT_ID`, `OUTLOOK_MCP_CLIENT_SECRET` | Enable with `OUTLOOK_PREFER_MCP=true`. |
+| `google_calendar` | `GOOGLE_CALENDAR_MCP_SERVER_URL` | `GOOGLE_CALENDAR_MCP_CLIENT_ID`, `GOOGLE_CALENDAR_MCP_CLIENT_SECRET` | Enable with `GOOGLE_CALENDAR_PREFER_MCP=true`. |
+| `smartsheet` | `SMARTSHEET_MCP_SERVER_URL` | `SMARTSHEET_MCP_CLIENT_ID`, `SMARTSHEET_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `SMARTSHEET_PREFER_MCP=true`. |
+| `sharepoint` | `SHAREPOINT_MCP_SERVER_URL` | `SHAREPOINT_MCP_CLIENT_ID`, `SHAREPOINT_MCP_CLIENT_SECRET` | Enable with `SHAREPOINT_PREFER_MCP=true`. |
+| `salesforce` | `SALESFORCE_MCP_SERVER_URL` | `SALESFORCE_MCP_CLIENT_ID`, `SALESFORCE_MCP_CLIENT_SECRET` | Enable with `SALESFORCE_PREFER_MCP=true`. |
+| `asana` | `ASANA_MCP_SERVER_URL` | `ASANA_MCP_CLIENT_ID`, `ASANA_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `ASANA_PREFER_MCP=true`. |
+| `azure_communication_services` | `AZURE_COMMUNICATION_SERVICES_MCP_SERVER_URL` | `AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_ID`, `AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `AZURE_COMMUNICATION_SERVICES_PREFER_MCP=true`. |
+| `twilio` | `TWILIO_MCP_SERVER_URL` | `TWILIO_MCP_CLIENT_ID`, `TWILIO_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `TWILIO_PREFER_MCP=true`. |
+| `notification_hubs` | `AZURE_NOTIFICATION_HUBS_MCP_SERVER_URL` | `AZURE_NOTIFICATION_HUBS_MCP_CLIENT_ID`, `AZURE_NOTIFICATION_HUBS_MCP_CLIENT_SECRET` (only if your MCP server uses OAuth) | Enable with `AZURE_NOTIFICATION_HUBS_PREFER_MCP=true`. |
+
 ### `config/environments/*.yaml`
 
 Environment-specific endpoints, secrets, and feature toggles.

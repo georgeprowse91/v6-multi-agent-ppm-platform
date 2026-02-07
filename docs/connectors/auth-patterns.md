@@ -21,6 +21,10 @@ Document the authentication patterns supported by connector manifests and config
 | `app_credentials` | App registration credentials (client id/secret) | Teams |
 | `azure_ad` | Azure AD-based integration | SharePoint |
 
+## MCP connector authentication
+
+MCP-enabled connectors can delegate authentication to an MCP server. Configure the MCP server URL and ID in `.env` (for example, `SLACK_MCP_SERVER_URL`, `TEAMS_MCP_SERVER_URL`) and supply MCP OAuth client credentials when the MCP server expects OAuth (`*_MCP_CLIENT_ID`, `*_MCP_CLIENT_SECRET`). Set `<CONNECTOR>_PREFER_MCP=true` to route connector traffic through MCP for the matching connector ID.
+
 ## Operational guidance
 
 1. Store secrets in your secret manager and inject via env vars.
