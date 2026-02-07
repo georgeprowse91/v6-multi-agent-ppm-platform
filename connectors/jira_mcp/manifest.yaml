@@ -7,9 +7,9 @@ category: "work-management"
 auth:
   type: "mcp"
   fields:
-    - "server_url"
-    - "server_id"
-    - "tool_map"
+    - "mcp_server_url"
+    - "mcp_server_id"
+    - "mcp_tool_map"
 mcp:
   server_url: "https://mcp.example.com"
   server_id: "jira"
@@ -17,6 +17,12 @@ mcp:
     list_projects: "jira.listProjects"
     list_work_items: "jira.listIssues"
     upsert_work_item: "jira.upsertIssue"
+mcp_server_url: "https://mcp.example.com"
+mcp_server_id: "jira"
+mcp_tool_map:
+  list_projects: "jira.listProjects"
+  list_work_items: "jira.listIssues"
+  upsert_work_item: "jira.upsertIssue"
 sync:
   modes:
     - "full"

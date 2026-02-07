@@ -7,9 +7,9 @@ category: "erp"
 auth:
   type: "mcp"
   fields:
-    - "server_url"
-    - "server_id"
-    - "tool_map"
+    - "mcp_server_url"
+    - "mcp_server_id"
+    - "mcp_tool_map"
 mcp:
   server_url: "https://mcp.example.com"
   server_id: "sap"
@@ -18,6 +18,13 @@ mcp:
     list_goods_receipts: "sap.listGoodsReceipts"
     list_purchase_orders: "sap.listPurchaseOrders"
     list_suppliers: "sap.listSuppliers"
+mcp_server_url: "https://mcp.example.com"
+mcp_server_id: "sap"
+mcp_tool_map:
+  list_invoices: "sap.listInvoices"
+  list_goods_receipts: "sap.listGoodsReceipts"
+  list_purchase_orders: "sap.listPurchaseOrders"
+  list_suppliers: "sap.listSuppliers"
 sync:
   modes:
     - "full"

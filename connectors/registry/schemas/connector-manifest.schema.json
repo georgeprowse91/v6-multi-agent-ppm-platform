@@ -10,6 +10,13 @@
     "description": {"type": "string"},
     "owner": {"type": "string"},
     "category": {"type": "string"},
+    "tool_map": {"type": "string"},
+    "mcp_server_id": {"type": "string"},
+    "mcp_server_url": {"type": "string"},
+    "mcp_tool_map": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
     "auth": {
       "type": "object",
       "additionalProperties": false,
@@ -31,7 +38,8 @@
         "modes": {"type": "array", "items": {"type": "string", "enum": ["full", "incremental"]}},
         "default_schedule": {"type": "string"},
         "supports_webhooks": {"type": "boolean"},
-        "rate_limit_per_minute": {"type": "integer", "minimum": 1}
+        "rate_limit_per_minute": {"type": "integer", "minimum": 1},
+        "workloads": {"type": "array", "items": {"type": "string"}}
       },
       "required": ["modes", "default_schedule", "supports_webhooks"]
     },

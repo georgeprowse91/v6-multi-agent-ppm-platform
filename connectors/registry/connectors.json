@@ -69,6 +69,18 @@
     ]
   },
   {
+    "id": "clarity_mcp",
+    "name": "Clarity PPM (MCP)",
+    "manifest_path": "connectors/clarity_mcp/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
+    "category": "ppm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
+  },
+  {
     "id": "confluence",
     "name": "Confluence",
     "manifest_path": "connectors/confluence/manifest.yaml",
@@ -235,6 +247,18 @@
     "manifest_path": "connectors/planview/manifest.yaml",
     "status": "production",
     "certification": "automated",
+    "category": "ppm",
+    "supported_sync_directions": [
+      "inbound",
+      "bidirectional"
+    ]
+  },
+  {
+    "id": "planview_mcp",
+    "name": "Planview (MCP)",
+    "manifest_path": "connectors/planview_mcp/manifest.yaml",
+    "status": "beta",
+    "certification": "not-started",
     "category": "ppm",
     "supported_sync_directions": [
       "inbound",

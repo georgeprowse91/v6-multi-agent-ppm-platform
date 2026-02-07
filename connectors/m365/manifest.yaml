@@ -26,6 +26,7 @@ auth:
     - "scopes"
     - "mcp_server_url"
     - "mcp_server_id"
+    - "mcp_tool_map"
     - "tool_map"
 mcp:
   server_url: "https://mcp.example.com"
@@ -34,6 +35,12 @@ mcp:
     list_workloads: "m365.listWorkloads"
     list_items: "m365.listItems"
     get_item: "m365.getItem"
+mcp_server_url: "https://mcp.example.com"
+mcp_server_id: "m365"
+mcp_tool_map:
+  list_workloads: "m365.listWorkloads"
+  list_items: "m365.listItems"
+  get_item: "m365.getItem"
 sync:
   modes:
     - "full"

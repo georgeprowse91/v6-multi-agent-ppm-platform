@@ -7,9 +7,9 @@ category: "hris"
 auth:
   type: "mcp"
   fields:
-    - "server_url"
-    - "server_id"
-    - "tool_map"
+    - "mcp_server_url"
+    - "mcp_server_id"
+    - "mcp_tool_map"
 mcp:
   server_url: "https://mcp.example.com"
   server_id: "workday"
@@ -18,6 +18,13 @@ mcp:
     list_job_profiles: "workday.listJobProfiles"
     list_positions: "workday.listPositions"
     list_organizations: "workday.listOrganizations"
+mcp_server_url: "https://mcp.example.com"
+mcp_server_id: "workday"
+mcp_tool_map:
+  list_workers: "workday.listWorkers"
+  list_job_profiles: "workday.listJobProfiles"
+  list_positions: "workday.listPositions"
+  list_organizations: "workday.listOrganizations"
 sync:
   modes:
     - "full"
