@@ -30,6 +30,12 @@ class KPIHandles:
     errors: Any
 
 
+@dataclass(frozen=True)
+class MCPClientMetrics:
+    requests: Any
+    latency: Any
+
+
 class RequestMetricsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, service_name: str) -> None:
         super().__init__(app)
@@ -101,6 +107,21 @@ def build_kpi_handles(service_name: str) -> KPIHandles:
     return KPIHandles(requests=requests, errors=errors)
 
 
+def build_mcp_client_metrics(service_name: str) -> MCPClientMetrics:
+    meter = configure_metrics(service_name)
+    requests = meter.create_counter(
+        name="mcp_client_requests_total",
+        description="Total MCP client requests",
+        unit="1",
+    )
+    latency = meter.create_histogram(
+        name="mcp_client_latency_seconds",
+        description="Latency of MCP client requests in seconds",
+        unit="s",
+    )
+    return MCPClientMetrics(requests=requests, latency=latency)
+
+
 agent_request_count = Counter(
     "agent_requests_total",
     "Total number of agent invocations",
@@ -117,7 +138,9 @@ agent_request_latency = Histogram(
 __all__ = [
     "configure_metrics",
     "build_kpi_handles",
+    "build_mcp_client_metrics",
     "KPIHandles",
+    "MCPClientMetrics",
     "RequestMetricsMiddleware",
     "agent_request_count",
     "agent_request_latency",

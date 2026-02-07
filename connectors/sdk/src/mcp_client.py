@@ -6,6 +6,7 @@ import asyncio
 import logging
 import os
 import sys
+import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +21,7 @@ OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 if str(OBSERVABILITY_ROOT) not in sys.path:
     sys.path.insert(0, str(OBSERVABILITY_ROOT))
 
+from observability.metrics import build_mcp_client_metrics  # noqa: E402
 from observability.tracing import inject_trace_headers, start_agent_span  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -108,6 +110,7 @@ class MCPClient:
         timeout_s: float = 30.0,
         trace_hook: TraceHook | None = None,
         trace_span: str = DEFAULT_TRACE_SPAN,
+        service_name: str | None = None,
     ) -> None:
         self._config = config
         self._base_url = server_url or config.mcp_server_url
@@ -115,7 +118,22 @@ class MCPClient:
         self._timeout_s = timeout_s
         self._trace_hook = trace_hook
         self._trace_span = trace_span
+        self._service_name = service_name or os.getenv("MCP_SERVICE_NAME", "mcp-client")
+        self._fallback_decisions: dict[str, Any] = {
+            "tool_map_fallback": tool_map is None,
+            "url_override": bool(server_url),
+        }
         self._auth = MCPAuthConfig.from_config(config).with_fallback(MCPAuthConfig.from_env())
+        self._fallback_decisions["auth_from_config"] = bool(
+            config.mcp_api_key
+            or config.mcp_api_key_header
+            or config.mcp_oauth_token
+            or (config.custom_fields or {}).get("mcp_api_key")
+            or (config.custom_fields or {}).get("mcp_oauth_token")
+        )
+        env_auth = MCPAuthConfig.from_env()
+        self._fallback_decisions["auth_from_env"] = bool(env_auth.api_key or env_auth.oauth_token)
+        self._metrics = build_mcp_client_metrics(self._service_name)
         if not self._base_url:
             raise ValueError("MCP server URL is required")
 
@@ -186,33 +204,68 @@ class MCPClient:
 
     def _jsonrpc(self, method: str, params: dict[str, Any] | None) -> Any:
         request_id = str(uuid.uuid4())
+        tool_name = params.get("name") if isinstance(params, dict) else None
         body: dict[str, Any] = {"jsonrpc": "2.0", "id": request_id, "method": method}
         if params is not None:
             body["params"] = params
         headers = self._build_headers()
-        logger.debug("mcp_request", extra={"method": method, "id": request_id, "url": self.base_url})
+        log_extra = {
+            "system": self._config.mcp_server_id or self._config.connector_id,
+            "tool_name": tool_name,
+            "fallback_decisions": self._fallback_decisions,
+            "method": method,
+            "request_id": request_id,
+        }
+        logger.debug("mcp_request", extra=log_extra | {"url": self.base_url})
         self._emit_trace("request", {"method": method, "id": request_id, "url": self.base_url})
+        start_time = time.perf_counter()
+        outcome = "success"
         with start_agent_span(self._trace_span, {"mcp.method": method, "mcp.id": request_id}):
             try:
                 with httpx.Client(timeout=self._timeout_s) as client:
                     response = client.post(self.base_url, json=body, headers=headers)
             except httpx.RequestError as exc:
+                outcome = "error"
+                self._record_metrics(method, tool_name, outcome, start_time)
+                logger.warning("mcp_transport_error", extra=log_extra | {"error": str(exc)})
                 raise MCPTransportError(str(exc)) from exc
         if response.status_code == 401:
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning("mcp_auth_error", extra=log_extra | {"status": response.status_code})
             raise MCPTransportError("Unauthorized MCP response")
         if response.status_code >= 400:
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning(
+                "mcp_transport_error", extra=log_extra | {"status": response.status_code}
+            )
             raise MCPTransportError(
                 f"MCP server responded with status {response.status_code}: {response.text}"
             )
-        payload = self._parse_response(response)
+        try:
+            payload = self._parse_response(response)
+        except MCPResponseError as exc:
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning("mcp_response_error", extra=log_extra | {"error": str(exc)})
+            raise
         self._emit_trace("response", {"method": method, "id": request_id, "error": payload.get("error")})
         if payload.get("error"):
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning("mcp_server_error", extra=log_extra | {"error": payload.get("error")})
             error = payload["error"]
             raise MCPServerError(
                 error.get("message", "MCP server error"),
                 code=error.get("code"),
                 data=error.get("data"),
             )
+        self._record_metrics(method, tool_name, outcome, start_time)
+        logger.info(
+            "mcp_response",
+            extra=log_extra | {"status": response.status_code, "outcome": outcome},
+        )
         return payload.get("result")
 
     def _parse_response(self, response: httpx.Response) -> dict[str, Any]:
@@ -230,6 +283,20 @@ class MCPClient:
         result = self._trace_hook(event, payload)
         if asyncio.iscoroutine(result):
             asyncio.create_task(result)
+
+    def _record_metrics(
+        self, method: str, tool_name: str | None, outcome: str, start_time: float
+    ) -> None:
+        elapsed = time.perf_counter() - start_time
+        attributes = {
+            "service": self._service_name,
+            "system": self._config.mcp_server_id or self._config.connector_id,
+            "method": method,
+            "tool_name": tool_name or "",
+            "outcome": outcome,
+        }
+        self._metrics.requests.add(1, attributes)
+        self._metrics.latency.record(elapsed, attributes)
 
 
 class AsyncMCPClient(MCPClient):
@@ -290,31 +357,66 @@ class AsyncMCPClient(MCPClient):
 
     async def _jsonrpc_async(self, method: str, params: dict[str, Any] | None) -> Any:
         request_id = str(uuid.uuid4())
+        tool_name = params.get("name") if isinstance(params, dict) else None
         body: dict[str, Any] = {"jsonrpc": "2.0", "id": request_id, "method": method}
         if params is not None:
             body["params"] = params
         headers = self._build_headers()
-        logger.debug("mcp_request", extra={"method": method, "id": request_id, "url": self.base_url})
+        log_extra = {
+            "system": self._config.mcp_server_id or self._config.connector_id,
+            "tool_name": tool_name,
+            "fallback_decisions": self._fallback_decisions,
+            "method": method,
+            "request_id": request_id,
+        }
+        logger.debug("mcp_request", extra=log_extra | {"url": self.base_url})
         self._emit_trace("request", {"method": method, "id": request_id, "url": self.base_url})
+        start_time = time.perf_counter()
+        outcome = "success"
         with start_agent_span(self._trace_span, {"mcp.method": method, "mcp.id": request_id}):
             try:
                 async with httpx.AsyncClient(timeout=self._timeout_s) as client:
                     response = await client.post(self.base_url, json=body, headers=headers)
             except httpx.RequestError as exc:
+                outcome = "error"
+                self._record_metrics(method, tool_name, outcome, start_time)
+                logger.warning("mcp_transport_error", extra=log_extra | {"error": str(exc)})
                 raise MCPTransportError(str(exc)) from exc
         if response.status_code == 401:
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning("mcp_auth_error", extra=log_extra | {"status": response.status_code})
             raise MCPTransportError("Unauthorized MCP response")
         if response.status_code >= 400:
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning(
+                "mcp_transport_error", extra=log_extra | {"status": response.status_code}
+            )
             raise MCPTransportError(
                 f"MCP server responded with status {response.status_code}: {response.text}"
             )
-        payload = self._parse_response(response)
+        try:
+            payload = self._parse_response(response)
+        except MCPResponseError as exc:
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning("mcp_response_error", extra=log_extra | {"error": str(exc)})
+            raise
         self._emit_trace("response", {"method": method, "id": request_id, "error": payload.get("error")})
         if payload.get("error"):
+            outcome = "error"
+            self._record_metrics(method, tool_name, outcome, start_time)
+            logger.warning("mcp_server_error", extra=log_extra | {"error": payload.get("error")})
             error = payload["error"]
             raise MCPServerError(
                 error.get("message", "MCP server error"),
                 code=error.get("code"),
                 data=error.get("data"),
             )
+        self._record_metrics(method, tool_name, outcome, start_time)
+        logger.info(
+            "mcp_response",
+            extra=log_extra | {"status": response.status_code, "outcome": outcome},
+        )
         return payload.get("result")
