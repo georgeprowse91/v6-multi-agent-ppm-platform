@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import AnyHttpUrl, BaseModel, Field, TypeAdapter, field_validator, model_validator
 
 from api.circuit_breaker import CircuitBreaker
 from api.connector_loader import get_connector_class
@@ -62,6 +62,7 @@ from api.webhook_storage import WebhookEvent, WebhookEventStore
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+_URL_ADAPTER = TypeAdapter(AnyHttpUrl)
 
 # Initialize connector config store
 # In production, this path should come from environment
@@ -220,6 +221,61 @@ class ConnectorDefinitionResponse(BaseModel):
     env_vars: list[str]
 
 
+def _normalize_tool_map(value: Any, field_name: str = "mcp_tool_map") -> dict[str, Any]:
+    if value in (None, ""):
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError(f"{field_name} must be a mapping of tool keys to tool names")
+    for key, item in value.items():
+        if not isinstance(key, str):
+            raise ValueError(f"{field_name} keys must be strings")
+        if isinstance(item, str):
+            continue
+        if isinstance(item, list) and all(isinstance(entry, str) for entry in item):
+            continue
+        raise ValueError(f"{field_name} values must be strings or list of strings")
+    return value
+
+
+class McpConfig(BaseModel):
+    server_id: str | None = None
+    server_url: AnyHttpUrl | None = None
+    client_id: str | None = None
+    client_secret: str | None = None
+    tools: list[str] | None = None
+    tool_map: dict[str, Any] | None = None
+
+    @field_validator("server_url", mode="before")
+    @classmethod
+    def _validate_server_url(cls, value: Any) -> Any:
+        if value in (None, ""):
+            return None
+        _URL_ADAPTER.validate_python(value)
+        return value
+
+    @field_validator("tools", mode="before")
+    @classmethod
+    def _validate_tools(cls, value: Any) -> Any:
+        if value in (None, ""):
+            return None
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            raise ValueError("tools must be a list of strings")
+        return value
+
+    @field_validator("tool_map", mode="before")
+    @classmethod
+    def _validate_tool_map(cls, value: Any) -> dict[str, Any] | None:
+        if value in (None, ""):
+            return None
+        return _normalize_tool_map(value, "tool_map")
+
+    @model_validator(mode="after")
+    def _normalize_tools(self) -> "McpConfig":
+        if self.tool_map is None and self.tools:
+            object.__setattr__(self, "tool_map", {tool: tool for tool in self.tools})
+        return self
+
+
 class ConnectorConfigRequest(BaseModel):
     """Request model for creating/updating connector configuration."""
 
@@ -235,6 +291,7 @@ class ConnectorConfigRequest(BaseModel):
     client_secret: str = ""
     scope: str = ""
     mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
+    mcp_config: McpConfig | None = None
     prefer_mcp: bool = False
     mcp_enabled: bool = True
     mcp_enabled_operations: list[str] = Field(default_factory=list)
@@ -245,6 +302,35 @@ class ConnectorConfigRequest(BaseModel):
         pattern="^(realtime|hourly|every_4_hours|daily|weekly|manual)$",
     )
     custom_fields: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("mcp_server_url", mode="before")
+    @classmethod
+    def _validate_mcp_server_url(cls, value: Any) -> Any:
+        if value in (None, ""):
+            return ""
+        _URL_ADAPTER.validate_python(value)
+        return value
+
+    @field_validator("mcp_tool_map", mode="before")
+    @classmethod
+    def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value)
+
+    @model_validator(mode="after")
+    def _merge_mcp_config(self) -> "ConnectorConfigRequest":
+        if not self.mcp_config:
+            return self
+        if not self.mcp_server_id and self.mcp_config.server_id:
+            self.mcp_server_id = self.mcp_config.server_id
+        if not self.mcp_server_url and self.mcp_config.server_url:
+            self.mcp_server_url = str(self.mcp_config.server_url)
+        if not self.mcp_client_id and self.mcp_config.client_id:
+            self.mcp_client_id = self.mcp_config.client_id
+        if not self.mcp_client_secret and self.mcp_config.client_secret:
+            self.mcp_client_secret = self.mcp_config.client_secret
+        if not self.mcp_tool_map and self.mcp_config.tool_map:
+            self.mcp_tool_map = self.mcp_config.tool_map
+        return self
 
 
 class ConnectorConfigResponse(BaseModel):
@@ -269,6 +355,7 @@ class ConnectorConfigResponse(BaseModel):
     client_secret: str
     scope: str
     mcp_tool_map: dict[str, Any]
+    mcp_config: McpConfig | None = None
     prefer_mcp: bool
     mcp_enabled: bool
     mcp_enabled_operations: list[str]
@@ -277,6 +364,33 @@ class ConnectorConfigResponse(BaseModel):
     created_at: str
     updated_at: str
     last_sync_at: str | None
+
+    @field_validator("mcp_tool_map", mode="before")
+    @classmethod
+    def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value)
+
+    @model_validator(mode="after")
+    def _populate_mcp_config(self) -> "ConnectorConfigResponse":
+        if self.mcp_config is None:
+            tool_map = self.mcp_tool_map or None
+            if any(
+                [
+                    self.mcp_server_id,
+                    self.mcp_server_url,
+                    self.mcp_client_id,
+                    self.mcp_client_secret,
+                    tool_map,
+                ]
+            ):
+                self.mcp_config = McpConfig(
+                    server_id=self.mcp_server_id or None,
+                    server_url=self.mcp_server_url or None,
+                    client_id=self.mcp_client_id or None,
+                    client_secret=self.mcp_client_secret or None,
+                    tool_map=tool_map,
+                )
+        return self
 
 
 class ProjectConnectorConfigResponse(BaseModel):
@@ -300,6 +414,7 @@ class ProjectConnectorConfigResponse(BaseModel):
     client_secret: str
     scope: str
     mcp_tool_map: dict[str, Any]
+    mcp_config: McpConfig | None = None
     prefer_mcp: bool
     mcp_enabled: bool
     mcp_enabled_operations: list[str]
@@ -308,6 +423,33 @@ class ProjectConnectorConfigResponse(BaseModel):
     created_at: str
     updated_at: str
     last_sync_at: str | None
+
+    @field_validator("mcp_tool_map", mode="before")
+    @classmethod
+    def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value)
+
+    @model_validator(mode="after")
+    def _populate_mcp_config(self) -> "ProjectConnectorConfigResponse":
+        if self.mcp_config is None:
+            tool_map = self.mcp_tool_map or None
+            if any(
+                [
+                    self.mcp_server_id,
+                    self.mcp_server_url,
+                    self.mcp_client_id,
+                    self.mcp_client_secret,
+                    tool_map,
+                ]
+            ):
+                self.mcp_config = McpConfig(
+                    server_id=self.mcp_server_id or None,
+                    server_url=self.mcp_server_url or None,
+                    client_id=self.mcp_client_id or None,
+                    client_secret=self.mcp_client_secret or None,
+                    tool_map=tool_map,
+                )
+        return self
 
 
 class ConnectorListItemResponse(BaseModel):
