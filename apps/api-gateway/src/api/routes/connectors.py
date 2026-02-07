@@ -236,6 +236,9 @@ class ConnectorConfigRequest(BaseModel):
     scope: str = ""
     mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
     prefer_mcp: bool = False
+    mcp_enabled: bool = True
+    mcp_enabled_operations: list[str] = Field(default_factory=list)
+    mcp_disabled_operations: list[str] = Field(default_factory=list)
     sync_direction: str = Field(default="inbound", pattern="^(inbound|outbound|bidirectional)$")
     sync_frequency: str = Field(
         default="daily",
@@ -267,6 +270,9 @@ class ConnectorConfigResponse(BaseModel):
     scope: str
     mcp_tool_map: dict[str, Any]
     prefer_mcp: bool
+    mcp_enabled: bool
+    mcp_enabled_operations: list[str]
+    mcp_disabled_operations: list[str]
     health_status: str
     created_at: str
     updated_at: str
@@ -295,6 +301,9 @@ class ProjectConnectorConfigResponse(BaseModel):
     scope: str
     mcp_tool_map: dict[str, Any]
     prefer_mcp: bool
+    mcp_enabled: bool
+    mcp_enabled_operations: list[str]
+    mcp_disabled_operations: list[str]
     health_status: str
     created_at: str
     updated_at: str
@@ -342,6 +351,9 @@ class ConnectorListItemResponse(BaseModel):
     scope: str = ""
     mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
     prefer_mcp: bool = False
+    mcp_enabled: bool = True
+    mcp_enabled_operations: list[str] = Field(default_factory=list)
+    mcp_disabled_operations: list[str] = Field(default_factory=list)
 
 
 class ProjectConnectorListItemResponse(ConnectorListItemResponse):
@@ -531,6 +543,9 @@ async def list_connectors(
             scope=config.scope if config else "",
             mcp_tool_map=config.mcp_tool_map if config else {},
             prefer_mcp=config.prefer_mcp if config else False,
+            mcp_enabled=config.mcp_enabled if config else True,
+            mcp_enabled_operations=config.mcp_enabled_operations if config else [],
+            mcp_disabled_operations=config.mcp_disabled_operations if config else [],
         )
         result.append(item)
 
@@ -622,6 +637,13 @@ async def list_project_connectors(
                 scope=project_config.scope if project_config else "",
                 mcp_tool_map=project_config.mcp_tool_map if project_config else {},
                 prefer_mcp=project_config.prefer_mcp if project_config else False,
+                mcp_enabled=project_config.mcp_enabled if project_config else True,
+                mcp_enabled_operations=(
+                    project_config.mcp_enabled_operations if project_config else []
+                ),
+                mcp_disabled_operations=(
+                    project_config.mcp_disabled_operations if project_config else []
+                ),
             )
         )
 
@@ -680,6 +702,9 @@ async def get_connector(connector_id: str) -> ConnectorListItemResponse:
         scope=config.scope if config else "",
         mcp_tool_map=config.mcp_tool_map if config else {},
         prefer_mcp=config.prefer_mcp if config else False,
+        mcp_enabled=config.mcp_enabled if config else True,
+        mcp_enabled_operations=config.mcp_enabled_operations if config else [],
+        mcp_disabled_operations=config.mcp_disabled_operations if config else [],
     )
 
 
@@ -723,6 +748,9 @@ async def update_connector_config(
         scope=request.scope,
         mcp_tool_map=request.mcp_tool_map,
         prefer_mcp=request.prefer_mcp,
+        mcp_enabled=request.mcp_enabled,
+        mcp_enabled_operations=request.mcp_enabled_operations,
+        mcp_disabled_operations=request.mcp_disabled_operations,
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -767,6 +795,9 @@ async def update_connector_config(
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -816,6 +847,9 @@ async def update_project_connector_config(
         scope=request.scope,
         mcp_tool_map=request.mcp_tool_map,
         prefer_mcp=request.prefer_mcp,
+        mcp_enabled=request.mcp_enabled,
+        mcp_enabled_operations=request.mcp_enabled_operations,
+        mcp_disabled_operations=request.mcp_disabled_operations,
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -846,6 +880,9 @@ async def update_project_connector_config(
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -894,6 +931,9 @@ async def update_regulatory_compliance_config(
         scope=existing.scope if existing else "",
         mcp_tool_map=existing.mcp_tool_map if existing else {},
         prefer_mcp=existing.prefer_mcp if existing else False,
+        mcp_enabled=existing.mcp_enabled if existing else True,
+        mcp_enabled_operations=existing.mcp_enabled_operations if existing else [],
+        mcp_disabled_operations=existing.mcp_disabled_operations if existing else [],
         created_at=existing.created_at if existing else now,
         updated_at=now,
         last_sync_at=existing.last_sync_at if existing else None,
@@ -938,6 +978,9 @@ async def update_regulatory_compliance_config(
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -1045,6 +1088,9 @@ async def enable_connector(connector_id: str, http_request: Request) -> Connecto
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -1104,6 +1150,9 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -1163,6 +1212,9 @@ async def enable_project_connector(
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),
@@ -1213,6 +1265,9 @@ async def disable_project_connector(
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
         prefer_mcp=config.prefer_mcp,
+        mcp_enabled=config.mcp_enabled,
+        mcp_enabled_operations=config.mcp_enabled_operations,
+        mcp_disabled_operations=config.mcp_disabled_operations,
         health_status=config.health_status,
         created_at=config.created_at.isoformat(),
         updated_at=config.updated_at.isoformat(),

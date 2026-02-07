@@ -65,6 +65,21 @@ class ConnectionStatus(str, Enum):
     INVALID_CONFIG = "invalid_config"
 
 
+MCP_OPERATION_ALIASES = {
+    "read": "list_records",
+    "list": "list_records",
+    "write": "create_record",
+    "create": "create_record",
+    "update": "update_record",
+    "delete": "delete_record",
+}
+
+
+def normalize_mcp_operation(operation: str) -> str:
+    normalized = operation.strip().lower()
+    return MCP_OPERATION_ALIASES.get(normalized, normalized)
+
+
 @dataclass
 class ConnectionTestResult:
     """Result of a connection test."""
@@ -109,6 +124,9 @@ class ConnectorConfig:
     scope: str = ""
     mcp_tool_map: dict[str, Any] = field(default_factory=dict)
     prefer_mcp: bool = False
+    mcp_enabled: bool = True
+    mcp_enabled_operations: list[str] = field(default_factory=list)
+    mcp_disabled_operations: list[str] = field(default_factory=list)
 
     # Outbound API configuration (unused for inbound-only connectors).
     # These fields can store API endpoints, versions or default resources.
@@ -144,6 +162,9 @@ class ConnectorConfig:
             "scope": self.scope,
             "mcp_tool_map": self.mcp_tool_map,
             "prefer_mcp": self.prefer_mcp,
+            "mcp_enabled": self.mcp_enabled,
+            "mcp_enabled_operations": self.mcp_enabled_operations,
+            "mcp_disabled_operations": self.mcp_disabled_operations,
             "api_endpoint": self.api_endpoint,
             "api_version": self.api_version,
             "resource": self.resource,
@@ -176,6 +197,9 @@ class ConnectorConfig:
             scope=data.get("scope", ""),
             mcp_tool_map=data.get("mcp_tool_map", {}),
             prefer_mcp=data.get("prefer_mcp", False),
+            mcp_enabled=data.get("mcp_enabled", True),
+            mcp_enabled_operations=data.get("mcp_enabled_operations", []),
+            mcp_disabled_operations=data.get("mcp_disabled_operations", []),
             api_endpoint=data.get("api_endpoint", ""),
             api_version=data.get("api_version", ""),
             resource=data.get("resource", ""),
@@ -190,6 +214,28 @@ class ConnectorConfig:
             else None,
             health_status=data.get("health_status", "unknown"),
         )
+
+    def is_mcp_enabled_for(self, operation: str | None = None) -> bool:
+        if not self.mcp_enabled:
+            return False
+        if operation is None:
+            return True
+        normalized = normalize_mcp_operation(operation)
+        enabled = {
+            normalize_mcp_operation(item)
+            for item in self.mcp_enabled_operations
+            if item and item.strip()
+        }
+        if enabled and normalized not in enabled:
+            return False
+        disabled = {
+            normalize_mcp_operation(item)
+            for item in self.mcp_disabled_operations
+            if item and item.strip()
+        }
+        if normalized in disabled:
+            return False
+        return True
 
 
 T = TypeVar("T", bound="BaseConnector")

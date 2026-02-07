@@ -3,24 +3,9 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Callable
 
-from base_connector import ConnectorConfig
+from base_connector import ConnectorConfig, normalize_mcp_operation
 from connectors.mcp_client.client import MCPClient
 from connectors.mcp_client.errors import MCPToolNotFoundError
-
-MCP_OPERATION_ALIASES = {
-    "read": "list_records",
-    "list": "list_records",
-    "write": "create_record",
-    "create": "create_record",
-    "update": "update_record",
-    "delete": "delete_record",
-}
-
-
-def resolve_mcp_operation(operation: str) -> str:
-    normalized = operation.strip().lower()
-    return MCP_OPERATION_ALIASES.get(normalized, normalized)
-
 
 class OperationRouter:
     def __init__(
@@ -34,8 +19,10 @@ class OperationRouter:
             return False
         if not self.config.mcp_server_url:
             return False
+        if not self.config.is_mcp_enabled_for(operation):
+            return False
         tool_map = self.config.mcp_tool_map or {}
-        resolved = resolve_mcp_operation(operation)
+        resolved = normalize_mcp_operation(operation)
         return bool(tool_map.get(resolved))
 
     def build_mcp_client(self) -> MCPClient:

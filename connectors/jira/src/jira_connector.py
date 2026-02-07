@@ -287,8 +287,12 @@ class JiraConnector(BaseConnector):
         )
         return self._mcp_client
 
-    def _should_use_mcp(self) -> bool:
-        return bool(self.config.prefer_mcp and self.config.mcp_server_url)
+    def _should_use_mcp(self, operation: str | None = None) -> bool:
+        return bool(
+            self.config.prefer_mcp
+            and self.config.mcp_server_url
+            and self.config.is_mcp_enabled_for(operation)
+        )
 
     def _run_mcp(self, coroutine: Any) -> Any:
         try:
@@ -325,7 +329,7 @@ class JiraConnector(BaseConnector):
         mcp_call: Any,
         rest_call: Any,
     ) -> Any:
-        if not self._should_use_mcp():
+        if not self._should_use_mcp(operation):
             return rest_call()
         try:
             return mcp_call()
