@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any, Callable
 
 from base_connector import ConnectorConfig, normalize_mcp_operation
 from connectors.mcp_client.client import MCPClient
-from connectors.mcp_client.errors import MCPToolNotFoundError
+from connectors.mcp_client.errors import MCPClientError, MCPToolNotFoundError
+
+logger = logging.getLogger(__name__)
 
 class OperationRouter:
     def __init__(
@@ -48,7 +51,26 @@ class OperationRouter:
             return rest_call()
         try:
             return mcp_call()
-        except MCPToolNotFoundError:
+        except MCPToolNotFoundError as exc:
+            logger.warning(
+                "MCP tool not found for operation %s; falling back to REST. Error: %s",
+                operation,
+                exc,
+            )
+            return rest_call()
+        except MCPClientError as exc:
+            logger.warning(
+                "MCP operation %s failed; falling back to REST. Error: %s",
+                operation,
+                exc,
+            )
+            return rest_call()
+        except ValueError as exc:
+            logger.warning(
+                "MCP operation %s failed due to invalid configuration; falling back to REST. Error: %s",
+                operation,
+                exc,
+            )
             return rest_call()
 
     def run_mcp(self, coroutine: Any) -> Any:

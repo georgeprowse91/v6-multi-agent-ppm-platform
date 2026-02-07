@@ -8,6 +8,8 @@ Supports:
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import sys
 from pathlib import Path
 from typing import Any
@@ -17,10 +19,12 @@ if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
 
 from base_connector import ConnectorCategory, ConnectorConfig
-from operation_router import OperationRouter
 from rest_connector import OAuth2RestConnector
+from mcp_client import MCPClient, MCPClientError
 
 DEFAULT_TOKEN_URL = "https://wd3-impl-services1.workday.com/ccx/oauth2/token"
+
+logger = logging.getLogger(__name__)
 
 
 class WorkdayConnector(OAuth2RestConnector):
@@ -55,7 +59,92 @@ class WorkdayConnector(OAuth2RestConnector):
 
     def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
         super().__init__(config, **kwargs)
-        self._operation_router = OperationRouter(config)
+        self._mcp_client: MCPClient | None = None
+        self._mcp_tool_map = {
+            "list_workers": "workday.listWorkers",
+            "list_positions": "workday.listPositions",
+            **(config.mcp_tool_map or {}),
+        }
+
+    def _build_mcp_client(self) -> MCPClient:
+        if self._mcp_client:
+            return self._mcp_client
+        if not self.config.mcp_server_url:
+            raise ValueError("Workday MCP server URL is required")
+        self._mcp_client = MCPClient(
+            mcp_server_id=self.config.mcp_server_id or self.CONNECTOR_ID,
+            mcp_server_url=self.config.mcp_server_url,
+            config=self.config,
+        )
+        return self._mcp_client
+
+    def _run_mcp(self, coroutine: Any) -> Any:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coroutine)
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coroutine)
+        finally:
+            loop.close()
+
+    def _should_use_mcp(self, tool_key: str) -> bool:
+        if not self.config.prefer_mcp:
+            return False
+        if not self.config.mcp_server_url:
+            return False
+        if not self.config.is_mcp_enabled_for(tool_key):
+            return False
+        return True
+
+    def _extract_records(self, payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict):
+            for key in ("records", "items", "values", "data"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    return value
+        return []
+
+    def _list_records_via_mcp(
+        self,
+        *,
+        resource_type: str,
+        filters: dict[str, Any] | None,
+        limit: int,
+        offset: int,
+        rest_call: Any,
+    ) -> list[dict[str, Any]]:
+        tool_key = f"list_{resource_type}"
+        tool_name = self._mcp_tool_map.get(tool_key)
+        if not self._should_use_mcp(tool_key):
+            return rest_call()
+        if not tool_name:
+            logger.warning(
+                "MCP tool mapping missing for %s; falling back to REST for Workday %s.",
+                tool_key,
+                resource_type,
+            )
+            return rest_call()
+        params = {
+            "resource_type": resource_type,
+            "filters": filters or {},
+            "limit": limit,
+            "offset": offset,
+        }
+        try:
+            client = self._build_mcp_client()
+            payload = self._run_mcp(client.invoke_tool(tool_name, params))
+            return self._extract_records(payload)
+        except (MCPClientError, ValueError) as exc:
+            logger.warning(
+                "MCP %s failed for Workday connector; falling back to REST. Error: %s",
+                tool_key,
+                exc,
+            )
+            return rest_call()
 
     def read(
         self,
@@ -64,20 +153,10 @@ class WorkdayConnector(OAuth2RestConnector):
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
-        router = self._operation_router
-
-        def rest_call() -> list[dict[str, Any]]:
-            return super().read(resource_type, filters=filters, limit=limit, offset=offset)
-
-        def mcp_call() -> list[dict[str, Any]]:
-            client = router.build_mcp_client()
-            params = {
-                "resource_type": resource_type,
-                "filters": filters or {},
-                "limit": limit,
-                "offset": offset,
-            }
-            payload = router.run_mcp(client.list_records(params))
-            return router.extract_records(payload)
-
-        return router.run("read", mcp_call=mcp_call, rest_call=rest_call)
+        return self._list_records_via_mcp(
+            resource_type=resource_type,
+            filters=filters,
+            limit=limit,
+            offset=offset,
+            rest_call=lambda: super().read(resource_type, filters=filters, limit=limit, offset=offset),
+        )
