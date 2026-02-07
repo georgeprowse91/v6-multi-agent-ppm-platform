@@ -119,6 +119,7 @@ python -m tools.connector_runner run-connector --name jira --dry-run
 ## Configuration
 
 Connector credentials are supplied via `.env` (see `.env.example`) or secret managers, and connector-specific settings are stored in each `manifest.yaml` and in `config/connectors/integrations.yaml`.
+See [REST Connector Configuration](../docs/connectors/rest-connector-config.md) for the project-level configuration matrix and required fields.
 
 ## Troubleshooting
 

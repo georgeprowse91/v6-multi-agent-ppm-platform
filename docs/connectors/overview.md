@@ -24,6 +24,10 @@ Connectors sit between domain agents and external systems of record. They transl
 
 Auth configuration lives in environment-specific files under `config/` and is referenced by connector manifests.
 
+## Project-level configuration
+
+REST connector configurations are stored per PPM project using `ProjectConnectorConfigStore`, including non-secret fields like `instance_url` and `project_key` plus secrets sourced from environment variables. See the REST connector configuration matrix for the full per-connector field list.
+
 ## Mapping approach
 
 Mappings are declarative YAML that map canonical fields to external system fields. The mapping engine applies transformations (enum, date, currency) and emits quality scores.
@@ -82,3 +86,4 @@ Expected output: a JSON entry for Jira with a manifest path.
 - [Data Model](../data/README.md)
 - [Security Architecture](../architecture/security-architecture.md)
 - [MCP Coverage Matrix](mcp-coverage-matrix.md)
+- [REST Connector Configuration](rest-connector-config.md)

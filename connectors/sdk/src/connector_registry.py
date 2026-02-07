@@ -386,6 +386,26 @@ SAP_CONNECTOR = ConnectorDefinition(
     env_vars=["SAP_URL", "SAP_USERNAME", "SAP_PASSWORD", "SAP_CLIENT"],
 )
 
+SAP_MCP_CONNECTOR = ConnectorDefinition(
+    connector_id="sap_mcp",
+    system="sap",
+    name="SAP (MCP)",
+    description="Sync SAP ERP data via MCP-backed OData services.",
+    category=ConnectorCategory.ERP,
+    status=ConnectorStatus.BETA,
+    icon="sap",
+    supported_sync_directions=[SyncDirection.INBOUND],
+    auth_type="mcp",
+    mcp_server_id="sap",
+    supported_operations=[
+        "list_invoices",
+        "list_goods_receipts",
+        "list_purchase_orders",
+        "list_suppliers",
+    ],
+    mcp_preferred=True,
+)
+
 ORACLE_CONNECTOR = ConnectorDefinition(
     connector_id="oracle",
     name="Oracle ERP Cloud",
@@ -453,6 +473,26 @@ WORKDAY_CONNECTOR = ConnectorDefinition(
         "WORKDAY_CLIENT_SECRET",
         "WORKDAY_REFRESH_TOKEN",
     ],
+)
+
+WORKDAY_MCP_CONNECTOR = ConnectorDefinition(
+    connector_id="workday_mcp",
+    system="workday",
+    name="Workday (MCP)",
+    description="Sync Workday HRIS data via MCP services.",
+    category=ConnectorCategory.HRIS,
+    status=ConnectorStatus.BETA,
+    icon="workday",
+    supported_sync_directions=[SyncDirection.INBOUND],
+    auth_type="mcp",
+    mcp_server_id="workday",
+    supported_operations=[
+        "list_workers",
+        "list_job_profiles",
+        "list_positions",
+        "list_organizations",
+    ],
+    mcp_preferred=True,
 )
 
 SAP_SUCCESSFACTORS_CONNECTOR = ConnectorDefinition(
@@ -796,10 +836,12 @@ ALL_CONNECTORS: list[ConnectorDefinition] = [
     GOOGLE_DRIVE_CONNECTOR,
     # ERP
     SAP_CONNECTOR,
+    SAP_MCP_CONNECTOR,
     ORACLE_CONNECTOR,
     NETSUITE_CONNECTOR,
     # HRIS
     WORKDAY_CONNECTOR,
+    WORKDAY_MCP_CONNECTOR,
     SAP_SUCCESSFACTORS_CONNECTOR,
     ADP_CONNECTOR,
     # Collaboration
