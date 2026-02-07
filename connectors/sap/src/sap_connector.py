@@ -19,6 +19,7 @@ if str(SDK_PATH) not in sys.path:
 
 from base_connector import ConnectorCategory, ConnectorConfig
 from http_client import HttpClient, RetryConfig
+from operation_router import OperationRouter
 from rest_connector import BasicAuthRestConnector
 from secrets import resolve_secret
 
@@ -50,6 +51,7 @@ class SapConnector(BasicAuthRestConnector):
     def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
         super().__init__(config, **kwargs)
         self._client_id: str | None = None
+        self._operation_router = OperationRouter(config)
 
     def _build_client(self) -> HttpClient:
         client = super()._build_client()
@@ -57,3 +59,28 @@ class SapConnector(BasicAuthRestConnector):
         if sap_client:
             client.set_header("sap-client", sap_client)
         return client
+
+    def read(
+        self,
+        resource_type: str,
+        filters: dict[str, Any] | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        router = self._operation_router
+
+        def rest_call() -> list[dict[str, Any]]:
+            return super().read(resource_type, filters=filters, limit=limit, offset=offset)
+
+        def mcp_call() -> list[dict[str, Any]]:
+            client = router.build_mcp_client()
+            params = {
+                "resource_type": resource_type,
+                "filters": filters or {},
+                "limit": limit,
+                "offset": offset,
+            }
+            payload = router.run_mcp(client.list_records(params))
+            return router.extract_records(payload)
+
+        return router.run("read", mcp_call=mcp_call, rest_call=rest_call)

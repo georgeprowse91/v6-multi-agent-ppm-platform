@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
 
 from base_connector import ConnectorCategory, ConnectorConfig
+from operation_router import OperationRouter
 from rest_connector import OAuth2RestConnector
 
 DEFAULT_TOKEN_URL = "https://wd3-impl-services1.workday.com/ccx/oauth2/token"
@@ -53,3 +55,29 @@ class WorkdayConnector(OAuth2RestConnector):
 
     def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
         super().__init__(config, **kwargs)
+        self._operation_router = OperationRouter(config)
+
+    def read(
+        self,
+        resource_type: str,
+        filters: dict[str, Any] | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        router = self._operation_router
+
+        def rest_call() -> list[dict[str, Any]]:
+            return super().read(resource_type, filters=filters, limit=limit, offset=offset)
+
+        def mcp_call() -> list[dict[str, Any]]:
+            client = router.build_mcp_client()
+            params = {
+                "resource_type": resource_type,
+                "filters": filters or {},
+                "limit": limit,
+                "offset": offset,
+            }
+            payload = router.run_mcp(client.list_records(params))
+            return router.extract_records(payload)
+
+        return router.run("read", mcp_call=mcp_call, rest_call=rest_call)
