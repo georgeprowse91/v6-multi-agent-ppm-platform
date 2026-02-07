@@ -16,25 +16,25 @@ The repository delivers a production-ready, multi-agent PPM platform with valida
 | --- | --- |
 | [agents/](./agents/) | 25 domain agents plus runtime scaffolding, prompts, and tests |
 | [apps/](./apps/) | User-facing applications (API gateway, web console, admin console, mobile) and Helm packaging |
-| [config/](./config/) | Tenant, environment, and agent configuration assets |
+| [ops/config/](./ops/config/) | Tenant, environment, and agent configuration assets |
 | [connectors/](./connectors/) | Integration manifests, mappings, SDK, and registry assets for external systems |
 | [data/](./data/) | Canonical JSON schemas, lineage, quality rules, and migration specs |
 | [design-system/](./design-system/) | Design tokens and icon system |
 | [docs/](./docs/) | Architecture, methodology, agent catalog, and solution overview |
 | [examples/](./examples/) | Scenario and configuration examples |
-| [infra/](./infra/) | Terraform, Kubernetes, observability, and policy assets |
+| [ops/infra/](./ops/infra/) | Terraform, Kubernetes, observability, and policy assets |
 | [packages/](./packages/) | Shared Python and TypeScript packages used by apps, services, and agents |
-| [scripts/](./scripts/) | CI checks, validation, and utility scripts |
+| [ops/scripts/](./ops/scripts/) | CI checks, validation, and utility scripts |
 | [services/](./services/) | Backend services (audit log, data sync, identity, notification, telemetry, and more) |
 | [tests/](./tests/) | Contract, integration, load, security, and E2E test suites |
-| [tools/](./tools/) | Local tooling for lint, format, codegen, and load testing |
+| [ops/tools/](./ops/tools/) | Local tooling for lint, format, codegen, and load testing |
 
 ## How it's used
 
 - **Non-coders** start with the solution overview and architecture docs in `docs/`.
 - **Developers** run the API gateway and web console locally, then extend agents, connectors, and services.
 - **Integrators** use connector manifests and mappings to align external systems with the canonical data model.
-- **Ops teams** use `infra/` plus `services/` Helm charts to deploy in Kubernetes environments.
+- **Ops teams** use `ops/infra/` plus `services/` Helm charts to deploy in Kubernetes environments.
 
 ## Quickstart (local development)
 
@@ -124,22 +124,22 @@ make check-placeholders
 
 ## Deployment (high level)
 
-- **Terraform**: infrastructure definitions live under [infra/terraform/](./infra/terraform/).
+- **Terraform**: infrastructure definitions live under [ops/infra/terraform/](./ops/infra/terraform/).
   ```bash
   make tf-init
   make tf-plan
   make tf-apply
   ```
-- **Kubernetes manifests**: see [infra/kubernetes/manifests/](./infra/kubernetes/manifests/).
+- **Kubernetes manifests**: see [ops/infra/kubernetes/manifests/](./ops/infra/kubernetes/manifests/).
 - **Helm charts**: each app/service has a `helm/` folder for packaging.
 
-For deeper operational guidance, start with [infra/README.md](./infra/README.md) and [docs/architecture/](./docs/architecture/).
+For deeper operational guidance, start with [ops/infra/README.md](./ops/infra/README.md) and [docs/architecture/](./docs/architecture/).
 
 ## Security & compliance
 
 - Security posture and architecture: [docs/architecture/security-architecture.md](./docs/architecture/security-architecture.md).
 - Responsible disclosure: [SECURITY.md](./SECURITY.md).
-- Data policy scaffolding: [infra/policies/](./infra/policies/) and [services/policy-engine/](./services/policy-engine/).
+- Data policy scaffolding: [ops/infra/policies/](./ops/infra/policies/) and [services/policy-engine/](./services/policy-engine/).
 
 ## Where to find things
 
@@ -151,8 +151,8 @@ For deeper operational guidance, start with [infra/README.md](./infra/README.md)
 ## How to verify documentation links
 
 ```bash
-python scripts/check-links.py
-python scripts/check-placeholders.py
+python ops/scripts/check-links.py
+python ops/scripts/check-placeholders.py
 ```
 
 ## Related docs
