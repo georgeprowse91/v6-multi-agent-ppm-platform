@@ -16,6 +16,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Demand intake request | Capture intake data for triage and prioritization. | Agent 04 (Demand Intake) | [docs/templates/shared/demand-intake-request.md](../templates/shared/demand-intake-request.md) |
 | Demand intake schema | Structured schema for intake data. | Agent 04 (Demand Intake) | [docs/templates/shared/demand-intake-schema.yaml](../templates/shared/demand-intake-schema.yaml) |
 | Business case | Document investment rationale and options. | Agent 05/12 (Business Case & Investment) | [docs/templates/shared/business-case.md](../templates/shared/business-case.md) |
+| Business case update report | Compare actuals vs plan to validate continued investment. | Agent 05/12 (Business Case & Investment) | [docs/templates/shared/business-case-update.md](../templates/shared/business-case-update.md) |
 | Product strategy canvas | Consolidate product vision, market context, and roadmap strategy. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/product-strategy-canvas.md](../templates/shared/product-strategy-canvas.md) |
 | Product vision template | Define product vision, mission, and success metrics. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/product-vision-template.md](../templates/shared/product-vision-template.md) |
 | ROI/NPV worksheet | Calculate ROI and NPV assumptions. | Agent 05/12 (Business Case & Investment) | [docs/templates/shared/roi-npv-worksheet.xlsx](../templates/shared/roi-npv-worksheet.xlsx) |

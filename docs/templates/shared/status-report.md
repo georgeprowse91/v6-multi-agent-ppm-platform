@@ -1,8 +1,8 @@
 # Executive Dashboard Status Report
 
 ## Purpose
-Provide an executive-ready dashboard view of project health, decisions, and value delivery that
-can be used directly in a status deck or briefing.
+Provide an executive-ready view of project health, decisions, value delivery, and risk exposure
+that can be used directly in a status deck or leadership briefing.
 
 ## Audience
 Executive Sponsors, Steering Committee, PMO, Finance Partner.
@@ -10,43 +10,43 @@ Executive Sponsors, Steering Committee, PMO, Finance Partner.
 ## Update Frequency
 Weekly (operational) or Monthly (executive review).
 
+---
+
 ## 1. Report Metadata
 - **Project name:**
 - **Reporting period:**
 - **Prepared by:**
 - **Date issued:**
-- **Overall health score:** [0-100]
+- **Overall health:** [Green/Yellow/Red]
+- **Health score:** [0-100]
 - **Escalation contact:** [Name, role, phone, email]
 
 ## 2. Executive Summary (30–60 seconds)
-- **Overall health:** [Healthy/Caution/Critical]
-- **Budget status:** $[Spent] of $[Approved] ([%])
-- **Schedule status:** On track for [Target date]
-- **Decisions needed:** [#]
+- **Overall status:** [On track/At risk/Critical]
+- **Budget status:** $[Spent] of $[Approved] ([%] utilized)
+- **Schedule status:** [Ahead/On track/Behind] by [# days]
 - **Key highlights:**
   - 
   - 
+- **Critical issues:**
   - 
 
-## 3. KPI Highlights
-| KPI | Target | Actual | Trend | Notes |
-| --- | --- | --- | --- | --- |
-| Schedule performance index (SPI) |  |  |  |  |
-| Cost performance index (CPI) |  |  |  |  |
-| Milestone achievement |  |  |  |  |
-| Risk exposure (total $) |  |  |  |  |
-| Benefits realized |  |  |  |  |
+## 3. Executive Decisions Required
+| Decision | Required by | Impact if delayed | Owner |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
-## 4. Financial Dashboard (CFO Focus)
-**Budget Overview**
+## 4. Financial Performance (CFO Focus)
+### 4.1 Budget Summary
 | Metric | Amount | Variance |
 | --- | --- | --- |
 | Approved budget |  |  |
-| Forecast at completion |  |  |
+| Committed costs |  |  |
 | Actuals to date |  |  |
+| Forecast at completion |  |  |
 | Remaining |  |  |
 
-**Variance Analysis**
+### 4.2 Variance Analysis
 | Category | Variance | Driver | Mitigation |
 | --- | --- | --- | --- |
 | Labor |  |  |  |
@@ -54,32 +54,58 @@ Weekly (operational) or Monthly (executive review).
 | Infrastructure |  |  |  |
 | Contingency |  |  |  |
 
-**Executive Action Required**
-- **Decision:**
-- **Deadline:**
-- **Impact if delayed:**
+### 4.3 Funding Outlook
+- **Funding sufficient through:**
+- **Additional funding required:** $ by [date]
+- **Mitigation actions:**
 
 ## 5. Schedule Performance (COO Focus)
-| Milestone | Baseline Date | Forecast | Status | Notes |
+### 5.1 Milestone Status
+| Milestone | Baseline Date | Forecast Date | Variance | Status |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-**Schedule Insights**
-- **Critical path float:**
-- **Schedule risk drivers:**
+### 5.2 Critical Path & Recovery
+- **Critical path activities:**
+- **Total float:**
 - **Recovery plan:**
 
-## 6. Risk & Compliance (CEO/CTO Focus)
-**Top Risks**
-| Risk | Impact | Probability | Exposure ($) | Owner | Status |
+## 6. Scope & Deliverables
+- **Scope changes approved (this period):**
+- **Impact summary:**
+
+| Deliverable | Status | Owner | Notes |
+| --- | --- | --- | --- |
+|  |  |  |  |
+
+## 7. Risk & Issue Management
+### 7.1 Top Risks
+| Risk | Probability | Impact | Exposure ($) | Owner | Mitigation Status |
 | --- | --- | --- | --- | --- | --- |
 |  |  |  |  |  |  |
 
-- **Total $ at risk:**
-- **Risk trend:** [Increasing/Stable/Decreasing]
-- **Compliance status:** [Compliant/At risk]
+### 7.2 Critical Issues
+| Issue | Impact | Resolution Plan | Target Date | Owner |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
 
-## 7. Business Value Delivered
+### 7.3 Compliance Status
+- **Compliance health:** [Compliant/At risk]
+- **Audit items:**
+
+## 8. Team & Stakeholder Status
+### 8.1 Team Health
+- **Team performance:** [Excellent/Good/Concerning]
+- **Resource utilization:** %
+- **Key achievements:**
+- **Resourcing gaps:**
+
+### 8.2 Stakeholder Engagement
+- **Stakeholder satisfaction:** /5
+- **Communication effectiveness:**
+- **Upcoming engagement activities:**
+
+## 9. Business Value Delivered
 | Value Metric | Target | Actual | Trend | Notes |
 | --- | --- | --- | --- | --- |
 | ROI |  |  |  |  |
@@ -95,26 +121,29 @@ Weekly (operational) or Monthly (executive review).
 | Q3 |  |  |
 | Q4 |  |  |
 
-## 8. Decisions Required
-**Immediate (Next 7 Days)**
-| Decision | Owner | Deadline | Impact if delayed |
-| --- | --- | --- | --- |
-|  |  |  |  |
-
-**Upcoming (Next 30 Days)**
-| Decision | Owner | Target Date | Impact |
-| --- | --- | --- | --- |
-|  |  |  |  |
-
-## 9. Escalations & Blockers
-- **Escalated items:**
-- **Blocked dependencies:**
-- **Support needed:**
-
-## 10. Next Period Priorities
+## 10. Look Ahead
+### Next 30 Days
 - 
 - 
+
+### Upcoming Milestones
 - 
+- 
+
+### Strategic Considerations
+- 
+
+## 11. Recommendations
+1.
+2.
+3.
+
+## 12. Approval
+Prepared by:
+Signature: ___________________ Date: ___________
+
+Approved by:
+Signature: ___________________ Date: ___________
 
 ---
 
