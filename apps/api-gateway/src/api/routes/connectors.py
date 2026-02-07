@@ -249,6 +249,10 @@ class McpConfig(BaseModel):
     server_url: AnyHttpUrl | None = None
     client_id: str | None = None
     client_secret: str | None = None
+    scope: str | None = None
+    api_key: str | None = None
+    api_key_header: str | None = None
+    oauth_token: str | None = None
     tools: list[str] | None = None
     tool_map: dict[str, Any] | None = None
 
@@ -294,6 +298,8 @@ class ConnectorConfigRequest(BaseModel):
     mcp_client_secret: str = ""
     mcp_scope: str = ""
     mcp_api_key: str = ""
+    mcp_api_key_header: str = ""
+    mcp_oauth_token: str = ""
     client_id: str = ""
     client_secret: str = ""
     scope: str = ""
@@ -347,6 +353,14 @@ class ConnectorConfigRequest(BaseModel):
             self.mcp_client_id = self.mcp_config.client_id
         if not self.mcp_client_secret and self.mcp_config.client_secret:
             self.mcp_client_secret = self.mcp_config.client_secret
+        if not self.mcp_scope and self.mcp_config.scope:
+            self.mcp_scope = self.mcp_config.scope
+        if not self.mcp_api_key and self.mcp_config.api_key:
+            self.mcp_api_key = self.mcp_config.api_key
+        if not self.mcp_api_key_header and self.mcp_config.api_key_header:
+            self.mcp_api_key_header = self.mcp_config.api_key_header
+        if not self.mcp_oauth_token and self.mcp_config.oauth_token:
+            self.mcp_oauth_token = self.mcp_config.oauth_token
         if not self.mcp_tool_map and self.mcp_config.tool_map:
             self.mcp_tool_map = self.mcp_config.tool_map
         if not self.mcp_tool_map and self.mcp_tools:
@@ -372,6 +386,8 @@ class ConnectorConfigResponse(BaseModel):
     mcp_client_secret: str
     mcp_scope: str
     mcp_api_key: str
+    mcp_api_key_header: str
+    mcp_oauth_token: str
     client_id: str
     client_secret: str
     scope: str
@@ -401,6 +417,10 @@ class ConnectorConfigResponse(BaseModel):
                     self.mcp_server_url,
                     self.mcp_client_id,
                     self.mcp_client_secret,
+                    self.mcp_scope,
+                    self.mcp_api_key,
+                    self.mcp_api_key_header,
+                    self.mcp_oauth_token,
                     tool_map,
                 ]
             ):
@@ -409,6 +429,10 @@ class ConnectorConfigResponse(BaseModel):
                     server_url=self.mcp_server_url or None,
                     client_id=self.mcp_client_id or None,
                     client_secret=self.mcp_client_secret or None,
+                    scope=self.mcp_scope or None,
+                    api_key=self.mcp_api_key or None,
+                    api_key_header=self.mcp_api_key_header or None,
+                    oauth_token=self.mcp_oauth_token or None,
                     tool_map=tool_map,
                 )
         return self
@@ -431,6 +455,8 @@ class ProjectConnectorConfigResponse(BaseModel):
     mcp_client_secret: str
     mcp_scope: str
     mcp_api_key: str
+    mcp_api_key_header: str
+    mcp_oauth_token: str
     client_id: str
     client_secret: str
     scope: str
@@ -461,6 +487,10 @@ class ProjectConnectorConfigResponse(BaseModel):
                     self.mcp_server_url,
                     self.mcp_client_id,
                     self.mcp_client_secret,
+                    self.mcp_scope,
+                    self.mcp_api_key,
+                    self.mcp_api_key_header,
+                    self.mcp_oauth_token,
                     tool_map,
                 ]
             ):
@@ -469,6 +499,10 @@ class ProjectConnectorConfigResponse(BaseModel):
                     server_url=self.mcp_server_url or None,
                     client_id=self.mcp_client_id or None,
                     client_secret=self.mcp_client_secret or None,
+                    scope=self.mcp_scope or None,
+                    api_key=self.mcp_api_key or None,
+                    api_key_header=self.mcp_api_key_header or None,
+                    oauth_token=self.mcp_oauth_token or None,
                     tool_map=tool_map,
                 )
         return self
@@ -510,6 +544,8 @@ class ConnectorListItemResponse(BaseModel):
     mcp_client_secret: str = ""
     mcp_scope: str = ""
     mcp_api_key: str = ""
+    mcp_api_key_header: str = ""
+    mcp_oauth_token: str = ""
     client_id: str = ""
     client_secret: str = ""
     scope: str = ""
@@ -813,6 +849,8 @@ async def list_connectors(
             mcp_client_secret=config.mcp_client_secret if config else "",
             mcp_scope=config.mcp_scope if config else "",
             mcp_api_key=config.mcp_api_key if config else "",
+            mcp_api_key_header=config.mcp_api_key_header if config else "",
+            mcp_oauth_token=config.mcp_oauth_token if config else "",
             client_id=config.client_id if config else "",
             client_secret=config.client_secret if config else "",
             scope=config.scope if config else "",
@@ -908,6 +946,8 @@ async def list_project_connectors(
                 mcp_client_secret=project_config.mcp_client_secret if project_config else "",
                 mcp_scope=project_config.mcp_scope if project_config else "",
                 mcp_api_key=project_config.mcp_api_key if project_config else "",
+                mcp_api_key_header=project_config.mcp_api_key_header if project_config else "",
+                mcp_oauth_token=project_config.mcp_oauth_token if project_config else "",
                 client_id=project_config.client_id if project_config else "",
                 client_secret=project_config.client_secret if project_config else "",
                 scope=project_config.scope if project_config else "",
@@ -982,6 +1022,8 @@ async def get_connector(connector_id: str) -> ConnectorListItemResponse:
         mcp_client_secret=config.mcp_client_secret if config else "",
         mcp_scope=config.mcp_scope if config else "",
         mcp_api_key=config.mcp_api_key if config else "",
+        mcp_api_key_header=config.mcp_api_key_header if config else "",
+        mcp_oauth_token=config.mcp_oauth_token if config else "",
         client_id=config.client_id if config else "",
         client_secret=config.client_secret if config else "",
         scope=config.scope if config else "",
@@ -1029,6 +1071,8 @@ async def update_connector_config(
         mcp_client_secret=request.mcp_client_secret,
         mcp_scope=request.mcp_scope,
         mcp_api_key=request.mcp_api_key,
+        mcp_api_key_header=request.mcp_api_key_header,
+        mcp_oauth_token=request.mcp_oauth_token,
         client_id=request.client_id,
         client_secret=request.client_secret,
         scope=request.scope,
@@ -1076,6 +1120,8 @@ async def update_connector_config(
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1128,6 +1174,8 @@ async def update_project_connector_config(
         mcp_client_secret=request.mcp_client_secret,
         mcp_scope=request.mcp_scope,
         mcp_api_key=request.mcp_api_key,
+        mcp_api_key_header=request.mcp_api_key_header,
+        mcp_oauth_token=request.mcp_oauth_token,
         client_id=request.client_id,
         client_secret=request.client_secret,
         scope=request.scope,
@@ -1162,6 +1210,8 @@ async def update_project_connector_config(
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1213,6 +1263,8 @@ async def update_regulatory_compliance_config(
         mcp_client_secret=existing.mcp_client_secret if existing else "",
         mcp_scope=existing.mcp_scope if existing else "",
         mcp_api_key=existing.mcp_api_key if existing else "",
+        mcp_api_key_header=existing.mcp_api_key_header if existing else "",
+        mcp_oauth_token=existing.mcp_oauth_token if existing else "",
         client_id=existing.client_id if existing else "",
         client_secret=existing.client_secret if existing else "",
         scope=existing.scope if existing else "",
@@ -1260,6 +1312,8 @@ async def update_regulatory_compliance_config(
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1370,6 +1424,8 @@ async def enable_connector(connector_id: str, http_request: Request) -> Connecto
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1433,6 +1489,8 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1588,6 +1646,8 @@ async def enable_project_connector(
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,
@@ -1642,6 +1702,8 @@ async def disable_project_connector(
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
         mcp_api_key=config.mcp_api_key,
+        mcp_api_key_header=config.mcp_api_key_header,
+        mcp_oauth_token=config.mcp_oauth_token,
         client_id=config.client_id,
         client_secret=config.client_secret,
         scope=config.scope,

@@ -51,6 +51,8 @@ class ProjectConnectorConfig(ConnectorConfig):
             mcp_client_secret=base.mcp_client_secret,
             mcp_scope=base.mcp_scope,
             mcp_api_key=base.mcp_api_key,
+            mcp_api_key_header=base.mcp_api_key_header,
+            mcp_oauth_token=base.mcp_oauth_token,
             client_id=base.client_id,
             client_secret=base.client_secret,
             scope=base.scope,
@@ -116,7 +118,12 @@ class ProjectConnectorConfigStore:
         if config_data.get("mcp_tool_map") and not config_data.get("mcp_tools"):
             config_data["mcp_tools"] = list(config_data["mcp_tool_map"].keys())
         if not self._fernet:
-            for field in ("mcp_client_secret", "mcp_api_key", "client_secret"):
+            for field in (
+                "mcp_client_secret",
+                "mcp_api_key",
+                "mcp_oauth_token",
+                "client_secret",
+            ):
                 if config_data.get(field):
                     config_data[field] = ""
         project_configs[config.connector_id] = config_data
