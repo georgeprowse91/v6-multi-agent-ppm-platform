@@ -10,6 +10,7 @@ Provide a registry of agile artefact templates used by delivery and governance w
 | Backlog refinement | Structure refinement sessions and story readiness. | Agent 11 (Agile Delivery) | `backlog-refinement-template.md` |
 | Product backlog | Capture epics, stories, and prioritization. | Agent 11 (Agile Delivery) | `backlog.csv` |
 | Risk-adjusted backlog | Prioritize work with risk exposure. | Agent 15 (Risk & Issue Management) | `risk-adjusted-backlog.csv` |
+| Agile risk board | Visualize and manage sprint-level risks. | Agent 15 (Risk & Issue Management) | `agile-risk-board.md` |
 | Sprint plan | Define sprint commitments and capacity. | Agent 11 (Agile Delivery) | `sprint-plan.md` |
 | Sprint review | Capture demo outcomes, feedback, and backlog implications. | Agent 11 (Agile Delivery) | `sprint-review.md` |
 | Daily standup | Track daily progress, blockers, and sprint health. | Agent 11 (Agile Delivery) | `daily-standup.md` |

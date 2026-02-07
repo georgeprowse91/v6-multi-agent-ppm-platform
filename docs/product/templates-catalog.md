@@ -83,6 +83,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Backlog management | [Backlog management](../methodology/agile/templates/backlog-management-template.md) |  |  |
 | Backlog refinement | [Backlog refinement](../methodology/agile/templates/backlog-refinement-template.md) |  |  |
 | Risk-adjusted backlog | [Risk-adjusted backlog](../methodology/agile/templates/risk-adjusted-backlog.csv) |  |  |
+| Agile risk board | [Agile risk board](../methodology/agile/templates/agile-risk-board.md) |  |  |
 | Sprint plan | [Sprint plan](../methodology/agile/templates/sprint-plan.md) |  | [Sprint plan](../methodology/agile/templates/sprint-plan.md) |
 | Iteration plan | [Iteration plan](../methodology/agile/templates/iteration-plan.md) |  |  |
 | Release plan | [Release plan](../methodology/agile/templates/release-plan.md) |  | [Release plan](../methodology/agile/templates/release-plan.md) |
