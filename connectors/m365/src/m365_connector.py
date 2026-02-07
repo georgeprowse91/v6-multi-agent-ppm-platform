@@ -8,6 +8,7 @@ Supports:
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from pathlib import Path
@@ -18,11 +19,14 @@ if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
 
 from base_connector import ConnectorCategory, ConnectorConfig
+from mcp_client import MCPClient, MCPClientError, MCPToolNotFoundError
 from rest_connector import OAuth2RestConnector
 from secrets import resolve_secret
 
 DEFAULT_GRAPH_URL = "https://graph.microsoft.com/v1.0"
 DEFAULT_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+
+logger = logging.getLogger(__name__)
 
 
 class M365Connector(OAuth2RestConnector):
@@ -77,6 +81,8 @@ class M365Connector(OAuth2RestConnector):
         "viva": ["viva_learning"],
     }
 
+    MCP_SUPPORTED_RESOURCES = {"teams", "channels", "messages", "events", "mail", "drive_items"}
+
     SCHEMA = {
         "teams": {"id": "string", "displayName": "string"},
         "channels": {"id": "string", "displayName": "string"},
@@ -122,6 +128,62 @@ class M365Connector(OAuth2RestConnector):
                 enabled.append(workload)
         return enabled
 
+    def _should_use_mcp_for_resource(self, resource_type: str) -> bool:
+        if resource_type not in self.MCP_SUPPORTED_RESOURCES:
+            return False
+        if not self.config.prefer_mcp:
+            return False
+        if not self.config.is_mcp_enabled_for(resource_type):
+            return False
+        if not self.config.mcp_server_url:
+            return False
+        if not (self.config.mcp_tool_map or {}).get(resource_type):
+            return False
+        return True
+
+    def _build_mcp_client(self) -> MCPClient:
+        if getattr(self, "_mcp_client", None):
+            return self._mcp_client
+        self._mcp_client = MCPClient(self.config)
+        return self._mcp_client
+
+    def _extract_mcp_records(self, resource_type: str, payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict):
+            items_path = self.RESOURCE_PATHS.get(resource_type, {}).get("items_path")
+            if items_path:
+                current: Any = payload
+                for key in items_path.split("."):
+                    if not isinstance(current, dict):
+                        current = None
+                        break
+                    current = current.get(key)
+                if isinstance(current, list):
+                    return current
+            for key in ("records", "items", "values", "data", "value"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    return value
+            return [payload]
+        return []
+
+    def _read_via_mcp(
+        self,
+        resource_type: str,
+        filters: dict[str, Any] | None,
+        limit: int,
+        offset: int,
+    ) -> list[dict[str, Any]]:
+        client = self._build_mcp_client()
+        params = {
+            "filters": filters or {},
+            "limit": limit,
+            "offset": offset,
+        }
+        payload = client.call_tool(resource_type, params)
+        return self._extract_mcp_records(resource_type, payload)
+
     def read_workloads(
         self,
         filters: dict[str, Any] | None = None,
@@ -133,6 +195,26 @@ class M365Connector(OAuth2RestConnector):
         for workload in workloads:
             workload_results: dict[str, list[dict[str, Any]]] = {}
             for resource_type in self.WORKLOAD_RESOURCE_MAP.get(workload, []):
+                if self._should_use_mcp_for_resource(resource_type):
+                    try:
+                        workload_results[resource_type] = self._read_via_mcp(
+                            resource_type,
+                            filters=filters,
+                            limit=limit,
+                            offset=offset,
+                        )
+                        continue
+                    except MCPToolNotFoundError:
+                        logger.info(
+                            "MCP tool mapping missing for %s; falling back to Graph REST",
+                            resource_type,
+                        )
+                    except MCPClientError as exc:
+                        logger.warning(
+                            "MCP request failed for %s; falling back to Graph REST: %s",
+                            resource_type,
+                            exc,
+                        )
                 workload_results[resource_type] = self.read(
                     resource_type,
                     filters=filters,
@@ -144,3 +226,4 @@ class M365Connector(OAuth2RestConnector):
 
     def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
         super().__init__(config, **kwargs)
+        self._mcp_client: MCPClient | None = None
