@@ -17,6 +17,7 @@ Provide a registry of agile artefact templates used by delivery and governance w
 | Burndown tracking | Track remaining work and progress. | Agent 11 (Agile Delivery) | `burndown.xlsx` |
 | Release plan | Document release scope and readiness. | Agent 14 (Release Management) | `release-plan.md` |
 | PI planning | Align ARTs on objectives, dependencies, and commitments. | Agent 11 (Agile Delivery) | `pi-planning.md` |
+| SAFe metrics dashboard | Track flow, outcomes, competency, and predictability across SAFe levels. | Agent 22/25 (Performance & Insights) | `safe-metrics-dashboard.md` |
 | Retrospective notes | Capture lessons learned and actions. | Agent 20 (Continuous Improvement) | `retro-notes.md` |
 | Roles & responsibilities matrix | Define Agile roles, responsibilities, and decision rights. | Agent 09 (Lifecycle & Governance) | `roles-responsibilities.md` |
 | User story template | Standardize user story capture with acceptance criteria. | Agent 11 (Agile Delivery) | `user-story-template.md` |

@@ -23,6 +23,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Assumption log | Track key project assumptions and validation. | Agent 05/12 (Business Case & Investment), Agent 15 (Risk & Issue) | [docs/templates/shared/assumption-log.md](../templates/shared/assumption-log.md) |
 | Variance report | Track schedule/cost variance. | Agent 10 (Schedule & Planning) | [docs/templates/shared/variance-report.md](../templates/shared/variance-report.md) |
 | Executive dashboard status report | Executive-ready health, decisions, and value summary. | Agent 21 (Stakeholder Comms) | [docs/templates/shared/status-report.md](../templates/shared/status-report.md) |
+| Milestone review | Formal milestone, phase gate, or go/no-go review. | Agent 09 (Lifecycle & Governance) | [docs/templates/shared/milestone-review.md](../templates/shared/milestone-review.md) |
 | Risk report | Report top risks and exposure trends. | Agent 15 (Risk & Issue Management) | [docs/templates/shared/risk-report.md](../templates/shared/risk-report.md) |
 | Schedule risk analysis | Quantify schedule risk exposure and confidence-based completion dates. | Agent 10 (Schedule & Planning), Agent 15 (Risk & Issue Management) | [docs/templates/shared/schedule-risk-analysis.md](../templates/shared/schedule-risk-analysis.md) |
 | Quality report | Report quality performance and defects. | Agent 14 (Quality Assurance) | [docs/templates/shared/quality-report.md](../templates/shared/quality-report.md) |

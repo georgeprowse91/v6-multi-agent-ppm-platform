@@ -1,11 +1,11 @@
 # Executive Dashboard Status Report
 
 ## Purpose
-Provide an executive-ready view of project health, decisions, value delivery, and risk exposure
-that can be used directly in a status deck or leadership briefing.
+Provide a comprehensive performance dashboard and executive-ready status update covering
+schedule, budget, scope, quality, risk, and value delivery.
 
 ## Audience
-Executive Sponsors, Steering Committee, PMO, Finance Partner.
+Executive Sponsors, Steering Committee, PMO, Finance Partner, Delivery Leadership.
 
 ## Update Frequency
 Weekly (operational) or Monthly (executive review).
@@ -13,13 +13,16 @@ Weekly (operational) or Monthly (executive review).
 ---
 
 ## 1. Report Metadata
-- **Project name:**
-- **Reporting period:**
-- **Prepared by:**
-- **Date issued:**
-- **Overall health:** [Green/Yellow/Red]
-- **Health score:** [0-100]
-- **Escalation contact:** [Name, role, phone, email]
+| Field | Value |
+| --- | --- |
+| Project name |  |
+| Reporting period |  |
+| Prepared by |  |
+| Date issued |  |
+| Overall health (R/Y/G) |  |
+| Health score (0-100) |  |
+| Escalation contact |  |
+| Next update |  |
 
 ## 2. Executive Summary (30–60 seconds)
 - **Overall status:** [On track/At risk/Critical]
@@ -36,8 +39,28 @@ Weekly (operational) or Monthly (executive review).
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-## 4. Financial Performance (CFO Focus)
-### 4.1 Budget Summary
+## 4. Overall Project Health Dashboard
+| Dimension | Status (R/Y/G) | Trend (↗/→/↘) | Comments |
+| --- | --- | --- | --- |
+| Schedule |  |  |  |
+| Budget |  |  |  |
+| Scope |  |  |  |
+| Quality |  |  |  |
+| Risk |  |  |  |
+| Team |  |  |  |
+
+### 4.1 Key Performance Indicators (KPIs)
+| KPI | Target | Actual | Variance | Status |
+| --- | --- | --- | --- | --- |
+| Schedule Performance Index (SPI) | ≥ 1.0 |  |  |  |
+| Cost Performance Index (CPI) | ≥ 1.0 |  |  |  |
+| Budget utilization |  |  |  |  |
+| Scope completion |  |  |  |  |
+| Quality score |  |  |  |  |
+| Team utilization |  |  |  |  |
+
+## 5. Financial Performance (CFO Focus)
+### 5.1 Budget Summary
 | Metric | Amount | Variance |
 | --- | --- | --- |
 | Approved budget |  |  |
@@ -46,7 +69,7 @@ Weekly (operational) or Monthly (executive review).
 | Forecast at completion |  |  |
 | Remaining |  |  |
 
-### 4.2 Variance Analysis
+### 5.2 Variance Analysis
 | Category | Variance | Driver | Mitigation |
 | --- | --- | --- | --- |
 | Labor |  |  |  |
@@ -54,23 +77,30 @@ Weekly (operational) or Monthly (executive review).
 | Infrastructure |  |  |  |
 | Contingency |  |  |  |
 
-### 4.3 Funding Outlook
-- **Funding sufficient through:**
-- **Additional funding required:** $ by [date]
-- **Mitigation actions:**
+### 5.3 Budget Forecasting
+| Forecast Metric | Value | Status |
+| --- | --- | --- |
+| Estimate at Completion (EAC) |  |  |
+| Estimate to Complete (ETC) |  |  |
+| Variance at Completion (VAC) |  |  |
+| To Complete Performance Index (TCPI) |  |  |
 
-## 5. Schedule Performance (COO Focus)
-### 5.1 Milestone Status
+## 6. Schedule Performance (COO Focus)
+### 6.1 Milestone Status
 | Milestone | Baseline Date | Forecast Date | Variance | Status |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-### 5.2 Critical Path & Recovery
+### 6.2 Critical Path & Recovery
 - **Critical path activities:**
 - **Total float:**
 - **Recovery plan:**
 
-## 6. Scope & Deliverables
+### 6.3 Schedule Trend Snapshot
+- **SPI trend (last 4 periods):**
+- **Schedule risk exposure:**
+
+## 7. Scope & Deliverables
 - **Scope changes approved (this period):**
 - **Impact summary:**
 
@@ -78,34 +108,47 @@ Weekly (operational) or Monthly (executive review).
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-## 7. Risk & Issue Management
-### 7.1 Top Risks
+## 8. Quality Performance
+| Quality Metric | Target | Actual | Variance | Status |
+| --- | --- | --- | --- | --- |
+| Defect rate |  |  |  |  |
+| Test pass rate |  |  |  |  |
+| Rework hours |  |  |  |  |
+| Customer satisfaction |  |  |  |  |
+
+## 9. Risk & Issue Management
+### 9.1 Top Risks
 | Risk | Probability | Impact | Exposure ($) | Owner | Mitigation Status |
 | --- | --- | --- | --- | --- | --- |
 |  |  |  |  |  |  |
 
-### 7.2 Critical Issues
+### 9.2 Critical Issues
 | Issue | Impact | Resolution Plan | Target Date | Owner |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-### 7.3 Compliance Status
+### 9.3 Compliance Status
 - **Compliance health:** [Compliant/At risk]
 - **Audit items:**
 
-## 8. Team & Stakeholder Status
-### 8.1 Team Health
-- **Team performance:** [Excellent/Good/Concerning]
-- **Resource utilization:** %
-- **Key achievements:**
-- **Resourcing gaps:**
+## 10. Team & Stakeholder Status
+### 10.1 Team Health
+| Indicator | Score | Target | Status |
+| --- | --- | --- | --- |
+| Team satisfaction |  |  |  |
+| Team velocity |  |  |  |
+| Absenteeism rate |  |  |  |
+| Turnover rate |  |  |  |
 
-### 8.2 Stakeholder Engagement
-- **Stakeholder satisfaction:** /5
-- **Communication effectiveness:**
-- **Upcoming engagement activities:**
+### 10.2 Stakeholder Engagement
+| Stakeholder Group | Engagement Level | Satisfaction | Communication Frequency | Status |
+| --- | --- | --- | --- | --- |
+| Executive sponsors |  |  |  |  |
+| Business users |  |  |  |  |
+| Technical team |  |  |  |  |
+| External partners |  |  |  |  |
 
-## 9. Business Value Delivered
+## 11. Business Value Delivered
 | Value Metric | Target | Actual | Trend | Notes |
 | --- | --- | --- | --- | --- |
 | ROI |  |  |  |  |
@@ -121,7 +164,35 @@ Weekly (operational) or Monthly (executive review).
 | Q3 |  |  |
 | Q4 |  |  |
 
-## 10. Look Ahead
+## 12. Issues & Actions Dashboard
+### 12.1 Current Issues
+| Issue ID | Description | Priority | Assigned To | Due Date | Status |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 12.2 Action Items
+| Action ID | Description | Owner | Due Date | Status | Dependencies |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+## 13. Performance Trends & Forecasting
+### 13.1 Historical Performance
+- **Schedule performance trend:**
+- **Cost performance trend:**
+
+### 13.2 Forecasting
+| Forecast Item | Current Projection | Previous Projection | Change |
+| --- | --- | --- | --- |
+| Completion date |  |  |  |
+| Final budget |  |  |  |
+| Scope delivery |  |  |  |
+| Quality score |  |  |  |
+
+### 13.3 Performance Insights
+- 
+- 
+
+## 14. Look Ahead
 ### Next 30 Days
 - 
 - 
@@ -133,12 +204,12 @@ Weekly (operational) or Monthly (executive review).
 ### Strategic Considerations
 - 
 
-## 11. Recommendations
-1.
-2.
-3.
+## 15. Recommendations
+1. 
+2. 
+3. 
 
-## 12. Approval
+## 16. Approval
 Prepared by:
 Signature: ___________________ Date: ___________
 

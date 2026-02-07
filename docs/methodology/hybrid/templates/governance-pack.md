@@ -1,34 +1,50 @@
 # Governance Charter (Hybrid)
 
 ## Purpose
-Define governance structure, decision rights, escalation paths, and reporting requirements for
-hybrid delivery.
+Establish the governance framework for a hybrid project by defining decision rights, oversight
+structure, escalation paths, and reporting cadence across stage-gate and iterative delivery.
 
 ## Audience
-PMO Lead, Program Manager, Compliance Officer, Steering Committee.
+Executive Sponsor, Steering Committee, PMO Lead, Program Manager, Delivery Lead, Compliance Officer.
 
 ## Inputs
 - Hybrid charter (`docs/methodology/hybrid/templates/hybrid-charter.md`).
 - Decision log (`docs/methodology/hybrid/templates/decision-log.md`).
 - Communications plan (`docs/templates/shared/communications-plan.md`).
+- Change request (`docs/templates/shared/change-request.md`).
+
+---
 
 ## 1. Document Information
-- **Project name:**
-- **Version:**
-- **Status:** [Draft/Approved/Active]
-- **Owner:**
-- **Last updated:**
+| Item | Details |
+| --- | --- |
+| Project name |  |
+| Project manager |  |
+| Sponsor |  |
+| Version |  |
+| Status | Draft / Approved / Active |
+| Owner |  |
+| Last updated |  |
 
 ## 2. Governance Overview
-### 2.1 Scope
-Describe governance coverage (decision-making, approvals, escalations, reporting, risk, change
-control).
+### 2.1 Purpose
+Define oversight, accountability, and decision pathways that balance formal stage gates with
+iterative delivery autonomy.
 
-### 2.2 Governance Objectives
-- Ensure strategic alignment and value delivery.
-- Provide clear decision authority and accountability.
-- Enable timely escalation and risk resolution.
-- Maintain compliance with organizational standards.
+### 2.2 Scope
+Governance applies to:
+- Decision-making authority and approval thresholds.
+- Escalation procedures and response SLAs.
+- Reporting requirements and steering forums.
+- Risk, issue, and change control.
+- Compliance, audit, and quality gates.
+
+### 2.3 Governance Objectives
+- Align delivery to business strategy and value outcomes.
+- Provide transparent accountability and decision rights.
+- Enable rapid escalation and issue resolution.
+- Maintain compliance with regulatory and enterprise standards.
+- Sustain stakeholder engagement and visibility.
 
 ## 3. Governance Structure
 ```
@@ -36,96 +52,132 @@ Executive Steering Committee
          ↓
 Project Steering Committee
          ↓
-Project Manager
+Project Manager / Delivery Lead
          ↓
-Delivery Squads
+Cross-functional Delivery Squads
 ```
 
 ### 3.1 Governance Bodies
 **Executive Steering Committee**
-- Purpose, authority, membership, meeting cadence.
+- **Purpose:** Strategic oversight, portfolio alignment, funding decisions.
+- **Authority:** Project continuation/termination, major budget approvals.
+- **Membership:** Executive sponsor, senior leaders, finance representative.
+- **Cadence:** Quarterly or as needed.
 
 **Project Steering Committee**
-- Purpose, authority, membership, meeting cadence.
+- **Purpose:** Scope, schedule, and risk oversight.
+- **Authority:** Approve major scope changes, escalate risks, resolve cross-team blockers.
+- **Membership:** Sponsor, business owners, PMO, delivery lead.
+- **Cadence:** Monthly.
 
 **PMO / Governance Office**
-- Standards, assurance, and escalation support.
+- **Purpose:** Standards, assurance, and audit readiness.
+- **Authority:** Compliance checks, gating readiness, reporting quality.
+- **Cadence:** As needed.
 
 ## 4. Roles & Responsibilities
 | Role | Responsibilities | Decision Authority | Escalation Path |
 | --- | --- | --- | --- |
-| Executive Sponsor |  |  |  |
-| Project Sponsor |  |  |  |
-| Project Manager |  |  |  |
-| Product Owner |  |  |  |
-| Delivery Lead |  |  |  |
-| Risk Owner |  |  |  |
+| Executive Sponsor | Strategic alignment, funding advocacy, final escalation. | Approve major investment changes. | Executive steering committee. |
+| Project Sponsor | Business case ownership, stakeholder engagement. | Approve resources and priority shifts. | Executive sponsor. |
+| Project Manager | Delivery execution, reporting, day-to-day decisions. | Approve minor changes and risks. | Project sponsor. |
+| Delivery Lead / Scrum Master | Iteration execution, impediment removal. | Tactical delivery decisions. | Project manager. |
+| Product Owner | Value prioritization, backlog governance. | Approve scope refinements within iteration. | Project manager. |
+| Risk Owner | Risk identification, mitigation, reporting. | Recommend risk responses. | Project manager. |
+| PMO Lead | Governance compliance, audit readiness. | Gate readiness sign-off. | Steering committee. |
 
 ## 5. Decision-Making Framework
 ### 5.1 Decision Authority Matrix
-| Decision Type | PM | Sponsor | Steering Committee | Executive Committee |
+| Decision Type | Project Manager | Sponsor | Steering Committee | Executive Committee |
 | --- | --- | --- | --- | --- |
 | Daily operations | Approve | Informed | - | - |
-| Scope change (minor) | Approve | Informed | - | - |
-| Scope change (major) | Recommend | Recommend | Approve | Informed |
-| Budget change (<X%) | Recommend | Approve | Informed | - |
-| Budget change (>X%) | Recommend | Recommend | Approve | Informed |
-| Schedule change (<Y weeks) | Approve | Informed | - | - |
-| Schedule change (>Y weeks) | Recommend | Recommend | Approve | Informed |
+| Resource allocation (<$X) | Approve | Informed | - | - |
+| Resource allocation (>$X) | Recommend | Approve | Informed | - |
+| Scope changes (minor) | Approve | Informed | - | - |
+| Scope changes (major) | Recommend | Recommend | Approve | Informed |
+| Budget changes (<Y%) | Recommend | Approve | Informed | - |
+| Budget changes (>Y%) | Recommend | Recommend | Approve | Informed |
+| Schedule changes (<Z weeks) | Approve | Informed | - | - |
+| Schedule changes (>Z weeks) | Recommend | Recommend | Approve | Informed |
+| Risk responses (high impact) | Recommend | Approve | Informed | - |
 | Project continuation | Recommend | Recommend | Approve | Informed |
 | Project termination | Recommend | Recommend | Recommend | Approve |
 
 ### 5.2 Decision Process
-1. Identify decision need and document context.
-2. Analyze impacts and options.
-3. Obtain stakeholder input.
-4. Approve in the correct forum.
-5. Record in the decision log.
-6. Communicate and implement.
+1. **Identify:** Document decision need and context.
+2. **Analyze:** Assess impact, options, and trade-offs.
+3. **Recommend:** Provide preferred option with rationale.
+4. **Review:** Gather stakeholder input and dependencies.
+5. **Decide:** Approve in the appropriate forum.
+6. **Record:** Update decision log and action owners.
+7. **Communicate:** Inform affected stakeholders.
+8. **Monitor:** Track outcomes and adjust as needed.
 
 ## 6. Escalation Procedures
-- **Escalation criteria:** scope/budget/schedule thresholds, risk severity, compliance impacts.
-- **Response time targets:** define by severity.
-- **Escalation owner:** [Role].
-- **Reference:** escalation matrix in `docs/templates/shared/communications-plan.md`.
+### 6.1 Escalation Criteria
+- Impact exceeds cost/schedule thresholds.
+- Resolution requires authority beyond delivery team.
+- Compliance or security risk exposure.
+- Cross-functional dependency conflicts.
+
+### 6.2 Escalation Matrix
+| Level | Authority | Trigger | Response Time |
+| --- | --- | --- | --- |
+| 1 | Project Manager | Day-to-day issues | 24 hours |
+| 2 | Project Sponsor | Resource or vendor blockers | 48 hours |
+| 3 | Steering Committee | Major scope/budget variance | 1 week |
+| 4 | Executive Committee | Strategic or viability decisions | 2 weeks |
+
+### 6.3 Escalation Process
+1. Document issue, impact, and attempted resolutions.
+2. Submit escalation request to next authority level.
+3. Track response and decision in issue log.
+4. Communicate decision and implement resolution.
 
 ## 7. Reporting & Communication
-| Report | Audience | Frequency | Owner |
-| --- | --- | --- | --- |
-| Executive dashboard | Executive committee | Monthly | PM |
-| Steering update | Steering committee | Bi-weekly | PM |
-| Sprint review | Delivery team | Sprint end | Delivery lead |
-| Risk & issue summary | PMO | Weekly | Risk owner |
+| Report | Audience | Frequency | Owner | Notes |
+| --- | --- | --- | --- | --- |
+| Executive dashboard | Executive committee | Monthly | Project manager | Focus on value, risks, decisions. |
+| Steering update | Steering committee | Bi-weekly | Project manager | Includes scope, budget, risks. |
+| Sprint review | Delivery team + stakeholders | Sprint end | Delivery lead | Demo + backlog impacts. |
+| Risk & issue summary | PMO | Weekly | Risk owner | Top exposure + mitigations. |
 
 ## 8. Change Control
-- **Change request intake:** Link to change request template.
-- **Impact assessment:** Scope/schedule/cost/quality.
-- **Approval levels:** defined in decision matrix.
-- **Change log:** `docs/templates/shared/change-log.md`.
+1. **Submit change request** using the change request template.
+2. **Assess impact** on scope, schedule, cost, quality, and risk.
+3. **Approve** based on decision matrix thresholds.
+4. **Update** baselines and change log.
+5. **Communicate** changes to delivery teams and stakeholders.
 
 ## 9. Performance Management
-| KPI | Target | Cadence | Owner |
-| --- | --- | --- | --- |
-| Schedule performance (SPI) |  | Monthly | PM |
-| Cost performance (CPI) |  | Monthly | Finance |
-| Quality defect rate |  | Monthly | QA |
-| Stakeholder satisfaction |  | Quarterly | PMO |
+| KPI | Target | Measurement | Cadence | Owner |
+| --- | --- | --- | --- | --- |
+| Schedule performance (SPI) |  | Earned value | Monthly | PM |
+| Cost performance (CPI) |  | Earned value | Monthly | Finance |
+| Quality defect rate |  | Defects per release | Monthly | QA |
+| Stakeholder satisfaction |  | Survey score | Quarterly | PMO |
+| Delivery predictability |  | Objective achievement | Monthly | Delivery lead |
 
 ## 10. Risk & Issue Governance
-- **Risk ownership:** assigned per risk category.
-- **Escalation thresholds:** defined and tracked.
-- **Issue resolution SLAs:** defined per severity.
-- **Risk/issue dashboards:** linked to executive dashboard.
+- **Risk ownership:** named owners per category.
+- **Escalation thresholds:** defined in escalation matrix.
+- **Issue SLAs:** severity-based response and resolution timelines.
+- **Reporting:** risk/issue dashboards aligned to governance cadence.
 
 ## 11. Quality Assurance
-- **Quality gates:** defined per stage gate.
-- **Deliverable reviews:** checklist and approvals.
-- **Compliance audits:** schedule and evidence storage.
+- **Quality gates:** stage-gate readiness and iteration exit criteria.
+- **Deliverable reviews:** peer review, QA sign-off, stakeholder acceptance.
+- **Compliance audits:** scheduled evidence review and remediation tracking.
 
 ## 12. Document Control
 | Version | Date | Author | Changes |
 | --- | --- | --- | --- |
 |  |  |  |  |
+
+## 13. Governance Review & Improvement
+- **Monthly governance check:** confirm decision and escalation adherence.
+- **Quarterly process review:** optimize forums, reporting, and gate criteria.
+- **Annual governance refresh:** align with strategy and policy changes.
 
 ---
 
@@ -142,6 +194,7 @@ Delivery Squads
 - Decision log (`docs/methodology/hybrid/templates/decision-log.md`).
 - Risk register (`docs/methodology/hybrid/templates/integrated-risk-register.xlsx`).
 - Communications plan (`docs/templates/shared/communications-plan.md`).
+- Change log (`docs/templates/shared/change-log.md`).
 
 ## Completion Checklist
 - [ ] Governance structure and decision rights documented.
