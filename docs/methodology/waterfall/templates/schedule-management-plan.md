@@ -10,14 +10,19 @@ Project Manager, Scheduler, PMO.
 - WBS (`docs/methodology/waterfall/templates/wbs.yaml`).
 - Schedule baseline (`docs/methodology/waterfall/templates/schedule-baseline.xlsx`).
 - Shared schedule plan (`docs/templates/shared/schedule-management-plan.md`).
+- Project schedule template (`docs/templates/shared/project-schedule-template.md`).
 
 ## 1. Scheduling Tools & Techniques
 Describe tools (CPM, critical chain) and modeling assumptions.
 
-## 2. Baseline Approval & Change Control
+## 2. Project Schedule Detail
+Use the project schedule template to document activities, milestones, dependencies, and resource
+loading for the sequential phases. Capture baseline approvals in the schedule baseline file.
+
+## 3. Baseline Approval & Change Control
 Outline baseline approval authority and change thresholds.
 
-## 3. Progress Measurement
+## 4. Progress Measurement
 Define percent complete rules and milestone tracking.
 
 ## Completion Checklist

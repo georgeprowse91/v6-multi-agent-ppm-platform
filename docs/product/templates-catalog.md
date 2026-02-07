@@ -31,6 +31,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Project management plan | Integrate subsidiary management plans. | Agent 09 (Lifecycle & Governance) | [docs/templates/shared/project-management-plan.md](../templates/shared/project-management-plan.md) |
 | Scope management plan | Define scope definition, validation, and control. | Agent 08 (Project Definition) | [docs/templates/shared/scope-management-plan.md](../templates/shared/scope-management-plan.md) |
 | Schedule management plan | Define schedule development and control. | Agent 10 (Schedule & Planning) | [docs/templates/shared/schedule-management-plan.md](../templates/shared/schedule-management-plan.md) |
+| Project schedule template | Capture activity-level schedule detail, milestones, and baselines. | Agent 10 (Schedule & Planning) | [docs/templates/shared/project-schedule-template.md](../templates/shared/project-schedule-template.md) |
 | Cost management plan | Define cost estimation, baseline, and control. | Agent 12 (Financial Management) | [docs/templates/shared/cost-management-plan.md](../templates/shared/cost-management-plan.md) |
 | Quality management plan | Define QA/QC standards and processes. | Agent 14 (Quality Assurance) | [docs/templates/shared/quality-management-plan.md](../templates/shared/quality-management-plan.md) |
 | Resource management plan | Define resource estimation and acquisition. | Agent 11 (Resource & Capacity) | [docs/templates/shared/resource-management-plan.md](../templates/shared/resource-management-plan.md) |

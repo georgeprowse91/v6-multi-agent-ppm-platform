@@ -490,6 +490,15 @@
       "path": "docs/templates/shared/schedule-management-plan.md"
     },
     {
+      "id": "project-schedule-template",
+      "title": "Project Schedule Template",
+      "category": "Schedules",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/project-schedule-template.md"
+    },
+    {
       "id": "scope-management-plan",
       "title": "Scope Management Plan",
       "category": "Plans",
