@@ -19,86 +19,99 @@ Executive Sponsor, Project Manager, PMO Lead, Steering Committee, Finance Partne
 ## Methodology Gate Alignment
 - Waterfall Initiation Gate (`docs/methodology/waterfall/gates.yaml`).
 
-## Required Sections
-- Project overview
-- Problem statement & opportunity
-- Goals & success criteria
-- Scope
-- Deliverables
-- High-level timeline
-- Budget & benefits
-- Stakeholders & governance
-- Risks & mitigations
-- Approval
+## Document Control Information
+| Field | Value |
+| --- | --- |
+| Document title | Project Charter |
+| Project name |  |
+| Document version |  |
+| Prepared by |  |
+| Preparation date |  |
+| Last updated by |  |
+| Last revision date |  |
 
-## 1. Project Overview
-- **Project name:**
-- **Business sponsor:**
-- **Project manager:**
-- **Project manager authority level:** (budget approval, staffing, vendor selection limits)
-- **Start date / target end date:**
-- **Summary schedule:** (major milestones and critical path summary)
-- **Summary budget:** (total funding, contingency)
-- **Strategic alignment:** (growth, efficiency, compliance, customer experience)
+## Executive Summary
+Provide a concise overview of the project purpose, strategic alignment, and expected outcomes.
 
-## 2. Problem Statement & Opportunity
-Describe the business problem or opportunity this project addresses. Include the cost of inaction
-and any regulatory or competitive drivers.
+## 1. Project Definition
+### 1.1 Purpose and Justification
+Describe the business problem or opportunity and why the project is being undertaken.
 
-## 3. Goals & Success Criteria
-List measurable outcomes the project must achieve.
-- **Goal 1:** (metric + target)
-- **Goal 2:** (metric + target)
-- **Success criteria:** (acceptance conditions for close-out)
+### 1.2 Business Case Summary
+Include the value proposition, financial benefits, and expected return on investment.
 
-## 4. Scope
-### Scope Statement
-Provide a clear statement of what the project will deliver.
+### 1.3 Project Objectives (SMART)
+1. 
+2. 
+3. 
+4. 
+5. 
 
-### In Scope
+### 1.4 Project Description
+Provide a detailed scope statement including what is included and explicitly excluded.
+
+## 2. Success Criteria
+Define measurable criteria that determine project success.
+
+## 3. Requirements and Deliverables
+### 3.1 High-Level Requirements
+List key functional and non-functional requirements.
+
+### 3.2 Major Deliverables
+1. 
+2. 
+3. 
+
+## 4. Assumptions and Constraints
+### 4.1 Assumptions
+- 
 - 
 
-### Out of Scope
+### 4.2 Constraints
+- 
 - 
 
-### Assumptions & Constraints
-- **Assumption:**
-- **Constraint:** (budget, time, resource, technology)
-
-## 5. Deliverables
-Summarize the tangible outputs.
-- Deliverable 1
-- Deliverable 2
-
-## 6. High-Level Timeline
-| Phase | Target Start | Target End | Notes |
-| --- | --- | --- | --- |
-| Initiation |  |  |  |
-| Planning |  |  |  |
-| Execution |  |  |  |
-| Monitoring & Control |  |  |  |
-| Closure |  |  |  |
-
-## 7. Budget & Benefits
-- **Estimated budget:**
-- **Funding source:**
-- **Expected benefits:** (financial + non-financial)
-
-## 8. Stakeholders & Governance
-| Role | Name | Responsibilities |
-| --- | --- | --- |
-| Sponsor |  |  |
-| Steering committee |  |  |
-| PMO lead |  |  |
-| Product owner (if applicable) |  |  |
-
-## 9. Risks & Mitigations
-List top risks and proposed mitigations.
-| Risk | Impact | Likelihood | Mitigation |
+## 5. Initial Risks
+| Risk | Impact | Probability | Response Strategy |
 | --- | --- | --- | --- |
 |  |  |  |  |
 
+## 6. Schedule and Budget Summary
+### 6.1 Milestone Schedule
+| Milestone | Target Date |
+| --- | --- |
+|  |  |
+
+### 6.2 Budget Summary
+| Category | Amount | % of Total |
+| --- | --- | --- |
+|  |  |  |
+
+## 7. Stakeholders
+| Stakeholder | Role/Department | Interest/Influence | Engagement Strategy |
+| --- | --- | --- | --- |
+|  |  |  |  |
+
+## 8. Project Organization
+### 8.1 Governance Model
+Describe oversight structure, decision forums, and escalation paths.
+
+### 8.2 Project Team Structure
+List key roles and responsibilities.
+
+## 9. Project Manager Authority
+### 9.1 Budget Authority
+Define spending authority and approval thresholds.
+
+### 9.2 Technical Authority
+Define technical decision rights.
+
+### 9.3 Resource Authority
+Define authority for resource allocation and staffing.
+
 ## 10. Approval
+By signing below, the approvers authorize the project to proceed.
+
 | Approver | Role | Signature | Date |
 | --- | --- | --- | --- |
 |  |  |  |  |

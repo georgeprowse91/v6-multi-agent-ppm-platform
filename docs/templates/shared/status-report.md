@@ -1,8 +1,8 @@
-# Executive Dashboard Status Report
+# Project Performance & Execution Status Report
 
 ## Purpose
-Provide a comprehensive performance dashboard and executive-ready status update covering
-schedule, budget, scope, quality, risk, and value delivery.
+Provide a comprehensive performance monitoring and execution update covering schedule, budget,
+scope, quality, risk, resources, and stakeholder engagement.
 
 ## Audience
 Executive Sponsors, Steering Committee, PMO, Finance Partner, Delivery Leadership.
@@ -12,267 +12,324 @@ Weekly (operational) or Monthly (executive review).
 
 ---
 
-## 1. Report Metadata
+## Document Control Information
 | Field | Value |
 | --- | --- |
+| Document title | Project Performance & Execution Status Report |
 | Project name |  |
-| Reporting period |  |
+| Document version |  |
 | Prepared by |  |
-| Date issued |  |
+| Preparation date |  |
+| Last updated by |  |
+| Last revision date |  |
+| Reporting period |  |
 | Overall health (R/Y/G) |  |
-| Health score (0-100) |  |
 | Escalation contact |  |
-| Next update |  |
 
-## 2. Executive Summary (30–60 seconds)
+---
+
+## Executive Summary
+Provide a concise overview of project performance against baselines, highlighting key
+performance indicators, critical issues, and corrective actions.
+
 - **Overall status:** [On track/At risk/Critical]
-- **Budget status:** $[Spent] of $[Approved] ([%] utilized)
-- **Schedule status:** [Ahead/On track/Behind] by [# days]
-- **Key highlights:**
+- **Schedule performance:** [SPI], [SV], forecast completion date
+- **Cost performance:** [CPI], [CV], forecast completion cost
+- **Key accomplishments:**
   - 
   - 
 - **Critical issues:**
   - 
 
-## 3. Executive Decisions Required
-| Decision | Required by | Impact if delayed | Owner |
-| --- | --- | --- | --- |
-|  |  |  |  |
+---
 
-## 4. Overall Project Health Dashboard
-| Dimension | Status (R/Y/G) | Trend (↗/→/↘) | Comments |
-| --- | --- | --- | --- |
-| Schedule |  |  |  |
-| Budget |  |  |  |
-| Scope |  |  |  |
-| Quality |  |  |  |
-| Risk |  |  |  |
-| Team |  |  |  |
-
-### 4.1 Key Performance Indicators (KPIs)
-| KPI | Target | Actual | Variance | Status |
+## 1. Performance Dashboard
+### 1.1 Key Performance Indicators (KPIs)
+| KPI | Target | Current | Status | Trend |
 | --- | --- | --- | --- | --- |
-| Schedule Performance Index (SPI) | ≥ 1.0 |  |  |  |
-| Cost Performance Index (CPI) | ≥ 1.0 |  |  |  |
-| Budget utilization |  |  |  |  |
-| Scope completion |  |  |  |  |
-| Quality score |  |  |  |  |
-| Team utilization |  |  |  |  |
+| Schedule Performance Index (SPI) |  |  |  |  |
+| Cost Performance Index (CPI) |  |  |  |  |
+| Quality index |  |  |  |  |
+| Stakeholder satisfaction |  |  |  |  |
+| Risk exposure |  |  |  |  |
+| Team productivity |  |  |  |  |
 
-## 5. Financial Performance (CFO Focus)
-### 5.1 Budget Summary
-| Metric | Amount | Variance |
-| --- | --- | --- |
-| Approved budget |  |  |
-| Committed costs |  |  |
-| Actuals to date |  |  |
-| Forecast at completion |  |  |
-| Remaining |  |  |
+### 1.2 Overall Project Health
+- **Status:** [Green / Yellow / Red]
+- **Health assessment summary:**
+  - 
+  - 
 
-### 5.2 Variance Analysis
-| Category | Variance | Driver | Mitigation |
-| --- | --- | --- | --- |
-| Labor |  |  |  |
-| Vendors |  |  |  |
-| Infrastructure |  |  |  |
-| Contingency |  |  |  |
-
-### 5.3 Budget Forecasting
-| Forecast Metric | Value | Status |
-| --- | --- | --- |
-| Estimate at Completion (EAC) |  |  |
-| Estimate to Complete (ETC) |  |  |
-| Variance at Completion (VAC) |  |  |
-| To Complete Performance Index (TCPI) |  |  |
-
-## 6. Schedule Performance (COO Focus)
-### 6.1 Milestone Status
-| Milestone | Baseline Date | Forecast Date | Variance | Status |
-| --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-
-### 6.2 Critical Path & Recovery
-- **Critical path activities:**
-- **Total float:**
-- **Recovery plan:**
-
-### 6.3 Schedule Trend Snapshot
-- **SPI trend (last 4 periods):**
-- **Schedule risk exposure:**
-
-## 7. Scope & Deliverables
-- **Scope changes approved (this period):**
-- **Impact summary:**
-
-| Deliverable | Status | Owner | Notes |
-| --- | --- | --- | --- |
-|  |  |  |  |
-
-## 8. Quality Performance
-| Quality Metric | Target | Actual | Variance | Status |
-| --- | --- | --- | --- | --- |
-| Defect rate |  |  |  |  |
-| Test pass rate |  |  |  |  |
-| Rework hours |  |  |  |  |
-| Customer satisfaction |  |  |  |  |
-
-## 9. Risk & Issue Management
-### 9.1 Top Risks
-| Risk | Probability | Impact | Exposure ($) | Owner | Mitigation Status |
+### 1.3 Performance Trends
+| Metric | 3 Months Ago | 2 Months Ago | Last Month | Current | Trend Analysis |
 | --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |
+| SPI |  |  |  |  |  |
+| CPI |  |  |  |  |  |
+| Quality score |  |  |  |  |  |
+| High risks |  |  |  |  |  |
 
-### 9.2 Critical Issues
-| Issue | Impact | Resolution Plan | Target Date | Owner |
-| --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+---
 
-### 9.3 Compliance Status
-- **Compliance health:** [Compliant/At risk]
-- **Audit items:**
+## 2. Execution Progress Summary
+### 2.1 Current Phase Status
+Describe the current phase, overall progress, and completion percentage.
 
-## 10. Team & Stakeholder Status
-### 10.1 Team Health
-| Indicator | Score | Target | Status |
-| --- | --- | --- | --- |
-| Team satisfaction |  |  |  |
-| Team velocity |  |  |  |
-| Absenteeism rate |  |  |  |
-| Turnover rate |  |  |  |
-
-### 10.2 Stakeholder Engagement
-| Stakeholder Group | Engagement Level | Satisfaction | Communication Frequency | Status |
-| --- | --- | --- | --- | --- |
-| Executive sponsors |  |  |  |  |
-| Business users |  |  |  |  |
-| Technical team |  |  |  |  |
-| External partners |  |  |  |  |
-
-## 11. Business Value Delivered
-| Value Metric | Target | Actual | Trend | Notes |
-| --- | --- | --- | --- | --- |
-| ROI |  |  |  |  |
-| Payback period |  |  |  |  |
-| Customer satisfaction |  |  |  |  |
-| Productivity improvement |  |  |  |  |
-
-**Value Pipeline (Next 12 Months)**
-| Quarter | Expected Value | Key Drivers |
-| --- | --- | --- |
-| Q1 |  |  |
-| Q2 |  |  |
-| Q3 |  |  |
-| Q4 |  |  |
-
-## 12. Issues & Actions Dashboard
-### 12.1 Current Issues
-| Issue ID | Description | Priority | Assigned To | Due Date | Status |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |
-
-### 12.2 Action Items
-| Action ID | Description | Owner | Due Date | Status | Dependencies |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |
-
-## 13. Performance Trends & Forecasting
-### 13.1 Historical Performance
-- **Schedule performance trend:**
-- **Cost performance trend:**
-
-### 13.2 Forecasting
-| Forecast Item | Current Projection | Previous Projection | Change |
-| --- | --- | --- | --- |
-| Completion date |  |  |  |
-| Final budget |  |  |  |
-| Scope delivery |  |  |  |
-| Quality score |  |  |  |
-
-### 13.3 Performance Insights
-- 
-- 
-
-## 14. Look Ahead
-### Next 30 Days
-- 
-- 
-
-### Upcoming Milestones
-- 
-- 
-
-### Strategic Considerations
-- 
-
-## 15. Recommendations
+### 2.2 Key Accomplishments This Period
 1. 
 2. 
 3. 
 
-## 16. Approval
+### 2.3 Work Package Status
+| Work Package | Status | % Complete | Start Date | Planned Finish | Forecast Finish |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+---
+
+## 3. Scope Performance Monitoring
+### 3.1 Scope Baseline Compliance
+- **Original scope items:**
+- **Completed:**
+- **In progress:**
+- **Not started:**
+- **Approved scope changes:**
+
+### 3.2 Scope Change Management
+| Change ID | Description | Impact | Status | Approval Date | Cost Impact | Schedule Impact |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
+
+### 3.3 Deliverable Verification
+- **Deliverables submitted for review:**
+- **Deliverables accepted first time:**
+- **Deliverables requiring rework:**
+- **Average review cycle time:**
+- **Stakeholder satisfaction with deliverables:**
+
+---
+
+## 4. Schedule Performance Monitoring
+### 4.1 Schedule Baseline Analysis
+- **Planned Value (PV):**
+- **Earned Value (EV):**
+- **Schedule Variance (SV):**
+- **Schedule Performance Index (SPI):**
+- **Estimated completion date:**
+- **Critical path float:**
+
+### 4.2 Milestone Performance
+| Milestone | Baseline Date | Current Forecast | Variance | Status | Impact |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 4.3 Critical Path Analysis
+- **Current critical path duration:**
+- **Baseline critical path duration:**
+- **Critical path variance:**
+- **Critical activities requiring attention:**
+  1. 
+  2. 
+
+### 4.4 Schedule Recovery Actions
+1. 
+2. 
+3. 
+
+---
+
+## 5. Cost Performance Monitoring
+### 5.1 Cost Baseline Analysis
+- **Budget at Completion (BAC):**
+- **Planned Value (PV):**
+- **Earned Value (EV):**
+- **Actual Cost (AC):**
+- **Cost Variance (CV):**
+- **Cost Performance Index (CPI):**
+- **Estimate at Completion (EAC):**
+- **Variance at Completion (VAC):**
+
+### 5.2 Budget Performance by Category
+| Cost Category | Budget | Spent to Date | Committed | Remaining | Forecast Total | Variance |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
+
+### 5.3 Cash Flow Analysis
+| Month | Planned Spending | Actual Spending | Variance | Cumulative Variance |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
+### 5.4 Cost Control Actions
+1. 
+2. 
+
+---
+
+## 6. Quality Performance Monitoring
+### 6.1 Quality Metrics Dashboard
+| Quality Metric | Target | Current Period | Previous Period | Trend | Status |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 6.2 Quality Control Results
+| QC Activity | Planned | Completed | Pass Rate | Defects Found | Resolution Rate |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 6.3 Quality Assurance Audit Results
+- **Audits completed:**
+- **Overall compliance score:**
+- **Major findings:**
+- **Minor findings:**
+- **Outstanding action items:**
+
+---
+
+## 7. Risk and Issue Monitoring
+### 7.1 Risk Register Status
+- **Total active risks:**
+- **High priority risks:**
+- **Medium priority risks:**
+- **Low priority risks:**
+- **New risks identified:**
+- **Risks closed/mitigated:**
+- **Total risk exposure:**
+
+### 7.2 Top Risks Requiring Attention
+| Risk ID | Risk Description | Probability | Impact | Risk Score | Owner | Status | Mitigation Progress |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |  |
+
+### 7.3 Issue Management Performance
+- **Active issues:**
+- **Issues resolved this period:**
+- **Average resolution time:**
+- **Issues escalated:**
+- **Issue resolution rate:**
+
+### 7.4 Risk and Issue Trends
+- **Risk identification rate:**
+- **Risk mitigation effectiveness:**
+- **Issue resolution speed:**
+- **Escalation rate:**
+- **Repeat issues:**
+
+---
+
+## 8. Resource Performance Monitoring
+### 8.1 Resource Utilization Analysis
+| Resource Type | Planned Utilization | Actual Utilization | Variance | Efficiency | Issues |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 8.2 Team Performance Metrics
+- **Overall team productivity:**
+- **Task completion rate:**
+- **Quality of work output:**
+- **Team satisfaction score:**
+- **Knowledge transfer effectiveness:**
+
+### 8.3 Resource Constraint Analysis
+1. 
+2. 
+
+---
+
+## 9. Stakeholder Engagement Monitoring
+### 9.1 Stakeholder Satisfaction Metrics
+| Stakeholder Group | Satisfaction Score | Engagement Level | Communication Effectiveness | Issues/Concerns |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
+### 9.2 Communication Effectiveness
+- **Stakeholder meeting attendance:**
+- **Response rate to communications:**
+- **Communication satisfaction score:**
+- **Timeliness of communications:**
+
+### 9.3 Change Readiness Assessment
+- **Overall change readiness score:**
+- **Executive support level:**
+- **Middle management buy-in:**
+- **End user readiness:**
+- **Training completion rate:**
+
+---
+
+## 10. Performance Variance Analysis
+### 10.1 Integrated Performance Analysis
+- **Schedule Performance Index (SPI):**
+- **Cost Performance Index (CPI):**
+- **Quality Performance Index (QPI):**
+- **To Complete Performance Index (TCPI):**
+
+### 10.2 Root Cause Analysis
+1. 
+2. 
+
+### 10.3 Predictive Analysis
+- **Completion date forecast:**
+- **Final cost forecast:**
+- **Quality score projection:**
+- **Risk exposure trend:**
+
+---
+
+## 11. Corrective and Preventive Actions
+### 11.1 Active Corrective Actions
+| Action ID | Issue/Variance | Corrective Action | Owner | Due Date | Status | Effectiveness |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
+
+### 11.2 Preventive Actions Implemented
+| Action ID | Potential Risk | Preventive Action | Owner | Implementation Date | Status |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 11.3 Lessons Learned Integration
+- 
+- 
+
+---
+
+## 12. Recommendations and Next Steps
+### 12.1 Performance Improvement Recommendations
+1. 
+2. 
+
+### 12.2 Management Attention Required
+1. 
+2. 
+
+### 12.3 Monitoring Focus Areas
+1. 
+2. 
+
+---
+
+## 13. Performance Reporting Schedule
+### 13.1 Regular Reporting Cycle
+- **Daily:**
+- **Weekly:**
+- **Monthly:**
+- **Quarterly:**
+
+### 13.2 Exception Reporting Triggers
+- 
+- 
+
+---
+
+## 14. Appendices
+### 14.1 Detailed Performance Charts
+### 14.2 Earned Value Analysis
+### 14.3 Risk Register
+### 14.4 Quality Metrics Database
+
+---
+
+## 15. Approval
 Prepared by:
 Signature: ___________________ Date: ___________
 
 Approved by:
 Signature: ___________________ Date: ___________
-
----
-
-## Appendix A: Slide Deck Structure (Optional)
-| Slide | Title | Owner | Notes |
-| --- | --- | --- | --- |
-| 1 | Executive Summary | PM | 30-second brief with RAG + decisions |
-| 2 | Financial Dashboard | Finance | Budget, forecast, variance drivers |
-| 3 | Schedule Performance | PMO | Milestones, SPI, critical path |
-| 4 | Risk Heat Map | Risk Lead | Top risks + $ exposure |
-| 5 | Business Value | Sponsor | ROI, benefits, pipeline |
-| 6 | Decision Points | PM | Immediate + upcoming decisions |
-
-## Appendix B: PowerPoint Design Guidelines
-**Color scheme (RAG):**
-- **Green:** #22C55E
-- **Yellow:** #EAB308
-- **Red:** #EF4444
-- **Blue:** #3B82F6
-- **Gray:** #6B7280
-
-**Typography**
-- **Headlines:** Calibri Bold 24–32pt
-- **Body:** Calibri Regular 18–20pt
-- **Data/Numbers:** Consolas 16–18pt
-
-**Layout**
-- **Slide size:** 16:9
-- **Margins:** 0.5" all sides
-- **Logo:** Top left
-- **Date/time:** Top right
-- **Contact:** Footer on slides with decisions
-
-## Appendix C: Data Integration & Automation
-**Preferred data sources**
-- PM tools (Jira, Azure DevOps, Monday.com)
-- Financial systems (ERP, budget trackers)
-- Risk register and issue log
-- Collaboration tools (Teams, Slack)
-
-**Update process**
-1. Refresh metrics weekly (Friday).
-2. Validate variance drivers with finance and delivery leads.
-3. PM reviews for executive readiness.
-4. Distribute deck 24 hours before meeting.
-
-**Automation options**
-- Link Excel tables to PowerPoint charts.
-- Embed Power BI visuals for live updates.
-- Use API refresh to update KPI blocks.
-
-## Completion Checklist
-- [ ] Health score, budget, schedule, and risks updated.
-- [ ] Decisions required and owners confirmed.
-- [ ] Financial and schedule variances validated.
-- [ ] Escalation contact verified.
-
-## Acceptance Criteria
-- Executive summary highlights decisions and critical changes.
-- Financial, schedule, and risk sections are data-backed and current.
-- Decisions required are time-bound with named owners.
