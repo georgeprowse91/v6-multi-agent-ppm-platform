@@ -87,7 +87,7 @@ Describe stakeholder groups, influence, and engagement strategy.
 | Risk management plan |  |  | `docs/templates/shared/risk-management-plan.md` |
 | Procurement management plan |  |  | `docs/templates/shared/procurement-management-plan.md` |
 | Stakeholder engagement plan |  |  | `docs/templates/shared/communications-plan.md` |
-| Change management plan |  |  | `docs/templates/shared/change-log.md` |
+| Change management plan |  |  | `docs/templates/shared/change-management-plan.md` |
 
 ## 5. Scope Management (Summary)
 ### 5.1 Scope Definition

@@ -1,132 +1,233 @@
-# Communications Plan
+# Communication Plan Template
 
-## Document Information
-- **Project Name:** [Enter Project Name]
-- **Project Manager:** [Name]
-- **Communications Lead:** [Name]
-- **Date:** [Date]
-- **Version:** 1.0
-- **Last Updated:** [Date]
+## Document Control Information
+| Field | Value |
+| --- | --- |
+| Project/Program Name | [Enter name] |
+| Document Version | 1.0 |
+| Prepared By | [Name, title] |
+| Preparation Date | [YYYY-MM-DD] |
+| Last Updated By | [Name, title] |
+| Last Revision Date | [YYYY-MM-DD] |
+| Approval Status | [Draft/In review/Approved] |
 
-## Purpose
-Define stakeholder communications, cadence, channels, governance, and escalation protocols to
-ensure consistent engagement throughout delivery.
+## Document Purpose
+Define the communication requirements, cadence, roles, and governance for the project/program so
+stakeholders receive the right information, at the right time, in the right format.
 
 ## Audience
-Communications Lead, Project/Program Manager, Stakeholders.
+Project/Program Manager, Communications Lead, PMO, Sponsors, Stakeholders.
 
 ## Inputs
 - Stakeholder register (`docs/templates/shared/stakeholder-register.xlsx`).
 - Stakeholder analysis & mapping (`docs/templates/shared/stakeholder-analysis-and-mapping.md`).
 - Governance cadence and stage gates.
+- Project management plan (`docs/templates/shared/project-management-plan.md`).
 
-## Required Sections
-- Communications objectives and scope
-- Stakeholder segmentation and information needs
-- Cadence, channels, and reporting tiers
-- Key messages and deliverables
-- Escalation matrix and crisis protocols
-- Measurement and continuous improvement
+## Table of Contents
+1. Communication Strategy & Objectives
+2. Stakeholder Communication Matrix
+3. Integrated Meeting Calendar
+4. Communication Methods & Tools
+5. Reporting Requirements
+6. Communication Roles & Responsibilities
+7. Meeting Guidelines & Templates
+8. Escalation & Crisis Communication
+9. Communication Effectiveness Measurement
+10. Plan Maintenance
+11. Approval
+12. Appendices
 
-## 0. Scope & Methodology Fit
-### Scope
-Define the scope of communication coverage (portfolio/program/project, internal/external, geographic regions, and regulatory obligations).
+---
 
-### Methodology Fit
-Select the approach based on delivery model(s). Use one or combine:
+## 1. Communication Strategy & Objectives
+### 1.1 Communication Strategy
+Describe the overall approach, guiding principles, and expectations.
+
+**Example Guidance**
+- Transparency, timeliness, and relevance
+- Audience-specific messaging
+- Consistent format and cadence
+- Feedback loops to improve effectiveness
+
+### 1.2 Communication Objectives
+- **Objective 1:** [e.g., Ensure leadership has clear visibility on value, risk, and schedule]
+- **Objective 2:** [e.g., Align cross-functional teams on dependencies and deliverables]
+- **Objective 3:** [e.g., Build readiness and adoption among end users]
+
+### 1.3 Communication Success Criteria
+| Success Measure | Target | Measurement Method | Owner |
+| --- | --- | --- | --- |
+| Stakeholder satisfaction score |  | Survey |  |
+| Meeting minutes distributed within 24 hours |  | Meeting logs |  |
+| Critical decision turnaround time |  | Decision log |  |
+| Communication-related delays |  | Issue log |  |
+
+### 1.4 Methodology Fit
+Select and describe how communications align with delivery model(s).
 - **Traditional/Waterfall:** Formal reporting, phase gates, structured governance.
-- **Hybrid:** Blend formal governance with adaptive feedback loops.
+- **Hybrid:** Formal governance plus adaptive feedback loops.
 
-Document methodology-specific adjustments in sections 6–13.
+Document methodology-specific adjustments in sections 3–10.
 
-## 1. Communications Objectives
-- **Objective 1:** [e.g., Ensure executive visibility on ROI, risk, and schedule]
-- **Objective 2:** [e.g., Align cross-functional teams on dependencies]
-- **Objective 3:** [e.g., Support end-user adoption and change readiness]
+---
 
-## 2. Stakeholder Segmentation
-### 2.1 Segment Definitions
-| Segment | Description | Engagement Objectives | Information Needs | Owner |
+## 2. Stakeholder Communication Matrix
+### 2.1 Stakeholder Analysis Summary
+Summarize stakeholder groups and their communication needs. Detailed analysis lives in the
+stakeholder analysis template.
+
+### 2.2 Communication Matrix
+| Stakeholder Group | Information Need | Purpose | Format/Method | Frequency | Timing | Sender/Owner | Recipients | Feedback Method | Assets/Links |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Executive Leadership | Status, budget, risks | Decision support | Executive dashboard | Monthly | First Monday | Sponsor/PM | C-suite | Exec meeting | [Dashboard link] |
+| Steering Committee | Progress, issues, decisions | Governance | Status report + meeting | Bi-weekly | Thursday | PM | Committee | Meeting Q&A | [Status report] |
+| Department Managers | Impact, resource needs | Planning | Email + briefing | Monthly | 2nd Tuesday | BA Lead | Dept heads | Manager meeting | [Impact report] |
+| End Users | Changes, training | Readiness | Newsletter + sessions | Monthly | 3rd Monday | Change Lead | End users | Feedback form | [Training plan] |
+| Project Team | Tasks, issues, updates | Execution | Team sync + tool | Weekly | Monday | PM | Team | Standup | [Team board] |
+| Vendors/Partners | Deliverables, integration | Coordination | Vendor meeting | Bi-weekly | Tuesday | Tech Lead | Vendor PMs | Vendor meeting | [Integration plan] |
+
+### 2.3 Communication Preferences
+| Stakeholder Group | Preferred Method | Format Preferences | Time Preferences | Special Considerations |
 | --- | --- | --- | --- | --- |
-| Executive Governance | Strategic decision-makers | Oversight and approvals | Business value, risk, budget |  |
-| Management | Tactical coordinators | Resource alignment | Dependencies, impacts, quality |  |
-| Delivery Teams | Implementation teams | Execution alignment | Work packages, specs, issues |  |
-| End Users/Customers | Solution recipients | Adoption readiness | Benefits, training, timeline |  |
-| External/Regulators | Compliance/partners | Assurance and coordination | Compliance status, milestones |  |
+| Executive Team | In-person or video | Executive summary | Early morning | Avoid Mondays |
+| Technical Team | Collaboration platform | Detailed specs | Afternoon | Minimize disruptions |
+| Remote Workers | Video conference | Visual aids | Business hours | Consider time zones |
 
-### 2.2 Stakeholder Communication Preferences
-| Stakeholder | Preferred Method | Frequency | Detail Level | Best Time |
+---
+
+## 3. Integrated Meeting Calendar
+### 3.1 Regular Meetings
+| Meeting Name | Purpose | Frequency | Day/Time | Duration | Participants | Owner | Location/Platform |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Daily Standup | Status, blockers | Daily | 9:00 AM | 15 min | Core team | Scrum Master | Teams |
+| Project Team Meeting | Planning, issue resolution | Weekly | Monday 10:00 AM | 60 min | Project team | PM | Room/Zoom |
+| Steering Committee | Decisions, governance | Bi-weekly | Thursday 1:00 PM | 60 min | Sponsors | Sponsor | Boardroom/Zoom |
+
+### 3.2 One-time/Special Meetings
+| Meeting Name | Purpose | Timing | Duration | Participants | Owner | Location/Platform | Deliverable |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Project Kickoff | Align on scope and goals | Project start | 120 min | All stakeholders | PM | Auditorium/Zoom | Kickoff deck |
+| Requirements Workshop | Gather requirements | Weeks 3–4 | 2 days | Business + Technical | BA Lead | Training room | Requirements doc |
+| Go/No-Go Review | Final deployment approval | Pre-deployment | 60 min | Steering committee | Sponsor | Boardroom | Approval decision |
+
+### 3.3 Calendar Reference
+Maintain a shared calendar with invitations and reminders for all recurring meetings. Link here:
+[Calendar URL]
+
+---
+
+## 4. Communication Methods & Tools
+### 4.1 Communication Methods
+| Method | Description | Best Used For | Limitations | Considerations |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| Face-to-Face | In-person or video | Complex or sensitive topics | Scheduling overhead | Best for trust building |
+| Email | Written communication | Formal notifications | Overload risk | Clear subject lines |
+| Collaboration Platform | Teams/Slack | Day-to-day coordination | Informal | Define channel etiquette |
+| Intranet/SharePoint | Document repository | Reference materials | Access setup | Permissions governance |
+| Dashboards | Visual reporting | Real-time status | Maintenance required | Update cadence defined |
+| Surveys | Feedback collection | Sentiment tracking | Survey fatigue | Keep concise |
 
-## 3. Cadence & Channels
-| Audience | Channel | Frequency | Owner | Notes |
+### 4.2 Communication Tools
+| Tool | Purpose | Users | Admin/Owner | Training Needs |
 | --- | --- | --- | --- | --- |
-| Executive Governance | Executive dashboard + steering meeting | Monthly/Quarterly |  |  |
-| Management | Status report + coordination session | Bi-weekly |  |  |
-| Delivery Teams | Team sync + documentation review | Weekly |  |  |
-| End Users/Customers | Newsletter + info sessions | Monthly |  |  |
+| Outlook | Email, calendar | All stakeholders | IT | Email etiquette |
+| Teams | Collaboration | Project team | Comms Lead | Channel setup |
+| SharePoint | Document control | All stakeholders | Doc Manager | Check-in/out |
+| Jira | Task tracking | Delivery team | Jira Admin | Basic workflows |
+| Power BI | Dashboards | Leadership | BI Analyst | Dashboard navigation |
 
-### 3.1 Communication Channel Guidance
-- **Formal Reports:** Status reports, dashboards, decision logs.
-- **Meetings:** Steering committees, status reviews, phase gates.
-- **Digital Platforms:** PM tools, document repositories, collaboration suites.
-- **Workshops:** Requirements, training, and change impact sessions.
+---
 
-## 4. Key Messages
-| Topic | Message Summary | Timing | Assets |
-| --- | --- | --- | --- |
-| Business Value | [ROI, benefits, value delivery] | [Monthly] | [Dashboard, summary] |
-| Schedule & Milestones | [Critical path, gate status] | [Bi-weekly] | [Plan, timeline] |
-| Risk & Issues | [Top risks, mitigation] | [Bi-weekly] | [Risk log, decisions] |
-| Change & Adoption | [Training, change impacts] | [Monthly] | [Change materials] |
+## 5. Reporting Requirements
+### 5.1 Regular Reports
+| Report | Purpose | Audience | Frequency | Format | Owner | Distribution | Template |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Project Status Report | Status update | Steering Committee | Bi-weekly | Slides | PM | Email/meeting | `docs/templates/shared/status-report.md` |
+| Executive Dashboard | Metrics | Executive leadership | Monthly | PDF | Sponsor | Email | [Dashboard link] |
+| Risk & Issue Log | Risk tracking | Project team | Weekly | Spreadsheet | Risk Manager | SharePoint | `docs/templates/shared/risk-report.md` |
 
-## 5. Escalation Principles
-### When to Escalate
-- Impact exceeds scope, budget, or schedule thresholds.
-- Decisions exceed current authority limits.
-- Critical risks or compliance concerns emerge.
-- Cross-functional conflicts block progress.
+### 5.2 Ad-hoc/Special Reports
+| Report | Trigger | Audience | Format | Owner | Turnaround | Approval Required |
+| --- | --- | --- | --- | --- | --- | --- |
+| Escalation Report | Critical issue | Exec Sponsor | Email + meeting | PM | 24 hours | Sponsor |
+| Audit Response | Audit request | Compliance | Formal report | Compliance Lead | As specified | Yes |
+| Stakeholder Impact Analysis | Major change | Steering Committee | Slides | BA | 5–10 days | PM |
 
-### When Not to Escalate
-- Routine operational issues within team authority.
-- Minor delays not affecting critical milestones.
-- Issues with clear, documented resolution paths.
+### 5.3 Report Template Location
+Reference the approved repository path for each report template and enforce version control.
 
-## 6. Escalation Levels
-| Level | Authority | Scope | Escalation Criteria | Response Time | Resolution Target |
-| --- | --- | --- | --- | --- | --- |
-| Level 1 | Team Lead | Daily operations | Minor blockers, local conflicts | 4 hours | 24 hours |
-| Level 2 | Project Manager | Cross-team issues | Budget variance >5%, schedule >1 week | 2 hours | 48 hours |
-| Level 3 | Sponsor / Senior Mgmt | Strategic impacts | Budget variance >15%, schedule >1 month | 4 hours | 5 business days |
-| Level 4 | Executive Committee | Project viability | Regulatory, legal, major org impact | 24 hours | 10 business days |
+---
 
-**Contact Information**
-| Level | Primary Contact | Backup Contact | Preferred Channel |
-| --- | --- | --- | --- |
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
+## 6. Communication Roles & Responsibilities
+### 6.1 Key Roles
+| Role | Communication Responsibilities |
+| --- | --- |
+| Project Sponsor | Communicates vision, approves key communications, chairs steering meetings |
+| Project Manager | Owns the plan, leads status updates, escalates issues |
+| Communications Lead | Crafts messaging, manages channels, tracks effectiveness |
+| Change Manager | Change/adoption communications, feedback collection |
+| Technical Lead | Technical updates, vendor coordination |
+| Business Analyst Lead | Requirements communication and stakeholder alignment |
 
-## 7. Escalation Process
-1. Document the issue, impact, and attempted resolution.
-2. Identify appropriate escalation level.
-3. Submit escalation request with supporting evidence.
-4. Notify stakeholders and log in issue tracker.
-5. Track response and resolution.
+### 6.2 RACI for Communication Activities
+| Activity | Sponsor | PM | Comms Lead | Change Mgr | Tech Lead | BA Lead |
+| --- | --- | --- | --- | --- | --- | --- |
+| Communication plan development | A | R | C | C | C | C |
+| Status report creation | I | A/R | C | I | C | C |
+| Executive updates | A/R | R | C | I | I | I |
+| Requirements communications | I | A | C | I | C | R |
+| End-user communications | A | C | R | R | I | C |
+| Meeting minutes | I | A | R | R | R | R |
 
-**Escalation Readiness Checklist**
-- [ ] Issue and impact documented.
-- [ ] Resolution attempts recorded.
-- [ ] Supporting artifacts attached.
-- [ ] Escalation level confirmed.
+---
 
-## 8. Escalation Request Template
+## 7. Meeting Guidelines & Templates
+### 7.1 Meeting Guidelines
+**Preparation**
+- Distribute agenda 24 hours before the meeting.
+- Share required pre-reads 48 hours in advance.
+- Assign timekeeper and note-taker.
+
+**During the Meeting**
+- Start and end on time.
+- Document decisions, actions, and owners.
+- Capture unresolved issues for follow-up.
+
+**After the Meeting**
+- Distribute minutes within 24 hours.
+- Track action items to closure.
+- Store artifacts in the repository.
+
+### 7.2 Meeting Templates
+Use the shared meeting templates and agile ceremony templates:
+- `docs/templates/shared/meeting-templates.md`
+- `docs/methodology/agile/templates/daily-standup.md`
+- `docs/methodology/agile/templates/sprint-plan.md`
+- `docs/methodology/agile/templates/sprint-review.md`
+- `docs/methodology/agile/templates/retro-notes.md`
+
+---
+
+## 8. Escalation & Crisis Communication
+### 8.1 Escalation Levels
+| Level | Authority | Criteria | Response Time | Resolution Target |
+| --- | --- | --- | --- | --- |
+| Level 1 | Team Lead | Minor blockers | 4 hours | 24 hours |
+| Level 2 | Project Manager | Cross-team issues | 2 hours | 48 hours |
+| Level 3 | Sponsor/Senior Mgmt | Strategic impacts | 4 hours | 5 business days |
+| Level 4 | Executive Committee | Regulatory/critical | Immediate | 10 business days |
+
+### 8.2 Escalation Triggers
+- Budget variance >10% of approved budget.
+- Schedule delay >2 weeks on critical path.
+- Scope changes impacting major functionality.
+- Compliance, security, or legal issues.
+
+### 8.3 Escalation Request Template
 - **Escalation ID:**
 - **Date:**
 - **Submitted by:**
-- **Escalation level:**
 - **Priority:** [High/Medium/Low]
 - **Issue summary:**
 - **Impact assessment:** (budget, schedule, scope, quality)
@@ -136,181 +237,58 @@ Document methodology-specific adjustments in sections 6–13.
 - **Requested decision date:**
 - **Stakeholders affected:**
 
-## 9. Issue Categories & Thresholds
-**Budget Issues**
-| Variance | Escalation Level | Response Time |
-| --- | --- | --- |
-| < 5% | Level 1–2 | 24 hours |
-| 5–15% | Level 2–3 | 48 hours |
-| > 15% | Level 3–4 | 72 hours |
+### 8.4 Crisis Communication Protocol
+| Crisis Level | Response Time | Approval Required | Communication Method |
+| --- | --- | --- | --- |
+| Level 1 - Low | 4 hours | PM | Email notification |
+| Level 2 - Medium | 2 hours | Sponsor | Email + phone call |
+| Level 3 - High | 1 hour | Sponsor + executive | All channels |
+| Level 4 - Critical | 30 minutes | Executive team | Emergency protocol |
 
-**Schedule Issues**
-| Delay | Escalation Level | Response Time |
-| --- | --- | --- |
-| < 1 week | Level 1–2 | 24 hours |
-| 1–4 weeks | Level 2–3 | 48 hours |
-| > 1 month | Level 3–4 | 72 hours |
+---
 
-**Quality Issues**
-| Severity | Escalation Level | Response Time |
-| --- | --- | --- |
-| Low | Level 1 | 4 hours |
-| Medium | Level 2 | 2 hours |
-| High | Level 3 | 1 hour |
-| Critical | Level 4 | Immediate |
+## 9. Communication Effectiveness Measurement
+### 9.1 KPIs
+| Metric | Target | Measurement Method | Review Frequency |
+| --- | --- | --- | --- |
+| Email response rate | >90% | Email tracking | Monthly |
+| Meeting attendance | >85% | Meeting logs | Monthly |
+| Stakeholder satisfaction | >4.0/5 | Survey | Quarterly |
+| Timeliness of updates | >90% on time | Delivery tracking | Monthly |
 
-**Risk Issues**
-| Risk Level | Escalation Level | Response Time |
-| --- | --- | --- |
-| Low | Level 1–2 | 48 hours |
-| Medium | Level 2–3 | 24 hours |
-| High | Level 3–4 | 4 hours |
-| Critical | Level 4 | Immediate |
+### 9.2 Feedback & Improvement
+- Quarterly stakeholder surveys.
+- Post-meeting feedback on value and clarity.
+- Communication audit after phase gates.
 
-## 10. Communication Templates
-### Escalation Notification Email
-```
-Subject: ESCALATION - [Project Name] - [Issue Summary]
+---
 
-Priority: [High/Medium/Low]
-Escalation Level: [Level]
-Issue ID: [ID]
+## 10. Plan Maintenance
+### 10.1 Review & Update Cadence
+- **Monthly:** Update matrix based on changes.
+- **Quarterly:** Comprehensive review with stakeholders.
+- **Phase Gate:** Update after major milestones.
 
-ISSUE SUMMARY:
-[Brief description]
+### 10.2 Lessons Learned
+Capture communication successes/failures and apply improvements in future phases.
 
-IMPACT:
-- Budget: [Impact]
-- Schedule: [Impact]
-- Quality: [Impact]
+---
 
-URGENCY:
-[Why immediate attention is needed]
+## 11. Approval
+| Name | Title | Signature | Date |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
-ACTION REQUIRED:
-[Decision/action needed]
+---
 
-CONTACT:
-[Escalator name and contact information]
-```
+## 12. Appendices
+### Appendix A: Revision History
+| Version | Date | Author | Description |
+| --- | --- | --- | --- |
+| 0.1 |  |  | Initial draft |
+| 1.0 |  |  | Approved |
 
-### Resolution Notification Email
-```
-Subject: RESOLVED - [Project Name] - [Issue Summary]
-
-Issue ID: [ID]
-Resolution Date: [Date]
-Resolution Time: [Duration from escalation]
-
-RESOLUTION:
-[What was decided/implemented]
-
-IMPACT:
-[Final impact to project]
-
-NEXT STEPS:
-[Follow-up actions required]
-```
-
-## 11. Communication Calendar
-| Date | Audience | Topic | Channel | Owner |
-| --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-
-## 12. Traditional/Waterfall Communication Framework
-### 12.1 Formal Reporting Tiers
-**Tier 1: Executive Reporting**
-- **Frequency:** Monthly
-- **Format:** Executive dashboard + formal presentation
-- **Participants:** Executive sponsors, steering committee
-- **Content:** Health scorecard, budget/schedule variance, risks, decisions required
-
-**Tier 2: Management Coordination**
-- **Frequency:** Bi-weekly
-- **Format:** Status presentation + working session
-- **Participants:** Functional managers, PMO
-- **Content:** Resource utilization, dependencies, change requests, quality metrics
-
-**Tier 3: Team Coordination**
-- **Frequency:** Weekly
-- **Format:** Team meeting + documentation review
-- **Participants:** Delivery teams
-- **Content:** Work package status, issue resolution, QA results
-
-**Tier 4: Stakeholder Engagement**
-- **Frequency:** Monthly
-- **Format:** Newsletter + information sessions
-- **Participants:** End users, customers, community
-- **Content:** Progress highlights, upcoming changes, training, FAQs
-
-### 12.2 Escalation Trigger Criteria
-- **Budget variance:** >10% of approved budget
-- **Schedule delay:** >2 weeks behind critical path
-- **Scope changes:** Major functionality modifications
-- **Quality issues:** Critical defects affecting deliverables
-
-## 13. Hybrid Communication Framework
-### 13.1 Integration Principles
-- **Transparency with Structure:** Formal governance + agile visibility.
-- **Planned and Emergent:** Scheduled communications + responsive interactions.
-- **Documentation and Demonstration:** Reports + working solution demos.
-
-### 13.2 Integrated Cadence
-- **Strategic (Quarterly):** Formal governance with agile insights.
-- **Tactical (Monthly):** Structured collaboration with adaptive elements.
-- **Operational (Weekly/Bi-weekly):** Hybrid of status reporting and agile ceremonies.
-- **Continuous Engagement:** Flexible feedback sessions and user workshops.
-
-### 13.3 Cross-Methodology Integration
-- Unified dashboards showing traditional and agile metrics.
-- Joint demonstrations and phase-gate reviews.
-- Shared escalation and risk management process.
-
-## 14. Communication Effectiveness Measurement
-### 14.1 KPIs
-- **Engagement:** Attendance rates, response times, feedback quality.
-- **Quality:** Accuracy of communications, satisfaction scores.
-- **Outcomes:** Decision speed, escalation rate, adoption readiness.
-
-### 14.2 Continuous Improvement
-- **Monthly reviews:** Adjust cadence and content.
-- **Quarterly assessments:** Stakeholder surveys and communication audits.
-- **Annual review:** Strategy refresh and tool evaluation.
-
-## 15. Tools and Templates
-### 15.1 Communication Tools
-- Project management platforms (e.g., Microsoft Project, Jira, Smartsheet).
-- Collaboration and documentation (e.g., Teams, SharePoint, Confluence).
-- Reporting and analytics (e.g., Power BI, Tableau, Excel).
-
-### 15.2 Template Library
-- Executive dashboard status report (`docs/templates/shared/status-report.md`).
-- Decision log (`docs/methodology/hybrid/templates/decision-log.md`).
-- Change request (`docs/templates/shared/change-request.md`).
-
-## 16. Implementation Checklist
-### Phase 1: Planning and Setup
-- [ ] Complete stakeholder segmentation.
-- [ ] Define communication requirements by group.
-- [ ] Establish cadence, channels, and owners.
-- [ ] Confirm escalation thresholds and contacts.
-
-### Phase 2: Launch and Execution
-- [ ] Conduct kickoff communications.
-- [ ] Begin reporting cycles.
-- [ ] Monitor communication effectiveness.
-
-### Phase 3: Ongoing Management
-- [ ] Update stakeholder needs and preferences.
-- [ ] Maintain escalation readiness.
-- [ ] Capture lessons learned.
-
-## Completion Checklist
-- [ ] Stakeholder segments aligned with register.
-- [ ] Cadence and channels agreed.
-- [ ] Escalation levels and contacts validated.
-- [ ] Messages align with release and governance milestones.
-
-## Acceptance Criteria
-- Communications plan identifies owners and timing for all stakeholder updates.
-- Escalation paths are defined, documented, and approved.
+### Appendix B: References
+- Organizational communication standards.
+- Project management plan (`docs/templates/shared/project-management-plan.md`).
+- Stakeholder analysis & mapping (`docs/templates/shared/stakeholder-analysis-and-mapping.md`).

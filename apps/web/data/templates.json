@@ -499,6 +499,33 @@
       "path": "docs/templates/shared/resource-management-plan.md"
     },
     {
+      "id": "communications-plan",
+      "title": "Communication Plan",
+      "category": "Plans",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/communications-plan.md"
+    },
+    {
+      "id": "change-management-plan",
+      "title": "Change Management Plan",
+      "category": "Plans",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/change-management-plan.md"
+    },
+    {
+      "id": "executive-communication-automation",
+      "title": "Executive Communication Automation",
+      "category": "Plans",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/executive-communication-automation.md"
+    },
+    {
       "id": "schedule-management-plan",
       "title": "Schedule Management Plan",
       "category": "Plans",
