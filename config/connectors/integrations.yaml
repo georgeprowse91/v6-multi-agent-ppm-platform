@@ -169,6 +169,31 @@ teams:
     notifications: true
     cards: true
 
+m365:
+  enabled: false
+  base_url: "${M365_API_URL}"
+  auth:
+    type: "oauth2"
+    tenant_id: "${M365_TENANT_ID}"
+    client_id: "${M365_CLIENT_ID}"
+    client_secret: "${M365_CLIENT_SECRET}"
+    refresh_token: "${M365_REFRESH_TOKEN}"
+    scopes: "${M365_SCOPES}"
+    app_object_id: "${M365_APP_OBJECT_ID}"
+    service_principal_object_id: "${M365_SERVICE_PRINCIPAL_OBJECT_ID}"
+    application_id_uri: "${M365_APPLICATION_ID_URI}"
+  workloads:
+    teams: false
+    exchange: false
+    sharepoint: false
+    planner: false
+    onedrive: false
+    power_bi: false
+    viva: false
+  features:
+    use_graph_beta: false
+    enable_delta_sync: false
+
 outlook:
   enabled: false
   base_url: "${OUTLOOK_API_URL}"

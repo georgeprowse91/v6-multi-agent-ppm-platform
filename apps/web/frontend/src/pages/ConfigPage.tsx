@@ -216,6 +216,12 @@ export function ConfigPage({ type }: ConfigPageProps) {
     const customFields = connector.config_fields.reduce<Record<string, unknown>>(
       (acc, field) => {
         const value = values[field.name];
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            acc[field.name] = value;
+          }
+          return acc;
+        }
         if (value !== undefined && value !== '') {
           acc[field.name] = value;
         }
@@ -567,6 +573,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                       label: field.label,
                       type: toConfigFieldType(field.type),
                       required: field.required,
+                      options: field.options,
                     })),
                   ];
 
