@@ -104,7 +104,7 @@ Connector configuration and sync defaults.
 | `<connector>.enabled` | Enable the connector instance. |
 | `<connector>.base_url` / `<connector>.instance_url` | Base URL for API calls. |
 | `<connector>.auth.*` | Authentication type and credential fields. |
-| `<connector>.mcp.*` | Optional MCP server block (`server_id`, `server_url`, `client_id`, `client_secret`, `tools`) for MCP routing defaults. |
+| `<connector>.mcp.*` | Optional MCP server block (`server_id`, `server_url`, `client_id`, `client_secret`, `auth_scopes`, `tool_map`, `tools`) for MCP routing defaults. |
 | `<connector>.sync.*` | Sync cadence (`interval_minutes`), entities, and enablement. |
 | `<connector>.field_mapping.*` | Canonical → source field overrides. |
 | `<connector>.features.*` | Optional features such as notifications or interactive messages. |
@@ -115,7 +115,7 @@ Connector configuration and sync defaults.
 
 ## MCP connectors
 
-MCP-enabled connectors can be configured to route requests through an MCP server instead of calling the upstream API directly. Each connector in `config/connectors/integrations.yaml` now includes an optional `mcp` block with defaults like `server_id: mcp_<connector>`, `server_url: https://mcp.example.com/<connector>`, and a starter `tools` map (for example `projects` and `work_items`). Add the MCP server settings in `.env` and set the matching `<CONNECTOR>_PREFER_MCP=true` flag when you want the connector runtime to prefer MCP. Most MCP servers use OAuth client credentials, so provide the MCP client ID and secret when required by the connector.
+MCP-enabled connectors can be configured to route requests through an MCP server instead of calling the upstream API directly. Each connector in `config/connectors/integrations.yaml` now includes an optional `mcp` block with defaults like `server_id: mcp_<connector>`, `server_url: https://mcp.example.com/<connector>`, `auth_scopes` for OAuth-backed MCP servers, a `tool_map` for canonical → MCP tool routing, and a starter `tools` map (for example `projects` and `work_items`). Add the MCP server settings in `.env` and set the matching `<CONNECTOR>_PREFER_MCP=true` flag when you want the connector runtime to prefer MCP. Most MCP servers use OAuth client credentials, so provide the MCP client ID and secret when required by the connector.
 
 | Connector ID | MCP server URL env var | OAuth MCP credentials (if required) | Notes |
 | --- | --- | --- | --- |

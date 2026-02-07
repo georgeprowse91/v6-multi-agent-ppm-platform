@@ -10,6 +10,10 @@ planview:
     server_url: "https://mcp.example.com/planview"
     client_id: "${PLANVIEW_MCP_CLIENT_ID}"
     client_secret: "${PLANVIEW_MCP_CLIENT_SECRET}"
+    auth_scopes: "${PLANVIEW_MCP_SCOPE}"
+    tool_map:
+      list_projects: "planview.listProjects"
+      create_work_item: "planview.createWorkItem"
     tools:
       projects: "projects"
       work_items: "work_items"
@@ -43,6 +47,10 @@ clarity:
     server_url: "https://mcp.example.com/clarity"
     client_id: "${CLARITY_MCP_CLIENT_ID}"
     client_secret: "${CLARITY_MCP_CLIENT_SECRET}"
+    auth_scopes: "${CLARITY_MCP_SCOPE}"
+    tool_map:
+      list_projects: "clarity.listProjects"
+      create_work_item: "clarity.createWorkItem"
     tools:
       projects: "projects"
       work_items: "work_items"
@@ -72,6 +80,8 @@ jira:
     server_url: "https://mcp.example.com/jira"
     client_id: "${JIRA_MCP_CLIENT_ID}"
     client_secret: "${JIRA_MCP_CLIENT_SECRET}"
+    auth_scopes: "${JIRA_MCP_SCOPE}"
+    tool_map: {}
     tools:
       projects: "projects"
       issues: "work_items"
@@ -107,6 +117,8 @@ azure_devops:
     server_url: "https://mcp.example.com/azure_devops"
     client_id: "${AZURE_DEVOPS_MCP_CLIENT_ID}"
     client_secret: "${AZURE_DEVOPS_MCP_CLIENT_SECRET}"
+    auth_scopes: "${AZURE_DEVOPS_MCP_SCOPE}"
+    tool_map: {}
     tools:
       projects: "projects"
       work_items: "work_items"
@@ -134,6 +146,8 @@ sap:
     server_url: "https://mcp.example.com/sap"
     client_id: "${SAP_MCP_CLIENT_ID}"
     client_secret: "${SAP_MCP_CLIENT_SECRET}"
+    auth_scopes: "${SAP_MCP_SCOPE}"
+    tool_map: {}
     tools:
       projects: "projects"
       cost_centers: "cost_centers"
@@ -160,6 +174,8 @@ workday:
     server_url: "https://mcp.example.com/workday"
     client_id: "${WORKDAY_MCP_CLIENT_ID}"
     client_secret: "${WORKDAY_MCP_CLIENT_SECRET}"
+    auth_scopes: "${WORKDAY_MCP_SCOPE}"
+    tool_map: {}
     tools:
       workers: "workers"
       cost_centers: "cost_centers"
@@ -188,6 +204,11 @@ slack:
     server_url: "https://mcp.example.com/slack"
     client_id: "${SLACK_MCP_CLIENT_ID}"
     client_secret: "${SLACK_MCP_CLIENT_SECRET}"
+    auth_scopes: "${SLACK_MCP_SCOPE}"
+    tool_map:
+      list_projects: "slack.listChannels"
+      send_message: "slack.postMessage"
+      list_users: "slack.listUsers"
     tools:
       channels: "channels"
       messages: "messages"
@@ -217,6 +238,11 @@ teams:
     server_url: "https://mcp.example.com/teams"
     client_id: "${TEAMS_MCP_CLIENT_ID}"
     client_secret: "${TEAMS_MCP_CLIENT_SECRET}"
+    auth_scopes: "${TEAMS_MCP_SCOPE}"
+    tool_map:
+      list_projects: "teams.listTeams"
+      send_message: "teams.postMessage"
+      list_channels: "teams.listChannels"
     tools:
       teams: "teams"
       channels: "channels"
@@ -273,6 +299,8 @@ outlook:
     server_url: "https://mcp.example.com/outlook"
     client_id: "${OUTLOOK_MCP_CLIENT_ID}"
     client_secret: "${OUTLOOK_MCP_CLIENT_SECRET}"
+    auth_scopes: "${OUTLOOK_MCP_SCOPE}"
+    tool_map: {}
     tools:
       messages: "messages"
       calendars: "calendars"
@@ -300,6 +328,8 @@ google_calendar:
     server_url: "https://mcp.example.com/google_calendar"
     client_id: "${GOOGLE_CALENDAR_MCP_CLIENT_ID}"
     client_secret: "${GOOGLE_CALENDAR_MCP_CLIENT_SECRET}"
+    auth_scopes: "${GOOGLE_CALENDAR_MCP_SCOPE}"
+    tool_map: {}
     tools:
       calendars: "calendars"
       events: "events"
@@ -327,6 +357,8 @@ smartsheet:
     server_url: "https://mcp.example.com/smartsheet"
     client_id: "${SMARTSHEET_MCP_CLIENT_ID}"
     client_secret: "${SMARTSHEET_MCP_CLIENT_SECRET}"
+    auth_scopes: "${SMARTSHEET_MCP_SCOPE}"
+    tool_map: {}
     tools:
       sheets: "sheets"
       rows: "rows"
@@ -353,6 +385,8 @@ sharepoint:
     server_url: "https://mcp.example.com/sharepoint"
     client_id: "${SHAREPOINT_MCP_CLIENT_ID}"
     client_secret: "${SHAREPOINT_MCP_CLIENT_SECRET}"
+    auth_scopes: "${SHAREPOINT_MCP_SCOPE}"
+    tool_map: {}
     tools:
       sites: "sites"
       documents: "documents"
@@ -376,6 +410,8 @@ salesforce:
     server_url: "https://mcp.example.com/salesforce"
     client_id: "${SALESFORCE_MCP_CLIENT_ID}"
     client_secret: "${SALESFORCE_MCP_CLIENT_SECRET}"
+    auth_scopes: "${SALESFORCE_MCP_SCOPE}"
+    tool_map: {}
     tools:
       objects: "objects"
       opportunities: "opportunities"
@@ -404,6 +440,8 @@ azure_communication_services:
     server_url: "https://mcp.example.com/azure_communication_services"
     client_id: "${AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_ID}"
     client_secret: "${AZURE_COMMUNICATION_SERVICES_MCP_CLIENT_SECRET}"
+    auth_scopes: "${AZURE_COMMUNICATION_SERVICES_MCP_SCOPE}"
+    tool_map: {}
     tools:
       sms: "sms"
       email: "email"
@@ -430,6 +468,8 @@ twilio:
     server_url: "https://mcp.example.com/twilio"
     client_id: "${TWILIO_MCP_CLIENT_ID}"
     client_secret: "${TWILIO_MCP_CLIENT_SECRET}"
+    auth_scopes: "${TWILIO_MCP_SCOPE}"
+    tool_map: {}
     tools:
       sms: "sms"
       calls: "calls"
@@ -456,6 +496,8 @@ notification_hubs:
     server_url: "https://mcp.example.com/notification_hubs"
     client_id: "${AZURE_NOTIFICATION_HUBS_MCP_CLIENT_ID}"
     client_secret: "${AZURE_NOTIFICATION_HUBS_MCP_CLIENT_SECRET}"
+    auth_scopes: "${AZURE_NOTIFICATION_HUBS_MCP_SCOPE}"
+    tool_map: {}
     tools:
       notifications: "notifications"
       registrations: "registrations"
@@ -499,6 +541,11 @@ asana:
     server_url: "https://mcp.example.com/asana"
     client_id: "${ASANA_MCP_CLIENT_ID}"
     client_secret: "${ASANA_MCP_CLIENT_SECRET}"
+    auth_scopes: "${ASANA_MCP_SCOPE}"
+    tool_map:
+      list_projects: "asana.listProjects"
+      create_work_item: "asana.createTask"
+      send_message: "asana.addComment"
     tools:
       projects: "projects"
       tasks: "work_items"
