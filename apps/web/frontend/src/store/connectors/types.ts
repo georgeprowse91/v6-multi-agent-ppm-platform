@@ -70,9 +70,10 @@ export type ConnectionTestStatus =
  */
 export interface ConfigField {
   name: string;
-  type: 'string' | 'url' | 'number' | 'boolean';
+  type: 'string' | 'url' | 'number' | 'boolean' | 'select' | 'multiselect';
   required: boolean;
   label: string;
+  options?: string[];
 }
 
 /**
