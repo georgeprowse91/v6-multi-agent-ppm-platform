@@ -5,6 +5,11 @@ This template defines the formal authorization for a hybrid project that blends 
 (stage-gate) governance with iterative delivery. Adapt sections based on project size,
 regulatory posture, and delivery complexity.
 
+## Usage Instructions
+1. Facilitate a charter workshop with sponsors, delivery leads, and key stakeholders.
+2. Confirm the hybrid delivery rationale and integration points before approval.
+3. Review this charter at each stage gate or major release milestone.
+
 ## Document Control
 | Item | Details |
 | --- | --- |
@@ -15,6 +20,8 @@ regulatory posture, and delivery complexity.
 | Prepared by |  |
 | Approved by |  |
 | Approval date |  |
+
+---
 
 ## Table of Contents
 1. Executive Summary
@@ -27,7 +34,7 @@ regulatory posture, and delivery complexity.
 8. Success Criteria & Metrics
 9. Flexible Planning Framework
 10. Risk & Opportunity Management
-11. Team Structure
+11. Team Structure & Operating Model
 12. Budget & Resources
 13. Stakeholders
 14. Assumptions & Constraints
@@ -72,11 +79,11 @@ Summarize the project purpose, expected outcomes, and why a hybrid approach is r
 - 
 
 ### 3.2 Project Objectives (SMART)
-1. 
-2. 
-3. 
-4. 
-5. 
+1.
+2.
+3.
+4.
+5.
 
 ## 4. Scope & Boundaries
 ### 4.1 In Scope
@@ -211,7 +218,7 @@ Describe governance forums, cadence, and decision rights. Align with the governa
 | --- | --- | --- | --- | --- | --- | --- |
 |  |  |  |  |  |  |  |
 
-## 11. Team Structure
+## 11. Team Structure & Operating Model
 ### 11.1 Team Organization
 Describe how traditional and agile teams interface.
 
@@ -221,8 +228,20 @@ Describe how traditional and agile teams interface.
 |  |  |  |  |
 |  |  |  |  |
 
-### 11.3 Collaboration Framework
-- 
+### 11.3 Working Agreements
+- **Communication cadence:**
+- **Escalation paths:**
+- **Decision rights:**
+- **Quality standards:**
+
+### 11.4 RACI Reference
+Complete the RACI assignments using the shared template:
+`docs/templates/shared/raci-matrix.md`.
+
+### 11.5 Team Development & Recognition
+- Skill development priorities
+- Cross-training plans
+- Recognition practices
 
 ## 12. Budget & Resources
 ### 12.1 Total Budget
@@ -298,6 +317,7 @@ By signing below, the undersigned approve this charter and authorize the project
 - [ ] Governance cadence and decision forums defined.
 - [ ] Scope boundaries and constraints documented.
 - [ ] High-level milestones and iterations identified.
+- [ ] RACI assignments completed.
 - [ ] Sponsor approval recorded.
 
 ## Acceptance Criteria

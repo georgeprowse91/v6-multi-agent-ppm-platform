@@ -2,10 +2,17 @@
 
 ## Purpose
 Formalize why the project exists, the outcomes it must deliver, and who is accountable. This
-charter is approved before detailed planning begins.
+charter is approved before detailed planning begins and serves as the team’s operating
+agreement for delivery.
 
 ## Audience
 Executive Sponsor, Project Manager, PMO Lead, Steering Committee, Finance Partner.
+
+## Usage Instructions
+1. Build the charter collaboratively with core team members and key stakeholders.
+2. Validate objectives, scope, and success criteria with sponsors before approval.
+3. Review and update the charter at major phase gates or when scope changes.
+4. Use the charter during onboarding to align new team members.
 
 ## Inputs
 - Demand intake (`docs/templates/shared/demand-intake-request.md`).
@@ -19,64 +26,109 @@ Executive Sponsor, Project Manager, PMO Lead, Steering Committee, Finance Partne
 ## Methodology Gate Alignment
 - Waterfall Initiation Gate (`docs/methodology/waterfall/gates.yaml`).
 
+---
+
 ## Document Control Information
 | Field | Value |
 | --- | --- |
 | Document title | Project Charter |
 | Project name |  |
-| Document version |  |
+| Project ID |  |
+| Version |  |
 | Prepared by |  |
 | Preparation date |  |
 | Last updated by |  |
 | Last revision date |  |
+| Approved by |  |
+| Approval date |  |
 
-## Executive Summary
-Provide a concise overview of the project purpose, strategic alignment, and expected outcomes.
+---
 
-## 1. Project Definition
-### 1.1 Purpose and Justification
+## 1. Project Purpose & Mission
+### 1.1 Mission Statement
+Provide one sentence describing the project’s purpose and intended outcomes.
+
+### 1.2 Business Justification
 Describe the business problem or opportunity and why the project is being undertaken.
 
-### 1.2 Business Case Summary
-Include the value proposition, financial benefits, and expected return on investment.
+### 1.3 Strategic Alignment
+List the enterprise goals, OKRs, or portfolio themes supported by this project.
 
-### 1.3 Project Objectives (SMART)
-1. 
-2. 
-3. 
-4. 
-5. 
+---
 
-### 1.4 Project Description
-Provide a detailed scope statement including what is included and explicitly excluded.
+## 2. Objectives & Success Criteria
+### 2.1 Project Objectives (SMART)
+1.
+2.
+3.
+4.
+5.
 
-## 2. Success Criteria
-Define measurable criteria that determine project success.
+### 2.2 Success Criteria
+| Criterion | Target | Measurement Method |
+| --- | --- | --- |
+|  |  |  |
 
-## 3. Requirements and Deliverables
-### 3.1 High-Level Requirements
+---
+
+## 3. Scope, Requirements, and Deliverables
+### 3.1 Scope Statement
+Describe what is included and explicitly excluded.
+
+### 3.2 High-Level Requirements
 List key functional and non-functional requirements.
 
-### 3.2 Major Deliverables
-1. 
-2. 
-3. 
-
-## 4. Assumptions and Constraints
-### 4.1 Assumptions
-- 
-- 
-
-### 4.2 Constraints
-- 
-- 
-
-## 5. Initial Risks
-| Risk | Impact | Probability | Response Strategy |
+### 3.3 Major Deliverables
+| Deliverable | Owner | Target Date | Acceptance Criteria |
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-## 6. Schedule and Budget Summary
+### 3.4 Dependencies & Constraints
+**Dependencies:**
+- 
+
+**Constraints:**
+- 
+
+---
+
+## 4. Stakeholders & Governance
+### 4.1 Stakeholder Register
+| Stakeholder | Role/Department | Interest/Influence | Engagement Strategy |
+| --- | --- | --- | --- |
+|  |  |  |  |
+
+### 4.2 Governance Model
+Describe oversight structure, decision forums, cadence, and escalation paths.
+
+### 4.3 Decision Authority
+| Decision Type | Authority Level | Process |
+| --- | --- | --- |
+| Daily delivery decisions |  |  |
+| Scope changes |  |  |
+| Budget changes |  |  |
+| Resource allocation |  |  |
+
+---
+
+## 5. Team Composition & Roles
+### 5.1 Team Structure
+Describe the reporting and collaboration structure for the core team.
+
+### 5.2 Key Roles & Responsibilities
+| Role | Name | Primary Responsibilities | Contact |
+| --- | --- | --- | --- |
+| Project Manager |  |  |  |
+| Team Lead |  |  |  |
+|  |  |  |  |
+
+### 5.3 RACI Reference
+Complete the RACI assignments using the shared template:
+`docs/templates/shared/raci-matrix.md`.
+
+---
+
+## 6. Schedule & Budget Summary
 ### 6.1 Milestone Schedule
 | Milestone | Target Date |
 | --- | --- |
@@ -87,40 +139,105 @@ List key functional and non-functional requirements.
 | --- | --- | --- |
 |  |  |  |
 
-## 7. Stakeholders
-| Stakeholder | Role/Department | Interest/Influence | Engagement Strategy |
+---
+
+## 7. Working Agreements
+### 7.1 Core Principles
+- Collaboration toward shared outcomes
+- Transparency in progress and risks
+- Accountability for commitments
+- Quality-first delivery
+- Continuous improvement
+- Respectful communication
+
+### 7.2 Communication Guidelines
+| Purpose | Channel | Frequency | Participants |
+| --- | --- | --- | --- |
+| Daily coordination |  |  |  |
+| Status updates |  |  |  |
+| Issue escalation |  |  |  |
+
+### 7.3 Meeting Protocols
+- **Daily stand-up:**
+- **Weekly team meeting:**
+- **Steering committee:**
+- **Retrospectives/lessons learned:**
+
+---
+
+## 8. Performance Standards
+### 8.1 Quality Standards
+- Code and deliverables pass peer review and automated checks.
+- Acceptance criteria documented and met for all deliverables.
+- Documentation and decision logs kept current.
+
+### 8.2 Productivity Expectations
+- Core hours and availability defined.
+- Early risk escalation when commitments are at risk.
+- Focus time protected for critical path work.
+
+### 8.3 Collaboration Standards
+- Knowledge sharing and peer support encouraged.
+- Constructive feedback given regularly.
+- Conflicts resolved quickly and respectfully.
+
+---
+
+## 9. Risk & Issue Management
+### 9.1 Initial Risk Register
+| Risk | Impact | Probability | Response Strategy | Owner |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
+### 9.2 Issue Escalation
+- **Team level:**
+- **Project level:**
+- **Executive level:**
+
+---
+
+## 10. Team Development & Recognition
+### 10.1 Skill Development Plan
+| Team Member | Strengths | Development Areas | Learning Plan |
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-## 8. Project Organization
-### 8.1 Governance Model
-Describe oversight structure, decision forums, and escalation paths.
+### 10.2 Recognition Practices
+- Timely and specific recognition
+- Peer nominations for contributions
+- Visibility in team and leadership forums
 
-### 8.2 Project Team Structure
-List key roles and responsibilities.
+---
 
-## 9. Project Manager Authority
-### 9.1 Budget Authority
-Define spending authority and approval thresholds.
+## 11. Charter Review & Updates
+### 11.1 Review Schedule
+- Monthly working agreement review
+- Quarterly charter review
+- Updates on scope or team changes
 
-### 9.2 Technical Authority
-Define technical decision rights.
+### 11.2 Change Process
+1. Identify and propose change
+2. Review with core team
+3. Approve with sponsor
+4. Publish updated charter
 
-### 9.3 Resource Authority
-Define authority for resource allocation and staffing.
+---
 
-## 10. Approval
-By signing below, the approvers authorize the project to proceed.
+## 12. Approval
+By signing below, approvers authorize the project to proceed and commit to this charter.
 
 | Approver | Role | Signature | Date |
 | --- | --- | --- | --- |
 |  |  |  |  |
+
+---
 
 ## Completion Checklist
 - [ ] Business case aligned to charter outcomes.
 - [ ] Scope and deliverables defined with assumptions and constraints.
 - [ ] Timeline and budget estimates documented.
 - [ ] Risks documented with mitigation owners.
+- [ ] RACI assignments completed.
 - [ ] Sponsor approval recorded.
 
 ## Acceptance Criteria

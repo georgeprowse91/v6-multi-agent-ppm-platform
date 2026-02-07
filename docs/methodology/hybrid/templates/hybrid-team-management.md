@@ -150,25 +150,8 @@ work characteristics.
 | Team Member/Developer | Execution | Specialized focus | Cross-functional delivery | Flexible work modes |
 
 ### RACI matrix template
-(R-Responsible, A-Accountable, C-Consulted, I-Informed)
-
-| Activity | Hybrid PM | Product Owner | Team Lead | Business Analyst | Technical Lead | Team Member |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Traditional activities** |  |  |  |  |  |  |
-| Project planning | A,R | C | C | C | C | I |
-| Requirements documentation | I | A | I | R | C | I |
-| Risk management | A,R | C | C | C | C | I |
-| Status reporting | A,R | C | C | C | C | I |
-| **Agile activities** |  |  |  |  |  |  |
-| Backlog refinement | I | A,R | C | C | C | C |
-| Sprint planning | I | A | R | C | C | C |
-| Daily stand-up | I | C | A,R | C | C | R |
-| Sprint review | C | A | R | C | C | R |
-| **Hybrid activities** |  |  |  |  |  |  |
-| Methodology selection | A,R | C | C | C | C | I |
-| Release planning | A | R | C | C | C | I |
-| Dependency management | A | C | R | C | C | I |
-| Cross-team coordination | A,R | C | C | C | C | I |
+Use the shared RACI template to define responsibilities across hybrid roles and delivery phases:
+`docs/templates/shared/raci-matrix.md`.
 
 ### Role interaction guidelines
 1. Establish decision rights between governance and team autonomy.

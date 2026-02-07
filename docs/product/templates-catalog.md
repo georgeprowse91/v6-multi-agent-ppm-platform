@@ -27,6 +27,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Risk report | Report top risks and exposure trends. | Agent 15 (Risk & Issue Management) | [docs/templates/shared/risk-report.md](../templates/shared/risk-report.md) |
 | Schedule risk analysis | Quantify schedule risk exposure and confidence-based completion dates. | Agent 10 (Schedule & Planning), Agent 15 (Risk & Issue Management) | [docs/templates/shared/schedule-risk-analysis.md](../templates/shared/schedule-risk-analysis.md) |
 | Quality report | Report quality performance and defects. | Agent 14 (Quality Assurance) | [docs/templates/shared/quality-report.md](../templates/shared/quality-report.md) |
+| Quality checklist | Standardize quality reviews and acceptance criteria. | Agent 14 (Quality Assurance) | [docs/templates/shared/quality-checklist.md](../templates/shared/quality-checklist.md) |
 | Change request | Submit changes for approval. | Agent 17 (Change & Configuration) | [docs/templates/shared/change-request.md](../templates/shared/change-request.md) |
 | Change impact assessment | Analyze change impacts. | Agent 17 (Change & Configuration) | [docs/templates/shared/change-impact-assessment.md](../templates/shared/change-impact-assessment.md) |
 | Change log | Track approved and pending changes. | Agent 17 (Change & Configuration) | [docs/templates/shared/change-log.md](../templates/shared/change-log.md) |
@@ -49,6 +50,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Risk management plan | Define risk governance and analysis methods. | Agent 15 (Risk & Issue Management) | [docs/templates/shared/risk-management-plan.md](../templates/shared/risk-management-plan.md) |
 | Procurement management plan | Define sourcing strategy and contract approach. | Agent 13 (Vendor Procurement) | [docs/templates/shared/procurement-management-plan.md](../templates/shared/procurement-management-plan.md) |
 | Resource assignment matrix | Track RACI assignments per task. | Agent 11 (Resource & Capacity) | [docs/templates/shared/resource-assignment-matrix.csv](../templates/shared/resource-assignment-matrix.csv) |
+| RACI matrix | Define responsibilities, accountability, and decision rights. | Agent 11 (Resource & Capacity) | [docs/templates/shared/raci-matrix.md](../templates/shared/raci-matrix.md) |
 | Activity list | Define activities aligned to WBS items. | Agent 10 (Schedule & Planning) | [docs/templates/shared/activity-list.csv](../templates/shared/activity-list.csv) |
 | Project calendar | Track working days, holidays, and events. | Agent 10 (Schedule & Planning) | [docs/templates/shared/project-calendar.csv](../templates/shared/project-calendar.csv) |
 | Risk breakdown structure | Categorize risks for consistent analysis. | Agent 15 (Risk & Issue Management) | [docs/templates/shared/risk-breakdown-structure.yaml](../templates/shared/risk-breakdown-structure.yaml) |

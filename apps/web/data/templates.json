@@ -571,6 +571,15 @@
       "path": "docs/templates/shared/resource-assignment-matrix.csv"
     },
     {
+      "id": "raci-matrix",
+      "title": "RACI Matrix",
+      "category": "Matrices",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/raci-matrix.md"
+    },
+    {
       "id": "activity-list",
       "title": "Activity List",
       "category": "Schedules",
@@ -641,6 +650,15 @@
         "shared"
       ],
       "path": "docs/templates/shared/quality-report.md"
+    },
+    {
+      "id": "quality-checklist",
+      "title": "Quality Checklist",
+      "category": "Quality",
+      "methodologies": [
+        "shared"
+      ],
+      "path": "docs/templates/shared/quality-checklist.md"
     },
     {
       "id": "risk-breakdown-structure",

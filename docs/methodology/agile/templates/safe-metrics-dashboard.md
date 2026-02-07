@@ -1,7 +1,7 @@
 # SAFe Metrics & Reporting Dashboard Template
 
 ## Overview
-Provide a multi-level SAFe dashboard framework that tracks flow, outcomes, competency, and
+Provide a comprehensive SAFe reporting structure that aligns flow, outcomes, competency, and
 predictability across Team, Program (ART), Large Solution, and Portfolio levels.
 
 ## Template Information
@@ -11,232 +11,265 @@ predictability across Team, Program (ART), Large Solution, and Portfolio levels.
 
 ---
 
-## 1. SAFe Measurement Framework
-### 1.1 Four Measurement Domains
-1. **Flow metrics** (throughput, flow time, WIP, efficiency)
-2. **Outcome metrics** (business results, customer satisfaction)
-3. **Competency metrics** (Lean-Agile maturity, skills growth)
-4. **Predictability metrics** (PI objectives, commitment reliability)
+## Report Header
+**Enterprise:**  
+**Portfolio:**  
+**Report period:**  
+**Report type:** Weekly / Monthly / Quarterly / Annual  
+**Created by:**  
+**Distribution:**  
+**Version:**  
 
-### 1.2 Metric Collection Cadence
-| Level | Real-time | Daily | Weekly | PI/Quarterly | Annually |
+---
+
+## 1. Executive Summary
+### 1.1 Key Performance Indicators
+| Metric | Current | Target | Previous Period | Trend | Status |
 | --- | --- | --- | --- | --- | --- |
-| Team | Cycle time, WIP | Burndown | Velocity, quality | Team health | Skills growth |
-| Program (ART) | Feature flow | Dependency status | Program risks | PI metrics | Tech debt trends |
-| Solution | Integration health | Capability risks | Cross-ART progress | Solution demo results | Roadmap outcomes |
-| Portfolio | Epic funding | Investment tracking | Epic WIP | Business outcomes | Strategic alignment |
+| Overall program predictability |  |  |  |  |  |
+| Value delivery rate |  |  |  |  |  |
+| Portfolio ROI |  |  |  |  |  |
+| Quality index |  |  |  |  |  |
+| Time to market |  |  |  |  |  |
+
+### 1.2 Alert Summary
+- **Low risk:**
+- **Medium risk:**
+- **High risk:**
+
+### 1.3 Executive Narrative
+Summarize key wins, risks, and decisions required in 3–5 sentences.
 
 ---
 
-## 2. Team-Level Metrics Dashboard
-### 2.1 Sprint/Iteration Flow Metrics
-| Metric | Current Sprint | Last Sprint | Trend | Target |
-| --- | --- | --- | --- | --- |
-| Stories committed |  |  |  |  |
-| Stories completed |  |  |  |  |
-| Story points committed |  |  |  |  |
-| Story points completed |  |  |  |  |
-| Cycle time (avg days) |  |  |  |  |
-| Lead time (avg days) |  |  |  |  |
-
-### 2.2 Quality Metrics
-| Metric | Current | Target | Trend |
-| --- | --- | --- | --- |
-| Defect rate (per story) |  |  |  |
-| Test coverage % |  |  |  |
-| Code review coverage % |  |  |  |
-| Technical debt (hours) |  |  |  |
-| Customer satisfaction |  |  |  |
-
-### 2.3 Team Health Indicators
-| Indicator | Score | Target | Trend | Notes |
-| --- | --- | --- | --- | --- |
-| Engagement |  |  |  |  |
-| Collaboration |  |  |  |  |
-| Delivery confidence |  |  |  |  |
-| Learning |  |  |  |  |
-
-### 2.4 Innovation & Learning
-| Metric | Current | Target | Trend |
-| --- | --- | --- | --- |
-| Innovation time utilization % |  |  |  |
-| Learning story points |  |  |  |
-| Cross-skill development |  |  |  |
-| Improvement stories delivered |  |  |  |
-
----
-
-## 3. Program (ART) Metrics Dashboard
-### 3.1 PI Objective Progress
-| Team | PI Objectives | Committed | Actual | Achievement % |
-| --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-
-### 3.2 Feature Flow Metrics
-| Metric | Value | Target | Trend |
-| --- | --- | --- | --- |
-| Throughput (features completed) |  |  |  |
-| Average lead time (weeks) |  |  |  |
-| Average cycle time (weeks) |  |  |  |
-| WIP (features in progress) |  |  |  |
-| Flow efficiency |  |  |  |
-
-### 3.3 Dependency Management
-| Dependency | Provider | Consumer | Status | Due Date | Risk |
+## 2. Portfolio-Level Metrics
+### 2.1 Strategic Investment Performance
+| Epic | Investment | Target ROI | Actual ROI | Status | Business Value Delivered |
 | --- | --- | --- | --- | --- | --- |
 |  |  |  |  |  |  |
 
-### 3.4 PI Predictability
-| PI | Planned | Actual | Achievement % | Notes |
+### 2.2 Portfolio Kanban Health
+```
+Funnel → Reviewing → Analyzing → Portfolio Backlog → Implementing → Done
+  0         0          0               0               0          0
+
+WIP Limits:  ∞        10         5            15               8         ∞
+Health:     Good   Healthy   At Limit     Good         Over Limit     Good
+```
+
+### 2.3 Investment Distribution Analysis
+| Investment Theme | Target % | Actual % | Variance | Recommendation |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
+### 2.4 Business Outcomes Assessment
+#### Customer Impact Metrics
+| Outcome | Baseline | Target | Current | Variance | Notes |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+#### Financial Performance
+| Metric | Target | Actual | Variance | Impact |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
 ---
 
-## 4. Large Solution Metrics
-### 4.1 Capability Progress
-| Capability | Contributing ARTs | Progress | Planned Release | Status |
+## 3. Large Solution Level Metrics
+### 3.1 Capability Delivery Status
+**Solution:**  
+**ARTs contributing:**
+
+| Capability | Planned Release | Current Progress | Contributing ARTs | Risk Level | Notes |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
+
+### 3.2 Cross-ART Dependency Health
+```
+D001: Dependency (Provider → Consumer)
+Status: On Track | Due: PI 0-I0 | Impact: Capability
+```
+
+### 3.3 Solution Quality Metrics
+| Metric | Current | Target | Previous | Trend | Notes |
+| --- | --- | --- | --- | --- | --- |
+| End-to-end test pass rate |  |  |  |  |  |
+| System performance SLA |  |  |  |  |  |
+| Security vulnerability count |  |  |  |  |  |
+| Integration success rate |  |  |  |  |  |
+
+---
+
+## 4. Program (ART) Level Metrics
+### 4.1 Program Increment Results
+**PI:**  
+**ART:**
+
+| Team | PI Objectives | Business Value Planned | Business Value Achieved | Predictability |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-### 4.2 Solution Integration Health
-| Metric | Current | Target | Trend |
-| --- | --- | --- | --- |
-| Cross-ART dependencies resolved |  |  |  |
-| Integration events attendance |  |  |  |
-| Solution demo satisfaction |  |  |  |
-| Feature integration success |  |  |  |
+### 4.2 Feature Flow Performance
+| Metric | Current | Target | Previous PI | Trend | Status |
+| --- | --- | --- | --- | --- | --- |
+| Features completed |  |  |  |  |  |
+| Average feature cycle time |  |  |  |  |  |
+| Feature lead time |  |  |  |  |  |
+| Features in progress |  |  |  |  |  |
+
+### 4.3 Program Risk & Issue Summary
+**ROAM status:**
+- Resolved:
+- Owned:
+- Accepted:
+- Mitigated:
+
+**Top program risks:**
+1.
+2.
+3.
 
 ---
 
-## 5. Portfolio Metrics Dashboard
-### 5.1 Epic Flow Metrics
-| Metric | Value | Target | Trend |
-| --- | --- | --- | --- |
-| Epic throughput (quarterly) |  |  |  |
-| Average epic lead time |  |  |  |
-| Epic WIP |  |  |  |
+## 5. Team-Level Metrics
+### 5.1 Team Performance Overview
+**Reporting period:**
 
-### 5.2 Investment Distribution
-| Category | Allocation | Actual Spend | Variance |
-| --- | --- | --- | --- |
-| New products |  |  |  |
-| Market expansion |  |  |  |
-| Operational excellence |  |  |  |
-| Technology platform |  |  |  |
+| Team | Velocity (Avg) | Predictability | Quality Score | Health Index | Notes |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
 
-### 5.3 Business Outcomes
-| Outcome | Target | Actual | Status |
-| --- | --- | --- | --- |
-| Revenue impact |  |  |  |
-| Cost reduction |  |  |  |
-| Customer NPS |  |  |  |
-| Time to market |  |  |  |
+### 5.2 Team Health Deep Dive
+**Identified issues:**
+- 
+
+**Improvement actions:**
+1.
+2.
+
+**Expected impact:**
 
 ---
 
-## 6. Competency & Maturity Metrics
-### 6.1 Core Competency Evaluation
-| Competency | Team Level | Program Level | Portfolio Level | Target |
+## 6. Quality & Technical Metrics
+### 6.1 Technical Health Dashboard
+| Metric | Current | Target | Previous | Trend | Threshold Alert |
+| --- | --- | --- | --- | --- | --- |
+| Code coverage |  |  |  |  |  |
+| Technical debt ratio |  |  |  |  |  |
+| Cyclomatic complexity |  |  |  |  |  |
+| Code duplication |  |  |  |  |  |
+| Security vulnerabilities |  |  |  |  |  |
+
+### 6.2 DevOps Performance Metrics
+| Metric | Current | Target | Previous | Industry Benchmark |
 | --- | --- | --- | --- | --- |
-| Lean-Agile leadership |  |  |  |  |
-| Team & technical agility |  |  |  |  |
-| Agile product delivery |  |  |  |  |
-| Enterprise solution delivery |  |  |  |  |
-| Lean portfolio management |  |  |  |  |
-| Continuous learning culture |  |  |  |  |
+| Deployment frequency |  |  |  |  |
+| Lead time for changes |  |  |  |  |
+| Mean time to recovery |  |  |  |  |
+| Change failure rate |  |  |  |  |
 
-### 6.2 Training & Certification Progress
-| Training | Completion % | Target | Notes |
-| --- | --- | --- | --- |
-| Leading SAFe |  |  |  |
-| SAFe Scrum Master |  |  |  |
-| SAFe Product Owner |  |  |  |
-| SAFe DevOps |  |  |  |
-| SAFe Architect |  |  |  |
+### 6.3 Test Execution Summary
+| Test Type | Total | Passed | Failed | Blocked | Pass Rate | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
 
 ---
 
-## 7. Advanced Analytics & Insights
-### 7.1 Predictive Forecasting
-- **Next PI forecast:**
-- **Key risk factors:**
-- **Confidence range:**
+## 7. Innovation & Learning Metrics
+### 7.1 Innovation Accounting
+- **Target innovation capacity (%):**
+- **Actual innovation utilization (%):**
+- **Innovation projects active/completed:**
 
-### 7.2 Value Stream Optimization
-| Value Stream | Lead Time | % Value-Add Time | Bottleneck | Improvement Opportunity |
+### 7.2 Learning & Development
+| Metric | Current | Target | Previous | Notes |
+| --- | --- | --- | --- | --- |
+| SAFe certification rate |  |  |  |  |
+| Training hours per employee |  |  |  |  |
+| Internal knowledge sharing |  |  |  |  |
+| Cross-team collaboration |  |  |  |  |
+
+### 7.3 Inspect & Adapt Results
+**Session date:**  
+**Participants:**  
+
+**Problem-solving actions:**
+1.
+2.
+
+---
+
+## 8. Actionable Insights & Recommendations
+### 8.1 Immediate Actions (Next 30 Days)
+1.
+2.
+
+### 8.2 Strategic Recommendations (Next 90 Days)
+1.
+2.
+
+### 8.3 Success Metrics
+| Action | Success Metric | Timeline | Baseline | Target |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-### 7.3 Correlation Insights
-- **Team health vs velocity correlation:**
-- **Quality vs flow efficiency correlation:**
+---
+
+## 9. Trend Analysis & Forecasting
+### 9.1 12-Month Performance Trends
+```
+Portfolio ROI Trend (12 Months)
+```
+
+### 9.2 Forecasting & Planning
+| Metric | Current | Projected Next Quarter | Confidence | Key Assumptions |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
+### 9.3 Risk-Adjusted Scenarios
+1. Optimistic:
+2. Most likely:
+3. Pessimistic:
 
 ---
 
-## 8. Dashboard Implementation Guide
-### 8.1 Tooling Options
-- **BI platforms:** Tableau, Power BI, Looker.
-- **DevOps dashboards:** Jira, Azure DevOps, Rally.
-- **Engineering telemetry:** Grafana, Kibana.
-
-### 8.2 Data Integration Architecture
-| Source | Integration Method | Update Cadence | Owner |
+## 10. Metrics Governance & Data Quality
+### 10.1 Data Sources and Validation
+| Metric Category | Data Source | Update Frequency | Data Quality Score |
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-### 8.3 Dashboard Design Principles
-- Use consistent R/Y/G indicators for status.
-- Show trends with sparklines and arrows.
-- Provide drill-down from summary to detail.
-- Ensure accessibility (contrast, labels, alt text).
+### 10.2 Data Quality Issues
+1.
+2.
+
+### 10.3 Reporting Schedule
+| Report Type | Frequency | Audience | Distribution Method |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
 ---
 
-## 9. Metrics Governance
-### 9.1 Metric Definitions
-Each metric includes:
-- **Definition**
-- **Calculation**
-- **Data source**
-- **Update frequency**
-- **Owner**
+## 11. Continuous Improvement of Metrics
+### 11.1 Quarterly Metrics Assessment
+- Business relevance and alignment
+- Data accuracy and availability
+- Stakeholder usage and feedback
+- Actionability of insights
 
-### 9.2 Metric Lifecycle
-1. Business justification
-2. Definition workshop
-3. Technical implementation
-4. User training
-5. Value validation
+### 11.2 Metrics Roadmap (Next 6 Months)
+1.
+2.
+3.
 
 ---
 
-## 10. Continuous Improvement
-### 10.1 Monthly Metrics Review
-| Agenda Item | Duration | Owner |
-| --- | --- | --- |
-| Data quality review | 30 min | Analytics lead |
-| Metric performance review | 45 min | RTE / PM |
-| Stakeholder feedback | 30 min | PMO |
-| Action planning | 15 min | Program team |
-
-### 10.2 Success Measurement
-- **Dashboard adoption:** % of active users per role.
-- **Decision impact:** decisions influenced by metrics.
-- **Time to insight:** time from issue to action.
-
----
-
-## 11. Customization Guidelines
-### 11.1 Organization Size
-- **Small (1–3 ARTs):** focus on team and program metrics.
-- **Medium (4–10 ARTs):** include solution metrics.
-- **Large (10+ ARTs):** full portfolio analytics.
-
-### 11.2 Industry Adaptations
-- **Software:** code quality, deployment frequency, MTTR.
-- **Financial services:** compliance and security metrics.
-- **Healthcare:** regulatory validation and patient safety metrics.
+## 12. Related Templates and Resources
+- SAFe metrics dashboard template
+- PI planning template
+- Portfolio kanban template
+- ART coordination template
 
 ---
 
