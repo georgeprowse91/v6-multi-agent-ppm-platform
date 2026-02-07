@@ -19,7 +19,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | ROI/NPV worksheet | Calculate ROI and NPV assumptions. | Agent 05/12 (Business Case & Investment) | [docs/templates/shared/roi-npv-worksheet.xlsx](../templates/shared/roi-npv-worksheet.xlsx) |
 | Assumption log | Track key project assumptions and validation. | Agent 05/12 (Business Case & Investment), Agent 15 (Risk & Issue) | [docs/templates/shared/assumption-log.md](../templates/shared/assumption-log.md) |
 | Variance report | Track schedule/cost variance. | Agent 10 (Schedule & Planning) | [docs/templates/shared/variance-report.md](../templates/shared/variance-report.md) |
-| Status report | Provide project status, metrics, and decisions. | Agent 21 (Stakeholder Comms) | [docs/templates/shared/status-report.md](../templates/shared/status-report.md) |
+| Executive dashboard status report | Executive-ready health, decisions, and value summary. | Agent 21 (Stakeholder Comms) | [docs/templates/shared/status-report.md](../templates/shared/status-report.md) |
 | Risk report | Report top risks and exposure trends. | Agent 15 (Risk & Issue Management) | [docs/templates/shared/risk-report.md](../templates/shared/risk-report.md) |
 | Quality report | Report quality performance and defects. | Agent 14 (Quality Assurance) | [docs/templates/shared/quality-report.md](../templates/shared/quality-report.md) |
 | Change request | Submit changes for approval. | Agent 17 (Change & Configuration) | [docs/templates/shared/change-request.md](../templates/shared/change-request.md) |
@@ -50,7 +50,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Supplier risk assessment | Assess supplier risk factors and mitigations. | Agent 13 (Vendor Procurement) | [docs/templates/shared/supplier-risk-assessment.md](../templates/shared/supplier-risk-assessment.md) |
 | Portfolio prioritization report | Document prioritization results. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/portfolio-prioritization-report.md](../templates/shared/portfolio-prioritization-report.md) |
 | Program roadmap | Track program initiatives and milestones. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/shared/program-roadmap.xlsx](../templates/shared/program-roadmap.xlsx) |
-| KPI dashboard specification | Define KPI dashboards and metrics. | Agent 22/25 (Performance & Insights) | [docs/templates/shared/kpi-dashboard-spec.md](../templates/shared/kpi-dashboard-spec.md) |
+| Executive real-time dashboard specification | Define real-time executive KPIs, panels, and refresh cadence. | Agent 22/25 (Performance & Insights) | [docs/templates/shared/kpi-dashboard-spec.md](../templates/shared/kpi-dashboard-spec.md) |
 | SLO/alert definition | Define SLOs and alerting thresholds. | Agent 22/25 (Performance & Insights) | [docs/templates/shared/slo-alert-definition.yaml](../templates/shared/slo-alert-definition.yaml) |
 | Cost baseline | Time-phased budget baseline (spreadsheet). | Agent 12 (Financial Management) | [docs/templates/shared/cost-baseline.xlsx](../templates/shared/cost-baseline.xlsx) |
 

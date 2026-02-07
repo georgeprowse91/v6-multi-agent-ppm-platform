@@ -1,66 +1,178 @@
-# Status Report
+# Executive Dashboard Status Report
 
 ## Purpose
-Provide a consistent reporting view of progress, performance, risks, and decisions.
+Provide an executive-ready dashboard view of project health, decisions, and value delivery that
+can be used directly in a status deck or briefing.
 
 ## Audience
-Project Sponsors, PMO, Delivery Leads, Stakeholders.
+Executive Sponsors, Steering Committee, PMO, Finance Partner.
 
-## 1. Reporting Period
-- **Period start:**
-- **Period end:**
+## Update Frequency
+Weekly (operational) or Monthly (executive review).
+
+## 1. Report Metadata
+- **Project name:**
+- **Reporting period:**
 - **Prepared by:**
+- **Date issued:**
+- **Overall health score:** [0-100]
+- **Escalation contact:** [Name, role, phone, email]
 
-## 2. Overall Status (RAG)
-- **Schedule:**
-- **Cost:**
-- **Scope:**
-- **Quality:**
-- **Overall:**
+## 2. Executive Summary (30–60 seconds)
+- **Overall health:** [Healthy/Caution/Critical]
+- **Budget status:** $[Spent] of $[Approved] ([%])
+- **Schedule status:** On track for [Target date]
+- **Decisions needed:** [#]
+- **Key highlights:**
+  - 
+  - 
+  - 
 
-## 3. Key Metrics
-| Metric | Target | Actual | Trend | Notes |
+## 3. KPI Highlights
+| KPI | Target | Actual | Trend | Notes |
 | --- | --- | --- | --- | --- |
-| Percent complete |  |  |  |  |
-| Milestones achieved |  |  |  |  |
-| Budget variance |  |  |  |  |
-| Open risks/issues |  |  |  |  |
+| Schedule performance index (SPI) |  |  |  |  |
+| Cost performance index (CPI) |  |  |  |  |
+| Milestone achievement |  |  |  |  |
+| Risk exposure (total $) |  |  |  |  |
+| Benefits realized |  |  |  |  |
 
-## 4. Accomplishments (This Period)
-- 
+## 4. Financial Dashboard (CFO Focus)
+**Budget Overview**
+| Metric | Amount | Variance |
+| --- | --- | --- |
+| Approved budget |  |  |
+| Forecast at completion |  |  |
+| Actuals to date |  |  |
+| Remaining |  |  |
 
-## 5. Upcoming Work (Next Period)
-- 
-
-## 6. Schedule Status
-| Milestone | Planned Date | Actual/Forecast | Status |
+**Variance Analysis**
+| Category | Variance | Driver | Mitigation |
 | --- | --- | --- | --- |
-|  |  |  |  |
+| Labor |  |  |  |
+| Vendors |  |  |  |
+| Infrastructure |  |  |  |
+| Contingency |  |  |  |
 
-## 7. Cost Status
-| Budget Item | Planned | Actual | Variance | Notes |
+**Executive Action Required**
+- **Decision:**
+- **Deadline:**
+- **Impact if delayed:**
+
+## 5. Schedule Performance (COO Focus)
+| Milestone | Baseline Date | Forecast | Status | Notes |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-## 8. Risks & Issues Summary
-Summarize top risks/issues and link to the issue log and risk register.
+**Schedule Insights**
+- **Critical path float:**
+- **Schedule risk drivers:**
+- **Recovery plan:**
 
-## 9. Change Requests Summary
-List new or approved change requests and impacts.
+## 6. Risk & Compliance (CEO/CTO Focus)
+**Top Risks**
+| Risk | Impact | Probability | Exposure ($) | Owner | Status |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
 
-## 10. Decisions & Approvals
-| Decision | Owner | Date | Next Action |
+- **Total $ at risk:**
+- **Risk trend:** [Increasing/Stable/Decreasing]
+- **Compliance status:** [Compliant/At risk]
+
+## 7. Business Value Delivered
+| Value Metric | Target | Actual | Trend | Notes |
+| --- | --- | --- | --- | --- |
+| ROI |  |  |  |  |
+| Payback period |  |  |  |  |
+| Customer satisfaction |  |  |  |  |
+| Productivity improvement |  |  |  |  |
+
+**Value Pipeline (Next 12 Months)**
+| Quarter | Expected Value | Key Drivers |
+| --- | --- | --- |
+| Q1 |  |  |
+| Q2 |  |  |
+| Q3 |  |  |
+| Q4 |  |  |
+
+## 8. Decisions Required
+**Immediate (Next 7 Days)**
+| Decision | Owner | Deadline | Impact if delayed |
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-## 11. Next Steps
+**Upcoming (Next 30 Days)**
+| Decision | Owner | Target Date | Impact |
+| --- | --- | --- | --- |
+|  |  |  |  |
+
+## 9. Escalations & Blockers
+- **Escalated items:**
+- **Blocked dependencies:**
+- **Support needed:**
+
+## 10. Next Period Priorities
+- 
+- 
 - 
 
+---
+
+## Appendix A: Slide Deck Structure (Optional)
+| Slide | Title | Owner | Notes |
+| --- | --- | --- | --- |
+| 1 | Executive Summary | PM | 30-second brief with RAG + decisions |
+| 2 | Financial Dashboard | Finance | Budget, forecast, variance drivers |
+| 3 | Schedule Performance | PMO | Milestones, SPI, critical path |
+| 4 | Risk Heat Map | Risk Lead | Top risks + $ exposure |
+| 5 | Business Value | Sponsor | ROI, benefits, pipeline |
+| 6 | Decision Points | PM | Immediate + upcoming decisions |
+
+## Appendix B: PowerPoint Design Guidelines
+**Color scheme (RAG):**
+- **Green:** #22C55E
+- **Yellow:** #EAB308
+- **Red:** #EF4444
+- **Blue:** #3B82F6
+- **Gray:** #6B7280
+
+**Typography**
+- **Headlines:** Calibri Bold 24–32pt
+- **Body:** Calibri Regular 18–20pt
+- **Data/Numbers:** Consolas 16–18pt
+
+**Layout**
+- **Slide size:** 16:9
+- **Margins:** 0.5" all sides
+- **Logo:** Top left
+- **Date/time:** Top right
+- **Contact:** Footer on slides with decisions
+
+## Appendix C: Data Integration & Automation
+**Preferred data sources**
+- PM tools (Jira, Azure DevOps, Monday.com)
+- Financial systems (ERP, budget trackers)
+- Risk register and issue log
+- Collaboration tools (Teams, Slack)
+
+**Update process**
+1. Refresh metrics weekly (Friday).
+2. Validate variance drivers with finance and delivery leads.
+3. PM reviews for executive readiness.
+4. Distribute deck 24 hours before meeting.
+
+**Automation options**
+- Link Excel tables to PowerPoint charts.
+- Embed Power BI visuals for live updates.
+- Use API refresh to update KPI blocks.
+
 ## Completion Checklist
-- [ ] Reporting period and owner identified.
-- [ ] Metrics updated with source data.
-- [ ] Risks, issues, and change requests summarized.
+- [ ] Health score, budget, schedule, and risks updated.
+- [ ] Decisions required and owners confirmed.
+- [ ] Financial and schedule variances validated.
+- [ ] Escalation contact verified.
 
 ## Acceptance Criteria
-- Status report provides clear RAG indicators and actionable insights.
-- Stakeholders can trace decisions and upcoming work.
+- Executive summary highlights decisions and critical changes.
+- Financial, schedule, and risk sections are data-backed and current.
+- Decisions required are time-bound with named owners.
