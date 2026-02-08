@@ -8,7 +8,7 @@ structure, escalation paths, and reporting cadence across stage-gate and iterati
 Executive Sponsor, Steering Committee, PMO Lead, Program Manager, Delivery Lead, Compliance Officer.
 
 ## Inputs
-- Hybrid charter (`docs/templates/governance/hybrid-charter-template-hybrid.md`).
+- Hybrid charter (`docs/templates/governance/charter-template-hybrid.md`).
 - Decision log (`docs/templates/governance/decision-log-template-hybrid.md`).
 - Communications plan (`docs/templates/communications/communications-plan-template-cross.md`).
 - Change request (`docs/templates/change/change-request-var1-template-cross.md`).

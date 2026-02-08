@@ -1555,7 +1555,7 @@
           "content": [
             "Resource management plan (`docs/templates/resources/resource-management-plan-cross.md`).",
             "Resource assignment matrix (`docs/templates/resources/resource-assignment-matrix-cross.csv`).",
-            "Hybrid resource plan (`docs/templates/resources/hybrid-resource-plan-template-hybrid.md`)."
+            "Hybrid resource plan (`docs/templates/resources/resource-plan-template-hybrid.md`)."
           ]
         }
       ],

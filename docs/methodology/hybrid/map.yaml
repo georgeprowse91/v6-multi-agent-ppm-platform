@@ -25,7 +25,7 @@ stages:
           - Program Manager
         artefacts:
           - name: Hybrid charter
-            template: docs/templates/governance/hybrid-charter-template-hybrid.md
+            template: docs/templates/governance/charter-template-hybrid.md
             required: true
       - id: governance-pack
         description: Define stage gate and decision governance.

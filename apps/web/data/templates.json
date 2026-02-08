@@ -909,7 +909,7 @@
       "methodologies": [
         "hybrid"
       ],
-      "path": "docs/templates/resources/hybrid-resource-plan-template-hybrid.md"
+      "path": "docs/templates/resources/resource-plan-template-hybrid.md"
     },
     {
       "id": "roles-responsibilities-hybrid",

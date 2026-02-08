@@ -6,7 +6,7 @@ gates:
     stage: initiation
     required_artefacts:
       - name: Hybrid charter
-        template: docs/templates/governance/hybrid-charter-template-hybrid.md
+        template: docs/templates/governance/charter-template-hybrid.md
         evidence: Signed charter.
       - name: Governance pack
         template: docs/templates/governance/governance-pack-template-hybrid.md

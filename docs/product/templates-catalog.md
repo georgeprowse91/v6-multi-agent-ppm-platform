@@ -56,7 +56,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Product breakdown structure | Decompose product components and features. | Agent 08 (Project Definition) | [docs/templates/product/product-breakdown-structure-template-cross.yaml](../templates/product/product-breakdown-structure-template-cross.yaml) |
 | Communications plan | Plan stakeholder communications. | Agent 21 (Stakeholder Comms) | [docs/templates/communications/communications-plan-template-cross.md](../templates/communications/communications-plan-template-cross.md) |
 | Stakeholder analysis & mapping | Identify, map, and analyze stakeholders with engagement strategies. | Agent 21 (Stakeholder Comms) | [docs/templates/stakeholders/stakeholder-analysis-and-mapping-template-cross.md](../templates/stakeholders/stakeholder-analysis-and-mapping-template-cross.md) |
-| Template customization guide | Guide consistent tailoring and governance of templates. | Agent 09 (Lifecycle & Governance) | [docs/templates/governance/template-customization-guide-template-cross.md](../templates/governance/template-customization-guide-template-cross.md) |
+| Template customization guide | Guide consistent tailoring and governance of templates. | Agent 09 (Lifecycle & Governance) | [docs/templates/governance/customization-guide-template-cross.md](../templates/governance/customization-guide-template-cross.md) |
 | Stakeholder register | Track stakeholder influence and engagement. | Agent 21 (Stakeholder Comms) | [docs/templates/stakeholders/stakeholder-register-cross.xlsx](../templates/stakeholders/stakeholder-register-cross.xlsx) |
 | RFP template | Request vendor proposals. | Agent 13 (Vendor Procurement) | [docs/templates/finance/rfp-template-cross.md](../templates/finance/rfp-template-cross.md) |
 | Vendor evaluation scorecard | Score vendors consistently. | Agent 13 (Vendor Procurement) | [docs/templates/finance/vendor-evaluation-scorecard-cross.xlsx](../templates/finance/vendor-evaluation-scorecard-cross.xlsx) |
@@ -74,7 +74,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 ## Methodology Variants
 | Artefact | Agile | Waterfall | Hybrid |
 | --- | --- | --- | --- |
-| Charter |  | [Project charter](../templates/governance/project-charter-template-waterfall.md) | [Hybrid charter](../templates/governance/hybrid-charter-template-hybrid.md) |
+| Charter |  | [Project charter](../templates/governance/project-charter-template-waterfall.md) | [Hybrid charter](../templates/governance/charter-template-hybrid.md) |
 | Roles & responsibilities matrix | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-agile.md) — Defines the key roles and responsibilities for Agile projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-waterfall.md) — Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-hybrid.md) — Defines hybrid roles and shared responsibilities where governance and Agile delivery overlap. |
 | User story mapping | [User story mapping](../templates/product/user-story-mapping-template-agile.md) |  |  |
 | User story template | [User story template](../templates/product/user-story-template-agile.md) |  |  |
@@ -82,7 +82,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Backlog management | [Backlog management](../templates/product/backlog-management-template-agile.md) |  |  |
 | Backlog refinement | [Backlog refinement](../templates/product/backlog-refinement-template-agile.md) |  |  |
 | Risk-adjusted backlog | [Risk-adjusted backlog](../templates/risk/risk-adjusted-backlog-template-agile.csv) |  |  |
-| Agile risk board | [Agile risk board](../templates/risk/agile-risk-board-template-agile.md) |  |  |
+| Agile risk board | [Agile risk board](../templates/risk/risk-board-template-agile.md) |  |  |
 | Sprint plan | [Sprint plan](../templates/product/sprint-plan-template-agile.md) |  | [Sprint plan](../templates/product/sprint-plan-template-agile.md) |
 | Iteration plan | [Iteration plan](../templates/product/iteration-plan-template-agile.md) |  |  |
 | Release plan | [Release plan](../templates/schedule/release-plan-template-agile.md) |  | [Release plan](../templates/schedule/release-plan-template-agile.md) |
@@ -96,8 +96,8 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Milestone plan |  |  | [Milestone plan](../templates/schedule/milestone-plan-hybrid.xlsx) |
 | Governance pack |  |  | [Governance pack](../templates/governance/governance-pack-template-hybrid.md) |
 | Decision log |  |  | [Decision log](../templates/governance/decision-log-template-hybrid.md) |
-| Hybrid team management |  |  | [Hybrid team management](../templates/resources/hybrid-team-management-template-hybrid.md) |
-| Hybrid resource plan |  |  | [Hybrid resource plan](../templates/resources/hybrid-resource-plan-template-hybrid.md) |
+| Hybrid team management |  |  | [Hybrid team management](../templates/resources/team-management-template-hybrid.md) |
+| Hybrid resource plan |  |  | [Hybrid resource plan](../templates/resources/resource-plan-template-hybrid.md) |
 | Closure report |  | [Closure report](../templates/governance/closure-report-template-waterfall.md) | [Closure report](../templates/governance/closure-report-template-waterfall.md) |
 | Project management plan |  | [Project management plan](../templates/governance/project-management-plan-template-cross.md) |  |
 | Scope management plan |  | [Scope management plan](../templates/requirements/scope-management-plan-template-cross.md) |  |
