@@ -70,7 +70,7 @@ e93e0a51e7aca1ebd119e08e68ae9d218ad82c2dc6ae0ae5806a400e7c2222b6,115,docs/connec
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,0,docs/templates/product/burndown-template-agile.xlsx,docs/templates/product/burndown-template-agile.xlsx
 ad599f5ad13b15e822acd0b7979dcddf5fc403fe4ca65fd164ae12e8ac415037,38,docs/templates/schedule/release-plan-agile.md,docs/templates/schedule/release-plan-agile.md
 ba1e4d3118fa8ed9359076e99b413bea8bf44fc0a8a47bd2fefdc942af005974,45,docs/templates/product/retro-notes-template-agile.md,docs/templates/product/retro-notes-template-agile.md
-61344e20540e64047bbdeaa788a00a27d0f3f7c8a66e18ca80b02843b6546ed0,37,docs/templates/product/sprint-plan-agile.md,docs/templates/product/sprint-plan-agile.md
+61344e20540e64047bbdeaa788a00a27d0f3f7c8a66e18ca80b02843b6546ed0,37,docs/templates/product/sprint-plan-template-agile.md,docs/templates/product/sprint-plan-template-agile.md
 9f64f7c3007c0adabd2f18d2f5bf7853267026a04c3621824e2e1c203ac28dae,10,docs/methodology/hybrid/gates.yaml,docs/methodology/hybrid/gates.yaml
 28c2d1809e6186bffb0739ef1cceda6761f06bab8aa8280b65fad1765f1aa4d6,11,docs/methodology/hybrid/map.yaml,docs/methodology/hybrid/map.yaml
 e3d8ee7b97abdf2620deb819c0eb8e4478825d0cd8f3bb8ee5cf9c99b2220edd,41,docs/templates/governance/governance-pack-template-hybrid.md,docs/templates/governance/governance-pack-template-hybrid.md

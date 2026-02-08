@@ -20,7 +20,7 @@ duplication.
 - Change Control Board (CCB) meeting
 - Steering committee meeting
 - Agile ceremonies (links only):
-  - Sprint planning (`docs/templates/product/sprint-plan-agile.md`)
+  - Sprint planning (`docs/templates/product/sprint-plan-template-agile.md`)
   - Sprint review (`docs/templates/product/sprint-review-template-agile.md`)
   - Sprint retrospective (`docs/templates/product/retro-notes-template-agile.md`)
   - Daily standup (`docs/templates/product/daily-standup-template-agile.md`)

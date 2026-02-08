@@ -7,7 +7,7 @@ Provide a comprehensive framework for identifying, assessing, monitoring, and re
 CFO, Finance Lead, Project/Program Managers, Risk Manager, PMO, Sponsors.
 
 ## Inputs
-- Business case (`docs/templates/portfolio-program/business-case-template-cross-var3.md`).
+- Business case (`docs/templates/portfolio-program/business-case-var3-template-cross.md`).
 - Cost management plan (`docs/templates/finance/cost-management-plan-template-cross.md`).
 - Risk management plan (`docs/templates/risk/risk-management-plan-template-cross.md`).
 - ROI/NPV worksheet (`docs/templates/finance/roi-npv-worksheet-cross.xlsx`).

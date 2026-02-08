@@ -6,7 +6,7 @@ gates:
     stage: initiation
     required_artefacts:
       - name: Business case
-        template: docs/templates/portfolio-program/business-case-template-cross-var3.md
+        template: docs/templates/portfolio-program/business-case-var3-template-cross.md
         evidence: Approved business case.
       - name: Project charter
         template: docs/templates/governance/project-charter-template-waterfall.md
@@ -68,7 +68,7 @@ gates:
     stage: execution
     required_artefacts:
       - name: Change request log
-        template: docs/templates/change/change-request-cross-var1.md
+        template: docs/templates/change/change-request-var1-template-cross.md
         evidence: Change control process documented.
       - name: Variance report
         template: docs/templates/finance/variance-report-template-cross.md

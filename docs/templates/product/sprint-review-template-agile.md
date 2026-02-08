@@ -8,7 +8,7 @@ is captured, and backlog implications are recorded.
 Scrum Master, Product Owner, Delivery Team, Stakeholders.
 
 ## Inputs
-- Sprint plan (`docs/templates/product/sprint-plan-agile.md`).
+- Sprint plan (`docs/templates/product/sprint-plan-template-agile.md`).
 - Sprint metrics and delivery reports.
 - Demo environment readiness checks.
 

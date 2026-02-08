@@ -15,8 +15,8 @@ Executive Sponsor, Project Manager, PMO Lead, Steering Committee, Finance Partne
 4. Use the charter during onboarding to align new team members.
 
 ## Inputs
-- Demand intake (`docs/templates/portfolio-program/demand-intake-request-cross.md`).
-- Business case (`docs/templates/portfolio-program/business-case-template-cross-var3.md`).
+- Demand intake (`docs/templates/portfolio-program/demand-intake-request-template-cross.md`).
+- Business case (`docs/templates/portfolio-program/business-case-var3-template-cross.md`).
 - Strategic objectives and funding guidance.
 
 ## Definitions
@@ -124,7 +124,7 @@ Describe the reporting and collaboration structure for the core team.
 
 ### 5.3 RACI Reference
 Complete the RACI assignments using the shared template:
-`docs/templates/governance/raci-matrix-cross-var1.md`.
+`docs/templates/governance/raci-matrix-var1-template-cross.md`.
 
 ---
 

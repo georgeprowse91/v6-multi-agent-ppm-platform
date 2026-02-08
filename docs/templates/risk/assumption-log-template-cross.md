@@ -7,7 +7,7 @@ Capture and validate key assumptions that underpin scope, schedule, cost, and be
 Project Manager, Business Analyst, Risk Manager, Sponsors.
 
 ## Inputs
-- Business case (`docs/templates/portfolio-program/business-case-template-cross-var3.md`).
+- Business case (`docs/templates/portfolio-program/business-case-var3-template-cross.md`).
 - Project charter (`docs/templates/governance/project-charter-template-waterfall.md`).
 - Scope baseline (`docs/templates/requirements/scope-baseline-template-cross.md`).
 

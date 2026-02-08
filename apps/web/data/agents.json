@@ -1555,7 +1555,7 @@
           "content": [
             "Resource management plan (`docs/templates/resources/resource-management-plan-cross.md`).",
             "Resource assignment matrix (`docs/templates/resources/resource-assignment-matrix-cross.csv`).",
-            "Hybrid resource plan (`docs/templates/resources/hybrid-resource-plan-hybrid.md`)."
+            "Hybrid resource plan (`docs/templates/resources/hybrid-resource-plan-template-hybrid.md`)."
           ]
         }
       ],
@@ -2264,9 +2264,9 @@
             "Risk management plan (`docs/templates/risk/risk-management-plan-cross.md`).",
             "Risk breakdown structure (`docs/templates/risk/risk-breakdown-structure-template-cross.yaml`).",
             "Risk report (`docs/templates/risk/risk-report-cross.md`).",
-            "Issue log (`docs/templates/risk/issue-log-cross-var1.md`).",
+            "Issue log (`docs/templates/risk/issue-log-var1-template-cross.md`).",
             "Risk register (`docs/templates/risk/risk-register-waterfall.xlsx`).",
-            "Integrated risk register (`docs/templates/risk/integrated-risk-register-hybrid.md`)."
+            "Integrated risk register (`docs/templates/risk/integrated-risk-register-template-hybrid.md`)."
           ]
         }
       ],
@@ -2607,7 +2607,7 @@
           "heading": "Templates Used",
           "content": [
             "Change log (`docs/templates/change/change-log-cross.md`).",
-            "Change request (`docs/templates/change/change-request-cross-var1.md`).",
+            "Change request (`docs/templates/change/change-request-var1-template-cross.md`).",
             "Change impact assessment (`docs/templates/change/change-impact-assessment-cross.md`)."
           ]
         }
@@ -3286,7 +3286,7 @@
           "heading": "Templates Used",
           "content": [
             "Communications plan (`docs/templates/communications/communications-plan-cross.md`).",
-            "Status report (`docs/templates/governance/status-report-cross-var1.md`).",
+            "Status report (`docs/templates/governance/status-report-var1-template-cross.md`).",
             "Stakeholder register (`docs/templates/stakeholders/stakeholder-register-cross.xlsx`)."
           ]
         }

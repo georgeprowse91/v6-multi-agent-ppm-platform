@@ -7,7 +7,7 @@ Track approved and pending changes across the project or program lifecycle.
 Change Manager, Project Manager, PMO Lead, Stakeholders.
 
 ## Inputs
-- Change requests (`docs/templates/change/change-request-cross-var1.md`).
+- Change requests (`docs/templates/change/change-request-var1-template-cross.md`).
 - Impact assessments (`docs/templates/change/change-impact-assessment-template-cross.md`).
 
 ## Change Classification Guidance

@@ -61,7 +61,7 @@ gates:
     stage: delivery
     required_artefacts:
       - name: Sprint plan
-        template: docs/templates/product/sprint-plan-agile.md
+        template: docs/templates/product/sprint-plan-template-agile.md
         evidence: Signed sprint commitments.
       - name: Change log
         template: docs/templates/change/change-log-template-cross.md
