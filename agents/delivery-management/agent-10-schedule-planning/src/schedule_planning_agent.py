@@ -11,7 +11,7 @@ Specification: agents/delivery-management/agent-10-schedule-planning/README.md
 import math
 import random
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -388,7 +388,7 @@ class SchedulePlanningAgent(BaseAgent):
             "end_date": await self._calculate_schedule_end(scheduled_tasks),
             "milestones": milestones,
             "gantt_data": gantt_data,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "Draft",
         }
 
@@ -639,7 +639,7 @@ class SchedulePlanningAgent(BaseAgent):
         )
 
         schedule["tasks"] = leveled_schedule
-        schedule["resource_leveled_at"] = datetime.utcnow().isoformat()
+        schedule["resource_leveled_at"] = datetime.now(timezone.utc).isoformat()
         if self.enable_persistence and self._sql_engine:
             await self._persist_schedule(schedule)
         await self._publish_schedule_updated(schedule, "schedule.resource_leveled")
@@ -802,7 +802,7 @@ class SchedulePlanningAgent(BaseAgent):
         milestones = self.milestones.get(schedule_id, [])
 
         # Get current date
-        current_date = datetime.utcnow()
+        current_date = datetime.now(timezone.utc)
 
         # Categorize milestones
         upcoming_milestones = []
@@ -925,7 +925,7 @@ class SchedulePlanningAgent(BaseAgent):
             "project_duration_days": schedule.get("project_duration_days", 0),
             "start_date": schedule.get("start_date"),
             "end_date": schedule.get("end_date"),
-            "locked_at": datetime.utcnow().isoformat(),
+            "locked_at": datetime.now(timezone.utc).isoformat(),
             "locked_by": "system",
             "status": "Locked",
         }
@@ -1136,7 +1136,7 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _generate_schedule_id(self, project_id: str) -> str:
         """Generate unique schedule ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"{project_id}-SCH-{timestamp}"
 
     def _schedule_cache_key(self, tenant_id: str, schedule_id: str) -> str:
@@ -1160,7 +1160,7 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _generate_baseline_id(self, schedule_id: str) -> str:
         """Generate unique baseline ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"{schedule_id}-BASELINE-{timestamp}"
 
     async def _publish_baseline_locked(
@@ -1174,7 +1174,7 @@ class SchedulePlanningAgent(BaseAgent):
         event = ScheduleBaselineLockedEvent(
             event_name="schedule.baseline.locked",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -1198,7 +1198,7 @@ class SchedulePlanningAgent(BaseAgent):
         event = ScheduleDelayEvent(
             event_name="schedule.delay",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -1207,7 +1207,7 @@ class SchedulePlanningAgent(BaseAgent):
                 "schedule_id": schedule.get("schedule_id", ""),
                 "delay_days": delay_days,
                 "reason": "Baseline variance detected",
-                "detected_at": datetime.utcnow(),
+                "detected_at": datetime.now(timezone.utc),
             },
         )
         payload = event.model_dump()
@@ -1258,7 +1258,7 @@ class SchedulePlanningAgent(BaseAgent):
                 "schedule_id": schedule.get("schedule_id"),
                 "project_id": schedule.get("project_id"),
                 "status": schedule.get("status"),
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         if self.integration_event_bus:
@@ -1444,7 +1444,7 @@ class SchedulePlanningAgent(BaseAgent):
             conflicts.extend(self._apply_external_update(schedule, payload, update.timestamp.isoformat()))
 
         schedule.setdefault("external_sync", {})
-        schedule["external_sync"]["last_synced_at"] = datetime.utcnow().isoformat()
+        schedule["external_sync"]["last_synced_at"] = datetime.now(timezone.utc).isoformat()
         schedule["external_sync"]["conflicts"] = conflicts
 
         if self.enable_persistence and self._sql_engine:
@@ -1714,12 +1714,12 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _calculate_schedule_start(self, tasks: list[dict[str, Any]]) -> str:
         """Calculate schedule start date."""
-        return datetime.utcnow().isoformat()
+        return datetime.now(timezone.utc).isoformat()
 
     async def _calculate_schedule_end(self, tasks: list[dict[str, Any]]) -> str:
         """Calculate schedule end date."""
         duration = await self._calculate_project_duration(tasks)
-        end_date = datetime.utcnow() + timedelta(days=duration)
+        end_date = datetime.now(timezone.utc) + timedelta(days=duration)
         return end_date.isoformat()
 
     async def _validate_dependencies(
@@ -2329,7 +2329,7 @@ class SchedulePlanningAgent(BaseAgent):
             "planned_percent": progress.get("planned_percent", 0),
             "cost_performance_index": cpi,
             "schedule_performance_index": spi,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         if self.enable_persistence and self._sql_engine:
@@ -2401,7 +2401,7 @@ class SchedulePlanningAgent(BaseAgent):
 
     async def _forecast_completion_date(self, schedule: dict[str, Any], spi: float) -> str:
         """Forecast completion date based on SPI."""
-        return datetime.utcnow().isoformat()
+        return datetime.now(timezone.utc).isoformat()
 
     async def _recommend_sprint_backlog(
         self, backlog_items: list[dict[str, Any]], team_velocity: float, team_capacity: float
@@ -2447,7 +2447,7 @@ class SchedulePlanningAgent(BaseAgent):
             if severity in {"high", "critical"}:
                 for task in schedule.get("tasks", []):
                     task["duration"] = float(task.get("duration", 0) or 0) * 1.1
-                schedule["risk_adjusted_at"] = datetime.utcnow().isoformat()
+                schedule["risk_adjusted_at"] = datetime.now(timezone.utc).isoformat()
 
     def _handle_resource_event(self, payload: dict[str, Any]) -> None:
         resource_id = payload.get("resource_id")

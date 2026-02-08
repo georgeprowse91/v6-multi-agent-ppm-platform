@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -204,7 +204,7 @@ class AnalyticsInsightsAgent(BaseAnalyticsInsightsAgent):
             "tenant_id": tenant_id,
             "event_counts": event_counts,
             "metrics": metrics,
-            "ingested_at": datetime.utcnow().isoformat(),
+            "ingested_at": datetime.now(timezone.utc).isoformat(),
         }
         synapse_result = self.synapse_manager.ingest_dataset(
             "analytics_aggregated", [aggregated_payload]
@@ -228,7 +228,7 @@ class AnalyticsInsightsAgent(BaseAnalyticsInsightsAgent):
         kpi_ids: list[str] | None,
         lookback_days: int,
     ) -> dict[str, Any]:
-        cutoff = datetime.utcnow().timestamp() - (lookback_days * 86400)
+        cutoff = datetime.now(timezone.utc).timestamp() - (lookback_days * 86400)
         if not kpi_ids:
             kpi_ids = list(self.kpis.keys())
         trends = []
@@ -265,5 +265,5 @@ class AnalyticsInsightsAgent(BaseAnalyticsInsightsAgent):
         return {
             "tenant_id": tenant_id,
             "forecasts": forecasts,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }

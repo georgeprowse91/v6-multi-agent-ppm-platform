@@ -12,7 +12,7 @@ import importlib
 import importlib.util
 import os
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from xml.etree import ElementTree
 
@@ -333,7 +333,7 @@ class WorkflowEngineAgent(BaseAgent):
             "transitions": parsed_workflow.get("transitions", []),
             "variables": normalized.get("variables", {}),
             "orchestration": durable_orchestration,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": normalized.get("author"),
             "definition_source": normalized.get("definition_source", "inline"),
             "task_sequence": [task.get("task_id") for task in parsed_workflow.get("tasks", [])],
@@ -347,7 +347,7 @@ class WorkflowEngineAgent(BaseAgent):
             "workflow_id": workflow_id,
             "definition": workflow,
             "steps": durable_orchestration.get("steps", []),
-            "registered_at": datetime.utcnow().isoformat(),
+            "registered_at": datetime.now(timezone.utc).isoformat(),
         }
 
         await self._register_event_triggers(
@@ -407,7 +407,7 @@ class WorkflowEngineAgent(BaseAgent):
                 "workflow_orchestration": workflow.get("orchestration"),
             },
             "variables": input_variables,
-            "started_at": datetime.utcnow().isoformat(),
+            "started_at": datetime.now(timezone.utc).isoformat(),
             "started_by": input_variables.get("requester"),
             "history": [],
         }
@@ -480,7 +480,7 @@ class WorkflowEngineAgent(BaseAgent):
         if not assignment:
             assignment = {"task_id": task_id, "status": "assigned"}
         assignment["assignee"] = assignee
-        assignment["assigned_at"] = datetime.utcnow().isoformat()
+        assignment["assigned_at"] = datetime.now(timezone.utc).isoformat()
         self.task_assignments[task_id] = assignment
         await self.state_store.save_task(tenant_id, task_id, assignment.copy())
         await self._send_notification(
@@ -513,7 +513,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Update assignment
         assignment["status"] = "completed"
-        assignment["completed_at"] = datetime.utcnow().isoformat()
+        assignment["completed_at"] = datetime.now(timezone.utc).isoformat()
         assignment["result"] = task_result
         await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
@@ -532,7 +532,7 @@ class WorkflowEngineAgent(BaseAgent):
             checkpoint = {
                 "task_id": task_id,
                 "status": "completed",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
             instance.setdefault("checkpoints", []).append(checkpoint)
             instance["last_checkpoint"] = task_id
@@ -550,7 +550,7 @@ class WorkflowEngineAgent(BaseAgent):
             # Check if workflow is complete
             if await self._is_workflow_complete(instance):
                 instance["status"] = "completed"
-                instance["completed_at"] = datetime.utcnow().isoformat()
+                instance["completed_at"] = datetime.now(timezone.utc).isoformat()
                 await self._emit_workflow_event(
                     tenant_id,
                     "workflow.completed",
@@ -594,7 +594,7 @@ class WorkflowEngineAgent(BaseAgent):
 
         # Update instance status
         instance["status"] = "cancelled"
-        instance["cancelled_at"] = datetime.utcnow().isoformat()
+        instance["cancelled_at"] = datetime.now(timezone.utc).isoformat()
         await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(
             tenant_id, "workflow.cancelled", {"instance_id": instance_id}
@@ -608,7 +608,7 @@ class WorkflowEngineAgent(BaseAgent):
             assignment = await self._load_task_assignment(tenant_id, task_id)
             if assignment:
                 assignment["status"] = "cancelled"
-                assignment["cancelled_at"] = datetime.utcnow().isoformat()
+                assignment["cancelled_at"] = datetime.now(timezone.utc).isoformat()
                 self.task_assignments[task_id] = assignment
                 await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
@@ -632,7 +632,7 @@ class WorkflowEngineAgent(BaseAgent):
             raise ValueError(f"Workflow instance not found: {instance_id}")
 
         instance["status"] = "paused"
-        instance["paused_at"] = datetime.utcnow().isoformat()
+        instance["paused_at"] = datetime.now(timezone.utc).isoformat()
         await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(tenant_id, "workflow.paused", {"instance_id": instance_id})
         await self._send_notification(
@@ -658,7 +658,7 @@ class WorkflowEngineAgent(BaseAgent):
             raise ValueError(f"Workflow is not paused or failed: {instance_id}")
 
         instance["status"] = "running"
-        instance["resumed_at"] = datetime.utcnow().isoformat()
+        instance["resumed_at"] = datetime.now(timezone.utc).isoformat()
         await self.state_store.save_instance(tenant_id, instance_id, instance.copy())
         await self._emit_workflow_event(tenant_id, "workflow.resumed", {"instance_id": instance_id})
         await self._send_notification(
@@ -774,7 +774,7 @@ class WorkflowEngineAgent(BaseAgent):
         # Reset task status
         assignment["status"] = "assigned"
         assignment["retry_count"] = retry_count + 1
-        assignment["retried_at"] = datetime.utcnow().isoformat()
+        assignment["retried_at"] = datetime.now(timezone.utc).isoformat()
         await self.state_store.save_task(tenant_id, task_id, assignment.copy())
         await self._send_notification(
             tenant_id,
@@ -891,12 +891,12 @@ class WorkflowEngineAgent(BaseAgent):
 
     async def _generate_workflow_id(self) -> str:
         """Generate unique workflow ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"WF-{timestamp}"
 
     async def _generate_instance_id(self) -> str:
         """Generate unique instance ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"INST-{timestamp}"
 
     async def _validate_workflow_definition(
@@ -1096,7 +1096,7 @@ class WorkflowEngineAgent(BaseAgent):
             "engine": "azure_durable_functions",
             "source": source,
             "steps": steps,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _load_durable_workflows_config(self) -> None:
@@ -1190,7 +1190,7 @@ class WorkflowEngineAgent(BaseAgent):
             {
                 "reason": reason,
                 "tasks": [task.get("task_id") for task in compensation_tasks],
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
         await self.state_store.save_instance(tenant_id, instance["instance_id"], instance.copy())
@@ -1215,7 +1215,7 @@ class WorkflowEngineAgent(BaseAgent):
             "instance_id": instance_id,
             "task_type": task.get("type"),
             "status": "queued",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "task_payload": task,
             "retry_policy": task.get("retry_policy"),
             "compensation_task_id": task.get("compensation_task_id"),
@@ -1403,7 +1403,7 @@ class WorkflowEngineAgent(BaseAgent):
                 "event_type": trigger.get("event_type"),
                 "criteria": trigger.get("criteria", {}),
                 "action": trigger.get("action", "start"),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "task_id": trigger.get("task_id"),
             }
             self.event_subscriptions[subscription_id] = subscription
@@ -1420,7 +1420,7 @@ class WorkflowEngineAgent(BaseAgent):
             "event_id": event_id,
             "event_type": event_type,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         await self.state_store.save_event(tenant_id, event_id, event_record)
         audit_event = build_audit_event(
@@ -1451,7 +1451,7 @@ class WorkflowEngineAgent(BaseAgent):
             "tenant_id": tenant_id,
             "event_type": event_type,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": "workflow_engine_agent",
         }
         if self.event_bus:
@@ -1466,7 +1466,7 @@ class WorkflowEngineAgent(BaseAgent):
             "tenant_id": tenant_id,
             "event_type": event_type,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": "workflow_engine_agent",
         }
         if self.event_bus:
@@ -1478,7 +1478,7 @@ class WorkflowEngineAgent(BaseAgent):
             "task_id": assignment.get("task_id"),
             "instance_id": assignment.get("instance_id"),
             "payload": assignment.get("task_payload", {}),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         if self.logic_apps_endpoint:
             self.logger.info(
@@ -1565,7 +1565,7 @@ class WorkflowEngineAgent(BaseAgent):
             raise ValueError(f"Task assignment not found: {task_id}")
         if assignment.get("status") == "retrying" and assignment.get("next_retry_at"):
             next_retry = datetime.fromisoformat(assignment["next_retry_at"])
-            if datetime.utcnow() < next_retry:
+            if datetime.now(timezone.utc) < next_retry:
                 await self.task_queue.publish_task(
                     build_task_message(
                         tenant_id=tenant_id,
@@ -1582,7 +1582,7 @@ class WorkflowEngineAgent(BaseAgent):
                 }
         assignment["status"] = "in_progress"
         assignment["worker_id"] = self.worker_id
-        assignment["started_at"] = datetime.utcnow().isoformat()
+        assignment["started_at"] = datetime.now(timezone.utc).isoformat()
         await self.state_store.save_task(tenant_id, task_id, assignment.copy())
 
         task_payload = assignment.get("task_payload", {})
@@ -1601,7 +1601,7 @@ class WorkflowEngineAgent(BaseAgent):
             return result
 
         assignment["status"] = "assigned"
-        assignment["assigned_at"] = datetime.utcnow().isoformat()
+        assignment["assigned_at"] = datetime.now(timezone.utc).isoformat()
         await self.state_store.save_task(tenant_id, task_id, assignment.copy())
         return {"task_id": task_id, "status": "assigned"}
 
@@ -1611,7 +1611,7 @@ class WorkflowEngineAgent(BaseAgent):
         assignment = await self._load_task_assignment(tenant_id, task_id)
         if assignment:
             assignment["status"] = "failed"
-            assignment["failed_at"] = datetime.utcnow().isoformat()
+            assignment["failed_at"] = datetime.now(timezone.utc).isoformat()
             assignment["failure_reason"] = reason
             retry_policy = assignment.get("retry_policy") or {}
             retry_count = assignment.get("retry_count", 0)
@@ -1622,7 +1622,7 @@ class WorkflowEngineAgent(BaseAgent):
                 assignment["status"] = "retrying"
                 if backoff_seconds:
                     assignment["next_retry_at"] = (
-                        datetime.utcnow()
+                        datetime.now(timezone.utc)
                         + timedelta(seconds=int(backoff_seconds))
                     ).isoformat()
                 await self.state_store.save_task(tenant_id, task_id, assignment.copy())
@@ -1664,7 +1664,7 @@ class WorkflowEngineAgent(BaseAgent):
                     "task_id": task_id,
                     "status": "failed",
                     "reason": reason,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             )
             instance["last_checkpoint"] = task_id
@@ -1783,7 +1783,7 @@ class WorkflowEngineAgent(BaseAgent):
             "tenant_id": tenant_id,
             "event_type": event_type,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": "workflow_engine_agent",
         }
         if self.event_bus:

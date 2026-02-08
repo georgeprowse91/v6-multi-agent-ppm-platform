@@ -67,7 +67,7 @@ class LocalEncryptedWORMStorage(WORMStorage):
             **payload,
             "retention_policy": retention.policy_id,
             "retention_until": (
-                datetime.utcnow() + timedelta(days=retention.duration_days)
+                datetime.now(timezone.utc) + timedelta(days=retention.duration_days)
             ).isoformat(),
         }
         encrypted = self.fernet.encrypt(json.dumps(payload).encode("utf-8"))
@@ -137,7 +137,7 @@ class AzureBlobWORMStorage(WORMStorage):
             raise WORMStorageError("Immutable store already contains event")
         payload["retention_policy"] = retention.policy_id
         payload["retention_until"] = (
-            datetime.utcnow() + timedelta(days=retention.duration_days)
+            datetime.now(timezone.utc) + timedelta(days=retention.duration_days)
         ).isoformat()
         try:
             blob_client.upload_blob(json.dumps(payload), overwrite=False)

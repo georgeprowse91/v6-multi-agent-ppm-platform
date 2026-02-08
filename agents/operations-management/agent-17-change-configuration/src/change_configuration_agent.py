@@ -14,7 +14,7 @@ import json
 import os
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
@@ -457,7 +457,7 @@ class ChangeWorkflowOrchestrator:
                 {"name": "automated_checks", "status": "pending"},
                 {"name": "final_approval", "status": "pending"},
             ],
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         workflow["orchestrator_status"] = self._call_orchestrator(workflow)
         await self.db_service.store("change_workflows", change_id, workflow)
@@ -1042,7 +1042,7 @@ class ChangeConfigurationAgent(BaseAgent):
             "approval": approval_payload,
             "status": "Submitted",
             "version": 1,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "repository_context": repo_context,
             "iac_changes": iac_changes,
             "knowledge_context": knowledge_context,
@@ -1151,7 +1151,7 @@ class ChangeConfigurationAgent(BaseAgent):
             "overall_risk_score": await self._calculate_overall_risk(
                 schedule_impact, cost_impact, risk_impact, compliance_impact
             ),
-            "assessed_at": datetime.utcnow().isoformat(),
+            "assessed_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Update change
@@ -1186,7 +1186,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
         change["approval_status"] = "Approved" if decision == "approve" else "Rejected"
         change["approved_by"] = approver
-        change["approval_date"] = datetime.utcnow().isoformat()
+        change["approval_date"] = datetime.now(timezone.utc).isoformat()
         change["approval_comments"] = comments
 
         if decision == "approve":
@@ -1244,7 +1244,7 @@ class ChangeConfigurationAgent(BaseAgent):
         comments = review_data.get("comments", "")
         change["review_status"] = decision
         change["reviewed_by"] = reviewer
-        change["reviewed_at"] = datetime.utcnow().isoformat()
+        change["reviewed_at"] = datetime.now(timezone.utc).isoformat()
         await self.db_service.store("change_requests", change_id, change)
         await self._record_change_audit(
             change_id,
@@ -1313,7 +1313,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
         change["status"] = "In Progress"
         change["implementation_plan"] = implementation
-        change["implementation_started_at"] = datetime.utcnow().isoformat()
+        change["implementation_started_at"] = datetime.now(timezone.utc).isoformat()
         await self.db_service.store("change_requests", change_id, change)
         await self._record_change_audit(
             change_id,
@@ -1356,7 +1356,7 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
         change.update(updates)
         change["version"] = int(change.get("version", 1)) + 1
-        change["last_modified"] = datetime.utcnow().isoformat()
+        change["last_modified"] = datetime.now(timezone.utc).isoformat()
         self.change_store.upsert(tenant_id, change_id, change)
         await self.db_service.store("change_requests", change_id, change)
         await self._record_change_audit(
@@ -1390,8 +1390,8 @@ class ChangeConfigurationAgent(BaseAgent):
             "project_id": ci_data.get("project_id"),
             "relationships": ci_data.get("relationships", []),
             "attributes": ci_data.get("attributes", {}),
-            "created_at": datetime.utcnow().isoformat(),
-            "last_modified": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_modified": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store CI
@@ -1429,7 +1429,7 @@ class ChangeConfigurationAgent(BaseAgent):
             "project_id": baseline_data.get("project_id"),
             "description": baseline_data.get("description"),
             "ci_snapshot": ci_snapshot,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": baseline_data.get("created_by", "unknown"),
             "locked": True,
         }
@@ -1465,7 +1465,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Update change status
         if completion_pct == 100:
             change["status"] = "Implemented"
-            change["implemented_at"] = datetime.utcnow().isoformat()
+            change["implemented_at"] = datetime.now(timezone.utc).isoformat()
 
         return {
             "change_id": change_id,
@@ -1499,7 +1499,7 @@ class ChangeConfigurationAgent(BaseAgent):
             ),
             "emergency_changes": len([c for c in changes_to_audit if c.get("type") == "emergency"]),
             "patterns": patterns,
-            "audit_date": datetime.utcnow().isoformat(),
+            "audit_date": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _visualize_dependencies(self, ci_id: str | None) -> dict[str, Any]:
@@ -1547,7 +1547,7 @@ class ChangeConfigurationAgent(BaseAgent):
             "change_statistics": stats,
             "cab_workload": cab_workload,
             "recent_changes": open_changes[:10],
-            "dashboard_generated_at": datetime.utcnow().isoformat(),
+            "dashboard_generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_change_report(
@@ -1578,7 +1578,7 @@ class ChangeConfigurationAgent(BaseAgent):
             raise ValueError(f"Change request not found: {change_id}")
         change["status"] = "Rolled Back"
         change["rollback_reason"] = reason
-        change["rolled_back_at"] = datetime.utcnow().isoformat()
+        change["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
         await self.db_service.store("change_requests", change_id, change)
         await self._record_change_audit(
             change_id,
@@ -1616,7 +1616,7 @@ class ChangeConfigurationAgent(BaseAgent):
         if deployment_status in {"succeeded", "failed"}:
             change["status"] = "Implemented" if deployment_status == "succeeded" else "Failed"
             change["implemented_at"] = (
-                datetime.utcnow().isoformat()
+                datetime.now(timezone.utc).isoformat()
                 if deployment_status == "succeeded"
                 else change.get("implemented_at")
             )
@@ -1680,17 +1680,17 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _generate_change_id(self) -> str:
         """Generate unique change ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"CHG-{timestamp}"
 
     async def _generate_ci_id(self) -> str:
         """Generate unique CI ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"CI-{timestamp}"
 
     async def _generate_baseline_id(self) -> str:
         """Generate unique baseline ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"BL-{timestamp}"
 
     async def _auto_classify_change_type(self, change_data: dict[str, Any]) -> str:
@@ -1967,7 +1967,7 @@ class ChangeConfigurationAgent(BaseAgent):
                 "tool": subscription.get("tool"),
                 "endpoint": subscription.get("endpoint"),
                 "events": subscription.get("events", ["deployment"]),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
             await self.db_service.store("cicd_subscriptions", subscription_id, payload)
             stored_subscriptions.append(payload)
@@ -1993,7 +1993,7 @@ class ChangeConfigurationAgent(BaseAgent):
         await self._publish_event(
             "change.metrics",
             {
-                "event_id": f"change.metrics:{datetime.utcnow().isoformat()}",
+                "event_id": f"change.metrics:{datetime.now(timezone.utc).isoformat()}",
                 "metrics": metrics,
             },
         )
@@ -2020,7 +2020,7 @@ class ChangeConfigurationAgent(BaseAgent):
             "action": action,
             "actor_id": actor_id,
             "details": details or {},
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self.change_history.setdefault(change_id, []).append(entry)
         await self.db_service.store("change_audit", f"{change_id}:{entry['timestamp']}", entry)
@@ -2294,12 +2294,12 @@ class ChangeConfigurationAgent(BaseAgent):
         )
         return {
             "pending_reviews": pending_reviews,
-            "next_meeting": (datetime.utcnow() + timedelta(days=3)).isoformat(),
+            "next_meeting": (datetime.now(timezone.utc) + timedelta(days=3)).isoformat(),
         }
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary change report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+        return {"report_type": "summary", "data": {}, "generated_at": datetime.now(timezone.utc).isoformat()}
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

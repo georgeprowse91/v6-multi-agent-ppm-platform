@@ -15,7 +15,7 @@ import os
 import random
 import re
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -392,7 +392,7 @@ class ProgramManagementAgent(BaseAgent):
             "strategic_objectives": strategic_objectives,
             "constituent_projects": constituent_projects,
             "methodology": methodology,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": program_data.get("created_by", "unknown"),
             "status": "Planning",
             "portfolio_id": program_data.get("portfolio_id", "unknown"),
@@ -469,7 +469,7 @@ class ProgramManagementAgent(BaseAgent):
             "resource_allocations": resource_allocations,
             "start_date": await self._calculate_program_start(project_schedules),
             "end_date": await self._calculate_program_end(project_schedules),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         self.roadmap_store.upsert(tenant_id, program_id, roadmap)
@@ -844,7 +844,7 @@ class ProgramManagementAgent(BaseAgent):
                 resource_health=resource_health,
                 benefit_metrics=benefit_metrics,
             ),
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         if self.db_service:
@@ -893,7 +893,7 @@ class ProgramManagementAgent(BaseAgent):
 
     async def _generate_program_id(self) -> str:
         """Generate unique program ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PROG-{timestamp}"
 
     async def _publish_program_created(
@@ -902,7 +902,7 @@ class ProgramManagementAgent(BaseAgent):
         event = ProgramCreatedEvent(
             event_name="program.created",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -922,7 +922,7 @@ class ProgramManagementAgent(BaseAgent):
         event = ProgramRoadmapUpdatedEvent(
             event_name="program.roadmap.updated",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -948,7 +948,7 @@ class ProgramManagementAgent(BaseAgent):
             "program_id": program_id,
             "status_type": status_type,
             "payload": payload,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         if self.db_service:
             await self.db_service.store(
@@ -1118,12 +1118,12 @@ class ProgramManagementAgent(BaseAgent):
     async def _calculate_program_start(self, schedules: dict[str, Any]) -> str:
         """Calculate program start date."""
         # Baseline
-        return datetime.utcnow().isoformat()
+        return datetime.now(timezone.utc).isoformat()
 
     async def _calculate_program_end(self, schedules: dict[str, Any]) -> str:
         """Calculate program end date."""
         # Baseline
-        return datetime.utcnow().isoformat()
+        return datetime.now(timezone.utc).isoformat()
 
     def _parse_date(self, date_value: str | None) -> datetime | None:
         if not date_value:
@@ -2031,7 +2031,7 @@ class ProgramManagementAgent(BaseAgent):
             "program_id": program_id,
             "tenant_id": tenant_id,
             "dependencies": dependencies,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         await self.dependency_container.upsert_item(item)
         return item
@@ -2051,7 +2051,7 @@ class ProgramManagementAgent(BaseAgent):
             "program_id": program_id,
             "tenant_id": tenant_id,
             "dependencies": dependencies,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         await self.dependency_container.upsert_item(item)
 
@@ -2091,7 +2091,7 @@ class ProgramManagementAgent(BaseAgent):
         training_data = await self._prepare_health_training_data()
         model_payload = {
             "weights": self.health_score_weights,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "training_data": training_data,
         }
         model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2253,7 +2253,7 @@ class ProgramManagementAgent(BaseAgent):
                     "project_id": project.get("id"),
                     "project_key": project.get("key"),
                     "project_name": project.get("name"),
-                    "synced_at": datetime.utcnow().isoformat(),
+                    "synced_at": datetime.now(timezone.utc).isoformat(),
                 }
             )
         return mappings
@@ -2280,7 +2280,7 @@ class ProgramManagementAgent(BaseAgent):
                     "program_id": program_id,
                     "project_id": project.get("id"),
                     "project_name": project.get("name"),
-                    "synced_at": datetime.utcnow().isoformat(),
+                    "synced_at": datetime.now(timezone.utc).isoformat(),
                 }
             )
         return mappings
@@ -2555,7 +2555,7 @@ class ProgramManagementAgent(BaseAgent):
             "alignment_scores": alignment_scores,
             "synergy_savings": synergy_savings,
             "synergy_analysis": synergy_analysis,
-            "optimized_at": datetime.utcnow().isoformat(),
+            "optimized_at": datetime.now(timezone.utc).isoformat(),
         }
 
         if self.db_service:
@@ -2579,7 +2579,7 @@ class ProgramManagementAgent(BaseAgent):
                     "alignment_scores": alignment_scores,
                     "synergy_map": {f"{k[0]}::{k[1]}": v for k, v in synergy_map.items()},
                     "constraints": constraints,
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
 
@@ -2611,7 +2611,7 @@ class ProgramManagementAgent(BaseAgent):
         self, project_ids: list[str], schedules: dict[str, Any]
     ) -> dict[str, dict[str, Any]]:
         schedule_map: dict[str, dict[str, Any]] = {}
-        default_start = datetime.utcnow()
+        default_start = datetime.now(timezone.utc)
         for idx, project_id in enumerate(project_ids):
             schedule = schedules.get(project_id, {})
             start = self._parse_date(schedule.get("start")) or default_start + timedelta(days=30 * idx)
@@ -2980,7 +2980,7 @@ class ProgramManagementAgent(BaseAgent):
             "decision_id": str(uuid.uuid4()),
             "program_id": program_id,
             "decision": decision,
-            "recorded_at": datetime.utcnow().isoformat(),
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
         }
         program.setdefault("decision_log", []).append(decision_entry)
         self.program_store.upsert(tenant_id, program_id, program)

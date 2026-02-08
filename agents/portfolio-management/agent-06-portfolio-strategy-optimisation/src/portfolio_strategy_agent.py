@@ -11,7 +11,7 @@ Specification: agents/portfolio-management/agent-06-portfolio-strategy-optimisat
 import math
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -348,7 +348,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "cycle": cycle,
             "ranked_projects": ranked_projects,
             "criteria_weights": criteria_weights,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.portfolio_store.upsert(tenant_id, portfolio_id, portfolio_record)
         if self.db_service:
@@ -372,7 +372,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "criteria_weights": criteria_weights,
             "total_projects": len(ranked_projects),
             "approved_count": len([p for p in ranked_projects if p["recommendation"] == "approve"]),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _calculate_alignment_score(
@@ -410,7 +410,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "project_id": project.get("project_id"),
             "overall_alignment_score": overall_score,
             "objective_alignments": alignment_details,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _optimize_portfolio(
@@ -533,7 +533,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "constraints_applied": constraints,
             "optimization_method": optimization_method,
             "discount_rate": discount_rate,
-            "optimized_at": datetime.utcnow().isoformat(),
+            "optimized_at": datetime.now(timezone.utc).isoformat(),
         }
         if self.db_service:
             await self.db_service.store(
@@ -642,7 +642,7 @@ class PortfolioStrategyAgent(BaseAgent):
             self.optimization_scenarios[scenario_id] = {
                 "name": scenario_name,
                 "results": optimization_result,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
             if self.db_service:
                 await self.db_service.store(
@@ -653,7 +653,7 @@ class PortfolioStrategyAgent(BaseAgent):
                         "scenario_name": scenario_name,
                         "parameters": scenario,
                         "results": optimization_result,
-                        "created_at": datetime.utcnow().isoformat(),
+                        "created_at": datetime.now(timezone.utc).isoformat(),
                     },
                 )
 
@@ -729,7 +729,7 @@ class PortfolioStrategyAgent(BaseAgent):
                 "gaps": gaps,
                 "recommendations": recommendations,
                 "impact": impact,
-                "rebalanced_at": datetime.utcnow().isoformat(),
+                "rebalanced_at": datetime.now(timezone.utc).isoformat(),
             },
             tenant_id=tenant_id,
             correlation_id=correlation_id,
@@ -742,7 +742,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "gaps": gaps,
             "recommendations": recommendations,
             "impact": impact,
-            "rebalanced_at": datetime.utcnow().isoformat(),
+            "rebalanced_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_portfolio_status(
@@ -766,7 +766,7 @@ class PortfolioStrategyAgent(BaseAgent):
                 "investment_mix": {},
                 "strategic_coverage": {},
                 "resource_utilization": 0,
-                "retrieved_at": datetime.utcnow().isoformat(),
+                "retrieved_at": datetime.now(timezone.utc).isoformat(),
             }
 
         return {
@@ -777,7 +777,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "investment_mix": {},
             "strategic_coverage": {},
             "resource_utilization": 0,
-            "retrieved_at": datetime.utcnow().isoformat(),
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _upsert_scenario(
@@ -787,7 +787,7 @@ class PortfolioStrategyAgent(BaseAgent):
         definition = {
             "scenario_id": scenario_id,
             "scenario": scenario,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.scenario_definitions[scenario_id] = definition
         if self.db_service:
@@ -1111,7 +1111,7 @@ class PortfolioStrategyAgent(BaseAgent):
             "decision_id": str(uuid.uuid4()),
             "portfolio_id": portfolio_id,
             "decision": decision,
-            "recorded_at": datetime.utcnow().isoformat(),
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
         }
         record.setdefault("decision_log", []).append(decision_entry)
         self.portfolio_store.upsert(tenant_id, portfolio_id, record)
@@ -1131,7 +1131,7 @@ class PortfolioStrategyAgent(BaseAgent):
         return {"status": "recorded", "decision": decision_entry}
 
     async def _generate_portfolio_id(self) -> str:
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PORT-{timestamp}"
 
     async def _apply_policy_guardrails(
@@ -1175,7 +1175,7 @@ class PortfolioStrategyAgent(BaseAgent):
         event = PortfolioPrioritizedEvent(
             event_name="portfolio.prioritized",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -1444,7 +1444,7 @@ class PortfolioStrategyAgent(BaseAgent):
             **payload,
             "tenant_id": tenant_id,
             "correlation_id": correlation_id,
-            "published_at": datetime.utcnow().isoformat(),
+            "published_at": datetime.now(timezone.utc).isoformat(),
         }
         await self.event_bus.publish(topic, enriched)
 

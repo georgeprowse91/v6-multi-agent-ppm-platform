@@ -10,7 +10,7 @@ Specification: agents/delivery-management/agent-08-project-definition-scope/READ
 
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -333,7 +333,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "title": title,
             "project_type": project_type,
             "methodology": methodology,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": charter_data.get("requester", "unknown"),
             "status": "Draft",
             "template": template,
@@ -447,7 +447,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "wbs_id": wbs_id,
             "project_id": project_id,
             "structure": wbs_with_details,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "Draft",
             "version": "1.0",
         }
@@ -567,7 +567,7 @@ class ProjectDefinitionAgent(BaseAgent):
                 "used_external_research": False,
                 "notice": notice,
                 "requested_by": requester,
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id,
             }
 
@@ -590,7 +590,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "used_external_research": True,
             "notice": notice,
             "requested_by": requester,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "correlation_id": correlation_id,
         }
 
@@ -628,7 +628,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "conflicts": conflicts,
             "validation": validation,
             "total_count": len(prioritized),
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store requirements
@@ -700,7 +700,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "gaps": gaps,
             "coverage": coverage,
             "meets_threshold": coverage >= self.traceability_threshold,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store matrix
@@ -740,7 +740,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "influence_network": influence_network,
             "communication_strategies": communication_strategies,
             "total_count": len(classified),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store stakeholder register
@@ -774,12 +774,12 @@ class ProjectDefinitionAgent(BaseAgent):
             "deliverables": deliverables,
             "assignments": raci_assignments,
             "validation": validation,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         await self.db_service.store(
             "project_raci_matrices",
-            f"{project_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            f"{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             {"tenant_id": "unknown", "raci_matrix": raci_matrix},
         )
         await self._index_artifact(
@@ -822,7 +822,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "wbs_version": wbs.get("version"),
             "requirements_count": len(requirements_repo.get("requirements", [])),
             "scope_statement": charter["document"].get("scope_overview"),
-            "locked_at": datetime.utcnow().isoformat(),
+            "locked_at": datetime.now(timezone.utc).isoformat(),
             "locked_by": "system",
             "status": "Locked",
         }
@@ -910,7 +910,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _generate_project_id(self) -> str:
         """Generate unique project ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PRJ-{timestamp}-{uuid.uuid4().hex[:6]}"
 
     async def _generate_charter_id(self, project_id: str) -> str:
@@ -952,7 +952,7 @@ class ProjectDefinitionAgent(BaseAgent):
         event = CharterCreatedEvent(
             event_name="charter.created",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -971,7 +971,7 @@ class ProjectDefinitionAgent(BaseAgent):
         event = WbsCreatedEvent(
             event_name="wbs.created",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -986,7 +986,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _generate_baseline_id(self, project_id: str) -> str:
         """Generate unique baseline ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"{project_id}-BASELINE-{timestamp}"
 
     async def _select_charter_template(self, charter_data: dict[str, Any]) -> str:

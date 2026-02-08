@@ -3883,7 +3883,7 @@ async def apply_template(
         name=payload.project_name,
         template_id=template.id,
         template_version=selected_version,
-        created_at=datetime.utcnow().isoformat() + "Z",
+        created_at=datetime.now(timezone.utc).isoformat() + "Z",
         methodology=template.methodology,
         agent_config=template.agent_config,
         connector_config=template.connector_config,

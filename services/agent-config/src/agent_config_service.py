@@ -11,7 +11,7 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, cast
@@ -215,7 +215,7 @@ class AgentConfig:
     enabled: bool = True
     parameters: list[AgentParameter] = field(default_factory=list)
     capabilities: list[str] = field(default_factory=list)
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_by: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -249,7 +249,7 @@ class AgentConfig:
             enabled=data.get("enabled", True),
             parameters=params,
             capabilities=data.get("capabilities", []),
-            updated_at=data.get("updated_at", datetime.utcnow().isoformat()),
+            updated_at=data.get("updated_at", datetime.now(timezone.utc).isoformat()),
             updated_by=data.get("updated_by"),
         )
 
@@ -262,7 +262,7 @@ class ProjectAgentConfig:
     agent_id: str
     enabled: bool = True
     parameter_overrides: dict[str, Any] = field(default_factory=dict)
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_by: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -1393,7 +1393,7 @@ class AgentConfigStore:
             elif key != "catalog_id":  # Don't allow changing catalog_id
                 agent_data[key] = value
 
-        agent_data["updated_at"] = datetime.utcnow().isoformat()
+        agent_data["updated_at"] = datetime.now(timezone.utc).isoformat()
         agent_data["updated_by"] = updated_by
 
         data["agents"][catalog_id] = agent_data
@@ -1431,7 +1431,7 @@ class AgentConfigStore:
             agent_id=agent_id,
             enabled=enabled,
             parameter_overrides=parameter_overrides or {},
-            updated_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.now(timezone.utc).isoformat(),
             updated_by=updated_by,
         )
 

@@ -40,10 +40,22 @@ class ResourceNotFoundError(PPMPlatformError):
     status_code = 404
 
 
+class ConflictError(PPMPlatformError):
+    """Raised when a request conflicts with the current state of a resource."""
+
+    status_code = 409
+
+
 class ExternalServiceError(PPMPlatformError):
     """Raised when an external dependency fails."""
 
     status_code = 502
+
+
+class ServiceUnavailableError(PPMPlatformError):
+    """Raised when a service is temporarily unavailable."""
+
+    status_code = 503
 
 
 class RateLimitExceededError(PPMPlatformError):
@@ -75,7 +87,9 @@ EXCEPTION_STATUS_MAP: dict[type[PPMPlatformError], int] = {
     AuthenticationError: AuthenticationError.status_code,
     AuthorizationError: AuthorizationError.status_code,
     ResourceNotFoundError: ResourceNotFoundError.status_code,
+    ConflictError: ConflictError.status_code,
     ExternalServiceError: ExternalServiceError.status_code,
+    ServiceUnavailableError: ServiceUnavailableError.status_code,
     RateLimitExceededError: RateLimitExceededError.status_code,
     WorkflowError: WorkflowError.status_code,
     AgentError: AgentError.status_code,
@@ -84,13 +98,17 @@ EXCEPTION_STATUS_MAP: dict[type[PPMPlatformError], int] = {
 
 
 def exception_to_http_status(exc: Exception) -> int:
-    """Map platform exceptions to HTTP status codes."""
+    """Map platform exceptions to HTTP status codes.
+
+    Resolves the status code from the exception's class attribute, falling
+    back to the static map for backwards compatibility with any subclass
+    that does not define ``status_code`` directly.
+    """
+    if isinstance(exc, PPMPlatformError):
+        return getattr(exc, "status_code", PPMPlatformError.status_code)
 
     for exc_type, status_code in EXCEPTION_STATUS_MAP.items():
         if isinstance(exc, exc_type):
             return status_code
-
-    if isinstance(exc, PPMPlatformError):
-        return getattr(exc, "status_code", PPMPlatformError.status_code)
 
     return 500

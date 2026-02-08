@@ -7,7 +7,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
@@ -123,7 +123,7 @@ class AgentOrchestrator:
         self.agent_states[agent_id] = AgentLifecycleState(
             agent_id=agent_id,
             status=status,
-            updated_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.now(timezone.utc).isoformat(),
             reason=reason,
         )
 
@@ -277,7 +277,7 @@ class AgentOrchestrator:
                     metadata=AgentResponseMetadata(
                         agent_id=agent.agent_id,
                         catalog_id=agent.catalog_id or agent.agent_id,
-                        timestamp=datetime.utcnow().isoformat(),
+                        timestamp=datetime.now(timezone.utc).isoformat(),
                         correlation_id=correlation_id or "unknown",
                         trace_id=None,
                         execution_time_seconds=None,
@@ -563,14 +563,31 @@ class AgentOrchestrator:
             self.catalog_agents[catalog_id] = agent
 
     async def cleanup(self) -> None:
-        """Clean up all agents."""
-        logger.info("Cleaning up orchestrator...")
-        for agent_id, agent in self.agents.items():
+        """Clean up all agents concurrently with graceful error isolation."""
+        logger.info("Cleaning up orchestrator (%d agents)...", len(self.agents))
+
+        # Persist workflow state before tearing down agents
+        try:
+            for state in self.workflow_states.values():
+                await self.state_store.save(state)
+        except Exception as exc:
+            logger.error("Failed to persist workflow states during cleanup: %s", exc)
+
+        # Clean up all agents concurrently for faster shutdown
+        async def _cleanup_agent(agent_id: str, agent: BaseAgent) -> None:
             try:
-                await agent.cleanup()
+                await asyncio.wait_for(agent.cleanup(), timeout=10.0)
+            except asyncio.TimeoutError:
+                logger.warning("Agent %s cleanup timed out", agent_id)
             except Exception as e:
-                logger.error(f"Error cleaning up agent {agent_id}: {str(e)}")
+                logger.error("Error cleaning up agent %s: %s", agent_id, str(e))
+
+        await asyncio.gather(
+            *[_cleanup_agent(aid, agent) for aid, agent in self.agents.items()],
+            return_exceptions=True,
+        )
 
         self.agents.clear()
+        self.catalog_agents.clear()
         self.initialized = False
         logger.info("Orchestrator cleanup complete")

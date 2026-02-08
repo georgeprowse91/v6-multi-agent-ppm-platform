@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
 
 from data_quality.rules import DataQualityIssue, DataQualityReport
@@ -39,7 +39,7 @@ def _ensure_iso_date(value: date | None) -> str | None:
 
 
 def _ensure_iso_datetime() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _apply_action(

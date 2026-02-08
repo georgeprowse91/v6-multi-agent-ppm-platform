@@ -11,7 +11,7 @@ Specification: agents/portfolio-management/agent-04-demand-intake/README.md
 import math
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -208,7 +208,7 @@ class DemandIntakeAgent(BaseAgent):
             "business_objective": request_data.get("business_objective"),
             "category": category,
             "status": "Received",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": request_data.get("requester", "unknown"),
             "business_unit": request_data.get("business_unit", ""),
             "urgency": request_data.get("urgency", "Medium"),
@@ -227,7 +227,7 @@ class DemandIntakeAgent(BaseAgent):
                     f"Category: {category}."
                 ),
                 "metadata": {"demand_id": demand_id, "tenant_id": tenant_id},
-                "sent_at": datetime.utcnow().isoformat(),
+                "sent_at": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -417,7 +417,7 @@ class DemandIntakeAgent(BaseAgent):
 
     async def _generate_demand_id(self) -> str:
         """Generate unique demand ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"DEM-{timestamp}-{uuid.uuid4().hex[:8]}"
 
     async def _publish_demand_created(
@@ -426,7 +426,7 @@ class DemandIntakeAgent(BaseAgent):
         event = DemandCreatedEvent(
             event_name="demand.created",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),

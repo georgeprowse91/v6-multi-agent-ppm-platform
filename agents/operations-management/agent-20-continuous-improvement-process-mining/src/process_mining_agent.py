@@ -9,7 +9,7 @@ Specification: agents/operations-management/agent-20-continuous-improvement-proc
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -348,7 +348,7 @@ class ProcessMiningAgent(BaseAgent):
             "events": mapped_events,
             "event_count": len(mapped_events),
             "case_count": len(set(e.get("case_id") for e in mapped_events)),
-            "ingested_at": datetime.utcnow().isoformat(),
+            "ingested_at": datetime.now(timezone.utc).isoformat(),
         }
         self.event_logs[log_id] = log_record
         self.event_log_store.upsert(tenant_id, log_id, log_record)
@@ -426,7 +426,7 @@ class ProcessMiningAgent(BaseAgent):
             "compliant_traces": compliant_traces,
             "compliance_rate": compliance_rate,
             "deviations": deviations,
-            "checked_at": datetime.utcnow().isoformat(),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
         }
         self.conformance_store.upsert(tenant_id, process_id, report)
         await self._emit_deviation_alert(process_id, report)
@@ -469,7 +469,7 @@ class ProcessMiningAgent(BaseAgent):
             "algorithm": algorithm,
             "metrics": performance_metrics,
             "visualization": visualization,
-            "discovered_at": datetime.utcnow().isoformat(),
+            "discovered_at": datetime.now(timezone.utc).isoformat(),
         }
         self.process_models[process_id] = model_record
         self.process_model_store.upsert(tenant_id, process_id, model_record)
@@ -662,7 +662,7 @@ class ProcessMiningAgent(BaseAgent):
             "priority_score": priority_score,
             "owner": improvement_data.get("owner"),
             "status": "Idea",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store improvement
@@ -792,7 +792,7 @@ class ProcessMiningAgent(BaseAgent):
             "expected_benefits": expected_benefits,
             "actual_benefits": actual_benefits,
             "realization_percentage": realization,
-            "measured_at": datetime.utcnow().isoformat(),
+            "measured_at": datetime.now(timezone.utc).isoformat(),
         }
 
         if self.financial_agent:
@@ -997,7 +997,7 @@ class ProcessMiningAgent(BaseAgent):
         insights = await self._get_process_insights(tenant_id, process_id)
         return {
             "process_id": process_id,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "recommendations": insights.get("recommendations", []),
         }
 
@@ -1018,7 +1018,7 @@ class ProcessMiningAgent(BaseAgent):
             ]
 
         return {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "filters": filters,
             "process_kpis": await self._calculate_grouped_kpis(all_events, "process_id"),
             "project_kpis": await self._calculate_grouped_kpis(all_events, "project_id"),
@@ -1029,12 +1029,12 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _generate_log_id(self) -> str:
         """Generate unique log ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
         return f"LOG-{timestamp}"
 
     async def _generate_improvement_id(self) -> str:
         """Generate unique improvement ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
         return f"IMP-{timestamp}"
 
     async def _validate_events(self, events: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1745,7 +1745,7 @@ class ProcessMiningAgent(BaseAgent):
             "timestamp": payload.get("timestamp")
             or payload.get("time")
             or data.get("timestamp")
-            or datetime.utcnow().isoformat(),
+            or datetime.now(timezone.utc).isoformat(),
             "activity": event_type or "unknown",
             "process_id": payload.get("process_id")
             or data.get("process_id")
@@ -1763,7 +1763,7 @@ class ProcessMiningAgent(BaseAgent):
     async def _normalize_event(self, event: dict[str, Any]) -> dict[str, Any] | None:
         if not event.get("activity"):
             return None
-        timestamp = event.get("timestamp") or datetime.utcnow().isoformat()
+        timestamp = event.get("timestamp") or datetime.now(timezone.utc).isoformat()
         normalized = {
             **event,
             "timestamp": timestamp,
@@ -1825,7 +1825,7 @@ class ProcessMiningAgent(BaseAgent):
         payload = {
             "process_id": process_id,
             "recommendations": recommendations,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         if context:
             payload["context"] = context

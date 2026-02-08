@@ -10,7 +10,7 @@ Specification: agents/operations-management/agent-18-release-deployment/README.m
 
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
@@ -424,7 +424,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "environment_available": env_availability,
             "conflicts": conflicts,
             "alternative_windows": alternative_windows,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": release_data.get("requester", "unknown"),
         }
 
@@ -517,7 +517,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "risk_details": risk_check,
             "compliance_details": compliance_check,
             "critical_blockers": critical_blockers,
-            "assessed_at": datetime.utcnow().isoformat(),
+            "assessed_at": datetime.now(timezone.utc).isoformat(),
         }
         self.readiness_assessments[assessment_id] = assessment_record
         await self.db_service.store(
@@ -600,7 +600,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             ),
             "responsible_owner": plan_data.get("owner"),
             "status": "Draft",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store deployment plan
@@ -706,7 +706,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         # Update status
         deployment_plan["status"] = "In Progress"
-        deployment_plan["started_at"] = datetime.utcnow().isoformat()
+        deployment_plan["started_at"] = datetime.now(timezone.utc).isoformat()
         await self._ensure_environment_reserved(release_id, deployment_plan)
         await self._publish_event(
             "deployment.started",
@@ -795,11 +795,11 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         # Update deployment plan and release
         deployment_plan["status"] = "Completed" if verification_results.get("success") else "Failed"
-        deployment_plan["completed_at"] = datetime.utcnow().isoformat()
+        deployment_plan["completed_at"] = datetime.now(timezone.utc).isoformat()
 
         if verification_results.get("success"):
             release["status"] = "Deployed"
-            release["actual_date"] = datetime.utcnow().isoformat()
+            release["actual_date"] = datetime.now(timezone.utc).isoformat()
 
         # Persist updates to database
         await self.db_service.store("deployment_plans", deployment_plan_id, deployment_plan)
@@ -870,7 +870,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         # Update status
         deployment_plan["rollback_executed"] = True
-        deployment_plan["rollback_at"] = datetime.utcnow().isoformat()
+        deployment_plan["rollback_at"] = datetime.now(timezone.utc).isoformat()
         deployment_plan["status"] = "Rolled Back"
 
         # Persist to database
@@ -918,7 +918,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "owner": environment_data.get("owner"),
             "reserved_by": None,
             "reserved_until": None,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store environment
@@ -1002,7 +1002,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "bug_fixes": bug_fixes,
             "known_issues": known_issues,
             "related_tickets": changes,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         self.release_notes[notes_id] = release_notes
@@ -1060,7 +1060,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "release_id": release_id,
             "metrics": metrics,
             "anomalies": anomalies,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.deployment_metrics[release_id] = metrics_record
 
@@ -1266,26 +1266,26 @@ class ReleaseDeploymentAgent(BaseAgent):
 
     async def _generate_release_id(self) -> str:
         """Generate unique release ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"REL-{timestamp}"
 
     async def _generate_deployment_plan_id(self) -> str:
         """Generate unique deployment plan ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"DEPLOY-{timestamp}"
 
     async def _generate_environment_id(self) -> str:
         """Generate unique environment ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"ENV-{timestamp}"
 
     async def _generate_release_notes_id(self) -> str:
         """Generate unique release notes ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"NOTES-{timestamp}"
 
     async def _generate_readiness_assessment_id(self) -> str:
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"READY-{timestamp}"
 
     async def _check_environment_availability(
@@ -1686,7 +1686,7 @@ Known Issues:
 
     async def _calculate_deployment_frequency(self) -> float:
         """Calculate deployment frequency."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         window_start = now - timedelta(days=30)
         completed = [
             plan
@@ -2119,7 +2119,7 @@ Known Issues:
             "steps": rollback_steps,
             "artifacts": artifacts,
             "previous_release": previous_release,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         await self.db_service.store(
             "rollback_plans", deployment_plan_id or str(uuid.uuid4()), rollback_plan
@@ -2217,7 +2217,7 @@ Known Issues:
             "allocation_id": reservation.get("reservation_id", str(uuid.uuid4())),
             "environment": environment,
             "release_id": release_id,
-            "reserved_at": datetime.utcnow().isoformat(),
+            "reserved_at": datetime.now(timezone.utc).isoformat(),
             "reserved_until": reserved_until,
             "status": "reserved",
         }
@@ -2243,7 +2243,7 @@ Known Issues:
             for allocation in self.environment_allocations.values()
         ):
             return
-        planned_date = deployment_plan.get("started_at") or datetime.utcnow().isoformat()
+        planned_date = deployment_plan.get("started_at") or datetime.now(timezone.utc).isoformat()
         environment = deployment_plan.get("environment")
         if environment:
             await self._reserve_environment(environment, planned_date, release_id)
@@ -2263,7 +2263,7 @@ Known Issues:
         if not allocation:
             return
         allocation["status"] = "released"
-        allocation["released_at"] = datetime.utcnow().isoformat()
+        allocation["released_at"] = datetime.now(timezone.utc).isoformat()
         if self.environment_reservation_client and hasattr(
             self.environment_reservation_client, "release"
         ):
@@ -2344,7 +2344,7 @@ Known Issues:
                 {
                     "artifact_id": str(uuid.uuid4()),
                     "deployment_plan_id": deployment_plan.get("deployment_plan_id"),
-                    "captured_at": datetime.utcnow().isoformat(),
+                    "captured_at": datetime.now(timezone.utc).isoformat(),
                 }
             )
         deployment_plan_id = deployment_plan.get("deployment_plan_id")
@@ -2364,7 +2364,7 @@ Known Issues:
             return
         log_entry = {
             "deployment_plan_id": deployment_plan_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "payload": payload,
         }
         self.deployment_logs.setdefault(deployment_plan_id, []).append(log_entry)
@@ -2449,7 +2449,7 @@ Known Issues:
             "release_id": deployment_plan.get("release_id"),
             "environment": deployment_plan.get("environment"),
             "status": status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "tenant_id": tenant_id,
             "correlation_id": correlation_id,
         }
@@ -2507,7 +2507,7 @@ Known Issues:
         impact_record = {
             "release_id": release_id,
             "impact": impact,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
         await self.db_service.store("deployment_impacts", release_id, impact_record)
         await self._publish_event(

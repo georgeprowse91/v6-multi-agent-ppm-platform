@@ -74,17 +74,36 @@ def _normalize_roles(claims: dict[str, Any], roles_claim: str) -> list[str]:
     return list(dict.fromkeys(combined))
 
 
-_OIDC_CONFIG_CACHE: dict[str, dict[str, Any]] = {}
+import time as _time
+
+# Cache TTL in seconds (default 5 minutes)
+_CACHE_TTL = float(os.getenv("AUTH_CACHE_TTL_SECONDS", "300"))
+
+_OIDC_CONFIG_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+_JWKS_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
 async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
-    if discovery_url in _OIDC_CONFIG_CACHE:
-        return _OIDC_CONFIG_CACHE[discovery_url]
+    cached = _OIDC_CONFIG_CACHE.get(discovery_url)
+    if cached and _time.time() < cached[0]:
+        return cached[1]
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(discovery_url)
         response.raise_for_status()
         data = cast(dict[str, Any], response.json())
-    _OIDC_CONFIG_CACHE[discovery_url] = data
+    _OIDC_CONFIG_CACHE[discovery_url] = (_time.time() + _CACHE_TTL, data)
+    return data
+
+
+async def _load_jwks(jwks_url: str) -> dict[str, Any]:
+    cached = _JWKS_CACHE.get(jwks_url)
+    if cached and _time.time() < cached[0]:
+        return cached[1]
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        response = await client.get(jwks_url)
+        response.raise_for_status()
+        data = cast(dict[str, Any], response.json())
+    _JWKS_CACHE[jwks_url] = (_time.time() + _CACHE_TTL, data)
     return data
 
 
@@ -113,10 +132,7 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
                 issuer = issuer or oidc_config.get("issuer")
 
         if jwks_url:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(jwks_url)
-                response.raise_for_status()
-                jwks = response.json()
+            jwks = await _load_jwks(jwks_url)
             unverified_header = jwt.get_unverified_header(token)
             kid = unverified_header.get("kid")
             key = next((k for k in jwks.get("keys", []) if k.get("kid") == kid), None)

@@ -10,7 +10,7 @@ Specification: agents/delivery-management/agent-09-lifecycle-governance/README.m
 
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -681,7 +681,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "concerns": concerns,
             "warnings": warnings,
             "recommendations": recommendations,
-            "monitored_at": datetime.utcnow().isoformat(),
+            "monitored_at": datetime.now(timezone.utc).isoformat(),
         }
 
         workflow = DurableWorkflow(
@@ -709,7 +709,7 @@ class ProjectLifecycleAgent(BaseAgent):
         Generate a standardized health report and publish it as an event.
         """
         health_data = await self._monitor_health(project_id, tenant_id=tenant_id)
-        report_id = f"health-report-{project_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        report_id = f"health-report-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         summary = (
             f"Project health is {health_data.get('health_status')} with "
             f"composite score {health_data.get('composite_score', 0):.2f}."
@@ -724,7 +724,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "concerns": health_data.get("concerns", []),
             "warnings": health_data.get("warnings", []),
             "recommendations": health_data.get("recommendations", []),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._publish_health_report_generated(report, tenant_id=tenant_id)
         return report
@@ -762,7 +762,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "rationale": rationale,
             "confidence": 0.85,
             "alternatives": await self._get_alternative_methodologies(methodology),
-            "decided_at": datetime.utcnow().isoformat(),
+            "decided_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _adjust_methodology(
@@ -801,7 +801,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "new_methodology": new_methodology,
             "current_phase": new_phase,
             "methodology_map": new_methodology_map,
-            "adjusted_at": datetime.utcnow().isoformat(),
+            "adjusted_at": datetime.now(timezone.utc).isoformat(),
         }
         workflow = DurableWorkflow(
             name="methodology_adjustment",
@@ -883,7 +883,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "health_data": health_data,
             "trends": trends,
             "alerts": alerts,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _override_gate(
@@ -923,7 +923,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "gate_evaluation": gate_evaluation,
             "override_reason": override_reason,
             "overridden_by": requester,
-            "overridden_at": datetime.utcnow().isoformat(),
+            "overridden_at": datetime.now(timezone.utc).isoformat(),
             "approval_id": approval_response.get("approval_id"),
             "approval_status": approval_response.get("status"),
         }
@@ -1376,13 +1376,13 @@ class ProjectLifecycleAgent(BaseAgent):
             "methodology": methodology,
             "current_phase": methodology_map["initial_phase"],
             "phase_history": [],
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "Active",
         }
         lifecycle_state = {
             "project_id": project_id,
             "current_phase": methodology_map["initial_phase"],
-            "phase_start_date": datetime.utcnow().isoformat(),
+            "phase_start_date": datetime.now(timezone.utc).isoformat(),
             "methodology_map": methodology_map,
             "transitions": [],
             "gates_passed": [],
@@ -1421,7 +1421,7 @@ class ProjectLifecycleAgent(BaseAgent):
     async def _publish_project_initiated(self, context: OrchestrationContext) -> dict[str, Any]:
         payload = {
             "project_id": context.project_id,
-            "initiated_at": datetime.utcnow().isoformat(),
+            "initiated_at": datetime.now(timezone.utc).isoformat(),
             "methodology": context.results.get("create_records", {}).get("methodology"),
         }
         await self.event_bus.publish("project.initiated", payload)
@@ -1457,11 +1457,11 @@ class ProjectLifecycleAgent(BaseAgent):
             "from_phase": current_phase,
             "to_phase": target_phase,
             "gate_name": gate_name,
-            "transitioned_at": datetime.utcnow().isoformat(),
+            "transitioned_at": datetime.now(timezone.utc).isoformat(),
             "transitioned_by": actor_id,
         }
         lifecycle_state["current_phase"] = target_phase
-        lifecycle_state["phase_start_date"] = datetime.utcnow().isoformat()
+        lifecycle_state["phase_start_date"] = datetime.now(timezone.utc).isoformat()
         lifecycle_state["transitions"].append(transition_record)
         lifecycle_state["gates_passed"].append(gate_name)
         self.projects[project_id]["current_phase"] = target_phase
@@ -1480,7 +1480,7 @@ class ProjectLifecycleAgent(BaseAgent):
         previous_phase = context.metadata.get("previous_phase")
         if previous_phase:
             lifecycle_state["current_phase"] = previous_phase
-            lifecycle_state["phase_start_date"] = datetime.utcnow().isoformat()
+            lifecycle_state["phase_start_date"] = datetime.now(timezone.utc).isoformat()
             self.projects[project_id]["current_phase"] = previous_phase
             self.lifecycle_store.upsert(context.tenant_id, project_id, lifecycle_state)
 
@@ -1542,7 +1542,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "readiness_score": readiness_score,
             "criteria_status": criteria_status,
             "missing_criteria": missing_criteria,
-            "evaluated_at": datetime.utcnow().isoformat(),
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
             "recommendation": "Proceed" if criteria_met else "Complete missing activities",
         }
         return evaluation
@@ -1602,7 +1602,7 @@ class ProjectLifecycleAgent(BaseAgent):
             "gate_name": evaluation.get("gate_name"),
             "summary": summary["summary"],
             "provider": summary["provider"],
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._store_gate_summary(context.tenant_id, record)
         return record
@@ -1684,7 +1684,7 @@ class ProjectLifecycleAgent(BaseAgent):
         event = ProjectTransitionedEvent(
             event_name="project.transitioned",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -1692,7 +1692,7 @@ class ProjectLifecycleAgent(BaseAgent):
                 "project_id": project_id,
                 "from_stage": from_stage,
                 "to_stage": to_stage,
-                "transitioned_at": datetime.utcnow(),
+                "transitioned_at": datetime.now(timezone.utc),
                 "actor_id": actor_id,
             },
         )
@@ -1708,7 +1708,7 @@ class ProjectLifecycleAgent(BaseAgent):
         event = ProjectHealthUpdatedEvent(
             event_name="project.health.updated",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             trace_id=get_trace_id(),
             payload={
@@ -1724,7 +1724,7 @@ class ProjectLifecycleAgent(BaseAgent):
         event = ProjectHealthReportGeneratedEvent(
             event_name="project.health.report.generated",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             trace_id=get_trace_id(),
             payload={"report": report},

@@ -9,7 +9,7 @@ right time through appropriate channels, fostering engagement and monitoring sen
 Specification: agents/operations-management/agent-21-stakeholder-comms/README.md
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import importlib.util
 import json
 import os
@@ -565,7 +565,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "projects": stakeholder_data.get("projects", []),
             "engagement_score": 0,
             "sentiment_score": 0,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store stakeholder
@@ -583,7 +583,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         crm_sync = await self._upsert_crm_profile(stakeholder)
         if crm_sync:
-            stakeholder["crm_upserted_at"] = datetime.utcnow().isoformat()
+            stakeholder["crm_upserted_at"] = datetime.now(timezone.utc).isoformat()
             stakeholder["crm_upsert_status"] = crm_sync
             self.stakeholder_register[stakeholder_id] = stakeholder
             self.stakeholder_store.upsert(tenant_id, stakeholder_id, stakeholder.copy())
@@ -655,7 +655,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "schedule": plan_data.get("schedule", []),
             "template_id": plan_data.get("template_id"),
             "status": "Active",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store plan
@@ -746,7 +746,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "attachments": message_data.get("attachments", []),
             "status": "Draft",
             "review_required": generation_metadata.get("provider") == "azure_openai",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store message
@@ -773,7 +773,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         )
         message["delivery_batches"] = batch_schedule
         message["status"] = "Scheduled"
-        message["scheduled_at"] = datetime.utcnow().isoformat()
+        message["scheduled_at"] = datetime.now(timezone.utc).isoformat()
         return {
             "message_id": message_id,
             "status": "Scheduled",
@@ -884,7 +884,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         # Update message status
         message["status"] = "Sent"
-        message["sent_at"] = datetime.utcnow().isoformat()
+        message["sent_at"] = datetime.now(timezone.utc).isoformat()
         message["delivery_results"] = delivery_results
 
         self._record_communication_history(
@@ -1018,7 +1018,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "comments": feedback_data.get("comments"),
             "rating": feedback_data.get("rating"),
             "sentiment": sentiment,
-            "received_at": datetime.utcnow().isoformat(),
+            "received_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store feedback
@@ -1031,7 +1031,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         stakeholder = self.stakeholder_register.get(feedback_data.get("stakeholder_id"))  # type: ignore
         if stakeholder:
             stakeholder["sentiment_score"] = sentiment.get("score", 0)
-            stakeholder["last_feedback_date"] = datetime.utcnow().isoformat()
+            stakeholder["last_feedback_date"] = datetime.now(timezone.utc).isoformat()
             self.stakeholder_store.upsert(
                 feedback_data.get("tenant_id", "default"),
                 stakeholder.get("stakeholder_id"),
@@ -1131,7 +1131,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "meeting_link": event_data.get("meeting_link"),
             "rsvp_status": {},
             "status": "Scheduled",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         graph_event = None
@@ -1243,7 +1243,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "engagement_overview": engagement_overview,
             "sentiment_trends": sentiment_trends,
             "upcoming_communications": upcoming_communications,
-            "dashboard_generated_at": datetime.utcnow().isoformat(),
+            "dashboard_generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_communication_report(
@@ -1276,8 +1276,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
         return fetch_keyvault_secret(self.keyvault_url, secret_name)
 
     def _record_communication_history(self, record: dict[str, Any]) -> None:
-        record["record_id"] = record.get("record_id") or f"COM-{datetime.utcnow().isoformat()}"
-        record["created_at"] = record.get("created_at") or datetime.utcnow().isoformat()
+        record["record_id"] = record.get("record_id") or f"COM-{datetime.now(timezone.utc).isoformat()}"
+        record["created_at"] = record.get("created_at") or datetime.now(timezone.utc).isoformat()
         self.history_store.add_record(record)
 
     def _publish_event(self, event_type: str, payload: dict[str, Any]) -> None:
@@ -1326,27 +1326,27 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _generate_stakeholder_id(self) -> str:
         """Generate unique stakeholder ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"STK-{timestamp}"
 
     async def _generate_plan_id(self) -> str:
         """Generate unique plan ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PLAN-{timestamp}"
 
     async def _generate_message_id(self) -> str:
         """Generate unique message ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"MSG-{timestamp}"
 
     async def _generate_feedback_id(self) -> str:
         """Generate unique feedback ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"FB-{timestamp}"
 
     async def _generate_event_id(self) -> str:
         """Generate unique event ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"EVT-{timestamp}"
 
     async def _enrich_stakeholder_profile(self, stakeholder_data: dict[str, Any]) -> dict[str, Any]:
@@ -1354,7 +1354,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         crm_profile = await self._sync_with_crm(stakeholder_data)
         if crm_profile:
             stakeholder_data["crm_profile"] = crm_profile
-            stakeholder_data["crm_synced_at"] = datetime.utcnow().isoformat()
+            stakeholder_data["crm_synced_at"] = datetime.now(timezone.utc).isoformat()
         return stakeholder_data
 
     async def _suggest_classification(self, stakeholder_data: dict[str, Any]) -> dict[str, Any]:
@@ -1554,7 +1554,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self, tenant_id: str, message: dict[str, Any]
     ) -> list[dict[str, Any]]:
         queued_entries: list[dict[str, Any]] = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         for personalized in message.get("personalized_messages", []):
             stakeholder_id = personalized.get("stakeholder_id")
             if not stakeholder_id:
@@ -1582,7 +1582,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
     async def _flush_digest_notifications(
         self, tenant_id: str, stakeholder_id: str | None
     ) -> dict[str, Any]:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         flushed: list[dict[str, Any]] = []
         for (queued_tenant, queued_stakeholder), items in list(self.digest_queue.items()):
             if queued_tenant != tenant_id:
@@ -1701,7 +1701,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         utc_offset = int(preferences.get("utc_offset_minutes") or 0)
         if preferred_hour is None:
             return None
-        now_utc = datetime.utcnow()
+        now_utc = datetime.now(timezone.utc)
         local_time = now_utc + timedelta(minutes=utc_offset)
         candidate = local_time.replace(
             hour=int(preferred_hour), minute=0, second=0, microsecond=0
@@ -1717,7 +1717,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         enriched = {
             "tenant_id": tenant_id,
             "event_type": event_type,
-            "recorded_at": datetime.utcnow().isoformat(),
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
             **payload,
         }
         self._publish_event("stakeholder.communication.metrics", enriched)
@@ -1755,7 +1755,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return await self._send_sms(stakeholder.get("phone"), content)
         if channel in {"push", "portal"}:
             return await self._send_push(stakeholder, subject, content)
-        return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+        return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
 
     async def _analyze_text_sentiment(self, text: str) -> dict[str, Any]:
         """Analyze sentiment of text."""
@@ -1840,7 +1840,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
     async def _propose_optimal_time(self, stakeholder_ids: list[str], duration: int) -> str:
         """Propose optimal meeting time considering time zones."""
         # Baseline: suggest tomorrow at 10 AM UTC
-        optimal_time = datetime.utcnow() + timedelta(days=1)
+        optimal_time = datetime.now(timezone.utc) + timedelta(days=1)
         optimal_time = optimal_time.replace(hour=10, minute=0, second=0, microsecond=0)
         return optimal_time.isoformat()
 
@@ -1862,11 +1862,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return []
         start_time = (
             (time_window or {}).get("start")
-            or (datetime.utcnow() + timedelta(days=1)).replace(hour=9, minute=0).isoformat()
+            or (datetime.now(timezone.utc) + timedelta(days=1)).replace(hour=9, minute=0).isoformat()
         )
         end_time = (
             (time_window or {}).get("end")
-            or (datetime.utcnow() + timedelta(days=7)).replace(hour=17, minute=0).isoformat()
+            or (datetime.now(timezone.utc) + timedelta(days=7)).replace(hour=17, minute=0).isoformat()
         )
         payload = {
             "attendees": attendees,
@@ -1907,11 +1907,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
                     }
                 )
             return {"status": "skipped", "reason": "missing_exchange_token"}
-        scheduled_time = event.get("scheduled_time") or datetime.utcnow().isoformat()
+        scheduled_time = event.get("scheduled_time") or datetime.now(timezone.utc).isoformat()
         try:
             start_dt = datetime.fromisoformat(scheduled_time)
         except ValueError:
-            start_dt = datetime.utcnow()
+            start_dt = datetime.now(timezone.utc)
             scheduled_time = start_dt.isoformat()
         attendees = []
         for stakeholder_id in event.get("stakeholder_ids", []):
@@ -1982,7 +1982,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             if result.get("status") != "failed":
                 return {
                     "status": "delivered",
-                    "sent_at": result.get("sent_at") or datetime.utcnow().isoformat(),
+                    "sent_at": result.get("sent_at") or datetime.now(timezone.utc).isoformat(),
                     "provider": result.get("provider"),
                 }
         if use_graph and self.exchange_token:
@@ -2011,7 +2011,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 self.exchange_token, "POST", "/me/sendMail", message_payload
             )
             status = "delivered" if response.get("status") != "error" else "failed"
-            return {"status": status, "sent_at": datetime.utcnow().isoformat()}
+            return {"status": status, "sent_at": datetime.now(timezone.utc).isoformat()}
         if self.acs_connection_string and EmailClient:
             client = EmailClient.from_connection_string(self.acs_connection_string)
             response = client.begin_send(
@@ -2022,7 +2022,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 }
             )
             response.result()
-            return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+            return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
         if self.sendgrid_api_key:
             payload = {
                 "personalizations": [{"to": [{"email": recipient}]}],
@@ -2037,7 +2037,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 timeout=10,
             )
             if response.status_code < 400:
-                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+                return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
             return {"status": "failed", "reason": response.text}
         return {"status": "failed", "reason": "no_email_provider"}
 
@@ -2054,7 +2054,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return {"status": "failed", "reason": "missing_recipient"}
         response = await self._graph_request(self.teams_token, "POST", endpoint, payload)
         status = "delivered" if response.get("status") != "error" else "failed"
-        return {"status": status, "sent_at": datetime.utcnow().isoformat()}
+        return {"status": status, "sent_at": datetime.now(timezone.utc).isoformat()}
 
     async def _send_slack_message(self, channel: str | None, content: str) -> dict[str, Any]:
         if not channel or not self.slack_client:
@@ -2062,7 +2062,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         response = self.slack_client.chat_postMessage(channel=channel, text=content)
         return {
             "status": "delivered" if response.get("ok") else "failed",
-            "sent_at": datetime.utcnow().isoformat(),
+            "sent_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _send_sms(self, phone: str | None, content: str) -> dict[str, Any]:
@@ -2078,7 +2078,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 from_=self.twilio_from_number,
                 to=phone,
             )
-            return {"status": "delivered", "sent_at": datetime.utcnow().isoformat(), "sid": message.sid}
+            return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat(), "sid": message.sid}
         if self.twilio_account_sid and self.twilio_auth_token and self.twilio_from_number:
             payload = {
                 "From": self.twilio_from_number,
@@ -2093,7 +2093,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 timeout=10,
             )
             if response.status_code < 400:
-                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+                return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
             return {"status": "failed", "reason": response.text}
         return {"status": "failed", "reason": "no_sms_provider"}
 
@@ -2119,7 +2119,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 timeout=10,
             )
             if response.status_code < 400:
-                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+                return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
             return {"status": "failed", "reason": response.text}
         if self.push_endpoint:
             payload = {
@@ -2135,7 +2135,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 self.push_endpoint, json=payload, headers=headers, timeout=10
             )
             if response.status_code < 400:
-                return {"status": "delivered", "sent_at": datetime.utcnow().isoformat()}
+                return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
             return {"status": "failed", "reason": response.text}
         return {"status": "failed", "reason": "no_push_provider"}
 
@@ -2250,7 +2250,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             try:
                 start_time = datetime.fromisoformat(scheduled_start)
             except ValueError:
-                start_time = datetime.utcnow() + timedelta(minutes=5)
+                start_time = datetime.now(timezone.utc) + timedelta(minutes=5)
         else:
             scheduled_times = [
                 message.get("scheduled_time")
@@ -2262,9 +2262,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
                     earliest = min(datetime.fromisoformat(ts) for ts in scheduled_times)
                     start_time = earliest
                 except ValueError:
-                    start_time = datetime.utcnow() + timedelta(minutes=5)
+                    start_time = datetime.now(timezone.utc) + timedelta(minutes=5)
             else:
-                start_time = datetime.utcnow() + timedelta(minutes=5)
+                start_time = datetime.now(timezone.utc) + timedelta(minutes=5)
         batches = [
             personalized_messages[i : i + self.delivery_batch_size]
             for i in range(0, len(personalized_messages), self.delivery_batch_size)
@@ -2497,14 +2497,14 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary communication report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+        return {"report_type": "summary", "data": {}, "generated_at": datetime.now(timezone.utc).isoformat()}
 
     async def _generate_engagement_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate engagement report."""
         return {
             "report_type": "engagement",
             "data": {},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_sentiment_report(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -2512,7 +2512,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         return {
             "report_type": "sentiment",
             "data": {},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def cleanup(self) -> None:

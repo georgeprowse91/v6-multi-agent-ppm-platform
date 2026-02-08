@@ -10,7 +10,7 @@ Specification: agents/portfolio-management/agent-05-business-case-investment/REA
 
 import random
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -277,7 +277,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             "title": request_data.get("title"),
             "project_type": request_data.get("project_type"),
             "methodology": request_data.get("methodology", "hybrid"),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": request_data.get("requester", "unknown"),
             "status": "Draft",
             "demand_id": request_data.get("demand_id", "unknown"),
@@ -295,7 +295,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             "metadata": {
                 "estimated_cost": cost_data.get("total_cost", 0),
                 "estimated_benefits": benefit_data.get("total_benefits", 0),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -314,7 +314,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
                 "subject": f"Business case {business_case_id} created",
                 "body": "A draft business case is ready for review.",
                 "metadata": {"business_case_id": business_case_id, "tenant_id": tenant_id},
-                "sent_at": datetime.utcnow().isoformat(),
+                "sent_at": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -365,7 +365,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             "tco": tco,
             "roi_percentage": roi,
             "discount_rate": self.discount_rate,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _run_scenario_analysis(
@@ -506,7 +506,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             "narrative": narrative,
             "phasing_suggestion": "Consider MVP approach" if recommendation == "defer" else None,
             "comparable_projects": historical_comparison.get("similar_projects", []),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         await self._publish_investment_recommendation(
@@ -548,7 +548,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _generate_business_case_id(self) -> str:
         """Generate unique business case ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"BC-{timestamp}"
 
     async def _select_template(self, request_data: dict[str, Any]) -> str:
@@ -893,7 +893,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         event = BusinessCaseCreatedEvent(
             event_name="business_case.created",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -918,7 +918,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         event = InvestmentRecommendationEvent(
             event_name="investment.recommendation",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),

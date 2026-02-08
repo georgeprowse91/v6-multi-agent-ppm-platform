@@ -9,7 +9,7 @@ import os
 import sys
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -135,7 +135,7 @@ class BaseAgent(ABC):
                 - error: Error message (if failed)
                 - metadata: Execution metadata (timing, agent_id, etc.)
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         context = input_data.get("context", {})
         correlation_id = (
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
@@ -245,7 +245,7 @@ class BaseAgent(ABC):
                 payload = self._normalize_payload(result)
 
                 # Calculate execution time
-                execution_time = (datetime.utcnow() - start_time).total_seconds()
+                execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
                 self._log_event(
                     action="execution_completed",
@@ -268,9 +268,9 @@ class BaseAgent(ABC):
                 )
                 return response.model_dump()
 
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as e:
+        except Exception as e:
             self.logger.error(f"Error in agent {self.agent_id}: {str(e)}", exc_info=True)
-            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             self._log_event(
                 action="execution_failed",
                 outcome="failure",
@@ -278,9 +278,12 @@ class BaseAgent(ABC):
                 correlation_id=correlation_id,
             )
 
+            # Avoid leaking internal details in non-development environments
+            error_message = str(e) if os.getenv("ENVIRONMENT", "development") == "development" else e.__class__.__name__
+
             response = AgentResponse(
                 success=False,
-                error=str(e),
+                error=error_message,
                 metadata=AgentResponseMetadata(
                     agent_id=self.agent_id,
                     catalog_id=catalog_id,

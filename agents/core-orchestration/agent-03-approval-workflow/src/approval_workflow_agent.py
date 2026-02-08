@@ -504,7 +504,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "status": "pending",
             "notifications_sent": notifications_sent,
             "metadata": {
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "request_type": request_type,
                 "escalation_scheduled": True,
             },
@@ -570,7 +570,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         user_roles: dict[str, list[str]],
     ) -> dict[str, Any]:
         """Create approval chain configuration."""
-        approval_id = f"approval_{request_id}_{datetime.utcnow().timestamp()}"
+        approval_id = f"approval_{request_id}_{datetime.now(timezone.utc).timestamp()}"
 
         # Determine chain type based on request
         chain_type = "sequential" if len(approvers) > 2 else "parallel"
@@ -578,7 +578,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         # Calculate deadline based on urgency
         urgency = details.get("urgency", "medium")
         deadline_hours = {"high": 24, "medium": 72, "low": 120}
-        deadline = datetime.utcnow() + timedelta(hours=deadline_hours[urgency])
+        deadline = datetime.now(timezone.utc) + timedelta(hours=deadline_hours[urgency])
 
         chain = {
             "id": approval_id,
@@ -589,7 +589,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "deadline": deadline.isoformat(),
             "current_step": 0,
             "responses": {},
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "delegations": delegation_records,
             "user_roles": user_roles,
         }
@@ -648,7 +648,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "body": body,
                 "deadline": approval_chain["deadline"],
                 "approval_id": approval_chain["id"],
-                "sent_at": datetime.utcnow().isoformat(),
+                "sent_at": datetime.now(timezone.utc).isoformat(),
                 "channels": preferences.get("channels", {}),
                 "delivery": preferences.get("delivery", "immediate"),
             }
@@ -865,7 +865,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "recipient": recipient,
             "count": len(entries),
             "items": self._format_digest_entries(entries),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         subject = self.template_engine.render("approval_digest_subject", locale, context)
         body = self.template_engine.render("approval_digest_body", locale, context)
@@ -1052,7 +1052,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         if not approvers:
             return
 
-        scheduled_at = datetime.utcnow()
+        scheduled_at = datetime.now(timezone.utc)
         escalation_at = scheduled_at + timedelta(seconds=delay_seconds)
         self.escalation_timers[approval_chain["id"]] = {
             "scheduled_at": scheduled_at.isoformat(),
@@ -1069,7 +1069,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 details=details,
             )
             self.escalation_timers[approval_chain["id"]]["last_escalated_at"] = (
-                datetime.utcnow().isoformat()
+                datetime.now(timezone.utc).isoformat()
             )
 
         task = asyncio.create_task(escalation_task())
@@ -1137,7 +1137,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                     {
                         "delegator": approver,
                         "delegate": delegate,
-                        "recorded_at": datetime.utcnow().isoformat(),
+                        "recorded_at": datetime.now(timezone.utc).isoformat(),
                     }
                 )
                 resolved.append(delegate)
@@ -1174,7 +1174,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             {
                 "decision": decision,
                 "decided_by": approver_id,
-                "decided_at": datetime.utcnow().isoformat(),
+                "decided_at": datetime.now(timezone.utc).isoformat(),
                 "comments": comments,
                 "response_time_seconds": response_time_seconds,
             },

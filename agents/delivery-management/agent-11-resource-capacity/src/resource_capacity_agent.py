@@ -15,7 +15,7 @@ import json
 import math
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
@@ -108,7 +108,7 @@ class ResourceCapacityRepository:
         if not employee_id:
             return
         source_system = profile.get("source_system", "unknown")
-        updated_at = datetime.utcnow().isoformat()
+        updated_at = datetime.now(timezone.utc).isoformat()
         with self.session_factory() as session:  # type: ignore[operator]
             record = session.get(self.EmployeeProfileRecord, employee_id)
             if record:
@@ -166,7 +166,7 @@ class ResourceCapacityRepository:
     ) -> None:
         if not self.is_enabled():
             return
-        updated_at = datetime.utcnow().isoformat()
+        updated_at = datetime.now(timezone.utc).isoformat()
         with self.session_factory() as session:  # type: ignore[operator]
             record = session.get(self.ResourceScheduleRecord, resource_id)
             if record:
@@ -188,7 +188,7 @@ class ResourceCapacityRepository:
         if not self.is_enabled():
             return
         forecast_type = forecast.get("type", "capacity")
-        created_at = datetime.utcnow().isoformat()
+        created_at = datetime.now(timezone.utc).isoformat()
         with self.session_factory() as session:  # type: ignore[operator]
             record = session.get(self.ResourceForecastRecord, forecast_id)
             if record:
@@ -210,7 +210,7 @@ class ResourceCapacityRepository:
     ) -> None:
         if not self.is_enabled():
             return
-        updated_at = datetime.utcnow().isoformat()
+        updated_at = datetime.now(timezone.utc).isoformat()
         with self.session_factory() as session:  # type: ignore[operator]
             record = session.get(self.ResourcePerformanceRecord, resource_id)
             if record:
@@ -422,7 +422,7 @@ class TimeSeriesForecaster:
             return None
         if len(series) < 2:
             return None
-        start_date = datetime.utcnow().date()
+        start_date = datetime.now(timezone.utc).date()
         history = [
             {"ds": start_date + timedelta(days=index), "y": value}
             for index, value in enumerate(series)
@@ -1111,7 +1111,7 @@ class ResourceCapacityAgent(BaseAgent):
             "certifications": certifications,
             "availability": 1.0,  # 100% available by default
             "team_memberships": resource_data.get("team_memberships", []),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "Active",
             "training": training_metadata,
             "training_load": 0.0,
@@ -1178,7 +1178,7 @@ class ResourceCapacityAgent(BaseAgent):
             return await self._add_resource(resource_data, tenant_id=tenant_id)
 
         updated = {**existing, **{k: v for k, v in resource_data.items() if v is not None}}
-        updated["updated_at"] = datetime.utcnow().isoformat()
+        updated["updated_at"] = datetime.now(timezone.utc).isoformat()
         self.resource_pool[resource_id] = updated
         self.resource_store.upsert(tenant_id, resource_id, updated)
         canonical_profile = dict(updated)
@@ -1216,7 +1216,7 @@ class ResourceCapacityAgent(BaseAgent):
                     "schedule": schedule,
                     "availability": availability,
                     "tenant_id": tenant_id,
-                    "updated_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
         if self.redis_client:
@@ -1271,7 +1271,7 @@ class ResourceCapacityAgent(BaseAgent):
             "end_date": end_date,
             "effort": effort,
             "requested_by": request_data.get("requested_by", "unknown"),
-            "requested_at": datetime.utcnow().isoformat(),
+            "requested_at": datetime.now(timezone.utc).isoformat(),
             "status": "Pending",
             "recommended_candidates": available_candidates,
         }
@@ -1354,7 +1354,7 @@ class ResourceCapacityAgent(BaseAgent):
             )
 
             request["status"] = "Approved"
-            request["approved_at"] = datetime.utcnow().isoformat()
+            request["approved_at"] = datetime.now(timezone.utc).isoformat()
             request["allocated_resource"] = selected_resource
             request["allocation_id"] = allocation.get("allocation_id")
 
@@ -1371,7 +1371,7 @@ class ResourceCapacityAgent(BaseAgent):
             }
         else:
             request["status"] = "Rejected"
-            request["rejected_at"] = datetime.utcnow().isoformat()
+            request["rejected_at"] = datetime.now(timezone.utc).isoformat()
             request["rejection_reason"] = comments
 
             await self._publish_resource_event("resource.request.rejected", request)
@@ -1653,13 +1653,13 @@ class ResourceCapacityAgent(BaseAgent):
             "assumptions": assumptions,
             "type": "capacity_vs_demand",
         }
-        forecast_id = f"forecast-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        forecast_id = f"forecast-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         if self.db_service:
             await self.db_service.store(
                 "capacity_forecasts",
                 forecast_id,
                 {
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                     "forecast": forecast_payload,
                     "assumptions": assumptions,
                 },
@@ -1705,7 +1705,7 @@ class ResourceCapacityAgent(BaseAgent):
             "optimization": optimization,
             "hiring_recommendations": await self._generate_hiring_recommendations(gaps),
             "training_recommendations": await self._generate_training_recommendations(gaps),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         return plan
@@ -1784,7 +1784,7 @@ class ResourceCapacityAgent(BaseAgent):
                 "end_date": end_date,
                 "allocation_percentage": allocation_percentage,
                 "status": "Active",
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
 
             if resource_id not in self.allocations:
@@ -2005,12 +2005,12 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _generate_request_id(self) -> str:
         """Generate unique request ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"REQ-{timestamp}"
 
     async def _generate_allocation_id(self) -> str:
         """Generate unique allocation ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"ALLOC-{timestamp}-{uuid.uuid4().hex[:6]}"
 
     async def _validate_resource_record(
@@ -2043,7 +2043,7 @@ class ResourceCapacityAgent(BaseAgent):
         event = ResourceAllocationCreatedEvent(
             event_name="resource.allocation.created",
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -2135,7 +2135,7 @@ class ResourceCapacityAgent(BaseAgent):
                 "certifications": profile.get("certifications", []),
                 "availability": profile.get("availability", 1.0),
                 "status": profile.get("status", "Active"),
-                "created_at": profile.get("created_at", datetime.utcnow().isoformat()),
+                "created_at": profile.get("created_at", datetime.now(timezone.utc).isoformat()),
                 "source_system": profile.get("source_system", "unknown"),
             }
             if resource_id not in self.capacity_calendar:
@@ -2188,11 +2188,11 @@ class ResourceCapacityAgent(BaseAgent):
             try:
                 if self.calendar_service:
                     busy_events = self.calendar_service.get_availability(
-                        user_id, datetime.utcnow(), datetime.utcnow() + timedelta(days=30)
+                        user_id, datetime.now(timezone.utc), datetime.now(timezone.utc) + timedelta(days=30)
                     )
                 else:
                     busy_events = self.graph_client.get_calendar_availability(
-                        user_id, datetime.utcnow(), datetime.utcnow() + timedelta(days=30)
+                        user_id, datetime.now(timezone.utc), datetime.now(timezone.utc) + timedelta(days=30)
                     )
                 busy_count = len([event for event in busy_events if event.get("showAs") != "free"])
                 availability = max(0.0, 1.0 - min(busy_count / 20, 1.0))
@@ -2208,7 +2208,7 @@ class ResourceCapacityAgent(BaseAgent):
                     "skills": [skill for skill in skills if skill],
                     "availability": availability,
                     "source_system": "azure_ad",
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 }
             )
         return profiles
@@ -2235,7 +2235,7 @@ class ResourceCapacityAgent(BaseAgent):
                         "name": worker.get("name"),
                         "status": worker.get("status", "Active"),
                         "source_system": "workday",
-                        "created_at": datetime.utcnow().isoformat(),
+                        "created_at": datetime.now(timezone.utc).isoformat(),
                     }
                 )
             return profiles
@@ -2267,7 +2267,7 @@ class ResourceCapacityAgent(BaseAgent):
                         "name": f"{user.get('firstName', '')} {user.get('lastName', '')}".strip(),
                         "status": user.get("status", "Active"),
                         "source_system": "sap_successfactors",
-                        "created_at": datetime.utcnow().isoformat(),
+                        "created_at": datetime.now(timezone.utc).isoformat(),
                     }
                 )
             return profiles
@@ -2455,12 +2455,12 @@ class ResourceCapacityAgent(BaseAgent):
     ) -> dict[str, Any]:
         if not self.ml_forecast_client or not self.ml_forecast_client.is_configured():
             return {}
-        run_id = f"forecast-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        run_id = f"forecast-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         metadata = {
             "run_id": run_id,
             "tenant_id": tenant_id,
             "history_months": history_months,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
         }
         capacity_model_name = f"{tenant_id}-capacity"
         demand_model_name = f"{tenant_id}-demand"
@@ -2663,11 +2663,11 @@ class ResourceCapacityAgent(BaseAgent):
                 {
                     "resource_id": resource_id,
                     "score": score,
-                    "calculated_at": datetime.utcnow().isoformat(),
+                    "calculated_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
         self.repository.upsert_performance_score(
-            resource_id, score, {"calculated_at": datetime.utcnow().isoformat()}
+            resource_id, score, {"calculated_at": datetime.now(timezone.utc).isoformat()}
         )
         if self.redis_client:
             self.redis_client.set(f"resource_performance:{resource_id}", score, ex=3600)
@@ -2695,7 +2695,7 @@ class ResourceCapacityAgent(BaseAgent):
         """Build historical capacity and demand series."""
         if months <= 0:
             return [], []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         capacity_value = await self._calculate_total_capacity()
         capacity_series: list[float] = []
         demand_series: list[float] = []
@@ -2969,7 +2969,7 @@ class ResourceCapacityAgent(BaseAgent):
                 {
                     "resource_id": resource_id,
                     "availability": availability,
-                    "updated_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
 
@@ -3198,7 +3198,7 @@ class ResourceCapacityAgent(BaseAgent):
             "certifications": certifications,
             "skills": skills,
             "training_load": training_load,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         resource["training"] = training_metadata
         resource["training_load"] = training_load
@@ -3295,7 +3295,7 @@ class ResourceCapacityAgent(BaseAgent):
         return 0.0
 
     def _seasonality_multiplier(self, month_offset: int) -> float:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         target_month = (now.month - 1 + month_offset) % 12 + 1
         return float(self.seasonality_factors.get(str(target_month), 1.0))
 
@@ -3336,9 +3336,9 @@ class ResourceCapacityAgent(BaseAgent):
                     continue
                 session_date = datetime.fromisoformat(date_str)
                 month_offset = (
-                    (session_date.year - datetime.utcnow().year) * 12
+                    (session_date.year - datetime.now(timezone.utc).year) * 12
                     + session_date.month
-                    - datetime.utcnow().month
+                    - datetime.now(timezone.utc).month
                 )
                 if 0 <= month_offset < horizon:
                     adjustments[month_offset] += hours / max(total_work_hours, 1.0)
@@ -3371,7 +3371,7 @@ class ResourceCapacityAgent(BaseAgent):
         if resource.get("status") == "Inactive":
             return
         resource["status"] = "Inactive"
-        resource["deactivated_at"] = datetime.utcnow().isoformat()
+        resource["deactivated_at"] = datetime.now(timezone.utc).isoformat()
         resource["deactivation_reason"] = reason
         self.resource_pool[resource_id] = resource
         self.resource_store.upsert(self.default_tenant_id, resource_id, resource)
@@ -3460,8 +3460,8 @@ class ResourceCapacityAgent(BaseAgent):
             try:
                 await self.db_service.store(
                     "agent_events",
-                    f"resource-capacity-cleanup-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
-                    {"status": "cleanup", "timestamp": datetime.utcnow().isoformat()},
+                    f"resource-capacity-cleanup-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
+                    {"status": "cleanup", "timestamp": datetime.now(timezone.utc).isoformat()},
                 )
             except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
                 self.logger.warning("Failed to flush events", extra={"error": str(exc)})

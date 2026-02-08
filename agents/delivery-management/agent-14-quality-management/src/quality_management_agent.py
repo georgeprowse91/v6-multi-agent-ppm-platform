@@ -13,7 +13,7 @@ import json
 import math
 import random
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -435,7 +435,7 @@ class QualityManagementAgent(BaseAgent):
             "responsible_roles": plan_data.get("responsible_roles", {}),
             "standards": plan_data.get("standards", self.quality_standards),
             "status": "Draft",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": plan_data.get("owner", "unknown"),
         }
 
@@ -505,7 +505,7 @@ class QualityManagementAgent(BaseAgent):
 
         plan["status"] = "Approved"
         plan["approved_by"] = approver
-        plan["approved_at"] = datetime.utcnow().isoformat()
+        plan["approved_at"] = datetime.now(timezone.utc).isoformat()
         self.quality_plan_store.upsert(tenant_id, plan_id, plan)
 
         await self._publish_quality_event(
@@ -554,7 +554,7 @@ class QualityManagementAgent(BaseAgent):
                 "target": metric_def.get("target"),
                 "unit": metric_def.get("unit"),
                 "collection_frequency": metric_def.get("collection_frequency", "daily"),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
 
             if project_id not in self.quality_metrics:
@@ -618,7 +618,7 @@ class QualityManagementAgent(BaseAgent):
             "requirements": requirements,
             "automation_status": test_case_data.get("automation_status", "manual"),
             "status": "Active",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store test case
@@ -674,7 +674,7 @@ class QualityManagementAgent(BaseAgent):
             "description": suite_data.get("description"),
             "test_case_ids": valid_test_cases,
             "test_environment": suite_data.get("test_environment"),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store suite
@@ -769,7 +769,7 @@ class QualityManagementAgent(BaseAgent):
             "coverage_snapshot": coverage_snapshot,
             "artifact_blob": artifact_blob,
             "sync_status": sync_status,
-            "executed_at": datetime.utcnow().isoformat(),
+            "executed_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store execution
@@ -859,9 +859,9 @@ class QualityManagementAgent(BaseAgent):
             "root_cause": auto_classification.get("root_cause"),
             "status": "Open",
             "resolution": None,
-            "logged_at": datetime.utcnow().isoformat(),
+            "logged_at": datetime.now(timezone.utc).isoformat(),
             "logged_by": defect_data.get("logged_by", "unknown"),
-            "status_history": [{"status": "Open", "timestamp": datetime.utcnow().isoformat()}],
+            "status_history": [{"status": "Open", "timestamp": datetime.now(timezone.utc).isoformat()}],
         }
 
         # Store defect
@@ -916,7 +916,7 @@ class QualityManagementAgent(BaseAgent):
             defect["status_history"].append(
                 {
                     "status": updates["status"],
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "updated_by": updates.get("updated_by", "unknown"),
                 }
             )
@@ -930,7 +930,7 @@ class QualityManagementAgent(BaseAgent):
             if key in defect and key != "status_history":
                 defect[key] = value
 
-        defect["last_updated"] = datetime.utcnow().isoformat()
+        defect["last_updated"] = datetime.now(timezone.utc).isoformat()
 
         # Calculate resolution time if resolved
         if defect.get("status") in ["Resolved", "Closed", "Verified"]:
@@ -981,7 +981,7 @@ class QualityManagementAgent(BaseAgent):
             "findings": [],
             "action_items": [],
             "status": "Scheduled",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store review
@@ -1045,7 +1045,7 @@ class QualityManagementAgent(BaseAgent):
             "title": audit_data.get("title"),
             "type": audit_data.get("type", "process_audit"),
             "auditor": audit_data.get("auditor"),
-            "audit_date": datetime.utcnow().isoformat(),
+            "audit_date": datetime.now(timezone.utc).isoformat(),
             "checklist": audit_data.get("checklist", []),
             "checks_performed": audit_checks,
             "audit_score": audit_score,
@@ -1152,7 +1152,7 @@ class QualityManagementAgent(BaseAgent):
             "defect_prediction_model": model_summary,
             "defect_subsystem_model": subsystem_model,
             "improvement_recommendations": improvement_recommendations,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         history = self.defect_density_history.setdefault(project_id, [])
@@ -1242,7 +1242,7 @@ class QualityManagementAgent(BaseAgent):
             "pareto_analysis": pareto_analysis,
             "recommendations": recommendations,
             "refactoring_recommendations": subsystem_recommendations,
-            "analyzed_at": datetime.utcnow().isoformat(),
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_quality_dashboard(
@@ -1276,7 +1276,7 @@ class QualityManagementAgent(BaseAgent):
             "recommendations": metrics.get("improvement_recommendations", [])
             if isinstance(metrics, dict)
             else [],
-            "dashboard_generated_at": datetime.utcnow().isoformat(),
+            "dashboard_generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_quality_report(
@@ -1314,42 +1314,42 @@ class QualityManagementAgent(BaseAgent):
 
     async def _generate_plan_id(self) -> str:
         """Generate unique quality plan ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"QP-{timestamp}"
 
     async def _generate_metric_id(self) -> str:
         """Generate unique metric ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"QM-{timestamp}"
 
     async def _generate_test_case_id(self) -> str:
         """Generate unique test case ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"TC-{timestamp}"
 
     async def _generate_suite_id(self) -> str:
         """Generate unique test suite ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"TS-{timestamp}"
 
     async def _generate_execution_id(self) -> str:
         """Generate unique execution ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"EX-{timestamp}"
 
     async def _generate_defect_id(self) -> str:
         """Generate unique defect ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"DEF-{timestamp}"
 
     async def _generate_review_id(self) -> str:
         """Generate unique review ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"REV-{timestamp}"
 
     async def _generate_audit_id(self) -> str:
         """Generate unique audit ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"AUD-{timestamp}"
 
     async def _link_test_case_requirements(
@@ -1372,8 +1372,8 @@ class QualityManagementAgent(BaseAgent):
             "project_id": link_data.get("project_id"),
             "test_case_id": link_data.get("test_case_id"),
             "requirements": requirements,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
             "status": "linked",
         }
         self.requirement_links[link_id] = link_record
@@ -1403,7 +1403,7 @@ class QualityManagementAgent(BaseAgent):
             )
         if "status" in updates:
             link_record["status"] = updates.get("status")
-        link_record["updated_at"] = datetime.utcnow().isoformat()
+        link_record["updated_at"] = datetime.now(timezone.utc).isoformat()
         self.requirement_links[link_id] = link_record
         await self._store_record("quality_requirement_links", link_id, link_record)
         return link_record
@@ -1526,7 +1526,7 @@ class QualityManagementAgent(BaseAgent):
         snapshot = {
             "project_id": project_id,
             "coverage_pct": coverage_pct,
-            "captured_at": datetime.utcnow().isoformat(),
+            "captured_at": datetime.now(timezone.utc).isoformat(),
         }
         history = self.coverage_trends.setdefault(project_id, [])
         history.append(snapshot)
@@ -1663,7 +1663,7 @@ class QualityManagementAgent(BaseAgent):
     async def _calculate_resolution_time(self, defect: dict[str, Any]) -> float:
         """Calculate defect resolution time in hours."""
         logged_at = datetime.fromisoformat(defect.get("logged_at"))  # type: ignore
-        resolved_at = datetime.utcnow()
+        resolved_at = datetime.now(timezone.utc)
 
         if defect.get("status_history"):
             for entry in reversed(defect["status_history"]):
@@ -1913,11 +1913,11 @@ class QualityManagementAgent(BaseAgent):
         for defect in defects:
             component = defect.get("component", "unknown")
             subsystem_map[component] = subsystem_map.get(component, 0) + 1
-        model_version = datetime.utcnow().strftime("subsystem-%Y%m%d%H%M%S")
+        model_version = datetime.now(timezone.utc).strftime("subsystem-%Y%m%d%H%M%S")
         model_info = {
             "project_id": project_id,
             "model_version": model_version,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "subsystem_distribution": subsystem_map,
         }
         self.defect_subsystem_models[project_id] = model_info
@@ -2023,7 +2023,7 @@ class QualityManagementAgent(BaseAgent):
                 "status": "queued" if azure_enabled else "disabled",
                 "work_item": azure_id,
             },
-            "synced_at": datetime.utcnow().isoformat(),
+            "synced_at": datetime.now(timezone.utc).isoformat(),
         }
         defect["external"] = {"jira_key": jira_key, "azure_work_item": azure_id}
         await self._publish_quality_event(
@@ -2085,7 +2085,7 @@ class QualityManagementAgent(BaseAgent):
                 "coverage_pct": coverage.get("coverage_pct", 0.0),
                 "source": "ci",
                 "provider": coverage.get("provider"),
-                "captured_at": datetime.utcnow().isoformat(),
+                "captured_at": datetime.now(timezone.utc).isoformat(),
             }
         return None
 
@@ -2205,7 +2205,7 @@ class QualityManagementAgent(BaseAgent):
         report = {
             "report_type": "summary",
             "data": {"narrative": narrative},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.quality_reports[str(uuid.uuid4())] = report
         return report
@@ -2218,7 +2218,7 @@ class QualityManagementAgent(BaseAgent):
         report = {
             "report_type": "defect_analysis",
             "data": {"narrative": narrative},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.quality_reports[str(uuid.uuid4())] = report
         return report
@@ -2231,7 +2231,7 @@ class QualityManagementAgent(BaseAgent):
         report = {
             "report_type": "test_coverage",
             "data": {"narrative": narrative},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.quality_reports[str(uuid.uuid4())] = report
         return report
@@ -2244,7 +2244,7 @@ class QualityManagementAgent(BaseAgent):
         report = {
             "report_type": "audit_summary",
             "data": {"narrative": narrative},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.quality_reports[str(uuid.uuid4())] = report
         return report
@@ -2259,7 +2259,7 @@ class QualityManagementAgent(BaseAgent):
         report = {
             "report_type": "release_notes",
             "data": {"narrative": narrative},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.quality_reports[str(uuid.uuid4())] = report
         return report
@@ -2275,7 +2275,7 @@ class QualityManagementAgent(BaseAgent):
         event = EventEnvelope(
             event_name=event_name,
             event_id=f"evt-{uuid.uuid4().hex}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             trace_id=get_trace_id(),
@@ -2459,7 +2459,7 @@ class QualityManagementAgent(BaseAgent):
             "asset_id": payload.get("test_case_id") or payload.get("suite_id"),
             "sync_targets": synced,
             "external_refs": external_refs,
-            "synced_at": datetime.utcnow().isoformat(),
+            "synced_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _sync_test_execution_results(
@@ -2485,7 +2485,7 @@ class QualityManagementAgent(BaseAgent):
                 name: "submitted" if enabled else "disabled" for name, enabled in targets.items()
             },
             "external_refs": {"azure_devops": azure_run} if azure_run else {},
-            "synced_at": datetime.utcnow().isoformat(),
+            "synced_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _run_playwright_tests(
@@ -2524,7 +2524,7 @@ class QualityManagementAgent(BaseAgent):
             "plan_id": plan_id,
             "external_id": external_id,
             "asset_type": asset_type,
-            "synced_at": datetime.utcnow().isoformat(),
+            "synced_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._store_record("quality_devops_assets", external_id, record)
         return record
@@ -2543,7 +2543,7 @@ class QualityManagementAgent(BaseAgent):
             "passed": passed,
             "failed": failed,
             "total": len(test_results),
-            "synced_at": datetime.utcnow().isoformat(),
+            "synced_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._store_record("quality_devops_test_runs", run_id, record)
         return record
@@ -2571,17 +2571,17 @@ class QualityManagementAgent(BaseAgent):
             "container": container,
             "blob_name": blob_name,
             "uri": f"https://blob.local/{container}/{blob_name}",
-            "stored_at": datetime.utcnow().isoformat(),
+            "stored_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _train_defect_prediction_model(self, project_id: str) -> dict[str, Any]:
         """Train or refresh a defect prediction model using Azure ML (simulated)."""
-        model_version = datetime.utcnow().strftime("v%Y%m%d%H%M%S")
+        model_version = datetime.now(timezone.utc).strftime("v%Y%m%d%H%M%S")
         model_info = {
             "project_id": project_id,
             "model_version": model_version,
             "training_status": "completed",
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "features": ["defect_density", "coverage_pct", "pass_rate"],
         }
         self.defect_prediction_models[project_id] = model_info
@@ -2594,7 +2594,7 @@ class QualityManagementAgent(BaseAgent):
         coverage_data = repo_config.get("coverage_by_project", {}).get(project_id)
         if coverage_data:
             return coverage_data
-        return {"coverage_pct": 85.0, "source": "mock", "captured_at": datetime.utcnow().isoformat()}
+        return {"coverage_pct": 85.0, "source": "mock", "captured_at": datetime.now(timezone.utc).isoformat()}
 
     async def _get_code_size_metrics(self, project_id: str) -> dict[str, Any]:
         repo_config = self.integration_config.get("code_repos", {})
@@ -2611,7 +2611,7 @@ class QualityManagementAgent(BaseAgent):
         context = {
             "filters": filters,
             "report_type": report_type,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         summary = f"{default_prompt} Context: {json.dumps(context)}"
         if prompt_prefix:
@@ -2703,7 +2703,7 @@ class QualityManagementAgent(BaseAgent):
                     "plan_id": quality_plan.get("plan_id"),
                     "project_id": quality_plan.get("project_id"),
                     "approved_by": approval_response.get("approver", "workflow"),
-                    "approved_at": datetime.utcnow().isoformat(),
+                    "approved_at": datetime.now(timezone.utc).isoformat(),
                 },
                 tenant_id=tenant_id,
                 correlation_id=correlation_id,
@@ -2781,7 +2781,7 @@ class QualityManagementAgent(BaseAgent):
         ) * 100
         await self._store_record(
             "quality_execution_kpis",
-            f"{project_id}-{datetime.utcnow().isoformat()}",
+            f"{project_id}-{datetime.now(timezone.utc).isoformat()}",
             {
                 "project_id": project_id,
                 "pass_rate_pct": pass_rate,
@@ -2841,7 +2841,7 @@ class QualityManagementAgent(BaseAgent):
         model = {
             "label_tokens": label_tokens,
             "severity_tokens": severity_tokens,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._store_record(
             "quality_defect_models", f"classifier-{uuid.uuid4().hex[:6]}", model
@@ -2858,7 +2858,7 @@ class QualityManagementAgent(BaseAgent):
         model = {
             "clusters": clusters,
             "vocab": vocab,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._store_record(
             "quality_defect_cluster_models", f"cluster-{uuid.uuid4().hex[:6]}", model

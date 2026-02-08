@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import inspect
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
 from uuid import uuid4
@@ -117,8 +117,8 @@ class DataLakeManager:
         domain: str,
         payload: list[dict[str, Any]],
     ) -> dict[str, str]:
-        raw_path = f"/raw/{source}/{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.json"
-        curated_path = f"/curated/{domain}/{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.json"
+        raw_path = f"/raw/{source}/{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.json"
+        curated_path = f"/curated/{domain}/{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.json"
         if self.service_client:
             file_system = self.service_client.get_file_system_client(self.file_system_name)
             raw_file = file_system.create_file(raw_path.lstrip("/"))
@@ -217,7 +217,7 @@ class DataFactoryManager:
                 pipeline_name, parameters=parameters
             )
             return getattr(response, "run_id", "unknown")
-        return f"run-{pipeline_name}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        return f"run-{pipeline_name}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
 
     async def get_pipeline_status(self, run_id: str) -> dict[str, Any]:
         if self.data_factory_client and hasattr(self.data_factory_client, "pipeline_runs"):
@@ -809,7 +809,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "lineage_id": lineage_id,
             "data_lake_paths": data_lake_paths,
             "synapse": synapse_details,
-            "aggregated_at": datetime.utcnow().isoformat(),
+            "aggregated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _create_dashboard(
@@ -848,7 +848,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "refresh_schedule": refresh_schedule,
             "owner": dashboard_config.get("owner"),
             "shared_with": dashboard_config.get("shared_with", []),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store dashboard
@@ -892,7 +892,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "data": data,
             "visualizations": visualizations,
             "narrative": narrative,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "generated_by": report_spec.get("requester"),
         }
 
@@ -943,7 +943,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "prediction": prediction,
             "confidence_interval": confidence_interval,
             "confidence": prediction.get("confidence", 0.0),
-            "predicted_at": datetime.utcnow().isoformat(),
+            "predicted_at": datetime.now(timezone.utc).isoformat(),
         }
         self.predictions[prediction_id] = prediction_record
         self.analytics_output_store.upsert(tenant_id, prediction_id, prediction_record.copy())
@@ -997,7 +997,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "impact": impact,
             "simulations": simulations,
             "simulation_summary": simulation_summary,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         self.scenarios[scenario_id] = scenario_record
         self.analytics_output_store.upsert(tenant_id, scenario_id, scenario_record.copy())
@@ -1030,12 +1030,12 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         # Generate narrative using AI
         narrative_text = await self._generate_narrative_text(key_insights, trends, data)
-        narrative_id = f"narrative-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        narrative_id = f"narrative-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         narrative = {
             "narrative_id": narrative_id,
             "content": narrative_text,
             "data_summary": data,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.analytics_output_store.upsert(tenant_id, narrative_id, narrative.copy())
         await self.report_repository.store_narrative(narrative.copy())
@@ -1093,7 +1093,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "trend": trend,
             "threshold_status": threshold_status,
             "historical_values": historical_values,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.kpis[kpi_id] = kpi_record
         self.analytics_output_store.upsert(tenant_id, kpi_id, kpi_record.copy())
@@ -1109,7 +1109,7 @@ class AnalyticsInsightsAgent(BaseAgent):
                 "current_value": current_value,
                 "thresholds": kpi_config.get("thresholds", {}),
                 "status": "active",
-                "triggered_at": datetime.utcnow().isoformat(),
+                "triggered_at": datetime.now(timezone.utc).isoformat(),
             }
             self.kpi_alerts[alert_id] = alert
             self.analytics_alert_store.upsert(tenant_id, alert_id, alert.copy())
@@ -1153,7 +1153,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "query": query,
             "result_count": len(results),
             "results": formatted_results,
-            "executed_at": datetime.utcnow().isoformat(),
+            "executed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_dashboard(self, dashboard_id: str) -> dict[str, Any]:
@@ -1176,7 +1176,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "name": dashboard.get("name"),
             "description": dashboard.get("description"),
             "widgets": widget_data,
-            "last_refreshed": datetime.utcnow().isoformat(),
+            "last_refreshed": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_insights(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -1207,7 +1207,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "anomalies": anomalies,
             "patterns": patterns,
             "recommendations": recommendations,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         tenant_id = filters.get("tenant_id", "default")
         if self.event_bus:
@@ -1241,7 +1241,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "source_systems": lineage_data.get("sources", []),
             "transformations": lineage_data.get("transformations", []),
             "target_dataset": lineage_data.get("target"),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         masked_lineage = mask_lineage_payload(lineage)
@@ -1262,7 +1262,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         if not report_type:
             raise ValueError("report_type is required")
         embed_config = await self.power_bi_manager.get_embed_config(report_type, user_context)
-        record_id = f"powerbi-{report_type}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        record_id = f"powerbi-{report_type}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         self.analytics_output_store.upsert(tenant_id, record_id, embed_config.copy())
         return embed_config
 
@@ -1274,7 +1274,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         for pipeline in pipelines:
             run_id = await self.data_factory_manager.schedule_pipeline(pipeline, parameters)
             run_ids[pipeline] = run_id
-        return {"pipelines": run_ids, "scheduled_at": datetime.utcnow().isoformat()}
+        return {"pipelines": run_ids, "scheduled_at": datetime.now(timezone.utc).isoformat()}
 
     async def _monitor_etl_pipeline(self, run_id: str) -> dict[str, Any]:
         """Monitor Data Factory pipeline status."""
@@ -1288,7 +1288,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         return {
             "model_name": model_name,
             "training_job": result,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _answer_natural_language_query(
@@ -1301,7 +1301,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         return {
             "question": question,
             "response": response,
-            "answered_at": datetime.utcnow().isoformat(),
+            "answered_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _provision_analytics_stack(self) -> dict[str, Any]:
@@ -1315,7 +1315,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "synapse": synapse_details,
             "data_lake": data_lake_details,
             "data_factory": pipeline_details,
-            "provisioned_at": datetime.utcnow().isoformat(),
+            "provisioned_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _ingest_sources(
@@ -1335,7 +1335,7 @@ class AnalyticsInsightsAgent(BaseAgent):
                 pipeline_name,
                 {
                     "source": source,
-                    "requested_at": datetime.utcnow().isoformat(),
+                    "requested_at": datetime.now(timezone.utc).isoformat(),
                     **parameters,
                 },
             )
@@ -1359,7 +1359,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "pipelines": run_map,
             "data_lake_paths": lake_paths,
             "lineage_id": lineage_id,
-            "ingested_at": datetime.utcnow().isoformat(),
+            "ingested_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _ingest_realtime_event(
@@ -1372,7 +1372,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         await self._handle_realtime_event(payload)
         return {
             "event_type": payload["event_type"],
-            "streamed_at": datetime.utcnow().isoformat(),
+            "streamed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _compute_kpis_batch(
@@ -1389,7 +1389,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         return {
             "tenant_id": tenant_id,
             "kpis": results,
-            "computed_at": datetime.utcnow().isoformat(),
+            "computed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _build_event_handler(self, topic: str) -> Callable[[dict[str, Any]], Any]:
@@ -1418,7 +1418,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         snapshots = self.health_snapshots.setdefault(tenant_id, [])
         snapshots.append(health_data)
-        record_id = f"{project_id}-{health_data.get('monitored_at', datetime.utcnow().isoformat())}"
+        record_id = f"{project_id}-{health_data.get('monitored_at', datetime.now(timezone.utc).isoformat())}"
         self.health_snapshot_store.upsert(tenant_id, record_id, health_data.copy())
 
     async def _handle_health_report_generated(self, event: dict[str, Any]) -> None:
@@ -1426,7 +1426,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         payload = event.get("payload", event)
         tenant_id = event.get("tenant_id", payload.get("tenant_id", "default"))
         report = payload.get("report", payload)
-        report_id = report.get("report_id", f"health-report-{datetime.utcnow().isoformat()}")
+        report_id = report.get("report_id", f"health-report-{datetime.now(timezone.utc).isoformat()}")
         self.reports[report_id] = report
         self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
 
@@ -1457,7 +1457,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "event_type": event_type,
             "domain": event_type.split(".")[0] if event_type else "unknown",
             "payload": payload,
-            "received_at": datetime.utcnow().isoformat(),
+            "received_at": datetime.now(timezone.utc).isoformat(),
         }
         history = self.event_history.setdefault(tenant_id, [])
         history.append(record)
@@ -1582,7 +1582,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "concerns": concerns,
             "recommendations": generate_recommendations(concerns),
             "projects": projects,
-            "summarized_at": datetime.utcnow().isoformat(),
+            "summarized_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _run_metric_simulations(
@@ -1618,7 +1618,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         return {
             "simulation_count": len(simulations),
             "simulation_types": [simulation.get("type") for simulation in simulations],
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     # Helper methods
@@ -1631,32 +1631,32 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _generate_dashboard_id(self) -> str:
         """Generate unique dashboard ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"DASH-{timestamp}"
 
     async def _generate_report_id(self) -> str:
         """Generate unique report ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"REPORT-{timestamp}"
 
     async def _generate_prediction_id(self) -> str:
         """Generate unique prediction ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PRED-{timestamp}"
 
     async def _generate_scenario_id(self) -> str:
         """Generate unique scenario ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"SCENARIO-{timestamp}"
 
     async def _generate_kpi_id(self) -> str:
         """Generate unique KPI ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"KPI-{timestamp}"
 
     async def _generate_lineage_id(self) -> str:
         """Generate unique lineage ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"LINEAGE-{timestamp}"
 
     async def _get_health_history(
@@ -1693,7 +1693,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         return [
             {
                 "source": source,
-                "ingested_at": datetime.utcnow().isoformat(),
+                "ingested_at": datetime.now(timezone.utc).isoformat(),
                 "records": [],
             }
         ]
@@ -1715,7 +1715,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "lineage_id": lineage_id,
             "sources": sources,
             "record_count": len(data),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         masked_lineage = mask_lineage_payload(lineage_record)
         self.data_lineage[lineage_id] = masked_lineage
@@ -1741,7 +1741,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Set up data refresh schedule."""
         return {
             "interval_minutes": interval_minutes,
-            "next_refresh": (datetime.utcnow() + timedelta(minutes=interval_minutes)).isoformat(),
+            "next_refresh": (datetime.now(timezone.utc) + timedelta(minutes=interval_minutes)).isoformat(),
         }
 
     async def _collect_report_data(
@@ -1755,7 +1755,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             return {
                 "kpis": list(self.kpis.values()),
                 "kpi_count": len(self.kpis),
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
             }
         return {}
 
@@ -1930,7 +1930,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             total = successes + failures
             return successes / total if total else 1.0
         if metric_name == "deployment.frequency":
-            cutoff = datetime.utcnow() - timedelta(days=30)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=30)
             recent = [
                 event
                 for event in self._filter_events(
@@ -1983,7 +1983,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
     async def _store_kpi_history(self, tenant_id: str, kpi_id: str, value: float) -> None:
         history = await self._get_kpi_history(tenant_id, kpi_id)
-        history.append({"value": value, "recorded_at": datetime.utcnow().isoformat()})
+        history.append({"value": value, "recorded_at": datetime.now(timezone.utc).isoformat()})
         self.kpi_history_store.upsert(tenant_id, kpi_id, {"entries": history})
 
     async def _calculate_kpi_trend(
@@ -2049,7 +2049,7 @@ class AnalyticsInsightsAgent(BaseAgent):
                 widget_data["data"] = list(self.kpis.values())
             else:
                 widget_data["data"] = []
-            widget_data["last_refreshed"] = datetime.utcnow().isoformat()
+            widget_data["last_refreshed"] = datetime.now(timezone.utc).isoformat()
             refreshed.append(widget_data)
         return refreshed
 

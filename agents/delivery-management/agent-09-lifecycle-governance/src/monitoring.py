@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -27,7 +27,7 @@ class AzureMonitorClient:
             MonitorRecord(
                 name=workflow_name,
                 status="started",
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
                 metadata={"workflow_id": context.workflow_id, "project_id": context.project_id},
             )
         )

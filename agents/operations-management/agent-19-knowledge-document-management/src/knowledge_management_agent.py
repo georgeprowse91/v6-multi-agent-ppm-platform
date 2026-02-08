@@ -13,7 +13,7 @@ import json
 import os
 import re
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -423,8 +423,8 @@ class KnowledgeManagementAgent(BaseAgent):
             "classification": classification_label,
             "status": status,
             "owner": owner,
-            "created_at": datetime.utcnow().isoformat(),
-            "modified_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "modified_at": datetime.now(timezone.utc).isoformat(),
             "accessed_count": 0,
             "topic": classification.get("topic"),
             "phase": classification.get("phase"),
@@ -543,7 +543,7 @@ class KnowledgeManagementAgent(BaseAgent):
             "tenant_id": tenant_id,
             "sources": source_summaries,
             "total_documents": len(ingested_documents),
-            "ingested_at": datetime.utcnow().isoformat(),
+            "ingested_at": datetime.now(timezone.utc).isoformat(),
         }
         self.ingestion_runs.append(run_record)
 
@@ -718,7 +718,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         # Update access count
         document["accessed_count"] = document.get("accessed_count", 0) + 1
-        document["last_accessed_at"] = datetime.utcnow().isoformat()
+        document["last_accessed_at"] = datetime.now(timezone.utc).isoformat()
         self.document_store.upsert(tenant_id, document_id, document.copy())
 
         # Get summary if available
@@ -780,7 +780,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         # Increment version
         document["version"] = document.get("version", 1) + 1
-        document["modified_at"] = datetime.utcnow().isoformat()
+        document["modified_at"] = datetime.now(timezone.utc).isoformat()
 
         # Re-classify if content changed
         if "content" in updates:
@@ -852,7 +852,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         # Soft delete
         document["deleted"] = True
-        document["deleted_at"] = datetime.utcnow().isoformat()
+        document["deleted_at"] = datetime.now(timezone.utc).isoformat()
         self.document_store.upsert(tenant_id, document_id, document.copy())
         self.knowledge_db.upsert_document(document)
 
@@ -934,13 +934,13 @@ class KnowledgeManagementAgent(BaseAgent):
             "document_id": document_id,
             "content": summary_content,
             "length": len(summary_content),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         self.knowledge_db.record_interaction(
             document_id,
             "summary",
-            {"summary": summary_content, "generated_at": datetime.utcnow().isoformat()},
+            {"summary": summary_content, "generated_at": datetime.now(timezone.utc).isoformat()},
         )
 
         return {
@@ -1043,10 +1043,10 @@ class KnowledgeManagementAgent(BaseAgent):
             "recommendation": lesson_data.get("recommendation"),
             "project_id": lesson_data.get("project_id"),
             "program_id": lesson_data.get("program_id"),
-            "date": lesson_data.get("date", datetime.utcnow().isoformat()),
+            "date": lesson_data.get("date", datetime.now(timezone.utc).isoformat()),
             "owner": lesson_data.get("owner"),
             "similar_lessons": similar_lessons,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store lesson
@@ -1201,12 +1201,12 @@ class KnowledgeManagementAgent(BaseAgent):
             raise PermissionError("Access denied for requested document")
 
         record = {
-            "annotation_id": f"ANN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "annotation_id": f"ANN-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             "document_id": document_id,
             "text": annotation.get("text"),
             "selection": annotation.get("selection"),
             "author": access_context.get("user_id") or annotation.get("author"),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         self.document_annotations.setdefault(document_id, []).append(record)
         self.knowledge_db.record_interaction(document_id, "annotation", record)
@@ -1228,13 +1228,13 @@ class KnowledgeManagementAgent(BaseAgent):
             raise PermissionError("Access denied for requested document")
 
         record = {
-            "review_id": f"REV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "review_id": f"REV-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             "document_id": document_id,
             "status": review.get("status", "in_review"),
             "comments": review.get("comments", []),
             "reviewer": access_context.get("user_id") or review.get("reviewer"),
             "version": document.get("version"),
-            "reviewed_at": datetime.utcnow().isoformat(),
+            "reviewed_at": datetime.now(timezone.utc).isoformat(),
         }
         self.document_reviews.setdefault(document_id, []).append(record)
         self.knowledge_db.record_interaction(document_id, "review", record)
@@ -1256,13 +1256,13 @@ class KnowledgeManagementAgent(BaseAgent):
             raise PermissionError("Access denied for requested document")
 
         record = {
-            "approval_id": f"APR-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "approval_id": f"APR-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             "document_id": document_id,
             "status": approval.get("status", "approved"),
             "approver": access_context.get("user_id") or approval.get("approver"),
             "version": document.get("version"),
             "notes": approval.get("notes"),
-            "approved_at": datetime.utcnow().isoformat(),
+            "approved_at": datetime.now(timezone.utc).isoformat(),
         }
         self.document_approvals.setdefault(document_id, []).append(record)
         document["status"] = "approved" if record["status"] == "approved" else document.get(
@@ -1337,17 +1337,17 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _generate_document_id(self) -> str:
         """Generate unique document ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"DOC-{timestamp}"
 
     async def _generate_lesson_id(self) -> str:
         """Generate unique lesson ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"LESSON-{timestamp}"
 
     async def _generate_ingestion_id(self) -> str:
         """Generate unique ingestion ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"INGEST-{timestamp}"
 
     def _train_classifier_seed(self) -> None:

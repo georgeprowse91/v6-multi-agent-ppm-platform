@@ -17,7 +17,7 @@ import re
 import uuid
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -481,7 +481,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "related_controls": [],
             "applicability_rules": applicability,
             "metadata": regulation_metadata.get("metadata", {}),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store regulation
@@ -525,7 +525,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "status": "Active",
             "last_test_date": None,
             "last_test_result": None,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store control
@@ -600,7 +600,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "applicable_regulations": applicable_regulations,
             "applicable_controls": applicable_controls,
             "control_status": {},
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Initialize control status
@@ -731,10 +731,10 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "control_assessments": control_assessments,
             "regulation_scores": score_summary["regulation_scores"],
             "evidence_summary": evidence_bundle,
-            "assessment_date": datetime.utcnow().isoformat(),
+            "assessment_date": datetime.now(timezone.utc).isoformat(),
         }
 
-        assessment_id = f"ASM-{project_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        assessment_id = f"ASM-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         await self.db_service.store("compliance_assessments", assessment_id, assessment)
 
         return assessment
@@ -757,7 +757,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         tester = test_data.get("tester", "unknown")
 
         # Update control
-        control["last_test_date"] = datetime.utcnow().isoformat()
+        control["last_test_date"] = datetime.now(timezone.utc).isoformat()
         control["last_test_result"] = test_result
         control["last_tester"] = tester
 
@@ -768,7 +768,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 mapping["control_status"][control_id]["test_result"] = test_result
 
         # Persist control test result
-        test_record_id = f"TST-{control_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        test_record_id = f"TST-{control_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         test_record = {
             "test_id": test_record_id,
             "control_id": control_id,
@@ -822,7 +822,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "version_history": (
                 existing_policy.get("version_history", []) if existing_policy else []
             ),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Add to version history
@@ -831,7 +831,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 {
                     "version": existing_policy["version"],
                     "effective_date": existing_policy["effective_date"],
-                    "archived_at": datetime.utcnow().isoformat(),
+                    "archived_at": datetime.now(timezone.utc).isoformat(),
                 }
             )
 
@@ -913,7 +913,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "control_summary": control_summary,
             "status": "Prepared",
             "findings": [],
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store audit
@@ -982,7 +982,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         audit["controls_reviewed"] = controls_reviewed
         audit["controls_passed"] = controls_passed
         audit["status"] = "Completed"
-        audit["completion_date"] = datetime.utcnow().isoformat()
+        audit["completion_date"] = datetime.now(timezone.utc).isoformat()
 
         # Persist audit results
         await self.db_service.store("audits", audit_id, audit)
@@ -1048,7 +1048,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "file_url": evidence_data.get("file_url"),
             "description": evidence_data.get("description"),
             "uploaded_by": evidence_data.get("uploaded_by", "unknown"),
-            "uploaded_at": datetime.utcnow().isoformat(),
+            "uploaded_at": datetime.now(timezone.utc).isoformat(),
             "classification": evidence_data.get("classification", "confidential"),
         }
 
@@ -1229,7 +1229,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "impacted_regulations": impacted_regulations,
             "external_monitoring": external_monitoring,
             "tasks_created": tasks_created,
-            "last_check": datetime.utcnow().isoformat(),
+            "last_check": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _sync_regulatory_updates(self, updates: list[dict[str, Any]]) -> None:
@@ -1259,7 +1259,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                         "industry_filter": [],
                     },
                     "metadata": {"source_url": update.get("source_url")},
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 }
                 self.regulation_library[regulation_id] = regulation_record
                 await self.db_service.store("regulations", regulation_id, regulation_record)
@@ -1390,7 +1390,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             "upcoming_audits": upcoming_audits,
             "recent_findings": recent_findings,
             "external_monitoring": external_monitoring,
-            "dashboard_generated_at": datetime.utcnow().isoformat(),
+            "dashboard_generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_compliance_report(
@@ -1418,32 +1418,32 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
     async def _generate_regulation_id(self) -> str:
         """Generate unique regulation ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"REG-{timestamp}"
 
     async def _generate_control_id(self) -> str:
         """Generate unique control ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"CTL-{timestamp}"
 
     async def _generate_mapping_id(self) -> str:
         """Generate unique mapping ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"MAP-{timestamp}"
 
     async def _generate_policy_id(self) -> str:
         """Generate unique policy ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"POL-{timestamp}"
 
     async def _generate_audit_id(self) -> str:
         """Generate unique audit ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"AUD-{timestamp}"
 
     async def _generate_evidence_id(self) -> str:
         """Generate unique evidence ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"EV-{timestamp}"
 
     async def _seed_regulatory_frameworks(self) -> None:
@@ -1559,7 +1559,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         for regulation_id, regulation in frameworks.items():
             regulation["regulation_id"] = regulation_id
-            regulation["created_at"] = datetime.utcnow().isoformat()
+            regulation["created_at"] = datetime.now(timezone.utc).isoformat()
             self.regulation_library[regulation_id] = regulation
             await self.db_service.store("regulations", regulation_id, regulation)
 
@@ -1571,7 +1571,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "status": "Active",
                 "last_test_date": None,
                 "last_test_result": None,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
             self.control_registry[control_id] = control_payload
             regulation_id = control_payload.get("regulation")
@@ -1761,7 +1761,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         frequency_days = {"monthly": 30, "quarterly": 90, "semi-annually": 180, "annually": 365}
 
         days_threshold = frequency_days.get(test_frequency, 90)
-        days_since_test = (datetime.utcnow() - last_test_date).days
+        days_since_test = (datetime.now(timezone.utc) - last_test_date).days
 
         return days_since_test <= days_threshold
 
@@ -1800,7 +1800,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         """Calculate next test date based on frequency."""
         last_test_date_str = control.get("last_test_date")
         if not last_test_date_str:
-            return datetime.utcnow().isoformat()
+            return datetime.now(timezone.utc).isoformat()
 
         last_test_date = datetime.fromisoformat(last_test_date_str)
         test_frequency = control.get("test_frequency", "quarterly")
@@ -1967,7 +1967,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 next_test_date = await self._calculate_next_test_date(control)
                 if next_test_date:
                     next_test = datetime.fromisoformat(next_test_date)
-                    if (next_test - datetime.utcnow()).days <= 14:
+                    if (next_test - datetime.now(timezone.utc)).days <= 14:
                         upcoming_tests += 1
 
         return {
@@ -2049,7 +2049,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "project_id": project_id,
                 "gaps": assessment.get("gaps", []),
                 "compliance_score": assessment.get("compliance_score", 0),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "trigger": event.get("event_type") or event.get("type"),
                 "recommendations": recommendations,
             }
@@ -2152,12 +2152,12 @@ class ComplianceRegulatoryAgent(BaseAgent):
         return report
 
     async def _store_report(self, report_type: str, data: dict[str, Any]) -> dict[str, Any]:
-        report_id = f"REP-{report_type.upper()}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        report_id = f"REP-{report_type.upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         report = {
             "report_id": report_id,
             "report_type": report_type,
             "data": data,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.compliance_reports[report_id] = report
         await self.db_service.store("compliance_reports", report_id, report)
@@ -2459,11 +2459,11 @@ class ComplianceRegulatoryAgent(BaseAgent):
         }
 
     async def _store_evidence_snapshot(self, project_id: str, evidence: dict[str, Any]) -> None:
-        snapshot_id = f"ES-{project_id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        snapshot_id = f"ES-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         snapshot = EvidenceSnapshot(
             snapshot_id=snapshot_id,
             project_id=project_id,
-            collected_at=datetime.utcnow().isoformat(),
+            collected_at=datetime.now(timezone.utc).isoformat(),
             sources=[key for key, value in evidence.items() if value],
             metadata={"agent_id": self.agent_id},
             payload=evidence,
@@ -2600,7 +2600,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "effective_date": update.get("effective_date"),
                 "assigned_to": recipients,
                 "status": "open",
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "source_url": update.get("source_url"),
             }
             tasks.append(task)

@@ -16,7 +16,7 @@ import os
 import re
 import statistics
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -555,7 +555,7 @@ class SystemHealthAgent(BaseAgent):
             self.agent_id, attributes={"service.name": service_name, "tenant.id": tenant_id}
         ):
             # Store metrics
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
             metric_id = await self._generate_metric_id()
 
             metric_record = {
@@ -623,7 +623,7 @@ class SystemHealthAgent(BaseAgent):
         return {
             "services": collected,
             "total_services": len(collected),
-            "collected_at": datetime.utcnow().isoformat(),
+            "collected_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _collect_application_metrics(
@@ -662,7 +662,7 @@ class SystemHealthAgent(BaseAgent):
         return {
             "services": summarized,
             "records_processed": len(records),
-            "collected_at": datetime.utcnow().isoformat(),
+            "collected_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _check_health(self, service_name: str | None = None) -> dict[str, Any]:
@@ -688,7 +688,7 @@ class SystemHealthAgent(BaseAgent):
         return {
             "overall_status": overall_status,
             "services": services,
-            "checked_at": datetime.utcnow().isoformat(),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _create_alert(self, tenant_id: str, alert_config: dict[str, Any]) -> dict[str, Any]:
@@ -714,7 +714,7 @@ class SystemHealthAgent(BaseAgent):
             "threshold": alert_config.get("threshold"),
             "notification_channels": alert_config.get("notification_channels", []),
             "status": "active",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store alert
@@ -758,7 +758,7 @@ class SystemHealthAgent(BaseAgent):
                 "value": anomaly.get("value"),
                 "expected_range": anomaly.get("expected_range"),
                 "severity": anomaly.get("severity"),
-                "detected_at": datetime.utcnow().isoformat(),
+                "detected_at": datetime.now(timezone.utc).isoformat(),
             }
             if anomaly.get("severity") == "critical":
                 await self._create_servicenow_incident(
@@ -794,7 +794,7 @@ class SystemHealthAgent(BaseAgent):
                         for anomaly in anomalies
                         for action in anomaly.get("recommended_actions", [])
                     ],
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             )
 
@@ -828,7 +828,7 @@ class SystemHealthAgent(BaseAgent):
             "affected_services": incident_data.get("affected_services", []),
             "status": "open",
             "assignee": self._sanitize_text(incident_data.get("assignee", "")),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": self._sanitize_text(incident_data.get("reporter", "")),
         }
 
@@ -883,7 +883,7 @@ class SystemHealthAgent(BaseAgent):
             "probable_causes": probable_causes,
             "correlations": correlations,
             "recommendations": recommendations,
-            "analyzed_at": datetime.utcnow().isoformat(),
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_system_status(self) -> dict[str, Any]:
@@ -927,7 +927,7 @@ class SystemHealthAgent(BaseAgent):
             "open_incidents": len(open_incidents),
             "critical_alerts": critical_alerts,
             "critical_incidents": critical_incidents,
-            "checked_at": datetime.utcnow().isoformat(),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_metrics(
@@ -948,7 +948,7 @@ class SystemHealthAgent(BaseAgent):
             "metric_name": metric_name,
             "time_range": time_range,
             "values": metric_values,
-            "retrieved_at": datetime.utcnow().isoformat(),
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_deployment_metrics(self, deployment_plan: dict[str, Any]) -> dict[str, Any]:
@@ -975,7 +975,7 @@ class SystemHealthAgent(BaseAgent):
             "metrics": aggregate,
             "services": service_summaries,
             "time_range": time_range,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_deployment_baseline(self, deployment_plan: dict[str, Any]) -> dict[str, Any]:
@@ -1012,7 +1012,7 @@ class SystemHealthAgent(BaseAgent):
         alert_summary = self._summarize_alerts(tenant_id, time_range)
 
         return {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "real_time": system_status,
             "historical_metrics": metrics_summary,
             "incident_summary": incident_summary,
@@ -1026,7 +1026,7 @@ class SystemHealthAgent(BaseAgent):
         incident_summary = self._summarize_incidents(tenant_id, time_range)
         alert_summary = self._summarize_alerts(tenant_id, time_range)
         return {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "incident_summary": incident_summary,
             "alert_summary": alert_summary,
             "time_range": time_range,
@@ -1093,7 +1093,7 @@ class SystemHealthAgent(BaseAgent):
             "utilization_trends": utilization_trends,
             "forecasts": forecasts,
             "recommendations": recommendations,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _acknowledge_alert(
@@ -1112,7 +1112,7 @@ class SystemHealthAgent(BaseAgent):
 
         alert["acknowledged"] = True
         alert["acknowledged_by"] = self._sanitize_text(acknowledged_by)
-        alert["acknowledged_at"] = datetime.utcnow().isoformat()
+        alert["acknowledged_at"] = datetime.now(timezone.utc).isoformat()
         self.alert_store.upsert(tenant_id, alert_id, alert.copy())
 
 
@@ -1140,11 +1140,11 @@ class SystemHealthAgent(BaseAgent):
         incident["status"] = "resolved"
         incident["resolution"] = self._sanitize_text(resolution.get("description", ""))
         incident["resolved_by"] = self._sanitize_text(resolution.get("resolved_by", ""))
-        incident["resolved_at"] = datetime.utcnow().isoformat()
+        incident["resolved_at"] = datetime.now(timezone.utc).isoformat()
 
         # Calculate resolution time
         created_at = datetime.fromisoformat(incident.get("created_at"))
-        resolved_at = datetime.utcnow()
+        resolved_at = datetime.now(timezone.utc)
         resolution_time = (resolved_at - created_at).total_seconds() / 60  # minutes
 
         incident["resolution_time_minutes"] = resolution_time
@@ -1377,26 +1377,26 @@ class SystemHealthAgent(BaseAgent):
         timeout_seconds = endpoint.get("timeout_seconds", 5)
         if not url:
             return {"healthy": False, "error": "missing_url", "response_time_ms": 0}
-        start = datetime.utcnow()
+        start = datetime.now(timezone.utc)
         try:
             async with httpx.AsyncClient(timeout=timeout_seconds) as client:
                 response = await client.get(url)
-            elapsed = (datetime.utcnow() - start).total_seconds() * 1000
+            elapsed = (datetime.now(timezone.utc) - start).total_seconds() * 1000
             healthy = 200 <= response.status_code < 400
             return {
                 "healthy": healthy,
                 "status_code": response.status_code,
                 "response_time_ms": elapsed,
-                "checked_at": datetime.utcnow().isoformat(),
+                "checked_at": datetime.now(timezone.utc).isoformat(),
             }
         except httpx.HTTPError as exc:
-            elapsed = (datetime.utcnow() - start).total_seconds() * 1000
+            elapsed = (datetime.now(timezone.utc) - start).total_seconds() * 1000
             return {
                 "healthy": False,
                 "status_code": 0,
                 "response_time_ms": elapsed,
                 "error": str(exc),
-                "checked_at": datetime.utcnow().isoformat(),
+                "checked_at": datetime.now(timezone.utc).isoformat(),
             }
 
     async def _scrape_prometheus_target(self, target: dict[str, Any]) -> dict[str, Any]:
@@ -1512,7 +1512,7 @@ class SystemHealthAgent(BaseAgent):
     async def _query_azure_resource_metrics(self, resource_id: str) -> dict[str, Any]:
         if not self._metrics_query_client:
             return {"error": "azure_monitor_unavailable"}
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(minutes=5)
         metric_names = [
             "Percentage CPU",
@@ -1567,7 +1567,7 @@ class SystemHealthAgent(BaseAgent):
         return metrics
 
     async def _publish_health_status(self, services: dict[str, dict[str, Any]]) -> None:
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         total_services = len(services)
         unhealthy = sum(1 for result in services.values() if not result.get("healthy", False))
         overall_status = "healthy" if unhealthy == 0 else "degraded"
@@ -1788,7 +1788,7 @@ class SystemHealthAgent(BaseAgent):
         return anomalies
 
     def _parse_time_range(self, time_range: dict[str, Any]) -> tuple[datetime, datetime]:
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         if "end" in time_range:
             end = datetime.fromisoformat(time_range["end"])
         if "start" in time_range:
@@ -1849,23 +1849,23 @@ class SystemHealthAgent(BaseAgent):
 
     async def _generate_metric_id(self) -> str:
         """Generate unique metric ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"METRIC-{timestamp}"
 
     async def _generate_alert_id(self) -> str:
         """Generate unique alert ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         suffix = uuid.uuid4().hex[:8]
         return f"ALERT-{timestamp}-{suffix}"
 
     async def _generate_incident_id(self) -> str:
         """Generate unique incident ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"INC-{timestamp}"
 
     async def _generate_anomaly_id(self) -> str:
         """Generate unique anomaly ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"ANOM-{timestamp}"
 
     async def _check_metric_thresholds(
@@ -2022,7 +2022,7 @@ class SystemHealthAgent(BaseAgent):
             "metric_name": metric_name,
             "time_range": time_range,
             "values": values,
-            "retrieved_at": datetime.utcnow().isoformat(),
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _forecast_capacity(self, service_name: str | None) -> dict[str, Any]:
@@ -2032,7 +2032,7 @@ class SystemHealthAgent(BaseAgent):
             "service_name": service_name,
             "trends": utilization_trends,
             "forecasts": forecasts,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _apply_anomaly_detection(self, metrics: list[dict[str, Any]]) -> list[dict[str, Any]]:

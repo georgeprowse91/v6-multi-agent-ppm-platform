@@ -2,7 +2,7 @@
 Health Check API Routes
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -30,7 +30,7 @@ async def health_check() -> dict[str, Any]:
     status = "healthy" if all(checks.values()) else "degraded"
     return {
         "status": status,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": "multi-agent-ppm-platform",
         "checks": checks,
     }
@@ -62,14 +62,14 @@ async def readiness_check(request: Request) -> dict[str, Any]:
             detail={
                 "ready": all_ready,
                 "checks": checks,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
     return {
         "ready": all_ready,
         "checks": checks,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -84,5 +84,5 @@ async def liveness_check() -> dict[str, Any]:
     """
     return {
         "alive": True,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }

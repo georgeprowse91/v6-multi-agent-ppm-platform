@@ -10,7 +10,7 @@ Specification: agents/delivery-management/agent-12-financial-management/README.m
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -350,11 +350,11 @@ class FinancialManagementAgent(BaseAgent):
             "portfolio_id": budget_data.get("portfolio_id"),
             "total_amount": total_amount,
             "currency": budget_data.get("currency", self.default_currency),
-            "fiscal_year": budget_data.get("fiscal_year", datetime.utcnow().year),
+            "fiscal_year": budget_data.get("fiscal_year", datetime.now(timezone.utc).year),
             "cost_breakdown": cost_breakdown,
             "cost_type": budget_data.get("cost_type", "mixed"),  # capex, opex, or mixed
             "status": "Draft",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": budget_data.get("owner", "unknown"),
             "baseline_date": None,  # Set when approved
             "wbs_allocation": budget_data.get("wbs_allocation", {}),
@@ -483,7 +483,7 @@ class FinancialManagementAgent(BaseAgent):
             "total_actual": total_actual,
             "by_category": by_category,
             "accruals": accruals,
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_forecast(
@@ -517,7 +517,7 @@ class FinancialManagementAgent(BaseAgent):
         self.forecasts[project_id] = {
             "forecast_data": forecast,
             "eac": eac,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "time_period": time_period,
         }
         self.forecast_store.upsert(tenant_id, project_id, self.forecasts[project_id])
@@ -542,7 +542,7 @@ class FinancialManagementAgent(BaseAgent):
                 project_id, eac, tenant_id=tenant_id
             ),
             "confidence_interval": await self._calculate_confidence_interval(forecast),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _analyze_variance(
@@ -635,7 +635,7 @@ class FinancialManagementAgent(BaseAgent):
             "variance_drivers": drivers,
             "alerts": alerts,
             "narrative": narrative,
-            "analyzed_at": datetime.utcnow().isoformat(),
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _calculate_evm(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
@@ -712,7 +712,7 @@ class FinancialManagementAgent(BaseAgent):
             "variance_at_completion": vac,
             "to_complete_performance_index": tcpi,
             "performance_status": await self._assess_performance_status(cpi, spi),
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_financial_summary(
@@ -796,7 +796,7 @@ class FinancialManagementAgent(BaseAgent):
             if key in budget:
                 budget[key] = value
 
-        budget["last_updated"] = datetime.utcnow().isoformat()
+        budget["last_updated"] = datetime.now(timezone.utc).isoformat()
 
         validation = await self._validate_budget_record(
             budget, tenant_id=tenant_id, portfolio_id=budget.get("portfolio_id")
@@ -846,7 +846,7 @@ class FinancialManagementAgent(BaseAgent):
             raise ValueError(f"Budget not found: {budget_id}")
 
         budget["status"] = "Approved"
-        budget["baseline_date"] = datetime.utcnow().isoformat()
+        budget["baseline_date"] = datetime.now(timezone.utc).isoformat()
 
         self.budgets[budget_id] = budget
         self.budget_store.upsert(tenant_id, budget_id, budget)
@@ -898,7 +898,7 @@ class FinancialManagementAgent(BaseAgent):
             "converted_amount": converted_amount,
             "exchange_rate": exchange_rates["rates"][to_currency]
             / exchange_rates["rates"][from_currency],
-            "conversion_date": datetime.utcnow().isoformat(),
+            "conversion_date": datetime.now(timezone.utc).isoformat(),
             "rate_as_of": exchange_rates["as_of"],
         }
 
@@ -947,14 +947,14 @@ class FinancialManagementAgent(BaseAgent):
             "roi": roi,
             "roi_percentage": roi * 100,
             "payback_period_months": payback_period,
-            "calculated_at": datetime.utcnow().isoformat(),
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     # Helper methods
 
     async def _generate_budget_id(self) -> str:
         """Generate unique budget ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"BDG-{timestamp}-{uuid.uuid4().hex[:6]}"
 
     async def _validate_budget_record(
@@ -967,7 +967,7 @@ class FinancialManagementAgent(BaseAgent):
             "name": budget.get("name") or f"Budget {budget.get('project_id', '')}",
             "currency": budget.get("currency", self.default_currency),
             "amount": budget.get("total_amount", 0),
-            "fiscal_year": budget.get("fiscal_year", datetime.utcnow().year),
+            "fiscal_year": budget.get("fiscal_year", datetime.now(timezone.utc).year),
             "status": budget.get("status", "Draft").lower(),
             "owner": budget.get("created_by", "unknown"),
             "classification": budget.get("classification", "internal"),
@@ -1494,7 +1494,7 @@ class FinancialManagementAgent(BaseAgent):
                 "budget_count": len(self.budgets) or len(self.budget_store.list(tenant_id)),
                 "forecast_count": len(self.forecasts) or len(self.forecast_store.list(tenant_id)),
             },
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_variance_report(
@@ -1504,7 +1504,7 @@ class FinancialManagementAgent(BaseAgent):
         return {
             "report_type": "variance",
             "data": {"portfolio_id": filters.get("portfolio_id")},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_forecast_report(
@@ -1516,7 +1516,7 @@ class FinancialManagementAgent(BaseAgent):
             "data": {
                 "forecast_count": len(self.forecasts) or len(self.forecast_store.list(tenant_id))
             },
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_cash_flow_report(
@@ -1526,7 +1526,7 @@ class FinancialManagementAgent(BaseAgent):
         return {
             "report_type": "cash_flow",
             "data": {"currency": self.default_currency},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_profitability_report(
@@ -1536,7 +1536,7 @@ class FinancialManagementAgent(BaseAgent):
         return {
             "report_type": "profitability",
             "data": {"currency": self.default_currency},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _get_project_benefits(self, project_id: str) -> dict[str, Any]:
@@ -1653,7 +1653,7 @@ class ExchangeRateProvider:
 
     async def get_rates(self) -> dict[str, Any]:
         if self._cache and self._last_loaded:
-            age = (datetime.utcnow() - self._last_loaded).total_seconds()
+            age = (datetime.now(timezone.utc) - self._last_loaded).total_seconds()
             if age < self.ttl_seconds:
                 return self._cache
 
@@ -1668,9 +1668,9 @@ class ExchangeRateProvider:
         self._cache = {
             "base": data.get("base", "USD"),
             "rates": data.get("rates", {}),
-            "as_of": data.get("as_of", datetime.utcnow().isoformat()),
+            "as_of": data.get("as_of", datetime.now(timezone.utc).isoformat()),
         }
-        self._last_loaded = datetime.utcnow()
+        self._last_loaded = datetime.now(timezone.utc)
         return self._cache
 
 
@@ -1686,7 +1686,7 @@ class TaxRateProvider:
 
     async def get_rates(self) -> dict[str, Any]:
         if self._cache and self._last_loaded:
-            age = (datetime.utcnow() - self._last_loaded).total_seconds()
+            age = (datetime.now(timezone.utc) - self._last_loaded).total_seconds()
             if age < self.ttl_seconds:
                 return self._cache
 
@@ -1702,9 +1702,9 @@ class TaxRateProvider:
             "default_rate": data.get("default_rate", 0),
             "default_region": data.get("default_region", "US"),
             "rates": data.get("rates", {}),
-            "as_of": data.get("as_of", datetime.utcnow().isoformat()),
+            "as_of": data.get("as_of", datetime.now(timezone.utc).isoformat()),
         }
-        self._last_loaded = datetime.utcnow()
+        self._last_loaded = datetime.now(timezone.utc)
         return self._cache
 
 
@@ -1720,4 +1720,4 @@ class DataFactoryPipelineManager:
                 pipeline_name, parameters=parameters
             )
             return getattr(response, "run_id", "unknown")
-        return f"run-{pipeline_name}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        return f"run-{pipeline_name}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"

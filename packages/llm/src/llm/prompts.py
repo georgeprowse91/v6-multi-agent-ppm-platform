@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +43,7 @@ class PromptRegistry:
             version=version_number,
             content=content,
             status="draft",
-            updated_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.now(timezone.utc).isoformat(),
         )
         versions.append(record.__dict__)
         self._save(data)
@@ -55,7 +55,7 @@ class PromptRegistry:
         for entry in versions:
             if entry["version"] == version:
                 entry["status"] = status
-                entry["updated_at"] = datetime.utcnow().isoformat()
+                entry["updated_at"] = datetime.now(timezone.utc).isoformat()
                 self._save(data)
                 return PromptVersion(**entry)
         raise KeyError("Prompt version not found")

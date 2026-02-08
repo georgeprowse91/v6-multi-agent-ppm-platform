@@ -17,7 +17,7 @@ import re
 import uuid
 from collections import Counter, defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib import request
@@ -315,7 +315,7 @@ class LocalApprovalAgent:
         return {
             "approval_id": f"local-{uuid.uuid4()}",
             "status": "auto-approved",
-            "requested_at": datetime.utcnow().isoformat(),
+            "requested_at": datetime.now(timezone.utc).isoformat(),
             "request": input_data,
         }
 
@@ -345,14 +345,14 @@ class VendorMLService:
         ]
 
     async def train_models(self, vendors: list[dict[str, Any]]) -> dict[str, Any]:
-        run_id = f"ml-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        run_id = f"ml-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         avg_risk = (
             sum(v.get("risk_score", 50) for v in vendors) / len(vendors) if vendors else 50
         )
         self._train_recommendation_model(vendors)
         self.model_metadata = {
             "run_id": run_id,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "vendor_count": len(vendors),
             "avg_risk": avg_risk,
             "provider": "azure_ml" if self.config.get("azure_ml_enabled") else "heuristic",
@@ -1359,7 +1359,7 @@ class VendorProcurementAgent(BaseAgent):
             compliance_checks, risk_score=risk_score
         )
 
-        created_at = datetime.utcnow().isoformat()
+        created_at = datetime.now(timezone.utc).isoformat()
         # Create vendor profile
         vendor = {
             "vendor_id": vendor_id,
@@ -1505,7 +1505,7 @@ class VendorProcurementAgent(BaseAgent):
             "approval_path": approval_path,
             "status": "Pending Approval" if approval_required else "Draft",
             "approval": approval_payload,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store request
@@ -1581,7 +1581,7 @@ class VendorProcurementAgent(BaseAgent):
             "invited_vendors": invited_vendors,
             "proposals_received": [],
             "status": "Published",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         rfp_document = None
@@ -1653,7 +1653,7 @@ class VendorProcurementAgent(BaseAgent):
 
         # Validate submission deadline
         deadline = datetime.fromisoformat(rfp.get("submission_deadline"))
-        if datetime.utcnow() > deadline:
+        if datetime.now(timezone.utc) > deadline:
             raise ValueError("Submission deadline has passed")
 
         # Create proposal
@@ -1667,7 +1667,7 @@ class VendorProcurementAgent(BaseAgent):
             "technical_response": proposal_data.get("technical_response"),
             "attachments": proposal_data.get("attachments", []),
             "evaluation_score": None,  # Calculated during evaluation
-            "submitted_at": datetime.utcnow().isoformat(),
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
             "status": "Submitted",
         }
 
@@ -1762,7 +1762,7 @@ class VendorProcurementAgent(BaseAgent):
                     "rfp_id": rfp_id,
                     "criteria": eval_criteria,
                     "rankings": ranked_proposals,
-                    "evaluated_at": datetime.utcnow().isoformat(),
+                    "evaluated_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
 
@@ -1772,7 +1772,7 @@ class VendorProcurementAgent(BaseAgent):
             "evaluation_criteria": eval_criteria,
             "rankings": ranked_proposals,
             "recommended_vendor": ranked_proposals[0] if ranked_proposals else None,
-            "evaluation_date": datetime.utcnow().isoformat(),
+            "evaluation_date": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _select_vendor(
@@ -1822,7 +1822,7 @@ class VendorProcurementAgent(BaseAgent):
                     "rfp_id": rfp_id,
                     "vendor_id": vendor_id,
                     "proposal_id": selected_proposal.get("proposal_id"),
-                    "selected_at": datetime.utcnow().isoformat(),
+                    "selected_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
         connector_results = self.procurement_connector.select_vendor(
@@ -1834,7 +1834,7 @@ class VendorProcurementAgent(BaseAgent):
         )
         vendor = self.vendors.get(vendor_id)
         if vendor:
-            vendor["last_selected_at"] = datetime.utcnow().isoformat()
+            vendor["last_selected_at"] = datetime.now(timezone.utc).isoformat()
             vendor["last_selected_rfp"] = rfp_id
             await self._persist_vendor(vendor, tenant_id=tenant_id)
         await self._publish_event(
@@ -1901,14 +1901,14 @@ class VendorProcurementAgent(BaseAgent):
             "key_clauses": key_clauses,
             "attachments": contract_data.get("attachments", []),
             "status": "Draft",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": contract_data.get("created_by", actor_id),
         }
 
         signature_workflow = {
             "status": "Pending Signatures",
             "method": "manual",
-            "requested_at": datetime.utcnow().isoformat(),
+            "requested_at": datetime.now(timezone.utc).isoformat(),
             "signatories": contract_data.get("signatories", []),
         }
         contract["signature_workflow"] = signature_workflow
@@ -2028,7 +2028,7 @@ class VendorProcurementAgent(BaseAgent):
             "approval_history": [],
             "approval": approval_payload,
             "status": purchase_order_status,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store PO
@@ -2097,7 +2097,7 @@ class VendorProcurementAgent(BaseAgent):
             "attachments": invoice_data.get("attachments", []),
             "reconciliation_status": "Pending",
             "payment_status": "Unpaid",
-            "received_at": datetime.utcnow().isoformat(),
+            "received_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store invoice
@@ -2160,7 +2160,7 @@ class VendorProcurementAgent(BaseAgent):
             # No discrepancies - approve for payment
             invoice["reconciliation_status"] = "Matched"
             invoice["approved_for_payment"] = True
-            invoice["approved_at"] = datetime.utcnow().isoformat()
+            invoice["approved_at"] = datetime.now(timezone.utc).isoformat()
 
             payment_status = await self._initiate_payment(invoice)
 
@@ -2248,7 +2248,7 @@ class VendorProcurementAgent(BaseAgent):
                     "vendor_id": vendor_id,
                     "metrics": adjusted_metrics,
                     "ml_analysis": ml_analysis,
-                    "updated_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
         self.vendor_performance_store.upsert(
@@ -2258,7 +2258,7 @@ class VendorProcurementAgent(BaseAgent):
                 "vendor_id": vendor_id,
                 "metrics": adjusted_metrics,
                 "ml_analysis": ml_analysis,
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         await self._publish_event(
@@ -2423,7 +2423,7 @@ class VendorProcurementAgent(BaseAgent):
             "recommendations": performance.get("recommendations"),
             "external_research": external_research,
             "external_research_adjustment": external_adjustment,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _search_vendors(self, criteria: dict[str, Any]) -> dict[str, Any]:
@@ -2631,7 +2631,7 @@ class VendorProcurementAgent(BaseAgent):
             "tenant_id": tenant_id,
             "correlation_id": correlation_id,
             "actor_id": actor_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self.event_store.upsert(tenant_id, event_id, event)
         if self.db_service:
@@ -2645,37 +2645,37 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _generate_vendor_id(self) -> str:
         """Generate unique vendor ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"VND-{timestamp}"
 
     async def _generate_request_id(self) -> str:
         """Generate unique procurement request ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PR-{timestamp}"
 
     async def _generate_rfp_id(self) -> str:
         """Generate unique RFP ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"RFP-{timestamp}"
 
     async def _generate_proposal_id(self) -> str:
         """Generate unique proposal ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PROP-{timestamp}"
 
     async def _generate_contract_id(self) -> str:
         """Generate unique contract ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"CTR-{timestamp}"
 
     async def _generate_po_number(self) -> str:
         """Generate unique PO number."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"PO-{timestamp}"
 
     async def _generate_invoice_id(self) -> str:
         """Generate unique invoice ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"INV-{timestamp}"
 
     async def _run_compliance_checks(self, vendor_data: dict[str, Any]) -> dict[str, Any]:
@@ -2975,7 +2975,7 @@ class VendorProcurementAgent(BaseAgent):
         connector_results = self.erp_ap_connector.initiate_payment(payment_request)
         return {
             "status": "Processing",
-            "reference": f"PAY-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "reference": f"PAY-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             "connector_results": connector_results,
         }
 
@@ -3160,7 +3160,7 @@ class VendorProcurementAgent(BaseAgent):
         if not vendor:
             raise ValueError(f"Vendor not found: {vendor_id}")
         vendor.update(updates)
-        vendor["updated_at"] = datetime.utcnow().isoformat()
+        vendor["updated_at"] = datetime.now(timezone.utc).isoformat()
         vendor.setdefault("updated_by", actor_id)
         await self._persist_vendor(vendor, tenant_id=tenant_id)
         await self._publish_event(
@@ -3198,7 +3198,7 @@ class VendorProcurementAgent(BaseAgent):
         if not contract:
             raise ValueError(f"Contract not found: {contract_id}")
         contract["status"] = "Active"
-        contract["signed_at"] = datetime.utcnow().isoformat()
+        contract["signed_at"] = datetime.now(timezone.utc).isoformat()
         self.contract_store.upsert(tenant_id, contract_id, contract)
         if self.db_service:
             await self.db_service.store("contracts", contract_id, contract)
@@ -3316,7 +3316,7 @@ class VendorProcurementAgent(BaseAgent):
             return False
 
         end_date = datetime.fromisoformat(end_date_str)
-        days_until_expiry = (end_date - datetime.utcnow()).days
+        days_until_expiry = (end_date - datetime.now(timezone.utc)).days
         return 0 < days_until_expiry <= 90
 
     async def _matches_criteria(self, vendor: dict[str, Any], criteria: dict[str, Any]) -> bool:

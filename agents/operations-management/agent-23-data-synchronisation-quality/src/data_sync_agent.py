@@ -12,7 +12,7 @@ import hashlib
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -408,7 +408,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns sync status and master record ID.
         """
-        sync_started_at = datetime.utcnow()
+        sync_started_at = datetime.now(timezone.utc)
         self.logger.info(f"Synchronizing {entity_type} from {source_system}")
         await self._record_sync_log(
             tenant_id=tenant_id,
@@ -436,7 +436,7 @@ class DataSyncAgent(BaseAgent):
                 status="duplicate",
                 mode="single",
                 started_at=sync_started_at,
-                finished_at=datetime.utcnow(),
+                finished_at=datetime.now(timezone.utc),
                 details={"reason": "Duplicate record discarded"},
             )
             await self._publish_event(
@@ -446,7 +446,7 @@ class DataSyncAgent(BaseAgent):
                     "entity_type": entity_type,
                     "source_system": source_system,
                     "started_at": sync_started_at.isoformat(),
-                    "finished_at": datetime.utcnow().isoformat(),
+                    "finished_at": datetime.now(timezone.utc).isoformat(),
                     "status": "duplicate",
                 },
             )
@@ -475,7 +475,7 @@ class DataSyncAgent(BaseAgent):
                 status="failed",
                 mode="single",
                 started_at=sync_started_at,
-                finished_at=datetime.utcnow(),
+                finished_at=datetime.now(timezone.utc),
                 details={
                     "error": "validation_failed",
                     "errors": validation_result.get("errors"),
@@ -497,7 +497,7 @@ class DataSyncAgent(BaseAgent):
                     "error": "validation_failed",
                     "errors": validation_result.get("errors"),
                     "started_at": sync_started_at.isoformat(),
-                    "finished_at": datetime.utcnow().isoformat(),
+                    "finished_at": datetime.now(timezone.utc).isoformat(),
                     "status": "failed",
                 },
             )
@@ -547,7 +547,7 @@ class DataSyncAgent(BaseAgent):
                 tenant_id, entity_type, master_id, source_system, transformed_data
             )
 
-            sync_finished_at = datetime.utcnow()
+            sync_finished_at = datetime.now(timezone.utc)
             latency_seconds = (sync_finished_at - sync_started_at).total_seconds()
             await self._record_sync_metrics(
                 tenant_id,
@@ -604,7 +604,7 @@ class DataSyncAgent(BaseAgent):
                 status="failed",
                 mode="single",
                 started_at=sync_started_at,
-                finished_at=datetime.utcnow(),
+                finished_at=datetime.now(timezone.utc),
                 details={"error": str(exc)},
             )
             await self._publish_event(
@@ -614,7 +614,7 @@ class DataSyncAgent(BaseAgent):
                     "entity_type": entity_type,
                     "source_system": source_system,
                     "error": str(exc),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
             await self._publish_event(
@@ -625,7 +625,7 @@ class DataSyncAgent(BaseAgent):
                     "source_system": source_system,
                     "error": str(exc),
                     "started_at": sync_started_at.isoformat(),
-                    "finished_at": datetime.utcnow().isoformat(),
+                    "finished_at": datetime.now(timezone.utc).isoformat(),
                     "status": "failed",
                 },
             )
@@ -642,7 +642,7 @@ class DataSyncAgent(BaseAgent):
         """Run full or incremental synchronization for a connector."""
         filters = filters or {}
         sync_mode = mode.lower()
-        sync_started_at = datetime.utcnow()
+        sync_started_at = datetime.now(timezone.utc)
         state_key = f"{source_system}:{entity_type}"
         sync_state = self.sync_state_store.get(tenant_id, state_key) or {}
         last_synced_at = sync_state.get("last_synced_at")
@@ -688,7 +688,7 @@ class DataSyncAgent(BaseAgent):
                 result = {"status": "failed", "error": str(exc)}
             results.append(result)
 
-        sync_finished_at = datetime.utcnow()
+        sync_finished_at = datetime.now(timezone.utc)
         new_state = {
             "source_system": source_system,
             "entity_type": entity_type,
@@ -808,8 +808,8 @@ class DataSyncAgent(BaseAgent):
             "data": data,
             "source_systems": {},
             "version": 1,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store master record
@@ -856,9 +856,9 @@ class DataSyncAgent(BaseAgent):
 
         # Update master record
         master_record["data"].update(resolved_data)
-        master_record["source_systems"][source_system] = datetime.utcnow().isoformat()
+        master_record["source_systems"][source_system] = datetime.now(timezone.utc).isoformat()
         master_record["version"] += 1
-        master_record["updated_at"] = datetime.utcnow().isoformat()
+        master_record["updated_at"] = datetime.now(timezone.utc).isoformat()
         self.master_record_store.upsert(tenant_id, master_id, master_record.copy())
 
         await self._emit_audit_event(
@@ -917,7 +917,7 @@ class DataSyncAgent(BaseAgent):
         resolved_value = resolution.get("value")
         conflict["resolved_value"] = resolved_value
         conflict["resolved_by"] = resolution.get("resolved_by", "system")
-        conflict["resolved_at"] = datetime.utcnow().isoformat()
+        conflict["resolved_at"] = datetime.now(timezone.utc).isoformat()
         conflict["status"] = "resolved"
 
         # Update master record
@@ -999,12 +999,12 @@ class DataSyncAgent(BaseAgent):
 
                 # Mark as merged
                 duplicate_record["merged_into"] = primary_id
-                duplicate_record["merged_at"] = datetime.utcnow().isoformat()
+                duplicate_record["merged_at"] = datetime.now(timezone.utc).isoformat()
 
         # Update primary record
         primary_record["data"] = merged_data
         primary_record["version"] += 1
-        primary_record["updated_at"] = datetime.utcnow().isoformat()
+        primary_record["updated_at"] = datetime.now(timezone.utc).isoformat()
 
         await self._store_record("master_records", primary_id, primary_record)
         for master_id in master_ids:
@@ -1050,7 +1050,7 @@ class DataSyncAgent(BaseAgent):
             "valid": len(errors) == 0,
             "errors": errors,
             "warnings": warnings,
-            "validated_at": datetime.utcnow().isoformat(),
+            "validated_at": datetime.now(timezone.utc).isoformat(),
             "data": data,
         }
 
@@ -1073,7 +1073,7 @@ class DataSyncAgent(BaseAgent):
             "target_entity": mapping_config.get("target_entity"),
             "field_mappings": mapping_config.get("field_mappings", {}),
             "transformations": mapping_config.get("transformations", []),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store mapping rule
@@ -1286,7 +1286,7 @@ class DataSyncAgent(BaseAgent):
     ) -> dict[str, Any]:
         if not entity_type:
             raise ValueError("entity_type is required for schema registration")
-        version = version or datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        version = version or datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         self.schema_registry[entity_type] = schema
         self.schema_versions.setdefault(entity_type, []).append(
             {"version": version, "schema": schema}
@@ -1443,7 +1443,7 @@ class DataSyncAgent(BaseAgent):
                     "completeness_score": report.get("avg_completeness_score"),
                     "consistency_score": report.get("avg_consistency_score"),
                     "timeliness_score": report.get("avg_timeliness_score"),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
 
@@ -1467,7 +1467,7 @@ class DataSyncAgent(BaseAgent):
             "data": data,
             "reason": reason,
             "attempts": 0,
-            "queued_at": datetime.utcnow().isoformat(),
+            "queued_at": datetime.now(timezone.utc).isoformat(),
         }
         self.retry_queue_store.upsert(tenant_id, retry_id, retry_payload)
         await self._store_record("sync_retry_queue", retry_id, retry_payload)
@@ -1495,7 +1495,7 @@ class DataSyncAgent(BaseAgent):
                 self.retry_queue_store.delete(tenant_id, retry_id)
             except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
                 payload["attempts"] = attempts + 1
-                payload["last_attempt_at"] = datetime.utcnow().isoformat()
+                payload["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
                 self.retry_queue_store.upsert(tenant_id, retry_id, payload)
                 failures += 1
             processed += 1
@@ -1523,7 +1523,7 @@ class DataSyncAgent(BaseAgent):
             return {"retry_id": retry_id, "status": "success"}
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
             payload["attempts"] = payload.get("attempts", 0) + 1
-            payload["last_attempt_at"] = datetime.utcnow().isoformat()
+            payload["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
             payload["last_error"] = str(exc)
             self.retry_queue_store.upsert(tenant_id, retry_id, payload)
             return {"retry_id": retry_id, "status": "failed", "error": str(exc)}
@@ -1546,7 +1546,7 @@ class DataSyncAgent(BaseAgent):
             if last_synced:
                 try:
                     last_synced_dt = datetime.fromisoformat(last_synced)
-                    lag_seconds.append((datetime.utcnow() - last_synced_dt).total_seconds())
+                    lag_seconds.append((datetime.now(timezone.utc) - last_synced_dt).total_seconds())
                 except ValueError:
                     continue
         average_lag = sum(lag_seconds) / len(lag_seconds) if lag_seconds else 0.0
@@ -1785,7 +1785,7 @@ class DataSyncAgent(BaseAgent):
             return
         message = ServiceBusMessage(
             json.dumps(
-                {"topic": topic, "payload": payload, "published_at": datetime.utcnow().isoformat()},
+                {"topic": topic, "payload": payload, "published_at": datetime.now(timezone.utc).isoformat()},
                 default=str,
             )
         )
@@ -1809,7 +1809,7 @@ class DataSyncAgent(BaseAgent):
             "id": str(uuid.uuid4()),
             "subject": f"data-sync/{topic}",
             "eventType": topic,
-            "eventTime": datetime.utcnow().isoformat() + "Z",
+            "eventTime": datetime.now(timezone.utc).isoformat() + "Z",
             "dataVersion": "1.0",
             "data": payload,
         }
@@ -1966,12 +1966,12 @@ class DataSyncAgent(BaseAgent):
 
     async def _generate_master_id(self, entity_type: str) -> str:
         """Generate unique master ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"MASTER-{entity_type.upper()}-{timestamp}"
 
     async def _generate_mapping_id(self) -> str:
         """Generate unique mapping ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"MAP-{timestamp}"
 
     async def _transform_data(
@@ -2031,7 +2031,7 @@ class DataSyncAgent(BaseAgent):
             "master_id": master_id,
             "source_system": source_system,
             "status": status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self.sync_events[event_id] = event_record
         self.sync_event_store.upsert(tenant_id, event_id, event_record)
@@ -2054,7 +2054,7 @@ class DataSyncAgent(BaseAgent):
             "master_id": master_id,
             "source_system": source_system,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         masked_lineage = mask_lineage_payload(lineage_record)
         self.sync_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
@@ -2151,7 +2151,7 @@ class DataSyncAgent(BaseAgent):
             "master_id": master_id,
             "conflicts": conflicts,
             "status": "pending",
-            "detected_at": datetime.utcnow().isoformat(),
+            "detected_at": datetime.now(timezone.utc).isoformat(),
         }
         await self._publish_event(
             "conflict.detected",
@@ -2292,7 +2292,7 @@ class DataSyncAgent(BaseAgent):
             "master_id": master_id,
             "source_system": source_system,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         try:
             async with httpx.AsyncClient(timeout=self.sync_event_webhook_timeout) as client:
@@ -2444,7 +2444,7 @@ class DataSyncAgent(BaseAgent):
         timestamp = self._extract_timestamp(data) if isinstance(data, dict) else None
         age_seconds = None
         if timestamp:
-            age_seconds = max((datetime.utcnow() - timestamp).total_seconds(), 0.0)
+            age_seconds = max((datetime.now(timezone.utc) - timestamp).total_seconds(), 0.0)
             if self.sync_latency_sla_seconds <= 0:
                 timeliness_score = 1.0
             elif age_seconds <= self.sync_latency_sla_seconds:
@@ -2473,7 +2473,7 @@ class DataSyncAgent(BaseAgent):
 
     async def _store_quality_report(self, tenant_id: str, entity_type: str) -> None:
         report = await self._get_quality_report(tenant_id, entity_type)
-        report_id = f"{tenant_id}:{entity_type}:{datetime.utcnow().isoformat()}"
+        report_id = f"{tenant_id}:{entity_type}:{datetime.now(timezone.utc).isoformat()}"
         await self._store_record("data_quality_reports", report_id, report)
 
     async def _record_sync_log(

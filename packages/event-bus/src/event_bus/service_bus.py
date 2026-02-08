@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections import defaultdict, deque
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -56,7 +56,7 @@ class ServiceBusEventBus:
     async def publish(self, topic: str, payload: dict[str, Any]) -> None:
         self._metrics[topic] += 1
         self._event_log.append(
-            EventRecord(topic=topic, payload=payload, published_at=datetime.utcnow().isoformat())
+            EventRecord(topic=topic, payload=payload, published_at=datetime.now(timezone.utc).isoformat())
         )
         message = self._message_cls(json.dumps({"topic": topic, "payload": payload}))
         async with self._client:
@@ -120,7 +120,7 @@ class ServiceBusEventBus:
                     EventRecord(
                         topic=topic,
                         payload=event_payload,
-                        published_at=datetime.utcnow().isoformat(),
+                        published_at=datetime.now(timezone.utc).isoformat(),
                     )
                 )
                 handlers = list(self._subscribers.get(topic, []))

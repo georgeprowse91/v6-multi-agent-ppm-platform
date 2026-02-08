@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -114,5 +114,5 @@ def compute_quality(
         dimensions=dimension_scores,
         rules_checked=rules_checked,
         issues=issues,
-        computed_at=datetime.utcnow().isoformat(),
+        computed_at=datetime.now(timezone.utc).isoformat(),
     )

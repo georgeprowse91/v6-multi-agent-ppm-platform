@@ -15,7 +15,7 @@ import os
 import random
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib import error as url_error
@@ -766,7 +766,7 @@ class RiskManagementAgent(BaseAgent):
         # Perform initial classification and scoring
         initial_assessment = await self._initial_risk_assessment(risk_data)
 
-        created_at = datetime.utcnow().isoformat()
+        created_at = datetime.now(timezone.utc).isoformat()
         # Create risk entry
         risk = {
             "risk_id": risk_id,
@@ -898,7 +898,7 @@ class RiskManagementAgent(BaseAgent):
         risk["impact"] = predicted_assessment.get("impact", risk["impact"])
         risk["score"] = risk["probability"] * risk["impact"]
         risk["quantitative_impact"] = quantitative_impact
-        risk["last_assessed"] = datetime.utcnow().isoformat()
+        risk["last_assessed"] = datetime.now(timezone.utc).isoformat()
 
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
@@ -1046,7 +1046,7 @@ class RiskManagementAgent(BaseAgent):
             "status": "Planned",
             "recommended_strategies": recommended_strategies,
             "effectiveness": mitigation_data.get("effectiveness"),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store plan
@@ -1131,10 +1131,10 @@ class RiskManagementAgent(BaseAgent):
         if self.db_service and triggered_risks:
             await self.db_service.store(
                 "risk_triggers",
-                f"trigger-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+                f"trigger-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
                 {
                     "risks": triggered_risks,
-                    "checked_at": datetime.utcnow().isoformat(),
+                    "checked_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
         if triggered_risks:
@@ -1168,7 +1168,7 @@ class RiskManagementAgent(BaseAgent):
         # Record current state before update
         self.risk_histories[risk_id].append(
             {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "status": risk.get("status"),
                 "probability": risk.get("probability"),
                 "impact": risk.get("impact"),
@@ -1185,7 +1185,7 @@ class RiskManagementAgent(BaseAgent):
         if "probability" in updates or "impact" in updates:
             risk["score"] = risk.get("probability", 0) * risk.get("impact", 0)
 
-        risk["last_updated"] = datetime.utcnow().isoformat()
+        risk["last_updated"] = datetime.now(timezone.utc).isoformat()
 
         if self.db_service:
             await self.db_service.store("risks", risk_id, risk)
@@ -1259,10 +1259,10 @@ class RiskManagementAgent(BaseAgent):
             "cost_p95": cost_p95,
             "schedule_sample": simulation_results["schedule"][:100],
             "cost_sample": simulation_results["cost"][:100],
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         if self.db_service:
-            record_id = f"{project_id}-simulation-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+            record_id = f"{project_id}-simulation-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
             await self.db_service.store("risk_simulations", record_id, simulation_record)
         await self._publish_risk_event(
             "risk.simulation_completed",
@@ -1293,7 +1293,7 @@ class RiskManagementAgent(BaseAgent):
                 "mean": sum(simulation_results["cost"]) / len(simulation_results["cost"]),
             },
             "risks_analyzed": len(project_risks),
-            "simulation_date": datetime.utcnow().isoformat(),
+            "simulation_date": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_risk_matrix(
@@ -1407,7 +1407,7 @@ class RiskManagementAgent(BaseAgent):
             "mitigation_status": mitigation_status,
             "external_risk_research": external_risk_research,
             "external_risk_signals": external_risk_signals,
-            "dashboard_generated_at": datetime.utcnow().isoformat(),
+            "dashboard_generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_risk_report(
@@ -1750,12 +1750,12 @@ class RiskManagementAgent(BaseAgent):
 
     async def _generate_risk_id(self) -> str:
         """Generate unique risk ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"RISK-{timestamp}"
 
     async def _generate_mitigation_plan_id(self) -> str:
         """Generate unique mitigation plan ID."""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         return f"MIT-{timestamp}"
 
     async def _extract_risks_from_documents(
@@ -2207,14 +2207,14 @@ class RiskManagementAgent(BaseAgent):
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary risk report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.utcnow().isoformat()}
+        return {"report_type": "summary", "data": {}, "generated_at": datetime.now(timezone.utc).isoformat()}
 
     async def _generate_detailed_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate detailed risk report."""
         return {
             "report_type": "detailed",
             "data": {},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _generate_mitigation_report(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -2222,7 +2222,7 @@ class RiskManagementAgent(BaseAgent):
         return {
             "report_type": "mitigation",
             "data": {},
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _map_rating_to_label(self, rating: Any) -> str:
@@ -2336,7 +2336,7 @@ class RiskManagementAgent(BaseAgent):
                 "threshold": trigger.get("threshold"),
                 "current_value": trigger.get("current_value"),
                 "status": trigger.get("status", "monitoring"),
-                "created_at": trigger.get("created_at") or datetime.utcnow().isoformat(),
+                "created_at": trigger.get("created_at") or datetime.now(timezone.utc).isoformat(),
             }
             normalized.append(trigger_record)
             self.triggers[trigger_id] = trigger_record
@@ -2367,7 +2367,7 @@ class RiskManagementAgent(BaseAgent):
         event = {
             "event_type": event_type,
             "payload": payload,
-            "published_at": datetime.utcnow().isoformat(),
+            "published_at": datetime.now(timezone.utc).isoformat(),
         }
         self.risk_events.append(event)
         if self.event_bus:

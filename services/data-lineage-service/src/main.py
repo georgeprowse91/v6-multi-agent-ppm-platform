@@ -325,7 +325,7 @@ async def ingest_event(
             dimensions=payload.quality.dimensions or {},
             rules_checked=payload.quality.rules_checked or [],
             issues=payload.quality.issues or [],
-            computed_at=payload.quality.computed_at or datetime.utcnow().isoformat(),
+            computed_at=payload.quality.computed_at or datetime.now(timezone.utc).isoformat(),
         )
     elif entity_type and payload.entity_payload:
         quality_result = compute_quality(
@@ -521,7 +521,7 @@ async def remediate_lineage_record(
         metadata = dict(record.metadata or {})
         metadata["remediation"] = {
             "actions": [action.__dict__ for action in result.actions],
-            "remediated_at": datetime.utcnow().isoformat(),
+            "remediated_at": datetime.now(timezone.utc).isoformat(),
         }
         updated = LineageRecord(
             **{

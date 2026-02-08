@@ -7,7 +7,7 @@ This is the main entry point for the PPM platform REST API.
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from typing import Any
@@ -187,7 +187,7 @@ async def healthz() -> dict[str, Any]:
     """Lightweight health check for local dev and probes."""
     return {
         "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": os.getenv("APP_VERSION", app.version),
         "api_version": API_VERSION,
     }
@@ -263,11 +263,15 @@ async def platform_exception_handler(request: Request, exc: PPMPlatformError) ->
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle all uncaught exceptions."""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    # Only include the exception message in development; production gets a generic message.
+    message = (
+        str(exc) if environment in {"dev", "development", "local", "test"} else "Internal server error"
+    )
     return JSONResponse(
         status_code=500,
         content={
             "error": "Internal server error",
-            "message": str(exc),
+            "message": message,
         },
     )
 

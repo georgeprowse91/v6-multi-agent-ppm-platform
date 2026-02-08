@@ -119,6 +119,8 @@ class ResponseOrchestrationAgent(BaseAgent):
             config.get("agent_registry", {}) if config else {}
         )
         self._failure_counts: dict[str, int] = {}
+        self._circuit_open_until: dict[str, float] = {}
+        self._circuit_half_open_window = config.get("circuit_half_open_window", 30.0) if config else 30.0
         self._cache: dict[str, tuple[float, dict[str, Any]]] = {}
         self._last_validation_error: dict[str, Any] | None = None
         meter = configure_metrics("response-orchestration")
@@ -555,6 +557,7 @@ class ResponseOrchestrationAgent(BaseAgent):
                 result = {"success": True, "agent_id": agent_id, "data": data}
                 await self.event_bus.publish("agent.completed", result)
                 self._failure_counts[agent_id] = 0
+                self._circuit_open_until.pop(agent_id, None)
                 return result
             except (httpx.TimeoutException, TimeoutError):
                 last_error = "Agent timeout"
@@ -571,7 +574,10 @@ class ResponseOrchestrationAgent(BaseAgent):
                 if backoff > 0:
                     await asyncio.sleep(backoff)
 
-        self._failure_counts[agent_id] = self._failure_counts.get(agent_id, 0) + 1
+        failure_count = self._failure_counts.get(agent_id, 0) + 1
+        self._failure_counts[agent_id] = failure_count
+        if failure_count >= self.circuit_breaker_threshold:
+            self._circuit_open_until[agent_id] = time.time() + self._circuit_half_open_window
         error_result = {"success": False, "agent_id": agent_id, "error": last_error or "Error"}
         await self.event_bus.publish("agent.failed", error_result)
         self._emit_audit_event(
@@ -586,7 +592,15 @@ class ResponseOrchestrationAgent(BaseAgent):
     def _is_circuit_open(self, agent_id: str) -> bool:
         if not self.circuit_breaker_threshold:
             return False
-        return self._failure_counts.get(agent_id, 0) >= self.circuit_breaker_threshold
+        if self._failure_counts.get(agent_id, 0) < self.circuit_breaker_threshold:
+            return False
+        open_until = self._circuit_open_until.get(agent_id, 0.0)
+        if time.time() >= open_until:
+            # Half-open: allow one probe request through to test recovery
+            self._failure_counts[agent_id] = self.circuit_breaker_threshold - 1
+            self.logger.info("circuit_breaker_half_open", extra={"agent_id": agent_id})
+            return False
+        return True
 
     def _emit_audit_event(
         self,
