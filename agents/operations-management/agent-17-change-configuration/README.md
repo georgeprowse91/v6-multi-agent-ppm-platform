@@ -96,6 +96,80 @@ Example payload:
 }
 ```
 
+## Scope validation
+
+### Intended scope (what Agent 17 owns)
+
+- Change request intake, classification, and risk/impact assessment.
+- Approval workflow coordination and auditing.
+- CMDB/CI registration, baselines, and dependency visualization.
+- Change implementation gating (staging/automated tests) and rollback triggers.
+- Publishing change events/metrics to the event bus and notifying stakeholders.
+
+### Inputs (expected)
+
+- `action` (required): One of the supported actions in `process` (e.g., `submit_change_request`, `assess_impact`, `approve_change`, `implement_change`, `cicd_webhook`).
+- `change` (for submit/predict): Title, description, requester, priority, repo references (`repo_provider`, `repo_slug`, `pull_request_id`, `commit_id`), IaC paths (`iac_files`, `iac_repo_path`), optional `ci_ids`, `risk_category`, `knowledge_query`.
+- `approval`, `review`, `implementation`, `updates`, and `filters` payloads for respective actions.
+- `context` (optional): `tenant_id`, `correlation_id`, `user_id` (actor) for traceability.
+
+### Outputs (guaranteed)
+
+- Structured JSON payloads that include `change_id` and status fields for each action.
+- Persisted change records, audit entries, and CMDB updates via storage services.
+- Published events for lifecycle steps (created, approved/rejected, implementation started, rolled back, metrics).
+
+### Decision responsibilities
+
+- **Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.
+- **Must not decide**: final deployment scheduling mechanics (delegated to Agent 18), workflow orchestration definition/templating (delegated to Agent 24), or approval policy governance beyond configured thresholds.
+
+### Must / must-not behaviors
+
+**Must**
+- Validate `action` and required fields for `submit_change_request`.
+- Persist change records and audit entries on each state transition.
+- Enrich change context with repo/IaC/knowledge data when provided.
+- Publish events for key lifecycle transitions.
+
+**Must not**
+- Deploy releases directly or manage runtime deployment plans.
+- Modify workflow templates or orchestration definitions owned by the workflow engine.
+- Bypass approval requirements when thresholds dictate approval.
+
+## Overlap analysis and handoff boundaries
+
+### Agent 18: Release Deployment
+
+**Potential overlap**
+- Change implementation and deployment coordination are adjacent to release orchestration.
+
+**Handoff boundary**
+- Agent 17 **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).
+- Agent 18 **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.
+
+### Agent 24: Workflow Process Engine
+
+**Potential overlap**
+- Both handle workflow orchestration; Agent 17 builds a change workflow instance.
+
+**Handoff boundary**
+- Agent 17 **requests** workflow creation and manages change state; Agent 24 **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
+
+## Gaps, inconsistencies, and alignment requirements
+
+- **Workflow orchestration alignment**: Agent 17 uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while Agent 24 defines workflow specs/templates. Align on a shared workflow schema and ensure Agent 17 payloads conform to the templates/versions maintained by Agent 24.
+- **Deployment status contract**: Agent 17 expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with Agent 18, including intermediate states (queued, in-progress, rolled-back).
+- **Approval policy governance**: Agent 17 uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.
+- **Event taxonomy**: Agent 17 emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.
+- **Connector/UI alignment**: Ensure UI fields for change intake map to the expected input keys (`repo_provider`, `repo_slug`, IaC paths) and that connectors (ITSM, repo APIs, Service Bus) are configured consistently across environments.
+
+### Checkpoint: change control handoffs
+
+- Agent 17 submits change workflows (creates/updates change state).
+- Agent 24 runs and governs workflow definitions/execution.
+- Agent 18 executes deployment and reports status.
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
