@@ -67,3 +67,63 @@
   font-size: 0.75rem;
   color: #6b7280;
 }
+
+.detailsRow td {
+  background: #f9fafb;
+}
+
+.details {
+  padding: 12px 0;
+}
+
+.details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.detailsGrid {
+  display: grid;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.detailsSection h4 {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.detailsList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.detailsList dt {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.detailsList dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.detailsCode {
+  background: #111827;
+  color: #f9fafb;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.detailsEmpty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}

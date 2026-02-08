@@ -70,5 +70,12 @@
   "audit.column.actor": "Akteur",
   "audit.column.action": "Aktion",
   "audit.column.resource": "Ressource",
-  "audit.column.outcome": "Ergebnis"
+  "audit.column.outcome": "Ergebnis",
+  "audit.details.summary": "Agentenmetadaten anzeigen",
+  "audit.details.highlights": "Highlights",
+  "audit.details.correlationId": "Korrelations-ID",
+  "audit.details.policyReason": "Policy-Begründung",
+  "audit.details.resourceMetadata": "Ressourcenmetadaten",
+  "audit.details.eventMetadata": "Ereignismetadaten",
+  "audit.details.emptyMetadata": "Keine Metadaten verfügbar."
 }

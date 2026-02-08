@@ -17,6 +17,24 @@
     "title": "[[ Audit Log ]]",
     "description": "[[ Review configuration and workflow actions recorded for this tenant. ]]",
     "empty": "[[ No audit events found. ]]",
-    "accessDenied": "[[ You do not have access to audit logs. ]]"
+    "accessDenied": "[[ You do not have access to audit logs. ]]",
+    "loading": "[[ Loading audit events... ]]",
+    "tableLabel": "[[ Audit log table ]]",
+    "column": {
+      "timestamp": "[[ Timestamp ]]",
+      "actor": "[[ Actor ]]",
+      "action": "[[ Action ]]",
+      "resource": "[[ Resource ]]",
+      "outcome": "[[ Outcome ]]"
+    },
+    "details": {
+      "summary": "[[ View agent metadata ]]",
+      "highlights": "[[ Highlights ]]",
+      "correlationId": "[[ Correlation ID ]]",
+      "policyReason": "[[ Policy reason ]]",
+      "resourceMetadata": "[[ Resource metadata ]]",
+      "eventMetadata": "[[ Event metadata ]]",
+      "emptyMetadata": "[[ No metadata available. ]]"
+    }
   }
 }
