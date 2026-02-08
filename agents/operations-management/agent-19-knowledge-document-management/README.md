@@ -4,6 +4,107 @@
 
 Define the responsibilities, workflows, and integration points for Agent 19: Knowledge Document Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Intended scope
+
+Agent 19 owns the knowledge/document lifecycle across the portfolio: ingesting, classifying, indexing, governing access, and serving documents/knowledge artifacts for downstream agents and humans. The agent operates as the system of record for document metadata, summaries, and knowledge graph relationships (projects, programs, risks, decisions, lessons learned). It does **not** originate stakeholder communications or analytics KPI narratives; it provides curated knowledge artifacts to those agents when requested.
+
+### In-scope responsibilities
+
+- Ingest documents from users, agent outputs, and connected repositories (e.g., Confluence, SharePoint, Git).  
+- Normalize metadata, enforce schema validation, and manage document versions/retention.  
+- Generate summaries, tags, entity extraction, taxonomy labeling, and knowledge graph links.  
+- Enforce access controls and classification rules for retrieval.  
+- Provide search (keyword + semantic) and recommendation services.  
+- Persist knowledge artifacts (lessons learned, decisions, risks) for reuse.
+
+### Out-of-scope responsibilities
+
+- Sending emails/messages or scheduling meetings (belongs to Agent 21).  
+- Computing portfolio KPIs, predictive analytics, or dashboards (belongs to analytics agents).  
+- Executing workflow automations outside knowledge capture or storage.
+
+## Inputs and outputs
+
+### Inputs
+
+- **User or agent requests** with an `action` (e.g., `upload_document`, `ingest_sources`, `search_documents`).  
+- **Documents** with `title`, `content`, and metadata (project/program/portfolio IDs, classification, permissions).  
+- **Ingestion sources** for repositories (Confluence, SharePoint, Git).  
+- **Access context** for authorization checks (`user_id`, `roles`, `attributes`).  
+
+### Outputs
+
+- **Document IDs, versions, and classification labels** upon ingestion.  
+- **Search results** with relevance scores and excerpts.  
+- **Summaries, extracted entities, and knowledge graph links.**  
+- **Lessons learned IDs and categorized knowledge artifacts.**  
+- **Access logs and version history** for audit/traceability.  
+
+## Decision responsibilities
+
+Agent 19 is the decision-maker for:
+
+- Document acceptance/rejection based on schema validation and required metadata.  
+- Auto-classification, tagging, and taxonomy placement.  
+- Access control enforcement (RBAC/ABAC).  
+- Knowledge graph relationship creation (document → project/program/portfolio, risk, decision).  
+- Whether to trigger asynchronous summarization/entity extraction tasks.  
+
+Agent 19 **does not** decide:
+
+- Who receives communications or how/when to notify stakeholders (Agent 21).  
+- KPI definitions, analytics model outputs, or dashboard narrative framing (Analytics agents).  
+
+## Must / must-not behaviors
+
+**Must**
+
+- Validate required fields and schema before persisting documents.  
+- Preserve version history on updates and emit knowledge ingestion events.  
+- Enforce access controls before returning content.  
+- Record knowledge graph relationships for decisions/risks where detected.  
+- Maintain traceability metadata (source, timestamps, ownership).  
+
+**Must not**
+
+- Bypass access controls for non-public documents.  
+- Modify or delete documents without versioning or audit trail.  
+- Send stakeholder-facing messages or create analytics KPIs.  
+- Store documents without classification and ownership metadata.  
+
+## Overlap analysis and handoff boundaries
+
+### Agent 21: Stakeholder Comms
+
+**Potential overlap:** Meeting minutes, decisions, and summaries may be both knowledge artifacts and communication payloads.  
+**Boundary:** Agent 19 **stores and indexes** the documents; Agent 21 **delivers** communications.  
+**Handoff:** Agent 19 provides curated artifacts (summaries, decision logs, lessons learned) to Agent 21 for distribution. Agent 21 should not modify source knowledge content; it may annotate distribution metadata in its own system.
+
+### Analytics agents (Agent 22 / Agent 25)
+
+**Potential overlap:** Both domains handle insights, reports, and narrative summaries.  
+**Boundary:** Agent 19 **curates content** and provides retrieval/search; analytics agents **compute KPIs, predictive insights, and dashboards**.  
+**Handoff:** Analytics agents request document corpora or knowledge artifacts (lessons learned, decision/risk history) from Agent 19 to enrich models and narratives. Agent 19 should not compute KPIs or analytics metrics.
+
+## Functional gaps / inconsistencies to resolve
+
+- **Prompt alignment:** Current system prompts should explicitly differentiate document curation vs. communications and analytics responsibilities to avoid duplicate summaries.  
+- **Tooling alignment:** Connectors (Confluence/SharePoint/Git) should share a common ingestion contract with analytics ETL pipelines to prevent double-ingestion.  
+- **Template alignment:** Knowledge summaries and decision logs should follow a shared template so Agent 21 can reuse them verbatim in outbound comms.  
+- **UI alignment:** Knowledge search UI should expose access context and classification filters to avoid unauthorized disclosure.  
+- **Knowledge graph alignment:** Risk/decision extraction should include consistent identifiers so analytics agents can join knowledge artifacts with KPI datasets.
+
+## Knowledge lifecycle map (checkpoint)
+
+1. **Capture**: user upload, agent output ingestion, or repository sync.  
+2. **Validate**: schema enforcement, metadata normalization, classification tagging.  
+3. **Enrich**: summaries, entities, taxonomy labels, knowledge graph links.  
+4. **Store**: versioned persistence + audit log; emit ingestion event.  
+5. **Retrieve**: keyword/semantic search with access control.  
+6. **Share**: handoff curated artifacts to Agent 21 / analytics agents.  
+7. **Review**: annotations, approvals, retention and lifecycle updates.  
+8. **Retire**: archive or delete with audit trail and compliance checks.
+
 ## What's inside
 
 - `agents/operations-management/agent-19-knowledge-document-management/src`: Implementation source for this component.
