@@ -126,7 +126,7 @@ def _deliver(rendered: str, recipient: str | None, channel: str, delivery_id: st
         out_file = outbox_dir / f"{delivery_id}.txt"
         out_file.write_text(rendered, encoding="utf-8")
         destination = str(out_file)
-    return delivery_id, destination
+    return destination
 
 
 def _write_dead_letter(payload: dict[str, Any], error: str) -> None:
@@ -318,7 +318,7 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
             elif channel == "acs":
                 destination = await _send_acs_notification(rendered, request.recipient)
             else:
-                _, destination = _deliver(rendered, request.recipient, channel, delivery_id)
+                destination = _deliver(rendered, request.recipient, channel, delivery_id)
             break
         except RetryError as exc:
             last_error = exc
