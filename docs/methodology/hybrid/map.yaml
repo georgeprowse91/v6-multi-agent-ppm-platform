@@ -14,7 +14,7 @@ stages:
           - Business Analyst
         artefacts:
           - name: Business case
-            template: docs/templates/portfolio-program/business-case-template-cross-var3.md
+            template: docs/templates/portfolio-program/business-case-var3-template-cross.md
             required: true
           - name: ROI/NPV worksheet
             template: docs/templates/finance/roi-npv-worksheet-cross.xlsx
@@ -88,7 +88,7 @@ stages:
           - Scrum Master
         artefacts:
           - name: Sprint plan
-            template: docs/templates/product/sprint-plan-agile.md
+            template: docs/templates/product/sprint-plan-template-agile.md
             required: true
       - id: change-control
         description: Manage scope changes and decision log updates.

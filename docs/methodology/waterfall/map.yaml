@@ -14,7 +14,7 @@ stages:
           - Demand Manager
         artefacts:
           - name: Demand intake request
-            template: docs/templates/portfolio-program/demand-intake-request-cross.md
+            template: docs/templates/portfolio-program/demand-intake-request-template-cross.md
             required: true
       - id: business-case
         description: Build the business case and financial analysis.
@@ -23,7 +23,7 @@ stages:
           - Finance Partner
         artefacts:
           - name: Business case
-            template: docs/templates/portfolio-program/business-case-template-cross-var3.md
+            template: docs/templates/portfolio-program/business-case-var3-template-cross.md
             required: true
           - name: ROI/NPV worksheet
             template: docs/templates/finance/roi-npv-worksheet-cross.xlsx
@@ -104,7 +104,7 @@ stages:
           - Change Manager
         artefacts:
           - name: Change request
-            template: docs/templates/change/change-request-cross-var1.md
+            template: docs/templates/change/change-request-var1-template-cross.md
             required: true
           - name: Change impact assessment
             template: docs/templates/change/change-impact-assessment-template-cross.md

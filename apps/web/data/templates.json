@@ -424,7 +424,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/risk/issue-log-cross-var1.md"
+      "path": "docs/templates/risk/issue-log-var1-template-cross.md"
     },
     {
       "id": "assumption-log",
@@ -442,7 +442,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/governance/lessons-learned-template-cross-var1.md"
+      "path": "docs/templates/governance/lessons-learned-var1-template-cross.md"
     },
     {
       "id": "risk-management-plan",
@@ -469,7 +469,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/product/product-strategy-canvas-cross-var1.md"
+      "path": "docs/templates/product/product-strategy-canvas-var1-template-cross.md"
     },
     {
       "id": "product-vision-template",
@@ -478,7 +478,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/product/product-vision-template-cross-var1.md"
+      "path": "docs/templates/product/product-vision-var1-template-cross.md"
     },
     {
       "id": "procurement-management-plan",
@@ -604,7 +604,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/governance/raci-matrix-cross-var1.md"
+      "path": "docs/templates/governance/raci-matrix-var1-template-cross.md"
     },
     {
       "id": "activity-list",
@@ -631,7 +631,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/governance/status-report-cross-var1.md"
+      "path": "docs/templates/governance/status-report-var1-template-cross.md"
     },
     {
       "id": "meeting-templates",
@@ -640,7 +640,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/communications/meeting-templates-template-cross-var1.md"
+      "path": "docs/templates/communications/meeting-templates-var1-template-cross.md"
     },
     {
       "id": "daily-standup-template",
@@ -658,7 +658,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/product/pi-planning-plan-agile.md"
+      "path": "docs/templates/product/pi-planning-plan-template-agile.md"
     },
     {
       "id": "risk-report",
@@ -740,7 +740,7 @@
         "agile",
         "hybrid"
       ],
-      "path": "docs/templates/product/iteration-plan-agile.md"
+      "path": "docs/templates/product/iteration-plan-template-agile.md"
     },
     {
       "id": "backlog-management-template",
@@ -909,7 +909,7 @@
       "methodologies": [
         "hybrid"
       ],
-      "path": "docs/templates/resources/hybrid-resource-plan-hybrid.md"
+      "path": "docs/templates/resources/hybrid-resource-plan-template-hybrid.md"
     },
     {
       "id": "roles-responsibilities-hybrid",
@@ -936,7 +936,7 @@
       "methodologies": [
         "hybrid"
       ],
-      "path": "docs/templates/risk/integrated-risk-register-hybrid.md"
+      "path": "docs/templates/risk/integrated-risk-register-template-hybrid.md"
     },
     {
       "id": "decision-log-hybrid",

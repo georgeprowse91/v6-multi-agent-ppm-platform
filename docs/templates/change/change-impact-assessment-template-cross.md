@@ -7,7 +7,7 @@ Assess the impact of a proposed change on scope, schedule, cost, quality, risk, 
 Change Manager, Project Manager, Finance Partner, QA Lead.
 
 ## Inputs
-- Change request (`docs/templates/change/change-request-cross-var1.md`).
+- Change request (`docs/templates/change/change-request-var1-template-cross.md`).
 - Baseline schedule and budget.
 - Risk register and quality plan.
 

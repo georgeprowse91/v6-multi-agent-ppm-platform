@@ -8,7 +8,7 @@ Project Manager, Finance Partner, PMO, Sponsors.
 
 ## Inputs
 - Cost baseline (`docs/templates/finance/cost-baseline-cross.xlsx`).
-- Business case (`docs/templates/portfolio-program/business-case-template-cross-var3.md`).
+- Business case (`docs/templates/portfolio-program/business-case-var3-template-cross.md`).
 
 ## 1. Cost Estimation Methodology
 Describe estimation techniques, assumptions, and data sources.

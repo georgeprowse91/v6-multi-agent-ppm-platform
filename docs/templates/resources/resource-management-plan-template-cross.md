@@ -89,7 +89,7 @@ Describe estimation techniques, assumptions, and sizing.
 
 ### 5.2 Skills matrix
 Use the shared skills matrix template to capture coverage and gaps.
-- Skills matrix template: `docs/templates/resources/skills-matrix-cross.md`.
+- Skills matrix template: `docs/templates/resources/skills-matrix-template-cross.md`.
 
 ## 6. Acquisition strategy
 ### 6.1 Internal resources

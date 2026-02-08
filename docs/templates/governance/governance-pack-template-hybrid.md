@@ -11,7 +11,7 @@ Executive Sponsor, Steering Committee, PMO Lead, Program Manager, Delivery Lead,
 - Hybrid charter (`docs/templates/governance/hybrid-charter-template-hybrid.md`).
 - Decision log (`docs/templates/governance/decision-log-template-hybrid.md`).
 - Communications plan (`docs/templates/communications/communications-plan-template-cross.md`).
-- Change request (`docs/templates/change/change-request-cross-var1.md`).
+- Change request (`docs/templates/change/change-request-var1-template-cross.md`).
 
 ---
 

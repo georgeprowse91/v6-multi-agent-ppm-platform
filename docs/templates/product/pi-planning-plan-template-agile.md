@@ -181,4 +181,4 @@ Milestones      |        |        |        |        |        |
 
 ## References
 - Release plan (`docs/templates/schedule/release-plan-template-agile.md`).
-- Iteration plan (`docs/templates/product/iteration-plan-agile.md`).
+- Iteration plan (`docs/templates/product/iteration-plan-template-agile.md`).

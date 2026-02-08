@@ -8,7 +8,7 @@ options analysis, financial outcomes, risk exposure, and implementation readines
 Executive Sponsor, Portfolio Manager, Finance Partner, PMO Lead.
 
 ## Inputs
-- Demand intake request (`docs/templates/portfolio-program/demand-intake-request-cross.md`).
+- Demand intake request (`docs/templates/portfolio-program/demand-intake-request-template-cross.md`).
 - Strategic objectives and portfolio constraints.
 - Cost estimates, benefit assumptions, and baseline performance metrics.
 - Risk register and dependency inventory.

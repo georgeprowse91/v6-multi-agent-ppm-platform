@@ -8,7 +8,7 @@ Project Manager, Risk & Issue Manager, Delivery Leads, PMO, Functional Owners.
 
 ## Inputs
 - Risk register (`docs/templates/risk/risk-register-waterfall.xlsx`).
-- Status reports (`docs/templates/governance/status-report-cross-var1.md`).
+- Status reports (`docs/templates/governance/status-report-var1-template-cross.md`).
 - Change log (`docs/templates/change/change-log-template-cross.md`).
 
 ---

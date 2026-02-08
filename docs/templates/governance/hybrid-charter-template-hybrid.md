@@ -236,7 +236,7 @@ Describe how traditional and agile teams interface.
 
 ### 11.4 RACI Reference
 Complete the RACI assignments using the shared template:
-`docs/templates/governance/raci-matrix-cross-var1.md`.
+`docs/templates/governance/raci-matrix-var1-template-cross.md`.
 
 ### 11.5 Team Development & Recognition
 - Skill development priorities

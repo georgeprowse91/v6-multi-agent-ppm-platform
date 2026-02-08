@@ -36,7 +36,7 @@ stages:
         owner_roles: ["Role A"]
         artefacts:
           - name: Demand intake request
-            template: docs/templates/portfolio-program/demand-intake-request-cross.md
+            template: docs/templates/portfolio-program/demand-intake-request-template-cross.md
             required: true
     exit_criteria:
       - Objective checks required to move to the next stage.
@@ -54,7 +54,7 @@ gates:
     stage: discovery
     required_artefacts:
       - name: Business case
-        template: docs/templates/portfolio-program/business-case-template-cross-var3.md
+        template: docs/templates/portfolio-program/business-case-var3-template-cross.md
         evidence: Signed approval or ticket reference.
     criteria:
       - id: criteria-1

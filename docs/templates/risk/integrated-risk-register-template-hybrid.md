@@ -9,8 +9,8 @@ Risk Manager, Project Manager, Delivery Leads, Product Owner, PMO.
 ## Inputs
 - Risk management plan (`docs/templates/risk/risk-management-plan-template-cross.md`).
 - Phase plans and milestone plan (`docs/templates/schedule/milestone-plan-hybrid.xlsx`).
-- Sprint/iteration plans (`docs/templates/product/iteration-plan-agile.md`).
-- Lessons learned (`docs/templates/governance/lessons-learned-template-cross-var1.md`).
+- Sprint/iteration plans (`docs/templates/product/iteration-plan-template-agile.md`).
+- Lessons learned (`docs/templates/governance/lessons-learned-var1-template-cross.md`).
 
 ---
 

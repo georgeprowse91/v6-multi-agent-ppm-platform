@@ -6,10 +6,10 @@ gates:
     stage: intake
     required_artefacts:
       - name: Demand intake request
-        template: docs/templates/portfolio-program/demand-intake-request-cross.md
+        template: docs/templates/portfolio-program/demand-intake-request-template-cross.md
         evidence: Demand record ID or ticket link.
       - name: Business case
-        template: docs/templates/portfolio-program/business-case-template-cross-var3.md
+        template: docs/templates/portfolio-program/business-case-var3-template-cross.md
         evidence: Approved business case document.
       - name: Product backlog
         template: docs/templates/product/backlog-template-agile.csv
@@ -35,7 +35,7 @@ gates:
     stage: planning
     required_artefacts:
       - name: Sprint plan
-        template: docs/templates/product/sprint-plan-agile.md
+        template: docs/templates/product/sprint-plan-template-agile.md
         evidence: Signed plan with capacity.
       - name: Release plan
         template: docs/templates/schedule/release-plan-template-agile.md
