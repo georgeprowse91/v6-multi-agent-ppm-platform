@@ -46,18 +46,36 @@ def _apply_redaction(
     fields: Iterable[str],
     strategy: str,
 ) -> dict[str, Any]:
+    def match_key(mapping: dict[str, Any], part: str) -> str | None:
+        if part in mapping:
+            return part
+        lowered = part.lower()
+        if lowered in REDACTION_KEYS:
+            for key in mapping:
+                if key.lower() == lowered:
+                    return key
+        return None
+
+    def apply_path(target: Any, parts: list[str]) -> None:
+        if not parts:
+            return
+        if isinstance(target, list):
+            for item in target:
+                apply_path(item, parts)
+            return
+        if not isinstance(target, dict):
+            return
+        key = match_key(target, parts[0])
+        if key is None:
+            return
+        if len(parts) == 1:
+            target[key] = _redact_value(target[key], strategy)
+            return
+        apply_path(target[key], parts[1:])
+
     redacted = dict(payload)
     for field in fields:
-        parts = field.split(".")
-        current: Any = redacted
-        for part in parts[:-1]:
-            if isinstance(current, dict):
-                current = current.get(part, {})
-            else:
-                current = None
-                break
-        if isinstance(current, dict) and parts[-1] in current:
-            current[parts[-1]] = _redact_value(current[parts[-1]], strategy)
+        apply_path(redacted, field.split("."))
     return redacted
 
 

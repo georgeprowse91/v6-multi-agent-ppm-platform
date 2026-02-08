@@ -28,3 +28,12 @@ No additional configuration; prompt selection is handled in runtime code.
 
 - Missing prompt errors: ensure referenced prompt files exist in this folder.
 - Formatting issues: validate prompt templates are valid YAML or Markdown, depending on usage.
+
+## Redaction behavior
+
+Redaction rules follow dotted field paths from the prompt configuration. When applying redaction:
+
+- Dictionaries and list items are traversed recursively so nested arrays are handled.
+- Paths are applied to every item in a list when a list is encountered mid-path.
+- Sensitive keys listed in the redaction configuration are matched case-insensitively (for example,
+  `Password`, `TOKEN`, or `Api_Key`).
