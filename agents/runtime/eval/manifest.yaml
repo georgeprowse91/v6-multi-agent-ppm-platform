@@ -1,0 +1,32 @@
+version: 1
+
+evaluations:
+  - id: definition-stage-minimal
+    stage: definition
+    description: Validate core agent metadata is present.
+    fixture: fixtures/definition/definition-minimal.yaml
+    assertions:
+      - field: input.agent_definition.name
+        equals: demo-agent
+      - field: input.agent_definition.description
+        contains: runtime
+
+  - id: prompt-stage-minimal
+    stage: prompt
+    description: Ensure prompts include the expected user request.
+    fixture: fixtures/prompt/prompt-minimal.yaml
+    assertions:
+      - field: input.prompt.user
+        contains: Summarize
+      - field: expected.prompt_focus
+        equals: status-summary
+
+  - id: tools-stage-minimal
+    stage: tools
+    description: Confirm required tool calls are captured.
+    fixture: fixtures/tools/tools-minimal.yaml
+    assertions:
+      - field: input.tool_calls[0].name
+        equals: search
+      - field: expected.first_tool
+        equals: search

@@ -1,0 +1,9 @@
+stage: definition
+input:
+  agent_definition:
+    name: demo-agent
+    description: Minimal runtime agent used for regression checks.
+    role: Orchestrator helper
+    version: 0.1
+expected:
+  definition_summary: demo-agent

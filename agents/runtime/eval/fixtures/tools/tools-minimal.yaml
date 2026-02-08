@@ -1,0 +1,13 @@
+stage: tools
+input:
+  tool_calls:
+    - name: search
+      arguments:
+        query: release readiness checklist
+  tool_results:
+    - name: search
+      output: "Checklist retrieved"
+expected:
+  first_tool: search
+  required_tools:
+    - search

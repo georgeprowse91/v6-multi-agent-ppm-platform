@@ -1,0 +1,10 @@
+stage: prompt
+input:
+  prompt:
+    system: You are a helpful runtime agent.
+    user: Summarize the project status for leadership.
+expected:
+  prompt_focus: status-summary
+  expected_sections:
+    - risks
+    - milestones
