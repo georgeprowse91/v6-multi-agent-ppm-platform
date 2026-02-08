@@ -1047,9 +1047,67 @@ class ProjectLifecycleAgent(BaseAgent):
             return stored
         if gate_name in self.gate_criteria:
             return self.gate_criteria[gate_name]
-        if "charter" in gate_name.lower():
+        normalized_gate = gate_name.lower().replace(" ", "_")
+        transition_defaults = {
+            "initiate_to_plan_gate": [
+                "charter_document_complete",
+                "charter_approved",
+                "sponsor_assigned",
+            ],
+            "plan_to_execute_gate": [
+                "scope_baseline_approved",
+                "schedule_baseline_approved",
+                "budget_approved",
+            ],
+            "plan_to_iterate_gate": [
+                "scope_baseline_approved",
+                "schedule_baseline_approved",
+                "budget_approved",
+            ],
+            "iterate_to_release_gate": ["iteration_complete", "release_criteria_met"],
+            "release_to_close_gate": ["release_criteria_met", "closure_approved"],
+            "execute_to_monitor_gate": ["deliverables_complete", "quality_criteria_met"],
+            "execute_to_close_gate": ["deliverables_complete", "quality_criteria_met"],
+            "monitor_to_close_gate": ["acceptance_complete"],
+            "sprint_0_to_sprint_1_gate": ["sprint_planning_complete"],
+            "sprint_1_to_sprint_2_gate": [
+                "sprint_review_complete",
+                "sprint_retrospective_complete",
+            ],
+            "sprint_1_to_release_gate": [
+                "sprint_review_complete",
+                "sprint_retrospective_complete",
+                "release_criteria_met",
+            ],
+        }
+        if normalized_gate in transition_defaults:
+            return transition_defaults[normalized_gate]
+        explicit_defaults = {
+            "charter_approved": [
+                "charter_document_complete",
+                "charter_approved",
+                "sponsor_assigned",
+            ],
+            "baseline_approved": [
+                "scope_baseline_approved",
+                "schedule_baseline_approved",
+                "budget_approved",
+            ],
+            "deliverables_complete": ["deliverables_complete", "quality_criteria_met"],
+            "acceptance_complete": ["acceptance_complete"],
+            "closure_approved": ["closure_approved"],
+            "iteration_complete": ["iteration_complete"],
+            "release_approved": ["release_approved"],
+            "release_criteria_met": ["release_criteria_met"],
+            "sprint_planning_complete": ["sprint_planning_complete"],
+            "sprint_review": ["sprint_review_complete"],
+            "sprint_retrospective": ["sprint_retrospective_complete"],
+        }
+        if normalized_gate in explicit_defaults:
+            return explicit_defaults[normalized_gate]
+        if "charter" in normalized_gate:
             return ["charter_document_complete", "charter_approved", "sponsor_assigned"]
-        if "baseline" in gate_name.lower():
+        if "baseline" in normalized_gate:
             return ["scope_baseline_approved", "schedule_baseline_approved", "budget_approved"]
         return ["deliverables_complete", "quality_criteria_met"]
 
@@ -1069,6 +1127,17 @@ class ProjectLifecycleAgent(BaseAgent):
             "budget_approved": approvals.get("budget", False),
             "deliverables_complete": artifacts.get("deliverables", {}).get("complete", False),
             "quality_criteria_met": metrics.get("quality_score", 0) >= 0.85,
+            "acceptance_complete": approvals.get("acceptance", False),
+            "closure_approved": approvals.get("closure", False),
+            "iteration_complete": artifacts.get("iteration", {}).get("complete", False),
+            "release_approved": approvals.get("release", False),
+            "release_criteria_met": artifacts.get("release", {}).get("criteria_met", False)
+            or approvals.get("release", False),
+            "sprint_planning_complete": artifacts.get("sprint_plan", {}).get("complete", False),
+            "sprint_review_complete": artifacts.get("sprint_review", {}).get("complete", False),
+            "sprint_retrospective_complete": artifacts.get("sprint_retro", {}).get(
+                "complete", False
+            ),
         }
 
         return bool(criteria_map.get(criterion, False))
@@ -1084,6 +1153,14 @@ class ProjectLifecycleAgent(BaseAgent):
             "budget_approved": "Project budget has been approved",
             "deliverables_complete": "All phase deliverables are complete",
             "quality_criteria_met": "Quality criteria have been met",
+            "acceptance_complete": "Client acceptance has been documented",
+            "closure_approved": "Project closure has been approved",
+            "iteration_complete": "Iteration deliverables have been completed",
+            "release_approved": "Release approval has been granted",
+            "release_criteria_met": "Release readiness criteria have been met",
+            "sprint_planning_complete": "Sprint planning artifacts are complete",
+            "sprint_review_complete": "Sprint review has been completed",
+            "sprint_retrospective_complete": "Sprint retrospective has been completed",
         }
         return descriptions.get(criterion, criterion)
 

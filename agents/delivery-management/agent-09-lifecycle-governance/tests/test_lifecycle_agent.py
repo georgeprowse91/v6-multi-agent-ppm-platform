@@ -89,7 +89,9 @@ async def test_gate_transition_persists_and_publishes() -> None:
         {"project_id": project_id, "name": "Apollo", "methodology": "waterfall"},
         tenant_id="tenant-a",
     )
-    agent.projects[project_id]["artifacts"] = {"deliverables": {"complete": True}}
+    agent.projects[project_id]["artifacts"] = {"charter": {"complete": True}}
+    agent.projects[project_id]["approvals"] = {"charter": True}
+    agent.projects[project_id]["sponsor"] = "exec-1"
     agent.projects[project_id]["metrics"] = {"quality_score": 0.9}
 
     result = await agent._transition_phase(
@@ -137,7 +139,11 @@ async def test_gate_summarization_and_ai_training() -> None:
         {"project_id": project_id, "name": "Helios", "methodology": "waterfall"},
         tenant_id="tenant-b",
     )
-    agent.projects[project_id]["artifacts"] = {"deliverables": {"complete": True}}
+    agent.projects[project_id]["approvals"] = {
+        "scope_baseline": True,
+        "schedule_baseline": True,
+        "budget": True,
+    }
     agent.projects[project_id]["metrics"] = {"quality_score": 0.9}
 
     evaluation = await agent._evaluate_gate(project_id, "baseline_approved", tenant_id="tenant-b")
