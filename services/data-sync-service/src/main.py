@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import yaml
 from fastapi import APIRouter, FastAPI, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
@@ -177,16 +178,25 @@ async def _stop_scheduler() -> None:
     scheduler.stop()
 
 
-def _load_rules() -> list[SyncRule]:
+def _load_rules() -> tuple[list[SyncRule], list[dict[str, str]]]:
     rules_dir = Path(os.getenv("DATA_SYNC_RULES_DIR", str(DEFAULT_RULES_DIR)))
     rules: list[SyncRule] = []
+    errors: list[dict[str, str]] = []
     for path in sorted(rules_dir.glob("*.yaml")):
-        data = load_yaml(path)
+        try:
+            data = load_yaml(path)
+        except (OSError, yaml.YAMLError, ValueError) as exc:
+            logger.error(
+                "sync_rule_load_failed",
+                extra={"path": str(path), "error": str(exc)},
+            )
+            errors.append({"path": str(path), "error": str(exc)})
+            continue
         if not data:
             continue
         rule = SyncRule(**data)
         rules.append(rule)
-    return rules
+    return rules, errors
 
 
 def _mask_lineage(details: dict[str, Any]) -> dict[str, Any]:
@@ -199,7 +209,12 @@ def _mask_lineage(details: dict[str, Any]) -> dict[str, Any]:
 
 @api_router.post("/sync/run", response_model=SyncRunResponse)
 async def run_sync(request: SyncRunRequest) -> SyncRunResponse:
-    rules = _load_rules()
+    rules, errors = _load_rules()
+    if errors:
+        raise HTTPException(
+            status_code=422,
+            detail={"message": "Invalid rule files", "files": errors},
+        )
     planned = [rule.id for rule in rules]
     job_id = str(uuid4())
     status_store = get_status_store()
