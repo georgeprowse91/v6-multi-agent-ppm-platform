@@ -14,7 +14,7 @@ stages:
           - Demand Manager
         artefacts:
           - name: Demand intake request
-            template: docs/templates/shared/demand-intake-request.md
+            template: docs/templates/portfolio-program/demand-intake-request-cross.md
             required: true
       - id: business-case
         description: Build the business case and financial analysis.
@@ -23,10 +23,10 @@ stages:
           - Finance Partner
         artefacts:
           - name: Business case
-            template: docs/templates/shared/business-case.md
+            template: docs/templates/portfolio-program/business-case-template-cross-var3.md
             required: true
           - name: ROI/NPV worksheet
-            template: docs/templates/shared/roi-npv-worksheet.xlsx
+            template: docs/templates/finance/roi-npv-worksheet-cross.xlsx
             required: true
       - id: charter
         description: Document the project charter and governance model.
@@ -34,7 +34,7 @@ stages:
           - Project Manager
         artefacts:
           - name: Project charter
-            template: docs/templates/waterfall/project-charter.md
+            template: docs/templates/governance/project-charter-waterfall.md
             required: true
     exit_criteria:
       - Sponsor signs off on charter and business case.
@@ -53,7 +53,7 @@ stages:
           - Planning Lead
         artefacts:
           - name: Work breakdown structure
-            template: docs/templates/waterfall/wbs.yaml
+            template: docs/templates/schedule/wbs-template-waterfall.yaml
             required: true
       - id: schedule-baseline
         description: Build the baseline schedule and critical path.
@@ -61,7 +61,7 @@ stages:
           - Scheduler
         artefacts:
           - name: Schedule baseline
-            template: docs/templates/waterfall/schedule-baseline.xlsx
+            template: docs/templates/schedule/schedule-baseline-waterfall.xlsx
             required: true
       - id: risk-register
         description: Identify and quantify project risks.
@@ -69,7 +69,7 @@ stages:
           - Risk Manager
         artefacts:
           - name: Risk register
-            template: docs/templates/waterfall/risk-register.xlsx
+            template: docs/templates/risk/risk-register-waterfall.xlsx
             required: true
       - id: quality-plan
         description: Define quality criteria and QA checks.
@@ -77,7 +77,7 @@ stages:
           - Quality Lead
         artefacts:
           - name: QA checklist
-            template: docs/templates/waterfall/qa-checklist.xlsx
+            template: docs/templates/quality/qa-checklist-waterfall.xlsx
             required: true
     exit_criteria:
       - Scope baseline and schedule approved.
@@ -96,7 +96,7 @@ stages:
           - Delivery Team
         artefacts:
           - name: Variance report
-            template: docs/templates/shared/variance-report.md
+            template: docs/templates/finance/variance-report-cross.md
             required: true
       - id: change-control
         description: Capture change requests and assess impacts.
@@ -104,10 +104,10 @@ stages:
           - Change Manager
         artefacts:
           - name: Change request
-            template: docs/templates/shared/change-request.md
+            template: docs/templates/change/change-request-cross-var1.md
             required: true
           - name: Change impact assessment
-            template: docs/templates/shared/change-impact-assessment.md
+            template: docs/templates/change/change-impact-assessment-cross.md
             required: true
     exit_criteria:
       - Major deliverables completed and accepted.
@@ -126,7 +126,7 @@ stages:
           - PMO Analyst
         artefacts:
           - name: Variance report
-            template: docs/templates/shared/variance-report.md
+            template: docs/templates/finance/variance-report-cross.md
             required: true
       - id: risk-review
         description: Review and update the risk register.
@@ -134,7 +134,7 @@ stages:
           - Risk Manager
         artefacts:
           - name: Risk register
-            template: docs/templates/waterfall/risk-register.xlsx
+            template: docs/templates/risk/risk-register-waterfall.xlsx
             required: true
     exit_criteria:
       - Performance metrics reviewed by governance forum.
@@ -152,7 +152,7 @@ stages:
           - Project Manager
         artefacts:
           - name: Closure report
-            template: docs/templates/waterfall/closure-report.md
+            template: docs/templates/governance/closure-report-waterfall.md
             required: true
       - id: compliance-review
         description: Ensure privacy and compliance artefacts are complete.

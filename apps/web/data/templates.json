@@ -424,7 +424,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/issue-log.md"
+      "path": "docs/templates/risk/issue-log-cross-var1.md"
     },
     {
       "id": "assumption-log",
@@ -433,7 +433,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/assumption-log.md"
+      "path": "docs/templates/risk/assumption-log-cross.md"
     },
     {
       "id": "lessons-learned-register",
@@ -442,7 +442,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/lessons-learned.md"
+      "path": "docs/templates/governance/lessons-learned-template-cross-var1.md"
     },
     {
       "id": "risk-management-plan",
@@ -451,7 +451,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/risk-management-plan.md"
+      "path": "docs/templates/risk/risk-management-plan-cross.md"
     },
     {
       "id": "quality-management-plan",
@@ -460,7 +460,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/quality-management-plan.md"
+      "path": "docs/templates/quality/quality-management-plan-cross.md"
     },
     {
       "id": "product-strategy-canvas",
@@ -469,7 +469,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/product-strategy-canvas.md"
+      "path": "docs/templates/product/product-strategy-canvas-cross-var1.md"
     },
     {
       "id": "product-vision-template",
@@ -478,7 +478,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/product-vision-template.md"
+      "path": "docs/templates/product/product-vision-template-cross-var1.md"
     },
     {
       "id": "procurement-management-plan",
@@ -487,7 +487,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/procurement-management-plan.md"
+      "path": "docs/templates/finance/procurement-management-plan-cross.md"
     },
     {
       "id": "resource-management-plan",
@@ -496,7 +496,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/resource-management-plan.md"
+      "path": "docs/templates/resources/resource-management-plan-cross.md"
     },
     {
       "id": "communications-plan",
@@ -505,7 +505,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/communications-plan.md"
+      "path": "docs/templates/communications/communications-plan-cross.md"
     },
     {
       "id": "change-management-plan",
@@ -514,7 +514,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/change-management-plan.md"
+      "path": "docs/templates/change/change-management-plan-cross.md"
     },
     {
       "id": "executive-communication-automation",
@@ -523,7 +523,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/executive-communication-automation.md"
+      "path": "docs/templates/communications/executive-communication-automation-template-cross.md"
     },
     {
       "id": "schedule-management-plan",
@@ -532,7 +532,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/schedule-management-plan.md"
+      "path": "docs/templates/schedule/schedule-management-plan-cross.md"
     },
     {
       "id": "schedule-management-metrics-guide",
@@ -541,7 +541,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/schedule-management-metrics-guide.md"
+      "path": "docs/templates/schedule/schedule-management-metrics-guide-cross.md"
     },
     {
       "id": "project-schedule-template",
@@ -550,7 +550,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/project-schedule-template.md"
+      "path": "docs/templates/schedule/project-schedule-template-cross-var2.md"
     },
     {
       "id": "project-roadmap-template",
@@ -559,7 +559,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/project-roadmap.md"
+      "path": "docs/templates/schedule/project-roadmap-cross.md"
     },
     {
       "id": "scope-management-plan",
@@ -568,7 +568,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/scope-management-plan.md"
+      "path": "docs/templates/requirements/scope-management-plan-cross.md"
     },
     {
       "id": "cost-management-plan",
@@ -577,7 +577,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/cost-management-plan.md"
+      "path": "docs/templates/finance/cost-management-plan-cross.md"
     },
     {
       "id": "project-management-plan",
@@ -586,7 +586,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/project-management-plan.md"
+      "path": "docs/templates/governance/project-management-plan-cross.md"
     },
     {
       "id": "resource-assignment-matrix",
@@ -595,7 +595,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/resource-assignment-matrix.csv"
+      "path": "docs/templates/resources/resource-assignment-matrix-cross.csv"
     },
     {
       "id": "raci-matrix",
@@ -604,7 +604,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/raci-matrix.md"
+      "path": "docs/templates/governance/raci-matrix-cross-var1.md"
     },
     {
       "id": "activity-list",
@@ -613,7 +613,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/activity-list.csv"
+      "path": "docs/templates/schedule/activity-list-template-cross.csv"
     },
     {
       "id": "project-calendar",
@@ -622,7 +622,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/project-calendar.csv"
+      "path": "docs/templates/schedule/project-calendar-cross.csv"
     },
     {
       "id": "status-report",
@@ -631,7 +631,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/status-report.md"
+      "path": "docs/templates/governance/status-report-cross-var1.md"
     },
     {
       "id": "meeting-templates",
@@ -640,7 +640,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/meeting-templates.md"
+      "path": "docs/templates/communications/meeting-templates-template-cross-var1.md"
     },
     {
       "id": "daily-standup-template",
@@ -649,7 +649,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/daily-standup.md"
+      "path": "docs/templates/product/daily-standup-template-agile.md"
     },
     {
       "id": "pi-planning-template",
@@ -658,7 +658,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/pi-planning.md"
+      "path": "docs/templates/product/pi-planning-plan-agile.md"
     },
     {
       "id": "risk-report",
@@ -667,7 +667,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/risk-report.md"
+      "path": "docs/templates/risk/risk-report-cross.md"
     },
     {
       "id": "quality-report",
@@ -676,7 +676,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/quality-report.md"
+      "path": "docs/templates/quality/quality-report-cross.md"
     },
     {
       "id": "quality-checklist",
@@ -685,7 +685,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/quality-checklist.md"
+      "path": "docs/templates/quality/quality-checklist-cross-var1.md"
     },
     {
       "id": "risk-breakdown-structure",
@@ -694,7 +694,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/risk-breakdown-structure.yaml"
+      "path": "docs/templates/risk/risk-breakdown-structure-template-cross.yaml"
     },
     {
       "id": "product-breakdown-structure",
@@ -703,7 +703,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/product-breakdown-structure.yaml"
+      "path": "docs/templates/product/product-breakdown-structure-template-cross.yaml"
     },
     {
       "id": "cost-baseline",
@@ -712,7 +712,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/cost-baseline.xlsx"
+      "path": "docs/templates/finance/cost-baseline-cross.xlsx"
     },
     {
       "id": "scope-baseline",
@@ -721,7 +721,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/scope-baseline.md"
+      "path": "docs/templates/requirements/scope-baseline-cross.md"
     },
     {
       "id": "supplier-risk-assessment",
@@ -730,7 +730,7 @@
       "methodologies": [
         "shared"
       ],
-      "path": "docs/templates/shared/supplier-risk-assessment.md"
+      "path": "docs/templates/finance/supplier-risk-assessment-cross.md"
     },
     {
       "id": "iteration-plan",
@@ -740,7 +740,7 @@
         "agile",
         "hybrid"
       ],
-      "path": "docs/templates/agile/iteration-plan.md"
+      "path": "docs/templates/product/iteration-plan-agile.md"
     },
     {
       "id": "backlog-management-template",
@@ -749,7 +749,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/backlog-management-template.md"
+      "path": "docs/templates/product/backlog-management-template-agile.md"
     },
     {
       "id": "backlog-refinement-template",
@@ -758,7 +758,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/backlog-refinement-template.md"
+      "path": "docs/templates/product/backlog-refinement-template-agile.md"
     },
     {
       "id": "risk-adjusted-backlog",
@@ -767,7 +767,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/risk-adjusted-backlog.csv"
+      "path": "docs/templates/risk/risk-adjusted-backlog-template-agile.csv"
     },
     {
       "id": "roles-responsibilities-agile",
@@ -777,8 +777,8 @@
       "methodologies": [
         "agile"
       ],
-      "file": "docs/templates/agile/roles-responsibilities.md",
-      "path": "docs/templates/agile/roles-responsibilities.md",
+      "file": "docs/templates/resources/roles-responsibilities-template-agile.md",
+      "path": "docs/templates/resources/roles-responsibilities-template-agile.md",
       "methodology": "agile",
       "stage": "sprint-0",
       "agents": [
@@ -793,7 +793,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/user-story-template.md"
+      "path": "docs/templates/product/user-story-template-agile.md"
     },
     {
       "id": "user-story-mapping-template",
@@ -802,7 +802,7 @@
       "methodologies": [
         "agile"
       ],
-      "path": "docs/templates/agile/user-story-mapping-template.md"
+      "path": "docs/templates/product/user-story-mapping-template-agile.md"
     },
     {
       "id": "waterfall-risk-management-plan",
@@ -811,7 +811,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/risk-management-plan.md"
+      "path": "docs/templates/risk/risk-management-plan-cross.md"
     },
     {
       "id": "roles-responsibilities-waterfall",
@@ -821,8 +821,8 @@
       "methodologies": [
         "waterfall"
       ],
-      "file": "docs/templates/waterfall/roles-responsibilities.md",
-      "path": "docs/templates/waterfall/roles-responsibilities.md",
+      "file": "docs/templates/resources/roles-responsibilities-template-waterfall.md",
+      "path": "docs/templates/resources/roles-responsibilities-template-waterfall.md",
       "methodology": "waterfall",
       "stage": "initiation",
       "agents": [
@@ -837,7 +837,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/resource-management-plan.md"
+      "path": "docs/templates/resources/resource-management-plan-cross.md"
     },
     {
       "id": "waterfall-quality-management-plan",
@@ -846,7 +846,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/quality-management-plan.md"
+      "path": "docs/templates/quality/quality-management-plan-cross.md"
     },
     {
       "id": "waterfall-procurement-management-plan",
@@ -855,7 +855,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/procurement-management-plan.md"
+      "path": "docs/templates/finance/procurement-management-plan-cross.md"
     },
     {
       "id": "waterfall-schedule-management-plan",
@@ -864,7 +864,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/schedule-management-plan.md"
+      "path": "docs/templates/schedule/schedule-management-plan-cross.md"
     },
     {
       "id": "waterfall-scope-management-plan",
@@ -873,7 +873,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/scope-management-plan.md"
+      "path": "docs/templates/requirements/scope-management-plan-cross.md"
     },
     {
       "id": "waterfall-cost-management-plan",
@@ -882,7 +882,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/cost-management-plan.md"
+      "path": "docs/templates/finance/cost-management-plan-cross.md"
     },
     {
       "id": "waterfall-project-management-plan",
@@ -891,7 +891,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/project-management-plan.md"
+      "path": "docs/templates/governance/project-management-plan-cross.md"
     },
     {
       "id": "waterfall-risk-breakdown-structure",
@@ -900,7 +900,7 @@
       "methodologies": [
         "waterfall"
       ],
-      "path": "docs/templates/shared/risk-breakdown-structure.yaml"
+      "path": "docs/templates/risk/risk-breakdown-structure-template-cross.yaml"
     },
     {
       "id": "hybrid-resource-plan",
@@ -909,7 +909,7 @@
       "methodologies": [
         "hybrid"
       ],
-      "path": "docs/templates/hybrid/hybrid-resource-plan.md"
+      "path": "docs/templates/resources/hybrid-resource-plan-hybrid.md"
     },
     {
       "id": "roles-responsibilities-hybrid",
@@ -919,8 +919,8 @@
       "methodologies": [
         "hybrid"
       ],
-      "file": "docs/templates/hybrid/roles-responsibilities.md",
-      "path": "docs/templates/hybrid/roles-responsibilities.md",
+      "file": "docs/templates/resources/roles-responsibilities-template-hybrid.md",
+      "path": "docs/templates/resources/roles-responsibilities-template-hybrid.md",
       "methodology": "hybrid",
       "stage": "initiation",
       "agents": [
@@ -936,7 +936,7 @@
       "methodologies": [
         "hybrid"
       ],
-      "path": "docs/templates/hybrid/integrated-risk-register.md"
+      "path": "docs/templates/risk/integrated-risk-register-hybrid.md"
     },
     {
       "id": "decision-log-hybrid",
@@ -945,7 +945,7 @@
       "methodologies": [
         "hybrid"
       ],
-      "path": "docs/templates/hybrid/decision-log.md"
+      "path": "docs/templates/governance/decision-log-hybrid.md"
     }
   ]
 }

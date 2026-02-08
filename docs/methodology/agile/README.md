@@ -6,7 +6,8 @@ Describe the agile documentation set and link the narrative to the repo assets t
 
 ## What's inside
 
-- `docs/templates/agile`: Agile-specific templates for sprint planning, backlog, and release artefacts.
+- `docs/templates/`: Template library organized by discipline. Agile variants are labeled with
+  the `-agile` suffix in the filename.
 - `docs/methodology/agile/gates.yaml`: YAML definition or configuration used by this component.
 - `docs/methodology/agile/map.yaml`: YAML definition or configuration used by this component.
 

@@ -6,7 +6,8 @@ Describe the waterfall documentation set and link the narrative to the repo asse
 
 ## What's inside
 
-- `docs/templates/waterfall`: Waterfall-specific templates for charters, baselines, and closure artefacts.
+- `docs/templates/`: Template library organized by discipline. Waterfall variants are labeled with
+  the `-waterfall` suffix in the filename.
 - `docs/methodology/waterfall/gates.yaml`: YAML definition or configuration used by this component.
 - `docs/methodology/waterfall/map.yaml`: YAML definition or configuration used by this component.
 

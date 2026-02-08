@@ -24,7 +24,7 @@ Define service-level objectives (SLOs) and the service-level indicators (SLIs) u
 
 ## Suggested SLO targets
 
-These targets are aligned with the SLO template in `docs/templates/shared/slo-alert-definition.yaml` and should be adjusted per deployment.
+These targets are aligned with the SLO template in `docs/templates/quality/slo-alert-definition-cross.yaml` and should be adjusted per deployment.
 
 - **Availability:** 99.9% over 30 days for API Gateway and Workflow Engine.
 - **Latency (P95):** < 750 ms for `/v1/query` and `/v1/workflows/start` over 7 days.
@@ -39,7 +39,7 @@ These targets are aligned with the SLO template in `docs/templates/shared/slo-al
 
 ## Operational guidance
 
-1. Create an SLO definition per service using `docs/templates/shared/slo-alert-definition.yaml`.
+1. Create an SLO definition per service using `docs/templates/quality/slo-alert-definition-cross.yaml`.
 2. Store the finalized SLO spec in your deployment repository or monitoring system.
 3. Link each SLO to the relevant runbooks (incident response, data sync failures, LLM degradation).
 
@@ -47,7 +47,7 @@ These targets are aligned with the SLO template in `docs/templates/shared/slo-al
 
 - Inspect the SLO template:
   ```bash
-  sed -n '1,160p' docs/templates/shared/slo-alert-definition.yaml
+  sed -n '1,160p' docs/templates/quality/slo-alert-definition-cross.yaml
   ```
 - Confirm metrics middleware is registered:
   ```bash

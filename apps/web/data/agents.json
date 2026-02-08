@@ -1087,9 +1087,9 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Scope baseline (`docs/templates/shared/scope-baseline.md`).",
-            "Scope management plan (`docs/templates/shared/scope-management-plan.md`).",
-            "Product breakdown structure (`docs/templates/shared/product-breakdown-structure.yaml`)."
+            "Scope baseline (`docs/templates/requirements/scope-baseline-cross.md`).",
+            "Scope management plan (`docs/templates/requirements/scope-management-plan-cross.md`).",
+            "Product breakdown structure (`docs/templates/product/product-breakdown-structure-template-cross.yaml`)."
           ]
         }
       ],
@@ -1378,10 +1378,10 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Schedule management plan (`docs/templates/shared/schedule-management-plan.md`).",
-            "Activity list (`docs/templates/shared/activity-list.csv`).",
-            "Project calendar (`docs/templates/shared/project-calendar.csv`).",
-            "Schedule baseline (`docs/templates/waterfall/schedule-baseline.xlsx`)."
+            "Schedule management plan (`docs/templates/schedule/schedule-management-plan-cross.md`).",
+            "Activity list (`docs/templates/schedule/activity-list-template-cross.csv`).",
+            "Project calendar (`docs/templates/schedule/project-calendar-cross.csv`).",
+            "Schedule baseline (`docs/templates/schedule/schedule-baseline-waterfall.xlsx`)."
           ]
         }
       ],
@@ -1553,9 +1553,9 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Resource management plan (`docs/templates/shared/resource-management-plan.md`).",
-            "Resource assignment matrix (`docs/templates/shared/resource-assignment-matrix.csv`).",
-            "Hybrid resource plan (`docs/templates/hybrid/hybrid-resource-plan.md`)."
+            "Resource management plan (`docs/templates/resources/resource-management-plan-cross.md`).",
+            "Resource assignment matrix (`docs/templates/resources/resource-assignment-matrix-cross.csv`).",
+            "Hybrid resource plan (`docs/templates/resources/hybrid-resource-plan-hybrid.md`)."
           ]
         }
       ],
@@ -1730,9 +1730,9 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Cost management plan (`docs/templates/shared/cost-management-plan.md`).",
-            "Cost baseline (`docs/templates/shared/cost-baseline.xlsx`).",
-            "Variance report (`docs/templates/shared/variance-report.md`)."
+            "Cost management plan (`docs/templates/finance/cost-management-plan-cross.md`).",
+            "Cost baseline (`docs/templates/finance/cost-baseline-cross.xlsx`).",
+            "Variance report (`docs/templates/finance/variance-report-cross.md`)."
           ]
         }
       ],
@@ -1909,10 +1909,10 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Procurement management plan (`docs/templates/shared/procurement-management-plan.md`).",
-            "RFP template (`docs/templates/shared/rfp-template.md`).",
-            "Vendor evaluation scorecard (`docs/templates/shared/vendor-evaluation-scorecard.xlsx`).",
-            "Supplier risk assessment (`docs/templates/shared/supplier-risk-assessment.md`)."
+            "Procurement management plan (`docs/templates/finance/procurement-management-plan-cross.md`).",
+            "RFP template (`docs/templates/finance/rfp-template-cross.md`).",
+            "Vendor evaluation scorecard (`docs/templates/finance/vendor-evaluation-scorecard-cross.xlsx`).",
+            "Supplier risk assessment (`docs/templates/finance/supplier-risk-assessment-cross.md`)."
           ]
         }
       ],
@@ -2083,9 +2083,9 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Quality management plan (`docs/templates/shared/quality-management-plan.md`).",
-            "Quality report (`docs/templates/shared/quality-report.md`).",
-            "QA checklist (`docs/templates/waterfall/qa-checklist.xlsx`)."
+            "Quality management plan (`docs/templates/quality/quality-management-plan-cross.md`).",
+            "Quality report (`docs/templates/quality/quality-report-cross.md`).",
+            "QA checklist (`docs/templates/quality/qa-checklist-waterfall.xlsx`)."
           ]
         }
       ],
@@ -2261,12 +2261,12 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Risk management plan (`docs/templates/shared/risk-management-plan.md`).",
-            "Risk breakdown structure (`docs/templates/shared/risk-breakdown-structure.yaml`).",
-            "Risk report (`docs/templates/shared/risk-report.md`).",
-            "Issue log (`docs/templates/shared/issue-log.md`).",
-            "Risk register (`docs/templates/waterfall/risk-register.xlsx`).",
-            "Integrated risk register (`docs/templates/hybrid/integrated-risk-register.md`)."
+            "Risk management plan (`docs/templates/risk/risk-management-plan-cross.md`).",
+            "Risk breakdown structure (`docs/templates/risk/risk-breakdown-structure-template-cross.yaml`).",
+            "Risk report (`docs/templates/risk/risk-report-cross.md`).",
+            "Issue log (`docs/templates/risk/issue-log-cross-var1.md`).",
+            "Risk register (`docs/templates/risk/risk-register-waterfall.xlsx`).",
+            "Integrated risk register (`docs/templates/risk/integrated-risk-register-hybrid.md`)."
           ]
         }
       ],
@@ -2606,9 +2606,9 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Change log (`docs/templates/shared/change-log.md`).",
-            "Change request (`docs/templates/shared/change-request.md`).",
-            "Change impact assessment (`docs/templates/shared/change-impact-assessment.md`)."
+            "Change log (`docs/templates/change/change-log-cross.md`).",
+            "Change request (`docs/templates/change/change-request-cross-var1.md`).",
+            "Change impact assessment (`docs/templates/change/change-impact-assessment-cross.md`)."
           ]
         }
       ],
@@ -3285,9 +3285,9 @@
         {
           "heading": "Templates Used",
           "content": [
-            "Communications plan (`docs/templates/shared/communications-plan.md`).",
-            "Status report (`docs/templates/shared/status-report.md`).",
-            "Stakeholder register (`docs/templates/shared/stakeholder-register.xlsx`)."
+            "Communications plan (`docs/templates/communications/communications-plan-cross.md`).",
+            "Status report (`docs/templates/governance/status-report-cross-var1.md`).",
+            "Stakeholder register (`docs/templates/stakeholders/stakeholder-register-cross.xlsx`)."
           ]
         }
       ],

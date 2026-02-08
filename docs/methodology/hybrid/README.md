@@ -6,7 +6,8 @@ Describe the hybrid documentation set and link the narrative to the repo assets 
 
 ## What's inside
 
-- `docs/templates/hybrid`: Hybrid-specific templates for governance, milestone planning, and risk integration.
+- `docs/templates/`: Template library organized by discipline. Hybrid variants are labeled with
+  the `-hybrid` suffix in the filename.
 - `docs/methodology/hybrid/gates.yaml`: YAML definition or configuration used by this component.
 - `docs/methodology/hybrid/map.yaml`: YAML definition or configuration used by this component.
 
