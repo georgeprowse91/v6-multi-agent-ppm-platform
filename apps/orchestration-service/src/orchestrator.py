@@ -15,6 +15,7 @@ from uuid import uuid4
 import httpx
 import structlog
 from persistence import OrchestrationStateStore, WorkflowState, build_state_store, make_state_key
+from pydantic import ValidationError
 from workflow_client import WorkflowClient
 
 from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
@@ -257,9 +258,38 @@ class AgentOrchestrator:
                     timeout=AGENT_CALL_TIMEOUT,
                 )
                 return AgentResponse.model_validate(result)
+            except ValidationError as exc:
+                outcome = "error"
+                duration = time.monotonic() - start
+                logger.exception(
+                    "Agent %s returned invalid response payload",
+                    agent.agent_id,
+                    extra={"duration": duration, "errors": exc.errors()},
+                )
+                correlation_id = self._resolve_correlation_id(context)
+                return AgentResponse(
+                    success=False,
+                    error="Invalid agent response payload",
+                    data=None,
+                    metadata=AgentResponseMetadata(
+                        agent_id=agent.agent_id,
+                        catalog_id=agent.catalog_id or agent.agent_id,
+                        timestamp=datetime.utcnow().isoformat(),
+                        correlation_id=correlation_id or "unknown",
+                        trace_id=None,
+                        execution_time_seconds=duration,
+                        policy_reasons=None,
+                    ),
+                )
             except asyncio.TimeoutError:
                 outcome = "error"
-                logger.error("Agent %s timed out after %ss", agent.agent_id, AGENT_CALL_TIMEOUT)
+                duration = time.monotonic() - start
+                logger.error(
+                    "Agent %s timed out after %ss",
+                    agent.agent_id,
+                    AGENT_CALL_TIMEOUT,
+                    extra={"duration": duration},
+                )
                 correlation_id = self._resolve_correlation_id(context)
                 return AgentResponse(
                     success=False,
@@ -271,13 +301,18 @@ class AgentOrchestrator:
                         timestamp=datetime.utcnow().isoformat(),
                         correlation_id=correlation_id or "unknown",
                         trace_id=None,
-                        execution_time_seconds=None,
+                        execution_time_seconds=duration,
                         policy_reasons=None,
                     ),
                 )
             except Exception as exc:
                 outcome = "error"
-                logger.exception("Agent %s execution failed", agent.agent_id)
+                duration = time.monotonic() - start
+                logger.exception(
+                    "Agent %s execution failed",
+                    agent.agent_id,
+                    extra={"duration": duration},
+                )
                 correlation_id = self._resolve_correlation_id(context)
                 return AgentResponse(
                     success=False,
@@ -289,7 +324,7 @@ class AgentOrchestrator:
                         timestamp=datetime.utcnow().isoformat(),
                         correlation_id=correlation_id or "unknown",
                         trace_id=None,
-                        execution_time_seconds=None,
+                        execution_time_seconds=duration,
                         policy_reasons=None,
                     ),
                 )
