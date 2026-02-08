@@ -104,8 +104,8 @@ checklist_data:
 ## Related Templates
 
 - [Quality Review Template](../quality/quality-review-template.md)
-- [Issue Log Template](../monitoring/issue-log-template.md)
-- [Lessons Learned Template](../closing/lessons-learned-template.md)
+- [Issue Log Template](../monitoring/issue-log-template.var1.md)
+- [Lessons Learned Template](../closing/lessons-learned-template.var1.md)
 
 ---
 

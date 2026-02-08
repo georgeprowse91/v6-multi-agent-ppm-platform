@@ -222,8 +222,8 @@ business_case_data:
 
 ## Related Templates
 
-- [Project Charter Template](../planning/project-charter-template.md)
-- [Risk Register Template](../risk/risk-register-template.md)
+- [Project Charter Template](../planning/project-charter-template.var1.md)
+- [Risk Register Template](../risk/risk-register-template.var1.md)
 - [Stakeholder Analysis Template](../stakeholders/stakeholder-analysis-template.md)
 - [Financial Tracking Template](../cost/financial-tracking-template.md)
 
