@@ -9,7 +9,7 @@ Scrum Master, Product Owner, Delivery Team, QA Lead, Stakeholders.
 
 ## Inputs
 - Prioritized backlog (`docs/templates/product/backlog-template-agile.csv`).
-- Release plan (`docs/templates/schedule/release-plan-agile.md`).
+- Release plan (`docs/templates/schedule/release-plan-template-agile.md`).
 - Capacity data, holidays, and availability commitments.
 - Previous sprint metrics and retrospective actions.
 

@@ -38,7 +38,7 @@ gates:
         template: docs/templates/product/sprint-plan-agile.md
         evidence: Signed plan with capacity.
       - name: Release plan
-        template: docs/templates/schedule/release-plan-agile.md
+        template: docs/templates/schedule/release-plan-template-agile.md
         evidence: Stakeholder-reviewed release plan.
     criteria:
       - id: planning-1
@@ -61,7 +61,7 @@ gates:
     stage: review
     required_artefacts:
       - name: Release plan
-        template: docs/templates/schedule/release-plan-agile.md
+        template: docs/templates/schedule/release-plan-template-agile.md
         evidence: Updated readiness checklist.
       - name: Variance report
         template: docs/templates/finance/variance-report-template-cross.md

@@ -26,22 +26,22 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Risk report | Report top risks and exposure trends. | Agent 15 (Risk & Issue Management) | [docs/templates/risk/risk-report-template-cross.md](../templates/risk/risk-report-template-cross.md) |
 | Schedule risk analysis | Quantify schedule risk exposure and confidence-based completion dates. | Agent 10 (Schedule & Planning), Agent 15 (Risk & Issue Management) | [docs/templates/risk/schedule-risk-analysis-template-cross-var1.md](../templates/risk/schedule-risk-analysis-template-cross-var1.md) |
 | Quality report | Report quality performance and defects. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-report-template-cross.md](../templates/quality/quality-report-template-cross.md) |
-| Quality checklist | Standardize quality reviews and acceptance criteria. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-checklist-cross-var1.md](../templates/quality/quality-checklist-cross-var1.md) |
+| Quality checklist | Standardize quality reviews and acceptance criteria. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-checklist-var1-template-cross.md](../templates/quality/quality-checklist-var1-template-cross.md) |
 | Change request | Submit changes for approval. | Agent 17 (Change & Configuration) | [docs/templates/change/change-request-cross-var1.md](../templates/change/change-request-cross-var1.md) |
 | Change impact assessment | Analyze change impacts. | Agent 17 (Change & Configuration) | [docs/templates/change/change-impact-assessment-template-cross.md](../templates/change/change-impact-assessment-template-cross.md) |
 | Change log | Track approved and pending changes. | Agent 17 (Change & Configuration) | [docs/templates/change/change-log-template-cross.md](../templates/change/change-log-template-cross.md) |
 | Issue log | Track and resolve issues. | Agent 15 (Risk & Issue Management) | [docs/templates/risk/issue-log-cross-var1.md](../templates/risk/issue-log-cross-var1.md) |
 | Lessons learned register | Capture outcomes, root causes, and recommendations. | Agent 20 (Continuous Improvement) | [docs/templates/governance/lessons-learned-template-cross-var1.md](../templates/governance/lessons-learned-template-cross-var1.md) |
-| Scope baseline | Combine scope statement, WBS, and dictionary. | Agent 08 (Project Definition) | [docs/templates/requirements/scope-baseline-cross.md](../templates/requirements/scope-baseline-cross.md) |
+| Scope baseline | Combine scope statement, WBS, and dictionary. | Agent 08 (Project Definition) | [docs/templates/requirements/scope-baseline-template-cross.md](../templates/requirements/scope-baseline-template-cross.md) |
 | Project scope statement | Define the approved project scope, boundaries, and acceptance criteria. | Agent 08 (Project Definition) | [docs/templates/requirements/project-scope-statement-template-cross.md](../templates/requirements/project-scope-statement-template-cross.md) |
 | Project management plan | Integrate subsidiary management plans. | Agent 09 (Lifecycle & Governance) | [docs/templates/governance/project-management-plan-template-cross.md](../templates/governance/project-management-plan-template-cross.md) |
-| Scope management plan | Define scope definition, validation, and control. | Agent 08 (Project Definition) | [docs/templates/requirements/scope-management-plan-cross.md](../templates/requirements/scope-management-plan-cross.md) |
+| Scope management plan | Define scope definition, validation, and control. | Agent 08 (Project Definition) | [docs/templates/requirements/scope-management-plan-template-cross.md](../templates/requirements/scope-management-plan-template-cross.md) |
 | Business requirements document | Capture business goals, requirements, and success metrics. | Agent 08 (Project Definition) | [docs/templates/requirements/business-requirements-document-template-cross.md](../templates/requirements/business-requirements-document-template-cross.md) |
-| Software requirements specification | Define detailed functional and non-functional requirements. | Agent 08 (Project Definition) | [docs/templates/requirements/requirements-specification-cross.md](../templates/requirements/requirements-specification-cross.md) |
-| Requirements traceability matrix | Map requirements to design, build, and test artifacts. | Agent 08 (Project Definition) | [docs/templates/requirements/requirements-traceability-matrix-cross.md](../templates/requirements/requirements-traceability-matrix-cross.md) |
+| Software requirements specification | Define detailed functional and non-functional requirements. | Agent 08 (Project Definition) | [docs/templates/requirements/requirements-specification-template-cross.md](../templates/requirements/requirements-specification-template-cross.md) |
+| Requirements traceability matrix | Map requirements to design, build, and test artifacts. | Agent 08 (Project Definition) | [docs/templates/requirements/requirements-traceability-matrix-template-cross.md](../templates/requirements/requirements-traceability-matrix-template-cross.md) |
 | Schedule management plan | Define schedule development and control. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/schedule-management-plan-template-cross.md](../templates/schedule/schedule-management-plan-template-cross.md) |
-| Project schedule template | Capture activity-level schedule detail, milestones, and baselines. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/project-schedule-template-cross-var2.md](../templates/schedule/project-schedule-template-cross-var2.md) |
-| Release management workflow | Execute and validate releases end-to-end. | Agent 14 (Release Management) | [docs/templates/schedule/release-management-workflow-cross.md](../templates/schedule/release-management-workflow-cross.md) |
+| Project schedule template | Capture activity-level schedule detail, milestones, and baselines. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/project-schedule-var2-template-cross.md](../templates/schedule/project-schedule-var2-template-cross.md) |
+| Release management workflow | Execute and validate releases end-to-end. | Agent 14 (Release Management) | [docs/templates/schedule/release-management-workflow-template-cross.md](../templates/schedule/release-management-workflow-template-cross.md) |
 | Cost management plan | Define cost estimation, baseline, and control. | Agent 12 (Financial Management) | [docs/templates/finance/cost-management-plan-template-cross.md](../templates/finance/cost-management-plan-template-cross.md) |
 | Financial risk management plan | Define financial risk identification, assessment, and response. | Agent 12 (Financial Management), Agent 15 (Risk & Issue Management) | [docs/templates/finance/financial-risk-management-plan-template-cross.md](../templates/finance/financial-risk-management-plan-template-cross.md) |
 | Quality management plan | Define QA/QC standards and processes. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-management-plan-template-cross.md](../templates/quality/quality-management-plan-template-cross.md) |
@@ -85,7 +85,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Agile risk board | [Agile risk board](../templates/risk/agile-risk-board-agile.md) |  |  |
 | Sprint plan | [Sprint plan](../templates/product/sprint-plan-agile.md) |  | [Sprint plan](../templates/product/sprint-plan-agile.md) |
 | Iteration plan | [Iteration plan](../templates/product/iteration-plan-agile.md) |  |  |
-| Release plan | [Release plan](../templates/schedule/release-plan-agile.md) |  | [Release plan](../templates/schedule/release-plan-agile.md) |
+| Release plan | [Release plan](../templates/schedule/release-plan-template-agile.md) |  | [Release plan](../templates/schedule/release-plan-template-agile.md) |
 | Burndown | [Burndown](../templates/product/burndown-template-agile.xlsx) |  |  |
 | WBS |  | [WBS](../templates/schedule/wbs-template-waterfall.yaml) |  |
 | Schedule baseline |  | [Schedule baseline](../templates/schedule/schedule-baseline-waterfall.xlsx) |  |
@@ -100,7 +100,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Hybrid resource plan |  |  | [Hybrid resource plan](../templates/resources/hybrid-resource-plan-hybrid.md) |
 | Closure report |  | [Closure report](../templates/governance/closure-report-template-waterfall.md) | [Closure report](../templates/governance/closure-report-template-waterfall.md) |
 | Project management plan |  | [Project management plan](../templates/governance/project-management-plan-template-cross.md) |  |
-| Scope management plan |  | [Scope management plan](../templates/requirements/scope-management-plan-cross.md) |  |
+| Scope management plan |  | [Scope management plan](../templates/requirements/scope-management-plan-template-cross.md) |  |
 | Schedule management plan |  | [Schedule management plan](../templates/schedule/schedule-management-plan-template-cross.md) |  |
 | Cost management plan |  | [Cost management plan](../templates/finance/cost-management-plan-template-cross.md) |  |
 | Quality management plan |  | [Quality management plan](../templates/quality/quality-management-plan-template-cross.md) |  |

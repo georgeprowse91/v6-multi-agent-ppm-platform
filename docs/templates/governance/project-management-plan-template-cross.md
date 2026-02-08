@@ -78,7 +78,7 @@ Describe stakeholder groups, influence, and engagement strategy.
 ## 4. Subsidiary Plans
 | Plan | Owner | Status | Link/Reference |
 | --- | --- | --- | --- |
-| Scope management plan |  |  | `docs/templates/requirements/scope-management-plan-cross.md` |
+| Scope management plan |  |  | `docs/templates/requirements/scope-management-plan-template-cross.md` |
 | Schedule management plan |  |  | `docs/templates/schedule/schedule-management-plan-template-cross.md` |
 | Cost management plan |  |  | `docs/templates/finance/cost-management-plan-template-cross.md` |
 | Quality management plan |  |  | `docs/templates/quality/quality-management-plan-template-cross.md` |

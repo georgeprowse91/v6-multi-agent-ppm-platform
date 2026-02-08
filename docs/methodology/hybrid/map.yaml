@@ -117,7 +117,7 @@ stages:
           - Release Manager
         artefacts:
           - name: Release plan
-            template: docs/templates/schedule/release-plan-agile.md
+            template: docs/templates/schedule/release-plan-template-agile.md
             required: true
       - id: variance-report
         description: Summarize performance against milestones.

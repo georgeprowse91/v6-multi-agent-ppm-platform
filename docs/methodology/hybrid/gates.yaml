@@ -87,7 +87,7 @@ gates:
     stage: integration
     required_artefacts:
       - name: Release plan
-        template: docs/templates/schedule/release-plan-agile.md
+        template: docs/templates/schedule/release-plan-template-agile.md
         evidence: Readiness checklist completed.
       - name: Variance report
         template: docs/templates/finance/variance-report-template-cross.md

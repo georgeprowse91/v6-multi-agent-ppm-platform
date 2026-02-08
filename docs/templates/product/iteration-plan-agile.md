@@ -8,7 +8,7 @@ Product Owner, Delivery Team, Scrum Master, Stakeholders.
 
 ## Inputs
 - Risk-adjusted backlog (`docs/templates/risk/risk-adjusted-backlog-template-agile.csv`).
-- Release plan (`docs/templates/schedule/release-plan-agile.md`).
+- Release plan (`docs/templates/schedule/release-plan-template-agile.md`).
 - Capacity and WIP limits.
 
 ## 1. Iteration Metadata

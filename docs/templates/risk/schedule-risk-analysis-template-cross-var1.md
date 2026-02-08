@@ -8,7 +8,7 @@ Project Manager, Scheduler, Risk Manager, PMO, Delivery Leads, Sponsors.
 
 ## Inputs
 - Schedule management plan (`docs/templates/schedule/schedule-management-plan-template-cross.md`).
-- Project schedule template (`docs/templates/schedule/project-schedule-template-cross-var2.md`).
+- Project schedule template (`docs/templates/schedule/project-schedule-var2-template-cross.md`).
 - Risk management plan (`docs/templates/risk/risk-management-plan-template-cross.md`).
 - Risk register (`docs/templates/risk/risk-register-waterfall.xlsx` or `docs/templates/risk/integrated-risk-register-hybrid.xlsx`).
 

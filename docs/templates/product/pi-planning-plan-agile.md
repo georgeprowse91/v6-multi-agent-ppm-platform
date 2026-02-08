@@ -180,5 +180,5 @@ Milestones      |        |        |        |        |        |
 - **Dependency resolution rate:**
 
 ## References
-- Release plan (`docs/templates/schedule/release-plan-agile.md`).
+- Release plan (`docs/templates/schedule/release-plan-template-agile.md`).
 - Iteration plan (`docs/templates/product/iteration-plan-agile.md`).

@@ -10,7 +10,7 @@ Project Manager, Scheduler, PMO, Delivery Leads.
 - WBS (`docs/templates/schedule/wbs-template-waterfall.yaml`).
 - Schedule baseline (`docs/templates/schedule/schedule-baseline-waterfall.xlsx`).
 - Activity list (`docs/templates/schedule/activity-list-template-cross.csv`).
-- Project schedule template (`docs/templates/schedule/project-schedule-template-cross-var2.md`).
+- Project schedule template (`docs/templates/schedule/project-schedule-var2-template-cross.md`).
 
 ## 1. Schedule Development Approach
 Describe planning horizon, decomposition rules, and integration with WBS.
