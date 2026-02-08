@@ -1,201 +1,177 @@
 ---
 title: "Sprint Planning Template"
-methodology: "Scrum"
-category: "agile"
-version: "2.1.0"
-last_updated: "2025-06-21"
-tags: ["agile", "scrum", "sprint", "planning"]
-priority: "high"
+methodology: "agile"
+complexity: "advanced"
+owner: "mirichard"
+updated: "2025-08-05"
 ---
 
 # Sprint Planning Template
 
 ## Sprint Information
-
-### Sprint Details
-- **Sprint Number**: Sprint [#]
-- **Sprint Goal**: [Primary objective for this sprint]
-- **Sprint Duration**: [X] weeks
-- **Start Date**: [YYYY-MM-DD]
-- **End Date**: [YYYY-MM-DD]
-
-### Team Information
+- **Sprint Number**: [Sprint #]
+- **Sprint Goal**: [Clear, concise sprint goal]
+- **Start Date**: [Date]
+- **End Date**: [Date]
+- **Duration**: [Duration in weeks]
 - **Scrum Master**: [Name]
 - **Product Owner**: [Name]
-- **Development Team**: [List team members]
-- **Team Capacity**: [Total hours/story points available]
 
-## Sprint Goal
+## Meeting Details
+- **Date**: [Meeting Date]
+- **Duration**: [Planned Duration]
+- **Participants**: [Team Member Names]
+- **Location/Platform**: [Physical location or virtual platform]
 
-### Primary Objective
-[Clear, concise statement of what the team aims to achieve this sprint]
+## Sprint Planning Agenda
 
-### Success Criteria
-- [ ] [Measurable outcome 1]
-- [ ] [Measurable outcome 2]
-- [ ] [Measurable outcome 3]
+### Part 1: What can we deliver? (Time-boxed: [Duration])
 
-### Value Statement
-[How this sprint delivers value to users/customers]
+#### 1. Sprint Goal Definition
+**Sprint Goal**: [Specific, measurable objective for the sprint]
 
-## Product Backlog Review
+**Success Criteria**:
+- [Criterion 1]
+- [Criterion 2]
+- [Criterion 3]
 
-### Backlog Items Considered
-| Story ID | Title | Priority | Estimate | Status |
-|----------|-------|----------|----------|---------|
-| US-001 | [User story title] | High | 8 pts | Selected |
-| US-002 | [User story title] | High | 5 pts | Selected |
-| US-003 | [User story title] | Medium | 3 pts | Deferred |
+#### 2. Team Capacity Assessment
+- **Team Size**: [Number] developers
+- **Available Days**: [Total available person-days]
+- **Planned Vacation/Time Off**: [Any planned absences]
+- **Other Commitments**: [Meetings, training, support work]
+- **Net Capacity**: [Adjusted capacity for sprint work]
 
-### Refinement Notes
-- [Any clarifications or updates made during planning]
-- [Dependencies identified]
-- [Acceptance criteria refined]
+#### 3. Velocity Review
+| Sprint | Commitment | Completed | Velocity |
+|--------|------------|-----------|----------|
+| Sprint N-3 | [Points] | [Points] | [Points] |
+| Sprint N-2 | [Points] | [Points] | [Points] |
+| Sprint N-1 | [Points] | [Points] | [Points] |
+| **Average** | **[Points]** | **[Points]** | **[Points]** |
 
-## Sprint Backlog
+**Predicted Velocity for This Sprint**: [Points based on average and capacity]
 
-### Committed User Stories
+#### 4. Product Backlog Review
+**Top Priority Items**:
+| Story | Priority | Story Points | Dependencies | Ready? |
+|-------|----------|--------------|--------------|--------|
+| [Story 1] | P0 | [Points] | [Dependencies] | ✅/❌ |
+| [Story 2] | P1 | [Points] | [Dependencies] | ✅/❌ |
+| [Story 3] | P1 | [Points] | [Dependencies] | ✅/❌ |
 
-#### Story 1: [Title]
-- **Description**: As a [user type], I want [functionality] so that [benefit]
-- **Acceptance Criteria**:
-  - [ ] [Criteria 1]
-  - [ ] [Criteria 2]
-  - [ ] [Criteria 3]
-- **Story Points**: [X]
-- **Assignee**: [Team member]
-- **Tasks**:
-  - [ ] [Task 1] - [Estimated hours]
-  - [ ] [Task 2] - [Estimated hours]
-  - [ ] [Task 3] - [Estimated hours]
+### Part 2: How will we deliver it? (Time-boxed: [Duration])
 
-#### Story 2: [Title]
-- **Description**: As a [user type], I want [functionality] so that [benefit]
-- **Acceptance Criteria**:
-  - [ ] [Criteria 1]
-  - [ ] [Criteria 2]
-  - [ ] [Criteria 3]
-- **Story Points**: [X]
-- **Assignee**: [Team member]
-- **Tasks**:
-  - [ ] [Task 1] - [Estimated hours]
-  - [ ] [Task 2] - [Estimated hours]
-  - [ ] [Task 3] - [Estimated hours]
+#### 5. Sprint Backlog Creation
+**Selected Stories for Sprint**:
+| Story | Story Points | Owner | Task Breakdown |
+|-------|--------------|-------|----------------|
+| [Story 1] | [Points] | [Owner] | [High-level tasks] |
+| [Story 2] | [Points] | [Owner] | [High-level tasks] |
+| [Story 3] | [Points] | [Owner] | [High-level tasks] |
 
-### Sprint Capacity Planning
+**Total Commitment**: [Total Points]
 
-#### Team Velocity
-- **Previous Sprint Velocity**: [X] story points
-- **3-Sprint Average**: [X] story points
-- **Planned Commitment**: [X] story points
+#### 6. Definition of Done Review
+- [ ] Code complete and unit tested
+- [ ] Code reviewed and approved
+- [ ] Integration tests passing
+- [ ] Documentation updated
+- [ ] Acceptance criteria met
+- [ ] Product Owner approval
+- [ ] Deployed to staging environment
+- [ ] No known critical defects
 
-#### Capacity Breakdown
-| Team Member | Available Hours | Commitment (%) | Planned Work |
-|-------------|----------------|----------------|--------------|
-| [Name] | [Hours] | [%] | [Story points/tasks] |
-| [Name] | [Hours] | [%] | [Story points/tasks] |
-| [Name] | [Hours] | [%] | [Story points/tasks] |
+#### 7. Task Breakdown and Estimation
+**Detailed Tasks** (for first few days):
+| Task | Story | Estimate (Hours) | Owner | Dependencies |
+|------|-------|------------------|-------|--------------|
+| [Task 1] | [Story] | [Hours] | [Owner] | [Dependencies] |
+| [Task 2] | [Story] | [Hours] | [Owner] | [Dependencies] |
 
-## Definition of Done
-
-### Story-Level DoD
-- [ ] Code is written and peer-reviewed
-- [ ] Unit tests are written and passing
-- [ ] Integration tests are passing
-- [ ] Code is documented
-- [ ] Acceptance criteria are met
-- [ ] Product Owner has accepted the story
-
-### Sprint-Level DoD
-- [ ] All committed stories meet story-level DoD
-- [ ] Sprint goal is achieved
-- [ ] Product increment is potentially shippable
-- [ ] Sprint retrospective is completed
-
-## Dependencies and Risks
-
-### External Dependencies
-| Dependency | Impact | Owner | Status | Mitigation |
-|------------|--------|-------|--------|------------|
-| [Dependency] | [High/Medium/Low] | [Name] | [Status] | [Plan] |
+## Risk Assessment
 
 ### Identified Risks
-| Risk | Probability | Impact | Mitigation Strategy |
-|------|-------------|--------|-------------------|
-| [Risk description] | [High/Medium/Low] | [High/Medium/Low] | [Strategy] |
+| Risk | Impact | Probability | Mitigation Plan |
+|------|--------|-------------|-----------------|
+| [Risk 1] | High/Med/Low | High/Med/Low | [Mitigation strategy] |
+| [Risk 2] | High/Med/Low | High/Med/Low | [Mitigation strategy] |
 
-### Assumptions
-- [Assumption 1]
-- [Assumption 2]
-- [Assumption 3]
+### Dependencies
+| Dependency | Type | Impact | Owner | Status |
+|------------|------|--------|-------|--------|
+| [Dependency 1] | External | High | [Owner] | [Status] |
+| [Dependency 2] | Internal | Medium | [Owner] | [Status] |
 
-## Sprint Events Schedule
+## Sprint Logistics
 
-### Daily Standups
+### Daily Standup Schedule
 - **Time**: [Time]
+- **Location/Platform**: [Location]
 - **Duration**: 15 minutes
-- **Location**: [Location/Link]
-- **Format**: What did you do yesterday? What will you do today? Any blockers?
+- **Facilitator**: [Scrum Master]
 
-### Sprint Review
+### Sprint Review Planning
 - **Date**: [Date]
 - **Time**: [Time]
 - **Duration**: [Duration]
-- **Attendees**: [List]
-- **Agenda**: Demo completed work, gather feedback
+- **Participants**: [Team + stakeholders]
+- **Demo Environment**: [Environment details]
 
-### Sprint Retrospective
+### Sprint Retrospective Planning
 - **Date**: [Date]
 - **Time**: [Time]
 - **Duration**: [Duration]
-- **Format**: What went well? What could be improved? Action items?
+- **Format**: [Retrospective format/technique]
 
 ## Communication Plan
 
 ### Stakeholder Updates
-- **Frequency**: [How often]
-- **Method**: [Email, Slack, meetings]
-- **Recipients**: [Who gets updates]
+- **Sprint Review Invitations**: [Send by date]
+- **Sprint Progress Updates**: [Frequency and method]
+- **Impediment Escalation**: [Process and contacts]
 
-### Escalation Path
-1. **Team Level**: Scrum Master
-2. **Department Level**: [Manager/Director]
-3. **Executive Level**: [VP/C-level]
+### Team Agreements
+- **Working Hours**: [Core hours]
+- **Communication Channels**: [Primary channels]
+- **Response Time Expectations**: [SLA for responses]
+- **Meeting Etiquette**: [Guidelines]
 
 ## Success Metrics
 
-### Sprint Metrics
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Velocity | [X] points | TBD | 🟡 |
-| Burn Rate | Steady | TBD | 🟡 |
-| Story Completion | 100% | TBD | 🟡 |
-| Quality (Defects) | <2 | TBD | 🟡 |
+### Sprint Metrics to Track
+- **Velocity**: Target [Points], measure actual
+- **Sprint Goal Achievement**: [Success criteria]
+- **Story Completion Rate**: Target [%]
+- **Scope Change**: Track additions/removals
+- **Team Satisfaction**: End-of-sprint survey
 
-### Business Metrics
-- [Business metric 1]: [Target]
-- [Business metric 2]: [Target]
-- [Business metric 3]: [Target]
+### Quality Metrics
+- **Defect Rate**: [Target rate]
+- **Code Coverage**: [Target %]
+- **Review Efficiency**: [Average review time]
 
-## Notes and Action Items
+## Action Items from Planning
+- [ ] [Action 1] - Owner: [Name] - Due: [Date]
+- [ ] [Action 2] - Owner: [Name] - Due: [Date]
+- [ ] [Action 3] - Owner: [Name] - Due: [Date]
 
-### Planning Session Notes
-- [Key discussion points]
-- [Decisions made]
-- [Clarifications needed]
+## Meeting Notes
+[Space for capturing important discussions, decisions, and clarifications during the planning session]
 
-### Action Items
-- [ ] [Action item 1] - [Owner] - [Due date]
-- [ ] [Action item 2] - [Owner] - [Due date]
-- [ ] [Action item 3] - [Owner] - [Due date]
+### Key Decisions Made
+- [Decision 1]: [Rationale]
+- [Decision 2]: [Rationale]
+
+### Questions Raised
+- [Question 1]: [Answer/Follow-up action]
+- [Question 2]: [Answer/Follow-up action]
 
 ---
 
-## Template Usage Instructions
+**Meeting Facilitated by**: [Scrum Master Name]  
+**Meeting Date**: [Date]  
+**Next Sprint Planning**: [Date]
 
-1. **Pre-Planning**: Review and refine backlog items with Product Owner
-2. **Planning Meeting**: Use this template to guide the planning session
-3. **During Sprint**: Update task completion and track progress
-4. **Post-Sprint**: Review outcomes and update team velocity
+*Effective sprint planning for focused team delivery*
 
-*This template supports Scrum framework sprint planning and should be adapted to your team's specific needs and context.*
