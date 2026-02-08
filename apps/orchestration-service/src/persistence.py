@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+from datetime import datetime
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,9 +45,10 @@ class JsonOrchestrationStateStore:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         if not self.path.exists():
             self.path.write_text(json.dumps({}))
+        self.logger = logging.getLogger("orchestration-service.persistence")
 
     async def load(self, tenant_id: str | None = None) -> dict[str, WorkflowState]:
-        raw = json.loads(self.path.read_text())
+        raw = self._read_state()
         states: dict[str, WorkflowState] = {}
         for key, data in raw.items():
             payload = data.get("payload", {})
@@ -68,7 +71,7 @@ class JsonOrchestrationStateStore:
         return states
 
     async def save(self, state: WorkflowState) -> WorkflowState:
-        raw = json.loads(self.path.read_text())
+        raw = self._read_state()
         key = make_state_key(state.tenant_id, state.run_id)
         next_version = state.version + 1 if state.version else 1
         raw[key] = {
@@ -88,6 +91,24 @@ class JsonOrchestrationStateStore:
             payload=state.payload,
             version=next_version,
         )
+
+    def _read_state(self) -> dict[str, Any]:
+        try:
+            return json.loads(self.path.read_text())
+        except FileNotFoundError:
+            self.logger.warning("State file missing, recreating %s", self.path)
+            self.path.write_text(json.dumps({}))
+            return {}
+        except json.JSONDecodeError:
+            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+            backup_path = self.path.with_suffix(f"{self.path.suffix}.corrupt.{timestamp}")
+            self.logger.error(
+                "State file corrupt, backing up to %s and resetting",
+                backup_path,
+            )
+            self.path.rename(backup_path)
+            self.path.write_text(json.dumps({}))
+            return {}
 
 
 class DatabaseOrchestrationStateStore:
