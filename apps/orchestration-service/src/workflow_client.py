@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Any, cast
 
@@ -12,6 +13,8 @@ class WorkflowClient:
         base_url: str | None = None,
         timeout: float | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
+        max_retries: int | None = None,
+        retry_backoff_s: float | None = None,
     ) -> None:
         fallback_url = os.getenv("WORKFLOW_ENGINE_URL")
         self.base_url = base_url or fallback_url or "http://workflow-engine:8080"
@@ -19,6 +22,12 @@ class WorkflowClient:
             timeout = float(os.getenv("WORKFLOW_ENGINE_TIMEOUT_S", "10"))
         self.timeout: float = timeout
         self.transport: httpx.AsyncBaseTransport | None = transport
+        if max_retries is None:
+            max_retries = int(os.getenv("WORKFLOW_ENGINE_MAX_RETRIES", "2"))
+        if retry_backoff_s is None:
+            retry_backoff_s = float(os.getenv("WORKFLOW_ENGINE_RETRY_BACKOFF_S", "0.5"))
+        self.max_retries = max(0, max_retries)
+        self.retry_backoff_s = max(0.0, retry_backoff_s)
 
     async def start_workflow(
         self, payload: dict[str, Any], headers: dict[str, str]
@@ -68,4 +77,22 @@ class WorkflowClient:
         async with httpx.AsyncClient(
             base_url=self.base_url, timeout=self.timeout, transport=self.transport
         ) as client:
-            return await client.request(method, path, headers=headers, json=json)
+            for attempt in range(self.max_retries + 1):
+                try:
+                    response = await client.request(method, path, headers=headers, json=json)
+                except (httpx.ConnectError, httpx.ReadTimeout, httpx.RemoteProtocolError) as exc:
+                    if attempt >= self.max_retries:
+                        raise
+                    await self._sleep_backoff(attempt, exc)
+                    continue
+                if response.status_code in {429, 502, 503, 504} and attempt < self.max_retries:
+                    await self._sleep_backoff(attempt, None)
+                    continue
+                return response
+            raise RuntimeError("Workflow client retry loop exhausted unexpectedly")
+
+    async def _sleep_backoff(self, attempt: int, exc: Exception | None) -> None:
+        delay = self.retry_backoff_s * (2**attempt)
+        if delay <= 0:
+            return
+        await asyncio.sleep(delay)

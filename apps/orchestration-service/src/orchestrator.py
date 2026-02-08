@@ -260,16 +260,7 @@ class AgentOrchestrator:
             except asyncio.TimeoutError:
                 outcome = "error"
                 logger.error("Agent %s timed out after %ss", agent.agent_id, AGENT_CALL_TIMEOUT)
-                if isinstance(context, AgentContext):
-                    correlation_id = context.correlation_id
-                else:
-                    context_payload = context.get("context", {})
-                    if isinstance(context_payload, AgentContext):
-                        correlation_id = context_payload.correlation_id
-                    else:
-                        correlation_id = context_payload.get("correlation_id") or context.get(
-                            "correlation_id"
-                        )
+                correlation_id = self._resolve_correlation_id(context)
                 return AgentResponse(
                     success=False,
                     error="Agent timeout",
@@ -284,13 +275,37 @@ class AgentOrchestrator:
                         policy_reasons=None,
                     ),
                 )
-            except Exception:
+            except Exception as exc:
                 outcome = "error"
-                raise
+                logger.exception("Agent %s execution failed", agent.agent_id)
+                correlation_id = self._resolve_correlation_id(context)
+                return AgentResponse(
+                    success=False,
+                    error=str(exc),
+                    data=None,
+                    metadata=AgentResponseMetadata(
+                        agent_id=agent.agent_id,
+                        catalog_id=agent.catalog_id or agent.agent_id,
+                        timestamp=datetime.utcnow().isoformat(),
+                        correlation_id=correlation_id or "unknown",
+                        trace_id=None,
+                        execution_time_seconds=None,
+                        policy_reasons=None,
+                    ),
+                )
             finally:
                 duration = time.monotonic() - start
                 agent_request_count.labels(agent_name, outcome).inc()
                 agent_request_latency.labels(agent_name).observe(duration)
+
+    @staticmethod
+    def _resolve_correlation_id(context: dict[str, Any] | AgentContext) -> str | None:
+        if isinstance(context, AgentContext):
+            return context.correlation_id
+        context_payload = context.get("context", {})
+        if isinstance(context_payload, AgentContext):
+            return context_payload.correlation_id
+        return context_payload.get("correlation_id") or context.get("correlation_id")
 
     async def _load_governance_agents(self) -> None:
         """Initialize governance agents."""
