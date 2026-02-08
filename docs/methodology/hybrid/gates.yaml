@@ -38,7 +38,7 @@ gates:
         template: docs/templates/risk/integrated-risk-register-hybrid.xlsx
         evidence: Risks assessed with owners.
       - name: Communications plan
-        template: docs/templates/communications/communications-plan-cross.md
+        template: docs/templates/communications/communications-plan-template-cross.md
         evidence: Communications cadence agreed.
     criteria:
       - id: plan-1
@@ -64,7 +64,7 @@ gates:
         template: docs/templates/product/sprint-plan-agile.md
         evidence: Signed sprint commitments.
       - name: Change log
-        template: docs/templates/change/change-log-cross.md
+        template: docs/templates/change/change-log-template-cross.md
         evidence: Change log updated.
     criteria:
       - id: delivery-1

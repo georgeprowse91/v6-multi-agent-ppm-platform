@@ -46,7 +46,7 @@ Define when risks must be escalated to governance or sponsors.
 
 ## 8. Monitoring & Reporting
 - Risk review cadence and reporting audiences.
-- Link to risk report (`docs/templates/risk/risk-report-cross.md`).
+- Link to risk report (`docs/templates/risk/risk-report-template-cross.md`).
 - Update frequency for the risk register (`docs/templates/risk/risk-register-waterfall.xlsx`).
 
 ## Completion Checklist

@@ -67,7 +67,7 @@ stages:
           - Communications Lead
         artefacts:
           - name: Communications plan
-            template: docs/templates/communications/communications-plan-cross.md
+            template: docs/templates/communications/communications-plan-template-cross.md
             required: true
           - name: Stakeholder register
             template: docs/templates/stakeholders/stakeholder-register-cross.xlsx
@@ -96,7 +96,7 @@ stages:
           - Change Manager
         artefacts:
           - name: Change log
-            template: docs/templates/change/change-log-cross.md
+            template: docs/templates/change/change-log-template-cross.md
             required: true
           - name: Change impact assessment
             template: docs/templates/change/change-impact-assessment-cross.md

@@ -116,7 +116,7 @@ Describe the desired future state after change implementation.
 - [Channel 3 - e.g., Intranet portal]
 - [Channel 4 - e.g., Team meetings]
 
-Reference the communication plan template: `docs/templates/communications/communications-plan-cross.md`.
+Reference the communication plan template: `docs/templates/communications/communications-plan-template-cross.md`.
 
 ---
 
@@ -152,7 +152,7 @@ Reference the communication plan template: `docs/templates/communications/commun
 
 Reference change impact assessment and change log:
 - `docs/templates/change/change-impact-assessment-cross.md`
-- `docs/templates/change/change-log-cross.md`
+- `docs/templates/change/change-log-template-cross.md`
 
 ---
 

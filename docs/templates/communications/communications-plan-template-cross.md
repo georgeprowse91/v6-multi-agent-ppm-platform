@@ -145,7 +145,7 @@ Maintain a shared calendar with invitations and reminders for all recurring meet
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Project Status Report | Status update | Steering Committee | Bi-weekly | Slides | PM | Email/meeting | `docs/templates/governance/status-report-cross-var1.md` |
 | Executive Dashboard | Metrics | Executive leadership | Monthly | PDF | Sponsor | Email | [Dashboard link] |
-| Risk & Issue Log | Risk tracking | Project team | Weekly | Spreadsheet | Risk Manager | SharePoint | `docs/templates/risk/risk-report-cross.md` |
+| Risk & Issue Log | Risk tracking | Project team | Weekly | Spreadsheet | Risk Manager | SharePoint | `docs/templates/risk/risk-report-template-cross.md` |
 
 ### 5.2 Ad-hoc/Special Reports
 | Report | Trigger | Audience | Format | Owner | Turnaround | Approval Required |

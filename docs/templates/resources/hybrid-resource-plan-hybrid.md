@@ -10,7 +10,7 @@ Project Manager, Resource Manager, Delivery Leads, PMO.
 ## Inputs
 - Milestone plan (`docs/templates/schedule/milestone-plan-hybrid.xlsx`).
 - Sprint/iteration plans (`docs/templates/product/iteration-plan-agile.md`).
-- Shared resource plan (`docs/templates/resources/resource-management-plan-cross.md`).
+- Shared resource plan (`docs/templates/resources/resource-management-plan-template-cross.md`).
 
 ## 1. Phase-based resource allocation
 | Phase | Key roles | Allocation % | Peak demand | Notes |

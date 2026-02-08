@@ -9,7 +9,7 @@ data-driven decisions.
 Project Manager, Scheduler, PMO, Finance Analyst, Delivery Leads, Sponsors.
 
 ## Inputs
-- Schedule management plan (`docs/templates/schedule/schedule-management-plan-cross.md`).
+- Schedule management plan (`docs/templates/schedule/schedule-management-plan-template-cross.md`).
 - Project schedule template (`docs/templates/schedule/project-schedule-template-cross-var2.md`).
 - Schedule risk analysis (`docs/templates/risk/schedule-risk-analysis-template-cross-var1.md`).
 

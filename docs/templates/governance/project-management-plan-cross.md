@@ -79,14 +79,14 @@ Describe stakeholder groups, influence, and engagement strategy.
 | Plan | Owner | Status | Link/Reference |
 | --- | --- | --- | --- |
 | Scope management plan |  |  | `docs/templates/requirements/scope-management-plan-cross.md` |
-| Schedule management plan |  |  | `docs/templates/schedule/schedule-management-plan-cross.md` |
-| Cost management plan |  |  | `docs/templates/finance/cost-management-plan-cross.md` |
-| Quality management plan |  |  | `docs/templates/quality/quality-management-plan-cross.md` |
-| Resource management plan |  |  | `docs/templates/resources/resource-management-plan-cross.md` |
-| Communications plan |  |  | `docs/templates/communications/communications-plan-cross.md` |
-| Risk management plan |  |  | `docs/templates/risk/risk-management-plan-cross.md` |
-| Procurement management plan |  |  | `docs/templates/finance/procurement-management-plan-cross.md` |
-| Stakeholder engagement plan |  |  | `docs/templates/communications/communications-plan-cross.md` |
+| Schedule management plan |  |  | `docs/templates/schedule/schedule-management-plan-template-cross.md` |
+| Cost management plan |  |  | `docs/templates/finance/cost-management-plan-template-cross.md` |
+| Quality management plan |  |  | `docs/templates/quality/quality-management-plan-template-cross.md` |
+| Resource management plan |  |  | `docs/templates/resources/resource-management-plan-template-cross.md` |
+| Communications plan |  |  | `docs/templates/communications/communications-plan-template-cross.md` |
+| Risk management plan |  |  | `docs/templates/risk/risk-management-plan-template-cross.md` |
+| Procurement management plan |  |  | `docs/templates/finance/procurement-management-plan-template-cross.md` |
+| Stakeholder engagement plan |  |  | `docs/templates/communications/communications-plan-template-cross.md` |
 | Change management plan |  |  | `docs/templates/change/change-management-plan-cross.md` |
 
 ## 5. Scope Management (Summary)

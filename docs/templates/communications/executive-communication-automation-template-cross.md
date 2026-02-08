@@ -8,7 +8,7 @@ workflows for high-visibility stakeholder engagement.
 Project Managers, Executive Assistants, PMO Teams, Communications Leads.
 
 ## Prerequisites
-- Approved communication plan (`docs/templates/communications/communications-plan-cross.md`).
+- Approved communication plan (`docs/templates/communications/communications-plan-template-cross.md`).
 - Executive stakeholder list and distribution groups.
 - Access to email/calendar automation tooling (e.g., Outlook, Power Automate).
 

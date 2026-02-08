@@ -30,7 +30,7 @@ Provide definitions, boundaries, and acceptance criteria for each work package.
 ## 4. Baseline Maintenance
 - Record baseline approval date and governance authority.
 - Update only through approved change requests.
-- Track baseline version history in the change log (`docs/templates/change/change-log-cross.md`).
+- Track baseline version history in the change log (`docs/templates/change/change-log-template-cross.md`).
 
 ## 5. Scope Change Tracking
 | Change ID | Description | Impacted WBS Element | Approval Date | Notes |

@@ -93,7 +93,7 @@ stages:
           - Product Owner
         artefacts:
           - name: Change log
-            template: docs/templates/change/change-log-cross.md
+            template: docs/templates/change/change-log-template-cross.md
             required: true
           - name: Change impact assessment
             template: docs/templates/change/change-impact-assessment-cross.md

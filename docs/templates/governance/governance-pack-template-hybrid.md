@@ -10,7 +10,7 @@ Executive Sponsor, Steering Committee, PMO Lead, Program Manager, Delivery Lead,
 ## Inputs
 - Hybrid charter (`docs/templates/governance/hybrid-charter-hybrid.md`).
 - Decision log (`docs/templates/governance/decision-log-hybrid.md`).
-- Communications plan (`docs/templates/communications/communications-plan-cross.md`).
+- Communications plan (`docs/templates/communications/communications-plan-template-cross.md`).
 - Change request (`docs/templates/change/change-request-cross-var1.md`).
 
 ---
@@ -193,8 +193,8 @@ Cross-functional Delivery Squads
 ## Appendix B: Governance Artefacts
 - Decision log (`docs/templates/governance/decision-log-hybrid.md`).
 - Risk register (`docs/templates/risk/integrated-risk-register-hybrid.xlsx`).
-- Communications plan (`docs/templates/communications/communications-plan-cross.md`).
-- Change log (`docs/templates/change/change-log-cross.md`).
+- Communications plan (`docs/templates/communications/communications-plan-template-cross.md`).
+- Change log (`docs/templates/change/change-log-template-cross.md`).
 
 ## Completion Checklist
 - [ ] Governance structure and decision rights documented.
