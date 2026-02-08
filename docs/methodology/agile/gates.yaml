@@ -6,13 +6,13 @@ gates:
     stage: intake
     required_artefacts:
       - name: Demand intake request
-        template: docs/templates/shared/demand-intake-request.md
+        template: docs/templates/portfolio-program/demand-intake-request-cross.md
         evidence: Demand record ID or ticket link.
       - name: Business case
-        template: docs/templates/shared/business-case.md
+        template: docs/templates/portfolio-program/business-case-template-cross-var3.md
         evidence: Approved business case document.
       - name: Product backlog
-        template: docs/templates/agile/backlog.csv
+        template: docs/templates/product/backlog-template-agile.csv
         evidence: Backlog populated with prioritized items.
     criteria:
       - id: intake-1
@@ -35,10 +35,10 @@ gates:
     stage: planning
     required_artefacts:
       - name: Sprint plan
-        template: docs/templates/agile/sprint-plan.md
+        template: docs/templates/product/sprint-plan-agile.md
         evidence: Signed plan with capacity.
       - name: Release plan
-        template: docs/templates/agile/release-plan.md
+        template: docs/templates/schedule/release-plan-agile.md
         evidence: Stakeholder-reviewed release plan.
     criteria:
       - id: planning-1
@@ -61,10 +61,10 @@ gates:
     stage: review
     required_artefacts:
       - name: Release plan
-        template: docs/templates/agile/release-plan.md
+        template: docs/templates/schedule/release-plan-agile.md
         evidence: Updated readiness checklist.
       - name: Variance report
-        template: docs/templates/shared/variance-report.md
+        template: docs/templates/finance/variance-report-cross.md
         evidence: Variance summary shared with stakeholders.
     criteria:
       - id: review-1
@@ -87,7 +87,7 @@ gates:
     stage: retrospective
     required_artefacts:
       - name: Retrospective notes
-        template: docs/templates/agile/retro-notes.md
+        template: docs/templates/product/retro-notes-template-agile.md
         evidence: Action items logged with owners.
     criteria:
       - id: retro-1

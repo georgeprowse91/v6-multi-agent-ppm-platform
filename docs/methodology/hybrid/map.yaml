@@ -14,10 +14,10 @@ stages:
           - Business Analyst
         artefacts:
           - name: Business case
-            template: docs/templates/shared/business-case.md
+            template: docs/templates/portfolio-program/business-case-template-cross-var3.md
             required: true
           - name: ROI/NPV worksheet
-            template: docs/templates/shared/roi-npv-worksheet.xlsx
+            template: docs/templates/finance/roi-npv-worksheet-cross.xlsx
             required: true
       - id: hybrid-charter
         description: Document hybrid charter, roles, and cadence.
@@ -25,7 +25,7 @@ stages:
           - Program Manager
         artefacts:
           - name: Hybrid charter
-            template: docs/templates/hybrid/hybrid-charter.md
+            template: docs/templates/governance/hybrid-charter-hybrid.md
             required: true
       - id: governance-pack
         description: Define stage gate and decision governance.
@@ -33,7 +33,7 @@ stages:
           - PMO Lead
         artefacts:
           - name: Governance pack
-            template: docs/templates/hybrid/governance-pack.md
+            template: docs/templates/governance/governance-pack-template-hybrid.md
             required: true
     exit_criteria:
       - Charter and governance pack approved.
@@ -51,7 +51,7 @@ stages:
           - Program Scheduler
         artefacts:
           - name: Milestone plan
-            template: docs/templates/hybrid/milestone-plan.xlsx
+            template: docs/templates/schedule/milestone-plan-hybrid.xlsx
             required: true
       - id: integrated-risk
         description: Identify risks across sequential and iterative workstreams.
@@ -59,7 +59,7 @@ stages:
           - Risk Manager
         artefacts:
           - name: Integrated risk register
-            template: docs/templates/hybrid/integrated-risk-register.xlsx
+            template: docs/templates/risk/integrated-risk-register-hybrid.xlsx
             required: true
       - id: communications-plan
         description: Align stakeholder communication cadences.
@@ -67,10 +67,10 @@ stages:
           - Communications Lead
         artefacts:
           - name: Communications plan
-            template: docs/templates/shared/communications-plan.md
+            template: docs/templates/communications/communications-plan-cross.md
             required: true
           - name: Stakeholder register
-            template: docs/templates/shared/stakeholder-register.xlsx
+            template: docs/templates/stakeholders/stakeholder-register-cross.xlsx
             required: true
     exit_criteria:
       - Milestones and risks reviewed by governance forum.
@@ -88,7 +88,7 @@ stages:
           - Scrum Master
         artefacts:
           - name: Sprint plan
-            template: docs/templates/agile/sprint-plan.md
+            template: docs/templates/product/sprint-plan-agile.md
             required: true
       - id: change-control
         description: Manage scope changes and decision log updates.
@@ -96,10 +96,10 @@ stages:
           - Change Manager
         artefacts:
           - name: Change log
-            template: docs/templates/shared/change-log.md
+            template: docs/templates/change/change-log-cross.md
             required: true
           - name: Change impact assessment
-            template: docs/templates/shared/change-impact-assessment.md
+            template: docs/templates/change/change-impact-assessment-cross.md
             required: true
     exit_criteria:
       - Increment accepted for integration.
@@ -117,7 +117,7 @@ stages:
           - Release Manager
         artefacts:
           - name: Release plan
-            template: docs/templates/agile/release-plan.md
+            template: docs/templates/schedule/release-plan-agile.md
             required: true
       - id: variance-report
         description: Summarize performance against milestones.
@@ -125,7 +125,7 @@ stages:
           - Program Manager
         artefacts:
           - name: Variance report
-            template: docs/templates/shared/variance-report.md
+            template: docs/templates/finance/variance-report-cross.md
             required: true
     exit_criteria:
       - Release readiness checklist completed.
@@ -143,7 +143,7 @@ stages:
           - Program Manager
         artefacts:
           - name: Closure report
-            template: docs/templates/waterfall/closure-report.md
+            template: docs/templates/governance/closure-report-waterfall.md
             required: true
       - id: privacy-review
         description: Complete privacy and compliance documentation.

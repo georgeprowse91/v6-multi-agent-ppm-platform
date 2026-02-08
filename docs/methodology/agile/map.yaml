@@ -15,10 +15,10 @@ stages:
           - Demand Manager
         artefacts:
           - name: Demand intake request
-            template: docs/templates/shared/demand-intake-request.md
+            template: docs/templates/portfolio-program/demand-intake-request-cross.md
             required: true
           - name: Demand intake schema
-            template: docs/templates/shared/demand-intake-schema.yaml
+            template: docs/templates/portfolio-program/demand-intake-schema-cross.yaml
             required: true
       - id: business-case
         description: Quantify value, cost, and options for approval.
@@ -27,10 +27,10 @@ stages:
           - Finance Partner
         artefacts:
           - name: Business case
-            template: docs/templates/shared/business-case.md
+            template: docs/templates/portfolio-program/business-case-template-cross-var3.md
             required: true
           - name: ROI/NPV worksheet
-            template: docs/templates/shared/roi-npv-worksheet.xlsx
+            template: docs/templates/finance/roi-npv-worksheet-cross.xlsx
             required: true
       - id: seed-backlog
         description: Create the initial backlog with epics, stories, and acceptance criteria.
@@ -38,7 +38,7 @@ stages:
           - Product Owner
         artefacts:
           - name: Product backlog
-            template: docs/templates/agile/backlog.csv
+            template: docs/templates/product/backlog-template-agile.csv
             required: true
     exit_criteria:
       - Demand intake approved and assigned an owner.
@@ -58,7 +58,7 @@ stages:
           - Scrum Master
         artefacts:
           - name: Sprint plan
-            template: docs/templates/agile/sprint-plan.md
+            template: docs/templates/product/sprint-plan-agile.md
             required: true
       - id: release-plan
         description: Establish release scope, dependencies, and readiness criteria.
@@ -66,7 +66,7 @@ stages:
           - Product Owner
         artefacts:
           - name: Release plan
-            template: docs/templates/agile/release-plan.md
+            template: docs/templates/schedule/release-plan-agile.md
             required: true
     exit_criteria:
       - Sprint plan approved by the delivery lead.
@@ -85,7 +85,7 @@ stages:
           - Delivery Team
         artefacts:
           - name: Burndown tracking
-            template: docs/templates/agile/burndown.xlsx
+            template: docs/templates/product/burndown-template-agile.xlsx
             required: true
       - id: change-control
         description: Log scope changes and evaluate impacts.
@@ -93,10 +93,10 @@ stages:
           - Product Owner
         artefacts:
           - name: Change log
-            template: docs/templates/shared/change-log.md
+            template: docs/templates/change/change-log-cross.md
             required: true
           - name: Change impact assessment
-            template: docs/templates/shared/change-impact-assessment.md
+            template: docs/templates/change/change-impact-assessment-cross.md
             required: true
     exit_criteria:
       - Sprint commitments completed or re-forecasted.
@@ -115,7 +115,7 @@ stages:
           - Product Owner
         artefacts:
           - name: Release readiness updates
-            template: docs/templates/agile/release-plan.md
+            template: docs/templates/schedule/release-plan-agile.md
             required: true
       - id: variance-report
         description: Summarize delivery variance and corrective actions.
@@ -123,7 +123,7 @@ stages:
           - Delivery Lead
         artefacts:
           - name: Variance report
-            template: docs/templates/shared/variance-report.md
+            template: docs/templates/finance/variance-report-cross.md
             required: true
     exit_criteria:
       - Stakeholders accept delivered scope.
@@ -141,7 +141,7 @@ stages:
           - Scrum Master
         artefacts:
           - name: Retrospective notes
-            template: docs/templates/agile/retro-notes.md
+            template: docs/templates/product/retro-notes-template-agile.md
             required: true
     exit_criteria:
       - Improvement actions assigned and tracked.

@@ -1,53 +1,47 @@
-# Shared Template Library
+# Template Library
 
 ## Purpose
-Provide reusable templates that are either shared across methodologies or tailored to a specific
-delivery approach. These templates align with PMBOK-style artefacts and support predictive,
+Provide reusable templates that are organized by discipline and usable across predictive,
 agile, and hybrid delivery practices.
 
 ## What's inside
-### Cross-methodology categories
-- `checklists/`: Delivery, quality, and readiness checklists.
-- `charters/`: Team, project, program, and governance charters.
-- `plans/`: Management plans, release/acceptance plans, and UAT planning.
-- `reports/`: Status, assessments, dashboards, and closure reporting.
-- `registers-logs/`: Issue, risk, decision, benefits, and stakeholder registers/logs.
-- `requirements/`: Scope statements, requirements libraries, and traceability.
-- `risk/`: Risk analysis and assessment artefacts.
-- `quality/`: Quality gates, UAT support, and quality management artefacts.
-- `communications/`: Communication plans, calendars, and stakeholder comms workflows.
-- `governance/`: Governance frameworks, decision models, escalation, and authority artefacts.
-- `schedule/`: Schedules, WBS templates, and schedule metrics.
-- `finance/`: Budgets, purchase orders, and ROI tracking.
-- `resources/`: Capacity, resource, and team performance planning.
-- `portfolio-program/`: Portfolio/program business cases, WBS, and prioritization.
-- `product/`: Product strategy, vision, and backlog artefacts.
-- `change/`: Change requests, readiness, and change-control process artefacts.
-- `stakeholders/`: Stakeholder analysis, mapping, and engagement artefacts.
-- `meetings/`: Meeting agendas, standups, and sprint ceremonies.
+Templates are grouped by discipline. Each discipline directory contains formats such as plans,
+reports, checklists, registers, and matrices. File names include the format and methodology
+variant so it is easy to find a specific template.
 
-### Methodology-specific libraries
-- `docs/templates/shared`: Cross-methodology plans, logs, reports, and baselines (scope, schedule,
-  cost, quality, risk, procurement, resource, communications, and stakeholder artefacts), plus
-  specialized guidance such as schedule risk analysis, financial risk management, and template
-  customization governance.
-- `docs/templates/agile`: Agile-only templates such as sprint planning, backlog management, and
-  retrospectives, organized by planning, reports, risk, roles, and meetings.
-- `docs/templates/hybrid`: Hybrid governance templates for milestone planning, integrated risk,
-  and program-level cadence, organized by plans, resources, risk, and governance.
-- `docs/templates/waterfall`: Waterfall-only artefacts such as charters, WBS, baselines, and
-  closure documentation, organized by planning and assessment.
+### Disciplines
+- `change/`: Change management plans, requests, logs, and readiness artefacts.
+- `communications/`: Communication plans, calendars, meeting guides, and stakeholder comms.
+- `finance/`: Budgets, cost/ROI artefacts, procurement, and vendor management.
+- `governance/`: Governance frameworks, decision models, charters, and escalation artefacts.
+- `portfolio-program/`: Portfolio/program business cases, benefits, prioritization, and roadmaps.
+- `product/`: Product strategy, vision, backlog, and agile delivery templates.
+- `quality/`: Quality plans, checklists, assessments, and UAT materials.
+- `requirements/`: Scope, requirements libraries, traceability, and analysis artefacts.
+- `resources/`: Resource planning, team performance, and roles/responsibilities.
+- `risk/`: Risk registers, issue/assumption logs, and risk analysis tools.
+- `schedule/`: Schedules, WBS, milestones, and release planning.
+- `stakeholders/`: Stakeholder analysis, mapping, and engagement tools.
 
-## Consolidation Policy
-Templates live in this folder hierarchy only. When duplicate templates existed in methodology
-folders, the most comprehensive version was retained here and references were updated to use it.
-If you need a methodology-specific variant, add it under the appropriate subfolder and link to it
-from the methodology map.
+## Naming convention
+Templates follow the pattern:
+
+```
+<template-name>-<format>-<methodology>
+```
+
+Examples:
+- `change-request-request-cross.md`
+- `sprint-plan-plan-agile.md`
+- `project-charter-charter-waterfall.md`
+
+Use `cross` for templates applicable across methodologies. If multiple variants of the same
+template exist, the filename includes `-var1`, `-var2`, etc.
 
 ## How it's used
-Templates are referenced by methodology maps and the cross-methodology template catalog. Tailor
-sections by adding or removing rows, adapting terminology, and mapping artefacts to local
-governance expectations.
+Templates are referenced by methodology maps and the template catalog. Tailor sections by
+adding or removing rows, adapting terminology, and mapping artefacts to local governance
+expectations.
 
 ## Spreadsheet Templates
 Some templates are delivered as spreadsheets (e.g., cost baseline, risk register). Use Excel or

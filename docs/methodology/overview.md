@@ -12,8 +12,8 @@ Methodology YAML files define stages and deliverables. The Approval Workflow age
 
 - `map.yaml`: ordered stages, required deliverables, and ownership.
 - `gates.yaml`: gate criteria, approvals, and evidence requirements.
-- `docs/templates/`: document templates for stage deliverables, organized by shared and
-  methodology-specific subfolders.
+- `docs/templates/`: document templates for stage deliverables, organized by discipline with
+  methodology variants labeled in the filename (e.g., `-agile`, `-hybrid`, `-waterfall`).
 
 ## YAML schema (v1)
 
@@ -36,7 +36,7 @@ stages:
         owner_roles: ["Role A"]
         artefacts:
           - name: Demand intake request
-            template: docs/templates/shared/demand-intake-request.md
+            template: docs/templates/portfolio-program/demand-intake-request-cross.md
             required: true
     exit_criteria:
       - Objective checks required to move to the next stage.
@@ -54,7 +54,7 @@ gates:
     stage: discovery
     required_artefacts:
       - name: Business case
-        template: docs/templates/shared/business-case.md
+        template: docs/templates/portfolio-program/business-case-template-cross-var3.md
         evidence: Signed approval or ticket reference.
     criteria:
       - id: criteria-1

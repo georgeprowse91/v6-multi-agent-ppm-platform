@@ -6,10 +6,10 @@ gates:
     stage: initiation
     required_artefacts:
       - name: Hybrid charter
-        template: docs/templates/hybrid/hybrid-charter.md
+        template: docs/templates/governance/hybrid-charter-hybrid.md
         evidence: Signed charter.
       - name: Governance pack
-        template: docs/templates/hybrid/governance-pack.md
+        template: docs/templates/governance/governance-pack-template-hybrid.md
         evidence: Gate checklist completed.
     criteria:
       - id: init-1
@@ -32,13 +32,13 @@ gates:
     stage: planning
     required_artefacts:
       - name: Milestone plan
-        template: docs/templates/hybrid/milestone-plan.xlsx
+        template: docs/templates/schedule/milestone-plan-hybrid.xlsx
         evidence: Milestones reviewed.
       - name: Integrated risk register
-        template: docs/templates/hybrid/integrated-risk-register.xlsx
+        template: docs/templates/risk/integrated-risk-register-hybrid.xlsx
         evidence: Risks assessed with owners.
       - name: Communications plan
-        template: docs/templates/shared/communications-plan.md
+        template: docs/templates/communications/communications-plan-cross.md
         evidence: Communications cadence agreed.
     criteria:
       - id: plan-1
@@ -61,10 +61,10 @@ gates:
     stage: delivery
     required_artefacts:
       - name: Sprint plan
-        template: docs/templates/agile/sprint-plan.md
+        template: docs/templates/product/sprint-plan-agile.md
         evidence: Signed sprint commitments.
       - name: Change log
-        template: docs/templates/shared/change-log.md
+        template: docs/templates/change/change-log-cross.md
         evidence: Change log updated.
     criteria:
       - id: delivery-1
@@ -87,10 +87,10 @@ gates:
     stage: integration
     required_artefacts:
       - name: Release plan
-        template: docs/templates/agile/release-plan.md
+        template: docs/templates/schedule/release-plan-agile.md
         evidence: Readiness checklist completed.
       - name: Variance report
-        template: docs/templates/shared/variance-report.md
+        template: docs/templates/finance/variance-report-cross.md
         evidence: Performance review completed.
     criteria:
       - id: integration-1
@@ -113,7 +113,7 @@ gates:
     stage: closure
     required_artefacts:
       - name: Closure report
-        template: docs/templates/waterfall/closure-report.md
+        template: docs/templates/governance/closure-report-waterfall.md
         evidence: Signed closure report.
       - name: DPIA report
         template: docs/compliance/privacy-dpia-template.md
