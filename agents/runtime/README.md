@@ -4,6 +4,10 @@
 
 The runtime package provides the shared execution infrastructure for all agents -- including the orchestrator loop, base agent class, state management, event bus, and supporting services. It also houses the evaluation framework and prompt template registry.
 
+## Timeout configuration
+
+The orchestrator enforces per-task execution timeouts using `asyncio.wait_for`. Configure the timeout in seconds by setting `AGENT_TIMEOUT_SECONDS` in the agent config (preferred) or as an environment variable. Each orchestration attempt uses the same timeout value, and timeouts surface as explicit errors with `metadata.timeout=true`. A value of `0` or a negative number disables the timeout entirely.
+
 ## Directory structure
 
 | Name | Description | Link |
@@ -27,3 +31,4 @@ The runtime package provides the shared execution infrastructure for all agents 
 | `src/models.py` | Pydantic/dataclass models shared across the runtime. |
 | `src/policy.py` | Policy definitions governing agent behaviour and access control. |
 | `src/audit.py` | Audit logging for agent actions and decisions. |
+| `timeout_harness.py` | Minimal harness demonstrating orchestrator timeout behavior. |
