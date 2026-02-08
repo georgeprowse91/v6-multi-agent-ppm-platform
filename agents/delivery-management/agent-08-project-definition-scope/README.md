@@ -34,6 +34,96 @@ Agent runtime configuration is centralized in `.env` (see `.env.example`) and sh
 
 For optional external scope research, set `SEARCH_API_ENDPOINT` and `SEARCH_API_KEY`, and enable the agent flag `enable_external_research` in project configuration to allow outbound queries.
 
+## Scope baseline (Agent 08)
+
+### Intended scope
+
+Agent 08 owns project definition artifacts through the approved scope baseline. It is responsible for creating and maintaining:
+
+- Project charter (business case, objectives, high-level constraints, success criteria).
+- Scope statement (in/out of scope, deliverables).
+- WBS structure derived from the scope statement.
+- Requirements intake, traceability matrix, and stakeholder/RACI artifacts.
+- Scope baseline creation and scope creep detection against the baseline.
+
+### Inputs
+
+- `charter_data` (title, description, project_type, methodology, objectives, in/out of scope, deliverables).
+- `project_id` (for WBS, requirements, baseline, and scope creep checks).
+- `scope_statement` (for WBS generation or baseline comparison).
+- `requirements` (for requirements repository + traceability mapping).
+- `stakeholders` (for register and RACI matrix).
+- Optional `context` (tenant_id, correlation_id) and external research controls.
+
+### Outputs
+
+- Charter document + sectioned output.
+- WBS hierarchy + ID.
+- Requirements repository + traceability matrix.
+- Stakeholder register + RACI matrix.
+- Scope baseline snapshot + scope creep variance report.
+- Scope research proposal (optional external research).
+
+### Decision responsibilities
+
+- Validate required fields per action before proceeding.
+- Determine approval workflow triggers for scope changes or baseline deviations.
+- Assess scope creep variance vs. configured threshold.
+- Select data sources (templates, local context, external research) when generating scope proposals.
+
+### Must / must-not behaviors
+
+Must:
+- Enforce required inputs for each action; reject incomplete requests.
+- Emit baseline artifacts before schedule or resource planning proceeds.
+- Record scope baseline snapshots in the scope baseline store.
+- Publish scope baseline and scope change events for downstream agents.
+
+Must not:
+- Commit to schedule dates, durations, or resource assignments.
+- Override approved baseline without an approval workflow decision.
+- Create cost or financial commitments (owned by financial agent).
+
+## Overlap & handoff boundaries (Agents 10–11)
+
+### Overlap / leakage risks
+
+- **Agent 10 (Schedule Planning):** WBS output can overlap with schedule work packages. Agent 08 must stop at scope/WBS definition and avoid sequencing, durations, or dependency calculations.
+- **Agent 11 (Resource Capacity):** RACI and stakeholder inputs can overlap with resource staffing. Agent 08 must not assign named resources or capacity commitments.
+
+### Handoff boundaries
+
+- **To Agent 10:** Provide WBS, scope baseline, and requirements traceability as inputs for activity definition, dependency mapping, and schedule development.
+- **To Agent 11:** Provide RACI roles, stakeholder register, and WBS deliverables as inputs for role-based capacity planning and allocation constraints.
+- **From Agent 09 (Lifecycle Governance):** Receive approved baseline flags and governance gates before freezing scope.
+
+## Functional gaps & alignment checklist
+
+### Gaps / inconsistencies to resolve
+
+- Scope baseline storage is in local tenant state; confirm downstream agents can read baseline summaries or require explicit event payloads.
+- External scope research relies on `SEARCH_API_*` and optional LLM availability; ensure fallback logic is acceptable in offline environments.
+- Traceability matrix formats may differ from downstream schedule/resource tooling; confirm required schema.
+
+### Prompt/tool/template/connector/UI alignment
+
+- **Prompting:** Ensure charter, scope statement, and WBS prompts align with organization templates (template library config).
+- **Tools/Connectors:** Confirm document management, project management, and database services are configured to persist baseline artifacts.
+- **UI:** Validate that scope baseline approvals and creep alerts surface in the orchestration UI for downstream agent gating.
+
+## Dependency map entry (execution ready)
+
+**Upstream dependencies**
+- Project initiation context (sponsor, objectives, methodology).
+- Governance approvals from Agent 09 for baseline freezing.
+
+**Downstream dependencies**
+- Agent 10 consumes WBS + baseline scope for schedule planning.
+- Agent 11 consumes RACI roles + deliverables for capacity planning.
+
+**Critical gating artifact**
+- Scope baseline snapshot + approval status (must exist before schedule/resource planning).
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
