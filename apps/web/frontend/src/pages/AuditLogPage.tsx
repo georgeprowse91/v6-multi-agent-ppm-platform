@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useTranslation } from '@/i18n';
 import { useAppStore } from '@/store';
 import { canViewAuditLogs } from '@/auth/permissions';
@@ -14,6 +14,61 @@ interface AuditEvent {
   outcome: string;
   metadata?: Record<string, unknown> | null;
 }
+
+const REDACTED_TEXT = '[REDACTED]';
+const sensitiveKeyMatchers = [
+  /token/i,
+  /secret/i,
+  /password/i,
+  /authorization/i,
+  /api[_-]?key/i,
+  /session/i,
+  /cookie/i,
+];
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const shouldRedactKey = (key: string) => sensitiveKeyMatchers.some((matcher) => matcher.test(key));
+
+const redactValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactValue(item));
+  }
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [
+        key,
+        shouldRedactKey(key) ? REDACTED_TEXT : redactValue(nestedValue),
+      ]),
+    );
+  }
+  return value;
+};
+
+const redactMetadata = (metadata?: Record<string, unknown> | null) => {
+  if (!metadata) return null;
+  return redactValue(metadata) as Record<string, unknown>;
+};
+
+const getMetadataValue = (
+  metadata: Record<string, unknown> | null,
+  keys: string[],
+): unknown => {
+  if (!metadata) return undefined;
+  for (const key of keys) {
+    if (key in metadata) {
+      return metadata[key];
+    }
+  }
+  return undefined;
+};
+
+const formatMetadataValue = (value: unknown) => {
+  if (value === undefined) return null;
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value, null, 2);
+};
 
 export function AuditLogPage() {
   const { t } = useTranslation();
@@ -89,25 +144,92 @@ export function AuditLogPage() {
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
-                <tr key={event.event_id}>
-                  <td>{new Date(event.timestamp).toLocaleString()}</td>
-                  <td>
-                    <div className={styles.actor}>
-                      <span>{event.actor.id}</span>
-                      <span className={styles.actorRoles}>{event.actor.roles.join(', ')}</span>
-                    </div>
-                  </td>
-                  <td>{event.action}</td>
-                  <td>
-                    <div className={styles.resource}>
-                      <span>{event.resource.type}</span>
-                      <span className={styles.resourceId}>{event.resource.id}</span>
-                    </div>
-                  </td>
-                  <td>{event.outcome}</td>
-                </tr>
-              ))}
+              {events.map((event) => {
+                const isAgentEvent = event.actor.type === 'agent';
+                const redactedResourceMetadata = redactMetadata(event.resource.metadata);
+                const redactedMetadata = redactMetadata(event.metadata);
+                const correlationId = formatMetadataValue(
+                  getMetadataValue(redactedMetadata, ['correlation_id', 'correlationId']),
+                );
+                const policyReason = formatMetadataValue(
+                  getMetadataValue(redactedMetadata, [
+                    'policy_reason',
+                    'policyReason',
+                    'policy_reasons',
+                    'policyReasons',
+                  ]),
+                );
+
+                return (
+                  <Fragment key={event.event_id}>
+                    <tr>
+                      <td>{new Date(event.timestamp).toLocaleString()}</td>
+                      <td>
+                        <div className={styles.actor}>
+                          <span>{event.actor.id}</span>
+                          <span className={styles.actorRoles}>{event.actor.roles.join(', ')}</span>
+                        </div>
+                      </td>
+                      <td>{event.action}</td>
+                      <td>
+                        <div className={styles.resource}>
+                          <span>{event.resource.type}</span>
+                          <span className={styles.resourceId}>{event.resource.id}</span>
+                        </div>
+                      </td>
+                      <td>{event.outcome}</td>
+                    </tr>
+                    {isAgentEvent && (
+                      <tr className={styles.detailsRow}>
+                        <td colSpan={5}>
+                          <details className={styles.details}>
+                            <summary>{t('audit.details.summary')}</summary>
+                            <div className={styles.detailsGrid}>
+                              <div className={styles.detailsSection}>
+                                <h4>{t('audit.details.highlights')}</h4>
+                                <dl className={styles.detailsList}>
+                                  <div>
+                                    <dt>{t('audit.details.correlationId')}</dt>
+                                    <dd>{correlationId ?? t('audit.details.emptyMetadata')}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>{t('audit.details.policyReason')}</dt>
+                                    <dd>{policyReason ?? t('audit.details.emptyMetadata')}</dd>
+                                  </div>
+                                </dl>
+                              </div>
+                              <div className={styles.detailsSection}>
+                                <h4>{t('audit.details.resourceMetadata')}</h4>
+                                {redactedResourceMetadata ? (
+                                  <pre className={styles.detailsCode}>
+                                    {JSON.stringify(redactedResourceMetadata, null, 2)}
+                                  </pre>
+                                ) : (
+                                  <p className={styles.detailsEmpty}>
+                                    {t('audit.details.emptyMetadata')}
+                                  </p>
+                                )}
+                              </div>
+                              <div className={styles.detailsSection}>
+                                <h4>{t('audit.details.eventMetadata')}</h4>
+                                {redactedMetadata ? (
+                                  <pre className={styles.detailsCode}>
+                                    {JSON.stringify(redactedMetadata, null, 2)}
+                                  </pre>
+                                ) : (
+                                  <p className={styles.detailsEmpty}>
+                                    {t('audit.details.emptyMetadata')}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </details>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
