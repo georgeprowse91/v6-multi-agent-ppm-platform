@@ -18,5 +18,4 @@ Each agent directory contains `src/`, `tests/`, a `Dockerfile`, and its own `REA
 | `agent-22-analytics-insights` | Produces analytics dashboards and actionable insights from project data. | [./agent-22-analytics-insights/](./agent-22-analytics-insights/) |
 | `agent-23-data-synchronisation-quality` | Synchronises data across systems and enforces data quality rules. | [./agent-23-data-synchronisation-quality/](./agent-23-data-synchronisation-quality/) |
 | `agent-24-workflow-process-engine` | Executes configurable workflows and process definitions. Also contains a `workflows/` subdirectory with workflow definitions. | [./agent-24-workflow-process-engine/](./agent-24-workflow-process-engine/) |
-| `agent-25-analytics-insights` | Additional analytics and insights agent. | [./agent-25-analytics-insights/](./agent-25-analytics-insights/) |
 | `agent-25-system-health-monitoring` | Monitors platform system health, uptime, and performance metrics. | [./agent-25-system-health-monitoring/](./agent-25-system-health-monitoring/) |

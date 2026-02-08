@@ -91,7 +91,7 @@ Must not:
 - **CRM alignment:** README lists Salesforce-specific variables while implementation supports generic CRM endpoints; document precedence and mapping.
 - **Connector alignment:** Notification/Calendar integrations are used in code but not documented in required env vars; add connector configuration or defaults.
 - **Templates/UI alignment:** communication templates and digest batching lack UI/portal configuration detail; define where templates live and how they are reviewed.
-- **Telemetry alignment:** define how delivery events map to analytics (Agent 22/25) and knowledge capture (Agent 19).
+- **Telemetry alignment:** define how delivery events map to analytics (Agent 22) and knowledge capture (Agent 19).
 
 ## Communications trigger matrix (execution-ready)
 

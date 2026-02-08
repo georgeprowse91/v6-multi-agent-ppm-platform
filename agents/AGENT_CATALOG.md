@@ -112,11 +112,6 @@ generator to refresh this file and the web UI metadata.
 - **Purpose:**
   - Define the responsibilities, workflows, and integration points for Agent 24: Workflow Process Engine. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
-### Agent 25: Analytics Insights Specification (`agent-25-analytics-insights`)
-- **Location:** `agents/operations-management/agent-25-analytics-insights`
-- **Purpose:**
-  - Provide a central analytics agent that aggregates platform telemetry, computes KPIs, runs predictive analytics, and publishes recommendations for downstream agents and dashboards.
-
 ### Agent 25: System Health Monitoring Specification (`agent-25-system-health-monitoring`)
 - **Location:** `agents/operations-management/agent-25-system-health-monitoring`
 - **Purpose:**

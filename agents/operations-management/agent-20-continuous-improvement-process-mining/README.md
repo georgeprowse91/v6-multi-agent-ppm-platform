@@ -75,13 +75,13 @@ Agent 20 is not responsible for:
 
 ## Overlap and handoff boundaries
 
-### Analytics agents (Agent 22, Agent 25)
+### Analytics agent (Agent 22)
 
-- **Overlap**: Both Agent 20 and analytics agents compute KPIs and performance metrics.
-- **Boundary**: Agent 20 computes process-level KPIs for improvement decisions; analytics agents
+- **Overlap**: Both Agent 20 and Agent 22 compute KPIs and performance metrics.
+- **Boundary**: Agent 20 computes process-level KPIs for improvement decisions; Agent 22
   consolidate portfolio-wide KPIs, predictive analytics, and dashboarding.
 - **Handoff**: Agent 20 publishes process insights and benefit realization events; analytics
-  agents consume these events for enterprise reporting and forecasting.
+  agent consumes these events for enterprise reporting and forecasting.
 
 ### Workflow engine (Agent 24)
 

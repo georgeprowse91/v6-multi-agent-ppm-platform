@@ -1320,41 +1320,6 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-25-analytics-insights"] = AgentConfig(
-            catalog_id="agent-25-analytics-insights",
-            agent_id="agent_025_analytics",
-            display_name="Analytics Insights",
-            description="Aggregates platform analytics, KPIs, and predictive insights",
-            category=AgentCategory.PLATFORM,
-            enabled=True,
-            capabilities=[
-                "analytics_aggregation",
-                "kpi_tracking",
-                "predictive_forecasting",
-                "insights_publishing",
-            ],
-            parameters=[
-                AgentParameter(
-                    name="refresh_interval_minutes",
-                    display_name="Refresh Interval (minutes)",
-                    description="Refresh interval for KPI aggregation",
-                    param_type="number",
-                    default_value=60,
-                    min_value=5,
-                    max_value=1440,
-                ),
-                AgentParameter(
-                    name="prediction_confidence_threshold",
-                    display_name="Prediction Confidence Threshold",
-                    description="Minimum confidence threshold for prediction alerts",
-                    param_type="number",
-                    default_value=0.75,
-                    min_value=0.1,
-                    max_value=1.0,
-                ),
-            ],
-        ).to_dict()
-
         return agents
 
     def _load(self) -> dict[str, Any]:

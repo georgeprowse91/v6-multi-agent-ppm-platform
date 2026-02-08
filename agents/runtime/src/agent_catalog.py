@@ -162,12 +162,6 @@ AGENT_CATALOG: tuple[AgentCatalogEntry, ...] = (
         component_name="agent-25-system-health-monitoring",
         display_name="System Health & Monitoring",
     ),
-    AgentCatalogEntry(
-        catalog_id="agent-25-analytics-insights",
-        agent_id="agent_025_analytics",
-        component_name="agent-25-analytics-insights",
-        display_name="Analytics Insights",
-    ),
 )
 
 AGENT_CATALOG_BY_AGENT_ID = {entry.agent_id: entry for entry in AGENT_CATALOG}

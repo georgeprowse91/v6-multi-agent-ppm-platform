@@ -64,10 +64,10 @@ Referenced by the agent runtime and orchestration docs when routing requests, an
 
 ## Overlap, leakage, and handoff boundaries
 
-### Analytics agents (Agent 22 & Agent 25)
+### Analytics agent (Agent 22)
 
-- **Overlap risk**: both analytics agents aggregate quality metrics; Agent 23 produces the raw data quality signals and reports only.
-- **Handoff boundary**: Agent 23 publishes quality events/metrics; Agent 22/25 consume, aggregate, and generate dashboards, KPIs, narratives, and forecasting.
+- **Overlap risk**: analytics reporting aggregates quality metrics; Agent 23 produces the raw data quality signals and reports only.
+- **Handoff boundary**: Agent 23 publishes quality events/metrics; Agent 22 consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.
 - **Leakage to avoid**: Agent 23 should not compute portfolio-level KPIs, forecasts, or narrative summaries.
 
 ### Agent 24: Workflow Process Engine
@@ -103,7 +103,7 @@ Minimum rules and thresholds for execution readiness:
 - Event bus: Azure Service Bus / Event Grid.
 
 **Downstream dependencies**
-- Analytics agents (Agent 22/25): quality metrics, reports, and sync telemetry.
+- Analytics agent (Agent 22): quality metrics, reports, and sync telemetry.
 - Agent 24 Workflow Engine: conflict and retry orchestration.
 - Data stores: SQL/Cosmos for master records and audit history.
 

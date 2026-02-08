@@ -57,17 +57,15 @@ Define the responsibilities, workflows, and integration points for Agent 22: Ana
 
 ## Overlap, leakage, and handoff boundaries
 
-**Overlap with Agent 25 (Analytics Insights)**
+**Coordination with Agent 25 (System Health Monitoring)**
 
-- Both agents describe analytics aggregation, KPI computation, predictive analytics, and data privacy.
 - Agent 22 focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.
-- Agent 25 positions itself as the central analytics agent for platform telemetry and near-real-time KPI updates.
+- Agent 25 focuses on system health telemetry, alerts, and SLO monitoring; Agent 22 can consume these health signals as inputs to dashboards or narrative summaries.
 
 **Handoff boundaries**
 
-- Agent 22 should be the portfolio/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).
-- Agent 25 should be the telemetry/KPI backbone for platform-wide analytics pipelines and predictive model serving.
-- Avoid duplicating KPI ownership: Agent 22 can consume KPI outputs from Agent 25 where available and reserve bespoke KPIs for portfolio health summaries.
+- Agent 22 remains the analytics/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).
+- Agent 25 owns system health alerting, telemetry aggregation, and incident escalation workflows.
 
 **Overlap with Agent 20 (Continuous Improvement Process Mining)**
 
@@ -76,7 +74,7 @@ Define the responsibilities, workflows, and integration points for Agent 22: Ana
 
 ## Gaps, inconsistencies, and alignment needs
 
-- **Naming/roles conflict**: The repo has two analytics agents (22 and 25). Documentation should clarify which agent is authoritative for KPI computation vs. analytics reporting to prevent double-publishing of KPIs.
+- **Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to Agent 22 and reserves system health telemetry and alerting for Agent 25.
 - **Action documentation vs. runtime behavior**: Ensure orchestration docs list the full action set (including ETL/power BI/realtime ingestion actions).
 - **Event taxonomy alignment**: The analytics event topics list should be aligned with upstream agents’ emitted event names (schedule, deployment, risk, quality, resource).
 - **Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `.env.example` and runtime docs.

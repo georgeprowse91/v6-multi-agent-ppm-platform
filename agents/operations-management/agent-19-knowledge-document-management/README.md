@@ -80,11 +80,11 @@ Agent 19 **does not** decide:
 **Boundary:** Agent 19 **stores and indexes** the documents; Agent 21 **delivers** communications.  
 **Handoff:** Agent 19 provides curated artifacts (summaries, decision logs, lessons learned) to Agent 21 for distribution. Agent 21 should not modify source knowledge content; it may annotate distribution metadata in its own system.
 
-### Analytics agents (Agent 22 / Agent 25)
+### Analytics agent (Agent 22)
 
 **Potential overlap:** Both domains handle insights, reports, and narrative summaries.  
-**Boundary:** Agent 19 **curates content** and provides retrieval/search; analytics agents **compute KPIs, predictive insights, and dashboards**.  
-**Handoff:** Analytics agents request document corpora or knowledge artifacts (lessons learned, decision/risk history) from Agent 19 to enrich models and narratives. Agent 19 should not compute KPIs or analytics metrics.
+**Boundary:** Agent 19 **curates content** and provides retrieval/search; Agent 22 **computes KPIs, predictive insights, and dashboards**.  
+**Handoff:** Agent 22 requests document corpora or knowledge artifacts (lessons learned, decision/risk history) from Agent 19 to enrich models and narratives. Agent 19 should not compute KPIs or analytics metrics.
 
 ## Functional gaps / inconsistencies to resolve
 

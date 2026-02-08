@@ -606,29 +606,6 @@ class AgentRuntime:
                     "incident_store_path": self._build_store_path("incidents.json"),
                 },
             ),
-            AgentSpec(
-                agent_id="agent_025_analytics",
-                path=AGENTS_ROOT
-                / "operations-management"
-                / "agent-25-analytics-insights"
-                / "src"
-                / "analytics_insights_agent.py",
-                config={
-                    **base_config,
-                    "analytics_output_store_path": self._build_store_path("analytics_outputs.json"),
-                    "analytics_alert_store_path": self._build_store_path("analytics_alerts.json"),
-                    "analytics_lineage_store_path": self._build_store_path(
-                        "analytics_lineage.json"
-                    ),
-                    "analytics_event_store_path": self._build_store_path("analytics_events.json"),
-                    "analytics_kpi_history_store_path": self._build_store_path(
-                        "analytics_kpi_history.json"
-                    ),
-                    "health_snapshot_store_path": self._build_store_path(
-                        "health_snapshots.json"
-                    ),
-                },
-            ),
         ]
         return specs
 
