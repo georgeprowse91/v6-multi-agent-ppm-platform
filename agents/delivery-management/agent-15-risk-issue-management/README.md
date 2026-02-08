@@ -4,6 +4,71 @@
 
 Define the responsibilities, workflows, and integration points for Agent 15: Risk Issue Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Scope, intent, and decision rights
+
+### Intended scope
+- Owns the end-to-end risk/issue lifecycle: identification, assessment, scoring, prioritization, mitigation planning, and ongoing monitoring across projects, programs, and portfolios.
+- Maintains a central risk register with scoring, triggers, mitigation plans, and event history.
+- Produces quantitative outputs (Monte Carlo, sensitivity analysis) and qualitative guidance (mitigation strategies).
+- Publishes risk events for downstream agents and dashboards.
+
+### Inputs
+- Project/portfolio context: project_id, portfolio_id, owners, classifications.
+- Operational signals: schedule delays, cost overruns, quality defect rates, resource utilization.
+- PM connector signals (Planview/MS Project/Jira/Azure DevOps) tagged as risks.
+- Documents and knowledge base content (SharePoint/Confluence) for risk extraction and mitigations.
+- Optional ML services or cognitive search results for risk extraction and scoring.
+
+### Outputs
+- Risk register records with probability/impact scoring and status updates.
+- Mitigation plans and trigger definitions.
+- Risk datasets stored in data lake/synapse and optional GRC integration objects.
+- Event bus messages (e.g., `risk.triggered`, `risk.created`, `risk.updated`) to drive escalation and governance.
+- Reports: summary, detailed, mitigation status.
+
+### Decision responsibilities
+- Determine risk classification, scoring, and priority ordering.
+- Decide when a signal crosses a trigger threshold and must escalate.
+- Recommend mitigation strategies; do not approve or execute them.
+- Escalate high-severity risks to governance and compliance agents and flag owners.
+
+### Must / must-not behaviors
+- Must validate risk records against schema and data-quality rules before publishing.
+- Must capture source/provenance for extracted risks (connector, doc, model).
+- Must emit event updates when risk status, scoring, or triggers change materially.
+- Must not change project scope, schedule baselines, or financial forecasts directly (handoff to Agents 09/10/12).
+- Must not triage or close defects directly (handoff to Agent 14).
+- Must not approve compliance exceptions (handoff to Agent 16).
+
+## Overlap and handoff boundaries
+
+### Agent 14: Quality Management
+- Overlap: quality defects, test failures, and quality KPIs are risk signals.
+- Handoff boundary: Agent 14 owns defect triage and quality remediation. Agent 15 only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.
+- Required interface: structured quality signals (defect rate, severity, trend) and QA milestone outcomes.
+
+### Agent 09: Lifecycle Governance
+- Overlap: project health and governance escalations depend on risk status.
+- Handoff boundary: Agent 09 owns phase-gate decisions and portfolio health reporting. Agent 15 supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.
+- Required interface: governance receives `risk.triggered`/`risk.updated` events and risk summaries per project/portfolio.
+
+## Gaps, inconsistencies, and alignment needs
+
+- Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so Agent 09 can consume them without translation.
+- Issue vs. risk distinction: clarify in UI/templates when an item is a realized issue versus a potential risk; current implementation emphasizes risks and may need explicit “issue” status mapping.
+- Connector alignment: PM connectors use heterogeneous fields (priority/severity/labels). Normalize into a shared risk signal schema for UI and reporting consistency.
+- Mitigation ownership: mitigation plans are stored but require explicit ownership/approval workflow; align with governance templates for accountability and follow-through.
+
+## Risk/issue escalation map (checkpoint)
+
+| Trigger type | Threshold signal | Risk action | Escalation event | Governance handoff |
+| --- | --- | --- | --- | --- |
+| Cost overrun | overrun_pct ≥ threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating |
+| Schedule delay | delay_days ≥ threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating |
+| Quality defect rate | defect_rate ≥ threshold | increase score, update status | `risk.triggered` | Agent 14 notified; Agent 09 consumes summary |
+| Resource utilization | utilization ≥ threshold | increase score, update status | `risk.triggered` | Agent 11 notified; Agent 09 consumes summary |
+| High risk score | score ≥ high_risk_threshold | flag as high severity | `risk.updated` | Governance escalation workflow |
+
 ## What's inside
 
 - `agents/delivery-management/agent-15-risk-issue-management/src`: Implementation source for this component.
