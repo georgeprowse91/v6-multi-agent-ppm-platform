@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import random
 import time
 from collections.abc import Callable
@@ -162,10 +163,15 @@ class Orchestrator:
                     {"task_id": task.task_id, "success": result_payload.get("success", False)},
                 )
             except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
+                metadata = {"task_id": task.task_id}
+                if isinstance(exc, TimeoutError):
+                    metadata["timeout"] = True
+                    if hasattr(exc, "timeout_seconds") and exc.timeout_seconds is not None:
+                        metadata["timeout_seconds"] = exc.timeout_seconds
                 result_payload = {
                     "success": False,
                     "error": str(exc),
-                    "metadata": {"task_id": task.task_id},
+                    "metadata": metadata,
                 }
                 await self._event_bus.publish(
                     "orchestrator.task.failed",
@@ -188,12 +194,17 @@ class Orchestrator:
     ) -> dict[str, Any]:
         attempt = 0
         last_error: Exception | None = None
+        timeout_seconds = self._resolve_timeout_seconds(task)
         while attempt < self._retry_policy.max_attempts:
             attempt += 1
             try:
-                result = await task.agent.execute(input_data)
+                result = await self._execute_with_timeout(task, input_data, timeout_seconds)
                 if not self._retry_policy.should_retry(None, result):
                     return result
+            except asyncio.TimeoutError as exc:
+                last_error = self._build_timeout_error(task, timeout_seconds, exc)
+                if not self._retry_policy.should_retry(last_error, None):
+                    raise last_error
             except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
                 last_error = exc
                 if not self._retry_policy.should_retry(exc, None):
@@ -211,6 +222,47 @@ class Orchestrator:
             "error": f"Task {task.task_id} failed after retries",
             "metadata": {"task_id": task.task_id},
         }
+
+    async def _execute_with_timeout(
+        self,
+        task: AgentTask,
+        input_data: dict[str, Any],
+        timeout_seconds: float | None,
+    ) -> dict[str, Any]:
+        if not timeout_seconds:
+            return await task.agent.execute(input_data)
+        return await asyncio.wait_for(
+            task.agent.execute(input_data),
+            timeout=timeout_seconds,
+        )
+
+    def _resolve_timeout_seconds(self, task: AgentTask) -> float | None:
+        raw_timeout = task.agent.get_config("AGENT_TIMEOUT_SECONDS")
+        if raw_timeout in (None, ""):
+            raw_timeout = os.getenv("AGENT_TIMEOUT_SECONDS")
+        if raw_timeout in (None, ""):
+            return None
+        try:
+            timeout_seconds = float(raw_timeout)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("AGENT_TIMEOUT_SECONDS must be a number") from exc
+        if timeout_seconds <= 0:
+            return None
+        return timeout_seconds
+
+    def _build_timeout_error(
+        self,
+        task: AgentTask,
+        timeout_seconds: float | None,
+        exc: asyncio.TimeoutError,
+    ) -> TimeoutError:
+        timeout_value = timeout_seconds if timeout_seconds is not None else 0.0
+        error = TimeoutError(
+            f"Task {task.task_id} exceeded timeout of {timeout_value:.2f} seconds"
+        )
+        error.timeout_seconds = timeout_seconds
+        error.__cause__ = exc
+        return error
 
     async def _backoff(self, attempt: int) -> None:
         base_delay = self._retry_policy.base_delay_seconds * (2 ** (attempt - 1))
