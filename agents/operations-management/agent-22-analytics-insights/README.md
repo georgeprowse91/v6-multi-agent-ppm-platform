@@ -4,6 +4,93 @@
 
 Define the responsibilities, workflows, and integration points for Agent 22: Analytics Insights. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Scope, inputs, and outputs
+
+**Intended scope**
+
+- Portfolio-level analytics, dashboards, reporting, and narrative insights for project health, KPI tracking, and scenario analysis.
+- Cross-domain event ingestion (schedule, deployment, risk, quality, resource) and KPI computation based on event history.
+- Azure-first analytics stack orchestration (Synapse, Data Lake, Data Factory), plus Power BI embedding and narrative generation.
+
+**Primary inputs**
+
+- `action`: the requested operation. Supported values include: `aggregate_data`, `create_dashboard`, `generate_report`, `run_prediction`, `scenario_analysis`, `generate_narrative`, `track_kpi`, `query_data`, `natural_language_query`, `get_dashboard`, `get_insights`, `update_data_lineage`, `get_powerbi_report`, `orchestrate_etl`, `monitor_etl`, `train_kpi_model`, `provision_analytics_stack`, `ingest_sources`, `ingest_realtime_event`, `compute_kpis_batch`.
+- `tenant_id` (top-level or in `context`): required to scope storage and event history.
+- Action-specific payloads:
+  - `data_sources`, `dashboard`, `report`, `model_type`, `scenario`, `kpi`, `query`, `filters`, `dashboard_id`, `lineage`, `pipelines`, `run_id`, `report_type`, `user_context`, `event`, `event_type`, `training_payload`.
+
+**Primary outputs**
+
+- `aggregate_data`: record count, statistics, lineage ID, data lake paths, Synapse ingest metadata.
+- `create_dashboard`: dashboard ID, widget count, refresh schedule, URL.
+- `generate_report`: report ID, visualization count, narrative, download URL.
+- `run_prediction`: prediction ID, predicted value, confidence + interval, recommendations.
+- `scenario_analysis`: baseline, scenario metrics, comparison, recommendations + simulation summary.
+- `generate_narrative`: narrative content with stored ID.
+- `track_kpi`: KPI value, trend, threshold status + alert IDs.
+- `query_data`/`natural_language_query`: query response payloads and timestamps.
+- `get_insights`: anomalies/patterns + recommendations (also emits event bus updates).
+- `get_powerbi_report`: embed URL + access token.
+- `provision_analytics_stack`/`ingest_sources`/`orchestrate_etl`/`monitor_etl`: operational pipeline metadata.
+
+## Decision responsibilities
+
+- Decide which KPI definitions to compute from incoming events and when to publish `analytics.kpi.updated`.
+- Decide alerting outcomes for KPI thresholds and emit `analytics.kpi.threshold_breached`.
+- Decide narrative wording and insight recommendations based on detected anomalies/patterns.
+- Decide orchestration actions for data pipelines and provisioning.
+
+## Must / must-not behaviors
+
+**Must**
+
+- Always validate `action` and required fields before executing.
+- Always scope storage and event history operations by `tenant_id`.
+- Always redact sensitive fields (PII) or mask lineage when `LINEAGE_MASK_SALT` is set.
+- Publish analytics events (`analytics.insights.generated`, `analytics.kpi.updated`, etc.) when outcomes are produced.
+
+**Must-not**
+
+- Must not generate dashboards with more than the configured widget limit.
+- Must not expose raw sensitive fields in lineage or event payloads.
+- Must not run ML prediction without `model_type` and required inputs.
+
+## Overlap, leakage, and handoff boundaries
+
+**Overlap with Agent 25 (Analytics Insights)**
+
+- Both agents describe analytics aggregation, KPI computation, predictive analytics, and data privacy.
+- Agent 22 focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.
+- Agent 25 positions itself as the central analytics agent for platform telemetry and near-real-time KPI updates.
+
+**Handoff boundaries**
+
+- Agent 22 should be the portfolio/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).
+- Agent 25 should be the telemetry/KPI backbone for platform-wide analytics pipelines and predictive model serving.
+- Avoid duplicating KPI ownership: Agent 22 can consume KPI outputs from Agent 25 where available and reserve bespoke KPIs for portfolio health summaries.
+
+**Overlap with Agent 20 (Continuous Improvement Process Mining)**
+
+- Agent 20 focuses on process mining and improvement opportunities; Agent 22 focuses on analytics consumption and storytelling.
+- Handoff: Agent 20 provides mined process insights and cycle-time metrics that Agent 22 can surface in dashboards and reports.
+
+## Gaps, inconsistencies, and alignment needs
+
+- **Naming/roles conflict**: The repo has two analytics agents (22 and 25). Documentation should clarify which agent is authoritative for KPI computation vs. analytics reporting to prevent double-publishing of KPIs.
+- **Action documentation vs. runtime behavior**: Ensure orchestration docs list the full action set (including ETL/power BI/realtime ingestion actions).
+- **Event taxonomy alignment**: The analytics event topics list should be aligned with upstream agents’ emitted event names (schedule, deployment, risk, quality, resource).
+- **Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `.env.example` and runtime docs.
+- **UI alignment**: Dashboard/report endpoints (`/dashboards/{id}`, `/reports/{id}/download`, `/narrative`) should match the frontend/API routing templates.
+
+## Analytics output contract (checkpoint)
+
+The analytics output contract is ready for execution when:
+
+- The `action` list above is registered in orchestration routing.
+- All outputs are produced with a `tenant_id` and timestamps.
+- KPI alerts and insight events are emitted on the event bus with consistent payload schemas.
+- Output stores (analytics outputs, alerts, lineage, events, KPI history, health snapshots) are reachable via configured state stores or database adapters.
+
 ## What's inside
 
 - `agents/operations-management/agent-22-analytics-insights/src`: Implementation source for this component.
