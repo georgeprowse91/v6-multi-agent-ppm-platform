@@ -9,7 +9,7 @@ gates:
         template: docs/templates/portfolio-program/business-case-template-cross-var3.md
         evidence: Approved business case.
       - name: Project charter
-        template: docs/templates/governance/project-charter-waterfall.md
+        template: docs/templates/governance/project-charter-template-waterfall.md
         evidence: Signed charter.
     criteria:
       - id: init-1
@@ -120,7 +120,7 @@ gates:
     stage: closure
     required_artefacts:
       - name: Closure report
-        template: docs/templates/governance/closure-report-waterfall.md
+        template: docs/templates/governance/closure-report-template-waterfall.md
         evidence: Signed closure report.
       - name: DPIA report
         template: docs/compliance/privacy-dpia-template.md

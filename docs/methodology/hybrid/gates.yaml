@@ -6,7 +6,7 @@ gates:
     stage: initiation
     required_artefacts:
       - name: Hybrid charter
-        template: docs/templates/governance/hybrid-charter-hybrid.md
+        template: docs/templates/governance/hybrid-charter-template-hybrid.md
         evidence: Signed charter.
       - name: Governance pack
         template: docs/templates/governance/governance-pack-template-hybrid.md
@@ -113,7 +113,7 @@ gates:
     stage: closure
     required_artefacts:
       - name: Closure report
-        template: docs/templates/governance/closure-report-waterfall.md
+        template: docs/templates/governance/closure-report-template-waterfall.md
         evidence: Signed closure report.
       - name: DPIA report
         template: docs/compliance/privacy-dpia-template.md

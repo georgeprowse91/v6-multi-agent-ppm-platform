@@ -34,7 +34,7 @@ stages:
           - Project Manager
         artefacts:
           - name: Project charter
-            template: docs/templates/governance/project-charter-waterfall.md
+            template: docs/templates/governance/project-charter-template-waterfall.md
             required: true
     exit_criteria:
       - Sponsor signs off on charter and business case.
@@ -152,7 +152,7 @@ stages:
           - Project Manager
         artefacts:
           - name: Closure report
-            template: docs/templates/governance/closure-report-waterfall.md
+            template: docs/templates/governance/closure-report-template-waterfall.md
             required: true
       - id: compliance-review
         description: Ensure privacy and compliance artefacts are complete.

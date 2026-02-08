@@ -8,7 +8,7 @@ subsidiary plans, governance model, and baselines that guide delivery.
 Project Manager, PMO, Sponsors, Delivery Leads, Functional Managers.
 
 ## Inputs
-- Project charter (`docs/templates/governance/project-charter-waterfall.md`).
+- Project charter (`docs/templates/governance/project-charter-template-waterfall.md`).
 - Subsidiary management plans listed below.
 - Organizational policies, standards, and governance requirements.
 

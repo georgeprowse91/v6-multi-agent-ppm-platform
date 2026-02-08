@@ -7,7 +7,7 @@ Define how risks will be identified, assessed, responded to, and monitored acros
 Project Manager, Risk & Issue Manager, PMO, Delivery Leads, Sponsors.
 
 ## Inputs
-- Project charter (`docs/templates/governance/project-charter-waterfall.md`).
+- Project charter (`docs/templates/governance/project-charter-template-waterfall.md`).
 - Risk register (`docs/templates/risk/risk-register-waterfall.xlsx`).
 - Risk breakdown structure (`docs/templates/risk/risk-breakdown-structure-template-cross.yaml`).
 

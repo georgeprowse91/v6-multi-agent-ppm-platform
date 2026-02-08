@@ -64,7 +64,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | Supplier risk assessment | Assess supplier risk factors and mitigations. | Agent 13 (Vendor Procurement) | [docs/templates/finance/supplier-risk-assessment-cross.md](../templates/finance/supplier-risk-assessment-cross.md) |
 | Portfolio prioritization report | Document prioritization results. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/portfolio-program/portfolio-prioritization-report-template-cross.md](../templates/portfolio-program/portfolio-prioritization-report-template-cross.md) |
 | Program roadmap | Track program initiatives and milestones. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/portfolio-program/program-roadmap-cross.xlsx](../templates/portfolio-program/program-roadmap-cross.xlsx) |
-| Executive real-time dashboard specification | Define real-time executive KPIs, panels, and refresh cadence. | Agent 22/25 (Performance & Insights) | [docs/templates/governance/kpi-dashboard-spec-dashboard-cross.md](../templates/governance/kpi-dashboard-spec-dashboard-cross.md) |
+| Executive real-time dashboard specification | Define real-time executive KPIs, panels, and refresh cadence. | Agent 22/25 (Performance & Insights) | [docs/templates/governance/kpi-dashboard-spec-template-cross.md](../templates/governance/kpi-dashboard-spec-template-cross.md) |
 | SLO/alert definition | Define SLOs and alerting thresholds. | Agent 22/25 (Performance & Insights) | [docs/templates/quality/slo-alert-definition-cross.yaml](../templates/quality/slo-alert-definition-cross.yaml) |
 | Skills matrix | Assess team capabilities, gaps, and development needs. | Agent 11 (Resource & Capacity) | [docs/templates/resources/skills-matrix-cross.md](../templates/resources/skills-matrix-cross.md) |
 | Cost baseline | Time-phased budget baseline (spreadsheet). | Agent 12 (Financial Management) | [docs/templates/finance/cost-baseline-cross.xlsx](../templates/finance/cost-baseline-cross.xlsx) |
@@ -74,7 +74,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 ## Methodology Variants
 | Artefact | Agile | Waterfall | Hybrid |
 | --- | --- | --- | --- |
-| Charter |  | [Project charter](../templates/governance/project-charter-waterfall.md) | [Hybrid charter](../templates/governance/hybrid-charter-hybrid.md) |
+| Charter |  | [Project charter](../templates/governance/project-charter-template-waterfall.md) | [Hybrid charter](../templates/governance/hybrid-charter-template-hybrid.md) |
 | Roles & responsibilities matrix | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-agile.md) — Defines the key roles and responsibilities for Agile projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-waterfall.md) — Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-hybrid.md) — Defines hybrid roles and shared responsibilities where governance and Agile delivery overlap. |
 | User story mapping | [User story mapping](../templates/product/user-story-mapping-template-agile.md) |  |  |
 | User story template | [User story template](../templates/product/user-story-template-agile.md) |  |  |
@@ -95,10 +95,10 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 | QA checklist |  | [QA checklist](../templates/quality/qa-checklist-waterfall.xlsx) |  |
 | Milestone plan |  |  | [Milestone plan](../templates/schedule/milestone-plan-hybrid.xlsx) |
 | Governance pack |  |  | [Governance pack](../templates/governance/governance-pack-template-hybrid.md) |
-| Decision log |  |  | [Decision log](../templates/governance/decision-log-hybrid.md) |
+| Decision log |  |  | [Decision log](../templates/governance/decision-log-template-hybrid.md) |
 | Hybrid team management |  |  | [Hybrid team management](../templates/resources/hybrid-team-management-template-hybrid.md) |
 | Hybrid resource plan |  |  | [Hybrid resource plan](../templates/resources/hybrid-resource-plan-hybrid.md) |
-| Closure report |  | [Closure report](../templates/governance/closure-report-waterfall.md) | [Closure report](../templates/governance/closure-report-waterfall.md) |
+| Closure report |  | [Closure report](../templates/governance/closure-report-template-waterfall.md) | [Closure report](../templates/governance/closure-report-template-waterfall.md) |
 | Project management plan |  | [Project management plan](../templates/governance/project-management-plan-cross.md) |  |
 | Scope management plan |  | [Scope management plan](../templates/requirements/scope-management-plan-cross.md) |  |
 | Schedule management plan |  | [Schedule management plan](../templates/schedule/schedule-management-plan-template-cross.md) |  |

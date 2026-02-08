@@ -8,7 +8,7 @@ Project Manager, Business Analyst, Risk Manager, Sponsors.
 
 ## Inputs
 - Business case (`docs/templates/portfolio-program/business-case-template-cross-var3.md`).
-- Project charter (`docs/templates/governance/project-charter-waterfall.md`).
+- Project charter (`docs/templates/governance/project-charter-template-waterfall.md`).
 - Scope baseline (`docs/templates/requirements/scope-baseline-cross.md`).
 
 ## Validation Guidance

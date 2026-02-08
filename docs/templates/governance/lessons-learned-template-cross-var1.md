@@ -8,7 +8,7 @@ Project Manager, PMO, Continuous Improvement Lead, Delivery Teams.
 
 ## Inputs
 - Retrospective notes (`docs/templates/product/retro-notes-template-agile.md`).
-- Closure report (`docs/templates/governance/closure-report-waterfall.md`).
+- Closure report (`docs/templates/governance/closure-report-template-waterfall.md`).
 - Status and quality reports.
 
 ## Capture Prompts

@@ -8,7 +8,7 @@ supports final approvals and transition to operations.
 Executive Sponsor, Project Manager, PMO Lead, Operations Lead, Finance Partner.
 
 ## Inputs
-- Project charter (`docs/templates/governance/project-charter-waterfall.md`).
+- Project charter (`docs/templates/governance/project-charter-template-waterfall.md`).
 - Schedule baseline and variance reports.
 - Risk register and quality reports.
 
