@@ -32,6 +32,85 @@ pytest agents/core-orchestration/agent-03-approval-workflow/tests
 
 Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
+## Intended scope and responsibilities
+
+**Agent 03 owns the approval workflow control loop.** It is responsible for:
+
+- Validating approval requests and decision payloads.
+- Resolving approvers (roles, delegation, escalation) and building approval chains.
+- Emitting notifications, reminders, and audit events.
+- Recording decisions and publishing approval lifecycle events.
+
+**It must not:**
+
+- Determine user intent or orchestrate multi-agent response composition (owned by Agents 01–02).
+- Execute downstream governance state transitions (owned by governance agents such as Agent 09).
+- Mutate project/system data outside the approval record, audit trail, and notification preferences.
+
+## Inputs, outputs, and decision responsibilities
+
+**Inputs (primary):**
+
+- Approval request payloads with `request_type`, `request_id`, `requester`, `details`, and optional `context`.
+- Approval decisions with `approval_id`, `decision`, `approver_id`, and optional `comments/context`.
+- Notification preference actions (`subscribe`, `unsubscribe`, `update`, `interaction`).
+
+**Outputs (primary):**
+
+- Approval chain metadata (approvers, chain type, deadline, status).
+- Notification dispatch attempts and escalation scheduling.
+- Audit and analytics events for approvals and decisions.
+
+**Decision responsibilities:**
+
+- Approver routing and delegation resolution.
+- Escalation timing and notification delivery strategy.
+- Approval state transitions (`pending`, `approved`, `rejected`) as recorded in the approval store.
+
+## Overlap boundaries and handoffs
+
+**Agent 01 (Intent Router):**
+
+- **Upstream handoff:** Agent 01 routes approval-intent requests here based on intent routing.
+- **Boundary:** Agent 03 does not reclassify intent; it assumes intent is already validated.
+
+**Agent 02 (Response Orchestration):**
+
+- **Upstream handoff:** Agent 02 may request approval creation or decision recording when assembling responses.
+- **Boundary:** Agent 03 does not craft user-facing narrative responses; it returns approval metadata/events for Agent 02 to present.
+
+**Downstream governance agents (e.g., Agent 09 Lifecycle Governance):**
+
+- **Downstream handoff:** Approval events (`approval.created`, `approval.decision`, `approval.approved/rejected`) are published for governance agents to act on.
+- **Boundary:** Agent 03 does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation.
+
+## Functional gaps and alignment checkpoints
+
+**Gaps / inconsistencies to track:**
+
+- Approval gate definitions must be aligned with governance stage gates (Agent 09) and intent routing schema (Agent 01).
+- Notification templates and escalation timing must align with UI and notification service capabilities.
+- Event payload schemas must remain compatible with Event Bus and analytics consumers.
+
+**Required alignment:** Prompting, tool schemas, and UI should use the same approval decision vocabulary (`pending`, `approved`, `rejected`) and include `approval_id`, `tenant_id`, and `correlation_id` where applicable.
+
+## Checkpoint: approval gate definitions
+
+| Gate | Trigger | Required inputs | Output |
+| --- | --- | --- | --- |
+| **Approval requested** | New approval request | `request_type`, `request_id`, `requester`, `details` | Approval chain + `approval_id`, status `pending` |
+| **Decision recorded** | Approver submits decision | `approval_id`, `decision`, `approver_id`, optional `comments` | Stored decision + audit/event emission |
+| **Escalation fired** | SLA timeout reached | Approval chain + escalation policy | Reminder notifications + escalation audit/event |
+| **Approval closed** | Decision is `approved` or `rejected` | `approval_id`, decision | Finalized status + downstream governance events |
+
+## Checkpoint: dependency map entry
+
+| Entry | Details |
+| --- | --- |
+| **Upstream dependencies** | Agent 01 intent routing; Agent 02 response orchestration; Notification service; Role directory lookup. |
+| **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., Agent 09 lifecycle governance). |
+| **Data contracts** | Approval request schema, decision schema, and event payloads (approval lifecycle events). |
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
