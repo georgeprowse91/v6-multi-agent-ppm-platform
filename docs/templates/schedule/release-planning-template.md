@@ -170,9 +170,9 @@ template_data:
 
 ## Related Templates
 
-- [Project Charter Template](../planning/project-charter-template.md)
-- [Risk Register Template](../risk/risk-register-template.md)
-- [Status Report Template](../status/status-report-template.md)
+- [Project Charter Template](../planning/project-charter-template.var1.md)
+- [Risk Register Template](../risk/risk-register-template.var1.md)
+- [Status Report Template](../status/status-report-template.var1.md)
 - [Stakeholder Analysis Template](../stakeholders/stakeholder-analysis-template.md)
 
 ---

@@ -521,7 +521,7 @@ CEO/Executive Level:
 - [Current State Analysis Template](./current-state-analysis-template.md)
 - [Gap Analysis Framework](./gap-analysis-framework.md)
 - [Implementation Planning Template](../project-lifecycle/02-planning/implementation-planning-template.md)
-- [Change Management Plan](../organizational-change/change-management-plan-template.md)
+- [Change Management Plan](../organizational-change/change-management-plan-template.var1.md)
 
 
 **Blueprint Date:** {{ blueprint_date }}

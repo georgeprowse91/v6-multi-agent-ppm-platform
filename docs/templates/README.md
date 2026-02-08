@@ -36,7 +36,7 @@ Examples:
 - `project-charter-charter-waterfall.md`
 
 Use `cross` for templates applicable across methodologies. If multiple variants of the same
-template exist, the filename includes `-var1`, `-var2`, etc.
+template exist, the filename includes `.var1`, `.var2`, etc, at the end of the file name.
 
 ## How it's used
 Templates are referenced by methodology maps and the template catalog. Tailor sections by
