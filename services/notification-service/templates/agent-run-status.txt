@@ -1,0 +1,12 @@
+Agent run update
+
+Agent: {agent_id}
+Run ID: {agent_run_id}
+Tenant: {tenant_id}
+Status: {status}
+Completed at: {completed_at}
+Completion reason: {completion_reason}
+Delay reason: {delay_reason}
+Task ID: {task_id}
+Correlation ID: {correlation_id}
+Success: {success}

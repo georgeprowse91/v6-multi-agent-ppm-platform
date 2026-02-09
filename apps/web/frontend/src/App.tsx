@@ -24,11 +24,13 @@ import {
   MethodologyEditor,
   RoleManager,
   ProjectConfigPage,
+  NotificationCenterPage,
 } from '@/pages';
 
 export function App() {
   const { featureFlags } = useAppStore();
   const showMergeReview = featureFlags.duplicate_resolution === true;
+  const notificationsEnabled = featureFlags.agent_async_notifications === true;
 
   return (
     <Routes>
@@ -89,6 +91,9 @@ export function App() {
         <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
         <Route path="/intake/approvals" element={<IntakeApprovalsPage />} />
         {showMergeReview && <Route path="/intake/merge-review" element={<MergeReviewPage />} />}
+        {notificationsEnabled && (
+          <Route path="/notifications" element={<NotificationCenterPage />} />
+        )}
 
         {/* Knowledge pages */}
         <Route path="/knowledge/documents" element={<DocumentSearchPage />} />

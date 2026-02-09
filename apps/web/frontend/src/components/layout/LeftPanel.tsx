@@ -110,6 +110,7 @@ export function LeftPanel() {
   const showRoleManager = hasPermission(session.user?.permissions, 'roles.manage');
   const showProjectConfig = canManageConfig(session.user?.permissions);
   const showMergeReview = featureFlags.duplicate_resolution === true;
+  const showNotifications = featureFlags.agent_async_notifications === true;
   const projectId = currentSelection?.type === 'project' ? currentSelection.id : null;
 
   const handleNavKeyDown = useCallback(
@@ -146,6 +147,7 @@ export function LeftPanel() {
     'role-manager': 'Role Management',
     'agent-runs': 'Agent Runs',
     'merge-review': 'Merge Review',
+    notifications: 'Notification Center',
   };
 
   const tourTargets: Record<string, string> = {
@@ -198,6 +200,16 @@ export function LeftPanel() {
             label: 'Merge Review',
             path: '/intake/merge-review',
             icon: 'actions.confirmApply',
+          },
+        ]
+      : []),
+    ...(showNotifications
+      ? [
+          {
+            id: 'notifications',
+            label: 'Notification Center',
+            path: '/notifications',
+            icon: 'communication.notifications',
           },
         ]
       : []),

@@ -43,7 +43,7 @@ function getBreadcrumbs(pathname: string, t: (key: string) => string): Breadcrum
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { session } = useAppStore();
+  const { session, featureFlags } = useAppStore();
   const { startTour } = useTour();
   const { t, locale, setLocale } = useTranslation();
   const { mode, setMode } = useTheme();
@@ -53,6 +53,7 @@ export function Header() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuId = 'user-settings-menu';
+  const notificationsEnabled = featureFlags.agent_async_notifications === true;
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -167,14 +168,25 @@ export function Header() {
             <option value="de">Deutsch</option>
           </select>
         </div>
-        <button
-          className={styles.iconButton}
-          type="button"
-          title={t('header.notifications')}
-          aria-label={t('header.notifications')}
-        >
-          <Icon semantic="communication.notifications" label={t('header.notifications')} />
-        </button>
+        {notificationsEnabled ? (
+          <Link
+            className={styles.iconButton}
+            to="/notifications"
+            title={t('header.notifications')}
+            aria-label={t('header.notifications')}
+          >
+            <Icon semantic="communication.notifications" label={t('header.notifications')} />
+          </Link>
+        ) : (
+          <button
+            className={styles.iconButton}
+            type="button"
+            title={t('header.notifications')}
+            aria-label={t('header.notifications')}
+          >
+            <Icon semantic="communication.notifications" label={t('header.notifications')} />
+          </button>
+        )}
 
         <button
           className={styles.iconButton}

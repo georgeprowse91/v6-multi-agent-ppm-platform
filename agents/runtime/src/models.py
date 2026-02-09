@@ -85,6 +85,8 @@ class AgentRun(BaseModel):
     updated_at: str | None = None
     started_at: str | None = None
     completed_at: str | None = None
+    delay_reason: str | None = None
+    completion_reason: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def transition_to(
@@ -93,6 +95,8 @@ class AgentRun(BaseModel):
         *,
         timestamp: datetime | None = None,
         metadata_update: dict[str, Any] | None = None,
+        delay_reason: str | None = None,
+        completion_reason: str | None = None,
     ) -> AgentRun:
         transitions: dict[AgentRunStatus, set[AgentRunStatus]] = {
             AgentRunStatus.queued: {AgentRunStatus.running, AgentRunStatus.canceled},
@@ -120,6 +124,10 @@ class AgentRun(BaseModel):
             updated_fields["started_at"] = transition_time
         if new_status in {AgentRunStatus.succeeded, AgentRunStatus.failed, AgentRunStatus.canceled}:
             updated_fields["completed_at"] = transition_time
+            if completion_reason is not None:
+                updated_fields["completion_reason"] = completion_reason
+        if delay_reason is not None:
+            updated_fields["delay_reason"] = delay_reason
         if metadata_update:
             updated_fields["metadata"] = {**self.metadata, **metadata_update}
         return self.model_copy(update=updated_fields)

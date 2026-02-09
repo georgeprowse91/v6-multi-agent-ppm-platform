@@ -20,3 +20,4 @@ export { MethodologyEditor } from './MethodologyEditor';
 export { RoleManager } from './RoleManager';
 export { ProjectConfigPage } from './ProjectConfigPage';
 export { AgentRunsPage } from './AgentRunsPage';
+export { NotificationCenterPage } from './NotificationCenterPage';

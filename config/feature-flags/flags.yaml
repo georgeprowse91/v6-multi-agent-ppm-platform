@@ -11,6 +11,9 @@ flags:
   - name: agent_run_ui
     enabled: false
     description: Show the agent run monitoring UI in the web console.
+  - name: agent_async_notifications
+    enabled: false
+    description: Send agent run notifications via the notification service and surface them in the UI.
   - name: multimodal_intake
     enabled: false
     description: Enable multimodal intake document uploads and extraction flows.

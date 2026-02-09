@@ -19,6 +19,7 @@ from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.event_bus import EventBus, get_event_bus, publish_insight
 from agents.runtime.src.memory_store import ConversationMemoryStore, InMemoryConversationStore
 from agents.runtime.src.models import AgentRun, AgentRunStatus
+from agents.runtime.src.notification_service import NotificationServiceClient
 
 FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[3] / "packages" / "feature-flags" / "src"
 if str(FEATURE_FLAGS_ROOT) not in sys.path:
@@ -84,6 +85,7 @@ class Orchestrator:
         self._max_parallel_seen = 0
         self._context_lock = asyncio.Lock()
         self._data_service = data_service_client or self._build_data_service_client()
+        self._notification_service = self._build_notification_service_client()
 
     @property
     def event_bus(self) -> EventBus:
@@ -185,11 +187,15 @@ class Orchestrator:
                     if result_payload.get("success", False)
                     else AgentRunStatus.failed
                 )
+                completion_reason = self._resolve_completion_reason(result_payload, final_status)
                 agent_run = await self._transition_agent_run(
                     agent_run,
                     final_status,
                     {"event": "task_completed", "success": result_payload.get("success", False)},
+                    completion_reason=completion_reason,
                 )
+                if agent_run is not None:
+                    await self._send_agent_run_notification(agent_run, result_payload)
                 await self._event_bus.publish(
                     "orchestrator.task.completed",
                     {"task_id": task.task_id, "success": result_payload.get("success", False)},
@@ -209,7 +215,10 @@ class Orchestrator:
                     agent_run,
                     AgentRunStatus.failed,
                     {"event": "task_failed", "error": str(exc)},
+                    completion_reason=str(exc),
                 )
+                if agent_run is not None:
+                    await self._send_agent_run_notification(agent_run, result_payload)
                 await self._event_bus.publish(
                     "orchestrator.task.failed",
                     {"task_id": task.task_id, "error": str(exc)},
@@ -381,9 +390,72 @@ class Orchestrator:
             return None
         return DataServiceClient.from_url(base_url)
 
+    def _build_notification_service_client(self) -> NotificationServiceClient | None:
+        base_url = os.getenv("NOTIFICATION_SERVICE_URL")
+        if not base_url:
+            return None
+        auth_token = os.getenv("NOTIFICATION_SERVICE_TOKEN")
+        return NotificationServiceClient.from_url(base_url, auth_token=auth_token)
+
+    def _resolve_completion_reason(
+        self, result_payload: dict[str, Any], final_status: AgentRunStatus
+    ) -> str | None:
+        if final_status == AgentRunStatus.succeeded:
+            return result_payload.get("completion_reason") or "success"
+        if final_status == AgentRunStatus.failed:
+            return result_payload.get("error") or "failed"
+        return None
+
+    async def _send_agent_run_notification(
+        self, agent_run: AgentRun, result_payload: dict[str, Any]
+    ) -> None:
+        if agent_run.status not in {AgentRunStatus.succeeded, AgentRunStatus.failed}:
+            return
+        if not self._agent_async_notifications_enabled():
+            return
+        if not self._notification_service:
+            logger.info(
+                "agent_run_notification_skipped",
+                extra={"reason": "notification_service_unconfigured", "agent_run_id": agent_run.id},
+            )
+            return
+        channel = os.getenv("AGENT_RUN_NOTIFICATION_CHANNEL", "stdout")
+        recipient = os.getenv("AGENT_RUN_NOTIFICATION_RECIPIENT")
+        variables = {
+            "agent_id": agent_run.agent_id,
+            "agent_run_id": agent_run.id,
+            "tenant_id": agent_run.tenant_id,
+            "status": agent_run.status.value,
+            "completed_at": agent_run.completed_at or "",
+            "completion_reason": agent_run.completion_reason or "",
+            "delay_reason": agent_run.delay_reason or "",
+            "task_id": agent_run.metadata.get("task_id"),
+            "correlation_id": agent_run.metadata.get("correlation_id"),
+            "success": result_payload.get("success"),
+        }
+        try:
+            await self._notification_service.send_notification(
+                tenant_id=agent_run.tenant_id,
+                template="agent-run-status",
+                variables=variables,
+                channel=channel,
+                recipient=recipient,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "agent_run_notification_failed",
+                extra={"agent_run_id": agent_run.id, "error": str(exc)},
+            )
+
     def _agent_run_tracking_enabled(self) -> bool:
         environment = os.getenv("ENVIRONMENT", "dev")
         return is_feature_enabled("agent_run_tracking", environment=environment, default=False)
+
+    def _agent_async_notifications_enabled(self) -> bool:
+        environment = os.getenv("ENVIRONMENT", "dev")
+        return is_feature_enabled(
+            "agent_async_notifications", environment=environment, default=False
+        )
 
     async def _initialize_agent_run(
         self, task: AgentTask, context: dict[str, Any]
@@ -413,10 +485,17 @@ class Orchestrator:
         agent_run: AgentRun | None,
         new_status: AgentRunStatus,
         metadata_update: dict[str, Any] | None = None,
+        completion_reason: str | None = None,
+        delay_reason: str | None = None,
     ) -> AgentRun | None:
         if agent_run is None:
             return None
-        updated = agent_run.transition_to(new_status, metadata_update=metadata_update)
+        updated = agent_run.transition_to(
+            new_status,
+            metadata_update=metadata_update,
+            completion_reason=completion_reason,
+            delay_reason=delay_reason,
+        )
         await self._persist_agent_run(updated)
         self._emit_agent_run_audit(updated, previous_status=agent_run.status)
         return updated

@@ -15,6 +15,11 @@ const formatTimestamp = (value?: string | null) => {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
 };
 
+const formatReason = (value?: string | null) => {
+  if (!value) return 'Not available';
+  return value;
+};
+
 const extractAuditIds = (metadata?: Record<string, unknown>): string[] => {
   if (!metadata) return [];
   const candidates = [
@@ -144,6 +149,10 @@ export function AgentRunDetail({ run }: AgentRunDetailProps) {
           <dd>{formatTimestamp(run.data.started_at)}</dd>
           <dt>Completed</dt>
           <dd>{formatTimestamp(run.data.completed_at)}</dd>
+          <dt>Delay reason</dt>
+          <dd>{formatReason(run.data.delay_reason)}</dd>
+          <dt>Completion reason</dt>
+          <dd>{formatReason(run.data.completion_reason)}</dd>
           <dt>Updated</dt>
           <dd>{formatTimestamp(run.data.updated_at)}</dd>
         </dl>

@@ -7,6 +7,8 @@ export interface AgentRunData {
   updated_at?: string | null;
   started_at?: string | null;
   completed_at?: string | null;
+  delay_reason?: string | null;
+  completion_reason?: string | null;
   metadata?: Record<string, unknown>;
 }
 
