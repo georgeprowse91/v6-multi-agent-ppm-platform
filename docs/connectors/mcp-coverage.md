@@ -1,6 +1,6 @@
 # MCP Coverage Classification (Task 1 Inventory)
 
-This reference classifies each connector from the Task 1 inventory as **MCP-ready**, **hybrid**, or **REST-only**, and calls out which operations are MCP-covered versus REST-only.
+This reference classifies each connector from the Task 1 inventory as **MCP-ready**, **hybrid**, or **REST-only**, and calls out which operations are MCP-covered versus REST-only using the Model Context Protocol (MCP).
 
 **Legend**
 - **MCP-ready**: MCP tools cover all currently documented operations for the connector.

@@ -8,6 +8,8 @@ Define how the Multi-Agent PPM Platform integrates with enterprise systems, incl
 
 Connectors sit between domain agents and external systems of record. They translate canonical schemas in `data/schemas/` into system-specific payloads, enforce auth policies, and emit lineage/quality metadata for every sync. Connector metadata is stored in the registry at `integrations/connectors/registry/`.
 
+The platform uses the Model Context Protocol (MCP), a JSON-RPC protocol that exposes tools, resources, and prompts to AI applications. MCP servers act as the registry and execution layer for connector tools, while REST fallbacks remain available when MCP coverage is incomplete.
+
 ## Connector lifecycle
 
 1. **Register**: add a manifest in `integrations/connectors/<name>/manifest.yaml` and list it in `integrations/connectors/registry/connectors.json`.

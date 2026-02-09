@@ -66,7 +66,7 @@ def test_mcp_enabled_sync_flow_lists_tools_and_records(
     )
 
     assert result["records"][0]["id"] == "rec-1"
-    assert any(request.get("method") == "invokeTool" for request in mock_mcp_server.requests)
+    assert any(request.get("method") == "tools/call" for request in mock_mcp_server.requests)
 
 
 def test_mcp_disabled_sync_flow_uses_rest(mock_mcp_server, tmp_path: Path) -> None:
@@ -106,4 +106,4 @@ def test_mcp_fallback_sync_flow_uses_rest_on_error(
     )
 
     assert result == [{"id": "rest-fallback"}]
-    assert any(request.get("method") == "invokeTool" for request in mock_mcp_server.requests)
+    assert any(request.get("method") == "tools/call" for request in mock_mcp_server.requests)

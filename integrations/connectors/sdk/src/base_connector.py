@@ -122,6 +122,8 @@ class ConnectorConfig:
     custom_fields: dict[str, Any] = field(default_factory=dict)
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    protocol: str = ""
+    protocol_version: str = ""
     mcp_client_id: str = ""
     mcp_client_secret: str = ""
     mcp_scope: str = ""
@@ -133,6 +135,8 @@ class ConnectorConfig:
     client_secret: str = ""
     scope: str = ""
     mcp_tool_map: dict[str, Any] = field(default_factory=dict)
+    resource_map: dict[str, Any] = field(default_factory=dict)
+    prompt_map: dict[str, Any] = field(default_factory=dict)
     prefer_mcp: bool = False
     mcp_enabled: bool = True
     mcp_enabled_operations: list[str] = field(default_factory=list)
@@ -163,6 +167,8 @@ class ConnectorConfig:
             "custom_fields": self.custom_fields,
             "mcp_server_url": self.mcp_server_url,
             "mcp_server_id": self.mcp_server_id,
+            "protocol": self.protocol,
+            "protocol_version": self.protocol_version,
             "mcp_client_id": self.mcp_client_id,
             "mcp_client_secret": self.mcp_client_secret,
             "mcp_scope": self.mcp_scope or " ".join(self.mcp_scopes),
@@ -174,6 +180,9 @@ class ConnectorConfig:
             "client_secret": self.client_secret,
             "scope": self.scope,
             "mcp_tool_map": self.mcp_tool_map,
+            "tool_map": self.mcp_tool_map,
+            "resource_map": self.resource_map,
+            "prompt_map": self.prompt_map,
             "prefer_mcp": self.prefer_mcp,
             "mcp_enabled": self.mcp_enabled,
             "mcp_enabled_operations": self.mcp_enabled_operations,
@@ -195,6 +204,7 @@ class ConnectorConfig:
             else _split_mcp_scopes(data.get("mcp_scope", ""))
         )
         mcp_scope = data.get("mcp_scope", "") or " ".join(mcp_scopes)
+        tool_map = data.get("tool_map") or data.get("mcp_tool_map", {})
         return cls(
             connector_id=data["connector_id"],
             name=data["name"],
@@ -207,6 +217,8 @@ class ConnectorConfig:
             custom_fields=data.get("custom_fields", {}),
             mcp_server_url=data.get("mcp_server_url", ""),
             mcp_server_id=data.get("mcp_server_id", ""),
+            protocol=data.get("protocol", ""),
+            protocol_version=data.get("protocol_version", ""),
             mcp_client_id=data.get("mcp_client_id", ""),
             mcp_client_secret=data.get("mcp_client_secret", ""),
             mcp_scope=mcp_scope,
@@ -217,7 +229,9 @@ class ConnectorConfig:
             client_id=data.get("client_id", ""),
             client_secret=data.get("client_secret", ""),
             scope=data.get("scope", ""),
-            mcp_tool_map=data.get("mcp_tool_map", {}),
+            mcp_tool_map=tool_map,
+            resource_map=data.get("resource_map", {}),
+            prompt_map=data.get("prompt_map", {}),
             prefer_mcp=data.get("prefer_mcp", False),
             mcp_enabled=data.get("mcp_enabled", True),
             mcp_enabled_operations=data.get("mcp_enabled_operations", []),

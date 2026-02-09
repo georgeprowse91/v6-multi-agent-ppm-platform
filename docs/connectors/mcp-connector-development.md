@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Provide a step-by-step guide for adding MCP-backed connectors and extending MCP coverage across existing integrations.
+Provide a step-by-step guide for adding Model Context Protocol (MCP) connectors and extending MCP coverage across existing integrations.
 
 ## Prerequisites
 
-- An MCP server that supports JSON-RPC `listTools`, `getToolSchema`, and `invokeTool` methods.
-- A connector manifest that declares MCP auth and tool mapping.
+- An MCP server that supports JSON-RPC `initialize`, `tools/list`, `tools/get`, and `tools/call` methods.
+- A connector manifest that declares MCP protocol settings and tool mapping.
 - REST connector coverage (optional but recommended) to serve as a fallback when MCP tools are missing or disabled.
 
 ## Add a new MCP connector
@@ -15,7 +15,7 @@ Provide a step-by-step guide for adding MCP-backed connectors and extending MCP 
 ### 1) Create the MCP connector package
 
 1. Create a new connector folder under `integrations/connectors/<system>_mcp/`.
-2. Add a `manifest.yaml` that declares `auth.type: mcp`, includes MCP auth fields, and provides an `mcp.tool_map` section that maps canonical operations to MCP tool names. Use existing MCP manifests (for example, `integrations/connectors/sap_mcp/manifest.yaml`) as a template.
+2. Add a `manifest.yaml` that declares `protocol: mcp`, includes MCP auth fields, and provides an `mcp.tool_map` section that maps canonical operations to MCP tool names. Use existing MCP manifests (for example, `integrations/connectors/sap_mcp/manifest.yaml`) as a template.
 3. Add mappings under `integrations/connectors/<system>_mcp/mappings/` for any canonical entities you intend to sync.
 
 ### 2) Register the connector
@@ -31,9 +31,14 @@ Provide a step-by-step guide for adding MCP-backed connectors and extending MCP 
 
 ### 4) Verify tool mapping
 
-1. Use the MCP server’s `listTools` response to confirm the tool names.
-2. Ensure your `mcp_tool_map` in the manifest (and project-level overrides) uses exact tool names.
+1. Use the MCP server’s `tools/list` response to confirm the tool names.
+2. Ensure your `tool_map` in the manifest (and project-level overrides) uses exact tool names.
 3. Confirm the connector’s canonical operations map to the MCP client helper methods (`list_records`, `create_record`, `update_record`, `delete_record`) when appropriate.
+
+### 5) Optional resource and prompt mappings
+
+- Add `resource_map` entries when the MCP server exposes read-only context resources (for example, project metadata or templates).
+- Add `prompt_map` entries when the MCP server hosts reusable prompt templates for agents.
 
 ## Extend MCP coverage for an existing connector
 
@@ -56,8 +61,8 @@ Provide a step-by-step guide for adding MCP-backed connectors and extending MCP 
 
 ### Missing tools or tool-map mismatches
 
-- If the MCP client raises a “tool mapping missing” error, confirm `mcp_tool_map` includes the canonical operation key you are invoking.
-- Validate the MCP server returns the expected tool name in `listTools` and update the mapping to match exactly.
+- If the MCP client raises a “tool mapping missing” error, confirm `tool_map` includes the canonical operation key you are invoking.
+- Validate the MCP server returns the expected tool name in `tools/list` and update the mapping to match exactly.
 
 ### Fallback behavior
 

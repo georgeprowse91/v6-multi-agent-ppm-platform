@@ -40,6 +40,11 @@ def test_mcp_client_invokes_tool_map(monkeypatch) -> None:
         {
             "jsonrpc": "2.0",
             "id": "1",
+            "result": {"protocolVersion": "2025-06-18", "capabilities": {}},
+        },
+        {
+            "jsonrpc": "2.0",
+            "id": "2",
             "result": {"records": [{"id": "p-1"}]},
         }
     ]
@@ -58,8 +63,9 @@ def test_mcp_client_invokes_tool_map(monkeypatch) -> None:
     result = asyncio.run(client.list_records({"limit": 1}))
 
     assert result["records"][0]["id"] == "p-1"
-    assert requests[0]["json"]["method"] == "invokeTool"
-    assert requests[0]["json"]["params"]["name"] == "tools.listRecords"
+    assert requests[0]["json"]["method"] == "initialize"
+    assert requests[1]["json"]["method"] == "tools/call"
+    assert requests[1]["json"]["params"]["name"] == "tools.listRecords"
 
 
 def test_mcp_client_lists_tools(monkeypatch) -> None:
@@ -68,6 +74,11 @@ def test_mcp_client_lists_tools(monkeypatch) -> None:
         {
             "jsonrpc": "2.0",
             "id": "1",
+            "result": {"protocolVersion": "2025-06-18", "capabilities": {}},
+        },
+        {
+            "jsonrpc": "2.0",
+            "id": "2",
             "result": {
                 "tools": [
                     {
@@ -89,4 +100,4 @@ def test_mcp_client_lists_tools(monkeypatch) -> None:
     tools = asyncio.run(client.list_tools())
 
     assert tools[0].name == "tools.listRecords"
-    assert requests[0]["json"]["method"] == "listTools"
+    assert requests[1]["json"]["method"] == "tools/list"

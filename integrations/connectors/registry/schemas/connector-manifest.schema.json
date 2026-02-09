@@ -10,7 +10,25 @@
     "description": {"type": "string"},
     "owner": {"type": "string"},
     "category": {"type": "string"},
-    "tool_map": {"type": "string"},
+    "protocol": {"type": "string", "enum": ["mcp"]},
+    "protocol_version": {"type": "string"},
+    "tool_map": {
+      "oneOf": [
+        {"type": "string"},
+        {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      ]
+    },
+    "resource_map": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "prompt_map": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
     "mcp_server_id": {"type": "string"},
     "mcp_server_url": {"type": "string"},
     "mcp_scopes": {"type": "array", "items": {"type": "string"}},
@@ -24,7 +42,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["oauth2", "api_key", "basic", "token", "mcp"]
+          "enum": ["oauth2", "api_key", "basic", "token"]
         },
         "token_url": {"type": "string"},
         "scopes": {"type": "array", "items": {"type": "string"}},
@@ -64,8 +82,17 @@
       "properties": {
         "server_id": {"type": "string"},
         "server_url": {"type": "string"},
+        "protocol_version": {"type": "string"},
         "scopes": {"type": "array", "items": {"type": "string"}},
         "tool_map": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "resource_map": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "prompt_map": {
           "type": "object",
           "additionalProperties": {"type": "string"}
         }
