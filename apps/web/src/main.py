@@ -58,6 +58,8 @@ from intake_models import (  # noqa: E402
     IntakeRequestCreate,
 )
 from intake_store import IntakeStore  # noqa: E402
+from merge_review_models import MergeDecision, MergeReviewCase  # noqa: E402
+from merge_review_store import MergeReviewStore  # noqa: E402
 from pipeline_models import (  # noqa: E402
     PipelineBoard,
     PipelineItem,
@@ -79,10 +81,11 @@ from methodologies import (  # noqa: E402
     get_methodology_map,
 )
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
-from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing, get_trace_id  # noqa: E402
 from oidc_client import OIDCClient  # noqa: E402
 from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store  # noqa: E402
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from security.config import load_yaml as load_yaml_config  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
@@ -165,6 +168,8 @@ INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
 WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
+MERGE_REVIEW_PATH = STORAGE_DIR / "merge_review_cases.json"
+MERGE_REVIEW_SEED_PATH = WEB_ROOT / "data" / "merge_review_seed.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
 METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
 PROMPT_ROOT = REPO_ROOT / "agents" / "runtime" / "prompts"
@@ -195,6 +200,7 @@ spreadsheet_store = SpreadsheetStore(SPREADSHEETS_PATH)
 tree_store = TreeStore(TREES_PATH)
 agent_settings_store = AgentSettingsStore(AGENT_SETTINGS_PATH)
 intake_store = IntakeStore(INTAKE_REQUESTS_PATH)
+merge_review_store = MergeReviewStore(MERGE_REVIEW_PATH, MERGE_REVIEW_SEED_PATH)
 pipeline_store = PipelineStore(PIPELINE_STATE_PATH)
 workflow_definition_store = WorkflowDefinitionStore(WORKFLOW_DEFINITIONS_PATH)
 logger = logging.getLogger("web-ui")
@@ -758,6 +764,16 @@ def _multimodal_intake_enabled() -> bool:
 
 def _require_multimodal_intake() -> None:
     if not _multimodal_intake_enabled():
+        raise HTTPException(status_code=404, detail="Feature disabled")
+
+
+def _duplicate_resolution_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return is_feature_enabled("duplicate_resolution", environment=environment, default=False)
+
+
+def _require_duplicate_resolution() -> None:
+    if not _duplicate_resolution_enabled():
         raise HTTPException(status_code=404, detail="Feature disabled")
 
 
@@ -2336,6 +2352,9 @@ def _ui_feature_flags() -> dict[str, bool]:
         "multimodal_intake": is_feature_enabled(
             "multimodal_intake", environment=environment, default=False
         ),
+        "duplicate_resolution": is_feature_enabled(
+            "duplicate_resolution", environment=environment, default=False
+        ),
     }
 
 
@@ -3112,6 +3131,44 @@ def decide_intake_request(request_id: str, payload: IntakeDecision) -> IntakeReq
     if not request:
         raise HTTPException(status_code=404, detail="Intake request not found")
     return request
+
+
+@api_router.get("/api/merge-review", response_model=list[MergeReviewCase])
+def list_merge_review_cases(status: str | None = None) -> list[MergeReviewCase]:
+    _require_duplicate_resolution()
+    return merge_review_store.list_cases(status=status)
+
+
+@api_router.post("/api/merge-review/{case_id}/decision", response_model=MergeReviewCase)
+def decide_merge_review_case(
+    request: Request, case_id: str, payload: MergeDecision
+) -> MergeReviewCase:
+    _require_duplicate_resolution()
+    session = _require_session(request)
+    case = merge_review_store.update_decision(case_id, payload)
+    if not case:
+        raise HTTPException(status_code=404, detail="Merge review case not found")
+    tenant_id = _tenant_id_from_request(request, session) or "default"
+    event = build_audit_event(
+        tenant_id=tenant_id,
+        action="duplicate_resolution.merge_decision",
+        outcome="success" if payload.decision == "approved" else "denied",
+        actor_id=payload.reviewer_id,
+        actor_type="user",
+        actor_roles=session.get("roles") or [],
+        resource_id=case.case_id,
+        resource_type=f"{case.entity_type}_merge_review",
+        metadata={
+            "decision": payload.decision,
+            "comments": payload.comments,
+            "primary_record_id": case.primary_record.record_id,
+            "duplicate_record_id": case.duplicate_record.record_id,
+        },
+        trace_id=get_trace_id() or "unknown",
+        correlation_id=session.get("correlation_id"),
+    )
+    emit_audit_event(event)
+    return case
 
 
 @api_router.get("/api/pipeline/{entity_type}/{entity_id}", response_model=PipelineBoard)

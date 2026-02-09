@@ -1,5 +1,6 @@
 import { Routes, Route, Outlet } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
+import { useAppStore } from '@/store';
 import {
   HomePage,
   WorkspacePage,
@@ -15,6 +16,7 @@ import {
   IntakeFormPage,
   IntakeStatusPage,
   IntakeApprovalsPage,
+  MergeReviewPage,
   AgentRunsPage,
   LoginPage,
   PromptManager,
@@ -25,6 +27,9 @@ import {
 } from '@/pages';
 
 export function App() {
+  const { featureFlags } = useAppStore();
+  const showMergeReview = featureFlags.duplicate_resolution === true;
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -83,6 +88,7 @@ export function App() {
         <Route path="/intake/new" element={<IntakeFormPage />} />
         <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
         <Route path="/intake/approvals" element={<IntakeApprovalsPage />} />
+        {showMergeReview && <Route path="/intake/merge-review" element={<MergeReviewPage />} />}
 
         {/* Knowledge pages */}
         <Route path="/knowledge/documents" element={<DocumentSearchPage />} />

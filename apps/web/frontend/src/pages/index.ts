@@ -12,6 +12,7 @@ export { ConnectorMarketplacePage } from './ConnectorMarketplacePage';
 export { IntakeFormPage } from './IntakeFormPage';
 export { IntakeStatusPage } from './IntakeStatusPage';
 export { IntakeApprovalsPage } from './IntakeApprovalsPage';
+export { MergeReviewPage } from './MergeReviewPage';
 export { LoginPage } from './LoginPage';
 export { PromptManager } from './PromptManager';
 export { AnalyticsDashboard } from './AnalyticsDashboard';

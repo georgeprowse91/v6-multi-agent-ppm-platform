@@ -109,6 +109,7 @@ export function LeftPanel() {
   const showAgentRuns = featureFlags.agent_run_ui === true;
   const showRoleManager = hasPermission(session.user?.permissions, 'roles.manage');
   const showProjectConfig = canManageConfig(session.user?.permissions);
+  const showMergeReview = featureFlags.duplicate_resolution === true;
   const projectId = currentSelection?.type === 'project' ? currentSelection.id : null;
 
   const handleNavKeyDown = useCallback(
@@ -144,6 +145,7 @@ export function LeftPanel() {
     'analytics-dashboard': t('nav.analyticsDashboard'),
     'role-manager': 'Role Management',
     'agent-runs': 'Agent Runs',
+    'merge-review': 'Merge Review',
   };
 
   const tourTargets: Record<string, string> = {
@@ -182,6 +184,20 @@ export function LeftPanel() {
             label: 'Agent Runs',
             path: '/admin/agent-runs',
             icon: 'provenance.auditLog',
+          },
+        ]
+      : []),
+  ];
+
+  const workflowItems = [
+    ...workflowNav,
+    ...(showMergeReview
+      ? [
+          {
+            id: 'merge-review',
+            label: 'Merge Review',
+            path: '/intake/merge-review',
+            icon: 'actions.confirmApply',
           },
         ]
       : []),
@@ -265,7 +281,7 @@ export function LeftPanel() {
             <h3 className={styles.sectionTitle}>{t('nav.workflow')}</h3>
           )}
           <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
-            {workflowNav.map((item) => (
+            {workflowItems.map((item) => (
               <li key={item.id}>
                 <Link
                   to={item.path!}

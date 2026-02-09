@@ -17,3 +17,6 @@ flags:
   - name: canonical_propagation
     enabled: false
     description: Enforce canonical propagation rules and mapping validation for entity updates.
+  - name: duplicate_resolution
+    enabled: false
+    description: Enable duplicate resolution review workflows and audit logging.

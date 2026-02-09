@@ -9,7 +9,9 @@ Specification: agents/portfolio-management/agent-04-demand-intake/README.md
 """
 
 import math
+import os
 import re
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +29,12 @@ from agents.common.integration_services import (
 )
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+
+FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "feature-flags" / "src"
+if str(FEATURE_FLAGS_ROOT) not in sys.path:
+    sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
+
+from feature_flags import is_feature_enabled  # noqa: E402
 
 
 class DemandIntakeAgent(BaseAgent):
@@ -65,6 +73,15 @@ class DemandIntakeAgent(BaseAgent):
         self.vector_index = VectorSearchIndex(self.embedding_service)
         self.classifier = NaiveBayesTextClassifier(
             labels=["project", "change_request", "issue", "idea"]
+        )
+        environment = os.getenv("ENVIRONMENT", "dev")
+        duplicate_resolution_flag = is_feature_enabled(
+            "duplicate_resolution", environment=environment, default=False
+        )
+        self.duplicate_resolution_enabled = (
+            config.get("duplicate_resolution_enabled", duplicate_resolution_flag)
+            if config
+            else duplicate_resolution_flag
         )
         self.demand_schema_path = Path(
             config.get("demand_schema_path", "data/schemas/demand.schema.json")
@@ -195,7 +212,12 @@ class DemandIntakeAgent(BaseAgent):
         category = await self._categorize_request(request_data)
 
         # Check for duplicates
-        duplicates = await self._find_duplicates(request_data, tenant_id=tenant_id)
+        duplicates = await self._find_duplicates(
+            request_data,
+            tenant_id=tenant_id,
+            include_rationale=self.duplicate_resolution_enabled,
+        )
+        similar_requests = self._strip_duplicate_rationale(duplicates)
 
         # Generate demand ID
         demand_id = await self._generate_demand_id()
@@ -237,14 +259,17 @@ class DemandIntakeAgent(BaseAgent):
             correlation_id=correlation_id,
         )
 
-        return {
+        response: dict[str, Any] = {
             "demand_id": demand_id,
             "category": category,
             "status": "Received",
             "duplicates_found": len(duplicates) > 0,
-            "similar_requests": duplicates[:5],  # Top 5 most similar
+            "similar_requests": similar_requests[:5],  # Top 5 most similar
             "next_steps": "Request is in screening queue. You will be notified of status updates.",
         }
+        if self.duplicate_resolution_enabled:
+            response["duplicate_candidates"] = duplicates[:5]
+        return response
 
     async def _validate_request(self, request_data: dict[str, Any]) -> bool:
         payload = dict(request_data)
@@ -281,7 +306,11 @@ class DemandIntakeAgent(BaseAgent):
         return label
 
     async def _find_duplicates(
-        self, request_data: dict[str, Any], *, tenant_id: str
+        self,
+        request_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        include_rationale: bool = False,
     ) -> list[dict[str, Any]]:
         """
         Find similar existing requests using semantic similarity.
@@ -297,12 +326,19 @@ class DemandIntakeAgent(BaseAgent):
         for match in self.vector_index.search(candidate_text, top_k=10):
             if match.score >= self.similarity_threshold:
                 metadata = match.metadata
+                result = {
+                    "demand_id": match.doc_id,
+                    "title": metadata.get("title"),
+                    "category": metadata.get("category"),
+                    "similarity": round(match.score, 3),
+                }
+                if include_rationale:
+                    result["rationale"] = self._build_duplicate_rationale(
+                        request_data, metadata, match.score
+                    )
                 results.append(
                     {
-                        "demand_id": match.doc_id,
-                        "title": metadata.get("title"),
-                        "category": metadata.get("category"),
-                        "similarity": round(match.score, 3),
+                        **result,
                     }
                 )
 
@@ -323,12 +359,20 @@ class DemandIntakeAgent(BaseAgent):
 
         Returns list of similar requests.
         """
-        duplicates = await self._find_duplicates(request_data, tenant_id=tenant_id)
+        duplicates = await self._find_duplicates(
+            request_data,
+            tenant_id=tenant_id,
+            include_rationale=self.duplicate_resolution_enabled,
+        )
+        similar_requests = self._strip_duplicate_rationale(duplicates)
 
-        return {
+        response: dict[str, Any] = {
             "duplicates_found": len(duplicates) > 0,
-            "similar_requests": duplicates,
+            "similar_requests": similar_requests,
         }
+        if self.duplicate_resolution_enabled:
+            response["duplicate_candidates"] = duplicates
+        return response
 
     async def _get_pipeline(self, filters: dict[str, Any], *, tenant_id: str) -> dict[str, Any]:
         """
@@ -372,6 +416,30 @@ class DemandIntakeAgent(BaseAgent):
         description = request_data.get("description", "")
         objective = request_data.get("business_objective", "")
         return f"{title} {description} {objective}".strip().lower()
+
+    def _build_duplicate_rationale(
+        self, request_data: dict[str, Any], candidate_data: dict[str, Any], similarity: float
+    ) -> dict[str, Any]:
+        request_tokens = set(self._tokenize(self._combine_text(request_data)))
+        candidate_tokens = set(self._tokenize(self._combine_text(candidate_data)))
+        overlapping_terms = sorted(request_tokens & candidate_tokens)
+        matched_fields = []
+        for field in ("title", "description", "business_objective"):
+            request_field_tokens = set(self._tokenize(request_data.get(field, "")))
+            candidate_field_tokens = set(self._tokenize(candidate_data.get(field, "")))
+            if request_field_tokens & candidate_field_tokens:
+                matched_fields.append(field)
+        return {
+            "similarity_score": round(similarity, 3),
+            "overlapping_terms": overlapping_terms[:8],
+            "matched_fields": matched_fields,
+        }
+
+    def _strip_duplicate_rationale(self, duplicates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            {key: value for key, value in item.items() if key != "rationale"}
+            for item in duplicates
+        ]
 
     def _semantic_similarity(self, query: str, corpus: list[str]) -> list[float]:
         tokens_list = [self._tokenize(text) for text in corpus + [query]]

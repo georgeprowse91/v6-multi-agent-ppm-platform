@@ -11,6 +11,7 @@ Specification: agents/operations-management/agent-23-data-synchronisation-qualit
 import hashlib
 import json
 import os
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +28,12 @@ from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.event_bus import EventBus, ServiceBusEventBus
 from agents.runtime.src.state_store import TenantStateStore
 from jsonschema import ValidationError, validate
+
+FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "feature-flags" / "src"
+if str(FEATURE_FLAGS_ROOT) not in sys.path:
+    sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
+
+from feature_flags import is_feature_enabled  # noqa: E402
 
 try:
     from rapidfuzz import fuzz
@@ -140,6 +147,16 @@ class DataSyncAgent(BaseAgent):
             Path(config.get("sync_lineage_store_path", "data/lineage/sync_lineage.json"))
             if config
             else Path("data/lineage/sync_lineage.json")
+        )
+
+        environment = os.getenv("ENVIRONMENT", "dev")
+        duplicate_resolution_flag = is_feature_enabled(
+            "duplicate_resolution", environment=environment, default=False
+        )
+        self.duplicate_resolution_enabled = (
+            config.get("duplicate_resolution_enabled", duplicate_resolution_flag)
+            if config
+            else duplicate_resolution_flag
         )
         audit_store_path = (
             Path(config.get("sync_audit_store_path", "data/sync_audit_events.json"))
@@ -308,6 +325,9 @@ class DataSyncAgent(BaseAgent):
             or input_data.get("context", {}).get("tenant_id")
             or "default"
         )
+        correlation_id = input_data.get("context", {}).get("correlation_id") or input_data.get(
+            "correlation_id"
+        )
 
         if action == "sync_data":
             return await self._sync_data(
@@ -351,7 +371,13 @@ class DataSyncAgent(BaseAgent):
 
         elif action == "merge_duplicates":
             return await self._merge_duplicates(
-                input_data.get("master_ids", []), input_data.get("primary_id")  # type: ignore
+                input_data.get("master_ids", []),
+                input_data.get("primary_id"),  # type: ignore
+                decision=input_data.get("decision"),
+                reviewer_id=input_data.get("reviewer_id"),
+                comments=input_data.get("comments"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "validate_data":
@@ -968,12 +994,47 @@ class DataSyncAgent(BaseAgent):
             "duplicate_count": len(duplicates),
         }
 
-    async def _merge_duplicates(self, master_ids: list[str], primary_id: str) -> dict[str, Any]:
+    async def _merge_duplicates(
+        self,
+        master_ids: list[str],
+        primary_id: str,
+        *,
+        decision: str | None = None,
+        reviewer_id: str | None = None,
+        comments: str | None = None,
+        tenant_id: str | None = None,
+        correlation_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Merge duplicate records.
 
         Returns merge result.
         """
+        if not primary_id:
+            raise ValueError("Primary ID must be provided")
+        decision_value = (decision or "approved").lower()
+        if decision_value not in {"approved", "rejected"}:
+            raise ValueError("Decision must be 'approved' or 'rejected'")
+
+        if decision_value == "rejected":
+            self.logger.info(f"Merge decision rejected for {primary_id}")
+            if self.duplicate_resolution_enabled:
+                self._emit_merge_decision_audit(
+                    decision=decision_value,
+                    tenant_id=tenant_id or "default",
+                    primary_id=primary_id,
+                    master_ids=master_ids,
+                    reviewer_id=reviewer_id,
+                    comments=comments,
+                    correlation_id=correlation_id,
+                )
+            return {
+                "primary_id": primary_id,
+                "merged_count": 0,
+                "merged_ids": [],
+                "decision": "rejected",
+            }
+
         self.logger.info(f"Merging {len(master_ids)} duplicates into {primary_id}")
 
         if primary_id not in master_ids:
@@ -1012,11 +1073,54 @@ class DataSyncAgent(BaseAgent):
             if duplicate_record:
                 await self._store_record("master_records", master_id, duplicate_record)
 
+        if self.duplicate_resolution_enabled:
+            self._emit_merge_decision_audit(
+                decision=decision_value,
+                tenant_id=tenant_id or "default",
+                primary_id=primary_id,
+                master_ids=master_ids,
+                reviewer_id=reviewer_id,
+                comments=comments,
+                correlation_id=correlation_id,
+            )
+
         return {
             "primary_id": primary_id,
             "merged_count": len(master_ids) - 1,
             "merged_ids": [mid for mid in master_ids if mid != primary_id],
+            "decision": "approved",
         }
+
+    def _emit_merge_decision_audit(
+        self,
+        *,
+        decision: str,
+        tenant_id: str,
+        primary_id: str,
+        master_ids: list[str],
+        reviewer_id: str | None,
+        comments: str | None,
+        correlation_id: str | None,
+    ) -> None:
+        event = build_audit_event(
+            tenant_id=tenant_id,
+            action="duplicate_resolution.merge_decision",
+            outcome="success" if decision == "approved" else "denied",
+            actor_id=reviewer_id or "system",
+            actor_type="user" if reviewer_id else "service",
+            actor_roles=[],
+            resource_id=primary_id,
+            resource_type="master_record",
+            metadata={
+                "decision": decision,
+                "primary_id": primary_id,
+                "master_ids": master_ids,
+                "comments": comments,
+            },
+            trace_id=get_trace_id() or "unknown",
+            correlation_id=correlation_id,
+        )
+        emit_audit_event(event)
 
     async def _validate_data(self, entity_type: str, data: dict[str, Any]) -> dict[str, Any]:
         """
