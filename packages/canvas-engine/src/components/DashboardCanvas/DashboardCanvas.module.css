@@ -255,6 +255,102 @@
   font-size: var(--font-size-sm, 0.875rem);
 }
 
+.artifactList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.artifactRow {
+  border: 1px solid var(--color-neutral-100, #f5f5f5);
+  border-radius: var(--radius-md, 6px);
+  padding: var(--space-3, 12px);
+  background: var(--color-neutral-50, #fafafa);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.artifactHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.artifactTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  color: var(--color-neutral-800, #262626);
+}
+
+.artifactCount {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs, 0.75rem);
+  background: var(--color-primary-100, #e0e7ff);
+  color: var(--color-primary-600, #4f46e5);
+}
+
+.artifactMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 12px);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-neutral-600, #525252);
+}
+
+.artifactLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+}
+
+.artifactLink,
+.artifactLinkSecondary {
+  font-size: var(--font-size-xs, 0.75rem);
+  text-decoration: none;
+  color: var(--color-primary-600, #4f46e5);
+}
+
+.artifactLinkSecondary {
+  color: var(--color-neutral-600, #525252);
+}
+
+.artifactLink:hover,
+.artifactLinkSecondary:hover {
+  text-decoration: underline;
+}
+
+.warningList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-warning-700, #b45309);
+}
+
+.provenanceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3, 12px);
+}
+
+.provenanceLabel {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-neutral-500, #737373);
+}
+
+.provenanceValue {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-neutral-800, #262626);
+}
+
+.provenanceSpan {
+  grid-column: 1 / -1;
+}
+
 .statusMessage {
   margin: 0;
   color: var(--color-neutral-600, #525252);

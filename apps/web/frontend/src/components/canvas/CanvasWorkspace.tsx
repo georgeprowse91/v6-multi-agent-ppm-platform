@@ -41,6 +41,7 @@ export function CanvasWorkspace() {
   } = useCanvasStore();
   const { featureFlags } = useAppStore();
   const autonomousDeliverablesEnabled = featureFlags.autonomous_deliverables === true;
+  const unifiedDashboardsEnabled = featureFlags.unified_dashboards === true;
 
   const handleContentChange = useCallback(
     (artifactId: string, content: ArtifactContent) => {
@@ -115,13 +116,14 @@ export function CanvasWorkspace() {
             <DashboardCanvas
               artifact={artifact as CanvasArtifact<DashboardContent>}
               onChange={onChange as (content: DashboardContent) => void}
+              unifiedDashboardsEnabled={unifiedDashboardsEnabled}
             />
           );
         default:
           return <div>Unknown canvas type: {type}</div>;
       }
     },
-    []
+    [autonomousDeliverablesEnabled, handlePublish, handleSaveDraft, unifiedDashboardsEnabled]
   );
 
   // Convert store tabs to canvas-engine tab format

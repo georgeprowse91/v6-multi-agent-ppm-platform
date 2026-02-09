@@ -779,6 +779,11 @@ def _duplicate_resolution_enabled() -> bool:
     return is_feature_enabled("duplicate_resolution", environment=environment, default=False)
 
 
+def _unified_dashboards_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return is_feature_enabled("unified_dashboards", environment=environment, default=False)
+
+
 def _require_duplicate_resolution() -> None:
     if not _duplicate_resolution_enabled():
         raise HTTPException(status_code=404, detail="Feature disabled")
@@ -2373,6 +2378,9 @@ def _ui_feature_flags() -> dict[str, bool]:
         ),
         "autonomous_deliverables": is_feature_enabled(
             "autonomous_deliverables", environment=environment, default=False
+        ),
+        "unified_dashboards": is_feature_enabled(
+            "unified_dashboards", environment=environment, default=False
         ),
     }
 
@@ -4887,6 +4895,24 @@ async def get_dashboard_narrative(project_id: str, request: Request) -> Response
     response = await client.get_project_narrative(project_id, headers=headers)
     logger.info(
         "dashboard.narrative.fetch",
+        extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
+    )
+    if response.status_code >= 400:
+        return _passthrough_response(response)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@api_router.get("/api/dashboard/{project_id}/aggregations")
+@permission_required("analytics.view")
+async def get_dashboard_aggregations(project_id: str, request: Request) -> Response:
+    if not _unified_dashboards_enabled():
+        raise HTTPException(status_code=404, detail="Unified dashboards are not enabled")
+    session = _require_session(request)
+    headers = build_forward_headers(request, session)
+    client = _analytics_client()
+    response = await client.get_project_aggregations(project_id, headers=headers)
+    logger.info(
+        "dashboard.aggregations.fetch",
         extra={"tenant_id": session.get("tenant_id"), "project_id": project_id},
     )
     if response.status_code >= 400:

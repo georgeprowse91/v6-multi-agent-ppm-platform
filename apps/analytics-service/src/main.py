@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import httpx
 from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response
 from opentelemetry.metrics import Observation
 from pydantic import BaseModel, Field
@@ -72,6 +73,7 @@ health_snapshot_store: HealthSnapshotStore | None = None
 metrics_store: MetricsStore | None = None
 kpi_engine: AnalyticsKpiEngine | None = None
 data_client: AnalyticsDataClient | None = None
+lineage_client: "LineageDataClient | None" = None
 agent_output_store: TenantStateStore | None = None
 
 DEFAULT_HEALTH_HISTORY_LIMIT = int(os.getenv("ANALYTICS_HEALTH_HISTORY_LIMIT", "20"))
@@ -92,6 +94,9 @@ DEFAULT_AGENT_OUTPUT_DB = os.getenv(
     "apps/analytics-service/storage/agent_outputs.json",
 )
 DEFAULT_DATA_SERVICE_URL = os.getenv("DATA_SERVICE_URL", "http://localhost:8081")
+DEFAULT_LINEAGE_SERVICE_URL = os.getenv(
+    "DATA_LINEAGE_SERVICE_URL", "http://data-lineage-service:8080"
+)
 
 jobs_scheduled = configure_metrics("analytics-service").create_counter(
     name="analytics_jobs_scheduled_total",
@@ -279,6 +284,55 @@ class PredictiveAlertResponse(BaseModel):
     mitigations: list[str]
     links: list[PredictiveAlertLink]
     detected_at: str
+
+
+class AggregatedArtifactMetric(BaseModel):
+    artifact_type: str
+    label: str
+    total: int
+    last_updated: str | None
+    owners: list[str]
+    status_breakdown: dict[str, int]
+    route: str
+    sample_ids: list[str]
+
+
+class LineageProvenanceResponse(BaseModel):
+    total_nodes: int
+    total_edges: int
+    source_systems: list[str]
+    target_schemas: list[str]
+    latest_event_at: str | None
+    average_quality_score: float | None
+    quality_event_count: int
+
+
+class AggregationResponse(BaseModel):
+    project_id: str
+    computed_at: str
+    artifacts: list[AggregatedArtifactMetric]
+    lineage: LineageProvenanceResponse | None
+    warnings: list[str]
+
+
+class LineageDataClient:
+    def __init__(self, base_url: str, timeout: float = 10.0) -> None:
+        self._client = httpx.AsyncClient(base_url=base_url.rstrip("/"), timeout=timeout)
+
+    async def get_lineage_graph(self, tenant_id: str) -> httpx.Response:
+        return await self._client.get(
+            "/lineage/graph",
+            headers={"X-Tenant-ID": tenant_id},
+        )
+
+    async def get_quality_summary(self, tenant_id: str) -> httpx.Response:
+        return await self._client.get(
+            "/quality/summary",
+            headers={"X-Tenant-ID": tenant_id},
+        )
+
+    async def close(self) -> None:
+        await self._client.aclose()
 
 
 def _job_to_response(job) -> JobResponse:
@@ -511,7 +565,7 @@ async def _run_scheduler_loop() -> None:
 @app.on_event("startup")
 async def startup() -> None:
     global scheduler, run_loop_task, health_snapshot_store, metrics_store, kpi_engine, data_client
-    global agent_output_store
+    global lineage_client, agent_output_store
     db_path = Path(
         os.getenv("ANALYTICS_SCHEDULER_DB", "apps/analytics-service/storage/scheduler.db")
     )
@@ -524,6 +578,7 @@ async def startup() -> None:
     metrics_store = MetricsStore(Path(DEFAULT_METRICS_DB))
     data_client = AnalyticsDataClient(DEFAULT_DATA_SERVICE_URL)
     kpi_engine = AnalyticsKpiEngine(data_client, metrics_store)
+    lineage_client = LineageDataClient(DEFAULT_LINEAGE_SERVICE_URL)
     agent_output_store = TenantStateStore(Path(DEFAULT_AGENT_OUTPUT_DB))
 
 
@@ -533,6 +588,8 @@ async def shutdown() -> None:
         run_loop_task.cancel()
     if data_client:
         await data_client.close()
+    if lineage_client:
+        await lineage_client.close()
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -543,6 +600,7 @@ async def health() -> HealthResponse:
         "health_snapshots": "ok" if health_snapshot_store else "down",
         "metrics_store": "ok" if metrics_store else "down",
         "kpi_engine": "ok" if kpi_engine else "down",
+        "lineage_client": "ok" if lineage_client else "down",
         "agent_outputs": "ok" if agent_output_store else "down",
     }
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
@@ -816,6 +874,24 @@ async def get_project_kpi_narrative(project_id: str, request: Request) -> Narrat
     )
 
 
+@api_router.get("/api/projects/{project_id}/aggregations", response_model=AggregationResponse)
+async def get_project_aggregations(project_id: str, request: Request) -> AggregationResponse:
+    if not _unified_dashboards_enabled():
+        raise HTTPException(status_code=404, detail="Unified dashboards are not enabled")
+    tenant_id = request.state.auth.tenant_id
+    warnings: list[str] = []
+    artifacts = await _build_artifact_aggregations(project_id, tenant_id, warnings)
+    lineage = await _build_lineage_provenance(project_id, tenant_id, warnings)
+    kpi_handles.requests.add(1, {"operation": "get_project_aggregations", "tenant_id": tenant_id})
+    return AggregationResponse(
+        project_id=project_id,
+        computed_at=datetime.now(timezone.utc).isoformat(),
+        artifacts=artifacts,
+        lineage=lineage,
+        warnings=warnings,
+    )
+
+
 @api_router.post("/api/projects/{project_id}/kpis/what-if", response_model=WhatIfDetailResponse)
 async def run_kpi_what_if(
     project_id: str, request: Request, payload: WhatIfRequest
@@ -861,6 +937,11 @@ def _snapshot_to_response(snapshot: KpiSnapshot) -> ProjectKpiResponse:
     )
 
 
+def _unified_dashboards_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return is_feature_enabled("unified_dashboards", environment=environment, default=False)
+
+
 def _predictive_alerts_enabled() -> bool:
     environment = os.getenv("ENVIRONMENT", "dev")
     return is_feature_enabled("predictive_alerts", environment=environment, default=False)
@@ -884,6 +965,248 @@ def _alert_record_to_response(record: dict[str, Any]) -> PredictiveAlertResponse
         links=links,
         detected_at=str(record.get("detected_at", "")),
     )
+
+
+def _matches_project_payload(data: dict[str, Any] | None, project_id: str) -> bool:
+    if not data:
+        return False
+    for key in ("project_id", "projectId", "project"):
+        if data.get(key) == project_id:
+            return True
+    metadata = data.get("metadata") or {}
+    for key in ("project_id", "projectId", "project"):
+        if metadata.get(key) == project_id:
+            return True
+    if data.get("portfolio_id") == project_id:
+        return True
+    return False
+
+
+def _extract_owner_names(data: dict[str, Any]) -> list[str]:
+    owners: list[str] = []
+    metadata = data.get("metadata") or {}
+    for key in (
+        "owner",
+        "owner_id",
+        "assigned_to",
+        "assignee",
+        "sponsor",
+        "lead",
+        "manager",
+        "created_by",
+    ):
+        value = data.get(key) or metadata.get(key)
+        if not value:
+            continue
+        if isinstance(value, list):
+            owners.extend(str(item) for item in value if item)
+        else:
+            owners.append(str(value))
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for owner in owners:
+        if owner in seen:
+            continue
+        seen.add(owner)
+        deduped.append(owner)
+    return deduped
+
+
+def _extract_status(data: dict[str, Any]) -> str:
+    metadata = data.get("metadata") or {}
+    for key in ("status", "state", "phase"):
+        value = data.get(key) or metadata.get(key)
+        if value:
+            return str(value)
+    return "unknown"
+
+
+def _artifact_route(schema_name: str, project_id: str) -> str:
+    route_map = {
+        "document": f"/knowledge/documents?projectId={project_id}",
+        "work-item": f"/project/{project_id}?view=work-items",
+        "risk": f"/project/{project_id}?view=risks",
+        "issue": f"/project/{project_id}?view=issues",
+        "budget": f"/project/{project_id}?view=budgets",
+        "resource": f"/project/{project_id}?view=resources",
+        "requirement": f"/project/{project_id}?view=requirements",
+    }
+    return route_map.get(schema_name, f"/project/{project_id}")
+
+
+def _extract_project_id(metadata: dict[str, Any] | None) -> str | None:
+    if not metadata:
+        return None
+    for key in ("project_id", "projectId", "project"):
+        value = metadata.get(key)
+        if value:
+            return str(value)
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        for key in ("project_id", "projectId", "project"):
+            value = nested.get(key)
+            if value:
+                return str(value)
+    return None
+
+
+async def _build_lineage_provenance(
+    project_id: str, tenant_id: str, warnings: list[str]
+) -> LineageProvenanceResponse | None:
+    if lineage_client is None:
+        return None
+    graph_response, quality_response = await asyncio.gather(
+        lineage_client.get_lineage_graph(tenant_id),
+        lineage_client.get_quality_summary(tenant_id),
+        return_exceptions=True,
+    )
+
+    graph_payload: dict[str, Any] | None = None
+    if isinstance(graph_response, Exception):
+        warnings.append("Lineage graph unavailable.")
+    elif graph_response.status_code >= 400:
+        warnings.append("Lineage graph returned an error.")
+    else:
+        graph_payload = graph_response.json()
+
+    quality_payload: dict[str, Any] | None = None
+    if isinstance(quality_response, Exception):
+        warnings.append("Lineage quality summary unavailable.")
+    elif quality_response.status_code >= 400:
+        warnings.append("Lineage quality summary returned an error.")
+    else:
+        quality_payload = quality_response.json()
+
+    if not graph_payload:
+        return None
+
+    nodes = graph_payload.get("nodes", [])
+    edges = graph_payload.get("edges", [])
+    node_map = {node.get("id"): node for node in nodes if node.get("id")}
+    matching_nodes = {
+        node_id
+        for node_id, node in node_map.items()
+        if _extract_project_id(node.get("metadata")) == project_id
+    }
+    filtered_edges = [
+        edge
+        for edge in edges
+        if edge.get("source") in matching_nodes or edge.get("target") in matching_nodes
+    ]
+    filtered_nodes = [node_map[node_id] for node_id in matching_nodes]
+    if not filtered_nodes and nodes:
+        warnings.append("Lineage graph does not include project-scoped nodes.")
+        filtered_nodes = list(nodes)
+        filtered_edges = list(edges)
+
+    source_systems: set[str] = set()
+    target_schemas: set[str] = set()
+    for node in filtered_nodes:
+        metadata = node.get("metadata") or {}
+        if node.get("node_type") == "source":
+            system = metadata.get("system")
+            if system:
+                source_systems.add(str(system))
+        if node.get("node_type") == "target":
+            schema = metadata.get("schema")
+            if schema:
+                target_schemas.add(str(schema))
+
+    latest_event = datetime.min.replace(tzinfo=timezone.utc)
+    for edge in filtered_edges:
+        timestamp = _parse_timestamp(edge.get("timestamp"))
+        if timestamp > latest_event:
+            latest_event = timestamp
+
+    average_quality_score = None
+    quality_event_count = 0
+    if quality_payload:
+        average_quality_score = quality_payload.get("average_score")
+        quality_event_count = int(quality_payload.get("total_events", 0))
+
+    latest_event_at = None
+    if filtered_edges and latest_event != datetime.min.replace(tzinfo=timezone.utc):
+        latest_event_at = latest_event.isoformat()
+
+    return LineageProvenanceResponse(
+        total_nodes=len(filtered_nodes),
+        total_edges=len(filtered_edges),
+        source_systems=sorted(source_systems),
+        target_schemas=sorted(target_schemas),
+        latest_event_at=latest_event_at,
+        average_quality_score=average_quality_score,
+        quality_event_count=quality_event_count,
+    )
+
+
+async def _build_artifact_aggregations(
+    project_id: str, tenant_id: str, warnings: list[str]
+) -> list[AggregatedArtifactMetric]:
+    if data_client is None:
+        return []
+    schema_configs = [
+        {"schema": "document", "label": "Documents"},
+        {"schema": "work-item", "label": "Work Items"},
+        {"schema": "risk", "label": "Risks"},
+        {"schema": "issue", "label": "Issues"},
+        {"schema": "budget", "label": "Budgets"},
+        {"schema": "resource", "label": "Resources"},
+        {"schema": "requirement", "label": "Requirements"},
+    ]
+    responses = await asyncio.gather(
+        *[
+            data_client.list_entities(config["schema"], tenant_id)
+            for config in schema_configs
+        ],
+        return_exceptions=True,
+    )
+    aggregated: list[AggregatedArtifactMetric] = []
+    for config, response in zip(schema_configs, responses):
+        schema_name = config["schema"]
+        label = config["label"]
+        if isinstance(response, Exception):
+            warnings.append(f"Artifact data unavailable for {schema_name}.")
+            continue
+        filtered = [
+            record
+            for record in response
+            if _matches_project_payload(record.get("data"), project_id)
+        ]
+        owners: list[str] = []
+        status_breakdown: dict[str, int] = {}
+        timestamps: list[datetime] = []
+        sample_ids: list[str] = []
+        for record in filtered:
+            data = record.get("data") or {}
+            owners.extend(_extract_owner_names(data))
+            status = _extract_status(data)
+            status_breakdown[status] = status_breakdown.get(status, 0) + 1
+            timestamps.append(_parse_timestamp(record.get("updated_at")))
+            if len(sample_ids) < 3:
+                sample_id = record.get("id")
+                if sample_id:
+                    sample_ids.append(str(sample_id))
+        if not timestamps:
+            timestamps.append(datetime.min.replace(tzinfo=timezone.utc))
+        latest_ts = max(timestamps)
+        last_updated = (
+            latest_ts.isoformat()
+            if latest_ts != datetime.min.replace(tzinfo=timezone.utc)
+            else None
+        )
+        aggregated.append(
+            AggregatedArtifactMetric(
+                artifact_type=schema_name,
+                label=label,
+                total=len(filtered),
+                last_updated=last_updated,
+                owners=sorted(set(owners)),
+                status_breakdown=status_breakdown,
+                route=_artifact_route(schema_name, project_id),
+                sample_ids=sample_ids,
+            )
+        )
+    return aggregated
 
 
 @api_router.post(

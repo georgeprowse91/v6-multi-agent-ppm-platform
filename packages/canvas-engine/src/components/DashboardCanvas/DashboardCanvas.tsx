@@ -10,7 +10,9 @@ import type { CanvasComponentProps } from '../../types/canvas';
 import type { DashboardContent, DashboardWidget } from '../../types/artifact';
 import styles from './DashboardCanvas.module.css';
 
-export interface DashboardCanvasProps extends CanvasComponentProps<DashboardContent> {}
+export interface DashboardCanvasProps extends CanvasComponentProps<DashboardContent> {
+  unifiedDashboardsEnabled?: boolean;
+}
 
 const API_BASE = '/api/dashboard';
 
@@ -63,6 +65,35 @@ type NarrativeResponse = {
   opportunities: string[];
   data_quality_notes: string[];
   computed_at: string;
+};
+
+type AggregatedArtifactMetric = {
+  artifact_type: string;
+  label: string;
+  total: number;
+  last_updated: string | null;
+  owners: string[];
+  status_breakdown: Record<string, number>;
+  route: string;
+  sample_ids: string[];
+};
+
+type LineageProvenance = {
+  total_nodes: number;
+  total_edges: number;
+  source_systems: string[];
+  target_schemas: string[];
+  latest_event_at: string | null;
+  average_quality_score: number | null;
+  quality_event_count: number;
+};
+
+type AggregationResponse = {
+  project_id: string;
+  computed_at: string;
+  artifacts: AggregatedArtifactMetric[];
+  lineage: LineageProvenance | null;
+  warnings: string[];
 };
 
 /** Mock chart component */
@@ -280,6 +311,7 @@ function renderWidget(widget: DashboardWidget) {
 export function DashboardCanvas({
   artifact,
   className,
+  unifiedDashboardsEnabled = false,
 }: DashboardCanvasProps) {
   const { widgets, gridColumns = 12 } = artifact.content;
   const [health, setHealth] = useState<ProjectHealth | null>(null);
@@ -287,6 +319,8 @@ export function DashboardCanvas({
   const [quality, setQuality] = useState<QualitySummary | null>(null);
   const [kpis, setKpis] = useState<ProjectKpis | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
+  const [aggregations, setAggregations] = useState<AggregationResponse | null>(null);
+  const [aggregationMessage, setAggregationMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [whatIfMessage, setWhatIfMessage] = useState<string | null>(null);
@@ -297,18 +331,23 @@ export function DashboardCanvas({
       setLoading(true);
       setError(null);
       try {
+        const aggregationPromise = unifiedDashboardsEnabled
+          ? fetch(`${API_BASE}/${artifact.projectId}/aggregations`)
+          : Promise.resolve(null);
         const [
           healthResponse,
           trendResponse,
           qualityResponse,
           kpiResponse,
           narrativeResponse,
+          aggregationResponse,
         ] = await Promise.all([
           fetch(`${API_BASE}/${artifact.projectId}/health`),
           fetch(`${API_BASE}/${artifact.projectId}/trends`),
           fetch(`${API_BASE}/${artifact.projectId}/quality`),
           fetch(`${API_BASE}/${artifact.projectId}/kpis`),
           fetch(`${API_BASE}/${artifact.projectId}/narrative`),
+          aggregationPromise,
         ]);
         if (!healthResponse.ok) {
           throw new Error('Unable to load project health.');
@@ -324,12 +363,23 @@ export function DashboardCanvas({
         const narrativeData = narrativeResponse.ok
           ? ((await narrativeResponse.json()) as NarrativeResponse)
           : null;
+        let aggregationData: AggregationResponse | null = null;
+        let aggregationNote: string | null = null;
+        if (aggregationResponse) {
+          if (aggregationResponse.ok) {
+            aggregationData = (await aggregationResponse.json()) as AggregationResponse;
+          } else if (aggregationResponse.status !== 404) {
+            aggregationNote = 'Unable to load aggregation metrics.';
+          }
+        }
         if (isMounted) {
           setHealth(healthData);
           setTrends(trendsData.points ?? []);
           setQuality(qualityData);
           setKpis(kpiData);
           setNarrative(narrativeData);
+          setAggregations(aggregationData);
+          setAggregationMessage(aggregationNote);
         }
       } catch (err) {
         if (isMounted) {
@@ -345,7 +395,14 @@ export function DashboardCanvas({
     return () => {
       isMounted = false;
     };
-  }, [artifact.projectId]);
+  }, [artifact.projectId, unifiedDashboardsEnabled]);
+
+  const buildArtifactLink = (route: string, artifactId: string) => {
+    if (route.includes('?')) {
+      return `${route}&artifact_id=${artifactId}`;
+    }
+    return `${route}?artifact_id=${artifactId}`;
+  };
 
   const handleExport = () => {
     if (!health) {
@@ -555,6 +612,138 @@ export function DashboardCanvas({
           </div>
         </div>
       </div>
+
+      {unifiedDashboardsEnabled && (
+        <div className={styles.trendGrid}>
+          <div className={styles.widgetContainer}>
+            <div className={styles.sectionHeader}>
+              <h3>Cross-artefact Metrics</h3>
+              <span>Counts and owners by artefact type</span>
+            </div>
+            <div className={styles.sectionBody}>
+              {aggregationMessage && (
+                <p className={styles.statusMessage}>{aggregationMessage}</p>
+              )}
+              {aggregations ? (
+                <div className={styles.artifactList}>
+                  {aggregations.artifacts.map((item) => (
+                    <div key={item.artifact_type} className={styles.artifactRow}>
+                      <div className={styles.artifactHeader}>
+                        <div className={styles.artifactTitle}>
+                          <strong>{item.label}</strong>
+                          <span className={styles.artifactCount}>{item.total}</span>
+                        </div>
+                        <a className={styles.artifactLink} href={item.route}>
+                          Open
+                        </a>
+                      </div>
+                      <div className={styles.artifactMeta}>
+                        <span>
+                          Last updated:{' '}
+                          {item.last_updated
+                            ? new Date(item.last_updated).toLocaleString()
+                            : 'n/a'}
+                        </span>
+                        <span>
+                          Owners: {item.owners.length ? item.owners.join(', ') : 'Unassigned'}
+                        </span>
+                      </div>
+                      <div className={styles.artifactMeta}>
+                        Status mix:{' '}
+                        {Object.entries(item.status_breakdown).length
+                          ? Object.entries(item.status_breakdown)
+                              .map(([status, count]) => `${status} (${count})`)
+                              .join(' · ')
+                          : 'No statuses'}
+                      </div>
+                      {item.sample_ids.length > 0 && (
+                        <div className={styles.artifactLinks}>
+                          {item.sample_ids.slice(0, 3).map((artifactId) => (
+                            <a
+                              key={artifactId}
+                              className={styles.artifactLinkSecondary}
+                              href={buildArtifactLink(item.route, artifactId)}
+                            >
+                              View {artifactId}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {aggregations.warnings.length > 0 && (
+                    <div className={styles.warningList}>
+                      {aggregations.warnings.map((warning, index) => (
+                        <span key={`agg-warning-${index}`}>{warning}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className={styles.statusMessage}>Aggregation metrics are loading.</p>
+              )}
+            </div>
+          </div>
+          <div className={styles.widgetContainer}>
+            <div className={styles.sectionHeader}>
+              <h3>Lineage Provenance</h3>
+              <span>Upstream sources & quality signals</span>
+            </div>
+            <div className={styles.sectionBody}>
+              {aggregations?.lineage ? (
+                <div className={styles.provenanceGrid}>
+                  <div>
+                    <div className={styles.provenanceLabel}>Nodes</div>
+                    <div className={styles.provenanceValue}>
+                      {aggregations.lineage.total_nodes}
+                    </div>
+                  </div>
+                  <div>
+                    <div className={styles.provenanceLabel}>Edges</div>
+                    <div className={styles.provenanceValue}>
+                      {aggregations.lineage.total_edges}
+                    </div>
+                  </div>
+                  <div>
+                    <div className={styles.provenanceLabel}>Latest event</div>
+                    <div className={styles.provenanceValue}>
+                      {aggregations.lineage.latest_event_at
+                        ? new Date(aggregations.lineage.latest_event_at).toLocaleString()
+                        : 'n/a'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className={styles.provenanceLabel}>Avg quality</div>
+                    <div className={styles.provenanceValue}>
+                      {aggregations.lineage.average_quality_score !== null
+                        ? `${Math.round(aggregations.lineage.average_quality_score * 100)}%`
+                        : 'n/a'}
+                    </div>
+                  </div>
+                  <div className={styles.provenanceSpan}>
+                    <div className={styles.provenanceLabel}>Source systems</div>
+                    <div className={styles.provenanceValue}>
+                      {aggregations.lineage.source_systems.length
+                        ? aggregations.lineage.source_systems.join(', ')
+                        : 'None reported'}
+                    </div>
+                  </div>
+                  <div className={styles.provenanceSpan}>
+                    <div className={styles.provenanceLabel}>Target schemas</div>
+                    <div className={styles.provenanceValue}>
+                      {aggregations.lineage.target_schemas.length
+                        ? aggregations.lineage.target_schemas.join(', ')
+                        : 'None reported'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.statusMessage}>Lineage provenance not yet available.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className={styles.trendGrid}>
         <div className={styles.widgetContainer}>

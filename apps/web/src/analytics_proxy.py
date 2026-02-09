@@ -47,6 +47,13 @@ class AnalyticsServiceClient:
             "GET", f"/api/projects/{project_id}/kpis/narrative", headers=headers
         )
 
+    async def get_project_aggregations(
+        self, project_id: str, headers: dict[str, str]
+    ) -> httpx.Response:
+        return await self._request(
+            "GET", f"/api/projects/{project_id}/aggregations", headers=headers
+        )
+
     async def get_powerbi_report(
         self, report_type: str, headers: dict[str, str]
     ) -> httpx.Response:
