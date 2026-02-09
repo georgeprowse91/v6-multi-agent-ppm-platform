@@ -78,3 +78,36 @@ class RedisConversationStore(ConversationMemoryStore):
 
     async def close(self) -> None:
         await self._client.close()
+
+
+class SharedContextStore(ConversationMemoryStore):
+    """Shared context store for cross-agent insights and collaboration."""
+
+
+class InMemorySharedContextStore(InMemoryConversationStore, SharedContextStore):
+    """In-memory shared context store for local development and tests."""
+
+
+class RedisSharedContextStore(RedisConversationStore, SharedContextStore):
+    """Redis-backed shared context store for cross-session collaboration."""
+
+    def __init__(
+        self,
+        client: redis.Redis,
+        *,
+        ttl_seconds: int | None = None,
+        key_prefix: str = "shared-context:",
+    ) -> None:
+        super().__init__(client, ttl_seconds=ttl_seconds, key_prefix=key_prefix)
+
+    @classmethod
+    def from_url(
+        cls,
+        url: str,
+        *,
+        ttl_seconds: int | None = None,
+        key_prefix: str = "shared-context:",
+        **kwargs: Any,
+    ) -> RedisSharedContextStore:
+        client = redis.from_url(url, **kwargs)
+        return cls(client, ttl_seconds=ttl_seconds, key_prefix=key_prefix)

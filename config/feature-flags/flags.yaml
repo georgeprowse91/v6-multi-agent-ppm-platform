@@ -26,3 +26,6 @@ flags:
   - name: resource_optimization
     enabled: false
     description: Enable resource optimization workflows and UI surfaces.
+  - name: multi_agent_collab
+    enabled: false
+    description: Enable shared insight panels and cross-agent collaboration UI surfaces.

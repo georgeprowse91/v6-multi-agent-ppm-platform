@@ -16,7 +16,7 @@ from typing import Any
 from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.data_service import DataServiceClient
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.event_bus import EventBus, get_event_bus
+from agents.runtime.src.event_bus import EventBus, get_event_bus, publish_insight
 from agents.runtime.src.memory_store import ConversationMemoryStore, InMemoryConversationStore
 from agents.runtime.src.models import AgentRun, AgentRunStatus
 
@@ -218,8 +218,19 @@ class Orchestrator:
                 async with self._context_lock:
                     self._active_tasks -= 1
                     self._max_parallel_seen = max(self._max_parallel_seen, self._active_tasks)
-                    await self._update_context(shared_context, task.task_id, result_payload)
+                    new_insights = await self._update_context(
+                        shared_context, task.task_id, result_payload
+                    )
                     await self._memory_store.save(memory_key, shared_context)
+                    if new_insights:
+                        await publish_insight(
+                            self._event_bus,
+                            {
+                                "task_id": task.task_id,
+                                "correlation_id": memory_key,
+                                "insights": new_insights,
+                            },
+                        )
                     await self._publish_metrics()
 
             return task.task_id, result_payload
@@ -316,7 +327,7 @@ class Orchestrator:
 
     async def _update_context(
         self, context: dict[str, Any], task_id: str, result_payload: dict[str, Any]
-    ) -> None:
+    ) -> list[dict[str, Any]]:
         history = context.setdefault("history", [])
         history.append(
             {
@@ -327,6 +338,10 @@ class Orchestrator:
         )
         agent_outputs = context.setdefault("agent_outputs", {})
         agent_outputs[task_id] = result_payload
+        insights = context.setdefault("insights", [])
+        new_insights = self._normalize_insights(task_id, result_payload)
+        insights.extend(new_insights)
+        return new_insights
 
     async def _publish_metrics(self) -> None:
         await self._event_bus.publish(
@@ -336,6 +351,29 @@ class Orchestrator:
                 "max_parallel_tasks": self._max_parallel_seen,
             },
         )
+
+    def _normalize_insights(
+        self, task_id: str, result_payload: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        raw_insights = result_payload.get("insights")
+        if not raw_insights:
+            return []
+        if isinstance(raw_insights, list):
+            insight_items = raw_insights
+        else:
+            insight_items = [raw_insights]
+        normalized: list[dict[str, Any]] = []
+        for insight in insight_items:
+            if isinstance(insight, dict):
+                payload = {"task_id": task_id, "timestamp": time.time(), **insight}
+            else:
+                payload = {
+                    "task_id": task_id,
+                    "timestamp": time.time(),
+                    "summary": str(insight),
+                }
+            normalized.append(payload)
+        return normalized
 
     def _build_data_service_client(self) -> DataServiceClient | None:
         base_url = os.getenv("DATA_SERVICE_URL")

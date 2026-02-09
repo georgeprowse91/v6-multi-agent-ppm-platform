@@ -28,4 +28,24 @@ class EventBus(Protocol):
         ...
 
 
-__all__ = ["EventBus", "EventHandler", "EventRecord", "ServiceBusEventBus", "get_event_bus"]
+INSIGHT_TOPIC = "orchestrator.insights.shared"
+
+
+def subscribe_to_insights(event_bus: EventBus, handler: EventHandler) -> None:
+    event_bus.subscribe(INSIGHT_TOPIC, handler)
+
+
+async def publish_insight(event_bus: EventBus, payload: dict[str, Any]) -> None:
+    await event_bus.publish(INSIGHT_TOPIC, payload)
+
+
+__all__ = [
+    "EventBus",
+    "EventHandler",
+    "EventRecord",
+    "INSIGHT_TOPIC",
+    "ServiceBusEventBus",
+    "get_event_bus",
+    "publish_insight",
+    "subscribe_to_insights",
+]

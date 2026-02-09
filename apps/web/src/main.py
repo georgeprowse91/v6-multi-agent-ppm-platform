@@ -2361,6 +2361,9 @@ def _ui_feature_flags() -> dict[str, bool]:
         "resource_optimization": is_feature_enabled(
             "resource_optimization", environment=environment, default=False
         ),
+        "multi_agent_collab": is_feature_enabled(
+            "multi_agent_collab", environment=environment, default=False
+        ),
     }
 
 

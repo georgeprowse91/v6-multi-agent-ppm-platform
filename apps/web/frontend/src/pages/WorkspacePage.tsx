@@ -79,6 +79,15 @@ interface HealthMetric {
   status: string;
 }
 
+interface HolisticInsight {
+  id: string;
+  title: string;
+  summary: string;
+  impact: 'High' | 'Medium' | 'Low';
+  recommendation: string;
+  confidence: string;
+}
+
 interface RelatedItem {
   id: string;
   name: string;
@@ -165,6 +174,7 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
   const [relatedPage, setRelatedPage] = useState(1);
   const [relatedPageSize, setRelatedPageSize] = useState(RELATED_PAGE_SIZES[0]);
   const scenarioModelingEnabled = featureFlags.scenario_modeling;
+  const multiAgentCollabEnabled = featureFlags.multi_agent_collab === true;
 
   useEffect(() => {
     setEntityName(entityId);
@@ -355,6 +365,39 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
       },
     ];
   }, [type]);
+
+  const holisticInsights = useMemo<HolisticInsight[]>(
+    () => [
+      {
+        id: 'alignment',
+        title: 'Strategic alignment uplift',
+        summary:
+          'Cross-agent signals indicate the portfolio is drifting from Q3 modernization objectives.',
+        impact: 'High',
+        recommendation: 'Rebalance 12% of discretionary spend toward cloud migration workstreams.',
+        confidence: '0.78',
+      },
+      {
+        id: 'capacity',
+        title: 'Shared capacity pressure',
+        summary:
+          'Resource forecasts show delivery leads are exceeding capacity in the next two sprints.',
+        impact: 'Medium',
+        recommendation: 'Sequence vendor onboarding two weeks later to smooth peak utilization.',
+        confidence: '0.72',
+      },
+      {
+        id: 'governance',
+        title: 'Governance gating risk',
+        summary:
+          'Compliance and finance agents flag missing artifacts for three in-flight initiatives.',
+        impact: 'Low',
+        recommendation: 'Schedule a joint checkpoint and pre-fill audit packets this week.',
+        confidence: '0.66',
+      },
+    ],
+    []
+  );
 
   const filteredRelatedItems = useMemo(() => {
     if (!relatedFilter) return dashboardData.relatedItems;
@@ -675,6 +718,43 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                 <p className={styles.emptyState}>Pipeline stages will appear here once loaded.</p>
               )
             )}
+          </section>
+        )}
+
+        {multiAgentCollabEnabled && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={styles.sectionTitle}>Holistic insights</h2>
+                <p className={styles.sectionSubtitle}>
+                  Shared intelligence across agents, unified into a single decision-ready view.
+                </p>
+              </div>
+              <button type="button" className={styles.secondaryAction}>
+                Open collaboration hub
+              </button>
+            </div>
+            <div className={styles.insightsGrid}>
+              {holisticInsights.map((insight) => (
+                <article key={insight.id} className={styles.insightCard}>
+                  <div className={styles.insightHeader}>
+                    <h3 className={styles.insightTitle}>{insight.title}</h3>
+                    <span className={`${styles.insightImpact} ${styles[`impact${insight.impact}`]}`}>
+                      {insight.impact} impact
+                    </span>
+                  </div>
+                  <p className={styles.insightSummary}>{insight.summary}</p>
+                  <div className={styles.insightMeta}>
+                    <span>
+                      Recommendation: <strong>{insight.recommendation}</strong>
+                    </span>
+                    <span className={styles.insightConfidence}>
+                      Confidence {insight.confidence}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
           </section>
         )}
 
