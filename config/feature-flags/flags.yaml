@@ -23,3 +23,6 @@ flags:
   - name: predictive_alerts
     enabled: false
     description: Enable predictive alert ingestion, notifications, and UI surfaces.
+  - name: resource_optimization
+    enabled: false
+    description: Enable resource optimization workflows and UI surfaces.

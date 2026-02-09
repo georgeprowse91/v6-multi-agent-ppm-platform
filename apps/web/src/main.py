@@ -2358,6 +2358,9 @@ def _ui_feature_flags() -> dict[str, bool]:
         "predictive_alerts": is_feature_enabled(
             "predictive_alerts", environment=environment, default=False
         ),
+        "resource_optimization": is_feature_enabled(
+            "resource_optimization", environment=environment, default=False
+        ),
     }
 
 

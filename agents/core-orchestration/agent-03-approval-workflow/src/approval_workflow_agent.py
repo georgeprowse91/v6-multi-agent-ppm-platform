@@ -366,6 +366,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "procurement",
             "phase_gate",
             "resource_change",
+            "resource_optimization",
         ]
         if input_data["request_type"] not in valid_types:
             self.logger.error(f"Invalid request_type: {input_data['request_type']}")
@@ -544,6 +545,8 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         elif request_type == "resource_change":
             roles = ["project_manager", "resource_manager"]
+        elif request_type == "resource_optimization":
+            roles = ["project_manager", "resource_manager", "portfolio_manager"]
 
         resolved = await self.role_lookup.get_users_for_roles(tenant_id, roles)
         approvers = []
@@ -601,6 +604,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             {
                 "request_type": request_type,
                 "request_id": request_id,
+                "request_details": details,
                 "approvers": approvers,
                 "user_roles": user_roles,
                 "chain": chain,
@@ -1210,6 +1214,26 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "comments": comments,
             },
         )
+        request_type = existing.get("details", {}).get("request_type") if existing else None
+        request_id = existing.get("details", {}).get("request_id") if existing else None
+        request_details = existing.get("details", {}).get("request_details") if existing else {}
+        if decision == "approved" and request_type == "resource_optimization":
+            optimization_id = None
+            if isinstance(request_details, dict):
+                optimization_id = request_details.get("optimization_id")
+            self._emit_audit_event(
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+                action="resource.optimization.approved",
+                outcome="success",
+                resource_id=request_id or approval_id,
+                metadata={
+                    "approval_id": approval_id,
+                    "request_id": request_id,
+                    "optimization_id": optimization_id,
+                    "approver_id": approver_id,
+                },
+            )
         if decision in {"approved", "rejected"}:
             self._publish_approval_event(
                 event_type=f"approval.{decision}",

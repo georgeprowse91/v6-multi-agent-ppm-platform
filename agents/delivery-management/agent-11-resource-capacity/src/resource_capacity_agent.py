@@ -14,6 +14,7 @@ import importlib.util
 import json
 import math
 import os
+import sys
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -28,6 +29,12 @@ from agents.common.integration_services import ForecastingModel
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+
+FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "feature-flags" / "src"
+if str(FEATURE_FLAGS_ROOT) not in sys.path:
+    sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
+
+from feature_flags import is_feature_enabled  # noqa: E402
 
 
 class ResourceCapacityRepository:
@@ -857,6 +864,15 @@ class ResourceCapacityAgent(BaseAgent):
             config.get("skill_development_uplift", 0.05) if config else 0.05
         )
         self.hr_profile_provider = config.get("hr_profile_provider") if config else None
+        environment = os.getenv("ENVIRONMENT", "dev")
+        resource_optimization_flag = is_feature_enabled(
+            "resource_optimization", environment=environment, default=False
+        )
+        self.resource_optimization_enabled = (
+            config.get("resource_optimization_enabled", resource_optimization_flag)
+            if config
+            else resource_optimization_flag
+        )
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -1423,6 +1439,16 @@ class ResourceCapacityAgent(BaseAgent):
             "search_criteria": search_criteria,
         }
 
+    def _normalized_skill_match_weights(self) -> dict[str, float]:
+        weights = {
+            "skills": float(self.skill_match_weights.get("skills", 0.7)),
+            "availability": float(self.skill_match_weights.get("availability", 0.2)),
+            "cost": float(self.skill_match_weights.get("cost", 0.1)),
+            "performance": float(self.skill_match_weights.get("performance", 0.1)),
+        }
+        total_weight = sum(weights.values()) or 1.0
+        return {key: value / total_weight for key, value in weights.items()}
+
     async def _find_matching_resources(
         self, skills_required: list[str], *, availability_floor: float = 0.0
     ) -> list[dict[str, Any]]:
@@ -1432,14 +1458,7 @@ class ResourceCapacityAgent(BaseAgent):
             (float(resource.get("cost_rate", 0)) for resource in self.resource_pool.values()),
             default=0.0,
         )
-        weights = {
-            "skills": float(self.skill_match_weights.get("skills", 0.7)),
-            "availability": float(self.skill_match_weights.get("availability", 0.2)),
-            "cost": float(self.skill_match_weights.get("cost", 0.1)),
-            "performance": float(self.skill_match_weights.get("performance", 0.1)),
-        }
-        total_weight = sum(weights.values()) or 1.0
-        normalized_weights = {key: value / total_weight for key, value in weights.items()}
+        normalized_weights = self._normalized_skill_match_weights()
 
         matches: list[dict[str, Any]] = []
         for resource_id, resource in self.resource_pool.items():
@@ -1694,7 +1713,21 @@ class ResourceCapacityAgent(BaseAgent):
 
         # Generate mitigation strategies
         strategies = await self._generate_mitigation_strategies(gaps)
-        optimization = await self._optimize_resource_allocations(planning_horizon)
+        if self.resource_optimization_enabled:
+            optimization = await self._optimize_resource_allocations(planning_horizon)
+        else:
+            optimization = {
+                "status": "disabled",
+                "reason": "resource_optimization feature flag is disabled",
+                "constraints": {
+                    "feature_flag": "resource_optimization",
+                    "enabled": False,
+                },
+                "scoring": {},
+                "proposed_allocations": [],
+                "unfilled_requests": [],
+                "remaining_capacity": {},
+            }
 
         # Create capacity plan
         plan = {
@@ -3123,6 +3156,19 @@ class ResourceCapacityAgent(BaseAgent):
         self, planning_horizon: dict[str, Any]
     ) -> dict[str, Any]:
         """Optimize resource allocations using a greedy assignment strategy."""
+        if not self.resource_optimization_enabled:
+            return {
+                "status": "disabled",
+                "reason": "resource_optimization feature flag is disabled",
+                "constraints": {
+                    "feature_flag": "resource_optimization",
+                    "enabled": False,
+                },
+                "scoring": {},
+                "proposed_allocations": [],
+                "unfilled_requests": [],
+                "remaining_capacity": {},
+            }
         pending_requests = [
             request
             for request in self.demand_requests.values()
@@ -3139,6 +3185,16 @@ class ResourceCapacityAgent(BaseAgent):
         }
         allocations: list[dict[str, Any]] = []
         unfilled: list[dict[str, Any]] = []
+        normalized_weights = self._normalized_skill_match_weights()
+        constraints = {
+            "availability_floor_policy": "effort",
+            "max_concurrent_allocations": self.max_concurrent_allocations,
+            "max_allocation_threshold": self.max_allocation_threshold,
+            "enforce_allocation_constraints": self.enforce_allocation_constraints,
+            "utilization_target": self.utilization_target,
+            "resource_pool_size": len(self.resource_pool),
+            "request_count": len(pending_requests),
+        }
 
         for request in pending_requests:
             required_skills = request.get("required_skills", [])
@@ -3154,12 +3210,33 @@ class ResourceCapacityAgent(BaseAgent):
                     availability[resource_id] = max(
                         0.0, availability.get(resource_id, 0.0) - effort
                     )
+                    matched_skills = set(match.get("skills", []))
+                    required_skill_set = {skill for skill in required_skills if skill}
+                    rationale = [
+                        f"Matched {len(matched_skills.intersection(required_skill_set))} of "
+                        f"{len(required_skill_set)} required skills.",
+                        f"Availability score {match.get('availability_score'):.2f} meets effort "
+                        f"threshold {effort:.2f}.",
+                        f"Weighted score {match.get('weighted_score', 0.0):.2f} using configured "
+                        "skill, availability, cost, and performance weights.",
+                    ]
                     allocations.append(
                         {
                             "request_id": request_id,
                             "resource_id": resource_id,
                             "score": match.get("weighted_score"),
                             "effort": effort,
+                            "rationale": rationale,
+                            "scoring": {
+                                "weighted_score": match.get("weighted_score"),
+                                "components": {
+                                    "skills": match.get("match_score"),
+                                    "availability": match.get("availability_score"),
+                                    "cost": match.get("cost_score"),
+                                    "performance": match.get("performance_score"),
+                                },
+                                "weights": normalized_weights,
+                            },
                         }
                     )
                     assigned = True
@@ -3170,6 +3247,7 @@ class ResourceCapacityAgent(BaseAgent):
                         "request_id": request_id,
                         "required_skills": required_skills,
                         "effort": effort,
+                        "rationale": "No available resources met the skill or effort constraints.",
                     }
                 )
 
@@ -3177,6 +3255,11 @@ class ResourceCapacityAgent(BaseAgent):
             "proposed_allocations": allocations,
             "unfilled_requests": unfilled,
             "remaining_capacity": availability,
+            "constraints": constraints,
+            "scoring": {
+                "method": "weighted_skill_match",
+                "weights": normalized_weights,
+            },
         }
 
     async def _apply_training_record(
