@@ -88,16 +88,6 @@ export function ProjectMcpSidebar() {
     mcpSystems.forEach((connector) => syncSystemState(connector));
   }, [mcpSystems, syncSystemState]);
 
-  useEffect(() => {
-    mcpSystems.forEach((connector) => {
-      const state = systemState[connector.system];
-      if (!state || state.loadingTools || state.availableTools.length > 0) return;
-      if (state.serverUrl) {
-        loadTools(connector.system);
-      }
-    });
-  }, [loadTools, mcpSystems, systemState]);
-
   const loadTools = useCallback(
     async (system: string) => {
       if (!projectId) return;
@@ -166,6 +156,16 @@ export function ProjectMcpSidebar() {
     },
     [projectId]
   );
+
+  useEffect(() => {
+    mcpSystems.forEach((connector) => {
+      const state = systemState[connector.system];
+      if (!state || state.loadingTools || state.availableTools.length > 0) return;
+      if (state.serverUrl) {
+        loadTools(connector.system);
+      }
+    });
+  }, [loadTools, mcpSystems, systemState]);
 
   const handleToggle = async (connector: Connector, enabled: boolean) => {
     if (!projectId) return;
