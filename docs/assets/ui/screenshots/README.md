@@ -34,3 +34,12 @@ Examples:
 - Store raw and final assets directly in this folder.
 - If you need subfolders, group by app (e.g., `web/`, `admin-console/`).
 
+## Binary diff note
+
+PNG screenshots are binary assets, so some PR viewers (especially on mobile) cannot render a text diff and may display a "binary files not supported" message. If you hit that limitation, create the PR from the main GitHub web UI (desktop) or from the CLI; the assets will still be included in the change set even if the diff view fails to render.
+
+## Recent captures
+
+- `web-login-default-20260208.png`
+- `web-intake-new-project-form-default-20260208.png`
+- `web-project-workspace-three-panel-default-20260208.png`
