@@ -548,6 +548,13 @@ class TemplateApplyResponse(BaseModel):
     template: TemplateDefinition
 
 
+def _autonomous_deliverables_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return is_feature_enabled(
+        "autonomous_deliverables", environment=environment, default=False
+    )
+
+
 class DocumentVersionRequest(BaseModel):
     project_id: str
     document_key: str
@@ -2363,6 +2370,9 @@ def _ui_feature_flags() -> dict[str, bool]:
         ),
         "multi_agent_collab": is_feature_enabled(
             "multi_agent_collab", environment=environment, default=False
+        ),
+        "autonomous_deliverables": is_feature_enabled(
+            "autonomous_deliverables", environment=environment, default=False
         ),
     }
 
@@ -4364,6 +4374,7 @@ async def create_document_version(
         status=payload.status,
         content=payload.content,
         metadata=payload.metadata,
+        track_edits=_autonomous_deliverables_enabled(),
     )
     if payload.status.lower() == "published":
         session = _session_from_request(request) or {}

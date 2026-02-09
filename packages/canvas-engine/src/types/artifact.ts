@@ -22,6 +22,22 @@ export interface DocumentContent {
   plainText?: string;
 }
 
+export interface ProvenanceMetadata {
+  sourceAgent?: string;
+  generatedAt?: string;
+  correlationId?: string;
+  inputContext?: Record<string, unknown>;
+}
+
+export interface EditHistoryEntry {
+  version: number;
+  status?: string;
+  editedAt: string;
+  editedBy?: string;
+  source?: string;
+  provenance?: ProvenanceMetadata;
+}
+
 export interface TreeNode {
   id: string;
   label: string;
@@ -100,6 +116,8 @@ export interface ArtifactMetadata {
   updatedBy?: string;
   tags?: string[];
   description?: string;
+  provenance?: ProvenanceMetadata;
+  editHistory?: EditHistoryEntry[];
   [key: string]: unknown;
 }
 

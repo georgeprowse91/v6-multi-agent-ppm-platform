@@ -7,13 +7,14 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 import type { CanvasComponentProps } from '../../types/canvas';
-import type { CanvasArtifact } from '../../types/artifact';
+import type { CanvasArtifact, EditHistoryEntry, ProvenanceMetadata } from '../../types/artifact';
 import type { DocumentContent } from '../../types/artifact';
 import styles from './DocumentCanvas.module.css';
 
 export interface DocumentCanvasProps extends CanvasComponentProps<DocumentContent> {
   onSaveDraft?: (artifact: CanvasArtifact<DocumentContent>) => void;
   onPublish?: (artifact: CanvasArtifact<DocumentContent>) => void;
+  showProvenance?: boolean;
 }
 
 export function DocumentCanvas({
@@ -23,6 +24,7 @@ export function DocumentCanvas({
   onSaveDraft,
   onPublish,
   className,
+  showProvenance = false,
 }: DocumentCanvasProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
@@ -48,6 +50,19 @@ export function DocumentCanvas({
     editorRef.current?.focus();
     handleInput();
   }, [handleInput]);
+
+  const provenance = artifact.metadata?.provenance as ProvenanceMetadata | undefined;
+  const editHistory =
+    (artifact.metadata?.editHistory as EditHistoryEntry[] | undefined) ?? [];
+  const showProvenancePanel =
+    showProvenance && (Boolean(provenance) || editHistory.length > 0);
+
+  const formatTimestamp = (value?: string) => {
+    if (!value) return 'Unknown';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString();
+  };
 
   return (
     <div className={`${styles.container} ${className ?? ''}`}>
@@ -203,6 +218,45 @@ export function DocumentCanvas({
               </svg>
             </button>
           </div>
+        </div>
+      )}
+
+      {showProvenancePanel && (
+        <div className={styles.provenancePanel}>
+          {provenance && (
+            <div className={styles.provenanceBlock}>
+              <div className={styles.provenanceTitle}>Provenance</div>
+              <div className={styles.provenanceRow}>
+                <span>Source agent</span>
+                <strong>{provenance.sourceAgent ?? 'Unknown'}</strong>
+              </div>
+              <div className={styles.provenanceRow}>
+                <span>Generated</span>
+                <strong>{formatTimestamp(provenance.generatedAt)}</strong>
+              </div>
+              {provenance.correlationId && (
+                <div className={styles.provenanceRow}>
+                  <span>Correlation</span>
+                  <strong>{provenance.correlationId}</strong>
+                </div>
+              )}
+            </div>
+          )}
+          {editHistory.length > 0 && (
+            <div className={styles.editHistoryBlock}>
+              <div className={styles.provenanceTitle}>Edit history</div>
+              <ul className={styles.editHistoryList}>
+                {editHistory.slice(0, 5).map((entry) => (
+                  <li key={`${entry.version}-${entry.editedAt}`} className={styles.editHistoryItem}>
+                    <span className={styles.editHistoryVersion}>v{entry.version}</span>
+                    <span>{entry.status ?? 'draft'}</span>
+                    <span>{formatTimestamp(entry.editedAt)}</span>
+                    <span>{entry.editedBy ?? 'unknown'}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

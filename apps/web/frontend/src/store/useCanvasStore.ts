@@ -75,7 +75,24 @@ function createSampleArtifacts(): Record<string, CanvasArtifact> {
 <p>Key stakeholders include the project sponsor, project team, and end users.</p>`,
       plainText: 'Project Charter\n\nProject Overview\nThis document establishes...',
     },
-    metadata: { createdAt: now, updatedAt: now },
+    metadata: {
+      createdAt: now,
+      updatedAt: now,
+      provenance: {
+        sourceAgent: 'project-definition',
+        generatedAt: now,
+        correlationId: 'demo-seed',
+      },
+      editHistory: [
+        {
+          version: 1,
+          status: 'draft',
+          editedAt: now,
+          editedBy: 'demo-user',
+          source: 'seed',
+        },
+      ],
+    },
     version: 1,
     status: 'draft',
   };
@@ -591,6 +608,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     if (artifact.type === 'document') {
       try {
+        const now = new Date().toISOString();
         const response = await createDocumentVersion({
           projectId: artifact.projectId,
           documentKey: artifact.id,
@@ -601,9 +619,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           content: artifact.content.html ?? artifact.content.plainText ?? '',
           metadata: {
             ...artifact.metadata,
-            savedAt: new Date().toISOString(),
+            savedAt: now,
+            editedBy: artifact.metadata.updatedBy ?? 'ui-user',
+            source: 'document_canvas',
           },
         });
+        const responseMetadata = response.metadata as {
+          editHistory?: typeof artifact.metadata.editHistory;
+          provenance?: typeof artifact.metadata.provenance;
+        };
+        const editHistory = responseMetadata?.editHistory ?? artifact.metadata.editHistory;
         set((state) => ({
           artifacts: {
             ...state.artifacts,
@@ -613,8 +638,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
               version: response.version,
               metadata: {
                 ...artifact.metadata,
-                updatedAt: new Date().toISOString(),
+                updatedAt: now,
                 repositoryVersion: response.version,
+                editHistory,
+                provenance: responseMetadata?.provenance ?? artifact.metadata.provenance,
               },
             },
           },
@@ -642,6 +669,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     if (artifact.type === 'document') {
       try {
+        const now = new Date().toISOString();
         const response = await createDocumentVersion({
           projectId: artifact.projectId,
           documentKey: artifact.id,
@@ -652,9 +680,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           content: artifact.content.html ?? artifact.content.plainText ?? '',
           metadata: {
             ...artifact.metadata,
-            publishedAt: new Date().toISOString(),
+            publishedAt: now,
+            editedBy: artifact.metadata.updatedBy ?? 'ui-user',
+            source: 'document_canvas',
           },
         });
+        const responseMetadata = response.metadata as {
+          editHistory?: typeof artifact.metadata.editHistory;
+          provenance?: typeof artifact.metadata.provenance;
+        };
+        const editHistory = responseMetadata?.editHistory ?? artifact.metadata.editHistory;
         set((state) => ({
           artifacts: {
             ...state.artifacts,
@@ -664,8 +699,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
               version: response.version,
               metadata: {
                 ...artifact.metadata,
-                updatedAt: new Date().toISOString(),
+                updatedAt: now,
                 repositoryVersion: response.version,
+                editHistory,
+                provenance: responseMetadata?.provenance ?? artifact.metadata.provenance,
               },
             },
           },

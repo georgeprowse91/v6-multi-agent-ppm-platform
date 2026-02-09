@@ -120,6 +120,37 @@ class KnowledgeStore:
                 "CREATE INDEX IF NOT EXISTS idx_versions_document ON document_versions(document_id)"
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_lessons_project ON lessons(project_id)")
+            self._ensure_column(conn, "documents", "edit_history", "TEXT", default_value="[]")
+
+    def _ensure_column(
+        self,
+        conn: sqlite3.Connection,
+        table: str,
+        column: str,
+        column_type: str,
+        *,
+        default_value: str | None = None,
+    ) -> None:
+        columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column in columns:
+            return
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
+        if default_value is not None:
+            conn.execute(
+                f"UPDATE {table} SET {column} = ? WHERE {column} IS NULL",
+                (default_value,),
+            )
+
+    def _extract_edit_history(self, row: sqlite3.Row | None) -> list[dict[str, Any]]:
+        if not row:
+            return []
+        history = row["edit_history"] if "edit_history" in row.keys() else None
+        if not history:
+            return []
+        try:
+            return json.loads(history)
+        except json.JSONDecodeError:
+            return []
 
     def _serialize_document_summary(self, row: sqlite3.Row) -> DocumentSummaryRecord:
         return DocumentSummaryRecord(
@@ -189,6 +220,8 @@ class KnowledgeStore:
         status: str,
         content: str,
         metadata: dict[str, Any],
+        *,
+        track_edits: bool = False,
     ) -> DocumentVersionRecord:
         now = datetime.now(timezone.utc)
         with self._connect() as conn:
@@ -196,6 +229,7 @@ class KnowledgeStore:
                 "SELECT * FROM documents WHERE document_key = ?",
                 (document_key,),
             ).fetchone()
+            edit_history = self._extract_edit_history(row)
             if row:
                 document_id = row["document_id"]
                 conn.execute(
@@ -218,9 +252,9 @@ class KnowledgeStore:
                 conn.execute(
                     """
                     INSERT INTO documents
-                        (document_id, document_key, project_id, name, doc_type, classification, created_at, updated_at)
+                        (document_id, document_key, project_id, name, doc_type, classification, created_at, updated_at, edit_history)
                     VALUES
-                        (?, ?, ?, ?, ?, ?, ?, ?)
+                        (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         document_id,
@@ -231,6 +265,7 @@ class KnowledgeStore:
                         classification,
                         now.isoformat(),
                         now.isoformat(),
+                        json.dumps(edit_history),
                     ),
                 )
 
@@ -240,6 +275,25 @@ class KnowledgeStore:
             ).fetchone()["latest"]
             version_number = int(current_version or 0) + 1
             version_id = str(uuid4())
+            version_metadata = dict(metadata)
+            if track_edits:
+                edit_entry = {
+                    "version": version_number,
+                    "status": status,
+                    "editedAt": now.isoformat(),
+                    "editedBy": metadata.get("editedBy")
+                    or metadata.get("updatedBy")
+                    or metadata.get("createdBy")
+                    or "unknown",
+                    "source": metadata.get("source") or "document_canvas",
+                    "provenance": metadata.get("provenance"),
+                }
+                edit_history.append(edit_entry)
+                conn.execute(
+                    "UPDATE documents SET edit_history = ? WHERE document_id = ?",
+                    (json.dumps(edit_history), document_id),
+                )
+                version_metadata["editHistory"] = edit_history
             conn.execute(
                 """
                 INSERT INTO document_versions
@@ -254,7 +308,7 @@ class KnowledgeStore:
                     status,
                     content,
                     now.isoformat(),
-                    json.dumps(metadata),
+                    json.dumps(version_metadata),
                 ),
             )
 
@@ -269,7 +323,7 @@ class KnowledgeStore:
             status=status,
             content=content,
             created_at=now,
-            metadata=metadata,
+            metadata=version_metadata,
         )
 
     def list_documents(
