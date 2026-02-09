@@ -17,6 +17,7 @@ if str(WORKFLOW_ENGINE_SRC) not in sys.path:
     sys.path.insert(0, str(WORKFLOW_ENGINE_SRC))
 
 from agent_client import get_agent_client  # noqa: E402
+from feature_flags import is_feature_enabled  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store
 from workflow_definitions import load_definition, seed_definitions  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
@@ -33,6 +34,16 @@ DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workf
 
 store = WorkflowStore(DB_PATH)
 seed_definitions(store, DEFINITIONS_DIR, SCHEMA_PATH)
+
+_APPROVAL_CHANGE_TYPES = {
+    "budget",
+    "budget_change",
+    "resource",
+    "resource_change",
+    "scope",
+    "scope_change",
+}
+_EXTERNAL_APPROVAL_STEP_ID = "external-approval"
 
 
 class WorkflowStartRequest(BaseModel):
@@ -96,6 +107,121 @@ class WorkflowApprovalDecisionRequest(BaseModel):
     decision: str
     approver_id: str
     comments: str | None = None
+
+
+def _autonomous_approvals_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return is_feature_enabled("autonomous_approvals", environment=environment, default=False)
+
+
+def _normalize_change_type(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    return normalized or None
+
+
+def _extract_change_type(payload: dict[str, Any]) -> str | None:
+    for key in ("change_type", "request_type", "type"):
+        normalized = _normalize_change_type(payload.get(key))
+        if normalized:
+            return normalized
+    for key in _APPROVAL_CHANGE_TYPES:
+        if payload.get(key):
+            return key
+    return None
+
+
+def _approval_request_type(change_type: str | None) -> str | None:
+    if not change_type:
+        return None
+    if change_type in {"budget", "budget_change"}:
+        return "budget_change"
+    if change_type in {"scope", "scope_change"}:
+        return "scope_change"
+    if change_type in {"resource", "resource_change"}:
+        return "resource_change"
+    return None
+
+
+async def _route_change_approval(
+    *,
+    runtime: WorkflowRuntime,
+    tenant_id: str,
+    run_id: str,
+    workflow_id: str,
+    payload: dict[str, Any],
+    actor: dict[str, Any],
+    classification: str,
+) -> dict[str, Any] | None:
+    if _autonomous_approvals_enabled():
+        return None
+    change_type = _extract_change_type(payload)
+    request_type = _approval_request_type(change_type)
+    if not request_type:
+        return None
+    details = {
+        "description": payload.get("description") or payload.get("summary"),
+        "urgency": payload.get("urgency") or payload.get("priority") or "medium",
+        "amount": payload.get("amount") or payload.get("budget_delta"),
+        "change_type": change_type,
+    }
+    response = await runtime.approval_agent.process(
+        {
+            "request_type": request_type,
+            "request_id": payload.get("request_id") or payload.get("change_id") or run_id,
+            "requester": payload.get("requester") or actor.get("id") or "unknown",
+            "details": details,
+            "tenant_id": tenant_id,
+            "correlation_id": run_id,
+        }
+    )
+    approval_id = response.get("approval_id")
+    if not approval_id:
+        return None
+    metadata = {
+        "request_type": request_type,
+        "approvers": response.get("approvers", []),
+        "approval_chain": response.get("approval_chain"),
+        "change_type": change_type,
+        "workflow_id": workflow_id,
+        "request_id": payload.get("request_id") or payload.get("change_id"),
+    }
+    store.upsert_approval(
+        approval_id=approval_id,
+        run_id=run_id,
+        step_id=_EXTERNAL_APPROVAL_STEP_ID,
+        tenant_id=tenant_id,
+        status="pending",
+        metadata=metadata,
+    )
+    store.update_status(run_id, "waiting_approval", _EXTERNAL_APPROVAL_STEP_ID)
+    store.add_event(
+        run_id,
+        "waiting_approval",
+        f"Waiting on approval {approval_id}",
+        _EXTERNAL_APPROVAL_STEP_ID,
+    )
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=tenant_id,
+            actor_id=actor.get("id") or "unknown",
+            actor_type=actor.get("type", "user"),
+            roles=actor.get("roles", []),
+            action="approval.requested",
+            resource_type="approval",
+            resource_id=approval_id,
+            outcome="success",
+            metadata={
+                "request_type": request_type,
+                "workflow_id": workflow_id,
+                "run_id": run_id,
+                "classification": classification,
+                "change_type": change_type,
+            },
+        )
+    )
+    return response
 
 
 def _get_definition(workflow_id: str) -> dict[str, Any]:
@@ -172,7 +298,19 @@ async def start_workflow(
         request.payload,
     )
     runtime = _get_runtime(http_request)
-    instance = await runtime.start(instance, definition, request.actor)
+    approval_response = await _route_change_approval(
+        runtime=runtime,
+        tenant_id=http_request.state.auth.tenant_id,
+        run_id=run_id,
+        workflow_id=request.workflow_id,
+        payload=request.payload,
+        actor=request.actor,
+        classification=request.classification,
+    )
+    if approval_response:
+        instance = store.get(run_id) or instance
+    else:
+        instance = await runtime.start(instance, definition, request.actor)
     return WorkflowRunResponse(
         run_id=instance.run_id,
         workflow_id=instance.workflow_id,
@@ -387,6 +525,8 @@ async def decide_approval(
         approval, request.decision, request.approver_id, request.comments
     )
     auth = http_request.state.auth
+    decision_normalized = request.decision.lower()
+    outcome = "success" if decision_normalized == "approved" else "rejected"
     get_audit_log_store().record_event(
         build_event(
             tenant_id=auth.tenant_id,
@@ -396,10 +536,12 @@ async def decide_approval(
             action="approval.decision",
             resource_type="approval",
             resource_id=approval_id,
-            outcome="success",
+            outcome=outcome,
             metadata={
                 "decision": request.decision,
                 "approver_id": request.approver_id,
+                "run_id": approval.run_id,
+                "step_id": approval.step_id,
             },
         )
     )
