@@ -101,6 +101,7 @@
 
 .field input,
 .field textarea,
+.field select,
 .fieldFull input,
 .fieldFull textarea {
   padding: 10px 12px;
@@ -166,12 +167,70 @@
   font-weight: 500;
 }
 
+.intakeAssist {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(226, 232, 240, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.intakeAssistHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.intakeAssistHeader h3 {
+  margin: 0 0 6px;
+}
+
+.intakeAssistHeader p {
+  margin: 0;
+  color: #475569;
+}
+
+.intakeAssistBadge {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1d4ed8;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.intakeAssistGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.intakeAssistActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.intakeAssistError {
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 @media (max-width: 960px) {
   .content {
     grid-template-columns: 1fr;
   }
 
   .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .intakeAssistGrid {
     grid-template-columns: 1fr;
   }
 }

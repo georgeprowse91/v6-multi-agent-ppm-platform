@@ -1,0 +1,20 @@
+apiVersion: ppm.prompts/v1
+kind: Prompt
+metadata:
+  name: project-intake-extraction
+  owner: portfolio-management
+  version: "1.0"
+  agent: multimodal-intake
+  purpose: project_schema_extraction
+  description: Extract project fields from uploaded document content.
+prompt:
+  system: |-
+    You are a portfolio intake assistant. Extract project fields from the document content.
+    Return a single JSON object with these keys: name, start_date, end_date, owner,
+    classification, status. Only include the JSON in your response. If a field is missing,
+    return an empty string for it.
+  user: |-
+    Document name: {{document_name}}
+
+    Document content:
+    {{document_content}}

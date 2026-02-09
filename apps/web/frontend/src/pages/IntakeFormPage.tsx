@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppStore } from '@/store';
 import styles from './IntakeFormPage.module.css';
 
 const API_BASE = '/v1';
@@ -47,13 +48,19 @@ const initialFormState: IntakeFormState = {
 
 export function IntakeFormPage() {
   const navigate = useNavigate();
+  const { featureFlags } = useAppStore();
   const [stepIndex, setStepIndex] = useState(0);
   const [formState, setFormState] = useState<IntakeFormState>(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadClassification, setUploadClassification] = useState('internal');
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
 
   const currentStep = steps[stepIndex];
+  const multimodalEnabled = featureFlags.multimodal_intake === true;
 
   const reviewersList = useMemo(
     () =>
@@ -66,6 +73,78 @@ export function IntakeFormPage() {
 
   const updateField = (field: keyof IntakeFormState, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const applyExtraction = (payload: {
+    demand?: Record<string, string>;
+    project?: Record<string, string>;
+    document_id?: string | null;
+  }) => {
+    setFormState((prev) => {
+      const demand = payload.demand ?? {};
+      const project = payload.project ?? {};
+      return {
+        ...prev,
+        sponsorName:
+          prev.sponsorName || demand.requester || project.owner || prev.sponsorName,
+        sponsorDepartment:
+          prev.sponsorDepartment || demand.business_unit || prev.sponsorDepartment,
+        businessSummary:
+          prev.businessSummary || demand.description || project.name || prev.businessSummary,
+        businessJustification:
+          prev.businessJustification ||
+          demand.business_objective ||
+          prev.businessJustification,
+        targetDate: prev.targetDate || project.end_date || prev.targetDate,
+        attachmentSummary:
+          prev.attachmentSummary ||
+          (payload.document_id ? `Extracted from document ${payload.document_id}` : '') ||
+          prev.attachmentSummary,
+      };
+    });
+  };
+
+  const handleExtract = async () => {
+    if (!uploadFile) {
+      setExtractError('Select a document to extract fields.');
+      return;
+    }
+    setExtracting(true);
+    setExtractError(null);
+    try {
+      const uploadForm = new FormData();
+      uploadForm.append('file', uploadFile);
+      uploadForm.append('classification', uploadClassification);
+      const uploadResponse = await fetch(`${API_BASE}/api/intake/uploads`, {
+        method: 'POST',
+        body: uploadForm,
+      });
+      if (!uploadResponse.ok) {
+        throw new Error('Unable to upload the intake document.');
+      }
+      const uploadPayload = await uploadResponse.json();
+      const extractForm = new FormData();
+      extractForm.append('file', uploadFile);
+      if (uploadPayload.document_id) {
+        extractForm.append('document_id', uploadPayload.document_id);
+      }
+      extractForm.append('target', 'both');
+      const extractResponse = await fetch(`${API_BASE}/api/intake/extract`, {
+        method: 'POST',
+        body: extractForm,
+      });
+      if (!extractResponse.ok) {
+        throw new Error('Unable to extract fields from the document.');
+      }
+      const extractPayload = await extractResponse.json();
+      applyExtraction(extractPayload);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Extraction failed to complete.';
+      setExtractError(message);
+    } finally {
+      setExtracting(false);
+    }
   };
 
   const validateStep = (index: number) => {
@@ -206,6 +285,57 @@ export function IntakeFormPage() {
 
         <section className={styles.formSection}>
           <h2>{currentStep.label}</h2>
+
+          {multimodalEnabled && currentStep.id === 'attachments' && (
+            <section className={styles.intakeAssist}>
+              <div className={styles.intakeAssistHeader}>
+                <div>
+                  <h3>Prefill from a supporting document</h3>
+                  <p>
+                    Upload a PDF, Word doc, or notes to extract demand and project fields
+                    into this intake form.
+                  </p>
+                </div>
+                <span className={styles.intakeAssistBadge}>Multimodal intake</span>
+              </div>
+              <div className={styles.intakeAssistGrid}>
+                <label className={styles.field}>
+                  Document file
+                  <input
+                    type="file"
+                    onChange={(event) =>
+                      setUploadFile(event.target.files ? event.target.files[0] : null)
+                    }
+                  />
+                </label>
+                <label className={styles.field}>
+                  Classification
+                  <select
+                    value={uploadClassification}
+                    onChange={(event) => setUploadClassification(event.target.value)}
+                  >
+                    <option value="public">Public</option>
+                    <option value="internal">Internal</option>
+                    <option value="confidential">Confidential</option>
+                    <option value="restricted">Restricted</option>
+                  </select>
+                </label>
+              </div>
+              <div className={styles.intakeAssistActions}>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={handleExtract}
+                  disabled={extracting || !uploadFile}
+                >
+                  {extracting ? 'Extracting…' : 'Extract fields'}
+                </button>
+                {extractError && (
+                  <span className={styles.intakeAssistError}>{extractError}</span>
+                )}
+              </div>
+            </section>
+          )}
 
           {currentStep.id === 'sponsor' && (
             <div className={styles.formGrid}>

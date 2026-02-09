@@ -7,14 +7,16 @@ import os
 import re
 import sys
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
+from uuid import uuid4
 from urllib.parse import urlencode
 
 import httpx
 import jwt
 import yaml
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Request
+from fastapi import APIRouter, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -45,6 +47,7 @@ from agent_settings_models import (  # noqa: E402
 from agent_settings_store import AgentSettingsStore  # noqa: E402
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
 from connector_hub_proxy import ConnectorHubClient  # noqa: E402
+from data_service_proxy import DataServiceClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 from gating import evaluate_activity_access, next_required_activity, stage_progress  # noqa: E402
@@ -164,6 +167,9 @@ WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
 METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
+PROMPT_ROOT = REPO_ROOT / "agents" / "runtime" / "prompts"
+DEMAND_PROMPT_PATH = PROMPT_ROOT / "demand-intake-extraction.prompt.yaml"
+PROJECT_PROMPT_PATH = PROMPT_ROOT / "project-intake-extraction.prompt.yaml"
 
 SESSION_COOKIE = "ppm_session"
 STATE_COOKIE = "ppm_oidc_state"
@@ -214,6 +220,18 @@ class SessionInfo(BaseModel):
     subject: str | None = None
     tenant_id: str | None = None
     roles: list[str] | None = None
+
+
+class IntakeExtractionEntity(BaseModel):
+    schema_name: str
+    entity_id: str
+
+
+class IntakeExtractionResponse(BaseModel):
+    document_id: str | None = None
+    demand: dict[str, Any] | None = None
+    project: dict[str, Any] | None = None
+    entities: dict[str, IntakeExtractionEntity] = Field(default_factory=dict)
 
 
 class RoleDefinition(BaseModel):
@@ -693,6 +711,10 @@ def _document_client() -> DocumentServiceClient:
     return DocumentServiceClient()
 
 
+def _data_service_client() -> DataServiceClient:
+    return DataServiceClient()
+
+
 def _analytics_client() -> AnalyticsServiceClient:
     return AnalyticsServiceClient()
 
@@ -727,6 +749,16 @@ def _passthrough_response(response: httpx.Response) -> Response:
 
 def _render_static_page(page: str) -> FileResponse:
     return FileResponse(STATIC_DIR / f"{page}.html")
+
+
+def _multimodal_intake_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return is_feature_enabled("multimodal_intake", environment=environment, default=False)
+
+
+def _require_multimodal_intake() -> None:
+    if not _multimodal_intake_enabled():
+        raise HTTPException(status_code=404, detail="Feature disabled")
 
 
 def _demo_mode_enabled() -> bool:
@@ -1675,6 +1707,133 @@ def _load_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
         return json.load(handle)
 
 
+@lru_cache(maxsize=8)
+def _load_prompt(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise FileNotFoundError(f"Prompt file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        payload = yaml.safe_load(handle) or {}
+    if not isinstance(payload, dict):
+        raise ValueError(f"Invalid prompt payload in {path}")
+    return payload
+
+
+def _render_prompt(template: str, *, document_name: str, document_content: str) -> str:
+    return (
+        template.replace("{{document_name}}", document_name)
+        .replace("{{document_content}}", document_content)
+        .strip()
+    )
+
+
+def _coerce_str(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (int, float)):
+        return str(value)
+    return str(value).strip()
+
+
+def _normalize_demand_payload(payload: dict[str, Any], *, document_name: str) -> dict[str, Any]:
+    title = _coerce_str(payload.get("title")) or document_name or "Untitled demand"
+    description = _coerce_str(payload.get("description")) or title
+    business_objective = (
+        _coerce_str(payload.get("business_objective")) or "Pending business objective"
+    )
+    urgency = _coerce_str(payload.get("urgency"))
+    if urgency not in {"Low", "Medium", "High", "Critical"}:
+        urgency = ""
+    return {
+        "title": title,
+        "description": description,
+        "business_objective": business_objective,
+        "requester": _coerce_str(payload.get("requester")),
+        "business_unit": _coerce_str(payload.get("business_unit")),
+        "urgency": urgency,
+        "source": _coerce_str(payload.get("source")),
+    }
+
+
+def _normalize_date(value: Any) -> str | None:
+    text = _coerce_str(value)
+    if not text:
+        return None
+    match = re.match(r"^\d{4}-\d{2}-\d{2}$", text)
+    if match:
+        return text
+    return None
+
+
+def _normalize_project_payload(
+    payload: dict[str, Any],
+    *,
+    tenant_id: str,
+    document_name: str,
+    owner_fallback: str,
+) -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    name = _coerce_str(payload.get("name")) or document_name or "Untitled project"
+    status = _coerce_str(payload.get("status")) or "initiated"
+    if status not in {"initiated", "planning", "execution", "monitoring", "closed"}:
+        status = "initiated"
+    classification = _coerce_str(payload.get("classification")) or "internal"
+    if classification not in {"public", "internal", "confidential", "restricted"}:
+        classification = "internal"
+    start_date = _normalize_date(payload.get("start_date")) or now.date().isoformat()
+    end_date = _normalize_date(payload.get("end_date"))
+    project: dict[str, Any] = {
+        "id": _coerce_str(payload.get("id")) or str(uuid4()),
+        "tenant_id": tenant_id,
+        "program_id": _coerce_str(payload.get("program_id")) or "unassigned",
+        "name": name,
+        "status": status,
+        "start_date": start_date,
+        "owner": _coerce_str(payload.get("owner")) or owner_fallback,
+        "classification": classification,
+        "created_at": _coerce_str(payload.get("created_at")) or now.isoformat(),
+    }
+    if end_date:
+        project["end_date"] = end_date
+    updated_at = _coerce_str(payload.get("updated_at"))
+    if updated_at:
+        project["updated_at"] = updated_at
+    return project
+
+
+def _decode_upload_content(content: bytes) -> tuple[str, str]:
+    if b"\x00" in content:
+        return base64.b64encode(content).decode("utf-8"), "base64"
+    try:
+        return content.decode("utf-8"), "utf-8"
+    except UnicodeDecodeError:
+        return base64.b64encode(content).decode("utf-8"), "base64"
+
+
+async def _extract_intake_fields(
+    *,
+    prompt_path: Path,
+    document_name: str,
+    document_content: str,
+) -> dict[str, Any]:
+    prompt = _load_prompt(prompt_path)
+    prompt_body = prompt.get("prompt", {})
+    system_prompt = str(prompt_body.get("system", "")).strip()
+    user_prompt = _render_prompt(
+        str(prompt_body.get("user", "")),
+        document_name=document_name,
+        document_content=document_content,
+    )
+    llm = LLMClient()
+    response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
+    try:
+        data = json.loads(response.content)
+    except json.JSONDecodeError as exc:
+        raise ValueError("LLM response was not JSON") from exc
+    if not isinstance(data, dict):
+        raise ValueError("LLM response was not an object")
+    return data
+
+
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
@@ -2174,6 +2333,9 @@ def _ui_feature_flags() -> dict[str, bool]:
     environment = os.getenv("ENVIRONMENT", "dev")
     return {
         "agent_run_ui": is_feature_enabled("agent_run_ui", environment=environment, default=False),
+        "multimodal_intake": is_feature_enabled(
+            "multimodal_intake", environment=environment, default=False
+        ),
     }
 
 
@@ -2805,6 +2967,121 @@ async def update_methodology_editor(
     }
     _write_json(METHODOLOGY_STORAGE_PATH, storage)
     return _build_methodology_editor_payload(payload.methodology_id)
+
+
+@api_router.post("/api/intake/uploads")
+async def upload_intake_document(
+    request: Request,
+    file: UploadFile = File(...),
+    classification: str = Form("internal"),
+    retention_days: int = Form(90),
+) -> JSONResponse:
+    _require_multimodal_intake()
+    session = _require_session(request)
+    content_bytes = await file.read()
+    content, encoding = _decode_upload_content(content_bytes)
+    document_name = file.filename or "intake-document"
+    metadata = {
+        "filename": document_name,
+        "content_type": file.content_type,
+        "encoding": encoding,
+        "size_bytes": len(content_bytes),
+        "source": "multimodal_intake",
+    }
+    payload = {
+        "name": document_name,
+        "content": content,
+        "classification": classification,
+        "retention_days": retention_days,
+        "metadata": metadata,
+    }
+    response = await _document_client().create_document(
+        payload, headers=build_forward_headers(request, session)
+    )
+    if response.status_code >= 400:
+        _raise_upstream_error(response)
+    return JSONResponse(content=response.json(), status_code=response.status_code)
+
+
+@api_router.post("/api/intake/extract", response_model=IntakeExtractionResponse)
+async def extract_intake_document(
+    request: Request,
+    file: UploadFile = File(...),
+    target: Literal["demand", "project", "both"] = Form("both"),
+    document_id: str | None = Form(None),
+) -> IntakeExtractionResponse:
+    _require_multimodal_intake()
+    session = _require_session(request)
+    content_bytes = await file.read()
+    content, encoding = _decode_upload_content(content_bytes)
+    if encoding == "base64":
+        try:
+            content = base64.b64decode(content).decode("utf-8", errors="ignore")
+        except (ValueError, UnicodeDecodeError):
+            content = ""
+    document_name = file.filename or "intake-document"
+    tenant_id = session.get("tenant_id") or "default"
+    owner_fallback = session.get("subject") or "unknown"
+    headers = build_forward_headers(request, session)
+    data_client = _data_service_client()
+
+    response = IntakeExtractionResponse(document_id=document_id)
+    entities: dict[str, IntakeExtractionEntity] = {}
+
+    try:
+        if target in {"demand", "both"}:
+            raw_demand = await _extract_intake_fields(
+                prompt_path=DEMAND_PROMPT_PATH,
+                document_name=document_name,
+                document_content=content,
+            )
+            demand_payload = _normalize_demand_payload(raw_demand, document_name=document_name)
+            if document_id and not demand_payload.get("source"):
+                demand_payload["source"] = f"document:{document_id}"
+            demand_response = await data_client.store_entity(
+                "demand",
+                {"tenant_id": tenant_id, "data": demand_payload},
+                headers=headers,
+            )
+            if demand_response.status_code >= 400:
+                _raise_upstream_error(demand_response)
+            stored = demand_response.json()
+            entities["demand"] = IntakeExtractionEntity(
+                schema_name=stored.get("schema_name", "demand"),
+                entity_id=stored.get("id", ""),
+            )
+            response.demand = demand_payload
+
+        if target in {"project", "both"}:
+            raw_project = await _extract_intake_fields(
+                prompt_path=PROJECT_PROMPT_PATH,
+                document_name=document_name,
+                document_content=content,
+            )
+            project_payload = _normalize_project_payload(
+                raw_project,
+                tenant_id=tenant_id,
+                document_name=document_name,
+                owner_fallback=owner_fallback,
+            )
+            project_response = await data_client.store_entity(
+                "project",
+                {"tenant_id": tenant_id, "data": project_payload},
+                headers=headers,
+            )
+            if project_response.status_code >= 400:
+                _raise_upstream_error(project_response)
+            stored_project = project_response.json()
+            entities["project"] = IntakeExtractionEntity(
+                schema_name=stored_project.get("schema_name", "project"),
+                entity_id=stored_project.get("id", ""),
+            )
+            response.project = project_payload
+    except (ValueError, LLMProviderError) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    response.entities = entities
+    return response
 
 
 @api_router.get("/api/intake", response_model=list[IntakeRequest])

@@ -11,3 +11,6 @@ flags:
   - name: agent_run_ui
     enabled: false
     description: Show the agent run monitoring UI in the web console.
+  - name: multimodal_intake
+    enabled: false
+    description: Enable multimodal intake document uploads and extraction flows.
