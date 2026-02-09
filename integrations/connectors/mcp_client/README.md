@@ -1,6 +1,7 @@
 # MCP Client Package
 
-This package provides an async MCP (Model Context Protocol) client for invoking tools via JSON-RPC.
+This package provides an async MCP (Model Context Protocol) client for invoking tools,
+resources, prompts, and tasks via JSON-RPC.
 
 ## Configuration
 
@@ -10,7 +11,8 @@ When using `ConnectorConfig`, populate:
 
 - `mcp_server_id`: The MCP server identifier.
 - `mcp_server_url`: Base URL for JSON-RPC requests.
-- `mcp_tool_map`: Tool mapping for high-level record methods.
+- `mcp_tool_map` (or `tool_map`): Tool mapping for high-level record methods.
+- `protocol_version`: MCP protocol version used during initialization.
 
 ### Optional overrides
 
@@ -41,7 +43,7 @@ Environment variables:
 
 ### Tool map for record operations
 
-Define `mcp_tool_map` to map record operations to tool names:
+Define `mcp_tool_map` (or `tool_map`) to map record operations to tool names:
 
 ```json
 {
@@ -53,6 +55,23 @@ Define `mcp_tool_map` to map record operations to tool names:
 ```
 
 The MCP client methods `list_records`, `create_record`, `update_record`, and `delete_record` will use this mapping.
+
+### Initialization
+
+The client performs an MCP `initialize` handshake before any other request (unless `auto_initialize=False`).
+The handshake negotiates the protocol version and declares supported capabilities.
+
+### Resources and prompts
+
+The client exposes the MCP primitives for resources and prompts:
+
+- `list_resources` / `get_resource`
+- `list_prompts` / `get_prompt` / `call_prompt`
+
+### Tasks and notifications
+
+For experimental task support, use `create_task`, `get_task`, and `cancel_task`. Notifications can
+be handled with `handle_notification` or by registering handlers via `register_notification_handler`.
 
 ### Tracing hooks
 

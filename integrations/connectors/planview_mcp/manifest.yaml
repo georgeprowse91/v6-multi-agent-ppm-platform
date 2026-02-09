@@ -4,21 +4,25 @@ name: "Planview (MCP)"
 description: "Sync portfolio and project data from Planview via an MCP server."
 owner: "integration-team"
 category: "ppm"
+protocol: "mcp"
 auth:
-  type: "mcp"
+  type: "api_key"
   fields:
     - "mcp_server_url"
     - "mcp_server_id"
-    - "mcp_tool_map"
+    - "tool_map"
+    - "mcp_api_key"
+    - "mcp_api_key_header"
 mcp:
   server_url: "https://mcp.example.com"
   server_id: "planview"
+  protocol_version: "2025-06-18"
   tool_map:
     list_projects: "planview.listProjects"
     create_project: "planview.createProject"
 mcp_server_url: "https://mcp.example.com"
 mcp_server_id: "planview"
-mcp_tool_map:
+tool_map:
   list_projects: "planview.listProjects"
   create_project: "planview.createProject"
 sync:

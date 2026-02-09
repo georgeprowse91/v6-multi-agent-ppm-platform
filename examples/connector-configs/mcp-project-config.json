@@ -13,7 +13,9 @@
       "mcp_client_id": "jira-client-id",
       "mcp_client_secret": "<redacted>",
       "mcp_scope": "read:jira write:jira",
-      "mcp_tool_map": {
+      "protocol": "mcp",
+      "protocol_version": "2025-06-18",
+      "tool_map": {
         "list_records": "jira.listIssues",
         "create_record": "jira.createIssue",
         "update_record": "jira.updateIssue"
@@ -36,7 +38,9 @@
       "mcp_server_id": "slack",
       "mcp_api_key": "<redacted>",
       "mcp_api_key_header": "X-API-Key",
-      "mcp_tool_map": {
+      "protocol": "mcp",
+      "protocol_version": "2025-06-18",
+      "tool_map": {
         "send_message": "slack.postMessage",
         "list_channels": "slack.listChannels"
       },

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This matrix shows which SAP and Workday operations are currently backed by MCP tools versus REST connector coverage. It highlights gaps in MCP coverage, plus where REST read support exists and where write operations would need REST fallbacks.
+This matrix shows which SAP and Workday operations are currently backed by Model Context Protocol (MCP) tools versus REST connector coverage. It highlights gaps in MCP coverage, plus where REST read support exists and where write operations would need REST fallbacks.
 
 ## SAP
 
@@ -36,13 +36,13 @@ This matrix shows which SAP and Workday operations are currently backed by MCP t
 ## Write-operation fallbacks
 
 - MCP routing is operation-aware: if `prefer_mcp` is enabled and a tool is mapped, MCP is used; otherwise it falls back to REST. Missing MCP tools (or disabled MCP ops) route to REST automatically in `OperationRouter`.
-- The MCP client expects CRUD-style mappings via `mcp_tool_map` (e.g., `create_record`, `update_record`), so write support requires explicit tool entries in the map.
+- The MCP client expects CRUD-style mappings via `tool_map` (e.g., `create_record`, `update_record`), so write support requires explicit tool entries in the map.
 
 ## Extending MCP coverage
 
 1. **Add or expand MCP tool mappings**
    - Update the MCP manifest `mcp.tool_map` for the connector (e.g., `integrations/connectors/sap_mcp/manifest.yaml`, `integrations/connectors/workday_mcp/manifest.yaml`).
-   - If you’re wiring MCP support into connector configs, populate `mcp_tool_map` in `ConnectorConfig` (this is the authoritative map the MCP client uses).
+   - If you’re wiring MCP support into connector configs, populate `tool_map` in `ConnectorConfig` (this is the authoritative map the MCP client uses).
 
 2. **Decide MCP vs REST routing**
    - Enable MCP routing using `prefer_mcp`, `mcp_enabled_operations`, or `mcp_disabled_operations` in the connector config and verify how `OperationRouter` resolves the operation.

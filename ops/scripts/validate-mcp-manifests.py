@@ -52,19 +52,19 @@ def main() -> int:
             failures.append(_describe(manifest_path, "mcp.server_id differs from mcp_server_id"))
 
         tool_map = mcp_section.get("tool_map")
-        top_tool_map = data.get("mcp_tool_map")
+        top_tool_map = data.get("tool_map") or data.get("mcp_tool_map")
         if tool_map is None and top_tool_map is None:
             failures.append(_describe(manifest_path, "missing mcp tool map"))
         if tool_map is not None and not isinstance(tool_map, dict):
             failures.append(_describe(manifest_path, "mcp.tool_map must be a mapping"))
         if top_tool_map is not None and not isinstance(top_tool_map, dict):
-            failures.append(_describe(manifest_path, "mcp_tool_map must be a mapping"))
+            failures.append(_describe(manifest_path, "tool_map must be a mapping"))
         if (
             isinstance(tool_map, dict)
             and isinstance(top_tool_map, dict)
             and tool_map != top_tool_map
         ):
-            failures.append(_describe(manifest_path, "mcp.tool_map differs from mcp_tool_map"))
+            failures.append(_describe(manifest_path, "mcp.tool_map differs from tool_map"))
 
     if failures:
         for failure in failures:

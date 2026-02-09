@@ -52,12 +52,21 @@ class MockMcpServer:
         self.requests.append(payload)
         request_id = payload.get("id")
         method = payload.get("method")
-        if method == "listTools":
+        if method == "initialize":
+            return httpx.Response(
+                200,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "result": {"protocolVersion": "2025-06-18", "capabilities": {"tools": True}},
+                },
+            )
+        if method in {"listTools", "tools/list"}:
             return httpx.Response(
                 200,
                 json={"jsonrpc": "2.0", "id": request_id, "result": {"tools": self.tools}},
             )
-        if method == "getToolSchema":
+        if method in {"getToolSchema", "tools/get"}:
             params = payload.get("params") or {}
             name = params.get("name")
             schema = self._tool_schemas.get(name)
@@ -69,7 +78,7 @@ class MockMcpServer:
                     "result": {"schema": schema} if schema is not None else {},
                 },
             )
-        if method == "invokeTool":
+        if method in {"invokeTool", "tools/call"}:
             params = payload.get("params") or {}
             tool_name = params.get("name")
             if tool_name in self._tool_errors:

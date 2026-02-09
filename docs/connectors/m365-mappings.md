@@ -4,7 +4,7 @@ This mapping aligns M365 workloads with required data types and identifies the p
 (when configured) or the Microsoft Graph REST endpoint to use.
 
 ## Legend
-- **MCP tool key**: Key looked up in `mcp_tool_map` to resolve an MCP tool name.
+- **MCP tool key**: Key looked up in `tool_map` to resolve an MCP tool name.
 - **Graph REST endpoint**: Microsoft Graph path used when MCP tooling is unavailable.
 
 ## Workload → data type mapping

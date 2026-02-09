@@ -273,6 +273,8 @@ def _normalize_mcp_scopes(value: Any, field_name: str = "mcp_scopes") -> list[st
 class McpConfig(BaseModel):
     server_id: str | None = None
     server_url: AnyHttpUrl | None = None
+    protocol: str | None = None
+    protocol_version: str | None = None
     client_id: str | None = None
     client_secret: str | None = None
     scope: str | None = None
@@ -282,6 +284,8 @@ class McpConfig(BaseModel):
     oauth_token: str | None = None
     tools: list[str] | None = None
     tool_map: dict[str, Any] | None = None
+    resource_map: dict[str, Any] | None = None
+    prompt_map: dict[str, Any] | None = None
 
     @field_validator("server_url", mode="before")
     @classmethod
@@ -314,6 +318,20 @@ class McpConfig(BaseModel):
             return None
         return _normalize_tool_map(value, "tool_map")
 
+    @field_validator("resource_map", mode="before")
+    @classmethod
+    def _validate_resource_map(cls, value: Any) -> dict[str, Any] | None:
+        if value in (None, ""):
+            return None
+        return _normalize_tool_map(value, "resource_map")
+
+    @field_validator("prompt_map", mode="before")
+    @classmethod
+    def _validate_prompt_map(cls, value: Any) -> dict[str, Any] | None:
+        if value in (None, ""):
+            return None
+        return _normalize_tool_map(value, "prompt_map")
+
     @model_validator(mode="after")
     def _normalize_tools(self) -> "McpConfig":
         if self.tool_map is None and self.tools:
@@ -328,6 +346,8 @@ class ConnectorConfigRequest(BaseModel):
     project_key: str = ""
     mcp_server_url: str = ""
     mcp_server_id: str = ""
+    protocol: str = ""
+    protocol_version: str = ""
     mcp_client_id: str = ""
     mcp_client_secret: str = ""
     mcp_scope: str = ""
@@ -340,6 +360,9 @@ class ConnectorConfigRequest(BaseModel):
     scope: str = ""
     mcp_tools: list[str] = Field(default_factory=list)
     mcp_tool_map: dict[str, Any] = Field(default_factory=dict)
+    tool_map: dict[str, Any] = Field(default_factory=dict)
+    resource_map: dict[str, Any] = Field(default_factory=dict)
+    prompt_map: dict[str, Any] = Field(default_factory=dict)
     mcp_config: McpConfig | None = None
     prefer_mcp: bool = False
     mcp_enabled: bool = True
@@ -365,6 +388,21 @@ class ConnectorConfigRequest(BaseModel):
     def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
         return _normalize_tool_map(value)
 
+    @field_validator("tool_map", mode="before")
+    @classmethod
+    def _validate_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value, "tool_map")
+
+    @field_validator("resource_map", mode="before")
+    @classmethod
+    def _validate_resource_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value, "resource_map")
+
+    @field_validator("prompt_map", mode="before")
+    @classmethod
+    def _validate_prompt_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value, "prompt_map")
+
     @field_validator("mcp_tools", mode="before")
     @classmethod
     def _validate_mcp_tools(cls, value: Any) -> list[str]:
@@ -382,6 +420,10 @@ class ConnectorConfigRequest(BaseModel):
     @model_validator(mode="after")
     def _merge_mcp_config(self) -> "ConnectorConfigRequest":
         if not self.mcp_config:
+            if not self.mcp_tool_map and self.tool_map:
+                self.mcp_tool_map = self.tool_map
+            if not self.tool_map and self.mcp_tool_map:
+                self.tool_map = self.mcp_tool_map
             if not self.mcp_tool_map and self.mcp_tools:
                 self.mcp_tool_map = {tool: tool for tool in self.mcp_tools}
             if not self.mcp_scopes and self.mcp_scope:
@@ -393,6 +435,10 @@ class ConnectorConfigRequest(BaseModel):
             self.mcp_server_id = self.mcp_config.server_id
         if not self.mcp_server_url and self.mcp_config.server_url:
             self.mcp_server_url = str(self.mcp_config.server_url)
+        if not self.protocol and self.mcp_config.protocol:
+            self.protocol = self.mcp_config.protocol
+        if not self.protocol_version and self.mcp_config.protocol_version:
+            self.protocol_version = self.mcp_config.protocol_version
         if not self.mcp_client_id and self.mcp_config.client_id:
             self.mcp_client_id = self.mcp_config.client_id
         if not self.mcp_client_secret and self.mcp_config.client_secret:
@@ -413,8 +459,16 @@ class ConnectorConfigRequest(BaseModel):
             self.mcp_oauth_token = self.mcp_config.oauth_token
         if not self.mcp_tool_map and self.mcp_config.tool_map:
             self.mcp_tool_map = self.mcp_config.tool_map
+        if not self.tool_map and self.mcp_config.tool_map:
+            self.tool_map = self.mcp_config.tool_map
+        if not self.resource_map and self.mcp_config.resource_map:
+            self.resource_map = self.mcp_config.resource_map
+        if not self.prompt_map and self.mcp_config.prompt_map:
+            self.prompt_map = self.mcp_config.prompt_map
         if not self.mcp_tool_map and self.mcp_tools:
             self.mcp_tool_map = {tool: tool for tool in self.mcp_tools}
+        if not self.tool_map and self.mcp_tool_map:
+            self.tool_map = self.mcp_tool_map
         return self
 
 
@@ -432,6 +486,8 @@ class ConnectorConfigResponse(BaseModel):
     custom_fields: dict[str, Any]
     mcp_server_url: str
     mcp_server_id: str
+    protocol: str = ""
+    protocol_version: str = ""
     mcp_client_id: str
     mcp_client_secret: str
     mcp_scope: str
@@ -443,6 +499,9 @@ class ConnectorConfigResponse(BaseModel):
     client_secret: str
     scope: str
     mcp_tool_map: dict[str, Any]
+    tool_map: dict[str, Any] = Field(default_factory=dict)
+    resource_map: dict[str, Any] = Field(default_factory=dict)
+    prompt_map: dict[str, Any] = Field(default_factory=dict)
     mcp_config: McpConfig | None = None
     prefer_mcp: bool
     mcp_enabled: bool
@@ -459,14 +518,21 @@ class ConnectorConfigResponse(BaseModel):
     def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
         return _normalize_tool_map(value)
 
+    @field_validator("tool_map", mode="before")
+    @classmethod
+    def _validate_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value, "tool_map")
+
     @model_validator(mode="after")
     def _populate_mcp_config(self) -> "ConnectorConfigResponse":
         if self.mcp_config is None:
-            tool_map = self.mcp_tool_map or None
+            tool_map = self.mcp_tool_map or self.tool_map or None
             if any(
                 [
                     self.mcp_server_id,
                     self.mcp_server_url,
+                    self.protocol,
+                    self.protocol_version,
                     self.mcp_client_id,
                     self.mcp_client_secret,
                     self.mcp_scope,
@@ -475,11 +541,15 @@ class ConnectorConfigResponse(BaseModel):
                     self.mcp_oauth_token,
                     self.mcp_scopes,
                     tool_map,
+                    self.resource_map,
+                    self.prompt_map,
                 ]
             ):
                 self.mcp_config = McpConfig(
                     server_id=self.mcp_server_id or None,
                     server_url=self.mcp_server_url or None,
+                    protocol=self.protocol or None,
+                    protocol_version=self.protocol_version or None,
                     client_id=self.mcp_client_id or None,
                     client_secret=self.mcp_client_secret or None,
                     scope=self.mcp_scope or None,
@@ -488,7 +558,11 @@ class ConnectorConfigResponse(BaseModel):
                     api_key_header=self.mcp_api_key_header or None,
                     oauth_token=self.mcp_oauth_token or None,
                     tool_map=tool_map,
+                    resource_map=self.resource_map or None,
+                    prompt_map=self.prompt_map or None,
                 )
+        if not self.tool_map and self.mcp_tool_map:
+            self.tool_map = self.mcp_tool_map
         if not self.mcp_scopes and self.mcp_scope:
             self.mcp_scopes = _split_mcp_scopes(self.mcp_scope)
         return self
@@ -507,6 +581,8 @@ class ProjectConnectorConfigResponse(BaseModel):
     custom_fields: dict[str, Any]
     mcp_server_url: str
     mcp_server_id: str
+    protocol: str = ""
+    protocol_version: str = ""
     mcp_client_id: str
     mcp_client_secret: str
     mcp_scope: str
@@ -519,6 +595,9 @@ class ProjectConnectorConfigResponse(BaseModel):
     scope: str
     mcp_tools: list[str]
     mcp_tool_map: dict[str, Any]
+    tool_map: dict[str, Any] = Field(default_factory=dict)
+    resource_map: dict[str, Any] = Field(default_factory=dict)
+    prompt_map: dict[str, Any] = Field(default_factory=dict)
     mcp_config: McpConfig | None = None
     prefer_mcp: bool
     mcp_enabled: bool
@@ -535,14 +614,26 @@ class ProjectConnectorConfigResponse(BaseModel):
     def _validate_mcp_tool_map(cls, value: Any) -> dict[str, Any]:
         return _normalize_tool_map(value)
 
+    @field_validator("tool_map", mode="before")
+    @classmethod
+    def _validate_tool_map(cls, value: Any) -> dict[str, Any]:
+        return _normalize_tool_map(value, "tool_map")
+
     @model_validator(mode="after")
     def _populate_mcp_config(self) -> "ProjectConnectorConfigResponse":
         if self.mcp_config is None:
-            tool_map = self.mcp_tool_map or {tool: tool for tool in self.mcp_tools} or None
+            tool_map = (
+                self.mcp_tool_map
+                or self.tool_map
+                or {tool: tool for tool in self.mcp_tools}
+                or None
+            )
             if any(
                 [
                     self.mcp_server_id,
                     self.mcp_server_url,
+                    self.protocol,
+                    self.protocol_version,
                     self.mcp_client_id,
                     self.mcp_client_secret,
                     self.mcp_scope,
@@ -551,11 +642,15 @@ class ProjectConnectorConfigResponse(BaseModel):
                     self.mcp_oauth_token,
                     self.mcp_scopes,
                     tool_map,
+                    self.resource_map,
+                    self.prompt_map,
                 ]
             ):
                 self.mcp_config = McpConfig(
                     server_id=self.mcp_server_id or None,
                     server_url=self.mcp_server_url or None,
+                    protocol=self.protocol or None,
+                    protocol_version=self.protocol_version or None,
                     client_id=self.mcp_client_id or None,
                     client_secret=self.mcp_client_secret or None,
                     scope=self.mcp_scope or None,
@@ -564,7 +659,11 @@ class ProjectConnectorConfigResponse(BaseModel):
                     api_key_header=self.mcp_api_key_header or None,
                     oauth_token=self.mcp_oauth_token or None,
                     tool_map=tool_map,
+                    resource_map=self.resource_map or None,
+                    prompt_map=self.prompt_map or None,
                 )
+        if not self.tool_map and self.mcp_tool_map:
+            self.tool_map = self.mcp_tool_map
         if not self.mcp_scopes and self.mcp_scope:
             self.mcp_scopes = _split_mcp_scopes(self.mcp_scope)
         return self
@@ -1169,6 +1268,8 @@ async def update_connector_config(
         custom_fields=request.custom_fields,
         mcp_server_url=request.mcp_server_url,
         mcp_server_id=request.mcp_server_id,
+        protocol=request.protocol,
+        protocol_version=request.protocol_version,
         mcp_client_id=request.mcp_client_id,
         mcp_client_secret=request.mcp_client_secret,
         mcp_scope=request.mcp_scope,
@@ -1180,6 +1281,8 @@ async def update_connector_config(
         client_secret=request.client_secret,
         scope=request.scope,
         mcp_tool_map=request.mcp_tool_map,
+        resource_map=request.resource_map,
+        prompt_map=request.prompt_map,
         prefer_mcp=request.prefer_mcp,
         mcp_enabled=request.mcp_enabled,
         mcp_enabled_operations=request.mcp_enabled_operations,
@@ -1219,6 +1322,8 @@ async def update_connector_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1230,6 +1335,9 @@ async def update_connector_config(
         client_secret=config.client_secret,
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=_mcp_feature_enabled(definition.system),
@@ -1275,6 +1383,8 @@ async def update_project_connector_config(
         custom_fields=request.custom_fields or {},
         mcp_server_url=request.mcp_server_url,
         mcp_server_id=request.mcp_server_id,
+        protocol=request.protocol,
+        protocol_version=request.protocol_version,
         mcp_client_id=request.mcp_client_id,
         mcp_client_secret=request.mcp_client_secret,
         mcp_scope=request.mcp_scope,
@@ -1287,6 +1397,8 @@ async def update_project_connector_config(
         scope=request.scope,
         mcp_tools=request.mcp_tools or list(request.mcp_tool_map.keys()),
         mcp_tool_map=request.mcp_tool_map,
+        resource_map=request.resource_map,
+        prompt_map=request.prompt_map,
         prefer_mcp=request.prefer_mcp,
         mcp_enabled=request.mcp_enabled,
         mcp_enabled_operations=request.mcp_enabled_operations,
@@ -1312,6 +1424,8 @@ async def update_project_connector_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1323,6 +1437,9 @@ async def update_project_connector_config(
         client_secret=config.client_secret,
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=_mcp_feature_enabled(definition.system, project_id),
@@ -1367,6 +1484,8 @@ async def update_regulatory_compliance_config(
         custom_fields=custom_fields,
         mcp_server_url=existing.mcp_server_url if existing else "",
         mcp_server_id=existing.mcp_server_id if existing else "",
+        protocol=existing.protocol if existing else "",
+        protocol_version=existing.protocol_version if existing else "",
         mcp_client_id=existing.mcp_client_id if existing else "",
         mcp_client_secret=existing.mcp_client_secret if existing else "",
         mcp_scope=existing.mcp_scope if existing else "",
@@ -1382,6 +1501,8 @@ async def update_regulatory_compliance_config(
         client_secret=existing.client_secret if existing else "",
         scope=existing.scope if existing else "",
         mcp_tool_map=existing.mcp_tool_map if existing else {},
+        resource_map=existing.resource_map if existing else {},
+        prompt_map=existing.prompt_map if existing else {},
         prefer_mcp=existing.prefer_mcp if existing else False,
         mcp_enabled=existing.mcp_enabled if existing else True,
         mcp_enabled_operations=existing.mcp_enabled_operations if existing else [],
@@ -1421,6 +1542,8 @@ async def update_regulatory_compliance_config(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1432,6 +1555,9 @@ async def update_regulatory_compliance_config(
         client_secret=config.client_secret,
         scope=config.scope,
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=_mcp_feature_enabled(definition.system),
@@ -1535,6 +1661,8 @@ async def enable_connector(connector_id: str, http_request: Request) -> Connecto
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1547,6 +1675,9 @@ async def enable_connector(connector_id: str, http_request: Request) -> Connecto
         scope=config.scope,
         mcp_tools=config.mcp_tools or list(config.mcp_tool_map.keys()),
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=_mcp_feature_enabled(definition.system),
@@ -1604,6 +1735,8 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1616,6 +1749,9 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
         scope=config.scope,
         mcp_tools=config.mcp_tools or list(config.mcp_tool_map.keys()),
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=mcp_feature_enabled,
@@ -1763,6 +1899,8 @@ async def enable_project_connector(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1775,6 +1913,9 @@ async def enable_project_connector(
         scope=config.scope,
         mcp_tools=config.mcp_tools or list(config.mcp_tool_map.keys()),
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=_mcp_feature_enabled(definition.system, project_id),
@@ -1825,6 +1966,8 @@ async def disable_project_connector(
         custom_fields=config.custom_fields,
         mcp_server_url=config.mcp_server_url,
         mcp_server_id=config.mcp_server_id,
+        protocol=config.protocol,
+        protocol_version=config.protocol_version,
         mcp_client_id=config.mcp_client_id,
         mcp_client_secret=config.mcp_client_secret,
         mcp_scope=config.mcp_scope,
@@ -1837,6 +1980,9 @@ async def disable_project_connector(
         scope=config.scope,
         mcp_tools=config.mcp_tools or list(config.mcp_tool_map.keys()),
         mcp_tool_map=config.mcp_tool_map,
+        tool_map=config.mcp_tool_map,
+        resource_map=config.resource_map,
+        prompt_map=config.prompt_map,
         prefer_mcp=config.prefer_mcp,
         mcp_enabled=config.mcp_enabled,
         mcp_feature_enabled=mcp_feature_enabled,

@@ -10,7 +10,7 @@ from .errors import (
     MCPToolNotFoundError,
     MCPTransportError,
 )
-from .models import MCPToolSchema
+from .models import MCPPrompt, MCPResource, MCPToolSchema
 
 __all__ = [
     "AuthConfig",
@@ -21,5 +21,7 @@ __all__ = [
     "MCPServerError",
     "MCPToolNotFoundError",
     "MCPTransportError",
+    "MCPPrompt",
+    "MCPResource",
     "MCPToolSchema",
 ]

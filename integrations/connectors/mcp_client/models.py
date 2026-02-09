@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -20,6 +20,46 @@ class MCPToolSchema:
             name=payload.get("name", ""),
             description=payload.get("description"),
             input_schema=payload.get("inputSchema", {}) or {},
+        )
+
+
+@dataclass(frozen=True)
+class MCPResource:
+    """Represents a resource descriptor from an MCP server."""
+
+    uri: str
+    name: str | None
+    description: str | None
+    mime_type: str | None
+    annotations: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "MCPResource":
+        return cls(
+            uri=payload.get("uri", ""),
+            name=payload.get("name"),
+            description=payload.get("description"),
+            mime_type=payload.get("mimeType"),
+            annotations=payload.get("annotations", {}) or {},
+        )
+
+
+@dataclass(frozen=True)
+class MCPPrompt:
+    """Represents a prompt descriptor from an MCP server."""
+
+    name: str
+    description: str | None
+    arguments: list[dict[str, Any]]
+    annotations: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "MCPPrompt":
+        return cls(
+            name=payload.get("name", ""),
+            description=payload.get("description"),
+            arguments=payload.get("arguments", []) or [],
+            annotations=payload.get("annotations", {}) or {},
         )
 
 
