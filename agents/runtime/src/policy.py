@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
 import yaml
+from feature_flags import is_feature_enabled
 
 logger = logging.getLogger("agents.runtime.policy")
 
@@ -25,6 +27,85 @@ _VALID_OPERATORS = frozenset({"equals", "not_equals", "contains", "not_contains"
 class PolicyDecision:
     decision: str
     reasons: tuple[str, ...]
+
+
+_APPROVAL_CHANGE_TYPES = {
+    "budget",
+    "budget_change",
+    "resource",
+    "resource_change",
+    "scope",
+    "scope_change",
+}
+
+
+def _normalize_change_type(value: Any) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        return normalized or None
+    return None
+
+
+def _extract_change_type(bundle: dict[str, Any]) -> str | None:
+    for path in (
+        "change.type",
+        "change_type",
+        "request_type",
+        "payload.change_type",
+        "payload.request_type",
+        "metadata.change_type",
+        "metadata.request_type",
+    ):
+        value = _get_field(bundle, path) if "." in path else bundle.get(path)
+        normalized = _normalize_change_type(value)
+        if normalized:
+            return normalized
+    for key in _APPROVAL_CHANGE_TYPES:
+        if key in bundle and bundle.get(key):
+            return key
+    return None
+
+
+def _parse_approval_state(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"approved", "approve", "accepted", "allow", "allowed", "success"}:
+            return True
+        if normalized in {"rejected", "reject", "denied", "deny", "declined", "failed"}:
+            return False
+    return None
+
+
+def _approval_granted(bundle: dict[str, Any]) -> bool:
+    candidates = [
+        "approval.status",
+        "approval.decision",
+        "approval.state",
+        "approval.outcome",
+        "approval_status",
+        "approval_decision",
+        "approval",
+    ]
+    for path in candidates:
+        value = _get_field(bundle, path) if "." in path else bundle.get(path)
+        if isinstance(value, dict):
+            for inner_key in ("status", "decision", "state", "outcome"):
+                parsed = _parse_approval_state(value.get(inner_key))
+                if parsed is not None:
+                    return parsed
+        parsed = _parse_approval_state(value)
+        if parsed is not None:
+            return parsed
+    return False
+
+
+def _approval_enforcement_enabled() -> bool:
+    environment = os.getenv("ENVIRONMENT", "dev")
+    return not is_feature_enabled("autonomous_approvals", environment=environment, default=False)
 
 
 def _get_field(data: dict[str, Any], path: str) -> Any:
@@ -114,6 +195,7 @@ def evaluate_policy_bundle(bundle: dict[str, Any], policy_bundle: dict[str, Any]
     reasons: list[str] = []
     decision = "allow"
     policies = policy_bundle.get("policies", [])
+    requires_approval = False
 
     for policy in policies:
         rules = policy.get("rules", [])
@@ -123,6 +205,18 @@ def evaluate_policy_bundle(bundle: dict[str, Any], policy_bundle: dict[str, Any]
                 reasons.append(message)
                 if policy.get("enforcement") == "blocking":
                     decision = "deny"
+
+    if decision != "deny" and _approval_enforcement_enabled():
+        change_type = _extract_change_type(bundle)
+        if change_type and change_type in _APPROVAL_CHANGE_TYPES:
+            if not _approval_granted(bundle):
+                requires_approval = True
+                reasons.append(
+                    f"approval_required: {change_type.replace('_', ' ')} change"
+                )
+
+    if requires_approval:
+        return PolicyDecision(decision="approval_required", reasons=tuple(reasons))
 
     return PolicyDecision(decision=decision, reasons=tuple(reasons))
 
