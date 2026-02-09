@@ -8,6 +8,7 @@ work breakdown structure (WBS) and requirements. Guides teams through initiation
 Specification: agents/delivery-management/agent-08-project-definition-scope/README.md
 """
 
+import os
 import re
 import uuid
 from datetime import datetime, timezone
@@ -16,6 +17,7 @@ from typing import Any
 
 from approval_workflow_agent import ApprovalWorkflowAgent
 from events import CharterCreatedEvent, ScopeChangeEvent, WbsCreatedEvent
+from feature_flags import is_feature_enabled
 from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
 from observability.tracing import get_trace_id
 from scope_research import generate_scope_from_search
@@ -109,6 +111,48 @@ class ProjectDefinitionAgent(BaseAgent):
         )
         self.scope_baseline_store = TenantStateStore(baseline_store_path)
         self.scope_baselines = {}  # type: ignore
+
+    def _autonomous_deliverables_enabled(self) -> bool:
+        if self.config and "autonomous_deliverables" in self.config:
+            return bool(self.config.get("autonomous_deliverables"))
+        environment = os.getenv("ENVIRONMENT", "dev")
+        return is_feature_enabled(
+            "autonomous_deliverables", environment=environment, default=False
+        )
+
+    def _build_charter_document_entity(
+        self,
+        charter: dict[str, Any],
+        charter_content: str,
+        *,
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        created_at = charter.get("created_at") or datetime.now(timezone.utc).isoformat()
+        provenance = {
+            "sourceAgent": self.agent_id,
+            "generatedAt": created_at,
+            "correlationId": correlation_id,
+            "inputContext": {
+                "project_id": charter.get("project_id", ""),
+                "charter_id": charter.get("charter_id", ""),
+                "methodology": charter.get("methodology", "hybrid"),
+            },
+        }
+        title = charter.get("title") or "Project Charter"
+        return {
+            "title": f"{title} Project Charter",
+            "content": charter_content,
+            "author": charter.get("created_by", "unknown"),
+            "project_id": charter.get("project_id"),
+            "tags": ["project-charter", charter.get("project_type") or "general"],
+            "metadata": {
+                "charter_id": charter.get("charter_id", ""),
+                "status": charter.get("status", "Draft"),
+                "provenance": provenance,
+            },
+            "source": "agent_output",
+            "status": charter.get("status", "Draft"),
+        }
 
     async def initialize(self) -> None:
         """Initialize AI models, database connections, and external integrations."""
@@ -418,6 +462,14 @@ class ProjectDefinitionAgent(BaseAgent):
 
         self.logger.info(f"Generated charter for project: {project_id}")
 
+        document_entities: list[dict[str, Any]] = []
+        if self._autonomous_deliverables_enabled():
+            document_entities.append(
+                self._build_charter_document_entity(
+                    charter, charter_content, correlation_id=correlation_id
+                )
+            )
+
         return {
             "project_id": project_id,
             "charter_id": charter_id,
@@ -425,6 +477,7 @@ class ProjectDefinitionAgent(BaseAgent):
             "document": charter["document"],
             "next_steps": "Review and refine charter, then submit for approval",
             "approval": approval,
+            "documents": document_entities,
         }
 
     async def _generate_wbs(

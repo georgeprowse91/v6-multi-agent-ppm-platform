@@ -109,6 +109,58 @@
   min-height: 200px;
 }
 
+.provenancePanel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4, 16px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-neutral-200, #e5e5e5);
+  background-color: var(--color-neutral-50, #fafafa);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-neutral-700, #404040);
+}
+
+.provenanceBlock,
+.editHistoryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  min-width: 220px;
+}
+
+.provenanceTitle {
+  font-weight: var(--font-weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-neutral-500, #737373);
+}
+
+.provenanceRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+}
+
+.editHistoryList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.editHistoryItem {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  gap: var(--space-2, 8px);
+}
+
+.editHistoryVersion {
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-neutral-800, #262626);
+}
+
 .editor:empty:before {
   content: attr(data-placeholder);
   color: var(--color-neutral-400, #a3a3a3);

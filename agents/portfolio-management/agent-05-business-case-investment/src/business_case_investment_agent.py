@@ -8,6 +8,7 @@ Performs financial analysis and ROI modelling to support investment decisions.
 Specification: agents/portfolio-management/agent-05-business-case-investment/README.md
 """
 
+import os
 import random
 import uuid
 from datetime import datetime, timezone
@@ -16,6 +17,7 @@ from typing import Any
 
 from data_quality.helpers import apply_rule_set, validate_against_schema
 from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
+from feature_flags import is_feature_enabled
 from observability.tracing import get_trace_id
 
 from agents.common.integration_services import (
@@ -101,6 +103,56 @@ class BusinessCaseInvestmentAgent(BaseAgent):
                     ],
                 },
             ]
+        }
+
+    def _autonomous_deliverables_enabled(self) -> bool:
+        if self.config and "autonomous_deliverables" in self.config:
+            return bool(self.config.get("autonomous_deliverables"))
+        environment = os.getenv("ENVIRONMENT", "dev")
+        return is_feature_enabled(
+            "autonomous_deliverables", environment=environment, default=False
+        )
+
+    def _serialize_business_case(self, business_case: dict[str, Any]) -> str:
+        document = business_case.get("document", {})
+        return (
+            f"Executive Summary\n{document.get('executive_summary', '')}\n\n"
+            f"Problem Statement\n{document.get('problem_statement', '')}\n\n"
+            f"Proposed Solution\n{document.get('proposed_solution', '')}\n\n"
+            f"Financial Analysis\n{document.get('financial_analysis', '')}\n\n"
+            f"Market Analysis\n{document.get('market_analysis', '')}\n\n"
+            f"Risks and Mitigations\n{document.get('risks_and_mitigations', '')}\n\n"
+            f"Implementation Approach\n{document.get('implementation_approach', '')}"
+        )
+
+    def _build_document_entity(
+        self, business_case: dict[str, Any], *, correlation_id: str
+    ) -> dict[str, Any]:
+        created_at = business_case.get("created_at") or datetime.now(timezone.utc).isoformat()
+        title = business_case.get("title") or "Business Case"
+        project_type = business_case.get("project_type") or "general"
+        provenance = {
+            "sourceAgent": self.agent_id,
+            "generatedAt": created_at,
+            "correlationId": correlation_id,
+            "inputContext": {
+                "demand_id": business_case.get("demand_id", "unknown"),
+                "project_type": project_type,
+            },
+        }
+        return {
+            "title": f"{title} Business Case",
+            "content": self._serialize_business_case(business_case),
+            "author": business_case.get("created_by", "unknown"),
+            "project_id": business_case.get("demand_id", "unknown"),
+            "tags": ["business-case", project_type],
+            "metadata": {
+                "business_case_id": business_case.get("business_case_id", ""),
+                "status": business_case.get("status", "Draft"),
+                "provenance": provenance,
+            },
+            "source": "agent_output",
+            "status": business_case.get("status", "Draft"),
         }
 
     async def initialize(self) -> None:
@@ -324,12 +376,21 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             correlation_id=correlation_id,
         )
 
+        document_entities: list[dict[str, Any]] = []
+        if self._autonomous_deliverables_enabled():
+            document_entities.append(
+                self._build_document_entity(
+                    business_case, correlation_id=correlation_id
+                )
+            )
+
         return {
             "business_case_id": business_case_id,
             "status": "Draft",
             "document": business_case["document"],
             "financial_metrics": business_case["financial_metrics"],
             "next_steps": "Review and edit the business case, then run scenario analysis or generate recommendation.",
+            "documents": document_entities,
         }
 
     async def _calculate_roi(self, input_data: dict[str, Any]) -> dict[str, Any]:

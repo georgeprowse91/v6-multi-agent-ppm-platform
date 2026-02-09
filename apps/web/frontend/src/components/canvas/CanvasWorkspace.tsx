@@ -23,6 +23,7 @@ import {
   type DashboardContent,
 } from '@ppm/canvas-engine';
 import { useCanvasStore } from '@/store/useCanvasStore';
+import { useAppStore } from '@/store/useAppStore';
 import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
 import styles from './CanvasWorkspace.module.css';
@@ -38,6 +39,8 @@ export function CanvasWorkspace() {
     publishArtifact,
     getArtifact,
   } = useCanvasStore();
+  const { featureFlags } = useAppStore();
+  const autonomousDeliverablesEnabled = featureFlags.autonomous_deliverables === true;
 
   const handleContentChange = useCallback(
     (artifactId: string, content: ArtifactContent) => {
@@ -83,6 +86,7 @@ export function CanvasWorkspace() {
               onChange={onChange as (content: DocumentContent) => void}
               onSaveDraft={handleSaveDraft}
               onPublish={handlePublish}
+              showProvenance={autonomousDeliverablesEnabled}
             />
           );
         case 'tree':
