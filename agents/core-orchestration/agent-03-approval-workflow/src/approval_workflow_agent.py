@@ -80,14 +80,73 @@ class RoleLookupClient:
 
 
 class NotificationTemplateEngine:
-    def __init__(self, templates: dict[str, dict[str, str]], default_locale: str = "en") -> None:
-        self.templates = templates
+    def __init__(
+        self,
+        templates: dict[str, dict[str, str]] | None = None,
+        default_locale: str = "en",
+        template_root: Path | None = None,
+    ) -> None:
         self.default_locale = default_locale
+        self.template_root = template_root
+        self.templates = templates or self._load_templates_from_filesystem()
+
+    def _load_templates_from_filesystem(self) -> dict[str, dict[str, str]]:
+        if not self.template_root or not self.template_root.exists():
+            return {}
+
+        templates: dict[str, dict[str, str]] = {}
+        for locale_dir in self.template_root.iterdir():
+            if not locale_dir.is_dir():
+                continue
+            template_file = locale_dir / "approval_notification.md"
+            if not template_file.exists():
+                continue
+            parsed = self._parse_markdown_template(template_file)
+            if parsed:
+                templates[locale_dir.name] = parsed
+        return templates
+
+    def _parse_markdown_template(self, template_file: Path) -> dict[str, str]:
+        content = template_file.read_text(encoding="utf-8").strip()
+        if not content.startswith("---"):
+            return {}
+        parts = content.split("---", 2)
+        if len(parts) < 3:
+            return {}
+        loaded = yaml.safe_load(parts[1])
+        if not isinstance(loaded, dict):
+            return {}
+        return {str(key): str(value) for key, value in loaded.items()}
+
+    def _resolve_locale_templates(self, locale: str) -> dict[str, str]:
+        return self.templates.get(locale) or self.templates.get(self.default_locale, {})
 
     def render(self, template_key: str, locale: str, context: dict[str, Any]) -> str:
-        locale_templates = self.templates.get(locale) or self.templates.get(self.default_locale, {})
-        raw_template = locale_templates.get(template_key) or ""
+        raw_template = self._resolve_locale_templates(locale).get(template_key) or ""
         return Template(raw_template).safe_substitute(context)
+
+    def render_accessible(
+        self,
+        *,
+        template_key: str,
+        locale: str,
+        context: dict[str, Any],
+        accessible_format: str,
+    ) -> tuple[str, str | None]:
+        rendered = self.render(template_key, locale, context)
+        if accessible_format == "html_with_alt_text":
+            return rendered, self._to_accessible_html(rendered)
+        return rendered, None
+
+    def _to_accessible_html(self, rendered: str) -> str:
+        escaped = rendered.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        paragraph = escaped.replace("\n", "<br>")
+        return (
+            "<html><body style=\"background-color:#ffffff;color:#111111;font-size:18px;"
+            "line-height:1.6;font-family:Arial,sans-serif;\">"
+            f"<p>{paragraph}</p>"
+            "</body></html>"
+        )
 
 
 class NotificationSubscriptionStore:
@@ -100,7 +159,13 @@ class NotificationSubscriptionStore:
     def upsert_preferences(
         self, tenant_id: str, recipient_id: str, preferences: dict[str, Any]
     ) -> None:
-        self.store.upsert(tenant_id, recipient_id, preferences)
+        normalized = dict(preferences)
+        normalized.setdefault("locale", "en")
+        accessible = normalized.get("accessible_format", "text_only")
+        if accessible not in {"text_only", "html_with_alt_text"}:
+            accessible = "text_only"
+        normalized["accessible_format"] = accessible
+        self.store.upsert(tenant_id, recipient_id, normalized)
 
     def delete_preferences(self, tenant_id: str, recipient_id: str) -> None:
         self.store.delete(tenant_id, recipient_id)
@@ -150,9 +215,12 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.role_lookup = config.get("role_lookup") if config else None
         if self.role_lookup is None:
             self.role_lookup = RoleLookupClient(config)
-        templates = (config or {}).get("notification_templates") or self._default_templates()
+        templates = (config or {}).get("notification_templates")
+        template_root = Path(__file__).resolve().parent / "templates"
         default_locale = (config or {}).get("default_locale", "en")
-        self.template_engine = NotificationTemplateEngine(templates, default_locale)
+        self.template_engine = NotificationTemplateEngine(templates, default_locale, template_root)
+        if not self.template_engine.templates:
+            self.template_engine.templates = self._default_templates()
         self.notification_store = NotificationSubscriptionStore(
             Path(
                 config.get("notification_store_path", "data/approval_notification_store.json")
@@ -708,8 +776,14 @@ class ApprovalWorkflowAgent(BaseAgent):
                 approval_chain=approval_chain,
             )
             locale = preferences.get("locale", self.template_engine.default_locale)
+            accessible_format = preferences.get("accessible_format", "text_only")
             subject = self.template_engine.render("approval_request_subject", locale, context)
-            body = self.template_engine.render("approval_request_body", locale, context)
+            body, html_body = self.template_engine.render_accessible(
+                template_key="approval_request_body",
+                locale=locale,
+                context=context,
+                accessible_format=accessible_format,
+            )
             chat_message = self.template_engine.render("approval_request_chat", locale, context)
             push_message = self.template_engine.render("approval_request_push", locale, context)
 
@@ -722,6 +796,8 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "sent_at": datetime.now(timezone.utc).isoformat(),
                 "channels": preferences.get("channels", {}),
                 "delivery": preferences.get("delivery", "immediate"),
+                "locale": locale,
+                "accessible_format": accessible_format,
             }
             result = await self._dispatch_notification(
                 tenant_id=tenant_id,
@@ -731,6 +807,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 body=body,
                 chat_message=chat_message,
                 push_message=push_message,
+                html_body=html_body,
                 preferences=preferences,
             )
             notification_results.append(result)
@@ -789,6 +866,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         body: str,
         chat_message: str,
         push_message: str,
+        html_body: str | None,
         preferences: dict[str, Any],
     ) -> bool:
         delivery = preferences.get("delivery", "immediate")
@@ -801,6 +879,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 body=body,
                 chat_message=chat_message,
                 push_message=push_message,
+                html_body=html_body,
                 preferences=preferences,
             )
             return True
@@ -812,6 +891,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             body=body,
             chat_message=chat_message,
             push_message=push_message,
+            html_body=html_body,
             preferences=preferences,
         )
 
@@ -825,6 +905,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         body: str,
         chat_message: str,
         push_message: str,
+        html_body: str | None,
         preferences: dict[str, Any],
     ) -> bool:
         channels = preferences.get("channels", {})
@@ -841,7 +922,9 @@ class ApprovalWorkflowAgent(BaseAgent):
                     metadata={
                         "approval_id": notification["approval_id"],
                         "deadline": notification["deadline"],
-                        "html_body": channels.get("email_html"),
+                        "html_body": html_body or channels.get("email_html"),
+                        "locale": preferences.get("locale", self.template_engine.default_locale),
+                        "accessible_format": preferences.get("accessible_format", "text_only"),
                     },
                 )
             )
@@ -894,6 +977,7 @@ class ApprovalWorkflowAgent(BaseAgent):
         body: str,
         chat_message: str,
         push_message: str,
+        html_body: str | None,
         preferences: dict[str, Any],
     ) -> None:
         key = f"{tenant_id}:{recipient}"
@@ -903,6 +987,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "body": body,
             "chat_message": chat_message,
             "push_message": push_message,
+            "html_body": html_body,
             "preferences": preferences,
         }
         self.notification_queue.setdefault(key, []).append(entry)
@@ -939,7 +1024,13 @@ class ApprovalWorkflowAgent(BaseAgent):
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         subject = self.template_engine.render("approval_digest_subject", locale, context)
-        body = self.template_engine.render("approval_digest_body", locale, context)
+        accessible_format = preferences.get("accessible_format", "text_only")
+        body, html_body = self.template_engine.render_accessible(
+            template_key="approval_digest_body",
+            locale=locale,
+            context=context,
+            accessible_format=accessible_format,
+        )
         return await self._deliver_notification(
             tenant_id=tenant_id,
             recipient=recipient,
@@ -948,6 +1039,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             body=body,
             chat_message=body,
             push_message=subject,
+            html_body=html_body,
             preferences=preferences,
         )
 
@@ -1010,6 +1102,9 @@ class ApprovalWorkflowAgent(BaseAgent):
             channels["email"] = {"address": approver}
         preferences.setdefault("delivery", "immediate")
         preferences.setdefault("locale", self.template_engine.default_locale)
+        accessible = preferences.setdefault("accessible_format", "text_only")
+        if accessible not in {"text_only", "html_with_alt_text"}:
+            preferences["accessible_format"] = "text_only"
         return preferences
 
     def _merge_preferences(self, base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
@@ -1243,8 +1338,14 @@ class ApprovalWorkflowAgent(BaseAgent):
                 approval_chain=approval_chain,
             )
             locale = preferences.get("locale", self.template_engine.default_locale)
+            accessible_format = preferences.get("accessible_format", "text_only")
             subject = self.template_engine.render("approval_escalation_subject", locale, context)
-            body = self.template_engine.render("approval_escalation_body", locale, context)
+            body, html_body = self.template_engine.render_accessible(
+                template_key="approval_escalation_body",
+                locale=locale,
+                context=context,
+                accessible_format=accessible_format,
+            )
             chat_message = self.template_engine.render("approval_escalation_chat", locale, context)
             push_message = self.template_engine.render("approval_escalation_push", locale, context)
             notification = {
@@ -1256,6 +1357,8 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "sent_at": datetime.now(timezone.utc).isoformat(),
                 "channels": preferences.get("channels", {}),
                 "delivery": preferences.get("delivery", "immediate"),
+                "locale": locale,
+                "accessible_format": accessible_format,
                 "type": "escalation",
                 "risk_score": risk_score,
                 "criticality_level": criticality_level,
@@ -1268,6 +1371,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 body=body,
                 chat_message=chat_message,
                 push_message=push_message,
+                html_body=html_body,
                 preferences=preferences,
             )
             self.notifications.append(notification)

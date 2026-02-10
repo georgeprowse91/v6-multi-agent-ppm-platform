@@ -43,6 +43,29 @@ At runtime, the agent computes `risk_score` and `criticality_level` from request
 
 These values are persisted in approval metadata, included in audit events, and rendered in escalation notifications.
 
+
+### Notification localization and accessibility
+
+Approval notifications now support locale-aware templates and accessibility-focused output controls.
+
+- `notification_routing.*.locale`: Preferred notification locale (for example `en`, `fr`).
+- `notification_routing.*.accessible_format`: Accessibility rendering mode. Supported values:
+  - `text_only` (default): Plain text rendering.
+  - `html_with_alt_text`: Sends a high-contrast HTML variant with larger default font sizing.
+- Stored subscription preferences in `NotificationSubscriptionStore` now persist both `locale` and `accessible_format`.
+
+Templates are loaded from locale folders under:
+
+- `agents/core-orchestration/agent-03-approval-workflow/src/templates/{locale}/approval_notification.md`
+
+If the configured locale template is missing, the agent falls back to English (`en`).
+
+To add a new locale:
+
+1. Create `src/templates/<new-locale>/approval_notification.md`.
+2. Add all notification keys used by approval, escalation, and digest flows.
+3. Validate with `pytest tests/notification/test_localization.py`.
+
 ## Intended scope and responsibilities
 
 **Agent 03 owns the approval workflow control loop.** It is responsible for:

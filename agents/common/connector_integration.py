@@ -1207,6 +1207,8 @@ class NotificationService:
         cc = metadata.get("cc")
         bcc = metadata.get("bcc")
         html_body = metadata.get("html_body")
+        locale = metadata.get("locale")
+        accessible_format = metadata.get("accessible_format")
 
         try:
             if graph_provider:
@@ -1286,6 +1288,10 @@ class NotificationService:
             message["To"] = to
             if reply_to:
                 message["Reply-To"] = reply_to
+            if locale:
+                message["Content-Language"] = str(locale)
+            if accessible_format:
+                message["X-Accessible-Format"] = str(accessible_format)
             if cc:
                 message["Cc"] = ", ".join(cc) if isinstance(cc, list) else cc
             if bcc:
