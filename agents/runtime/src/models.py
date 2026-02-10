@@ -56,6 +56,7 @@ class AgentResponse(BaseModel):
     data: AgentPayload | None = None
     error: str | None = None
     metadata: AgentResponseMetadata
+    request_feedback: bool = False
 
 
 class AgentValidationError(BaseModel):

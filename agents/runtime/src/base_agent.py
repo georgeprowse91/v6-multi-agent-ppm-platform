@@ -35,6 +35,8 @@ from agents.runtime.src.policy import (  # noqa: E402
 )
 from packages.memory_client import MemoryClient  # noqa: E402
 from packages.llm.prompt_sanitizer import detect_injection, sanitize_prompt  # noqa: E402
+from packages.feedback.feedback_models import Feedback  # noqa: E402
+from services.feedback_service import FeedbackService  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +83,8 @@ class BaseAgent(ABC):
             "api_cost_total_usd": 0.0,
             "api_cost_by_connector": {},
         }
+        feedback_db_path = self.config.get("feedback_db_path") or os.getenv("FEEDBACK_DB_PATH")
+        self.feedback_service = FeedbackService(feedback_db_path or "data/feedback.sqlite3")
 
     async def initialize(self) -> None:
         """
@@ -163,6 +167,7 @@ class BaseAgent(ABC):
         catalog_id = self.catalog_id or self.agent_id
         trace_id = get_trace_id() or "unknown"
         self._reset_cost_summary()
+        request_feedback = bool(self.get_config("request_feedback", False))
 
         policy_bundle = input_data.get(
             "policy_bundle",
@@ -201,6 +206,7 @@ class BaseAgent(ABC):
             response = AgentResponse(
                 success=False,
                 error="Policy evaluation denied execution",
+                request_feedback=request_feedback,
                 metadata=AgentResponseMetadata(
                     agent_id=self.agent_id,
                     catalog_id=catalog_id,
@@ -244,6 +250,7 @@ class BaseAgent(ABC):
                     response = AgentResponse(
                         success=False,
                         error="Input validation failed",
+                        request_feedback=request_feedback,
                         metadata=AgentResponseMetadata(
                             agent_id=self.agent_id,
                             catalog_id=catalog_id,
@@ -267,6 +274,7 @@ class BaseAgent(ABC):
                         response = AgentResponse(
                             success=False,
                             error="Input contains potentially unsafe prompt content.",
+                            request_feedback=request_feedback,
                             metadata=AgentResponseMetadata(
                                 agent_id=self.agent_id,
                                 catalog_id=catalog_id,
@@ -301,6 +309,7 @@ class BaseAgent(ABC):
                 response = AgentResponse(
                     success=True,
                     data=payload,
+                    request_feedback=request_feedback,
                     metadata=AgentResponseMetadata(
                         agent_id=self.agent_id,
                         catalog_id=catalog_id,
@@ -330,6 +339,7 @@ class BaseAgent(ABC):
             response = AgentResponse(
                 success=False,
                 error=error_message,
+                request_feedback=request_feedback,
                 metadata=AgentResponseMetadata(
                     agent_id=self.agent_id,
                     catalog_id=catalog_id,
@@ -342,6 +352,15 @@ class BaseAgent(ABC):
             )
             self.save_context(correlation_id, {"last_error": response.model_dump()})
             return response.model_dump()
+
+    def send_feedback(self, feedback: Feedback | dict[str, Any]) -> None:
+        """Persist user feedback associated with this agent's run correlation ID."""
+        parsed_feedback = feedback if isinstance(feedback, Feedback) else Feedback(**feedback)
+        if parsed_feedback.agent_id != self.agent_id:
+            raise ValueError(
+                f"Feedback agent_id '{parsed_feedback.agent_id}' does not match '{self.agent_id}'"
+            )
+        self.feedback_service.save_feedback(parsed_feedback)
 
     def _memory_key(self, conversation_id: str) -> str:
         return f"{conversation_id}:{self.agent_id}"
