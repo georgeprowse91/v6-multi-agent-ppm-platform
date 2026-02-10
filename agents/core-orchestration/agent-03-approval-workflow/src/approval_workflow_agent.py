@@ -17,6 +17,7 @@ from string import Template
 from typing import Any
 
 import httpx
+import yaml
 from agents.common.connector_integration import NotificationService
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
@@ -429,6 +430,14 @@ class ApprovalWorkflowAgent(BaseAgent):
         correlation_id = (
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
         )
+        risk_score, criticality_level = self._assess_risk_and_criticality(
+            request_type=request_type,
+            details=details,
+        )
+        escalation_timeout_hours = self._resolve_escalation_timeout(
+            risk_score=risk_score,
+            criticality_level=criticality_level,
+        )
 
         self.logger.info(f"Processing {request_type} approval request: {request_id}")
 
@@ -446,6 +455,9 @@ class ApprovalWorkflowAgent(BaseAgent):
             details=details,
             delegation_records=delegation_records,
             user_roles=user_roles,
+            risk_score=risk_score,
+            criticality_level=criticality_level,
+            escalation_timeout_hours=escalation_timeout_hours,
         )
 
         # Send notifications
@@ -462,6 +474,9 @@ class ApprovalWorkflowAgent(BaseAgent):
             approval_chain=approval_chain,
             approvers=approvers,
             details=details,
+            risk_score=risk_score,
+            criticality_level=criticality_level,
+            escalation_timeout_hours=escalation_timeout_hours,
         )
 
         self._emit_audit_event(
@@ -470,7 +485,13 @@ class ApprovalWorkflowAgent(BaseAgent):
             action="approval.created",
             outcome="success",
             resource_id=approval_chain["id"],
-            metadata={"request_type": request_type, "approvers": approvers},
+            metadata={
+                "request_type": request_type,
+                "approvers": approvers,
+                "risk_score": risk_score,
+                "criticality_level": criticality_level,
+                "escalation_timeout_hours": escalation_timeout_hours,
+            },
         )
         self._publish_approval_event(
             event_type="approval.created",
@@ -508,8 +529,45 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "request_type": request_type,
                 "escalation_scheduled": True,
+                "risk_score": risk_score,
+                "criticality_level": criticality_level,
+                "escalation_timeout_hours": escalation_timeout_hours,
             },
         }
+
+    def _assess_risk_and_criticality(
+        self, *, request_type: str, details: dict[str, Any]
+    ) -> tuple[str, str]:
+        amount = float(details.get("amount") or 0)
+        urgency = str(details.get("urgency", "medium")).lower()
+        strategic_importance = str(details.get("strategic_importance", "medium")).lower()
+        project_type = str(details.get("project_type", "")).lower()
+
+        risk_score = "low"
+        if amount >= 100000 or urgency == "high" or request_type in {"phase_gate", "procurement"}:
+            risk_score = "high"
+        elif amount >= 25000 or urgency == "medium" or request_type == "scope_change":
+            risk_score = "medium"
+
+        criticality_level = "normal"
+        if strategic_importance in {"critical", "high"} or project_type in {
+            "regulatory",
+            "security",
+        }:
+            criticality_level = "critical"
+        elif urgency == "high" or strategic_importance == "medium":
+            criticality_level = "high"
+
+        return risk_score, criticality_level
+
+    def _resolve_escalation_timeout(self, *, risk_score: str, criticality_level: str) -> float:
+        base_timeout = float(self.approval_policies.get("escalation_timeout_hours", 48))
+        risk_thresholds = self.approval_policies.get("risk_thresholds", {})
+        criticality_levels = self.approval_policies.get("criticality_levels", {})
+
+        risk_timeout = float(risk_thresholds.get(risk_score, base_timeout))
+        criticality_timeout = float(criticality_levels.get(criticality_level, base_timeout))
+        return min(risk_timeout, criticality_timeout)
 
     async def _determine_approvers(
         self, tenant_id: str, request_type: str, details: dict[str, Any]
@@ -571,6 +629,9 @@ class ApprovalWorkflowAgent(BaseAgent):
         details: dict[str, Any],
         delegation_records: list[dict[str, Any]],
         user_roles: dict[str, list[str]],
+        risk_score: str,
+        criticality_level: str,
+        escalation_timeout_hours: float,
     ) -> dict[str, Any]:
         """Create approval chain configuration."""
         approval_id = f"approval_{request_id}_{datetime.now(timezone.utc).timestamp()}"
@@ -595,6 +656,9 @@ class ApprovalWorkflowAgent(BaseAgent):
             "created_at": datetime.now(timezone.utc).isoformat(),
             "delegations": delegation_records,
             "user_roles": user_roles,
+            "risk_score": risk_score,
+            "criticality_level": criticality_level,
+            "escalation_timeout_hours": escalation_timeout_hours,
         }
 
         self.approval_chains[approval_id] = chain
@@ -607,6 +671,9 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "request_details": details,
                 "approvers": approvers,
                 "user_roles": user_roles,
+                "risk_score": risk_score,
+                "criticality_level": criticality_level,
+                "escalation_timeout_hours": escalation_timeout_hours,
                 "chain": chain,
                 "notifications": [],
             },
@@ -1048,9 +1115,11 @@ class ApprovalWorkflowAgent(BaseAgent):
         approval_chain: dict[str, Any],
         approvers: list[str],
         details: dict[str, Any],
+        risk_score: str,
+        criticality_level: str,
+        escalation_timeout_hours: float,
     ) -> None:
         """Schedule escalation notifications based on the configured policy."""
-        escalation_timeout_hours = self.approval_policies.get("escalation_timeout_hours", 48)
         delay_seconds = int(escalation_timeout_hours * 3600)
 
         if not approvers:
@@ -1062,18 +1131,35 @@ class ApprovalWorkflowAgent(BaseAgent):
             "scheduled_at": scheduled_at.isoformat(),
             "escalation_at": escalation_at.isoformat(),
             "timeout_hours": escalation_timeout_hours,
+            "risk_score": risk_score,
+            "criticality_level": criticality_level,
         }
 
         async def escalation_task() -> None:
             await asyncio.sleep(delay_seconds)
-            await self._send_approval_notifications(
+            await self._send_escalation_notifications(
                 tenant_id=tenant_id,
                 approval_chain=approval_chain,
                 approvers=approvers,
                 details=details,
+                risk_score=risk_score,
+                criticality_level=criticality_level,
+                escalation_timeout_hours=escalation_timeout_hours,
             )
             self.escalation_timers[approval_chain["id"]]["last_escalated_at"] = (
                 datetime.now(timezone.utc).isoformat()
+            )
+            self._emit_audit_event(
+                tenant_id=tenant_id,
+                correlation_id=str(uuid.uuid4()),
+                action="approval.escalated",
+                outcome="success",
+                resource_id=approval_chain["id"],
+                metadata={
+                    "risk_score": risk_score,
+                    "criticality_level": criticality_level,
+                    "escalation_timeout_hours": escalation_timeout_hours,
+                },
             )
 
         task = asyncio.create_task(escalation_task())
@@ -1085,24 +1171,32 @@ class ApprovalWorkflowAgent(BaseAgent):
         default_policies = {
             "budget_thresholds": [10000, 50000, 100000],
             "escalation_timeout_hours": 48,
+            "risk_thresholds": {"high": 12, "medium": 24, "low": 48},
+            "criticality_levels": {"critical": 6, "high": 12, "normal": 24, "low": 48},
             "reminder_before_deadline_hours": 24,
             "default_chain_type": "sequential",
             "digest_interval_minutes": 60,
             "response_time_threshold_hours": 48,
         }
         config_path = Path(
-            self.config.get("approval_policies_path", "config/approval_policies.json")
+            self.config.get("approval_policies_path", "ops/config/agents/approval_policies.yaml")
             if self.config
-            else "config/approval_policies.json"
+            else "ops/config/agents/approval_policies.yaml"
         )
+        fallback_path = Path("ops/config/approval_policies.json")
         if not config_path.exists():
-            self.logger.warning(
-                "Approval policies file not found at %s; using defaults.", config_path
-            )
-            return default_policies
+            if not fallback_path.exists():
+                self.logger.warning(
+                    "Approval policies file not found at %s; using defaults.", config_path
+                )
+                return default_policies
+            config_path = fallback_path
         try:
             with config_path.open("r", encoding="utf-8") as handle:
-                data = json.load(handle)
+                if config_path.suffix in {".yaml", ".yml"}:
+                    data = yaml.safe_load(handle)
+                else:
+                    data = json.load(handle)
             if not isinstance(data, dict):
                 self.logger.warning(
                     "Approval policies file %s did not contain an object; using defaults.",
@@ -1110,13 +1204,74 @@ class ApprovalWorkflowAgent(BaseAgent):
                 )
                 return default_policies
             return {**default_policies, **data}
-        except (json.JSONDecodeError, OSError) as exc:
+        except (json.JSONDecodeError, yaml.YAMLError, OSError) as exc:
             self.logger.warning(
                 "Failed to load approval policies from %s: %s; using defaults.",
                 config_path,
                 exc,
             )
             return default_policies
+
+    async def _send_escalation_notifications(
+        self,
+        *,
+        tenant_id: str,
+        approval_chain: dict[str, Any],
+        approvers: list[str],
+        details: dict[str, Any],
+        risk_score: str,
+        criticality_level: str,
+        escalation_timeout_hours: float,
+    ) -> None:
+        for approver in approvers:
+            context = self._build_notification_context(
+                tenant_id=tenant_id,
+                approval_chain=approval_chain,
+                approver=approver,
+                details=details,
+            )
+            context.update(
+                {
+                    "risk_score": risk_score,
+                    "criticality_level": criticality_level,
+                    "escalation_timeout_hours": escalation_timeout_hours,
+                }
+            )
+            preferences = self._resolve_notification_preferences(
+                tenant_id=tenant_id,
+                approver=approver,
+                approval_chain=approval_chain,
+            )
+            locale = preferences.get("locale", self.template_engine.default_locale)
+            subject = self.template_engine.render("approval_escalation_subject", locale, context)
+            body = self.template_engine.render("approval_escalation_body", locale, context)
+            chat_message = self.template_engine.render("approval_escalation_chat", locale, context)
+            push_message = self.template_engine.render("approval_escalation_push", locale, context)
+            notification = {
+                "to": approver,
+                "subject": subject,
+                "body": body,
+                "deadline": approval_chain["deadline"],
+                "approval_id": approval_chain["id"],
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+                "channels": preferences.get("channels", {}),
+                "delivery": preferences.get("delivery", "immediate"),
+                "type": "escalation",
+                "risk_score": risk_score,
+                "criticality_level": criticality_level,
+            }
+            await self._dispatch_notification(
+                tenant_id=tenant_id,
+                recipient=approver,
+                notification=notification,
+                subject=subject,
+                body=body,
+                chat_message=chat_message,
+                push_message=push_message,
+                preferences=preferences,
+            )
+            self.notifications.append(notification)
+            self._persist_notification(tenant_id, approval_chain["id"], notification)
 
     def _persist_notification(
         self, tenant_id: str, approval_id: str, notification: dict[str, Any]
@@ -1193,6 +1348,10 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "decision": decision,
                 "approver_id": approver_id,
                 "comments": comments,
+                "risk_score": existing.get("details", {}).get("risk_score") if existing else None,
+                "criticality_level": existing.get("details", {}).get("criticality_level")
+                if existing
+                else None,
             },
         )
         if response_time_seconds is not None:
@@ -1249,6 +1408,12 @@ class ApprovalWorkflowAgent(BaseAgent):
             "approval_id": approval_id,
             "decision": decision,
             "status": decision,
+            "metadata": {
+                "risk_score": existing.get("details", {}).get("risk_score") if existing else None,
+                "criticality_level": existing.get("details", {}).get("criticality_level")
+                if existing
+                else None,
+            },
         }
 
     async def _handle_notification_action(
@@ -1383,6 +1548,22 @@ class ApprovalWorkflowAgent(BaseAgent):
                     "Deadline: ${deadline}\n\n"
                     "Please review and submit your decision."
                 ),
+                "approval_escalation_subject": "Escalation notice: ${description}",
+                "approval_escalation_body": (
+                    "Hello ${approver},\n\n"
+                    "Approval request ${request_id} is being escalated.\n"
+                    "Due to ${risk_score} risk and ${criticality_level} criticality, escalation "
+                    "will occur after ${escalation_timeout_hours} hours.\n"
+                    "Deadline: ${deadline}."
+                ),
+                "approval_escalation_chat": (
+                    "Escalation for request ${request_id}: ${risk_score} risk / "
+                    "${criticality_level} criticality. Escalates after "
+                    "${escalation_timeout_hours} hours."
+                ),
+                "approval_escalation_push": (
+                    "Escalation: ${request_id} (${risk_score} risk, ${criticality_level} criticality)"
+                ),
                 "approval_request_chat": (
                     "Approval required for request ${request_id}: ${description} "
                     "(deadline ${deadline})."
@@ -1409,6 +1590,22 @@ class ApprovalWorkflowAgent(BaseAgent):
                     "Urgencia: ${urgency}\n"
                     "Fecha límite: ${deadline}\n\n"
                     "Revisa y envía tu decisión."
+                ),
+                "approval_escalation_subject": "Aviso de escalamiento: ${description}",
+                "approval_escalation_body": (
+                    "Hola ${approver},\n\n"
+                    "La solicitud ${request_id} se está escalando.\n"
+                    "Debido al riesgo ${risk_score} y criticidad ${criticality_level}, "
+                    "el escalamiento ocurre después de ${escalation_timeout_hours} horas.\n"
+                    "Fecha límite: ${deadline}."
+                ),
+                "approval_escalation_chat": (
+                    "Escalamiento para la solicitud ${request_id}: riesgo ${risk_score} / "
+                    "criticidad ${criticality_level}. Escala después de "
+                    "${escalation_timeout_hours} horas."
+                ),
+                "approval_escalation_push": (
+                    "Escalamiento: ${request_id} (${risk_score} riesgo, ${criticality_level} criticidad)"
                 ),
                 "approval_request_chat": (
                     "Aprobación requerida para la solicitud ${request_id}: ${description} "

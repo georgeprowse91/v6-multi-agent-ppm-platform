@@ -32,6 +32,17 @@ pytest agents/core-orchestration/agent-03-approval-workflow/tests
 
 Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
+### Dynamic escalation policy
+
+Approval escalation timing is dynamically computed using risk and criticality context and loaded from `ops/config/agents/approval_policies.yaml`.
+
+- `risk_thresholds`: maps computed request risk (`high`, `medium`, `low`) to escalation timeout hours.
+- `criticality_levels`: maps computed criticality (`critical`, `high`, `normal`, `low`) to escalation timeout hours.
+
+At runtime, the agent computes `risk_score` and `criticality_level` from request details (for example `amount`, `urgency`, `project_type`, and `strategic_importance`) and then picks the most conservative timeout across both mappings.
+
+These values are persisted in approval metadata, included in audit events, and rendered in escalation notifications.
+
 ## Intended scope and responsibilities
 
 **Agent 03 owns the approval workflow control loop.** It is responsible for:
