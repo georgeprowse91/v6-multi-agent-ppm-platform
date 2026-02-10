@@ -28,6 +28,7 @@ from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.config import load_yaml  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
+from agents.runtime.src.policy import evaluate_compliance_controls  # noqa: E402
 
 logger = logging.getLogger("policy-engine")
 logging.basicConfig(level=logging.INFO)
@@ -76,6 +77,17 @@ class ABACEvaluationResponse(BaseModel):
     decision: str
     reasons: list[str]
 
+
+class ComplianceEvaluationRequest(BaseModel):
+    payload: dict[str, Any]
+    required_fields: list[str] | None = None
+
+
+class ComplianceEvaluationResponse(BaseModel):
+    decision: str
+    reasons: list[str]
+    sanitized_payload: dict[str, Any]
+    masked_fields: list[str]
 
 app = FastAPI(title="Policy Engine", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
@@ -332,6 +344,24 @@ async def evaluate_rbac(request: RBACEvaluationRequest) -> RBACEvaluationRespons
     return RBACEvaluationResponse(decision=decision, reasons=reasons)
 
 
+
+
+@api_router.post("/compliance/evaluate", response_model=ComplianceEvaluationResponse)
+async def evaluate_compliance(request: ComplianceEvaluationRequest) -> ComplianceEvaluationResponse:
+    decision = evaluate_compliance_controls(
+        request.payload,
+        required_fields=set(request.required_fields) if request.required_fields else None,
+    )
+    logger.info(
+        "compliance_evaluated",
+        extra={"decision": decision.decision, "masked_fields": list(decision.masked_fields)},
+    )
+    return ComplianceEvaluationResponse(
+        decision=decision.decision,
+        reasons=list(decision.reasons),
+        sanitized_payload=decision.sanitized_payload,
+        masked_fields=list(decision.masked_fields),
+    )
 @api_router.post("/abac/evaluate", response_model=ABACEvaluationResponse)
 async def evaluate_abac(request: ABACEvaluationRequest) -> ABACEvaluationResponse:
     policy_cfg = _load_abac_config()

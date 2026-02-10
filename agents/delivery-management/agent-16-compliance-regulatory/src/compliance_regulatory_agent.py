@@ -46,6 +46,7 @@ from agents.common.web_search import (  # noqa: E402
 from agents.runtime import BaseAgent, get_event_bus, ServiceBusEventBus  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from agents.runtime.src.policy import (  # noqa: E402
+    evaluate_compliance_controls,
     evaluate_policy_bundle,
     load_default_policy_bundle,
 )
@@ -366,6 +367,58 @@ class ComplianceRegulatoryAgent(BaseAgent):
         tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
         correlation_id = (
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+
+        compliance_decision = evaluate_compliance_controls(
+            {
+                "personal_data": input_data.get("personal_data", {}),
+                "consent": input_data.get("consent", {}),
+            }
+        )
+        if compliance_decision.decision == "deny":
+            emit_audit_event(
+                build_audit_event(
+                    tenant_id=tenant_id,
+                    action="compliance.data_processing.denied",
+                    outcome="denied",
+                    actor_id=self.agent_id,
+                    actor_type="service",
+                    actor_roles=[],
+                    resource_id=input_data.get("project_id") or "unknown",
+                    resource_type="compliance_processing",
+                    metadata={"reasons": list(compliance_decision.reasons)},
+                    legal_basis="consent",
+                    retention_period="P3Y",
+                    trace_id=get_trace_id(),
+                    correlation_id=correlation_id,
+                )
+            )
+            return {
+                "status": "error",
+                "error": "Consent is required before processing personal data.",
+                "reasons": list(compliance_decision.reasons),
+            }
+
+        input_data["personal_data"] = compliance_decision.sanitized_payload.get("personal_data", {})
+        emit_audit_event(
+            build_audit_event(
+                tenant_id=tenant_id,
+                action="compliance.data_processing.allowed",
+                outcome="success",
+                actor_id=self.agent_id,
+                actor_type="service",
+                actor_roles=[],
+                resource_id=input_data.get("project_id") or "unknown",
+                resource_type="compliance_processing",
+                metadata={
+                    "masked_fields": list(compliance_decision.masked_fields),
+                    "reasons": list(compliance_decision.reasons),
+                },
+                legal_basis="consent",
+                retention_period="P3Y",
+                trace_id=get_trace_id(),
+                correlation_id=correlation_id,
+            )
         )
 
         if action == "add_regulation":

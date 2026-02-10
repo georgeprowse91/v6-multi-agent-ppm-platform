@@ -110,3 +110,17 @@ def test_abac_evaluate_deny(monkeypatch) -> None:
     response = client.post("/v1/abac/evaluate", json=payload, headers=_auth_headers(monkeypatch))
     assert response.status_code == 200
     assert response.json()["decision"] == "deny"
+
+
+def test_compliance_evaluate_denies_without_consent(monkeypatch) -> None:
+    payload = {
+        "payload": {
+            "personal_data": {"email": "user@example.com"},
+            "consent": {"granted": False},
+        }
+    }
+    response = client.post(
+        "/v1/compliance/evaluate", json=payload, headers=_auth_headers(monkeypatch)
+    )
+    assert response.status_code == 200
+    assert response.json()["decision"] == "deny"

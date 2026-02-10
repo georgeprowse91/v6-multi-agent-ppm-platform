@@ -35,6 +35,8 @@ def build_audit_event(
     resource_type: str,
     metadata: dict[str, Any] | None = None,
     classification: str = "internal",
+    legal_basis: str = "legitimate_interest",
+    retention_period: str = "P1Y",
     trace_id: str | None = None,
     correlation_id: str | None = None,
 ) -> dict[str, Any]:
@@ -56,6 +58,8 @@ def build_audit_event(
             "attributes": metadata or {},
         },
         "metadata": metadata or {},
+        "legal_basis": legal_basis,
+        "retention_period": retention_period,
         "trace_id": trace_id,
         "correlation_id": correlation_id,
     }

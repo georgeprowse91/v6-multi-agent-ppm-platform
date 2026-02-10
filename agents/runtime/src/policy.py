@@ -29,6 +29,14 @@ class PolicyDecision:
     reasons: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class ComplianceDecision:
+    decision: str
+    reasons: tuple[str, ...]
+    sanitized_payload: dict[str, Any]
+    masked_fields: tuple[str, ...]
+
+
 _APPROVAL_CHANGE_TYPES = {
     "budget",
     "budget_change",
@@ -37,6 +45,82 @@ _APPROVAL_CHANGE_TYPES = {
     "scope",
     "scope_change",
 }
+
+_PERSONAL_DATA_FIELDS = {
+    "email",
+    "phone",
+    "address",
+    "ssn",
+    "dob",
+    "date_of_birth",
+    "medical_record",
+}
+
+_MASKED_PERSONAL_DATA_FIELDS = {"email", "phone", "address", "ssn", "dob", "date_of_birth"}
+
+
+def _mask_value(value: Any) -> str:
+    raw = str(value or "")
+    if not raw:
+        return "***"
+    if len(raw) <= 4:
+        return "*" * len(raw)
+    return f"{raw[:2]}***{raw[-2:]}"
+
+
+def evaluate_compliance_controls(
+    payload: dict[str, Any],
+    *,
+    required_fields: set[str] | None = None,
+) -> ComplianceDecision:
+    """Apply data-minimization and consent checks to a payload.
+
+    - Removes unexpected fields from `payload["personal_data"]`.
+    - Masks selected personal data fields for downstream processing.
+    - Requires consent for any personal data processing.
+    """
+    reasons: list[str] = []
+    masked_fields: list[str] = []
+    sanitized = dict(payload)
+    personal_data = payload.get("personal_data")
+    if not isinstance(personal_data, dict):
+        return ComplianceDecision(
+            decision="allow",
+            reasons=tuple(reasons),
+            sanitized_payload=sanitized,
+            masked_fields=tuple(masked_fields),
+        )
+
+    allowed_fields = required_fields or _PERSONAL_DATA_FIELDS
+    minimized_data: dict[str, Any] = {}
+    for key, value in personal_data.items():
+        if key not in allowed_fields:
+            reasons.append(f"data_minimization_removed:{key}")
+            continue
+        if key in _MASKED_PERSONAL_DATA_FIELDS:
+            minimized_data[key] = _mask_value(value)
+            masked_fields.append(key)
+            continue
+        minimized_data[key] = value
+
+    consent = payload.get("consent")
+    consent_granted = isinstance(consent, dict) and bool(consent.get("granted"))
+    if minimized_data and not consent_granted:
+        reasons.append("consent_missing")
+        return ComplianceDecision(
+            decision="deny",
+            reasons=tuple(reasons),
+            sanitized_payload={"error": "Consent is required before processing personal data."},
+            masked_fields=tuple(masked_fields),
+        )
+
+    sanitized["personal_data"] = minimized_data
+    return ComplianceDecision(
+        decision="allow",
+        reasons=tuple(reasons),
+        sanitized_payload=sanitized,
+        masked_fields=tuple(masked_fields),
+    )
 
 
 def _normalize_change_type(value: Any) -> str | None:

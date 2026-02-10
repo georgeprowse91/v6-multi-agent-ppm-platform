@@ -47,6 +47,8 @@ from agents.common.web_search import (  # noqa: E402
     summarize_snippets,
 )
 from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from agents.runtime.src.policy import evaluate_compliance_controls  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 
 
@@ -666,6 +668,56 @@ class RiskManagementAgent(BaseAgent):
         tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
         correlation_id = (
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
+        )
+
+        compliance_decision = evaluate_compliance_controls(
+            {
+                "personal_data": input_data.get("personal_data", {}),
+                "consent": input_data.get("consent", {}),
+            }
+        )
+        if compliance_decision.decision == "deny":
+            emit_audit_event(
+                build_audit_event(
+                    tenant_id=tenant_id,
+                    action="risk.data_processing.denied",
+                    outcome="denied",
+                    actor_id=self.agent_id,
+                    actor_type="service",
+                    actor_roles=[],
+                    resource_id=input_data.get("project_id") or "unknown",
+                    resource_type="risk_processing",
+                    metadata={"reasons": list(compliance_decision.reasons)},
+                    legal_basis="consent",
+                    retention_period="P1Y",
+                    correlation_id=correlation_id,
+                )
+            )
+            return {
+                "status": "error",
+                "error": "Consent is required before processing personal data.",
+                "reasons": list(compliance_decision.reasons),
+            }
+
+        input_data["personal_data"] = compliance_decision.sanitized_payload.get("personal_data", {})
+        emit_audit_event(
+            build_audit_event(
+                tenant_id=tenant_id,
+                action="risk.data_processing.allowed",
+                outcome="success",
+                actor_id=self.agent_id,
+                actor_type="service",
+                actor_roles=[],
+                resource_id=input_data.get("project_id") or "unknown",
+                resource_type="risk_processing",
+                metadata={
+                    "masked_fields": list(compliance_decision.masked_fields),
+                    "reasons": list(compliance_decision.reasons),
+                },
+                legal_basis="consent",
+                retention_period="P1Y",
+                correlation_id=correlation_id,
+            )
         )
 
         if action == "identify_risk":
