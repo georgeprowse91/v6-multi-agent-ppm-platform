@@ -5,7 +5,7 @@ import logging
 import os
 from typing import Any, Callable
 
-from base_connector import ConnectorConfig, normalize_mcp_operation
+from base_connector import ConnectorConfig, ConnectorError, normalize_mcp_operation
 from integrations.connectors.mcp_client.client import MCPClient
 from integrations.connectors.mcp_client.errors import MCPClientError, MCPToolNotFoundError
 from observability.metrics import build_mcp_fallback_metrics
@@ -62,7 +62,12 @@ class OperationRouter:
     ) -> Any:
         if not self.should_use_mcp(operation):
             self._record_fallback(operation, "disabled_or_unmapped")
-            return rest_call()
+            try:
+                return rest_call()
+            except ConnectorError as exc:
+                raise RuntimeError(
+                    f"Operation {operation} failed via REST connector fallback: {exc}"
+                ) from exc
         try:
             return mcp_call()
         except MCPToolNotFoundError as exc:
@@ -72,7 +77,12 @@ class OperationRouter:
                 exc,
             )
             self._record_fallback(operation, "tool_not_found")
-            return rest_call()
+            try:
+                return rest_call()
+            except ConnectorError as rest_exc:
+                raise RuntimeError(
+                    f"Operation {operation} failed after MCP tool-not-found fallback: {rest_exc}"
+                ) from rest_exc
         except MCPClientError as exc:
             logger.warning(
                 "MCP operation %s failed; falling back to REST. Error: %s",
@@ -80,7 +90,12 @@ class OperationRouter:
                 exc,
             )
             self._record_fallback(operation, "client_error")
-            return rest_call()
+            try:
+                return rest_call()
+            except ConnectorError as rest_exc:
+                raise RuntimeError(
+                    f"Operation {operation} failed after MCP client-error fallback: {rest_exc}"
+                ) from rest_exc
         except ValueError as exc:
             logger.warning(
                 "MCP operation %s failed due to invalid configuration; falling back to REST. Error: %s",
@@ -88,7 +103,12 @@ class OperationRouter:
                 exc,
             )
             self._record_fallback(operation, "invalid_config")
-            return rest_call()
+            try:
+                return rest_call()
+            except ConnectorError as rest_exc:
+                raise RuntimeError(
+                    f"Operation {operation} failed after MCP invalid-config fallback: {rest_exc}"
+                ) from rest_exc
 
     def run_mcp(self, coroutine: Any) -> Any:
         try:

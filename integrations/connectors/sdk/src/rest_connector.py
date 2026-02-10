@@ -14,6 +14,8 @@ from typing import Any
 from auth import OAuth2TokenManager, OAuthToken
 from base_connector import (
     BaseConnector,
+    ConnectorCallFailedError,
+    ConnectorError,
     ConnectionStatus,
     ConnectionTestResult,
 )
@@ -47,6 +49,42 @@ class RestConnector(BaseConnector):
     def _request(self, method: str, url: str, **kwargs: Any) -> Any:
         client = self._build_client()
         return client.request(method, url, **kwargs)
+
+    def _execute_call(
+        self,
+        endpoint: str,
+        payload: dict[str, Any],
+        *,
+        timeout: float,
+    ) -> dict[str, Any]:
+        method = payload.get("method", "GET")
+        params = payload.get("params")
+        json_payload = payload.get("json")
+        response = self._request(method, endpoint, params=params, json=json_payload, timeout=timeout)
+        parsed = response.json()
+        if isinstance(parsed, dict):
+            return parsed
+        if isinstance(parsed, list):
+            return {"items": parsed}
+        return {"value": parsed}
+
+    def call(
+        self,
+        endpoint: str,
+        payload: dict[str, Any],
+        *,
+        schema: dict[str, Any] | None = None,
+        timeout_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        try:
+            return super().call(
+                endpoint,
+                payload,
+                schema=schema,
+                timeout_seconds=timeout_seconds,
+            )
+        except ConnectorCallFailedError as exc:
+            raise ConnectorError(f"REST connector call failed for endpoint {endpoint}") from exc
 
     def authenticate(self) -> bool:
         try:

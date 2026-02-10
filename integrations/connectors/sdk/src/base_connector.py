@@ -10,12 +10,40 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
+from random import random
+from threading import Lock
 from typing import Any, TypeVar
+
+from jsonschema import ValidationError as JsonSchemaValidationError
+
+try:
+    from telemetry import get_connector_telemetry
+except Exception:  # pragma: no cover - package import path fallback
+    try:
+        from integrations.connectors.sdk.src.telemetry import get_connector_telemetry
+    except Exception:  # pragma: no cover - optional observability dependencies
+        class _NoopMetric:
+            def add(self, *_args: object, **_kwargs: object) -> None:
+                return None
+
+            def record(self, *_args: object, **_kwargs: object) -> None:
+                return None
+
+        class _NoopTelemetry:
+            def __init__(self, connector_id: str) -> None:
+                self.service_name = f"connector-{connector_id}"
+                self.sync_total = _NoopMetric()
+                self.sync_duration = _NoopMetric()
+                self.sync_errors = _NoopMetric()
+
+        def get_connector_telemetry(connector_id: str) -> Any:
+            return _NoopTelemetry(connector_id)
 
 try:
     from cryptography.fernet import Fernet
@@ -79,6 +107,24 @@ MCP_OPERATION_ALIASES = {
 def normalize_mcp_operation(operation: str) -> str:
     normalized = operation.strip().lower()
     return MCP_OPERATION_ALIASES.get(normalized, normalized)
+
+
+
+
+class ConnectorError(Exception):
+    """Base connector resilience error."""
+
+
+class ConnectorSchemaValidationError(ConnectorError):
+    """Raised when request or response payload does not match schema."""
+
+
+class CircuitBreakerOpenError(ConnectorError):
+    """Raised when circuit breaker is open and calls are blocked."""
+
+
+class ConnectorCallFailedError(ConnectorError):
+    """Raised when connector call fails after retries."""
 
 
 def _split_mcp_scopes(value: str) -> list[str]:
@@ -295,9 +341,148 @@ class BaseConnector(ABC):
     CONNECTOR_CATEGORY: ConnectorCategory = ConnectorCategory.PM
     SUPPORTS_WRITE: bool = False  # Override to enable write operations
 
-    def __init__(self, config: ConnectorConfig) -> None:
+    def __init__(
+        self,
+        config: ConnectorConfig,
+        *,
+        timeout_seconds: float = 10.0,
+        max_retries: int = 3,
+        retry_initial_delay_seconds: float = 0.2,
+        circuit_failure_threshold: int = 5,
+        circuit_failure_window_seconds: int = 60,
+        circuit_recovery_timeout_seconds: int = 30,
+    ) -> None:
         self.config = config
         self._authenticated = False
+        self.timeout_seconds = timeout_seconds
+        self.max_retries = max_retries
+        self.retry_initial_delay_seconds = retry_initial_delay_seconds
+        self.circuit_failure_threshold = circuit_failure_threshold
+        self.circuit_failure_window_seconds = circuit_failure_window_seconds
+        self.circuit_recovery_timeout_seconds = circuit_recovery_timeout_seconds
+        self._circuit_state = "closed"
+        self._failure_timestamps: list[float] = []
+        self._opened_at: float | None = None
+        self._circuit_lock = Lock()
+        self._telemetry = get_connector_telemetry(self.CONNECTOR_ID)
+
+    def _execute_call(
+        self, endpoint: str, payload: dict[str, Any], *, timeout: float
+    ) -> dict[str, Any]:
+        raise NotImplementedError(
+            f"{self.CONNECTOR_NAME} must implement _execute_call for BaseConnector.call"
+        )
+
+    def _validate_simple_schema(self, payload: Any, schema: dict[str, Any]) -> None:
+        required = schema.get("required", [])
+        if required and isinstance(payload, dict):
+            missing = [field for field in required if field not in payload]
+            if missing:
+                raise ConnectorSchemaValidationError(
+                    f"Missing required fields: {', '.join(missing)}"
+                )
+        expected_type = schema.get("type")
+        type_checks = {
+            "object": dict,
+            "array": list,
+            "string": str,
+            "integer": int,
+            "number": (int, float),
+            "boolean": bool,
+        }
+        if expected_type in type_checks and not isinstance(payload, type_checks[expected_type]):
+            raise ConnectorSchemaValidationError(
+                f"Expected type '{expected_type}' but got '{type(payload).__name__}'"
+            )
+        properties = schema.get("properties")
+        if isinstance(properties, dict) and isinstance(payload, dict):
+            for key, prop_schema in properties.items():
+                if key in payload and isinstance(prop_schema, dict):
+                    self._validate_simple_schema(payload[key], prop_schema)
+
+    def _validate_schema(self, payload: Any, schema: dict[str, Any] | None, payload_type: str) -> None:
+        if not schema:
+            return
+        try:
+            self._validate_simple_schema(payload, schema)
+        except (JsonSchemaValidationError, ConnectorSchemaValidationError) as exc:
+            raise ConnectorSchemaValidationError(
+                f"{payload_type} payload failed schema validation: {getattr(exc, 'message', str(exc))}"
+            ) from exc
+
+    def _prune_failures(self, now: float) -> None:
+        window_start = now - self.circuit_failure_window_seconds
+        self._failure_timestamps = [ts for ts in self._failure_timestamps if ts >= window_start]
+
+    def _before_call(self) -> None:
+        now = time.monotonic()
+        with self._circuit_lock:
+            self._prune_failures(now)
+            if self._circuit_state == "open":
+                if self._opened_at and now - self._opened_at >= self.circuit_recovery_timeout_seconds:
+                    self._circuit_state = "half_open"
+                else:
+                    raise CircuitBreakerOpenError(
+                        f"Circuit open for connector {self.CONNECTOR_ID}; retry later"
+                    )
+
+    def _mark_success(self) -> None:
+        with self._circuit_lock:
+            self._failure_timestamps = []
+            self._opened_at = None
+            self._circuit_state = "closed"
+
+    def _mark_failure(self) -> None:
+        now = time.monotonic()
+        with self._circuit_lock:
+            self._failure_timestamps.append(now)
+            self._prune_failures(now)
+            if len(self._failure_timestamps) >= self.circuit_failure_threshold:
+                self._circuit_state = "open"
+                self._opened_at = now
+
+    def call(
+        self,
+        endpoint: str,
+        payload: dict[str, Any],
+        *,
+        schema: dict[str, Any] | None = None,
+        timeout_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        """Execute a connector call with schema validation, retries and circuit breaker."""
+        self._before_call()
+        self._validate_schema(payload, schema.get("request") if schema else None, "request")
+        timeout = timeout_seconds if timeout_seconds is not None else self.timeout_seconds
+        last_error: Exception | None = None
+        start = time.perf_counter()
+        attributes = {
+            "connector_id": self.CONNECTOR_ID,
+            "connector_operation": endpoint,
+            "service_name": self._telemetry.service_name,
+        }
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = self._execute_call(endpoint, payload, timeout=timeout)
+                self._validate_schema(response, schema.get("response") if schema else None, "response")
+                self._mark_success()
+                self._telemetry.sync_total.add(1, {**attributes, "result": "success"})
+                self._telemetry.sync_duration.record(time.perf_counter() - start, attributes)
+                return response
+            except (TimeoutError, ConnectorError, JsonSchemaValidationError, ValueError) as exc:
+                last_error = exc
+                self._mark_failure()
+                self._telemetry.sync_errors.add(1, {**attributes, "attempt": attempt + 1})
+                if attempt >= self.max_retries:
+                    break
+                backoff = self.retry_initial_delay_seconds * (2**attempt)
+                jitter = backoff * random() * 0.25
+                self._telemetry.sync_total.add(1, {**attributes, "result": "retry"})
+                time.sleep(backoff + jitter)
+        self._telemetry.sync_total.add(1, {**attributes, "result": "failure"})
+        self._telemetry.sync_duration.record(time.perf_counter() - start, attributes)
+        raise ConnectorCallFailedError(
+            f"Connector {self.CONNECTOR_ID} failed to call {endpoint} after {self.max_retries + 1} attempts"
+        ) from last_error
 
     @property
     def is_authenticated(self) -> bool:
