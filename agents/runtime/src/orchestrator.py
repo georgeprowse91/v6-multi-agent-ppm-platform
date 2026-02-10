@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import os
 import random
@@ -12,6 +13,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.data_service import DataServiceClient
@@ -29,6 +32,9 @@ if str(FEATURE_FLAGS_ROOT) not in sys.path:
 from feature_flags import is_feature_enabled  # noqa: E402
 
 logger = logging.getLogger("agents.runtime.orchestrator")
+HUMAN_REVIEW_CONFIG_PATH = (
+    Path(__file__).resolve().parents[3] / "ops" / "config" / "human_review.yaml"
+)
 
 RetryPredicate = Callable[[Exception | None, dict[str, Any] | None], bool]
 
@@ -66,6 +72,25 @@ class OrchestrationResult:
     metrics: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class HumanReviewRule:
+    name: str
+    action_type: str
+    agent_ids: set[str]
+    conditions: list[dict[str, Any]]
+
+
+@dataclass
+class HumanReviewRequest:
+    review_id: str
+    correlation_id: str
+    task_id: str
+    agent_id: str
+    proposed_action: dict[str, Any]
+    relevant_data: dict[str, Any]
+    rule_name: str
+
+
 class Orchestrator:
     """Async orchestration engine for running agent DAGs."""
 
@@ -87,6 +112,12 @@ class Orchestrator:
         self._context_lock = asyncio.Lock()
         self._data_service = data_service_client or self._build_data_service_client()
         self._notification_service = self._build_notification_service_client()
+        self._human_review_rules = self._load_human_review_rules()
+        self._human_review_timeout_seconds = self._load_human_review_timeout_seconds()
+        self._pending_human_reviews: dict[str, HumanReviewRequest] = {}
+        self._human_review_decisions: dict[str, dict[str, Any]] = {}
+        self._human_review_waiters: dict[str, asyncio.Future[dict[str, Any]]] = {}
+        self._event_bus.subscribe("human_review_decision", self._handle_human_review_decision_event)
 
     @property
     def event_bus(self) -> EventBus:
@@ -187,6 +218,12 @@ class Orchestrator:
             )
             try:
                 result_payload = await self._execute_with_retries(task, input_data)
+                result_payload = await self._gate_actions_with_human_review(
+                    task=task,
+                    input_data=input_data,
+                    result_payload=result_payload,
+                    correlation_id=memory_key,
+                )
                 final_status = (
                     AgentRunStatus.succeeded
                     if result_payload.get("success", False)
@@ -248,6 +285,243 @@ class Orchestrator:
                     await self._publish_metrics()
 
             return task.task_id, result_payload
+
+    def get_pending_human_reviews(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "review_id": request.review_id,
+                "correlation_id": request.correlation_id,
+                "task_id": request.task_id,
+                "agent_id": request.agent_id,
+                "proposed_action": copy.deepcopy(request.proposed_action),
+                "relevant_data": copy.deepcopy(request.relevant_data),
+                "rule_name": request.rule_name,
+            }
+            for request in self._pending_human_reviews.values()
+        ]
+
+    async def _gate_actions_with_human_review(
+        self,
+        *,
+        task: AgentTask,
+        input_data: dict[str, Any],
+        result_payload: dict[str, Any],
+        correlation_id: str,
+    ) -> dict[str, Any]:
+        actions = self._extract_proposed_actions(result_payload)
+        if not actions:
+            return result_payload
+
+        review_metadata = result_payload.setdefault("metadata", {})
+        review_results = review_metadata.setdefault("human_review", [])
+        for action in actions:
+            matching_rule = self._find_matching_human_review_rule(task, action, result_payload)
+            if matching_rule is None:
+                continue
+            decision = await self._request_human_review(
+                task=task,
+                action=action,
+                result_payload=result_payload,
+                rule=matching_rule,
+                correlation_id=correlation_id,
+                input_data=input_data,
+            )
+            outcome = (decision.get("decision") or "").lower()
+            review_results.append(
+                {
+                    "review_id": decision.get("review_id"),
+                    "rule": matching_rule.name,
+                    "decision": outcome,
+                    "reviewer": decision.get("reviewer"),
+                }
+            )
+            if outcome == "reject":
+                action["status"] = "rejected_by_human_review"
+            elif outcome == "modify":
+                modified_action = decision.get("modified_action")
+                if isinstance(modified_action, dict):
+                    action.clear()
+                    action.update(modified_action)
+                    action["status"] = "modified_by_human_review"
+            else:
+                action["status"] = "approved_by_human_review"
+        return result_payload
+
+    async def _request_human_review(
+        self,
+        *,
+        task: AgentTask,
+        action: dict[str, Any],
+        result_payload: dict[str, Any],
+        rule: HumanReviewRule,
+        correlation_id: str,
+        input_data: dict[str, Any],
+    ) -> dict[str, Any]:
+        review_id = f"review-{uuid.uuid4().hex}"
+        review_request = HumanReviewRequest(
+            review_id=review_id,
+            correlation_id=correlation_id,
+            task_id=task.task_id,
+            agent_id=task.agent.agent_id,
+            proposed_action=copy.deepcopy(action),
+            relevant_data={
+                "result_payload": copy.deepcopy(result_payload),
+                "context": copy.deepcopy(input_data.get("context", {})),
+                "dependency_results": copy.deepcopy(input_data.get("dependency_results", {})),
+            },
+            rule_name=rule.name,
+        )
+        waiter: asyncio.Future[dict[str, Any]] = asyncio.get_running_loop().create_future()
+        self._pending_human_reviews[review_id] = review_request
+        self._human_review_waiters[review_id] = waiter
+        await self._event_bus.publish(
+            "human_review_required",
+            {
+                "review_id": review_id,
+                "correlation_id": correlation_id,
+                "task_id": task.task_id,
+                "agent_id": task.agent.agent_id,
+                "rule": rule.name,
+                "proposed_action": copy.deepcopy(action),
+                "relevant_data": review_request.relevant_data,
+            },
+        )
+        try:
+            decision = await asyncio.wait_for(waiter, timeout=self._human_review_timeout_seconds)
+            return decision
+        except asyncio.TimeoutError:
+            return {
+                "review_id": review_id,
+                "decision": "reject",
+                "reason": "human review timeout",
+            }
+        finally:
+            self._pending_human_reviews.pop(review_id, None)
+            self._human_review_waiters.pop(review_id, None)
+            self._human_review_decisions.pop(review_id, None)
+
+    async def _handle_human_review_decision_event(self, payload: dict[str, Any]) -> None:
+        review_id = payload.get("review_id")
+        if not isinstance(review_id, str) or not review_id:
+            return
+        decision = dict(payload)
+        self._human_review_decisions[review_id] = decision
+        waiter = self._human_review_waiters.get(review_id)
+        if waiter and not waiter.done():
+            waiter.set_result(decision)
+
+    def _extract_proposed_actions(self, result_payload: dict[str, Any]) -> list[dict[str, Any]]:
+        if not isinstance(result_payload, dict):
+            return []
+        raw_actions = result_payload.get("proposed_actions")
+        if not isinstance(raw_actions, list):
+            data = result_payload.get("data", {})
+            if isinstance(data, dict):
+                raw_actions = data.get("proposed_actions") or data.get("actions")
+        if not isinstance(raw_actions, list):
+            return []
+        return [action for action in raw_actions if isinstance(action, dict)]
+
+    def _find_matching_human_review_rule(
+        self,
+        task: AgentTask,
+        action: dict[str, Any],
+        result_payload: dict[str, Any],
+    ) -> HumanReviewRule | None:
+        action_type = str(action.get("action_type") or "").strip().lower()
+        payload = {
+            "action": action,
+            "result": result_payload,
+            "task_id": task.task_id,
+            "agent_id": task.agent.agent_id,
+        }
+        for rule in self._human_review_rules:
+            if action_type != rule.action_type:
+                continue
+            if task.agent.agent_id not in rule.agent_ids:
+                continue
+            if self._conditions_match(payload, rule.conditions):
+                return rule
+        return None
+
+    def _conditions_match(self, payload: dict[str, Any], conditions: list[dict[str, Any]]) -> bool:
+        if not conditions:
+            return True
+        for condition in conditions:
+            field = condition.get("field")
+            operator = condition.get("operator")
+            expected = condition.get("value")
+            if not isinstance(field, str) or not isinstance(operator, str):
+                return False
+            value = self._get_by_path(payload, field)
+            if not self._evaluate_condition(value, operator.lower(), expected):
+                return False
+        return True
+
+    def _evaluate_condition(self, value: Any, operator: str, expected: Any) -> bool:
+        if operator == "gte":
+            return self._as_float(value) >= self._as_float(expected)
+        if operator == "lte":
+            return self._as_float(value) <= self._as_float(expected)
+        if operator == "gt":
+            return self._as_float(value) > self._as_float(expected)
+        if operator == "lt":
+            return self._as_float(value) < self._as_float(expected)
+        if operator == "equals":
+            return value == expected
+        if operator == "in":
+            return isinstance(expected, list) and value in expected
+        return False
+
+    def _as_float(self, value: Any) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return float("nan")
+
+    def _get_by_path(self, payload: dict[str, Any], path: str) -> Any:
+        current: Any = payload
+        for part in path.split("."):
+            if isinstance(current, dict):
+                current = current.get(part)
+            else:
+                return None
+        return current
+
+    def _load_human_review_rules(self) -> list[HumanReviewRule]:
+        if not HUMAN_REVIEW_CONFIG_PATH.exists():
+            return []
+        raw = HUMAN_REVIEW_CONFIG_PATH.read_text(encoding="utf-8")
+        data = yaml.safe_load(raw) or {}
+        rules: list[HumanReviewRule] = []
+        for item in data.get("review_rules", []):
+            if not isinstance(item, dict):
+                continue
+            action_type = str(item.get("action_type") or "").strip().lower()
+            agent_ids = item.get("agent_ids")
+            if not action_type or not isinstance(agent_ids, list):
+                continue
+            rules.append(
+                HumanReviewRule(
+                    name=str(item.get("name") or action_type),
+                    action_type=action_type,
+                    agent_ids={str(agent_id) for agent_id in agent_ids if str(agent_id).strip()},
+                    conditions=[c for c in item.get("conditions", []) if isinstance(c, dict)],
+                )
+            )
+        return rules
+
+    def _load_human_review_timeout_seconds(self) -> float:
+        if not HUMAN_REVIEW_CONFIG_PATH.exists():
+            return 120.0
+        raw = HUMAN_REVIEW_CONFIG_PATH.read_text(encoding="utf-8")
+        data = yaml.safe_load(raw) or {}
+        timeout = data.get("decision_timeout_seconds", 120)
+        try:
+            resolved = float(timeout)
+        except (TypeError, ValueError):
+            return 120.0
+        return resolved if resolved > 0 else 120.0
 
     async def _execute_with_retries(
         self,

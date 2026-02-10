@@ -1,0 +1,30 @@
+# Human-in-the-loop checkpoints for high-impact autonomous actions.
+decision_timeout_seconds: 120
+
+review_rules:
+  - name: high_risk_mitigation_recommendations
+    action_type: risk_mitigation
+    agent_ids:
+      - agent-15-risk-management
+    conditions:
+      - field: action.risk_score
+        operator: gte
+        value: 0.8
+
+  - name: material_schedule_adjustments
+    action_type: schedule_adjustment
+    agent_ids:
+      - agent-10-schedule-management
+    conditions:
+      - field: action.schedule_delta_days
+        operator: gte
+        value: 10
+
+  - name: strategic_resource_reallocation
+    action_type: resource_reallocation
+    agent_ids:
+      - agent-11-resource-management
+    conditions:
+      - field: action.reallocation_percent
+        operator: gte
+        value: 20
