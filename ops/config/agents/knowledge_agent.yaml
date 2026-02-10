@@ -1,0 +1,23 @@
+agent_id: agent_019
+name: knowledge_document_management
+
+search:
+  semantic_result_limit: 5
+  similarity_threshold: 0.75
+
+embeddings:
+  model: all-MiniLM-L6-v2
+  dimensions: 384
+  vector_store_backend: faiss
+  vector_store_config_path: ops/config/vector_store.yaml
+
+summarization:
+  summary_token_limit: 120
+  max_summary_length: 600
+  summary_prompt_agent_id: knowledge-agent
+  summary_prompt_template: |
+    Summarize the document below for enterprise knowledge retrieval.
+    Return concise bullet points and keep the output under {token_limit} tokens.
+
+    Document:
+    {text}

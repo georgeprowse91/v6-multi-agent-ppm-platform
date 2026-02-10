@@ -12,6 +12,7 @@ import asyncio
 import json
 import os
 import re
+from collections.abc import Callable
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,7 @@ from agents.common.connector_integration import (
     DocumentManagementService,
 )
 from agents.common.integration_services import (
+    FaissBackedVectorSearchIndex,
     LocalEmbeddingService,
     NaiveBayesTextClassifier,
     VectorSearchIndex,
@@ -32,8 +34,47 @@ from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 from jsonschema import ValidationError
 from jsonschema import validate as jsonschema_validate
+from packages.llm.prompt_sanitizer import detect_injection, sanitize_prompt
+from prompt_registry import PromptRegistry
 
 from knowledge_db import KnowledgeDatabase
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:  # pragma: no cover - optional runtime dependency
+    SentenceTransformer = None
+
+
+class SemanticEmbeddingService:
+    """Embedding service backed by sentence-transformers with local fallback."""
+
+    def __init__(
+        self,
+        model_name: str,
+        fallback_service: LocalEmbeddingService,
+        encoder: Any | None = None,
+    ) -> None:
+        self.model_name = model_name
+        self.fallback_service = fallback_service
+        self.encoder = encoder
+        self.dimensions = fallback_service.dimensions
+
+        if self.encoder is None and SentenceTransformer is not None:
+            try:
+                self.encoder = SentenceTransformer(model_name)
+                dim_getter = getattr(self.encoder, "get_sentence_embedding_dimension", None)
+                if callable(dim_getter):
+                    self.dimensions = int(dim_getter())
+            except (RuntimeError, ValueError, OSError) as exc:
+                self.encoder = None
+                self._load_error = str(exc)
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        if self.encoder is None:
+            return self.fallback_service.embed(texts)
+        vectors = self.encoder.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
+        return vectors.tolist()
+
 
 class KnowledgeManagementAgent(BaseAgent):
     """
@@ -58,6 +99,11 @@ class KnowledgeManagementAgent(BaseAgent):
         self.search_result_limit = config.get("search_result_limit", 50) if config else 50
         self.similarity_threshold = config.get("similarity_threshold", 0.75) if config else 0.75
         self.embedding_dimensions = config.get("embedding_dimensions", 128) if config else 128
+        self.embedding_model = (
+            config.get("embedding_model", "all-MiniLM-L6-v2") if config else "all-MiniLM-L6-v2"
+        )
+        self.semantic_result_limit = config.get("semantic_result_limit", 5) if config else 5
+        self.summary_token_limit = config.get("summary_token_limit", 120) if config else 120
 
         document_store_path = (
             Path(config.get("document_store_path", "data/knowledge_documents.json"))
@@ -117,8 +163,50 @@ class KnowledgeManagementAgent(BaseAgent):
                 self.event_bus = None
 
         self.document_management_service = DocumentManagementService(config)
-        self.embedding_service = LocalEmbeddingService(self.embedding_dimensions)
-        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.prompt_registry = PromptRegistry()
+        self.summary_prompt_agent_id = (
+            config.get("summary_prompt_agent_id", "knowledge-agent") if config else "knowledge-agent"
+        )
+        self.summary_prompt_template = (
+            config.get(
+                "summary_prompt_template",
+                (
+                    "Summarize the document below for enterprise knowledge retrieval. "
+                    "Limit output to {token_limit} tokens and keep factual points concise.\n\n"
+                    "Document:\n{text}"
+                ),
+            )
+            if config
+            else (
+                "Summarize the document below for enterprise knowledge retrieval. "
+                "Limit output to {token_limit} tokens and keep factual points concise.\n\n"
+                "Document:\n{text}"
+            )
+        )
+
+        fallback_embedding_service = LocalEmbeddingService(self.embedding_dimensions)
+        self.embedding_service = SemanticEmbeddingService(
+            self.embedding_model,
+            fallback_service=fallback_embedding_service,
+            encoder=config.get("embedding_encoder") if config else None,
+        )
+        self.vector_store_backend = (
+            config.get("vector_store_backend", "in_memory") if config else "in_memory"
+        )
+        if self.vector_store_backend == "faiss":
+            self.vector_index = FaissBackedVectorSearchIndex(
+                self.embedding_service,
+                index_name="knowledge_agent",
+                config_path=Path(config.get("vector_store_config_path"))
+                if config and config.get("vector_store_config_path")
+                else None,
+            )
+        else:
+            self.vector_index = VectorSearchIndex(self.embedding_service)
+
+        self.summarizer: Callable[[dict[str, Any]], Any] | None = (
+            config.get("summarizer") if config else None
+        )
         self.classifier = NaiveBayesTextClassifier(self.document_types)
         self.classifier_trained = False
         self._confluence_connector = None
@@ -695,7 +783,7 @@ class KnowledgeManagementAgent(BaseAgent):
         return {
             "query": query,
             "total_results": len(results_with_excerpts),
-            "results": results_with_excerpts[: self.search_result_limit],
+            "results": results_with_excerpts[: self.semantic_result_limit],
             "filters": filters,
         }
 
@@ -925,9 +1013,7 @@ class KnowledgeManagementAgent(BaseAgent):
             raise ValueError(f"Document not found: {document_id}")
 
         # Generate summary using AI
-        summary_content = await self._generate_summary(
-            document.get("content", ""), self.max_summary_length
-        )
+        summary_content = await self.summarise_document(document.get("content", ""))
 
         # Store summary
         self.summaries[document_id] = {
@@ -1734,11 +1820,13 @@ class KnowledgeManagementAgent(BaseAgent):
                 continue
             if not await self._matches_search_filters(document, filters):
                 continue
+            summary = await self.summarise_document(document.get("content", ""))
             results.append(
                 {
                     "document_id": hit.doc_id,
                     "document": document,
                     "relevance_score": hit.score,
+                    "summary": summary,
                 }
             )
 
@@ -1754,11 +1842,13 @@ class KnowledgeManagementAgent(BaseAgent):
                 if not await self._is_access_allowed(document, access_context):
                     continue
                 if await self._matches_search_filters(document, filters):
+                    summary = await self.summarise_document(document.get("content", ""))
                     results.append(
                         {
                             "document_id": doc_id,
                             "document": document,
                             "relevance_score": 0.6,
+                            "summary": summary,
                         }
                     )
 
@@ -1789,8 +1879,10 @@ class KnowledgeManagementAgent(BaseAgent):
                     "document_id": result.get("document_id"),
                     "title": document.get("title"),
                     "type": document.get("type"),
+                    "date": document.get("created_at"),
                     "excerpt": excerpt,
                     "relevance_score": result.get("relevance_score"),
+                    "summary": result.get("summary"),
                 }
             )
 
@@ -1824,6 +1916,46 @@ class KnowledgeManagementAgent(BaseAgent):
         sentences = content.split(". ")
         summary = ". ".join(sentences[:3])
         return summary[:max_length] + ("..." if len(summary) > max_length else "")
+
+    async def summarise_document(self, text: str) -> str:
+        """Create concise summary using LLM/prompt registry with prompt-injection sanitisation."""
+        sanitized_text = sanitize_prompt(text)
+        if detect_injection(text):
+            self.logger.warning("Potential prompt injection detected in summary input; sanitized text used")
+
+        prompt_template = self._load_summary_prompt_template()
+        prompt = prompt_template.format(text=sanitized_text, token_limit=self.summary_token_limit)
+        if self.summarizer:
+            payload = {
+                "prompt": prompt,
+                "text": sanitized_text,
+                "max_tokens": self.summary_token_limit,
+            }
+            result = await self._invoke_summarizer(payload)
+            if result:
+                return result
+
+        fallback_char_limit = max(self.max_summary_length, self.summary_token_limit * 5)
+        return await self._generate_summary(sanitized_text, fallback_char_limit)
+
+    async def _invoke_summarizer(self, payload: dict[str, Any]) -> str:
+        if not self.summarizer:
+            return ""
+        response = self.summarizer(payload)
+        if asyncio.iscoroutine(response):
+            response = await response
+        if isinstance(response, dict):
+            return str(response.get("summary") or response.get("content") or "").strip()
+        return str(response).strip()
+
+    def _load_summary_prompt_template(self) -> str:
+        try:
+            record = self.prompt_registry.get_prompt_record(self.summary_prompt_agent_id)
+            if "{text}" in record.content:
+                return record.content
+        except ValueError:
+            pass
+        return self.summary_prompt_template
 
     async def _extract_entities_from_text(self, text: str) -> list[dict[str, Any]]:
         """Extract entities from text using NLP."""

@@ -138,3 +138,24 @@ Agent runtime configuration is centralized in `.env` (see `.env.example`) and sh
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
 - Runtime errors about missing secrets: populate the required env vars in `.env`.
 - Docker execution fails: verify Docker is running and the agent has a `Dockerfile`.
+
+
+## Semantic search and summarization
+
+Agent 19 now supports embedding-powered semantic search and concise result summaries:
+
+- Embeddings are generated with `sentence-transformers` (default model: `all-MiniLM-L6-v2`) with automatic fallback to local embeddings if the model is unavailable.
+- Vector search can run in-memory or via the FAISS-backed vector store (`vector_store_backend`).
+- Search responses include per-document metadata (`title`, `date`, `relevance_score`) and an LLM-generated concise summary for each hit.
+- Summaries are prompt-driven via the prompt registry (`prompts/knowledge-agent/summary_prompt_v1.md`) and inputs are sanitized for prompt injection before summarization.
+
+### Configuration knobs
+
+Agent-level defaults are defined in `ops/config/agents/knowledge_agent.yaml`:
+
+- `embeddings.model`: sentence-transformers model name.
+- `embeddings.dimensions`: expected embedding dimension.
+- `embeddings.vector_store_backend`: `in_memory` or `faiss`.
+- `search.semantic_result_limit`: top-N semantic results to return.
+- `summarization.summary_token_limit`: max summary tokens per document.
+- `summarization.summary_prompt_agent_id`: prompt registry key for summarization prompt selection.
