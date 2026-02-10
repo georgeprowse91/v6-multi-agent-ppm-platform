@@ -55,3 +55,50 @@ async def test_send_feedback_persists_record(tmp_path):
     assert stored[0]["user_rating"] == 4
     assert stored[0]["comments"] == "Mostly helpful"
     assert stored[0]["corrected_response"] == "Use milestone date from source system"
+
+
+@pytest.mark.asyncio
+async def test_send_feedback_accepts_dict_payload(tmp_path):
+    db_path = tmp_path / "feedback.sqlite3"
+    agent = FeedbackEnabledAgent(
+        agent_id="feedback-agent",
+        config={"feedback_db_path": str(db_path)},
+    )
+
+    result = await agent.execute({"prompt": "collect this"})
+    correlation_id = result["metadata"]["correlation_id"]
+
+    agent.send_feedback(
+        {
+            "correlation_id": correlation_id,
+            "agent_id": "feedback-agent",
+            "user_rating": 5,
+            "comments": "Great answer",
+        }
+    )
+
+    stored = agent.feedback_service.fetch_by_correlation_id(correlation_id)
+    assert len(stored) == 1
+    assert stored[0]["user_rating"] == 5
+
+
+@pytest.mark.asyncio
+async def test_send_feedback_rejects_other_agent_id(tmp_path):
+    db_path = tmp_path / "feedback.sqlite3"
+    agent = FeedbackEnabledAgent(
+        agent_id="feedback-agent",
+        config={"feedback_db_path": str(db_path)},
+    )
+
+    result = await agent.execute({"prompt": "collect this"})
+    correlation_id = result["metadata"]["correlation_id"]
+
+    with pytest.raises(ValueError, match="does not match"):
+        agent.send_feedback(
+            {
+                "correlation_id": correlation_id,
+                "agent_id": "different-agent",
+                "user_rating": 3,
+                "comments": "Needs work",
+            }
+        )
