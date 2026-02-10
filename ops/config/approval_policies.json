@@ -1,6 +1,19 @@
 {
   "budget_thresholds": [10000, 50000, 100000],
   "escalation_timeout_hours": 48,
+  "risk_thresholds": {
+    "high": 12,
+    "medium": 24,
+    "low": 48
+  },
+  "criticality_levels": {
+    "critical": 6,
+    "high": 12,
+    "normal": 24,
+    "low": 48
+  },
   "reminder_before_deadline_hours": 24,
-  "default_chain_type": "sequential"
+  "default_chain_type": "sequential",
+  "digest_interval_minutes": 60,
+  "response_time_threshold_hours": 48
 }

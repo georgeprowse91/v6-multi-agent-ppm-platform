@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Intent Router Agent Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent_id",
+    "model",
+    "allow_injection",
+    "prompt_fields",
+    "classifier_model_name",
+    "classifier_model_path",
+    "spacy_model_name",
+    "top_k_intents",
+    "confidence_thresholds"
+  ],
+  "properties": {
+    "agent_id": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "allow_injection": { "type": "boolean" },
+    "prompt_fields": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "classifier_model_name": { "type": "string", "minLength": 1 },
+    "classifier_model_path": { "type": "string", "minLength": 1 },
+    "spacy_model_name": { "type": "string", "minLength": 1 },
+    "top_k_intents": { "type": "integer", "minimum": 1 },
+    "confidence_thresholds": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    }
+  }
+}
