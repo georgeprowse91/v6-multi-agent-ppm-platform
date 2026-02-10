@@ -33,8 +33,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Validate configuration
-        run: python scripts/validate_config.py
+      - name: Validate application configuration
+        run: python ops/scripts/validate_config.py
+
+      - name: Run config validation
+        run: python ops/tools/config_validator.py
 
       - name: Verify API versioning
         run: python scripts/check_api_versioning.py

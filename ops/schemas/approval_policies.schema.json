@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Approval Policies Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "budget_thresholds",
+    "escalation_timeout_hours",
+    "risk_thresholds",
+    "criticality_levels",
+    "reminder_before_deadline_hours",
+    "default_chain_type",
+    "digest_interval_minutes",
+    "response_time_threshold_hours"
+  ],
+  "properties": {
+    "budget_thresholds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "escalation_timeout_hours": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "risk_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["high", "medium", "low"],
+      "properties": {
+        "high": { "type": "integer", "minimum": 1 },
+        "medium": { "type": "integer", "minimum": 1 },
+        "low": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "criticality_levels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["critical", "high", "normal", "low"],
+      "properties": {
+        "critical": { "type": "integer", "minimum": 1 },
+        "high": { "type": "integer", "minimum": 1 },
+        "normal": { "type": "integer", "minimum": 1 },
+        "low": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "reminder_before_deadline_hours": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "default_chain_type": {
+      "type": "string",
+      "enum": ["sequential", "parallel"]
+    },
+    "digest_interval_minutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "response_time_threshold_hours": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

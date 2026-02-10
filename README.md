@@ -130,6 +130,7 @@ Other useful checks:
 make lint
 make check-links
 make check-placeholders
+python ops/tools/config_validator.py
 ```
 
 ## Deployment (high level)
