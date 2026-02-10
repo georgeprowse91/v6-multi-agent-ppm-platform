@@ -33,6 +33,7 @@ process-insight-to-improvement loop.
 - `improvement` payload for creating improvement initiatives.
 - `benchmark_criteria` or filters for benchmarking and reporting.
 - Optional `tenant_id` for multi-tenant storage scoping.
+- `analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from Agent 22.
 
 ### Outputs
 
@@ -42,6 +43,8 @@ process-insight-to-improvement loop.
 - Improvement backlog entries with priority scores and expected benefits.
 - Benefit realization metrics and ROI summaries.
 - KPI rollups for process/project/program levels.
+- Analytics-driven improvement backlog items with owners and target dates.
+- Persisted improvement completion history (`date`, `owner`, `outcome`) retrievable by tenant.
 
 ## Decision responsibilities
 
@@ -123,6 +126,34 @@ Agent 20 is not responsible for:
 7. **Implement**: Workflow engine executes approved changes (Agent 24 responsibility).
 8. **Track**: Measure realized benefits, update KPIs, and publish benefit events.
 9. **Benchmark**: Compare against internal/external benchmarks for continuous calibration.
+
+## Closed-loop analytics integration (Agent 22 → Agent 20)
+
+Agent 20 now consumes analytics insights to operationalize continuous improvement:
+
+1. Receive periodic analytics via `ingest_analytics_report`.
+2. Convert recommendations into backlog items, categorize them, and prioritize by impact/feasibility.
+3. Assign default or rule-based owners and set target dates.
+4. Publish the generated backlog to knowledge management (`knowledge_agent`) or event topic fallback (`knowledge.improvement_backlog.published`).
+5. Notify stakeholders on additions/completions through notification integration (`notification_service`) or event fallback (`notification.improvement`).
+6. Mark actions complete with `complete_improvement`.
+7. Persist completed actions into `improvement_history_store` and retrieve with `get_improvement_history`.
+
+### Suggested payload contract for `ingest_analytics_report`
+
+```json
+{
+  "action": "ingest_analytics_report",
+  "tenant_id": "tenant-a",
+  "analytics_report": {
+    "report_id": "RPT-2026-01",
+    "period": "monthly",
+    "recommendations": ["..."],
+    "anomalies": [{"metric": "cycle_time_days", "value": 25}],
+    "trends": [{"pattern": "recurring_scope_creep", "count": 4}]
+  }
+}
+```
 
 ## What's inside
 

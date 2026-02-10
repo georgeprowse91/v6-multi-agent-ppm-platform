@@ -611,6 +611,7 @@ class AnalyticsInsightsAgent(BaseAgent):
             "ingest_sources",
             "ingest_realtime_event",
             "compute_kpis_batch",
+            "generate_periodic_report",
         ]
 
         if action not in valid_actions:
@@ -765,6 +766,12 @@ class AnalyticsInsightsAgent(BaseAgent):
         elif action == "compute_kpis_batch":
             return await self._compute_kpis_batch(
                 tenant_id, input_data.get("event_type"), input_data.get("kpis")
+            )
+        elif action == "generate_periodic_report":
+            return await self._generate_periodic_report(
+                tenant_id,
+                input_data.get("period", "monthly"),
+                input_data.get("filters", {}),
             )
 
         else:
@@ -2057,15 +2064,117 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Collect data for insights generation."""
         tenant_id = filters.get("tenant_id", "default")
         health_summary = await self._summarize_health_portfolio(tenant_id)
-        return {"health_summary": health_summary}
+        return {
+            "health_summary": health_summary,
+            "project_metrics": filters.get("project_metrics", []),
+        }
 
     async def _detect_anomalies(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Detect anomalies in data."""
-        return []
+        anomalies: list[dict[str, Any]] = []
+        for metric in data.get("project_metrics", []):
+            cycle_time_days = metric.get("cycle_time_days")
+            if isinstance(cycle_time_days, (int, float)) and cycle_time_days > 20:
+                anomalies.append(
+                    {
+                        "project_id": metric.get("project_id"),
+                        "metric": "cycle_time_days",
+                        "value": cycle_time_days,
+                        "reason": "Consistently high cycle time",
+                    }
+                )
+            budget_variance_pct = metric.get("budget_variance_pct")
+            if isinstance(budget_variance_pct, (int, float)) and abs(budget_variance_pct) > 0.15:
+                anomalies.append(
+                    {
+                        "project_id": metric.get("project_id"),
+                        "metric": "budget_variance_pct",
+                        "value": budget_variance_pct,
+                        "reason": "Budget variance outside tolerated range",
+                    }
+                )
+        return anomalies
 
     async def _identify_patterns(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Identify patterns in data."""
-        return []
+        patterns: list[dict[str, Any]] = []
+        project_metrics = data.get("project_metrics", [])
+        if not project_metrics:
+            return patterns
+        delayed_projects = [
+            item for item in project_metrics if float(item.get("late_task_ratio", 0)) >= 0.25
+        ]
+        if delayed_projects:
+            patterns.append(
+                {
+                    "pattern": "recurring_late_tasks",
+                    "count": len(delayed_projects),
+                    "description": "Multiple projects have high late-task ratios",
+                }
+            )
+        scope_creep_projects = [
+            item for item in project_metrics if float(item.get("scope_creep_count", 0)) >= 2
+        ]
+        if scope_creep_projects:
+            patterns.append(
+                {
+                    "pattern": "recurring_scope_creep",
+                    "count": len(scope_creep_projects),
+                    "description": "Scope creep appears repeatedly across projects",
+                }
+            )
+        return patterns
+
+    async def _generate_periodic_report(
+        self, tenant_id: str, period: str, filters: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Generate periodic analytics report used by continuous improvement workflows."""
+        report_id = await self._generate_report_id()
+        metrics = filters.get("project_metrics", [])
+        cycle_times = [float(metric.get("cycle_time_days", 0)) for metric in metrics]
+        risk_occurrences = [int(metric.get("risk_occurrences", 0)) for metric in metrics]
+        budget_variances = [float(metric.get("budget_variance_pct", 0)) for metric in metrics]
+
+        insights_data = await self._collect_insights_data({"tenant_id": tenant_id, **filters})
+        anomalies = await self._detect_anomalies(insights_data)
+        patterns = await self._identify_patterns(insights_data)
+        insights = await self._generate_insights(insights_data, anomalies, patterns)
+        recommendations = await self._generate_recommendations(insights)
+
+        report = {
+            "report_id": report_id,
+            "type": "periodic_performance",
+            "period": period,
+            "summary": {
+                "project_count": len(metrics),
+                "avg_cycle_time_days": round(sum(cycle_times) / len(cycle_times), 2)
+                if cycle_times
+                else 0,
+                "risk_occurrences_total": sum(risk_occurrences),
+                "avg_budget_variance_pct": round(sum(budget_variances) / len(budget_variances), 4)
+                if budget_variances
+                else 0,
+            },
+            "trends": patterns,
+            "anomalies": anomalies,
+            "insights": insights,
+            "recommendations": recommendations,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        self.reports[report_id] = report
+        self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
+        await self.report_repository.store_report(report.copy())
+
+        if self.event_bus:
+            await self.event_bus.publish(
+                "analytics.periodic_report.generated",
+                {
+                    "tenant_id": tenant_id,
+                    "report": report,
+                },
+            )
+
+        return report
 
     async def _generate_insights(
         self, data: dict[str, Any], anomalies: list[dict[str, Any]], patterns: list[dict[str, Any]]

@@ -259,6 +259,54 @@ async def test_analytics_narrative_generation_uses_service(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_analytics_generates_periodic_report_with_trends_and_anomalies(tmp_path):
+    event_bus = build_test_event_bus()
+    agent = AnalyticsInsightsAgent(
+        config={
+            "analytics_output_store_path": tmp_path / "outputs.json",
+            "analytics_alert_store_path": tmp_path / "alerts.json",
+            "health_snapshot_store_path": tmp_path / "health.json",
+            "event_bus": event_bus,
+        }
+    )
+    await agent.initialize()
+
+    response = await agent.process(
+        {
+            "action": "generate_periodic_report",
+            "tenant_id": "tenant-analytics",
+            "period": "monthly",
+            "filters": {
+                "project_metrics": [
+                    {
+                        "project_id": "proj-1",
+                        "cycle_time_days": 25,
+                        "risk_occurrences": 3,
+                        "budget_variance_pct": 0.22,
+                        "late_task_ratio": 0.4,
+                        "scope_creep_count": 3,
+                    },
+                    {
+                        "project_id": "proj-2",
+                        "cycle_time_days": 12,
+                        "risk_occurrences": 1,
+                        "budget_variance_pct": 0.04,
+                        "late_task_ratio": 0.1,
+                        "scope_creep_count": 0,
+                    },
+                ]
+            },
+        }
+    )
+
+    assert response["period"] == "monthly"
+    assert response["summary"]["project_count"] == 2
+    assert response["anomalies"]
+    assert response["trends"]
+    assert response["recommendations"]
+
+
+@pytest.mark.asyncio
 async def test_analytics_scenario_analysis_uses_predictions(tmp_path):
     event_bus = build_test_event_bus()
     agent = AnalyticsInsightsAgent(

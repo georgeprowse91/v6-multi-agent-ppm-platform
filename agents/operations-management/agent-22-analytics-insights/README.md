@@ -14,7 +14,7 @@ Define the responsibilities, workflows, and integration points for Agent 22: Ana
 
 **Primary inputs**
 
-- `action`: the requested operation. Supported values include: `aggregate_data`, `create_dashboard`, `generate_report`, `run_prediction`, `scenario_analysis`, `generate_narrative`, `track_kpi`, `query_data`, `natural_language_query`, `get_dashboard`, `get_insights`, `update_data_lineage`, `get_powerbi_report`, `orchestrate_etl`, `monitor_etl`, `train_kpi_model`, `provision_analytics_stack`, `ingest_sources`, `ingest_realtime_event`, `compute_kpis_batch`.
+- `action`: the requested operation. Supported values include: `aggregate_data`, `create_dashboard`, `generate_report`, `run_prediction`, `scenario_analysis`, `generate_narrative`, `track_kpi`, `query_data`, `natural_language_query`, `get_dashboard`, `get_insights`, `update_data_lineage`, `get_powerbi_report`, `orchestrate_etl`, `monitor_etl`, `train_kpi_model`, `provision_analytics_stack`, `ingest_sources`, `ingest_realtime_event`, `compute_kpis_batch`, `generate_periodic_report`.
 - `tenant_id` (top-level or in `context`): required to scope storage and event history.
 - Action-specific payloads:
   - `data_sources`, `dashboard`, `report`, `model_type`, `scenario`, `kpi`, `query`, `filters`, `dashboard_id`, `lineage`, `pipelines`, `run_id`, `report_type`, `user_context`, `event`, `event_type`, `training_payload`.
@@ -30,6 +30,7 @@ Define the responsibilities, workflows, and integration points for Agent 22: Ana
 - `track_kpi`: KPI value, trend, threshold status + alert IDs.
 - `query_data`/`natural_language_query`: query response payloads and timestamps.
 - `get_insights`: anomalies/patterns + recommendations (also emits event bus updates).
+- `generate_periodic_report`: periodic cross-project summary with cycle time, risk frequency, budget variance, trends, anomalies, and recommended process changes.
 - `get_powerbi_report`: embed URL + access token.
 - `provision_analytics_stack`/`ingest_sources`/`orchestrate_etl`/`monitor_etl`: operational pipeline metadata.
 
@@ -118,6 +119,22 @@ Key workflows now include:
 - Provisioning Synapse pools, Data Lake file systems, and Data Factory pipelines via `provision_analytics_stack`.
 - Ingesting Planview, Jira, Workday, and SAP data via `ingest_sources` and storing ingestion manifests in ADLS.
 - Streaming real-time events through Event Hub and Stream Analytics with `ingest_realtime_event`.
+- Generating monthly/periodic portfolio reports through `generate_periodic_report`, including trend/anomaly detection and recommendation outputs for Agent 20 backlog ingestion.
+
+## Continuous improvement loop integration (Agent 20 handoff)
+
+Agent 22 now supports a closed-loop handoff to Agent 20:
+
+1. Build periodic analytics payloads using `generate_periodic_report`.
+2. Include `project_metrics` in `filters` (e.g., `cycle_time_days`, `risk_occurrences`, `budget_variance_pct`, `late_task_ratio`, `scope_creep_count`).
+3. The response includes:
+   - `summary` rollups,
+   - `trends` and `anomalies`,
+   - `recommendations` for process change/training,
+   - `report_id` for traceability.
+4. Agent emits `analytics.periodic_report.generated` for downstream subscribers.
+
+This output is designed to be consumed by Agent 20 via `ingest_analytics_report`.
 
 ## How to run / develop / test
 

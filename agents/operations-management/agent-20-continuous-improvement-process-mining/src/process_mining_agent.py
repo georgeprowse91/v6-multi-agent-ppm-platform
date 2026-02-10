@@ -9,7 +9,7 @@ Specification: agents/operations-management/agent-20-continuous-improvement-proc
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -61,10 +61,18 @@ class ProcessMiningAgent(BaseAgent):
         recommendations_store_path = self._resolve_store_path(
             config, "recommendations_store_path", "data/process_recommendations.json"
         )
+        improvement_history_store_path = self._resolve_store_path(
+            config, "improvement_history_store_path", "data/improvement_history.json"
+        )
+        improvement_backlog_store_path = self._resolve_store_path(
+            config, "improvement_backlog_store_path", "data/improvement_backlog.json"
+        )
         self.event_log_store = TenantStateStore(event_log_store_path)
         self.process_model_store = TenantStateStore(process_model_store_path)
         self.conformance_store = TenantStateStore(conformance_store_path)
         self.recommendations_store = TenantStateStore(recommendations_store_path)
+        self.improvement_history_store = TenantStateStore(improvement_history_store_path)
+        self.improvement_backlog_store = TenantStateStore(improvement_backlog_store_path)
 
         # Data stores (will be replaced with database)
         self.event_logs = {}  # type: ignore
@@ -140,6 +148,11 @@ class ProcessMiningAgent(BaseAgent):
             if config
             else "agent.summary.created"
         )
+        self.default_improvement_owner = (
+            config.get("default_improvement_owner", "continuous-improvement-lead")
+            if config
+            else "continuous-improvement-lead"
+        )
 
     async def initialize(self) -> None:
         """Initialize process mining tools, analytics, and data sources."""
@@ -176,6 +189,9 @@ class ProcessMiningAgent(BaseAgent):
             "get_recommendations",
             "get_improvement_backlog",
             "get_kpi_report",
+            "ingest_analytics_report",
+            "complete_improvement",
+            "get_improvement_history",
         ]
 
         if action not in valid_actions:
@@ -321,6 +337,22 @@ class ProcessMiningAgent(BaseAgent):
             return await self._get_improvement_backlog(input_data.get("filters", {}))
         elif action == "get_kpi_report":
             return await self._get_kpi_report(input_data.get("filters", {}))
+        elif action == "ingest_analytics_report":
+            return await self._ingest_analytics_report(
+                tenant_id,
+                input_data.get("analytics_report", {}),
+            )
+        elif action == "complete_improvement":
+            improvement_id = input_data.get("improvement_id")
+            assert isinstance(improvement_id, str), "improvement_id must be a string"
+            return await self._complete_improvement(
+                tenant_id,
+                improvement_id,
+                input_data.get("outcome", "completed"),
+                input_data.get("completed_by"),
+            )
+        elif action == "get_improvement_history":
+            return await self._get_improvement_history(tenant_id)
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -667,6 +699,7 @@ class ProcessMiningAgent(BaseAgent):
 
         # Store improvement
         self.improvement_backlog[improvement_id] = improvement
+        self.improvement_backlog_store.upsert(tenant_id, improvement_id, improvement.copy())
         self.event_log_store.upsert(
             tenant_id,
             f"improvement-{improvement_id}",
@@ -952,6 +985,12 @@ class ProcessMiningAgent(BaseAgent):
         """
         self.logger.info("Retrieving improvement backlog")
 
+        tenant_id = filters.get("tenant_id", "default")
+        stored_improvements = self.improvement_backlog_store.list(tenant_id)
+        for record in stored_improvements:
+            if isinstance(record, dict) and record.get("improvement_id"):
+                self.improvement_backlog.setdefault(record["improvement_id"], record)
+
         # Filter improvements
         filtered = []
         for improvement_id, improvement in self.improvement_backlog.items():
@@ -968,6 +1007,166 @@ class ProcessMiningAgent(BaseAgent):
             "improvements": sorted_improvements,
             "filters": filters,
         }
+
+    async def _ingest_analytics_report(
+        self, tenant_id: str, analytics_report: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Ingest analytics insights and create prioritized improvement backlog items."""
+        recommendations = analytics_report.get("recommendations", [])
+        anomalies = analytics_report.get("anomalies", [])
+        trends = analytics_report.get("trends", [])
+        created_items: list[dict[str, Any]] = []
+
+        for index, recommendation in enumerate(recommendations):
+            feasibility = "high"
+            impact = "medium"
+            lowered = str(recommendation).lower()
+            if "scope" in lowered or "budget" in lowered:
+                impact = "high"
+                feasibility = "medium"
+            if "training" in lowered or "monitoring" in lowered:
+                feasibility = "high"
+            due_days = 14 if impact == "high" else 30
+            improvement_id = await self._generate_improvement_id()
+            priority_score = 90 - (index * 5)
+            target_due_date = (
+                datetime.now(timezone.utc) + timedelta(days=due_days)
+            ).replace(microsecond=0)
+            item = {
+                "improvement_id": improvement_id,
+                "title": recommendation,
+                "description": f"Derived from analytics report {analytics_report.get('report_id')}",
+                "category": "analytics_feedback",
+                "process_id": analytics_report.get("period", "portfolio"),
+                "expected_benefits": {"impact": impact},
+                "feasibility": {"level": feasibility},
+                "priority_score": priority_score,
+                "owner": self._resolve_improvement_owner(recommendation, index),
+                "target_date": target_due_date.date().isoformat(),
+                "target_due_date": target_due_date.isoformat(),
+                "status": "Planned",
+                "source_report_id": analytics_report.get("report_id"),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            self.improvement_backlog[improvement_id] = item
+            self.improvement_backlog_store.upsert(tenant_id, improvement_id, item.copy())
+            created_items.append(item)
+
+        prioritized = sorted(created_items, key=lambda i: i.get("priority_score", 0), reverse=True)
+        await self._publish_improvement_backlog(tenant_id, prioritized)
+        await self._notify_stakeholders(
+            tenant_id,
+            "improvement.backlog.updated",
+            {
+                "source_report_id": analytics_report.get("report_id"),
+                "item_count": len(prioritized),
+                "anomalies": len(anomalies),
+                "trends": len(trends),
+            },
+        )
+
+        return {
+            "source_report_id": analytics_report.get("report_id"),
+            "created_items": len(prioritized),
+            "prioritized_backlog": prioritized,
+        }
+
+    async def _complete_improvement(
+        self,
+        tenant_id: str,
+        improvement_id: str,
+        outcome: str,
+        completed_by: str | None,
+    ) -> dict[str, Any]:
+        improvement = self.improvement_backlog.get(improvement_id) or self.improvement_backlog_store.get(
+            tenant_id, improvement_id
+        )
+        if not improvement:
+            raise ValueError(f"Improvement not found: {improvement_id}")
+
+        completed = {
+            **improvement,
+            "status": "Completed",
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "completed_by": completed_by or improvement.get("owner") or self.default_improvement_owner,
+            "outcome": outcome,
+        }
+        self.improvement_backlog[improvement_id] = completed
+        self.improvement_backlog_store.upsert(tenant_id, improvement_id, completed.copy())
+        history_id = f"history-{improvement_id}-{int(datetime.now(timezone.utc).timestamp())}"
+        self.improvement_history_store.upsert(
+            tenant_id,
+            history_id,
+            {
+                "improvement_id": improvement_id,
+                "date": completed["completed_at"],
+                "owner": completed["completed_by"],
+                "outcome": outcome,
+            },
+        )
+        await self._notify_stakeholders(
+            tenant_id,
+            "improvement.completed",
+            {
+                "improvement_id": improvement_id,
+                "owner": completed["completed_by"],
+                "outcome": outcome,
+            },
+        )
+        return completed
+
+    async def _get_improvement_history(self, tenant_id: str) -> dict[str, Any]:
+        entries = self.improvement_history_store.list(tenant_id)
+        return {"tenant_id": tenant_id, "entries": entries, "count": len(entries)}
+
+    def _resolve_improvement_owner(self, recommendation: Any, index: int) -> str:
+        owner_hints = {
+            "training": "l&d-lead",
+            "scope": "pmo-lead",
+            "budget": "finance-partner",
+            "risk": "risk-manager",
+        }
+        lowered = str(recommendation).lower()
+        for hint, owner in owner_hints.items():
+            if hint in lowered:
+                return owner
+        return self.default_improvement_owner if index % 2 == 0 else "delivery-manager"
+
+    async def _publish_improvement_backlog(
+        self, tenant_id: str, prioritized_items: list[dict[str, Any]]
+    ) -> None:
+        payload = {
+            "tenant_id": tenant_id,
+            "category": "improvement_backlog",
+            "items": prioritized_items,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if self.knowledge_agent:
+            await self.knowledge_agent.process(
+                {
+                    "action": "ingest_agent_output",
+                    "tenant_id": tenant_id,
+                    "payload": payload,
+                }
+            )
+            return
+        if self.event_bus:
+            await self.event_bus.publish("knowledge.improvement_backlog.published", payload)
+
+    async def _notify_stakeholders(
+        self, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        message = {
+            "tenant_id": tenant_id,
+            "event_type": event_type,
+            "payload": payload,
+            "notified_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if self.integration_clients.get("notification_service"):
+            await self.integration_clients["notification_service"].send(message)
+            return
+        if self.event_bus:
+            await self.event_bus.publish("notification.improvement", message)
 
     async def _get_process_model(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """Return stored process model for API consumers."""
