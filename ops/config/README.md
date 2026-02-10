@@ -265,3 +265,15 @@ Edit the relevant YAML/JSON files and update `.env` values as needed.
 
 - Config not applied: ensure the runtime points to the correct file.
 - Schema errors: validate configuration format with `python scripts/check-placeholders.py`.
+
+### `config/pricing.yaml`
+
+Defines pricing inputs for cost tracking.
+
+| Field | Description |
+| --- | --- |
+| `llm_models.<model>.input_per_1k_tokens_usd` | Input token price used for connector LLM cost estimation. |
+| `llm_models.<model>.output_per_1k_tokens_usd` | Output token price used for connector LLM cost estimation. |
+| `connectors.default.cost_per_call_usd` | Default external API cost per connector call. |
+| `connectors.<connector>.cost_per_call_usd` | Connector-specific call cost override. |
+| `connectors.<connector>.cost_per_resource_usd` | Optional endpoint/resource-level additive pricing. |

@@ -46,6 +46,7 @@ class AgentResponseMetadata(BaseModel):
     trace_id: str | None = None
     execution_time_seconds: float | None = None
     policy_reasons: tuple[str, ...] | None = None
+    cost_summary: dict[str, Any] | None = None
 
 
 class AgentResponse(BaseModel):

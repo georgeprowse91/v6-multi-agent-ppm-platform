@@ -12,7 +12,24 @@ from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExp
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
-from prometheus_client import Counter, Histogram
+try:
+    from prometheus_client import Counter, Histogram
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    class _NoopPromMetric:
+        def labels(self, *_args: object, **_kwargs: object) -> "_NoopPromMetric":
+            return self
+
+        def inc(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+        def observe(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+    def Counter(*_args: object, **_kwargs: object) -> _NoopPromMetric:  # type: ignore[misc]
+        return _NoopPromMetric()
+
+    def Histogram(*_args: object, **_kwargs: object) -> _NoopPromMetric:  # type: ignore[misc]
+        return _NoopPromMetric()
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -39,6 +56,12 @@ class MCPClientMetrics:
 @dataclass(frozen=True)
 class MCPFallbackMetrics:
     fallbacks: Any
+
+
+@dataclass(frozen=True)
+class CostMetrics:
+    llm_tokens_consumed: Any
+    external_api_cost: Any
 
 
 class RequestMetricsMiddleware(BaseHTTPMiddleware):
@@ -137,6 +160,24 @@ def build_mcp_fallback_metrics(service_name: str) -> MCPFallbackMetrics:
     return MCPFallbackMetrics(fallbacks=fallbacks)
 
 
+def build_cost_metrics(service_name: str) -> CostMetrics:
+    meter = configure_metrics(service_name)
+    llm_tokens_consumed = meter.create_counter(
+        name="llm_tokens_consumed",
+        description="Total LLM tokens consumed by prompt/completion usage",
+        unit="1",
+    )
+    external_api_cost = meter.create_counter(
+        name="external_api_cost",
+        description="Total estimated cost of external connector/API calls",
+        unit="USD",
+    )
+    return CostMetrics(
+        llm_tokens_consumed=llm_tokens_consumed,
+        external_api_cost=external_api_cost,
+    )
+
+
 agent_request_count = Counter(
     "agent_requests_total",
     "Total number of agent invocations",
@@ -155,9 +196,11 @@ __all__ = [
     "build_kpi_handles",
     "build_mcp_client_metrics",
     "build_mcp_fallback_metrics",
+    "build_cost_metrics",
     "KPIHandles",
     "MCPClientMetrics",
     "MCPFallbackMetrics",
+    "CostMetrics",
     "RequestMetricsMiddleware",
     "agent_request_count",
     "agent_request_latency",

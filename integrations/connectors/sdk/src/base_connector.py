@@ -20,6 +20,8 @@ from random import random
 from threading import Lock
 from typing import Any, TypeVar
 
+import yaml
+
 from jsonschema import ValidationError as JsonSchemaValidationError
 
 try:
@@ -44,6 +46,22 @@ except Exception:  # pragma: no cover - package import path fallback
 
         def get_connector_telemetry(connector_id: str) -> Any:
             return _NoopTelemetry(connector_id)
+
+
+class _FallbackNoopMetric:
+    def add(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def record(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+
+class _FallbackNoopTelemetry:
+    def __init__(self, connector_id: str) -> None:
+        self.service_name = f"connector-{connector_id}"
+        self.sync_total = _FallbackNoopMetric()
+        self.sync_duration = _FallbackNoopMetric()
+        self.sync_errors = _FallbackNoopMetric()
 
 try:
     from cryptography.fernet import Fernet
@@ -364,7 +382,12 @@ class BaseConnector(ABC):
         self._failure_timestamps: list[float] = []
         self._opened_at: float | None = None
         self._circuit_lock = Lock()
-        self._telemetry = get_connector_telemetry(self.CONNECTOR_ID)
+        try:
+            self._telemetry = get_connector_telemetry(self.CONNECTOR_ID)
+        except Exception:  # pragma: no cover - optional telemetry dependency/runtime
+            self._telemetry = _FallbackNoopTelemetry(self.CONNECTOR_ID)
+        self._pricing = self._load_pricing_config()
+        self._last_call_cost_usd = 0.0
 
     def _execute_call(
         self, endpoint: str, payload: dict[str, Any], *, timeout: float
@@ -464,6 +487,7 @@ class BaseConnector(ABC):
             try:
                 response = self._execute_call(endpoint, payload, timeout=timeout)
                 self._validate_schema(response, schema.get("response") if schema else None, "response")
+                self._last_call_cost_usd = self.estimate_call_cost(endpoint, payload, response)
                 self._mark_success()
                 self._telemetry.sync_total.add(1, {**attributes, "result": "success"})
                 self._telemetry.sync_duration.record(time.perf_counter() - start, attributes)
@@ -483,6 +507,56 @@ class BaseConnector(ABC):
         raise ConnectorCallFailedError(
             f"Connector {self.CONNECTOR_ID} failed to call {endpoint} after {self.max_retries + 1} attempts"
         ) from last_error
+
+    def estimate_call_cost(
+        self,
+        endpoint: str,
+        payload: dict[str, Any],
+        response: dict[str, Any],
+    ) -> float:
+        connector_pricing = self._pricing.get("connectors", {}).get(self.CONNECTOR_ID, {})
+        default_pricing = self._pricing.get("connectors", {}).get("default", {})
+        cost_per_call = connector_pricing.get(
+            "cost_per_call_usd",
+            default_pricing.get("cost_per_call_usd", 0.0),
+        )
+        cost = float(cost_per_call)
+        endpoint_prices = connector_pricing.get("cost_per_resource_usd", {})
+        if endpoint in endpoint_prices:
+            cost += float(endpoint_prices[endpoint])
+
+        usage = response.get("usage") if isinstance(response, dict) else None
+        if not isinstance(usage, dict):
+            usage = payload.get("usage") if isinstance(payload, dict) else None
+        model = usage.get("model") if isinstance(usage, dict) else None
+        if isinstance(usage, dict) and model:
+            model_pricing = self._pricing.get("llm_models", {}).get(model, {})
+            input_per_1k = float(model_pricing.get("input_per_1k_tokens_usd", 0.0))
+            output_per_1k = float(model_pricing.get("output_per_1k_tokens_usd", 0.0))
+            prompt_tokens = float(usage.get("prompt_tokens", usage.get("request_tokens", 0.0)))
+            completion_tokens = float(
+                usage.get("completion_tokens", usage.get("response_tokens", 0.0))
+            )
+            cost += (prompt_tokens / 1000.0) * input_per_1k
+            cost += (completion_tokens / 1000.0) * output_per_1k
+        return max(cost, 0.0)
+
+    @property
+    def last_call_cost_usd(self) -> float:
+        return self._last_call_cost_usd
+
+    def _load_pricing_config(self) -> dict[str, Any]:
+        candidate = os.getenv("PRICING_CONFIG_PATH") or str(
+            Path(__file__).resolve().parents[4] / "ops" / "config" / "pricing.yaml"
+        )
+        pricing_path = Path(candidate)
+        if not pricing_path.exists():
+            return {}
+        with pricing_path.open("r", encoding="utf-8") as handle:
+            payload = yaml.safe_load(handle) or {}
+        if isinstance(payload, dict):
+            return payload
+        return {}
 
     @property
     def is_authenticated(self) -> bool:

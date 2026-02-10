@@ -1,0 +1,37 @@
+{
+  "title": "Agent Cost Tracking",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "External API Cost by Agent (USD)",
+      "targets": [
+        {
+          "expr": "sum by (agent_id) (rate(external_api_cost[5m]))",
+          "legendFormat": "{{agent_id}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "LLM Tokens Consumed by Agent",
+      "targets": [
+        {
+          "expr": "sum by (agent_id, token_type) (rate(llm_tokens_consumed[5m]))",
+          "legendFormat": "{{agent_id}}/{{token_type}}"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total External API Cost (USD)",
+      "targets": [
+        {
+          "expr": "sum(rate(external_api_cost[5m]))"
+        }
+      ]
+    }
+  ]
+}

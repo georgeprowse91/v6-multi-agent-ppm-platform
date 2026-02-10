@@ -147,9 +147,12 @@ class Orchestrator:
                         await _launch(dependent_id)
 
         self._memory_client.save_context(resolved_memory_key, shared_context)
+        cost_summary = self._aggregate_costs(results)
+        shared_context["cost_summary"] = cost_summary
         metrics = {
             "max_parallel_tasks": self._max_parallel_seen,
             "total_tasks": len(tasks),
+            "cost_summary": cost_summary,
         }
         return OrchestrationResult(results=results, context=shared_context, metrics=metrics)
 
@@ -570,3 +573,30 @@ class Orchestrator:
 
         for task_id in tasks:
             _visit(task_id)
+
+    def _aggregate_costs(self, results: dict[str, dict[str, Any]]) -> dict[str, Any]:
+        per_agent: dict[str, dict[str, Any]] = {}
+        total_cost_usd = 0.0
+        total_llm_tokens = 0
+        for task_id, result in results.items():
+            metadata = result.get("metadata", {}) if isinstance(result, dict) else {}
+            cost_summary = metadata.get("cost_summary", {}) if isinstance(metadata, dict) else {}
+            if not isinstance(cost_summary, dict):
+                continue
+            api_cost = float(cost_summary.get("api_cost_total_usd", 0.0) or 0.0)
+            llm_tokens = int(
+                (cost_summary.get("llm_tokens", {}) or {}).get("total", 0)
+                if isinstance(cost_summary.get("llm_tokens"), dict)
+                else 0
+            )
+            per_agent[task_id] = {
+                "api_cost_total_usd": api_cost,
+                "llm_tokens_total": llm_tokens,
+            }
+            total_cost_usd += api_cost
+            total_llm_tokens += llm_tokens
+        return {
+            "total_api_cost_usd": total_cost_usd,
+            "total_llm_tokens": total_llm_tokens,
+            "per_agent": per_agent,
+        }

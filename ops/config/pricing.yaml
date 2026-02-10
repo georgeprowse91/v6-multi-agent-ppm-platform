@@ -1,0 +1,18 @@
+# Cost configuration for LLM and external connector usage.
+llm_models:
+  gpt-4o-mini:
+    input_per_1k_tokens_usd: 0.00015
+    output_per_1k_tokens_usd: 0.0006
+  gpt-4o:
+    input_per_1k_tokens_usd: 0.005
+    output_per_1k_tokens_usd: 0.015
+
+connectors:
+  default:
+    cost_per_call_usd: 0.0
+  jira:
+    cost_per_call_usd: 0.001
+  azure_devops:
+    cost_per_call_usd: 0.001
+  servicenow:
+    cost_per_call_usd: 0.0015

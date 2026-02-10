@@ -18,6 +18,7 @@ if str(OBSERVABILITY_ROOT) not in sys.path:
     sys.path.insert(0, str(OBSERVABILITY_ROOT))
 
 from observability.tracing import get_trace_id, start_agent_span  # noqa: E402
+from observability.metrics import build_cost_metrics  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
 from agents.runtime.src.agent_catalog import get_catalog_id  # noqa: E402
@@ -69,6 +70,16 @@ class BaseAgent(ABC):
         data_service_url = self.config.get("data_service_url") or os.getenv("DATA_SERVICE_URL")
         if data_service_url:
             self.data_service = DataServiceClient.from_url(data_service_url)
+        self._cost_metrics = build_cost_metrics(f"agent-{self.catalog_id}")
+        self._cost_summary: dict[str, Any] = {
+            "llm_tokens": {
+                "request": 0,
+                "response": 0,
+                "total": 0,
+            },
+            "api_cost_total_usd": 0.0,
+            "api_cost_by_connector": {},
+        }
 
     async def initialize(self) -> None:
         """
@@ -150,6 +161,7 @@ class BaseAgent(ABC):
         tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
         catalog_id = self.catalog_id or self.agent_id
         trace_id = get_trace_id() or "unknown"
+        self._reset_cost_summary()
 
         policy_bundle = input_data.get(
             "policy_bundle",
@@ -249,6 +261,7 @@ class BaseAgent(ABC):
                     correlation_id=correlation_id,
                 )
                 result = await self.process(input_data)
+                self._capture_cost_from_result(result)
                 payload = self._normalize_payload(result)
 
                 # Calculate execution time
@@ -271,6 +284,7 @@ class BaseAgent(ABC):
                         execution_time_seconds=execution_time,
                         correlation_id=correlation_id,
                         trace_id=trace_id,
+                        cost_summary=self._cost_summary,
                     ),
                 )
                 self.save_context(correlation_id, {"last_output": response.model_dump()})
@@ -299,6 +313,7 @@ class BaseAgent(ABC):
                     execution_time_seconds=execution_time,
                     correlation_id=correlation_id,
                     trace_id=trace_id,
+                    cost_summary=self._cost_summary,
                 ),
             )
             self.save_context(correlation_id, {"last_error": response.model_dump()})
@@ -365,3 +380,78 @@ class BaseAgent(ABC):
         if isinstance(payload, dict):
             return AgentPayload.model_validate(payload)
         raise TypeError(f"Unsupported agent payload type: {type(payload).__name__}")
+
+    def record_llm_usage(
+        self,
+        *,
+        request_tokens: int,
+        response_tokens: int,
+        model: str | None = None,
+        provider: str | None = None,
+    ) -> None:
+        request_tokens = max(int(request_tokens), 0)
+        response_tokens = max(int(response_tokens), 0)
+        total = request_tokens + response_tokens
+        attributes = {
+            "agent_id": self.agent_id,
+            "catalog_id": self.catalog_id,
+            "model": model or "unknown",
+            "provider": provider or "unknown",
+        }
+        self._cost_metrics.llm_tokens_consumed.add(
+            request_tokens,
+            {**attributes, "token_type": "request"},
+        )
+        self._cost_metrics.llm_tokens_consumed.add(
+            response_tokens,
+            {**attributes, "token_type": "response"},
+        )
+        self._cost_summary["llm_tokens"]["request"] += request_tokens
+        self._cost_summary["llm_tokens"]["response"] += response_tokens
+        self._cost_summary["llm_tokens"]["total"] += total
+
+    def record_api_cost(self, cost: float, connector_name: str) -> None:
+        normalized_cost = max(float(cost), 0.0)
+        connector = connector_name or "unknown"
+        self._cost_metrics.external_api_cost.add(
+            normalized_cost,
+            {
+                "agent_id": self.agent_id,
+                "catalog_id": self.catalog_id,
+                "connector_name": connector,
+            },
+        )
+        self._cost_summary["api_cost_total_usd"] += normalized_cost
+        by_connector = self._cost_summary["api_cost_by_connector"]
+        by_connector[connector] = by_connector.get(connector, 0.0) + normalized_cost
+
+    def _reset_cost_summary(self) -> None:
+        self._cost_summary = {
+            "llm_tokens": {
+                "request": 0,
+                "response": 0,
+                "total": 0,
+            },
+            "api_cost_total_usd": 0.0,
+            "api_cost_by_connector": {},
+        }
+
+    def _capture_cost_from_result(self, result: Any) -> None:
+        if not isinstance(result, dict):
+            return
+        llm_usage = result.get("llm_usage")
+        if isinstance(llm_usage, dict):
+            self.record_llm_usage(
+                request_tokens=llm_usage.get("request_tokens", 0),
+                response_tokens=llm_usage.get("response_tokens", 0),
+                model=llm_usage.get("model"),
+                provider=llm_usage.get("provider"),
+            )
+        api_costs = result.get("api_costs")
+        if isinstance(api_costs, list):
+            for item in api_costs:
+                if isinstance(item, dict):
+                    self.record_api_cost(
+                        float(item.get("cost", 0.0)),
+                        connector_name=str(item.get("connector_name", "unknown")),
+                    )

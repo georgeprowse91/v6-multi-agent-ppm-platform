@@ -1,7 +1,9 @@
 from observability.logging import configure_logging
 from observability.metrics import (
+    CostMetrics,
     KPIHandles,
     MCPFallbackMetrics,
+    build_cost_metrics,
     build_kpi_handles,
     build_mcp_fallback_metrics,
     build_mcp_client_metrics,
@@ -23,9 +25,11 @@ __all__ = [
     "start_agent_span",
     "configure_logging",
     "configure_metrics",
+    "build_cost_metrics",
     "build_kpi_handles",
     "build_mcp_client_metrics",
     "build_mcp_fallback_metrics",
     "KPIHandles",
     "MCPFallbackMetrics",
+    "CostMetrics",
 ]

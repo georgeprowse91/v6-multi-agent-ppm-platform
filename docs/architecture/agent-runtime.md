@@ -67,3 +67,14 @@ Product interfaces should surface AgentRun state and context to users:
 
 - [Agent Orchestration](agent-orchestration.md)
 - [Runtime README](../../agents/runtime/README.md)
+
+## Cost aggregation metadata
+
+Agent runtime responses include `metadata.cost_summary` with:
+
+- LLM tokens (`request`, `response`, `total`)
+- external API cost totals (`api_cost_total_usd`)
+- cost by connector (`api_cost_by_connector`)
+
+The orchestrator aggregates these values into run-level metrics under
+`OrchestrationResult.metrics.cost_summary` and persists the same summary in shared orchestration context.
