@@ -22,10 +22,10 @@ from events import DemandCreatedEvent
 from observability.tracing import get_trace_id
 
 from agents.common.integration_services import (
+    FaissBackedVectorSearchIndex,
     LocalEmbeddingService,
     NaiveBayesTextClassifier,
     NotificationService,
-    VectorSearchIndex,
 )
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
@@ -70,7 +70,10 @@ class DemandIntakeAgent(BaseAgent):
         self.embedding_service = LocalEmbeddingService(
             dimensions=config.get("embedding_dimensions", 128) if config else 128
         )
-        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.vector_index = FaissBackedVectorSearchIndex(
+            self.embedding_service,
+            index_name="demand_intake",
+        )
         self.classifier = NaiveBayesTextClassifier(
             labels=["project", "change_request", "issue", "idea"]
         )

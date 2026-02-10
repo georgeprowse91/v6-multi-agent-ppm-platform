@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import math
 import random
+from collections import OrderedDict
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+import numpy as np
+import yaml
+
+from packages.vector_store import FaissVectorStore
 
 
 class LocalEmbeddingService:
@@ -97,6 +104,94 @@ class VectorSearchIndex:
             )
         scored.sort(key=lambda item: item.score, reverse=True)
         return scored[:top_k]
+
+
+class FaissBackedVectorSearchIndex:
+    """Vector search index backed by shard-aware FaissVectorStore with metadata."""
+
+    DEFAULT_CONFIG_PATH = Path("ops/config/vector_store.yaml")
+
+    def __init__(
+        self,
+        embedding_service: LocalEmbeddingService,
+        *,
+        index_name: str,
+        config_path: Path | None = None,
+    ) -> None:
+        self.embedding_service = embedding_service
+        config = self._load_config(config_path or self.DEFAULT_CONFIG_PATH, index_name)
+        self.vector_store = FaissVectorStore(
+            dimension=embedding_service.dimensions,
+            num_shards=int(config.get("num_shards", 1)),
+            nlist=int(config.get("nlist", 64)),
+            nprobe=int(config.get("nprobe", 10)),
+            batch_size=int(config.get("batch_size", 128)),
+            cache_size=int(config.get("cache_size", 256)),
+            cache_ttl_seconds=int(config.get("cache_ttl_seconds", 30)),
+            embedding_ttl_seconds=self._optional_int(config.get("embedding_ttl_seconds")),
+        )
+        self._metadata: dict[str, dict[str, Any]] = {}
+        self._query_cache: OrderedDict[tuple[str, int], list[VectorSearchResult]] = OrderedDict()
+        self._query_cache_size = max(1, int(config.get("query_cache_size", 128)))
+
+    def add(self, doc_id: str, text: str, metadata: dict[str, Any]) -> None:
+        embedding = np.asarray(self.embedding_service.embed([text])[0], dtype=np.float32).reshape(1, -1)
+        self.vector_store.add_embeddings(embedding, [doc_id])
+        self._metadata[doc_id] = metadata
+        self._query_cache.clear()
+
+    def search(self, query: str, *, top_k: int = 5) -> list[VectorSearchResult]:
+        cache_key = (query, top_k)
+        cached = self._query_cache.get(cache_key)
+        if cached is not None:
+            self._query_cache.move_to_end(cache_key)
+            return cached
+
+        query_embedding = np.asarray(self.embedding_service.embed([query])[0], dtype=np.float32)
+        matches = self.vector_store.search(query_embedding, top_k=top_k)
+        results = [
+            VectorSearchResult(doc_id=doc_id, score=score, metadata=self._metadata.get(doc_id, {}))
+            for doc_id, score in matches
+            if doc_id in self._metadata
+        ]
+        self._query_cache[cache_key] = results
+        self._query_cache.move_to_end(cache_key)
+        while len(self._query_cache) > self._query_cache_size:
+            self._query_cache.popitem(last=False)
+        return results
+
+    def delete(self, doc_ids: list[str]) -> None:
+        self.vector_store.delete(doc_ids)
+        for doc_id in doc_ids:
+            self._metadata.pop(doc_id, None)
+        self._query_cache.clear()
+
+    def flush(self) -> None:
+        self.vector_store.flush()
+
+    @staticmethod
+    def _optional_int(value: Any) -> int | None:
+        if value is None:
+            return None
+        return int(value)
+
+    def _load_config(self, config_path: Path, index_name: str) -> dict[str, Any]:
+        default_config = {
+            "num_shards": 1,
+            "nlist": 64,
+            "nprobe": 10,
+            "batch_size": 128,
+            "cache_size": 256,
+            "cache_ttl_seconds": 30,
+            "query_cache_size": 128,
+            "embedding_ttl_seconds": None,
+        }
+        if not config_path.exists():
+            return default_config
+        with config_path.open("r", encoding="utf-8") as handle:
+            raw = yaml.safe_load(handle) or {}
+        section = raw.get("indexes", {}).get(index_name, {})
+        return {**default_config, **section}
 
 
 class NotificationService:

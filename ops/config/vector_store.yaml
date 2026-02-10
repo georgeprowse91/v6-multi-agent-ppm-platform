@@ -1,0 +1,19 @@
+indexes:
+  demand_intake:
+    num_shards: 4
+    nlist: 128
+    nprobe: 16
+    batch_size: 256
+    cache_size: 512
+    cache_ttl_seconds: 60
+    query_cache_size: 256
+    embedding_ttl_seconds: 604800
+  business_case:
+    num_shards: 2
+    nlist: 64
+    nprobe: 12
+    batch_size: 128
+    cache_size: 256
+    cache_ttl_seconds: 60
+    query_cache_size: 128
+    embedding_ttl_seconds: 1209600
