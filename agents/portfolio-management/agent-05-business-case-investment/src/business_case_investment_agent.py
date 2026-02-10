@@ -10,10 +10,13 @@ Specification: agents/portfolio-management/agent-05-business-case-investment/REA
 
 import os
 import random
+import statistics
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from data_quality.helpers import apply_rule_set, validate_against_schema
 from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
@@ -54,7 +57,23 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         self.templates = config.get("templates", {}) if config else {}
         self.min_roi_threshold = config.get("min_roi_threshold", 0.15) if config else 0.15
         self.max_payback_period = config.get("max_payback_period", 36) if config else 36
-        self.discount_rate = config.get("discount_rate", 0.10) if config else 0.10
+        self.financial_settings = self._load_financial_settings(config or {})
+        self.discount_rate = float(
+            (config or {}).get("discount_rate", self.financial_settings.get("discount_rate", 0.10))
+        )
+        self.inflation_rate = float(
+            (config or {}).get("inflation_rate", self.financial_settings.get("inflation_rate", 0.0))
+        )
+        self.currency_rates = {
+            code.upper(): float(rate)
+            for code, rate in self.financial_settings.get("currency_rates", {"USD": 1.0}).items()
+        }
+        self.simulation_iterations = int(
+            self.financial_settings.get("simulation_iterations", 1000)
+        )
+        self.sensitivity_variations = self.financial_settings.get(
+            "sensitivity_variations", [-0.2, -0.1, 0.0, 0.1, 0.2]
+        )
         self.comparison_window_years = config.get("comparison_window_years", 3) if config else 3
 
         store_path = (
@@ -104,6 +123,24 @@ class BusinessCaseInvestmentAgent(BaseAgent):
                 },
             ]
         }
+
+    def _load_financial_settings(self, config: dict[str, Any]) -> dict[str, Any]:
+        settings_path = Path(
+            config.get("business_case_settings_path", "ops/config/agents/business-case-settings.yaml")
+        )
+        defaults: dict[str, Any] = {
+            "discount_rate": 0.10,
+            "inflation_rate": 0.0,
+            "currency_rates": {"USD": 1.0},
+            "simulation_iterations": 1000,
+            "sensitivity_variations": [-0.2, -0.1, 0.0, 0.1, 0.2],
+        }
+        if not settings_path.exists():
+            return defaults
+
+        loaded = yaml.safe_load(settings_path.read_text(encoding="utf-8")) or {}
+        defaults.update(loaded)
+        return defaults
 
     def _autonomous_deliverables_enabled(self) -> bool:
         if self.config and "autonomous_deliverables" in self.config:
@@ -403,6 +440,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
         costs = input_data.get("costs", {})
         benefits = input_data.get("benefits", {})
+        simulation_iterations = int(input_data.get("simulation_iterations", self.simulation_iterations))
 
         # Calculate Net Present Value (NPV)
         npv = await self._calculate_npv(costs, benefits)
@@ -419,6 +457,11 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         # Calculate ROI percentage
         roi = await self._calculate_roi_percentage(costs, benefits)
 
+        # Advanced analysis
+        cash_flows = self._build_cash_flow(costs, benefits)
+        monte_carlo_summary = self.run_monte_carlo_simulation(cash_flows, simulation_iterations)
+        sensitivity_analysis = self._run_sensitivity_analysis(costs, benefits)
+
         return {
             "npv": npv,
             "irr": irr,
@@ -426,6 +469,14 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             "tco": tco,
             "roi_percentage": roi,
             "discount_rate": self.discount_rate,
+            "assumptions": {
+                "discount_rate": self.discount_rate,
+                "inflation_rate": self.inflation_rate,
+                "currency_rates": self.currency_rates,
+                "simulation_iterations": simulation_iterations,
+            },
+            "sensitivity_analysis": sensitivity_analysis,
+            "monte_carlo_summary": monte_carlo_summary,
             "calculated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -453,13 +504,17 @@ class BusinessCaseInvestmentAgent(BaseAgent):
                 {"costs": adjusted_costs, "benefits": adjusted_benefits}
             )
 
-            simulations = self._run_monte_carlo(adjusted_costs, adjusted_benefits, simulations=200)
+            simulations = self._run_monte_carlo(
+                adjusted_costs, adjusted_benefits, simulations=self.simulation_iterations
+            )
+            sensitivity = self._run_sensitivity_analysis(adjusted_costs, adjusted_benefits)
             scenario_results.append(
                 {
                     "scenario_name": scenario_name,
                     "parameters": scenario.get("parameters", {}),
                     "metrics": metrics,
                     "simulation": simulations,
+                    "sensitivity_analysis": sensitivity,
                     "risk_level": scenario.get("risk_level", "medium"),
                 }
             )
@@ -469,6 +524,12 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
         return {
             "business_case_id": business_case_id,
+            "assumptions": {
+                "discount_rate": self.discount_rate,
+                "inflation_rate": self.inflation_rate,
+                "currency_rates": self.currency_rates,
+                "simulation_iterations": self.simulation_iterations,
+            },
             "scenarios": scenario_results,
             "comparison": comparison,
             "recommendation": await self._select_best_scenario(scenario_results),
@@ -591,6 +652,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     async def _validate_roi_inputs(self, input_data: dict[str, Any]) -> bool:
         costs = input_data.get("costs", {})
         benefits = input_data.get("benefits", {})
+        simulation_iterations = int(input_data.get("simulation_iterations", self.simulation_iterations))
         roi_payload = {"roi": {"costs": costs, "benefits": benefits}}
 
         errors = validate_against_schema(self.roi_schema_path, roi_payload)
@@ -775,6 +837,8 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             return "Hybrid approach combining agile delivery within waterfall governance."
 
     def _build_cash_flow(self, costs: dict[str, Any], benefits: dict[str, Any]) -> list[float]:
+        costs = self._convert_currency_inputs(costs)
+        benefits = self._convert_currency_inputs(benefits)
         total_cost = float(costs.get("total_cost", 0))
         total_benefits = float(benefits.get("total_benefits", 0))
         horizon_years = int(costs.get("horizon_years", benefits.get("horizon_years", 3)))
@@ -789,14 +853,35 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         annual_benefit = total_benefits / max(horizon_years, 1)
         return [annual_benefit - annual_cost for _ in range(horizon_years)]
 
+    def _convert_currency_inputs(self, data: dict[str, Any]) -> dict[str, Any]:
+        converted = dict(data)
+        currency = str(converted.get("currency", "USD")).upper()
+        rate = float(self.currency_rates.get(currency, 1.0))
+        for key in ("total_cost", "total_benefits", "operational_costs"):
+            if key in converted:
+                converted[key] = float(converted[key]) * rate
+        if isinstance(converted.get("cash_flow"), list):
+            converted["cash_flow"] = [float(amount) * rate for amount in converted["cash_flow"]]
+        converted["base_currency"] = "USD"
+        return converted
+
+    def _inflate_adjust_cash_flows(self, cash_flows: list[float]) -> list[float]:
+        if self.inflation_rate == 0:
+            return cash_flows
+        return [
+            cash_flow / ((1 + self.inflation_rate) ** period)
+            for period, cash_flow in enumerate(cash_flows, start=1)
+        ]
+
     def _irr(self, cash_flows: list[float]) -> float:
+        adjusted_cash_flows = self._inflate_adjust_cash_flows(cash_flows)
         if not cash_flows:
             return 0.0
         low, high = -0.9, 1.0
         for _ in range(50):
             rate = (low + high) / 2
             npv = 0.0
-            for period, cash_flow in enumerate(cash_flows, start=1):
+            for period, cash_flow in enumerate(adjusted_cash_flows, start=1):
                 npv += cash_flow / ((1 + rate) ** period)
             if npv > 0:
                 low = rate
@@ -807,39 +892,76 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     def _run_monte_carlo(
         self, costs: dict[str, Any], benefits: dict[str, Any], *, simulations: int
     ) -> dict[str, Any]:
-        results = []
+        cash_flows = self._build_cash_flow(costs, benefits)
+        return self.run_monte_carlo_simulation(cash_flows, simulations)
+
+    def run_monte_carlo_simulation(self, cash_flows: list[float], iterations: int) -> dict[str, float]:
+        npv_results: list[float] = []
+        for _ in range(iterations):
+            simulated_flows = [random.gauss(flow, abs(flow) * 0.1 or 1.0) for flow in cash_flows]
+            npv_results.append(self._npv_from_cash_flows(simulated_flows))
+        if not npv_results:
+            return {
+                "mean_npv": 0.0,
+                "stddev_npv": 0.0,
+                "negative_npv_probability": 0.0,
+                "iterations": 0,
+            }
+        negative_count = sum(1 for npv in npv_results if npv < 0)
+        return {
+            "mean_npv": statistics.mean(npv_results),
+            "stddev_npv": statistics.pstdev(npv_results),
+            "negative_npv_probability": negative_count / len(npv_results),
+            "iterations": len(npv_results),
+        }
+
+    def _run_sensitivity_analysis(self, costs: dict[str, Any], benefits: dict[str, Any]) -> list[dict[str, float | str]]:
         base_cost = float(costs.get("total_cost", 0))
         base_benefit = float(benefits.get("total_benefits", 0))
-        for _ in range(simulations):
-            cost_multiplier = random.uniform(0.9, 1.2)
-            benefit_multiplier = random.uniform(0.8, 1.3)
-            sim_costs = {"total_cost": base_cost * cost_multiplier}
-            sim_benefits = {"total_benefits": base_benefit * benefit_multiplier}
-            results.append(
+        sensitivity_rows: list[dict[str, float | str]] = []
+        for variation in self.sensitivity_variations:
+            cost_case_costs = {**costs, "total_cost": base_cost * (1 + variation)}
+            cost_case_cash_flows = self._build_cash_flow(cost_case_costs, benefits)
+            sensitivity_rows.append(
                 {
-                    "npv": self._npv_sync(sim_costs, sim_benefits),
-                    "roi": self._roi_sync(sim_costs, sim_benefits),
+                    "parameter": "cost",
+                    "variation": variation,
+                    "cost_multiplier": 1 + variation,
+                    "benefit_multiplier": 1.0,
+                    "npv": self._npv_from_cash_flows(cost_case_cash_flows),
+                    "irr": self._irr(cost_case_cash_flows),
                 }
             )
-        npvs = [item["npv"] for item in results]
-        rois = [item["roi"] for item in results]
-        return {
-            "npv_mean": sum(npvs) / len(npvs) if npvs else 0.0,
-            "npv_p10": sorted(npvs)[max(int(len(npvs) * 0.1) - 1, 0)] if npvs else 0.0,
-            "npv_p90": sorted(npvs)[max(int(len(npvs) * 0.9) - 1, 0)] if npvs else 0.0,
-            "roi_mean": sum(rois) / len(rois) if rois else 0.0,
-        }
+
+            benefit_case_benefits = {**benefits, "total_benefits": base_benefit * (1 + variation)}
+            benefit_case_cash_flows = self._build_cash_flow(costs, benefit_case_benefits)
+            sensitivity_rows.append(
+                {
+                    "parameter": "revenue_growth",
+                    "variation": variation,
+                    "cost_multiplier": 1.0,
+                    "benefit_multiplier": 1 + variation,
+                    "npv": self._npv_from_cash_flows(benefit_case_cash_flows),
+                    "irr": self._irr(benefit_case_cash_flows),
+                }
+            )
+        return sensitivity_rows
 
     def _npv_sync(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         cash_flows = self._build_cash_flow(costs, benefits)
+        return self._npv_from_cash_flows(cash_flows)
+
+    def _npv_from_cash_flows(self, cash_flows: list[float]) -> float:
         npv = 0.0
-        for period, cash_flow in enumerate(cash_flows, start=1):
+        for period, cash_flow in enumerate(self._inflate_adjust_cash_flows(cash_flows), start=1):
             npv += cash_flow / ((1 + self.discount_rate) ** period)
         return npv
 
     def _roi_sync(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
-        total_cost = costs.get("total_cost", 0)
-        total_benefits = benefits.get("total_benefits", 0)
+        converted_costs = self._convert_currency_inputs(costs)
+        converted_benefits = self._convert_currency_inputs(benefits)
+        total_cost = converted_costs.get("total_cost", 0)
+        total_benefits = converted_benefits.get("total_benefits", 0)
         if total_cost == 0:
             return 0.0
         return (total_benefits - total_cost) / total_cost
@@ -862,10 +984,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     async def _calculate_npv(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         """Calculate Net Present Value."""
         cash_flows = self._build_cash_flow(costs, benefits)
-        npv = 0.0
-        for period, cash_flow in enumerate(cash_flows, start=1):
-            npv += cash_flow / ((1 + self.discount_rate) ** period)
-        return npv
+        return self._npv_from_cash_flows(cash_flows)
 
     async def _calculate_irr(self, costs: dict[str, Any], benefits: dict[str, Any]) -> float:
         """Calculate Internal Rate of Return."""
@@ -886,16 +1005,19 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     async def _calculate_tco(self, costs: dict[str, Any]) -> float:
         """Calculate Total Cost of Ownership."""
-        total_cost = float(costs.get("total_cost", 0))
-        operational_costs = float(costs.get("operational_costs", total_cost * 0.15))
+        converted_costs = self._convert_currency_inputs(costs)
+        total_cost = float(converted_costs.get("total_cost", 0))
+        operational_costs = float(converted_costs.get("operational_costs", total_cost * 0.15))
         return total_cost + operational_costs
 
     async def _calculate_roi_percentage(
         self, costs: dict[str, Any], benefits: dict[str, Any]
     ) -> float:
         """Calculate ROI percentage."""
-        total_cost = costs.get("total_cost", 0)
-        total_benefits = benefits.get("total_benefits", 0)
+        converted_costs = self._convert_currency_inputs(costs)
+        converted_benefits = self._convert_currency_inputs(benefits)
+        total_cost = converted_costs.get("total_cost", 0)
+        total_benefits = converted_benefits.get("total_benefits", 0)
 
         if total_cost == 0:
             return 0.0
