@@ -39,6 +39,8 @@ langchain==0.3.14
 langchain-core==0.3.28
 langchain-community==0.3.14
 tiktoken==0.5.2
+numpy==1.26.4
+faiss-cpu==1.8.0
 
 # Utilities
 python-dotenv==1.0.0

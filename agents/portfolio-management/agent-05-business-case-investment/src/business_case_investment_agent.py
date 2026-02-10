@@ -25,11 +25,11 @@ from observability.tracing import get_trace_id
 
 from agents.common.integration_services import (
     DataConnector,
+    FaissBackedVectorSearchIndex,
     ForecastingModel,
     LocalEmbeddingService,
     NaiveBayesTextClassifier,
     NotificationService,
-    VectorSearchIndex,
 )
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
@@ -91,7 +91,10 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         self.embedding_service = LocalEmbeddingService(
             dimensions=config.get("embedding_dimensions", 128) if config else 128
         )
-        self.vector_index = VectorSearchIndex(self.embedding_service)
+        self.vector_index = FaissBackedVectorSearchIndex(
+            self.embedding_service,
+            index_name="business_case",
+        )
         self.forecasting_model = ForecastingModel()
         self.template_classifier = NaiveBayesTextClassifier(
             labels=["it", "operations", "finance", "customer", "general"]

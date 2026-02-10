@@ -36,6 +36,7 @@ This directory contains configuration assets consumed by services, agents, and t
 - `config/security/dlp-policies.yaml`: DLP policy thresholds and enforcement actions.
 - `config/signing/`: Signing metadata for artifacts and images.
 - `config/tenants/default.yaml`: Default tenant bootstrap configuration.
+- `config/vector_store.yaml`: Vector store shard, FAISS, cache, batch, and TTL settings.
 
 ## How it's used
 
