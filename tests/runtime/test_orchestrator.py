@@ -11,7 +11,8 @@ pytest.importorskip("redis")
 
 from agents.runtime.src.base_agent import BaseAgent
 from tests.helpers.service_bus import build_test_event_bus
-from agents.runtime.src.memory_store import InMemoryConversationStore
+from packages.memory_client import MemoryClient
+from services.memory_service.memory_service import MemoryService
 from agents.runtime.src.orchestrator import AgentTask, Orchestrator, RetryPolicy
 
 ORCHESTRATOR_SERVICE_PATH = (
@@ -118,17 +119,17 @@ async def test_orchestrator_retries_transient_failures() -> None:
 
 @pytest.mark.asyncio
 async def test_orchestrator_persists_memory_across_calls() -> None:
-    memory_store = InMemoryConversationStore()
+    memory_client = MemoryClient(MemoryService(backend="memory"))
     orchestrator = Orchestrator(
         event_bus=build_test_event_bus(),
-        memory_store=memory_store,
+        memory_client=memory_client,
     )
     tasks = [AgentTask(task_id="first", agent=SleepAgent("agent-1", 0, "one"))]
 
     await orchestrator.run(tasks, memory_key="conversation-1")
     await orchestrator.run(tasks, memory_key="conversation-1")
 
-    persisted = await memory_store.load("conversation-1")
+    persisted = memory_client.load_context("conversation-1") or {}
     history = persisted.get("history", [])
     assert len(history) == 2
 

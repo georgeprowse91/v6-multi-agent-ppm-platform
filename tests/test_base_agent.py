@@ -128,3 +128,28 @@ async def test_agent_rejects_invalid_payload_type():
     validated = AgentResponse.model_validate(result)
     assert validated.success is False
     assert validated.error is not None
+
+
+class StubMemoryClient:
+    def __init__(self) -> None:
+        self.store: dict[str, dict] = {}
+
+    def save_context(self, key: str, data: dict) -> None:
+        self.store[key] = dict(data)
+
+    def load_context(self, key: str) -> dict | None:
+        return self.store.get(key)
+
+    def delete_context(self, key: str) -> None:
+        self.store.pop(key, None)
+
+
+@pytest.mark.asyncio
+async def test_agent_memory_helpers_use_scoped_keys():
+    memory_client = StubMemoryClient()
+    agent = SampleAgent(agent_id="memory-agent", memory_client=memory_client)
+
+    agent.save_context("conversation-1", {"a": 1})
+
+    assert memory_client.load_context("conversation-1:memory-agent") == {"a": 1}
+    assert agent.load_context("conversation-1") == {"a": 1}

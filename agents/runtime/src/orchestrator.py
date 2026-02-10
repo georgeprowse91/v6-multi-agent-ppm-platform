@@ -17,8 +17,9 @@ from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.data_service import DataServiceClient
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.event_bus import EventBus, get_event_bus, publish_insight
-from agents.runtime.src.memory_store import ConversationMemoryStore, InMemoryConversationStore
 from agents.runtime.src.models import AgentRun, AgentRunStatus
+from packages.memory_client import MemoryClient
+from services.memory_service.memory_service import MemoryService
 from agents.runtime.src.notification_service import NotificationServiceClient
 
 FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[3] / "packages" / "feature-flags" / "src"
@@ -72,13 +73,13 @@ class Orchestrator:
         self,
         *,
         event_bus: EventBus | None = None,
-        memory_store: ConversationMemoryStore | None = None,
+        memory_client: MemoryClient | None = None,
         retry_policy: RetryPolicy | None = None,
         max_parallel_tasks: int = 4,
         data_service_client: DataServiceClient | None = None,
     ) -> None:
         self._event_bus = event_bus or get_event_bus()
-        self._memory_store = memory_store or InMemoryConversationStore()
+        self._memory_client = memory_client or MemoryClient(MemoryService(backend="memory"))
         self._retry_policy = retry_policy or RetryPolicy()
         self._max_parallel_tasks = max_parallel_tasks
         self._active_tasks = 0
@@ -145,7 +146,7 @@ class Orchestrator:
                     if not pending:
                         await _launch(dependent_id)
 
-        await self._memory_store.save(resolved_memory_key, shared_context)
+        self._memory_client.save_context(resolved_memory_key, shared_context)
         metrics = {
             "max_parallel_tasks": self._max_parallel_seen,
             "total_tasks": len(tasks),
@@ -171,6 +172,7 @@ class Orchestrator:
                 await self._publish_metrics()
 
             dependency_results = {dep: results[dep] for dep in task.depends_on}
+            task.agent.memory_client = self._memory_client
             input_data = {
                 **task.input_data,
                 "context": shared_context,
@@ -230,7 +232,7 @@ class Orchestrator:
                     new_insights = await self._update_context(
                         shared_context, task.task_id, result_payload
                     )
-                    await self._memory_store.save(memory_key, shared_context)
+                    self._memory_client.save_context(memory_key, shared_context)
                     if new_insights:
                         await publish_insight(
                             self._event_bus,
@@ -328,7 +330,7 @@ class Orchestrator:
         await asyncio.sleep(delay)
 
     async def _load_context(self, memory_key: str, context: dict[str, Any]) -> dict[str, Any]:
-        persisted = await self._memory_store.load(memory_key)
+        persisted = self._memory_client.load_context(memory_key) or {}
         merged = {**persisted, **context}
         merged.setdefault("history", [])
         merged.setdefault("agent_outputs", {})

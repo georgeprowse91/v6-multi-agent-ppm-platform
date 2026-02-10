@@ -32,6 +32,7 @@ from agents.runtime.src.policy import (  # noqa: E402
     evaluate_policy_bundle,
     load_default_policy_bundle,
 )
+from packages.memory_client import MemoryClient  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class BaseAgent(ABC):
         agent_id: str,
         config: dict[str, Any] | None = None,
         catalog_id: str | None = None,
+        memory_client: MemoryClient | None = None,
     ):
         """
         Initialize the agent.
@@ -62,6 +64,7 @@ class BaseAgent(ABC):
         self.catalog_id = catalog_id or self.config.get("catalog_id") or get_catalog_id(agent_id)
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.initialized = False
+        self.memory_client = memory_client
         self.data_service: DataServiceClient | None = None
         data_service_url = self.config.get("data_service_url") or os.getenv("DATA_SERVICE_URL")
         if data_service_url:
@@ -140,6 +143,10 @@ class BaseAgent(ABC):
         correlation_id = (
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
         )
+        persisted_context = self.load_context(correlation_id) or {}
+        if persisted_context:
+            context = {**persisted_context, **context}
+            input_data = {**input_data, "context": context}
         tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
         catalog_id = self.catalog_id or self.agent_id
         trace_id = get_trace_id() or "unknown"
@@ -266,6 +273,7 @@ class BaseAgent(ABC):
                         trace_id=trace_id,
                     ),
                 )
+                self.save_context(correlation_id, {"last_output": response.model_dump()})
                 return response.model_dump()
 
         except Exception as e:
@@ -293,7 +301,21 @@ class BaseAgent(ABC):
                     trace_id=trace_id,
                 ),
             )
+            self.save_context(correlation_id, {"last_error": response.model_dump()})
             return response.model_dump()
+
+    def _memory_key(self, conversation_id: str) -> str:
+        return f"{conversation_id}:{self.agent_id}"
+
+    def save_context(self, conversation_id: str, data: dict[str, Any]) -> None:
+        if self.memory_client is None:
+            return
+        self.memory_client.save_context(self._memory_key(conversation_id), data)
+
+    def load_context(self, conversation_id: str) -> dict[str, Any] | None:
+        if self.memory_client is None:
+            return None
+        return self.memory_client.load_context(self._memory_key(conversation_id))
 
     def get_capabilities(self) -> list[str]:
         """
