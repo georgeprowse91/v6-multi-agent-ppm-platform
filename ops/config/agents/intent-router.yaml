@@ -1,0 +1,7 @@
+agent_id: intent-router
+model: gpt-4o-mini
+allow_injection: false
+prompt_fields:
+  - prompt
+  - user_prompt
+  - query

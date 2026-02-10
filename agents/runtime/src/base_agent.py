@@ -33,6 +33,7 @@ from agents.runtime.src.policy import (  # noqa: E402
     load_default_policy_bundle,
 )
 from packages.memory_client import MemoryClient  # noqa: E402
+from packages.llm.prompt_sanitizer import detect_injection, sanitize_prompt  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +242,29 @@ class BaseAgent(ABC):
                     )
                     return response.model_dump()
 
+                input_data, injection_details = self._apply_prompt_sanitization(input_data)
+                if injection_details["detected"]:
+                    self._log_event(
+                        action="prompt_injection_detected",
+                        outcome="success",
+                        tenant_id=tenant_id,
+                        correlation_id=correlation_id,
+                        details=injection_details,
+                    )
+                    if injection_details["mode"] == "rejected":
+                        response = AgentResponse(
+                            success=False,
+                            error="Input contains potentially unsafe prompt content.",
+                            metadata=AgentResponseMetadata(
+                                agent_id=self.agent_id,
+                                catalog_id=catalog_id,
+                                timestamp=start_time.isoformat(),
+                                correlation_id=correlation_id,
+                                trace_id=trace_id,
+                            ),
+                        )
+                        return response.model_dump()
+
                 # Process the request
                 self._log_event(
                     action="processing",
@@ -341,7 +365,16 @@ class BaseAgent(ABC):
         """
         return self.config.get(key, default)
 
-    def _log_event(self, *, action: str, outcome: str, tenant_id: str, correlation_id: str) -> None:
+    def _log_event(
+        self,
+        *,
+        action: str,
+        outcome: str,
+        tenant_id: str,
+        correlation_id: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        event_details = details or {}
         self.logger.info(
             "agent_event",
             extra={
@@ -352,8 +385,40 @@ class BaseAgent(ABC):
                 "catalog_id": self.catalog_id or self.agent_id,
                 "action": action,
                 "outcome": outcome,
+                **event_details,
             },
         )
+
+    def _apply_prompt_sanitization(self, input_data: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+        candidate_keys = self.get_config(
+            "prompt_fields",
+            ["prompt", "user_prompt", "query", "message", "input"],
+        )
+        allow_injection = bool(self.get_config("allow_injection", False))
+
+        detected_fields: list[str] = []
+        sanitized_fields: list[str] = []
+        updated_input = dict(input_data)
+
+        for key in candidate_keys:
+            value = input_data.get(key)
+            if not isinstance(value, str):
+                continue
+            if not detect_injection(value):
+                continue
+
+            detected_fields.append(key)
+            if allow_injection:
+                updated_input[key] = sanitize_prompt(value)
+                sanitized_fields.append(key)
+
+        details = {
+            "detected": bool(detected_fields),
+            "detected_fields": detected_fields,
+            "sanitized_fields": sanitized_fields,
+            "mode": "sanitized" if allow_injection else "rejected",
+        }
+        return updated_input, details
 
     def _normalize_payload(self, payload: Any) -> AgentPayload | None:
         if payload is None:
