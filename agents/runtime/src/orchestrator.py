@@ -24,6 +24,7 @@ from agents.runtime.src.models import AgentRun, AgentRunStatus
 from packages.memory_client import MemoryClient
 from services.memory_service.memory_service import MemoryService
 from agents.runtime.src.notification_service import NotificationServiceClient
+from observability.metrics import build_agent_execution_metrics
 
 FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[3] / "packages" / "feature-flags" / "src"
 if str(FEATURE_FLAGS_ROOT) not in sys.path:
@@ -115,6 +116,7 @@ class Orchestrator:
         self._human_review_rules = self._load_human_review_rules()
         self._human_review_timeout_seconds = self._load_human_review_timeout_seconds()
         self._pending_human_reviews: dict[str, HumanReviewRequest] = {}
+        self._execution_metrics = build_agent_execution_metrics("agent-orchestrator")
         self._human_review_decisions: dict[str, dict[str, Any]] = {}
         self._human_review_waiters: dict[str, asyncio.Future[dict[str, Any]]] = {}
         self._event_bus.subscribe("human_review_decision", self._handle_human_review_decision_event)
@@ -135,8 +137,16 @@ class Orchestrator:
 
         task_lookup = {task.task_id: task for task in tasks}
         self._validate_tasks(task_lookup)
-        resolved_memory_key = memory_key or (context or {}).get("correlation_id") or "default"
-        shared_context = await self._load_context(resolved_memory_key, context or {})
+        request_context = dict(context or {})
+        correlation_id = (
+            request_context.get("correlation_id")
+            or memory_key
+            or str(uuid.uuid4())
+        )
+        request_context["correlation_id"] = correlation_id
+        resolved_memory_key = memory_key or correlation_id
+        shared_context = await self._load_context(resolved_memory_key, request_context)
+        shared_context["correlation_id"] = correlation_id
         results: dict[str, dict[str, Any]] = {}
 
         pending_deps = {task_id: set(task.depends_on) for task_id, task in task_lookup.items()}
@@ -206,6 +216,7 @@ class Orchestrator:
                 await self._publish_metrics()
 
             dependency_results = {dep: results[dep] for dep in task.depends_on}
+            started_at = time.perf_counter()
             task.agent.memory_client = self._memory_client
             input_data = {
                 **task.input_data,
@@ -214,7 +225,7 @@ class Orchestrator:
             }
             await self._event_bus.publish(
                 "orchestrator.task.started",
-                {"task_id": task.task_id, "depends_on": list(task.depends_on)},
+                {"task_id": task.task_id, "depends_on": list(task.depends_on), "correlation_id": memory_key},
             )
             try:
                 result_payload = await self._execute_with_retries(task, input_data)
@@ -240,8 +251,25 @@ class Orchestrator:
                     await self._send_agent_run_notification(agent_run, result_payload)
                 await self._event_bus.publish(
                     "orchestrator.task.completed",
-                    {"task_id": task.task_id, "success": result_payload.get("success", False)},
+                    {"task_id": task.task_id, "success": result_payload.get("success", False), "correlation_id": memory_key},
                 )
+                self._execution_metrics.duration_seconds.record(
+                    time.perf_counter() - started_at,
+                    {
+                        "agent_id": task.agent.agent_id,
+                        "task_id": task.task_id,
+                        "correlation_id": memory_key,
+                    },
+                )
+                if not result_payload.get("success", False):
+                    self._execution_metrics.errors_total.add(
+                        1,
+                        {
+                            "agent_id": task.agent.agent_id,
+                            "task_id": task.task_id,
+                            "correlation_id": memory_key,
+                        },
+                    )
             except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
                 metadata = {"task_id": task.task_id}
                 if isinstance(exc, TimeoutError):
@@ -263,7 +291,23 @@ class Orchestrator:
                     await self._send_agent_run_notification(agent_run, result_payload)
                 await self._event_bus.publish(
                     "orchestrator.task.failed",
-                    {"task_id": task.task_id, "error": str(exc)},
+                    {"task_id": task.task_id, "error": str(exc), "correlation_id": memory_key},
+                )
+                self._execution_metrics.duration_seconds.record(
+                    time.perf_counter() - started_at,
+                    {
+                        "agent_id": task.agent.agent_id,
+                        "task_id": task.task_id,
+                        "correlation_id": memory_key,
+                    },
+                )
+                self._execution_metrics.errors_total.add(
+                    1,
+                    {
+                        "agent_id": task.agent.agent_id,
+                        "task_id": task.task_id,
+                        "correlation_id": memory_key,
+                    },
                 )
             finally:
                 async with self._context_lock:
@@ -546,9 +590,18 @@ class Orchestrator:
                 if not self._retry_policy.should_retry(exc, None):
                     raise
             if attempt < self._retry_policy.max_attempts:
+                correlation_id = ((input_data.get("context") or {}).get("correlation_id") or "unknown")
                 await self._event_bus.publish(
                     "orchestrator.task.retry",
-                    {"task_id": task.task_id, "attempt": attempt},
+                    {"task_id": task.task_id, "attempt": attempt, "correlation_id": correlation_id},
+                )
+                self._execution_metrics.retries_total.add(
+                    1,
+                    {
+                        "agent_id": task.agent.agent_id,
+                        "task_id": task.task_id,
+                        "correlation_id": correlation_id,
+                    },
                 )
                 await self._backoff(attempt)
         if last_error:

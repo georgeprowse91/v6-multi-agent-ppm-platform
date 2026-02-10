@@ -1,0 +1,92 @@
+{
+  "title": "Multi-Agent Tracing & Cost",
+  "uid": "multi-agent-tracing",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "correlation_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(agent_execution_duration_seconds, correlation_id)",
+        "refresh": 1,
+        "includeAll": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Agent execution waterfall by correlation",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum by (agent_id) (rate(agent_execution_duration_seconds_sum{correlation_id=\"$correlation_id\"}[5m])) / sum by (agent_id) (rate(agent_execution_duration_seconds_count{correlation_id=\"$correlation_id\"}[5m]))",
+          "legendFormat": "{{agent_id}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "Total API cost by correlation",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(external_api_cost{correlation_id=\"$correlation_id\"})",
+          "legendFormat": "total_usd"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 8}
+    },
+    {
+      "id": 3,
+      "title": "Cost breakdown by agent",
+      "type": "barchart",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum by (agent_id) (external_api_cost{correlation_id=\"$correlation_id\"})",
+          "legendFormat": "{{agent_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 8, "y": 8}
+    },
+    {
+      "id": 4,
+      "title": "Retries and errors timeline",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum by (agent_id) (increase(agent_retries_total{correlation_id=\"$correlation_id\"}[5m]))",
+          "legendFormat": "retries {{agent_id}}"
+        },
+        {
+          "expr": "sum by (agent_id) (increase(agent_errors_total{correlation_id=\"$correlation_id\"}[5m]))",
+          "legendFormat": "errors {{agent_id}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 20, "y": 8}
+    }
+  ]
+}

@@ -64,6 +64,13 @@ class CostMetrics:
     external_api_cost: Any
 
 
+@dataclass(frozen=True)
+class AgentExecutionMetrics:
+    duration_seconds: Any
+    retries_total: Any
+    errors_total: Any
+
+
 class RequestMetricsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, service_name: str) -> None:
         super().__init__(app)
@@ -178,6 +185,30 @@ def build_cost_metrics(service_name: str) -> CostMetrics:
     )
 
 
+def build_agent_execution_metrics(service_name: str) -> AgentExecutionMetrics:
+    meter = configure_metrics(service_name)
+    duration_seconds = meter.create_histogram(
+        name="agent_execution_duration_seconds",
+        description="Execution duration for agent runs",
+        unit="s",
+    )
+    retries_total = meter.create_counter(
+        name="agent_retries_total",
+        description="Total retries per agent execution",
+        unit="1",
+    )
+    errors_total = meter.create_counter(
+        name="agent_errors_total",
+        description="Total agent execution errors",
+        unit="1",
+    )
+    return AgentExecutionMetrics(
+        duration_seconds=duration_seconds,
+        retries_total=retries_total,
+        errors_total=errors_total,
+    )
+
+
 agent_request_count = Counter(
     "agent_requests_total",
     "Total number of agent invocations",
@@ -197,10 +228,12 @@ __all__ = [
     "build_mcp_client_metrics",
     "build_mcp_fallback_metrics",
     "build_cost_metrics",
+    "build_agent_execution_metrics",
     "KPIHandles",
     "MCPClientMetrics",
     "MCPFallbackMetrics",
     "CostMetrics",
+    "AgentExecutionMetrics",
     "RequestMetricsMiddleware",
     "agent_request_count",
     "agent_request_latency",

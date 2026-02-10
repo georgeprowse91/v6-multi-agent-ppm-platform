@@ -20,6 +20,7 @@ from workflow_client import WorkflowClient
 
 from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
 from observability.metrics import agent_request_count, agent_request_latency
+from observability.tracing import inject_trace_headers
 from tools.runtime_paths import bootstrap_runtime_paths
 
 if TYPE_CHECKING:
@@ -225,6 +226,7 @@ class AgentOrchestrator:
         correlation_id = workflow_headers.get("X-Correlation-ID") or str(uuid4())
         workflow_headers.setdefault("X-Tenant-ID", tenant_id)
         workflow_headers["X-Correlation-ID"] = correlation_id
+        workflow_headers = inject_trace_headers(workflow_headers, correlation_id=correlation_id)
         structlog.get_logger().bind(correlation_id=correlation_id).info(
             "workflow_request_headers_prepared",
             tenant_id=tenant_id,

@@ -18,7 +18,7 @@ if str(OBSERVABILITY_ROOT) not in sys.path:
     sys.path.insert(0, str(OBSERVABILITY_ROOT))
 
 from observability.tracing import get_trace_id, start_agent_span  # noqa: E402
-from observability.metrics import build_cost_metrics  # noqa: E402
+from observability.metrics import build_agent_execution_metrics, build_cost_metrics  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
 from agents.runtime.src.agent_catalog import get_catalog_id  # noqa: E402
@@ -74,6 +74,8 @@ class BaseAgent(ABC):
         if data_service_url:
             self.data_service = DataServiceClient.from_url(data_service_url)
         self._cost_metrics = build_cost_metrics(f"agent-{self.catalog_id}")
+        self._execution_metrics = build_agent_execution_metrics(f"agent-{self.catalog_id}")
+        self._active_correlation_id: str | None = None
         self._cost_summary: dict[str, Any] = {
             "llm_tokens": {
                 "request": 0,
@@ -165,6 +167,7 @@ class BaseAgent(ABC):
             input_data = {**input_data, "context": context}
         tenant_id = context.get("tenant_id") or input_data.get("tenant_id") or "unknown"
         catalog_id = self.catalog_id or self.agent_id
+        self._active_correlation_id = correlation_id
         trace_id = get_trace_id() or "unknown"
         self._reset_cost_summary()
         request_feedback = bool(self.get_config("request_feedback", False))
@@ -231,6 +234,7 @@ class BaseAgent(ABC):
                     "tenant.id": tenant_id,
                     "correlation.id": correlation_id,
                 },
+                correlation_id=correlation_id,
             ):
                 self._log_event(
                     action="execution_started",
@@ -305,6 +309,14 @@ class BaseAgent(ABC):
                     tenant_id=tenant_id,
                     correlation_id=correlation_id,
                 )
+                self._execution_metrics.duration_seconds.record(
+                    execution_time,
+                    {
+                        "agent_id": self.agent_id,
+                        "catalog_id": catalog_id,
+                        "correlation_id": correlation_id,
+                    },
+                )
 
                 response = AgentResponse(
                     success=True,
@@ -332,6 +344,22 @@ class BaseAgent(ABC):
                 tenant_id=tenant_id,
                 correlation_id=correlation_id,
             )
+            self._execution_metrics.errors_total.add(
+                1,
+                {
+                    "agent_id": self.agent_id,
+                    "catalog_id": catalog_id,
+                    "correlation_id": correlation_id,
+                },
+            )
+            self._execution_metrics.duration_seconds.record(
+                execution_time,
+                {
+                    "agent_id": self.agent_id,
+                    "catalog_id": catalog_id,
+                    "correlation_id": correlation_id,
+                },
+            )
 
             # Avoid leaking internal details in non-development environments
             error_message = str(e) if os.getenv("ENVIRONMENT", "development") == "development" else e.__class__.__name__
@@ -352,6 +380,8 @@ class BaseAgent(ABC):
             )
             self.save_context(correlation_id, {"last_error": response.model_dump()})
             return response.model_dump()
+        finally:
+            self._active_correlation_id = None
 
     def send_feedback(self, feedback: Feedback | dict[str, Any]) -> None:
         """Persist user feedback associated with this agent's run correlation ID."""
@@ -481,6 +511,7 @@ class BaseAgent(ABC):
             "catalog_id": self.catalog_id,
             "model": model or "unknown",
             "provider": provider or "unknown",
+            "correlation_id": self._active_correlation_id or "unknown",
         }
         self._cost_metrics.llm_tokens_consumed.add(
             request_tokens,
@@ -503,6 +534,7 @@ class BaseAgent(ABC):
                 "agent_id": self.agent_id,
                 "catalog_id": self.catalog_id,
                 "connector_name": connector,
+                "correlation_id": self._active_correlation_id or "unknown",
             },
         )
         self._cost_summary["api_cost_total_usd"] += normalized_cost

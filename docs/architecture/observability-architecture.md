@@ -11,7 +11,7 @@ Observability spans the API gateway, orchestration runtime, and connector layer.
 ## Telemetry standards
 
 - **Logs**: structured logs exported via OpenTelemetry and correlated with trace context.
-- **Metrics**: request latency, error rates, throughput, and connector sync duration/success.
+- **Metrics**: request latency, error rates, throughput, connector sync duration/success, per-agent execution duration, retries, and execution cost.
 - **Traces**: end-to-end spans across request routing, orchestration, and connector sync operations.
 
 ### Log schema (example)
@@ -26,6 +26,16 @@ Observability spans the API gateway, orchestration runtime, and connector layer.
   "context": {"intent": "create_project"}
 }
 ```
+
+### Correlation IDs and cost telemetry
+
+- Every top-level user request receives a `correlation_id` (UUID) and propagates it through orchestrator context and downstream agent calls.
+- Structured logs, audit events, and metrics include `correlation_id` so one query can be traced end-to-end across all participating agents.
+- Agent metrics include:
+  - `agent_execution_duration_seconds` histogram tagged with `agent_id`, `task_id`, and `correlation_id`.
+  - `agent_retries_total` counter tagged by the same dimensions.
+  - `agent_errors_total` counter tagged by the same dimensions.
+  - Cost counters (`external_api_cost`, `llm_tokens_consumed`) tagged with `correlation_id` for request-level attribution.
 
 ## SLO/SLI targets
 
@@ -59,6 +69,7 @@ Grafana dashboards are stored as JSON exports in `infra/observability/dashboards
 
 - `ppm-platform.json` for latency, throughput, error rate, and connector sync duration.
 - `ppm-slo.json` for SLO adherence, connector sync success, and error budget tracking.
+- `multi_agent_tracing.json` for correlation-based multi-agent waterfall views, retries/errors overlays, and cost breakdowns by agent.
 
 #### Dashboard screenshots
 
