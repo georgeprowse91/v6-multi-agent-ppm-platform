@@ -1,6 +1,6 @@
 import { Link, matchPath, useLocation } from 'react-router-dom';
 import { useCallback, useState, type ReactNode } from 'react';
-import { useAppStore } from '@/store';
+import { useAppStore, useMethodologyStore } from '@/store';
 import { useTranslation } from '@/i18n';
 import { canManageConfig, canViewAuditLogs, hasPermission } from '@/auth/permissions';
 import { MethodologyNav } from '@/components/methodology';
@@ -146,10 +146,21 @@ export function LeftPanel() {
   const showNotifications = featureFlags.agent_async_notifications === true;
   const selectedProjectId = currentSelection?.type === 'project' ? currentSelection.id : null;
   const [isHubAdminExpanded, setIsHubAdminExpanded] = useState(false);
+  const projectMethodology = useMethodologyStore((state) => state.projectMethodology);
   const projectIdFromRoute = getProjectIdFromPathname(location.pathname);
   const sidebarMode = getSidebarMode(location.pathname);
   const projectId =
     sidebarMode === 'project-workspace' ? (projectIdFromRoute ?? selectedProjectId) : null;
+  const isProjectMethodologyLoaded =
+    sidebarMode === 'project-workspace' &&
+    !!projectId &&
+    projectMethodology.projectId === projectId;
+  const projectName = isProjectMethodologyLoaded
+    ? projectMethodology.projectName
+    : 'Loading project…';
+  const methodologyName = isProjectMethodologyLoaded
+    ? projectMethodology.methodology.name
+    : 'Loading methodology…';
 
   const handleNavKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLUListElement>) => {
@@ -373,7 +384,19 @@ export function LeftPanel() {
       className={`${styles.panel} ${leftPanelCollapsed ? styles.collapsed : ''}`}
     >
       <div className={styles.header}>
-        {!leftPanelCollapsed && <h2 className={styles.title}>{t('nav.navigation')}</h2>}
+        {sidebarMode === 'project-workspace' ? (
+          <Link
+            to="/"
+            className={styles.backToHub}
+            title={leftPanelCollapsed ? 'Back to Hub' : undefined}
+            aria-label={leftPanelCollapsed ? 'Back to Hub' : undefined}
+          >
+            {!leftPanelCollapsed && <span className={styles.backToHubLabel}>Back to Hub</span>}
+            {leftPanelCollapsed && <span aria-hidden="true">←</span>}
+          </Link>
+        ) : (
+          !leftPanelCollapsed && <h2 className={styles.title}>{t('nav.navigation')}</h2>
+        )}
         <button
           type="button"
           className={styles.collapseButton}
@@ -392,6 +415,13 @@ export function LeftPanel() {
           />
         </button>
       </div>
+
+      {sidebarMode === 'project-workspace' && (
+        <div className={styles.projectIdentity} aria-live="polite">
+          <span className={styles.projectIdentityName}>{projectName}</span>
+          <span className={styles.projectIdentityBadge}>{methodologyName}</span>
+        </div>
+      )}
 
       <nav className={styles.nav} id="left-panel-nav" aria-label="Primary navigation">
         {sidebarMode === 'hub' ? renderHubNav() : renderProjectWorkspaceNav()}
