@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, matchPath, useLocation } from 'react-router-dom';
 import { useCallback } from 'react';
 import { useAppStore } from '@/store';
 import { useTranslation } from '@/i18n';
@@ -55,7 +55,7 @@ const workflowNav: NavItem[] = [
     id: 'intake-new',
     label: 'New Intake',
     path: '/intake/new',
-    icon: 'actions.edit',
+    icon: 'actions.edit' as IconSemantic,
   },
   {
     id: 'intake-approvals',
@@ -67,7 +67,7 @@ const workflowNav: NavItem[] = [
     id: 'workflow-monitoring',
     label: 'Workflow Monitor',
     path: '/workflows/monitoring',
-    icon: 'provenance.auditLog',
+    icon: 'provenance.auditLog' as IconSemantic,
   },
 ];
 
@@ -95,6 +95,21 @@ const analyticsNav: NavItem[] = [
   },
 ];
 
+type SidebarMode = 'hub' | 'project-workspace';
+
+function getProjectIdFromPathname(pathname: string): string | null {
+  const projectRouteMatch =
+    matchPath('/projects/:projectId/*', pathname) ??
+    matchPath('/projects/:projectId', pathname) ??
+    matchPath('/project/:projectId', pathname);
+
+  return projectRouteMatch?.params.projectId ?? null;
+}
+
+function getSidebarMode(pathname: string): SidebarMode {
+  return getProjectIdFromPathname(pathname) ? 'project-workspace' : 'hub';
+}
+
 export function LeftPanel() {
   const location = useLocation();
   const {
@@ -111,7 +126,11 @@ export function LeftPanel() {
   const showProjectConfig = canManageConfig(session.user?.permissions);
   const showMergeReview = featureFlags.duplicate_resolution === true;
   const showNotifications = featureFlags.agent_async_notifications === true;
-  const projectId = currentSelection?.type === 'project' ? currentSelection.id : null;
+  const selectedProjectId = currentSelection?.type === 'project' ? currentSelection.id : null;
+  const projectIdFromRoute = getProjectIdFromPathname(location.pathname);
+  const sidebarMode = getSidebarMode(location.pathname);
+  const projectId =
+    sidebarMode === 'project-workspace' ? (projectIdFromRoute ?? selectedProjectId) : null;
 
   const handleNavKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLUListElement>) => {
@@ -157,7 +176,7 @@ export function LeftPanel() {
     'workflow-monitoring': 'nav-workflow-monitor',
   };
 
-  const configItems = [
+  const configItems: NavItem[] = [
     ...configNav,
     ...(showRoleManager
       ? [
@@ -165,7 +184,7 @@ export function LeftPanel() {
             id: 'role-manager',
             label: 'Role Management',
             path: '/admin/roles',
-            icon: 'actions.edit',
+            icon: 'actions.edit' as IconSemantic,
           },
         ]
       : []),
@@ -175,7 +194,7 @@ export function LeftPanel() {
             id: 'audit-logs',
             label: t('nav.auditLogs'),
             path: '/admin/audit',
-            icon: 'provenance.auditLog',
+            icon: 'provenance.auditLog' as IconSemantic,
           },
         ]
       : []),
@@ -185,13 +204,13 @@ export function LeftPanel() {
             id: 'agent-runs',
             label: 'Agent Runs',
             path: '/admin/agent-runs',
-            icon: 'provenance.auditLog',
+            icon: 'provenance.auditLog' as IconSemantic,
           },
         ]
       : []),
   ];
 
-  const workflowItems = [
+  const workflowItems: NavItem[] = [
     ...workflowNav,
     ...(showMergeReview
       ? [
@@ -209,7 +228,7 @@ export function LeftPanel() {
             id: 'notifications',
             label: 'Notification Center',
             path: '/notifications',
-            icon: 'communication.notifications',
+            icon: 'communication.notifications' as IconSemantic,
           },
         ]
       : []),
@@ -221,7 +240,7 @@ export function LeftPanel() {
           id: 'project-config',
           label: 'Configuration',
           path: `/projects/${projectId}/config`,
-          icon: 'actions.settings',
+          icon: 'actions.settings' as IconSemantic,
         },
       ]
     : [];
@@ -252,43 +271,45 @@ export function LeftPanel() {
       </div>
 
       <nav className={styles.nav} id="left-panel-nav" aria-label="Primary navigation">
-        {/* Methodology Navigation - Main section */}
-        <div className={styles.section}>
-          {!leftPanelCollapsed && (
-            <h3 className={styles.sectionTitle}>{t('nav.methodology')}</h3>
-          )}
-          <MethodologyNav collapsed={leftPanelCollapsed} />
-        </div>
+        {sidebarMode === 'hub' && (
+          <>
+            {/* Methodology Navigation - Main section */}
+            <div className={styles.section}>
+              {!leftPanelCollapsed && (
+                <h3 className={styles.sectionTitle}>{t('nav.methodology')}</h3>
+              )}
+              <MethodologyNav collapsed={leftPanelCollapsed} />
+            </div>
 
-        {/* Configuration Navigation */}
-        <div className={styles.section}>
-          {!leftPanelCollapsed && (
-            <h3 className={styles.sectionTitle}>{t('nav.configuration')}</h3>
-          )}
-          <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
-            {configItems.map((item) => (
-              <li key={item.id}>
-                <Link
-                  to={item.path!}
-                  className={`${styles.navItem} ${
-                    location.pathname === item.path ? styles.active : ''
-                  }`}
-                  title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
-                  aria-label={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
-                  data-nav-item="true"
-                  data-tour={tourTargets[item.id] ?? undefined}
-                >
-                  <Icon semantic={item.icon} decorative className={styles.icon} />
-                  {!leftPanelCollapsed && (
-                    <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+            {/* Configuration Navigation */}
+            <div className={styles.section}>
+              {!leftPanelCollapsed && (
+                <h3 className={styles.sectionTitle}>{t('nav.configuration')}</h3>
+              )}
+              <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
+                {configItems.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      to={item.path!}
+                      className={`${styles.navItem} ${
+                        location.pathname === item.path ? styles.active : ''
+                      }`}
+                      title={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                      aria-label={leftPanelCollapsed ? (labelOverrides[item.id] ?? item.label) : undefined}
+                      data-nav-item="true"
+                      data-tour={tourTargets[item.id] ?? undefined}
+                    >
+                      <Icon semantic={item.icon} decorative className={styles.icon} />
+                      {!leftPanelCollapsed && (
+                        <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        <div className={styles.section}>
+            <div className={styles.section}>
           {!leftPanelCollapsed && (
             <h3 className={styles.sectionTitle}>{t('nav.workflow')}</h3>
           )}
@@ -313,9 +334,9 @@ export function LeftPanel() {
               </li>
             ))}
           </ul>
-        </div>
+            </div>
 
-        <div className={styles.section}>
+            <div className={styles.section}>
           {!leftPanelCollapsed && (
             <h3 className={styles.sectionTitle}>{t('nav.knowledge')}</h3>
           )}
@@ -340,9 +361,9 @@ export function LeftPanel() {
               </li>
             ))}
           </ul>
-        </div>
+            </div>
 
-        <div className={styles.section}>
+            <div className={styles.section}>
           {!leftPanelCollapsed && <h3 className={styles.sectionTitle}>Analytics</h3>}
           <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
             {analyticsNav.map((item) => (
@@ -364,7 +385,9 @@ export function LeftPanel() {
               </li>
             ))}
           </ul>
-        </div>
+            </div>
+          </>
+        )}
 
         {showProjectConfig && projectConfigNav.length > 0 && (
           <div className={styles.section}>
