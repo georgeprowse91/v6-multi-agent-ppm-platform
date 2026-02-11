@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMethodologyStore } from '@/store/methodology';
 import {
   fetchDocuments,
@@ -10,7 +11,8 @@ import styles from './DocumentSearchPage.module.css';
 
 export function DocumentSearchPage() {
   const { projectMethodology } = useMethodologyStore();
-  const projectId = projectMethodology.projectId;
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('project') || projectMethodology.projectId;
   const projectName = projectMethodology.projectName;
 
   const [query, setQuery] = useState('');

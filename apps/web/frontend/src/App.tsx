@@ -1,4 +1,4 @@
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Navigate, Route, Routes, Outlet } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import { useAppStore } from '@/store';
 import {
@@ -27,6 +27,21 @@ import {
   NotificationCenterPage,
 } from '@/pages';
 
+interface EntityCollectionRedirectProps {
+  type: 'portfolio' | 'program' | 'project';
+}
+
+function EntityCollectionRedirect({ type }: EntityCollectionRedirectProps) {
+  const { currentSelection } = useAppStore();
+  const fallbackPath = `/${type}/demo`;
+
+  if (currentSelection?.type === type && currentSelection.id) {
+    return <Navigate replace to={`/${type}/${currentSelection.id}`} />;
+  }
+
+  return <Navigate replace to={fallbackPath} />;
+}
+
 export function App() {
   const { featureFlags } = useAppStore();
   const showMergeReview = featureFlags.duplicate_resolution === true;
@@ -51,13 +66,28 @@ export function App() {
           element={<WorkspacePage type="portfolio" />}
         />
         <Route
+          path="/portfolios/:portfolioId"
+          element={<WorkspacePage type="portfolio" />}
+        />
+        <Route path="/portfolios" element={<EntityCollectionRedirect type="portfolio" />} />
+        <Route
           path="/program/:programId"
           element={<WorkspacePage type="program" />}
         />
         <Route
+          path="/programs/:programId"
+          element={<WorkspacePage type="program" />}
+        />
+        <Route path="/programs" element={<EntityCollectionRedirect type="program" />} />
+        <Route
           path="/project/:projectId"
           element={<WorkspacePage type="project" />}
         />
+        <Route
+          path="/projects/:projectId"
+          element={<WorkspacePage type="project" />}
+        />
+        <Route path="/projects" element={<EntityCollectionRedirect type="project" />} />
         <Route
           path="/projects/:projectId/config"
           element={<ProjectConfigPage />}
