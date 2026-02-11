@@ -9,6 +9,8 @@ import {
   type AssistantMessage,
 } from '@/store/assistant';
 import styles from './MessageList.module.css';
+import bubbleStyles from './MessageBubble.module.css';
+import { MessageBubble } from './MessageBubble';
 
 interface MessageListProps {
   messages: AssistantMessage[];
@@ -156,14 +158,19 @@ export function MessageList({
           <MessageBubble
             key={message.id}
             message={message}
-            onChipClick={onChipClick}
-            renderActionChip={renderActionChip}
+            renderActionChip={(chip, options) =>
+              renderActionChip ? (
+                renderActionChip(chip, options)
+              ) : (
+                <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
+              )
+            }
           />
         ))
       )}
 
       {showTypingIndicator && (
-        <div className={`${styles.message} ${styles.assistant} ${styles.typingBubble}`}>
+        <div className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble}`}>
           <div className={styles.typingDots} aria-hidden="true">
             <span />
             <span />
@@ -176,52 +183,6 @@ export function MessageList({
       )}
 
       <div ref={scrollAnchorRef} />
-    </div>
-  );
-}
-
-interface MessageBubbleProps {
-  message: AssistantMessage;
-  onChipClick: (chip: ActionChip) => void;
-  renderActionChip?: (chip: ActionChip, options?: { small?: boolean }) => ReactNode;
-}
-
-function MessageBubble({ message, onChipClick, renderActionChip }: MessageBubbleProps) {
-  return (
-    <div
-      className={`${styles.message} ${styles[message.role]} ${message.isWarning ? styles.warning : ''}`}
-    >
-      <div className={styles.messageContent}>{message.content}</div>
-      {message.sources && message.sources.length > 0 && (
-        <ul className={styles.messageSources}>
-          {message.sources.map((source) => (
-            <li key={source}>{source}</li>
-          ))}
-        </ul>
-      )}
-      {message.actionChips && message.actionChips.length > 0 && (
-        <div className={styles.messageChips}>
-          {message.actionChips.map((chip) =>
-            renderActionChip ? (
-              <span key={chip.id}>{renderActionChip(chip, { small: true })}</span>
-            ) : (
-              <ActionChipButton key={chip.id} chip={chip} onClick={() => onChipClick(chip)} small />
-            )
-          )}
-        </div>
-      )}
-      <div className={styles.messageMeta}>
-        {message.role === 'assistant' && <span className={styles.generatedBadge}>Generated</span>}
-        {message.role === 'assistant' && (!message.sources || message.sources.length === 0) && (
-          <span className={styles.noSourcesBadge}>No sources</span>
-        )}
-        <time className={styles.messageTime}>
-          {message.timestamp.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </time>
-      </div>
     </div>
   );
 }
