@@ -26,6 +26,7 @@ import {
 import { usePromptStore } from '@/store/prompts';
 import { Icon } from '@/components/icon/Icon';
 import { AssistantHeader } from './AssistantHeader';
+import { ContextBar } from './ContextBar';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import {
   formatPromptTags,
@@ -930,43 +931,7 @@ export function AssistantPanel() {
       />
 
       {/* Context Display */}
-      {context && (
-        <div className={styles.contextArea}>
-          <div className={styles.contextHeader}>
-            <span className={styles.contextLabel}>Current Context</span>
-          </div>
-          <div className={styles.contextContent}>
-            <div className={styles.contextItem}>
-              <span className={styles.contextItemLabel}>Project</span>
-              <span className={styles.contextItemValue}>{context.projectName}</span>
-            </div>
-            {context.currentStageName && (
-              <div className={styles.contextItem}>
-                <span className={styles.contextItemLabel}>Stage</span>
-                <span className={styles.contextItemValue}>
-                  {context.currentStageName}
-                  <span className={styles.progressBadge}>{context.stageProgress}%</span>
-                </span>
-              </div>
-            )}
-            {context.currentActivityName && (
-              <div className={styles.contextItem}>
-                <span className={styles.contextItemLabel}>Activity</span>
-                <span
-                  className={`${styles.contextItemValue} ${
-                    context.isCurrentActivityLocked ? styles.locked : ''
-                  }`}
-                >
-                  {context.currentActivityName}
-                  {context.isCurrentActivityLocked && (
-                    <span className={styles.lockedBadge}>Locked</span>
-                  )}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {context && <ContextBar context={context} />}
 
       {/* Action Chips (Next Best Actions) */}
       {actionChips.length > 0 && (

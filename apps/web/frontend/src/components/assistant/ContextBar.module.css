@@ -1,0 +1,74 @@
+.contextBar {
+  background-color: var(--color-surface-subtle);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.collapsedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 32px;
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text-primary);
+}
+
+.collapsedRow:hover {
+  background-color: color-mix(in srgb, var(--color-surface-subtle) 85%, var(--color-surface-card));
+}
+
+.breadcrumb {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  text-align: left;
+  flex: 1;
+}
+
+.progressBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-card);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.expandedContent {
+  padding: 0 var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.detailLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.detailValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  text-align: right;
+}
+
+.lockedValue {
+  color: var(--color-state-warning-fg);
+}
