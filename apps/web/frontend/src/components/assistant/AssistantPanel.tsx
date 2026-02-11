@@ -24,6 +24,7 @@ import { ContextBar } from './ContextBar';
 import { MessageList } from './MessageList';
 import { ActionChipButton } from './ActionChipButton';
 import { QuickActions } from './QuickActions';
+import { ChatInput } from './ChatInput';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import { formatAssistantResponse } from '@/utils/assistantResponses';
 import styles from './AssistantPanel.module.css';
@@ -88,7 +89,6 @@ export function AssistantPanel() {
     setAiState,
   } = useAssistantStore();
 
-  const [inputValue, setInputValue] = useState('');
   const [scopeResearchOpen, setScopeResearchOpen] = useState(false);
   const [scopeResearchObjective, setScopeResearchObjective] = useState('');
   const [scopeResearchLoading, setScopeResearchLoading] = useState(false);
@@ -101,7 +101,7 @@ export function AssistantPanel() {
     useState<ConversationalCommandPreview | null>(null);
   const [conversationalConfirmed, setConversationalConfirmed] = useState(false);
   const [assistantError, setAssistantError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const prevActivityIdRef = useRef<string | null>(null);
   const conversationalCommandsEnabled = featureFlags.conversational_commands === true;
 
@@ -586,16 +586,9 @@ export function AssistantPanel() {
     ]
   );
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextValue = event.target.value;
-    setInputValue(nextValue);
-  };
-
   // Handle text input submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    const messageText = inputValue.trim();
+  const handleSubmitMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
     addUserMessage(messageText);
     setAiState('thinking');
     setAssistantError(null);
@@ -637,7 +630,6 @@ export function AssistantPanel() {
       handleLocalResponse(messageText);
       setAiState('completed');
     }
-    setInputValue('');
   };
 
   // Handle local responses without backend
@@ -813,38 +805,12 @@ export function AssistantPanel() {
       <QuickActions chips={actionChips} onChipClick={handleChipClick} />
 
       {/* Input Area */}
-      <form className={styles.inputArea} onSubmit={handleSubmit}>
-        {assistantError && (
-          <p className={styles.inputError} role="alert">
-            {assistantError}
-          </p>
-        )}
-        <div className={styles.inputRow}>
-          <label className={styles.visuallyHidden} htmlFor="assistant-chat-input">
-            AI assistant chat input
-          </label>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Ask about your project..."
-            value={inputValue}
-            onChange={handleInputChange}
-            ref={inputRef}
-            id="assistant-chat-input"
-          />
-          <button
-            type="submit"
-            className={styles.sendButton}
-            disabled={!inputValue.trim()}
-            title="Send message"
-          >
-            <Icon
-              semantic="communication.send"
-              label="Send message"
-            />
-          </button>
-        </div>
-      </form>
+      <ChatInput
+        error={assistantError}
+        inputRef={inputRef}
+        onSubmitMessage={handleSubmitMessage}
+        onStartScopeResearch={() => setScopeResearchOpen(true)}
+      />
 
       {scopeResearchOpen && (
         <div className={styles.modalOverlay}>

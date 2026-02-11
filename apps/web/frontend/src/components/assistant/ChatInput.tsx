@@ -1,0 +1,238 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react';
+import { Icon } from '@/components/icon/Icon';
+import { usePromptStore } from '@/store/prompts';
+import styles from './ChatInput.module.css';
+
+const MIN_HEIGHT = 56;
+const MAX_HEIGHT = 168;
+
+const SLASH_COMMANDS = [
+  { command: '/prompt', description: 'Open prompt picker' },
+  { command: '/research', description: 'Start scope research' },
+  { command: '/help', description: 'Send help request' },
+  { command: '/status', description: 'Send status request' },
+] as const;
+
+interface ChatInputProps {
+  error?: string | null;
+  inputRef?: RefObject<HTMLTextAreaElement>;
+  onSubmitMessage: (message: string) => Promise<void> | void;
+  onStartScopeResearch: () => void;
+}
+
+export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResearch }: ChatInputProps) {
+  const [value, setValue] = useState('');
+  const [activeCommandIndex, setActiveCommandIndex] = useState(0);
+  const [promptPickerOpen, setPromptPickerOpen] = useState(false);
+  const internalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const prompts = usePromptStore((state) => state.prompts);
+  const hydratePrompts = usePromptStore((state) => state.hydratePrompts);
+
+  const textareaRef = inputRef ?? internalTextareaRef;
+
+  const slashQuery = value.startsWith('/') ? value.toLowerCase() : '';
+  const slashOptions = useMemo(
+    () =>
+      SLASH_COMMANDS.filter((item) =>
+        item.command.toLowerCase().startsWith(slashQuery)
+      ),
+    [slashQuery]
+  );
+  const slashOpen = slashQuery.length > 0 && !promptPickerOpen && slashOptions.length > 0;
+
+  const resizeTextarea = useCallback(() => {
+    if (!textareaRef.current) {
+      return;
+    }
+    textareaRef.current.style.height = 'auto';
+    textareaRef.current.style.height = `${Math.max(MIN_HEIGHT, Math.min(textareaRef.current.scrollHeight, MAX_HEIGHT))}px`;
+  }, [textareaRef]);
+
+  const runCommand = async (command: string) => {
+    setValue('');
+    setActiveCommandIndex(0);
+
+    if (command === '/prompt') {
+      setPromptPickerOpen(true);
+      hydratePrompts();
+      return;
+    }
+
+    if (command === '/research') {
+      onStartScopeResearch();
+      return;
+    }
+
+    if (command === '/help') {
+      await onSubmitMessage('help');
+      return;
+    }
+
+    if (command === '/status') {
+      await onSubmitMessage('status');
+    }
+  };
+
+  const submitCurrent = async () => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    if (trimmed.startsWith('/')) {
+      const option = slashOptions[activeCommandIndex] ?? slashOptions[0];
+      if (option) {
+        await runCommand(option.command);
+        resizeTextarea();
+      }
+      return;
+    }
+
+    await onSubmitMessage(trimmed);
+    setValue('');
+    setPromptPickerOpen(false);
+    resizeTextarea();
+  };
+
+  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(event.target.value);
+    setPromptPickerOpen(false);
+  };
+
+  const handleKeyDown = async (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (slashOpen && event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveCommandIndex((prev) => (prev + 1) % slashOptions.length);
+      return;
+    }
+
+    if (slashOpen && event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveCommandIndex((prev) => (prev - 1 + slashOptions.length) % slashOptions.length);
+      return;
+    }
+
+    if ((slashOpen || promptPickerOpen) && event.key === 'Escape') {
+      event.preventDefault();
+      setPromptPickerOpen(false);
+      setValue((prev) => (prev.startsWith('/') ? '' : prev));
+      return;
+    }
+
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+
+      if (slashOpen) {
+        const option = slashOptions[activeCommandIndex] ?? slashOptions[0];
+        if (option) {
+          await runCommand(option.command);
+          resizeTextarea();
+        }
+        return;
+      }
+
+      await submitCurrent();
+    }
+  };
+
+  useEffect(() => {
+    resizeTextarea();
+  }, [resizeTextarea, value]);
+
+  useEffect(() => {
+    if (activeCommandIndex > slashOptions.length - 1) {
+      setActiveCommandIndex(0);
+    }
+  }, [activeCommandIndex, slashOptions.length]);
+
+  return (
+    <form
+      className={styles.inputArea}
+      onSubmit={async (event: FormEvent) => {
+        event.preventDefault();
+        await submitCurrent();
+      }}
+    >
+      {error && (
+        <p className={styles.inputError} role="alert">
+          {error}
+        </p>
+      )}
+
+      {slashOpen && (
+        <div className={styles.slashPopover} role="listbox" aria-label="Slash commands">
+          {slashOptions.map((option, index) => (
+            <button
+              type="button"
+              key={option.command}
+              className={`${styles.slashOption} ${index === activeCommandIndex ? styles.slashOptionActive : ''}`}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                void runCommand(option.command);
+              }}
+            >
+              <span className={styles.optionLabel}>{option.command}</span>
+              <span className={styles.optionDescription}>{option.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {promptPickerOpen && (
+        <div className={styles.promptPicker} role="dialog" aria-label="Prompt picker">
+          <div className={styles.promptHeader}>Prompt picker</div>
+          {prompts.map((prompt) => (
+            <button
+              key={prompt.id}
+              type="button"
+              className={styles.promptOption}
+              onClick={() => {
+                setValue(prompt.description);
+                setPromptPickerOpen(false);
+                requestAnimationFrame(() => {
+                  textareaRef.current?.focus();
+                });
+              }}
+            >
+              <span className={styles.promptTitle}>{prompt.label}</span>
+              <span className={styles.promptDescription}>{prompt.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className={styles.inputRow}>
+        <label className={styles.visuallyHidden} htmlFor="assistant-chat-input">
+          AI assistant chat input
+        </label>
+        <textarea
+          rows={2}
+          className={styles.textarea}
+          placeholder="Ask about your project…"
+          value={value}
+          onChange={handleChange}
+          onKeyDown={(event) => {
+            void handleKeyDown(event);
+          }}
+          ref={textareaRef}
+          id="assistant-chat-input"
+        />
+        <button
+          type="submit"
+          className={styles.sendButton}
+          disabled={!value.trim()}
+          title="Send message"
+        >
+          <Icon
+            semantic="communication.send"
+            label="Send message"
+          />
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export default ChatInput;
