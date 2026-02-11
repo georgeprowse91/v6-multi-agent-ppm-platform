@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { Icon } from '@/components/icon/Icon';
 import {
-  CATEGORY_COLORS,
-  CATEGORY_ICONS,
   type AIState,
   type ActionChip,
   type AssistantContext,
@@ -10,6 +7,7 @@ import {
 } from '@/store/assistant';
 import styles from './MessageList.module.css';
 import bubbleStyles from './MessageBubble.module.css';
+import { ActionChipButton } from './ActionChipButton';
 import { MessageBubble } from './MessageBubble';
 
 interface MessageListProps {
@@ -184,33 +182,5 @@ export function MessageList({
 
       <div ref={scrollAnchorRef} />
     </div>
-  );
-}
-
-interface ActionChipButtonProps {
-  chip: ActionChip;
-  onClick: () => void;
-  small?: boolean;
-}
-
-function ActionChipButton({ chip, onClick, small = false }: ActionChipButtonProps) {
-  const colors = CATEGORY_COLORS[chip.category];
-  const icon = chip.icon ?? CATEGORY_ICONS[chip.category];
-
-  return (
-    <button
-      className={`${styles.chip} ${small ? styles.chipSmall : ''} ${!chip.enabled ? styles.chipDisabled : ''}`}
-      onClick={onClick}
-      disabled={!chip.enabled}
-      title={chip.description}
-      style={{
-        backgroundColor: colors.bg,
-        color: colors.text,
-        borderColor: colors.border,
-      }}
-    >
-      <Icon semantic={icon} decorative className={styles.chipIcon} size={small ? 'sm' : 'md'} />
-      <span className={styles.chipLabel}>{chip.label}</span>
-    </button>
   );
 }
