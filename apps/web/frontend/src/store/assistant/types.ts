@@ -51,9 +51,11 @@ export interface ConversationalCommandMessageData {
 }
 
 export type AssistantMessageType =
-  | 'default'
+  | 'text'
   | 'scope_research'
-  | 'conversational_command';
+  | 'conversational_command'
+  | 'typing'
+  | 'welcome';
 
 /**
  * Assistant AI state model for UX standards
@@ -203,7 +205,7 @@ export interface AssistantMessage {
   messageType?: AssistantMessageType;
 
   /** Optional structured message payload */
-  data?: ScopeResearchMessageData | ConversationalCommandMessageData;
+  data?: Record<string, unknown>;
 
   /** Timestamp */
   timestamp: Date;

@@ -1,21 +1,10 @@
 import { Fragment, type ReactNode } from 'react';
-import type {
-  ActionChip,
-  AssistantMessage,
-  ConversationalCommandMessageData,
-  ScopeResearchItem,
-  ScopeResearchMessageData,
-} from '@/store/assistant';
-import { ScopeResearchCard } from './ScopeResearchCard';
-import { ConversationalCommandCard } from './ConversationalCommandCard';
+import type { ActionChip, AssistantMessage } from '@/store/assistant';
 import styles from './MessageBubble.module.css';
 
 interface MessageBubbleProps {
   message: AssistantMessage;
   renderActionChip?: (chip: ActionChip, options?: { small?: boolean }) => ReactNode;
-  onApplyScopeResearch?: (data: ScopeResearchMessageData, acceptedItems: ScopeResearchItem[]) => boolean;
-  onApplyConversationalCommand?: (data: ConversationalCommandMessageData) => void;
-  onCancelConversationalCommand?: () => void;
 }
 
 interface MarkdownInlineProps {
@@ -175,10 +164,7 @@ function renderAssistantMarkdown(content: string): ReactNode {
 
 export function MessageBubble({
   message,
-  renderActionChip,
-  onApplyScopeResearch,
-  onApplyConversationalCommand,
-  onCancelConversationalCommand,
+  renderActionChip
 }: MessageBubbleProps) {
   const showGeneratedBadge = message.role === 'assistant' && message.provenance?.showModelOrTool === true;
 
@@ -189,21 +175,6 @@ export function MessageBubble({
       <div className={styles.messageContent}>
         {message.role === 'assistant' ? renderAssistantMarkdown(message.content) : message.content}
       </div>
-      {message.messageType === 'scope_research' && message.data && (
-        <ScopeResearchCard
-          data={message.data as ScopeResearchMessageData}
-          onApplyAcceptedItems={(data, acceptedItems) =>
-            onApplyScopeResearch ? onApplyScopeResearch(data, acceptedItems) : false
-          }
-        />
-      )}
-      {message.messageType === 'conversational_command' && message.data && (
-        <ConversationalCommandCard
-          data={message.data as ConversationalCommandMessageData}
-          onCancel={() => onCancelConversationalCommand?.()}
-          onApply={(data) => onApplyConversationalCommand?.(data)}
-        />
-      )}
       {message.sources && message.sources.length > 0 && (
         <ul className={styles.messageSources}>
           {message.sources.map((source) => (

@@ -12,6 +12,8 @@ import styles from './MessageList.module.css';
 import bubbleStyles from './MessageBubble.module.css';
 import { ActionChipButton } from './ActionChipButton';
 import { MessageBubble } from './MessageBubble';
+import { ScopeResearchCard } from './ScopeResearchCard';
+import { ConversationalCommandCard } from './ConversationalCommandCard';
 
 interface MessageListProps {
   messages: AssistantMessage[];
@@ -137,60 +139,126 @@ export function MessageList({
   const showTypingIndicator =
     aiState === 'thinking' || aiState === 'streaming' || aiState === 'tool_use';
 
+  const renderWelcomeCard = (key = 'welcome-empty') => (
+    <div key={key} className={styles.empty}>
+      <div className={styles.welcomeCard}>
+        <h3 className={styles.welcomeTitle}>Welcome to your project assistant.</h3>
+        <p className={styles.welcomeText}>
+          I can help you navigate your project methodology, suggest next actions,
+          generate templates, and answer questions about your project.
+        </p>
+        <div className={styles.quickStartList}>
+          {quickStartChips.map((chip) =>
+            renderActionChip ? (
+              <span key={chip.id} className={styles.quickStartItem}>
+                {renderActionChip(chip)}
+              </span>
+            ) : (
+              <ActionChipButton key={chip.id} chip={chip} onClick={() => onChipClick(chip)} />
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTypingBubble = (key: string, label: string) => (
+    <div key={key} className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble}`}>
+      <div className={styles.typingDots} aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <span className={styles.typingLabel}>{label}</span>
+    </div>
+  );
+
   return (
     <div className={styles.messages}>
-      {messages.length === 0 ? (
-        <div className={styles.empty}>
-          <div className={styles.welcomeCard}>
-            <h3 className={styles.welcomeTitle}>Welcome to your project assistant.</h3>
-            <p className={styles.welcomeText}>
-              I can help you navigate your project methodology, suggest next actions,
-              generate templates, and answer questions about your project.
-            </p>
-            <div className={styles.quickStartList}>
-              {quickStartChips.map((chip) =>
-                renderActionChip ? (
-                  <span key={chip.id} className={styles.quickStartItem}>
-                    {renderActionChip(chip)}
-                  </span>
-                ) : (
-                  <ActionChipButton key={chip.id} chip={chip} onClick={() => onChipClick(chip)} />
-                )
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            renderActionChip={(chip, options) =>
-              renderActionChip ? (
-                renderActionChip(chip, options)
-              ) : (
-                <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
-              )
-            }
-            onApplyScopeResearch={onApplyScopeResearch}
-            onApplyConversationalCommand={onApplyConversationalCommand}
-            onCancelConversationalCommand={onCancelConversationalCommand}
-          />
-        ))
-      )}
+      {messages.length === 0
+        ? renderWelcomeCard()
+        : messages.map((message) => {
+            const messageType = message.messageType ?? 'text';
 
-      {showTypingIndicator && (
-        <div className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble}`}>
-          <div className={styles.typingDots} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <span className={styles.typingLabel}>
-            {typingStateLabels[aiState as keyof typeof typingStateLabels]}
-          </span>
-        </div>
-      )}
+            if (messageType === 'welcome') {
+              return renderWelcomeCard(message.id);
+            }
+
+            if (messageType === 'typing') {
+              const label = typeof message.data?.label === 'string' ? message.data.label : 'Responding…';
+              return renderTypingBubble(message.id, label);
+            }
+
+            if (messageType === 'scope_research') {
+              return (
+                <div key={message.id}>
+                  {message.content ? (
+                    <MessageBubble
+                      message={message}
+                      renderActionChip={(chip, options) =>
+                        renderActionChip ? (
+                          renderActionChip(chip, options)
+                        ) : (
+                          <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
+                        )
+                      }
+                    />
+                  ) : null}
+                  {message.data ? (
+                    <ScopeResearchCard
+                      data={message.data as ScopeResearchMessageData}
+                      onApplyAcceptedItems={(data, acceptedItems) =>
+                        onApplyScopeResearch ? onApplyScopeResearch(data, acceptedItems) : false
+                      }
+                    />
+                  ) : null}
+                </div>
+              );
+            }
+
+            if (messageType === 'conversational_command') {
+              return (
+                <div key={message.id}>
+                  {message.content ? (
+                    <MessageBubble
+                      message={message}
+                      renderActionChip={(chip, options) =>
+                        renderActionChip ? (
+                          renderActionChip(chip, options)
+                        ) : (
+                          <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
+                        )
+                      }
+                    />
+                  ) : null}
+                  {message.data ? (
+                    <ConversationalCommandCard
+                      data={message.data as unknown as ConversationalCommandMessageData}
+                      onCancel={() => onCancelConversationalCommand?.()}
+                      onApply={(data) => onApplyConversationalCommand?.(data)}
+                    />
+                  ) : null}
+                </div>
+              );
+            }
+
+            return (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                renderActionChip={(chip, options) =>
+                  renderActionChip ? (
+                    renderActionChip(chip, options)
+                  ) : (
+                    <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
+                  )
+                }
+              />
+            );
+          })}
+
+      {showTypingIndicator &&
+        renderTypingBubble(`assistant-state-${aiState}`, typingStateLabels[aiState as keyof typeof typingStateLabels])}
 
       <div ref={scrollAnchorRef} />
     </div>

@@ -77,6 +77,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   addMessage: (message) => {
     const newMessage: AssistantMessage = {
       ...message,
+      messageType: message.messageType ?? 'text',
       id: crypto.randomUUID(),
       timestamp: new Date(),
     };
@@ -112,6 +113,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
             stageName: get().context?.currentStageName ?? undefined,
           }
         : undefined,
+      messageType: 'text',
       ...overrides,
     };
     set((state) => ({
