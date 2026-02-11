@@ -20,13 +20,13 @@ import {
   CATEGORY_COLORS,
   CATEGORY_ICONS,
   type ActionChip,
-  type AssistantMessage,
   type PrerequisiteInfo,
 } from '@/store/assistant';
 import { usePromptStore } from '@/store/prompts';
 import { Icon } from '@/components/icon/Icon';
 import { AssistantHeader } from './AssistantHeader';
 import { ContextBar } from './ContextBar';
+import { MessageList } from './MessageList';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import {
   formatPromptTags,
@@ -132,7 +132,6 @@ export function AssistantPanel() {
   const [promptEditErrors, setPromptEditErrors] = useState<PromptFieldErrors>({});
   const [promptEditStatus, setPromptEditStatus] = useState<string | null>(null);
   const [assistantError, setAssistantError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevActivityIdRef = useRef<string | null>(null);
   const conversationalCommandsEnabled = featureFlags.conversational_commands === true;
@@ -207,11 +206,6 @@ export function AssistantPanel() {
       );
     }
   }, [prompts, selectedPrompt]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   // Update context when activity changes
   useEffect(() => {
@@ -673,6 +667,33 @@ export function AssistantPanel() {
         }
 
         case 'custom': {
+          if (chip.payload.actionKey === 'start_first_activity') {
+            const firstActivity = getAllActivities().find(
+              (activity) => activity.id !== 'act-dashboard'
+            );
+            if (firstActivity) {
+              handleChipClick({
+                id: `start-${firstActivity.id}`,
+                label: `Open ${firstActivity.name}`,
+                category: 'navigate',
+                priority: 'high',
+                actionType: 'open_activity',
+                payload: {
+                  type: 'open_activity',
+                  activityId: firstActivity.id,
+                },
+                enabled: true,
+              });
+            }
+            break;
+          }
+
+          if (chip.payload.actionKey === 'ask_question') {
+            inputRef.current?.focus();
+            addAssistantMessage('What would you like to know about your project?');
+            break;
+          }
+
           if (chip.payload.actionKey !== 'conversational_command') {
             addAssistantMessage('Action executed.');
             break;
@@ -1078,31 +1099,19 @@ export function AssistantPanel() {
       </div>
 
       {/* Messages */}
-      <div className={styles.messages}>
-        {messages.length === 0 ? (
-          <div className={styles.empty}>
-            <Icon
-              semantic="communication.message"
-              decorative
-              className={styles.emptyIcon}
-              size="xl"
-            />
-            <p className={styles.emptyText}>
-              Select an activity from the methodology panel to see context-aware
-              suggestions, or type a question below.
-            </p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              onChipClick={handleChipClick}
-            />
-          ))
+      <MessageList
+        messages={messages}
+        aiState={aiState}
+        context={context}
+        onChipClick={handleChipClick}
+        renderActionChip={(chip, options) => (
+          <ActionChipButton
+            chip={chip}
+            onClick={() => handleChipClick(chip)}
+            small={options?.small}
+          />
         )}
-        <div ref={messagesEndRef} />
-      </div>
+      />
 
       {/* Input Area */}
       <form className={styles.inputArea} onSubmit={handleSubmit}>
@@ -1364,60 +1373,6 @@ export function AssistantPanel() {
         </div>
       )}
     </aside>
-  );
-}
-
-/**
- * Message bubble component
- */
-interface MessageBubbleProps {
-  message: AssistantMessage;
-  onChipClick: (chip: ActionChip) => void;
-}
-
-function MessageBubble({ message, onChipClick }: MessageBubbleProps) {
-  return (
-    <div
-      className={`${styles.message} ${styles[message.role]} ${
-        message.isWarning ? styles.warning : ''
-      }`}
-    >
-      <div className={styles.messageContent}>{message.content}</div>
-      {message.sources && message.sources.length > 0 && (
-        <ul className={styles.messageSources}>
-          {message.sources.map((source) => (
-            <li key={source}>{source}</li>
-          ))}
-        </ul>
-      )}
-      {message.actionChips && message.actionChips.length > 0 && (
-        <div className={styles.messageChips}>
-          {message.actionChips.map((chip) => (
-            <ActionChipButton
-              key={chip.id}
-              chip={chip}
-              onClick={() => onChipClick(chip)}
-              small
-            />
-          ))}
-        </div>
-      )}
-      <div className={styles.messageMeta}>
-        {message.role === 'assistant' && (
-          <span className={styles.generatedBadge}>Generated</span>
-        )}
-        {message.role === 'assistant' &&
-          (!message.sources || message.sources.length === 0) && (
-            <span className={styles.noSourcesBadge}>No sources</span>
-          )}
-        <time className={styles.messageTime}>
-          {message.timestamp.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </time>
-      </div>
-    </div>
   );
 }
 
