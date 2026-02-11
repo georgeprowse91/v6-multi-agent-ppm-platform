@@ -1,0 +1,52 @@
+.bar {
+  position: relative;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.chipsRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: 0 var(--space-3);
+  scrollbar-width: thin;
+}
+
+.popover {
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: calc(100% + var(--space-2));
+  z-index: 3;
+  background: var(--color-surface-raised, var(--color-surface-default));
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-2);
+}
+
+.popoverList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.morePill {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-secondary, var(--color-surface-default));
+  color: var(--color-text-default);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.morePill:hover {
+  background: var(--color-surface-hover, var(--color-surface-secondary));
+}

@@ -9,30 +9,22 @@
  * - Gating warnings when prerequisites are incomplete
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { useMethodologyStore, type MethodologyActivity } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
-import type { PromptDefinition } from '@/types/prompt';
 import {
   useAssistantStore,
   type ActionChip,
   type PrerequisiteInfo,
 } from '@/store/assistant';
-import { usePromptStore } from '@/store/prompts';
 import { Icon } from '@/components/icon/Icon';
 import { AssistantHeader } from './AssistantHeader';
 import { ContextBar } from './ContextBar';
 import { MessageList } from './MessageList';
 import { ActionChipButton } from './ActionChipButton';
+import { QuickActions } from './QuickActions';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
-import {
-  formatPromptTags,
-  normalizePromptTags,
-  validatePromptFields,
-  type PromptFieldErrors,
-} from '@/utils/prompts';
 import { formatAssistantResponse } from '@/utils/assistantResponses';
 import styles from './AssistantPanel.module.css';
 
@@ -71,17 +63,6 @@ interface ConversationalCommandPreview {
   applyLabel?: string;
 }
 
-const ALWAYS_INCLUDED_PROMPTS = new Set<string>(['risk_identification', 'vendor_evaluation']);
-
-const stageTagLookup: Array<{ matcher: RegExp; tag: string }> = [
-  { matcher: /initiation/i, tag: 'initiation' },
-  { matcher: /planning/i, tag: 'planning' },
-  { matcher: /execution/i, tag: 'execution' },
-  { matcher: /monitoring/i, tag: 'monitoring' },
-  { matcher: /controlling/i, tag: 'monitoring' },
-  { matcher: /closing/i, tag: 'closing' },
-];
-
 export function AssistantPanel() {
   const { rightPanelCollapsed, toggleRightPanel, featureFlags } = useAppStore();
   const {
@@ -106,7 +87,6 @@ export function AssistantPanel() {
     aiState,
     setAiState,
   } = useAssistantStore();
-  const { prompts, hydratePrompts, updatePrompt, deletePrompt } = usePromptStore();
 
   const [inputValue, setInputValue] = useState('');
   const [scopeResearchOpen, setScopeResearchOpen] = useState(false);
@@ -120,16 +100,6 @@ export function AssistantPanel() {
   const [conversationalCommand, setConversationalCommand] =
     useState<ConversationalCommandPreview | null>(null);
   const [conversationalConfirmed, setConversationalConfirmed] = useState(false);
-  const [promptSearch, setPromptSearch] = useState('');
-  const [selectedPrompt, setSelectedPrompt] = useState<PromptDefinition | null>(null);
-  const [promptEditId, setPromptEditId] = useState<string | null>(null);
-  const [promptEditFields, setPromptEditFields] = useState({
-    label: '',
-    description: '',
-    tags: '',
-  });
-  const [promptEditErrors, setPromptEditErrors] = useState<PromptFieldErrors>({});
-  const [promptEditStatus, setPromptEditStatus] = useState<string | null>(null);
   const [assistantError, setAssistantError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevActivityIdRef = useRef<string | null>(null);
@@ -141,70 +111,6 @@ export function AssistantPanel() {
     }
     return String(value);
   };
-
-  const promptStageTags = useMemo(() => {
-    const candidates = [context?.currentStageName ?? '', context?.currentStageId ?? ''];
-    const tags = new Set<string>();
-    for (const value of candidates) {
-      stageTagLookup.forEach(({ matcher, tag }) => {
-        if (matcher.test(value)) {
-          tags.add(tag);
-        }
-      });
-    }
-    return Array.from(tags);
-  }, [context?.currentStageId, context?.currentStageName]);
-
-  const promptChips = useMemo(() => {
-    const promptList = prompts;
-    const normalizedSearch = promptSearch.trim().toLowerCase();
-
-    return promptList.filter((prompt) => {
-      const matchesAlways =
-        ALWAYS_INCLUDED_PROMPTS.has(prompt.id) || prompt.tags.includes('general');
-      const matchesStage =
-        promptStageTags.length === 0 ||
-        prompt.tags.some((tag) => promptStageTags.includes(tag));
-
-      if (!matchesAlways && !matchesStage) {
-        return false;
-      }
-
-      if (!normalizedSearch) {
-        return true;
-      }
-
-      const searchTarget = [
-        prompt.id,
-        prompt.label,
-        prompt.description,
-        prompt.tags.join(' '),
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      return searchTarget.includes(normalizedSearch);
-    });
-  }, [promptSearch, promptStageTags, prompts]);
-
-  useEffect(() => {
-    hydratePrompts();
-  }, [hydratePrompts]);
-
-  useEffect(() => {
-    if (!selectedPrompt) return;
-    const updatedPrompt = prompts.find((prompt) => prompt.id === selectedPrompt.id);
-    if (!updatedPrompt) {
-      setSelectedPrompt(null);
-      return;
-    }
-    if (updatedPrompt.description !== selectedPrompt.description) {
-      setSelectedPrompt(updatedPrompt);
-      setInputValue((prev) =>
-        prev.trim() === selectedPrompt.description.trim() ? updatedPrompt.description : prev
-      );
-    }
-  }, [prompts, selectedPrompt]);
 
   // Update context when activity changes
   useEffect(() => {
@@ -432,66 +338,6 @@ export function AssistantPanel() {
       )}
     </div>
   );
-
-  const handlePromptClick = (prompt: PromptDefinition) => {
-    setInputValue(prompt.description);
-    setSelectedPrompt(prompt);
-    inputRef.current?.focus();
-  };
-
-  const startPromptEdit = (prompt: PromptDefinition) => {
-    setPromptEditId(prompt.id);
-    setPromptEditFields({
-      label: prompt.label,
-      description: prompt.description,
-      tags: formatPromptTags(prompt.tags),
-    });
-    setPromptEditErrors({});
-    setPromptEditStatus(null);
-  };
-
-  const handlePromptEditChange = (
-    field: 'label' | 'description' | 'tags',
-    value: string
-  ) => {
-    setPromptEditFields((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handlePromptEditSave = () => {
-    if (!promptEditId) return;
-    const errors = validatePromptFields({
-      label: promptEditFields.label,
-      description: promptEditFields.description,
-      tags: promptEditFields.tags,
-    });
-    setPromptEditErrors(errors);
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-    updatePrompt(promptEditId, {
-      label: promptEditFields.label.trim(),
-      description: promptEditFields.description.trim(),
-      tags: normalizePromptTags(promptEditFields.tags),
-    });
-    setPromptEditId(null);
-    setPromptEditStatus('Prompt updated.');
-  };
-
-  const handlePromptEditCancel = () => {
-    setPromptEditId(null);
-    setPromptEditErrors({});
-    setPromptEditStatus(null);
-  };
-
-  const handlePromptDelete = (prompt: PromptDefinition) => {
-    const confirmed = window.confirm(`Delete "${prompt.label}"?`);
-    if (!confirmed) return;
-    deletePrompt(prompt.id);
-    if (selectedPrompt?.id === prompt.id) {
-      setSelectedPrompt(null);
-    }
-    setPromptEditStatus('Prompt deleted.');
-  };
 
   // Handle chip click
   const handleChipClick = useCallback(
@@ -743,9 +589,6 @@ export function AssistantPanel() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
     setInputValue(nextValue);
-    if (selectedPrompt && nextValue.trim() !== selectedPrompt.description.trim()) {
-      setSelectedPrompt(null);
-    }
   };
 
   // Handle text input submission
@@ -795,7 +638,6 @@ export function AssistantPanel() {
       setAiState('completed');
     }
     setInputValue('');
-    setSelectedPrompt(null);
   };
 
   // Handle local responses without backend
@@ -953,150 +795,6 @@ export function AssistantPanel() {
       {/* Context Display */}
       {context && <ContextBar context={context} />}
 
-      {/* Action Chips (Next Best Actions) */}
-      {actionChips.length > 0 && (
-        <div className={styles.chipsArea}>
-          <div className={styles.chipsHeader}>
-            <span className={styles.chipsLabel}>Suggested Actions</span>
-          </div>
-          <div className={styles.chipsList}>
-            {actionChips.map((chip) => (
-              <ActionChipButton
-                key={chip.id}
-                chip={chip}
-                onClick={() => handleChipClick(chip)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Prompt Library */}
-      <div className={styles.promptArea}>
-        <div className={styles.promptHeader}>
-          <span className={styles.chipsLabel}>Next actions</span>
-          <Link className={styles.promptManageLink} to="/config/prompts">
-            Manage prompts
-          </Link>
-        </div>
-        <input
-          type="search"
-          className={styles.promptSearch}
-          placeholder="Search prompt library..."
-          value={promptSearch}
-          onChange={(event) => setPromptSearch(event.target.value)}
-          aria-label="Search prompt library"
-        />
-        {promptEditStatus && (
-          <p className={styles.promptStatus} role="status">
-            {promptEditStatus}
-          </p>
-        )}
-        {promptChips.length === 0 ? (
-          <p className={styles.promptEmpty}>No prompts match this stage yet.</p>
-        ) : (
-          <div className={styles.promptChipsList}>
-            {promptChips.map((prompt) => (
-              <div key={prompt.id} className={styles.promptRow}>
-                <button
-                  type="button"
-                  className={styles.promptChip}
-                  onClick={() => handlePromptClick(prompt)}
-                  title={prompt.description}
-                >
-                  <span className={styles.promptChipLabel}>{prompt.label}</span>
-                </button>
-                <div className={styles.promptRowActions}>
-                  <button
-                    type="button"
-                    className={styles.promptAction}
-                    onClick={() => startPromptEdit(prompt)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.promptAction} ${styles.promptActionDanger}`}
-                    onClick={() => handlePromptDelete(prompt)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {promptEditId && (
-          <div className={styles.promptEditor}>
-            <div className={styles.promptEditorHeader}>
-              <span>Edit prompt</span>
-              <button
-                type="button"
-                className={styles.promptEditorCancel}
-                onClick={handlePromptEditCancel}
-              >
-                Cancel
-              </button>
-            </div>
-            <label className={styles.promptField}>
-              <span className={styles.promptFieldLabel}>Label</span>
-              <input
-                type="text"
-                value={promptEditFields.label}
-                onChange={(event) =>
-                  handlePromptEditChange('label', event.target.value)
-                }
-              />
-              {promptEditErrors.label && (
-                <span className={styles.promptFieldError}>{promptEditErrors.label}</span>
-              )}
-            </label>
-            <label className={styles.promptField}>
-              <span className={styles.promptFieldLabel}>Description</span>
-              <textarea
-                value={promptEditFields.description}
-                onChange={(event) =>
-                  handlePromptEditChange('description', event.target.value)
-                }
-              />
-              {promptEditErrors.description && (
-                <span className={styles.promptFieldError}>
-                  {promptEditErrors.description}
-                </span>
-              )}
-            </label>
-            <label className={styles.promptField}>
-              <span className={styles.promptFieldLabel}>Tags</span>
-              <input
-                type="text"
-                value={promptEditFields.tags}
-                onChange={(event) => handlePromptEditChange('tags', event.target.value)}
-                placeholder="initiation, planning"
-              />
-              {promptEditErrors.tags && (
-                <span className={styles.promptFieldError}>{promptEditErrors.tags}</span>
-              )}
-            </label>
-            <div className={styles.promptEditorActions}>
-              <button
-                type="button"
-                className={styles.promptEditorSecondary}
-                onClick={handlePromptEditCancel}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.promptEditorPrimary}
-                onClick={handlePromptEditSave}
-              >
-                Save changes
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Messages */}
       <MessageList
         messages={messages}
@@ -1111,6 +809,8 @@ export function AssistantPanel() {
           />
         )}
       />
+
+      <QuickActions chips={actionChips} onChipClick={handleChipClick} />
 
       {/* Input Area */}
       <form className={styles.inputArea} onSubmit={handleSubmit}>
