@@ -80,6 +80,15 @@ export const waterfallMethodology: MethodologyMap = {
           prerequisites: ['act-wbs'],
           order: 3,
         },
+        {
+          id: 'act-comms-plan',
+          name: 'Communications Plan',
+          description: 'Define project communication approach',
+          status: 'not_started',
+          canvasType: 'document',
+          prerequisites: [],
+          order: 4,
+        },
       ],
     },
     {
@@ -98,6 +107,15 @@ export const waterfallMethodology: MethodologyMap = {
           canvasType: 'spreadsheet',
           prerequisites: [],
           order: 1,
+        },
+        {
+          id: 'act-team-assignments',
+          name: 'Team Assignments',
+          description: 'Resource assignments and workload tracking',
+          status: 'not_started',
+          canvasType: 'spreadsheet',
+          prerequisites: [],
+          order: 2,
         },
       ],
     },
@@ -121,6 +139,16 @@ export const waterfallMethodology: MethodologyMap = {
           order: 1,
         },
         {
+          id: 'act-quality-dashboard',
+          name: 'Quality Dashboard',
+          description: 'Quality health, coverage, and defect trends',
+          status: 'not_started',
+          canvasType: 'dashboard',
+          prerequisites: [],
+          alwaysAccessible: true,
+          order: 2,
+        },
+        {
           id: 'act-risks',
           name: 'Risk Register',
           description: 'Track and manage project risks',
@@ -128,7 +156,7 @@ export const waterfallMethodology: MethodologyMap = {
           canvasType: 'spreadsheet',
           prerequisites: [],
           alwaysAccessible: true,
-          order: 2,
+          order: 3,
         },
         {
           id: 'act-issues',
@@ -138,7 +166,17 @@ export const waterfallMethodology: MethodologyMap = {
           canvasType: 'spreadsheet',
           prerequisites: [],
           alwaysAccessible: true,
-          order: 3,
+          order: 4,
+        },
+        {
+          id: 'act-change-log',
+          name: 'Change Log',
+          description: 'Track project change requests',
+          status: 'not_started',
+          canvasType: 'spreadsheet',
+          prerequisites: [],
+          alwaysAccessible: true,
+          order: 5,
         },
       ],
     },
@@ -246,6 +284,10 @@ export const agileMethodology: MethodologyMap = {
       status: 'not_started',
       prerequisites: ['stage-backlog'],
       order: 3,
+      metadata: {
+        executionModel: 'sprint-subnode',
+        supportsSprintSubnodes: true,
+      },
       activities: [
         {
           id: 'act-sprint-board',
@@ -255,6 +297,10 @@ export const agileMethodology: MethodologyMap = {
           canvasType: 'spreadsheet',
           prerequisites: [],
           order: 1,
+          metadata: {
+            supportsSubnodes: true,
+            subnodeType: 'sprint',
+          },
         },
         {
           id: 'act-burndown',
@@ -264,6 +310,10 @@ export const agileMethodology: MethodologyMap = {
           canvasType: 'dashboard',
           prerequisites: [],
           order: 2,
+          metadata: {
+            supportsSubnodes: true,
+            subnodeType: 'sprint',
+          },
         },
       ],
     },
@@ -374,6 +424,10 @@ export const hybridMethodology: MethodologyMap = {
       status: 'not_started',
       prerequisites: ['stage-agile-planning'],
       order: 3,
+      metadata: {
+        executionModel: 'iterative-nested',
+        releaseCadence: 'quarterly',
+      },
       activities: [
         {
           id: 'act-iteration-tracker',
@@ -383,6 +437,36 @@ export const hybridMethodology: MethodologyMap = {
           canvasType: 'spreadsheet',
           prerequisites: [],
           order: 1,
+          metadata: {
+            nestingLevel: 'iteration',
+            parentType: 'release',
+          },
+        },
+        {
+          id: 'act-release-milestones',
+          name: 'Release Milestones',
+          description: 'Define release milestones across iterations',
+          status: 'not_started',
+          canvasType: 'timeline',
+          prerequisites: ['act-iteration-tracker'],
+          order: 2,
+          metadata: {
+            milestoneType: 'release',
+            governance: 'stage-gate',
+          },
+        },
+        {
+          id: 'act-release-gates',
+          name: 'Release Gates',
+          description: 'Track release readiness decision gates',
+          status: 'not_started',
+          canvasType: 'spreadsheet',
+          prerequisites: ['act-release-milestones'],
+          order: 3,
+          metadata: {
+            gateType: 'release-approval',
+            requiredForRelease: true,
+          },
         },
       ],
     },

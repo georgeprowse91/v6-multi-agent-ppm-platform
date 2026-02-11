@@ -56,6 +56,9 @@ export interface MethodologyActivity {
 
   /** Order within the stage */
   order: number;
+
+  /** Optional extensible metadata (e.g., sprint or release semantics) */
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -88,6 +91,9 @@ export interface MethodologyStage {
 
   /** Order in the methodology */
   order: number;
+
+  /** Optional extensible metadata (e.g., execution model or release gates) */
+  metadata?: Record<string, unknown>;
 }
 
 /**

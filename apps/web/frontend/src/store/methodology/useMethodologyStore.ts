@@ -205,12 +205,17 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
     if (!template) return;
 
     // Deep clone the template
+    const defaultExpandedStageIds = [
+      template.stages[0]?.id,
+      ...template.stages.filter((stage) => stage.alwaysAccessible).map((stage) => stage.id),
+    ].filter((id, index, allIds): id is string => Boolean(id) && allIds.indexOf(id) === index);
+
     const newMethodology: ProjectMethodology = {
       projectId,
       projectName,
       methodology: JSON.parse(JSON.stringify(template)),
       currentActivityId: null,
-      expandedStageIds: [template.stages[0]?.id].filter(Boolean),
+      expandedStageIds: defaultExpandedStageIds,
     };
 
     set({
