@@ -25,6 +25,7 @@ import {
 } from '@/store/assistant';
 import { usePromptStore } from '@/store/prompts';
 import { Icon } from '@/components/icon/Icon';
+import { AssistantHeader } from './AssistantHeader';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import {
   formatPromptTags,
@@ -922,23 +923,11 @@ export function AssistantPanel() {
   return (
     <aside className={styles.panel} data-tour="assistant-panel">
       {/* Header */}
-      <div className={styles.header}>
-        <h2 className={styles.title}>Assistant</h2>
-        <div className={styles.aiState} aria-live="polite">
-          <span className={styles.aiStateIndicator} data-state={aiState} />
-          <span className={styles.aiStateLabel}>{aiState.replace(/_/g, ' ')}</span>
-        </div>
-        <button
-          className={styles.collapseButton}
-          onClick={toggleRightPanel}
-          title="Close Assistant"
-        >
-          <Icon
-            semantic="actions.cancelDismiss"
-            label="Close Assistant"
-          />
-        </button>
-      </div>
+      <AssistantHeader
+        title="Assistant"
+        aiState={aiState}
+        toggleRightPanel={toggleRightPanel}
+      />
 
       {/* Context Display */}
       {context && (
