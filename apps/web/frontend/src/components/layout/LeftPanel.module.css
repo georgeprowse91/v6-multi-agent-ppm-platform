@@ -234,6 +234,12 @@
   text-overflow: ellipsis;
 }
 
+.pendingBadgeHook {
+  margin-left: auto;
+  display: inline-flex;
+  min-width: 0;
+}
+
 .panel.collapsed .navItem {
   justify-content: center;
   padding: var(--space-3);

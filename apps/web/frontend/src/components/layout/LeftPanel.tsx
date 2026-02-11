@@ -1,12 +1,10 @@
 import { Link, matchPath, useLocation } from 'react-router-dom';
 import { useCallback, useState, type ReactNode } from 'react';
-import { useAppStore, useMethodologyStore } from '@/store';
+import { useAppStore } from '@/store';
 import { useTranslation } from '@/i18n';
 import { canManageConfig, canViewAuditLogs, hasPermission } from '@/auth/permissions';
-import { MethodologyNav } from '@/components/methodology';
 import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
-import { ProjectMcpSidebar } from '@/components/project/ProjectMcpSidebar';
 import styles from './LeftPanel.module.css';
 
 interface NavItem {
@@ -14,7 +12,7 @@ interface NavItem {
   label: string;
   icon: IconSemantic;
   path?: string;
-  children?: NavItem[];
+  trailingContent?: ReactNode;
 }
 
 const configNav: NavItem[] = [
@@ -146,21 +144,57 @@ export function LeftPanel() {
   const showNotifications = featureFlags.agent_async_notifications === true;
   const selectedProjectId = currentSelection?.type === 'project' ? currentSelection.id : null;
   const [isHubAdminExpanded, setIsHubAdminExpanded] = useState(false);
-  const projectMethodology = useMethodologyStore((state) => state.projectMethodology);
   const projectIdFromRoute = getProjectIdFromPathname(location.pathname);
   const sidebarMode = getSidebarMode(location.pathname);
   const projectId =
     sidebarMode === 'project-workspace' ? (projectIdFromRoute ?? selectedProjectId) : null;
-  const isProjectMethodologyLoaded =
-    sidebarMode === 'project-workspace' &&
-    !!projectId &&
-    projectMethodology.projectId === projectId;
-  const projectName = isProjectMethodologyLoaded
-    ? projectMethodology.projectName
-    : 'Loading project…';
-  const methodologyName = isProjectMethodologyLoaded
-    ? projectMethodology.methodology.name
-    : 'Loading methodology…';
+
+
+  const projectWorkspaceNav: NavItem[] = projectId
+    ? [
+        {
+          id: 'knowledge-documents',
+          label: 'Documents',
+          path: `/knowledge/documents?project=${projectId}`,
+          icon: 'artifact.document',
+        },
+        {
+          id: 'knowledge-lessons',
+          label: 'Lessons Learned',
+          path: `/knowledge/lessons?project=${projectId}`,
+          icon: 'ai.explainability',
+        },
+        {
+          id: 'analytics-dashboard',
+          label: 'Analytics',
+          path: `/analytics/dashboard?project=${projectId}`,
+          icon: 'artifact.dashboard',
+        },
+        {
+          id: 'project-approvals',
+          label: 'My Approvals',
+          path: `/approvals?project=${projectId}`,
+          icon: 'actions.confirmApply',
+          trailingContent: (
+            <span
+              className={styles.pendingBadgeHook}
+              data-testid="project-approvals-pending-badge"
+              aria-hidden="true"
+            />
+          ),
+        },
+        ...(showProjectConfig
+          ? [
+              {
+                id: 'project-config',
+                label: 'Configuration',
+                path: `/projects/${projectId}/config`,
+                icon: 'actions.settings' as IconSemantic,
+              },
+            ]
+          : []),
+      ]
+    : [];
 
   const handleNavKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLUListElement>) => {
@@ -272,17 +306,6 @@ export function LeftPanel() {
       : []),
   ];
 
-  const projectConfigNav: NavItem[] = projectId
-    ? [
-        {
-          id: 'project-config',
-          label: 'Configuration',
-          path: `/projects/${projectId}/config`,
-          icon: 'actions.settings' as IconSemantic,
-        },
-      ]
-    : [];
-
   const renderNavItemList = (
     items: NavItem[],
     options?: {
@@ -304,9 +327,8 @@ export function LeftPanel() {
               data-tour={tourTargets[item.id] ?? undefined}
             >
               <Icon semantic={item.icon} decorative className={styles.icon} />
-              {!leftPanelCollapsed && (
-                <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>
-              )}
+              {!leftPanelCollapsed && <span className={styles.label}>{labelOverrides[item.id] ?? item.label}</span>}
+              {!leftPanelCollapsed && item.trailingContent}
             </Link>
           </li>
         );
@@ -359,30 +381,32 @@ export function LeftPanel() {
   const renderProjectWorkspaceNav = () => (
     <div className={styles.projectWorkspaceLayout}>
       {renderSection(
-        'Methodology Map',
-        <div className={styles.methodologyContent}>
-          <MethodologyNav collapsed={leftPanelCollapsed} />
-        </div>,
-        styles.projectMethodologySection
+        'Project',
+        <div className={styles.projectContent}>
+          {renderNavItemList(projectWorkspaceNav, {
+            isActive: (item) => {
+              if (!item.path) return false;
+              const [targetPathname, targetQuery] = item.path.split('?');
+              if (targetPathname?.startsWith('/projects/') && targetPathname.endsWith('/config')) {
+                return location.pathname.startsWith(targetPathname);
+              }
+              if (location.pathname !== targetPathname) {
+                return false;
+              }
+
+              if (!targetQuery) {
+                return true;
+              }
+
+              const targetParams = new URLSearchParams(targetQuery);
+              const locationParams = new URLSearchParams(location.search);
+              return Array.from(targetParams.entries()).every(
+                ([key, value]) => locationParams.get(key) === value
+              );
+            },
+          })}
+        </div>
       )}
-      {(showProjectConfig && projectConfigNav.length > 0) || (projectId && !leftPanelCollapsed)
-        ? renderSection(
-            'Project',
-            <div className={styles.projectContent}>
-              {showProjectConfig && projectConfigNav.length > 0
-                ? renderNavItemList(projectConfigNav, {
-                    isActive: (item) => location.pathname.startsWith(item.path!),
-                  })
-                : null}
-              {projectId && !leftPanelCollapsed && (
-                <div className={styles.mcpSidebar}>
-                  <ProjectMcpSidebar />
-                </div>
-              )}
-            </div>,
-            styles.projectLinksSection
-          )
-        : null}
     </div>
   );
 
@@ -423,12 +447,6 @@ export function LeftPanel() {
         </button>
       </div>
 
-      {sidebarMode === 'project-workspace' && (
-        <div className={styles.projectIdentity} aria-live="polite">
-          <span className={styles.projectIdentityName}>{projectName}</span>
-          <span className={styles.projectIdentityBadge}>{methodologyName}</span>
-        </div>
-      )}
 
       <nav className={styles.nav} id="left-panel-nav" aria-label="Primary navigation">
         {sidebarMode === 'hub' ? renderHubNav() : renderProjectWorkspaceNav()}
