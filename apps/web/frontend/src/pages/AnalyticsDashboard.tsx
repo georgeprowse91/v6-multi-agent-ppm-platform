@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { hasPermission } from '@/auth/permissions';
 import { useAppStore } from '@/store';
 import styles from './AnalyticsDashboard.module.css';
@@ -81,8 +82,10 @@ const buildChartPath = (values: Array<number | null>, width = 320, height = 160)
 
 export function AnalyticsDashboard() {
   const { currentSelection, session, featureFlags } = useAppStore();
+  const [searchParams] = useSearchParams();
+  const projectFromQuery = searchParams.get('project');
   const [projectId, setProjectId] = useState(
-    currentSelection?.id ?? 'demo-project'
+    projectFromQuery ?? currentSelection?.id ?? 'demo-project'
   );
   const [data, setData] = useState<TrendResponse | null>(null);
   const [predictiveAlerts, setPredictiveAlerts] = useState<PredictiveAlert[]>([]);
@@ -119,10 +122,17 @@ export function AnalyticsDashboard() {
   }, [canViewAnalytics, projectId]);
 
   useEffect(() => {
+    if (projectFromQuery) {
+      if (projectFromQuery !== projectId) {
+        setProjectId(projectFromQuery);
+      }
+      return;
+    }
+
     if (currentSelection?.id && currentSelection.id !== projectId) {
       setProjectId(currentSelection.id);
     }
-  }, [currentSelection, projectId]);
+  }, [currentSelection, projectFromQuery, projectId]);
 
   useEffect(() => {
     if (canViewAnalytics) {

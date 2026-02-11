@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styles from './ApprovalsPage.module.css';
 
 const API_BASE = '/v1';
@@ -33,18 +34,25 @@ interface ApprovalDetail extends ApprovalSummary {
 }
 
 export function ApprovalsPage() {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('project');
   const [approvals, setApprovals] = useState<ApprovalSummary[]>([]);
   const [selectedApproval, setSelectedApproval] =
     useState<ApprovalDetail | null>(null);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
-  const fetchApprovals = async () => {
+  const fetchApprovals = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE}/workflows/approvals?status=pending&approver_id=${DEFAULT_APPROVER}`
-      );
+      const params = new URLSearchParams({
+        status: 'pending',
+        approver_id: DEFAULT_APPROVER,
+      });
+      if (projectId) {
+        params.set('project_id', projectId);
+      }
+      const response = await fetch(`${API_BASE}/workflows/approvals?${params.toString()}`);
       const data = await response.json();
       setApprovals(data);
       if (data.length === 0) {
@@ -55,7 +63,7 @@ export function ApprovalsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
   const fetchApprovalDetail = async (approvalId: string) => {
     try {
@@ -91,14 +99,17 @@ export function ApprovalsPage() {
 
   useEffect(() => {
     fetchApprovals();
-  }, []);
+  }, [fetchApprovals]);
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <h1>My Approvals</h1>
         <p>
-          Pending approvals assigned to <strong>{DEFAULT_APPROVER}</strong>.
+          Pending approvals assigned to <strong>{DEFAULT_APPROVER}</strong>
+          {projectId ? (
+            <> for project <strong>{projectId}</strong></>
+          ) : null}.
         </p>
       </header>
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMethodologyStore } from '@/store/methodology';
 import {
   createLesson,
@@ -18,7 +19,8 @@ const parseList = (value: string): string[] =>
 
 export function LessonsLearnedPage() {
   const { projectMethodology } = useMethodologyStore();
-  const projectId = projectMethodology.projectId;
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('project') || projectMethodology.projectId;
   const stages = projectMethodology.methodology.stages;
 
   const [query, setQuery] = useState('');
@@ -73,7 +75,7 @@ export function LessonsLearnedPage() {
   }, [projectId, tagFilter, topicFilter]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     const stageId = params.get('stageId');
     const stageName = params.get('stageName');
     if (stageId) {
@@ -82,7 +84,7 @@ export function LessonsLearnedPage() {
         setFormTitle(`Lessons learned - ${stageName}`);
       }
     }
-  }, [formTitle]);
+  }, [formTitle, searchParams]);
 
   useEffect(() => {
     loadLessons();
