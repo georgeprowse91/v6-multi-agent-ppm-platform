@@ -1,0 +1,172 @@
+.inputArea {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+  background-color: var(--color-surface-card);
+}
+
+.inputError {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger-600);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.textarea {
+  flex: 1;
+  min-height: 56px;
+  max-height: 168px;
+  resize: none;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-orange-500);
+  box-shadow: 0 0 0 3px var(--color-brand-orange-100);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.sendButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+  transition: background-color var(--transition-fast);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: var(--color-button-primary-hover);
+}
+
+.sendButton:disabled {
+  background-color: var(--color-button-primary-disabled);
+  cursor: not-allowed;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.slashPopover {
+  position: absolute;
+  bottom: calc(100% - var(--space-1));
+  left: var(--space-4);
+  right: calc(var(--space-4) + 44px);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.slashOption {
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-primary);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+
+.slashOption:last-child {
+  border-bottom: none;
+}
+
+.slashOptionActive {
+  background: var(--color-brand-orange-100);
+}
+
+.optionLabel {
+  font-weight: var(--font-weight-semibold);
+}
+
+.optionDescription {
+  margin-left: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.promptPicker {
+  position: absolute;
+  bottom: calc(100% - var(--space-1));
+  left: var(--space-4);
+  right: calc(var(--space-4) + 44px);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-md);
+  z-index: 3;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.promptHeader {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.promptOption {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+}
+
+.promptOption:last-child {
+  border-bottom: none;
+}
+
+.promptTitle {
+  display: block;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.promptDescription {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
