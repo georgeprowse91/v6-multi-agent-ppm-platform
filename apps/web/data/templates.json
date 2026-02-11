@@ -96,7 +96,11 @@
                 "status": "not_started",
                 "canvasType": "spreadsheet",
                 "prerequisites": [],
-                "order": 1
+                "order": 1,
+                "metadata": {
+                  "supportsSubnodes": true,
+                  "subnodeType": "sprint"
+                }
               },
               {
                 "id": "act-burndown",
@@ -105,9 +109,17 @@
                 "status": "not_started",
                 "canvasType": "dashboard",
                 "prerequisites": [],
-                "order": 2
+                "order": 2,
+                "metadata": {
+                  "supportsSubnodes": true,
+                  "subnodeType": "sprint"
+                }
               }
-            ]
+            ],
+            "metadata": {
+              "executionModel": "sprint-subnode",
+              "supportsSprintSubnodes": true
+            }
           },
           {
             "id": "stage-agile-monitoring",
@@ -269,6 +281,15 @@
                   "act-wbs"
                 ],
                 "order": 3
+              },
+              {
+                "id": "act-comms-plan",
+                "name": "Communications Plan",
+                "description": "Define project communication approach",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 4
               }
             ]
           },
@@ -290,6 +311,15 @@
                 "canvasType": "spreadsheet",
                 "prerequisites": [],
                 "order": 1
+              },
+              {
+                "id": "act-team-assignments",
+                "name": "Team Assignments",
+                "description": "Resource assignments and workload tracking",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 2
               }
             ]
           },
@@ -313,13 +343,24 @@
                 "order": 1
               },
               {
+                "id": "act-quality-dashboard",
+                "name": "Quality Dashboard",
+                "description": "Quality health, coverage, and defect trends",
+                "status": "not_started",
+                "canvasType": "dashboard",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 2
+              },
+              {
                 "id": "act-risks",
                 "name": "Risk Register",
                 "description": "Track and manage project risks",
                 "status": "not_started",
                 "canvasType": "spreadsheet",
                 "prerequisites": [],
-                "order": 2
+                "order": 3,
+                "alwaysAccessible": true
               },
               {
                 "id": "act-issues",
@@ -328,16 +369,18 @@
                 "status": "not_started",
                 "canvasType": "spreadsheet",
                 "prerequisites": [],
-                "order": 3
+                "order": 4,
+                "alwaysAccessible": true
               },
               {
-                "id": "act-changes",
-                "name": "Change Request Log",
+                "id": "act-change-log",
+                "name": "Change Log",
                 "description": "Track project change requests",
                 "status": "not_started",
                 "canvasType": "spreadsheet",
                 "prerequisites": [],
-                "order": 4
+                "alwaysAccessible": true,
+                "order": 5
               }
             ]
           },
