@@ -9,7 +9,7 @@
  * - Gating warnings when prerequisites are incomplete
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { useMethodologyStore, type MethodologyActivity } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
@@ -29,7 +29,9 @@ import { ActionChipButton } from './ActionChipButton';
 import { QuickActions } from './QuickActions';
 import { ChatInput } from './ChatInput';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
-import { formatAssistantResponse } from '@/utils/assistantResponses';
+import { useAssistantChat } from './hooks/useAssistantChat';
+import { useContextSync } from './hooks/useContextSync';
+import { useSuggestionEngine } from './hooks/useSuggestionEngine';
 import styles from './AssistantPanel.module.css';
 
 export function AssistantPanel() {
@@ -45,31 +47,24 @@ export function AssistantPanel() {
   const { openArtifact, artifacts } = useCanvasStore();
   const {
     messages,
-    actionChips,
     context,
-    addUserMessage,
     addAssistantMessage,
     addSystemMessage,
     updateContext,
-    generateSuggestions,
     showGatingWarning,
-    clearActionChips,
     aiState,
     setAiState,
   } = useAssistantStore();
 
-  const [assistantError, setAssistantError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const prevActivityIdRef = useRef<string | null>(null);
   const conversationalCommandsEnabled = featureFlags.conversational_commands === true;
 
 
-  // Update context when activity changes
-  useEffect(() => {
+  const buildAssistantContext = useCallback(() => {
     const activity = currentActivityId ? getActivity(currentActivityId) : null;
     const stage = currentActivityId ? getStageForActivity(currentActivityId) : null;
 
-    updateContext({
+    return {
       projectId: projectMethodology.projectId,
       projectName: projectMethodology.projectName,
       methodologyName: projectMethodology.methodology.name,
@@ -92,59 +87,33 @@ export function AssistantPanel() {
       incompletePrerequisites: activity
         ? getIncompletePrerequisites(activity.prerequisites, getAllActivities())
         : [],
-    });
+    };
   }, [
     currentActivityId,
-    projectMethodology,
     getActivity,
+    getAllActivities,
     getStageForActivity,
     isActivityLockedComputed,
-    getAllActivities,
+    projectMethodology.methodology.name,
+    projectMethodology.projectId,
+    projectMethodology.projectName,
+  ]);
+
+  const { actionChips, generateSuggestions, clearActionChips } = useSuggestionEngine();
+
+  useContextSync({
+    currentActivityId,
+    buildContext: buildAssistantContext,
     updateContext,
-  ]);
-
-  // Generate suggestions when activity changes
-  useEffect(() => {
-    // Only trigger if activity actually changed
-    if (currentActivityId === prevActivityIdRef.current) return;
-    prevActivityIdRef.current = currentActivityId;
-
-    if (!currentActivityId) {
-      clearActionChips();
-      return;
-    }
-
-    const activity = getActivity(currentActivityId);
-    const stage = getStageForActivity(currentActivityId);
-    if (!activity || !stage) return;
-
-    const isLocked = isActivityLockedComputed(currentActivityId);
-    const allActivities = getAllActivities();
-    const incompletePrereqs = getIncompletePrerequisites(
-      activity.prerequisites,
-      allActivities
-    );
-
-    // Generate suggestions based on context
-    generateSuggestions(
-      'activity_selected',
-      activity,
-      stage,
-      allActivities,
-      projectMethodology.methodology.stages,
-      isLocked,
-      incompletePrereqs
-    );
-  }, [
-    currentActivityId,
     getActivity,
     getStageForActivity,
-    isActivityLockedComputed,
     getAllActivities,
-    generateSuggestions,
+    getAllStages: () => projectMethodology.methodology.stages,
+    isActivityLocked: isActivityLockedComputed,
+    getIncompletePrerequisites,
     clearActionChips,
-    projectMethodology.methodology.stages,
-  ]);
+    generateSuggestions,
+  });
 
   const buildScopeItems = (items: string[], prefix: string): ScopeResearchItem[] =>
     items.map((text, index) => ({
@@ -492,54 +461,7 @@ export function AssistantPanel() {
     ]
   );
 
-  // Handle text input submission
-  const handleSubmitMessage = async (messageText: string) => {
-    if (!messageText.trim()) return;
-    addUserMessage(messageText);
-    setAiState('thinking');
-    setAssistantError(null);
-
-    if (context?.projectId) {
-      try {
-        const response = await fetch('/api/assistant', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            project_id: context.projectId,
-            query: messageText,
-          }),
-        });
-
-        if (!response.ok) {
-          const detail = await response.json().catch(() => null);
-          throw new Error(detail?.detail ?? 'Unable to send assistant request.');
-        }
-
-        const data = await response.json();
-        const responseText = formatAssistantResponse(data);
-        addAssistantMessage(responseText);
-        setAiState('completed');
-      } catch (error) {
-        setAssistantError(
-          'Unable to reach the assistant service. Showing local suggestions instead.'
-        );
-        addAssistantMessage(
-          'Unable to reach the assistant service. Showing local suggestions instead.',
-          undefined,
-          true,
-          { aiState: 'error' }
-        );
-        handleLocalResponse(messageText);
-        setAiState('error');
-      }
-    } else {
-      handleLocalResponse(messageText);
-      setAiState('completed');
-    }
-  };
-
-  // Handle local responses without backend
-  const handleLocalResponse = (userInput: string) => {
+  const handleLocalResponse = useCallback((userInput: string) => {
     const input = userInput.toLowerCase();
 
     if (input.includes('help') || input.includes('what can')) {
@@ -649,19 +571,28 @@ export function AssistantPanel() {
           enabled: true,
         },
       ]);
+    } else if (context?.currentActivityName) {
+      addAssistantMessage(
+        `You're currently working on "${context.currentActivityName}". How can I help you with this activity?`
+      );
     } else {
-      // Default response with current context
-      if (context?.currentActivityName) {
-        addAssistantMessage(
-          `You're currently working on "${context.currentActivityName}". How can I help you with this activity?`
-        );
-      } else {
-        addAssistantMessage(
-          'Select an activity from the methodology panel to see context-aware suggestions, or ask me about budget, schedule, WBS, or risks.'
-        );
-      }
+      addAssistantMessage(
+        'Select an activity from the methodology panel to see context-aware suggestions, or ask me about budget, schedule, WBS, or risks.'
+      );
     }
-  };
+  }, [
+    addAssistantMessage,
+    context?.currentActivityName,
+    getActivity,
+    getAllActivities,
+    isActivityLockedComputed,
+    showGatingWarning,
+  ]);
+
+  const { sendMessage, error: assistantError } = useAssistantChat({
+    projectId: context?.projectId,
+    onFallbackResponse: handleLocalResponse,
+  });
 
   // Collapsed state
   if (rightPanelCollapsed) {
@@ -717,7 +648,7 @@ export function AssistantPanel() {
       <ChatInput
         error={assistantError}
         inputRef={inputRef}
-        onSubmitMessage={handleSubmitMessage}
+        onSubmitMessage={sendMessage}
         onStartScopeResearch={() => void startScopeResearch()}
       />
     </aside>
