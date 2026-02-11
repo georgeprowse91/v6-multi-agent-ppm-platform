@@ -51,6 +51,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-neutral-100);
+  background-color: var(--color-neutral-50);
 }
 
 .projectIdentityName {
@@ -178,6 +179,14 @@
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
+.adminToggle:focus-visible,
+.navItem:focus-visible,
+.collapseButton:focus-visible,
+.backToHub:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
 .adminToggle:hover {
   background-color: var(--color-neutral-50);
   color: var(--color-neutral-900);
@@ -245,6 +254,16 @@
   padding: var(--space-3);
 }
 
+.panel.collapsed .adminToggle {
+  justify-content: center;
+  padding: var(--space-3);
+  margin-bottom: 0;
+}
+
+.panel.collapsed .adminToggleIcon {
+  transform: rotate(180deg) !important;
+}
+
 .panel.collapsed .sectionTitle {
   display: none;
 }
@@ -284,4 +303,8 @@
 .panel.collapsed .projectIdentityName,
 .panel.collapsed .projectIdentityBadge {
   text-align: center;
+}
+
+.panel.collapsed .projectIdentityBadge {
+  display: none;
 }

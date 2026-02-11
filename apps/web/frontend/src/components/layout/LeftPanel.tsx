@@ -1,5 +1,5 @@
 import { Link, matchPath, useLocation } from 'react-router-dom';
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useAppStore } from '@/store';
 import { useTranslation } from '@/i18n';
 import { canManageConfig, canViewAuditLogs, hasPermission } from '@/auth/permissions';
@@ -149,6 +149,14 @@ export function LeftPanel() {
   const projectId =
     sidebarMode === 'project-workspace' ? (projectIdFromRoute ?? selectedProjectId) : null;
 
+  const projectIdentityName = useMemo(() => {
+    if (!projectId) return null;
+    if (currentSelection?.type === 'project' && currentSelection.id === projectId) {
+      return currentSelection.name;
+    }
+    return `Project ${projectId}`;
+  }, [currentSelection, projectId]);
+
 
   const projectWorkspaceNav: NavItem[] = projectId
     ? [
@@ -197,7 +205,7 @@ export function LeftPanel() {
     : [];
 
   const handleNavKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLUListElement>) => {
+    (event: React.KeyboardEvent<HTMLElement>) => {
       const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
       if (!keys.includes(event.key)) return;
       const items = Array.from(
@@ -312,7 +320,7 @@ export function LeftPanel() {
       isActive?: (item: NavItem) => boolean;
     }
   ) => (
-    <ul className={styles.navList} onKeyDown={handleNavKeyDown}>
+    <ul className={styles.navList}>
       {items.map((item) => {
         const isActive = options?.isActive ? options.isActive(item) : location.pathname === item.path;
 
@@ -351,26 +359,26 @@ export function LeftPanel() {
       {renderSection(
         'Admin',
         <>
-          {!leftPanelCollapsed && (
-            <button
-              type="button"
-              className={styles.adminToggle}
-              onClick={() => setIsHubAdminExpanded((expanded) => !expanded)}
-              aria-expanded={isHubAdminExpanded}
-              aria-controls="hub-admin-nav-list"
-            >
-              <Icon
-                semantic="navigation.collapse"
-                decorative
-                className={styles.adminToggleIcon}
-                style={{
-                  transform: isHubAdminExpanded ? 'rotate(180deg)' : 'rotate(90deg)',
-                }}
-              />
-              <span className={styles.adminToggleLabel}>Hub Admin</span>
-            </button>
-          )}
-          {(leftPanelCollapsed || isHubAdminExpanded) && (
+          <button
+            type="button"
+            className={styles.adminToggle}
+            onClick={() => setIsHubAdminExpanded((expanded) => !expanded)}
+            aria-expanded={isHubAdminExpanded}
+            aria-controls="hub-admin-nav-list"
+            title={leftPanelCollapsed ? 'Hub Admin' : undefined}
+            aria-label={leftPanelCollapsed ? 'Hub Admin' : undefined}
+          >
+            <Icon
+              semantic="navigation.collapse"
+              decorative
+              className={styles.adminToggleIcon}
+              style={{
+                transform: isHubAdminExpanded ? 'rotate(180deg)' : 'rotate(90deg)',
+              }}
+            />
+            {!leftPanelCollapsed && <span className={styles.adminToggleLabel}>Hub Admin</span>}
+          </button>
+          {isHubAdminExpanded && (
             <div id="hub-admin-nav-list">{renderNavItemList(configItems)}</div>
           )}
         </>
@@ -448,7 +456,23 @@ export function LeftPanel() {
       </div>
 
 
-      <nav className={styles.nav} id="left-panel-nav" aria-label="Primary navigation">
+      {sidebarMode === 'project-workspace' && projectIdentityName && (
+        <div
+          className={styles.projectIdentity}
+          title={leftPanelCollapsed ? projectIdentityName : undefined}
+          aria-label={leftPanelCollapsed ? projectIdentityName : undefined}
+        >
+          <span className={styles.projectIdentityName}>{projectIdentityName}</span>
+          {!leftPanelCollapsed && <span className={styles.projectIdentityBadge}>Project Workspace</span>}
+        </div>
+      )}
+
+      <nav
+        className={styles.nav}
+        id="left-panel-nav"
+        aria-label="Primary navigation"
+        onKeyDown={handleNavKeyDown}
+      >
         {sidebarMode === 'hub' ? renderHubNav() : renderProjectWorkspaceNav()}
       </nav>
     </aside>
