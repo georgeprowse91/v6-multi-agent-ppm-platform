@@ -27,5 +27,8 @@ export type {
   ScopeResearchItem,
   ScopeResearchMessageData,
   ScopeResearchStatus,
+  ConversationalChangeStatus,
+  ConversationalChange,
+  ConversationalCommandMessageData,
 } from './types';
 export { CATEGORY_COLORS, CATEGORY_ICONS, ACTION_AGENT_MAPPING, getAgentForAction } from './types';

@@ -1,12 +1,21 @@
 import { Fragment, type ReactNode } from 'react';
-import type { ActionChip, AssistantMessage, ScopeResearchItem, ScopeResearchMessageData } from '@/store/assistant';
+import type {
+  ActionChip,
+  AssistantMessage,
+  ConversationalCommandMessageData,
+  ScopeResearchItem,
+  ScopeResearchMessageData,
+} from '@/store/assistant';
 import { ScopeResearchCard } from './ScopeResearchCard';
+import { ConversationalCommandCard } from './ConversationalCommandCard';
 import styles from './MessageBubble.module.css';
 
 interface MessageBubbleProps {
   message: AssistantMessage;
   renderActionChip?: (chip: ActionChip, options?: { small?: boolean }) => ReactNode;
   onApplyScopeResearch?: (data: ScopeResearchMessageData, acceptedItems: ScopeResearchItem[]) => boolean;
+  onApplyConversationalCommand?: (data: ConversationalCommandMessageData) => void;
+  onCancelConversationalCommand?: () => void;
 }
 
 interface MarkdownInlineProps {
@@ -164,7 +173,13 @@ function renderAssistantMarkdown(content: string): ReactNode {
   return <div className={styles.messageContentRendered}>{blocks}</div>;
 }
 
-export function MessageBubble({ message, renderActionChip, onApplyScopeResearch }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  renderActionChip,
+  onApplyScopeResearch,
+  onApplyConversationalCommand,
+  onCancelConversationalCommand,
+}: MessageBubbleProps) {
   const showGeneratedBadge = message.role === 'assistant' && message.provenance?.showModelOrTool === true;
 
   return (
@@ -176,10 +191,17 @@ export function MessageBubble({ message, renderActionChip, onApplyScopeResearch 
       </div>
       {message.messageType === 'scope_research' && message.data && (
         <ScopeResearchCard
-          data={message.data}
+          data={message.data as ScopeResearchMessageData}
           onApplyAcceptedItems={(data, acceptedItems) =>
             onApplyScopeResearch ? onApplyScopeResearch(data, acceptedItems) : false
           }
+        />
+      )}
+      {message.messageType === 'conversational_command' && message.data && (
+        <ConversationalCommandCard
+          data={message.data as ConversationalCommandMessageData}
+          onCancel={() => onCancelConversationalCommand?.()}
+          onApply={(data) => onApplyConversationalCommand?.(data)}
         />
       )}
       {message.sources && message.sources.length > 0 && (

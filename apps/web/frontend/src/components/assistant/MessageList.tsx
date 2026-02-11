@@ -6,6 +6,7 @@ import {
   type AssistantMessage,
   type ScopeResearchItem,
   type ScopeResearchMessageData,
+  type ConversationalCommandMessageData,
 } from '@/store/assistant';
 import styles from './MessageList.module.css';
 import bubbleStyles from './MessageBubble.module.css';
@@ -19,6 +20,8 @@ interface MessageListProps {
   onChipClick: (chip: ActionChip) => void;
   renderActionChip?: (chip: ActionChip, options?: { small?: boolean }) => ReactNode;
   onApplyScopeResearch?: (data: ScopeResearchMessageData, acceptedItems: ScopeResearchItem[]) => boolean;
+  onApplyConversationalCommand?: (data: ConversationalCommandMessageData) => void;
+  onCancelConversationalCommand?: () => void;
 }
 
 const typingStateLabels: Record<'thinking' | 'tool_use' | 'streaming', string> = {
@@ -34,6 +37,8 @@ export function MessageList({
   onChipClick,
   renderActionChip,
   onApplyScopeResearch,
+  onApplyConversationalCommand,
+  onCancelConversationalCommand,
 }: MessageListProps) {
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
 
@@ -168,6 +173,8 @@ export function MessageList({
               )
             }
             onApplyScopeResearch={onApplyScopeResearch}
+            onApplyConversationalCommand={onApplyConversationalCommand}
+            onCancelConversationalCommand={onCancelConversationalCommand}
           />
         ))
       )}

@@ -33,7 +33,27 @@ export interface ScopeResearchMessageData {
   usedExternalResearch?: boolean;
 }
 
-export type AssistantMessageType = 'default' | 'scope_research';
+export type ConversationalChangeStatus = 'add' | 'update' | 'remove';
+
+export interface ConversationalChange {
+  id: string;
+  label: string;
+  before?: string | number | null;
+  after?: string | number | null;
+  status?: ConversationalChangeStatus;
+}
+
+export interface ConversationalCommandMessageData {
+  title: string;
+  summary?: string;
+  changes: ConversationalChange[];
+  applyLabel?: string;
+}
+
+export type AssistantMessageType =
+  | 'default'
+  | 'scope_research'
+  | 'conversational_command';
 
 /**
  * Assistant AI state model for UX standards
@@ -183,7 +203,7 @@ export interface AssistantMessage {
   messageType?: AssistantMessageType;
 
   /** Optional structured message payload */
-  data?: ScopeResearchMessageData;
+  data?: ScopeResearchMessageData | ConversationalCommandMessageData;
 
   /** Timestamp */
   timestamp: Date;
