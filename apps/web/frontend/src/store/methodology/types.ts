@@ -59,6 +59,12 @@ export interface MethodologyActivity {
 
   /** Optional extensible metadata (e.g., sprint or release semantics) */
   metadata?: Record<string, unknown>;
+
+  /**
+   * Optional child activities used for one extra hierarchy level
+   * (e.g., sprint groups with nested sprint activities, nested iterations, milestone gates).
+   */
+  children?: MethodologyActivity[];
 }
 
 /**
@@ -94,6 +100,12 @@ export interface MethodologyStage {
 
   /** Optional extensible metadata (e.g., execution model or release gates) */
   metadata?: Record<string, unknown>;
+
+  /**
+   * Optional child stages for extended hierarchy modeling.
+   * Current navigation renders stage -> activity -> child activity.
+   */
+  children?: MethodologyStage[];
 }
 
 /**
@@ -162,10 +174,26 @@ export const STATUS_COLORS: Record<MethodologyStatus, string> = {
 };
 
 /**
+ * Flatten activities including one-level-or-deeper nested child activities
+ */
+
+export function flattenMethodologyActivities(
+  activities: MethodologyActivity[]
+): MethodologyActivity[] {
+  return activities.flatMap((activity) => {
+    if (!activity.children?.length) {
+      return [activity];
+    }
+
+    return [activity, ...flattenMethodologyActivities(activity.children)];
+  });
+}
+
+/**
  * Calculate progress percentage for a stage based on activity statuses
  */
 export function calculateStageProgress(stage: MethodologyStage): number {
-  const activities = stage.activities;
+  const activities = flattenMethodologyActivities(stage.activities);
   if (activities.length === 0) return 0;
 
   const completedCount = activities.filter(a => a.status === 'complete').length;
@@ -180,7 +208,7 @@ export function calculateStageProgress(stage: MethodologyStage): number {
  * Determine computed status for a stage based on its activities
  */
 export function computeStageStatus(stage: MethodologyStage): MethodologyStatus {
-  const activities = stage.activities;
+  const activities = flattenMethodologyActivities(stage.activities);
   if (activities.length === 0) return 'not_started';
 
   const statuses = activities.map(a => a.status);

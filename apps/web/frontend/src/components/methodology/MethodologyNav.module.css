@@ -310,6 +310,22 @@
   color: var(--color-neutral-100);
 }
 
+
+.nestedActivityItem {
+  margin-left: var(--space-4);
+}
+
+.nestedActivityButton {
+  font-size: var(--font-size-xs);
+  padding-left: var(--space-4);
+}
+
+.activityGroupLabel {
+  font-size: var(--font-size-2xs, 0.7rem);
+  color: var(--color-neutral-500);
+  margin-left: var(--space-1);
+}
+
 /* Activity name */
 .activityName {
   flex: 1;

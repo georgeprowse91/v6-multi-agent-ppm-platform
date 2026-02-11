@@ -27,6 +27,29 @@ import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
 import styles from './MethodologyNav.module.css';
 
+
+interface ActivityRenderNode {
+  activity: MethodologyActivity;
+  depth: 0 | 1;
+  parentId?: string;
+}
+
+function flattenActivityTree(
+  activities: MethodologyActivity[],
+  depth: 0 | 1 = 0,
+  parentId?: string
+): ActivityRenderNode[] {
+  return activities.flatMap((activity) => {
+    const node: ActivityRenderNode = { activity, depth, parentId };
+
+    if (!activity.children?.length || depth >= 1) {
+      return [node];
+    }
+
+    return [node, ...flattenActivityTree(activity.children, 1, activity.id)];
+  });
+}
+
 interface MethodologyNavProps {
   /** Whether the panel is collapsed (icon-only mode) */
   collapsed?: boolean;
@@ -215,6 +238,7 @@ function StageItem({
         ', '
       )}), approvals received.`
     : 'Gate criteria: approvals received, readiness checklist complete.';
+  const activityNodes = flattenActivityTree(stage.activities);
 
   return (
     <div
@@ -274,17 +298,28 @@ function StageItem({
           className={styles.activityList}
           role="list"
         >
-          {stage.activities.map((activity) => (
-            <ActivityItem
-              key={activity.id}
-              activity={activity}
-              stageLocked={isLocked}
-              isActivityLocked={isActivityLocked(activity.id)}
-              missingPrerequisites={getIncompletePrerequisites(activity)}
-              isSelected={currentActivityId === activity.id}
-              onClick={() => onActivityClick(activity, isLocked)}
-            />
-          ))}
+          {activityNodes.map(({ activity, depth, parentId }) => {
+            const childCount = activity.children?.length ?? 0;
+            const groupLabel =
+              depth === 0 && childCount > 0
+                ? `${activity.name} group (${childCount} item${childCount === 1 ? '' : 's'})`
+                : undefined;
+
+            return (
+              <ActivityItem
+                key={activity.id}
+                activity={activity}
+                stageLocked={isLocked}
+                isActivityLocked={isActivityLocked(activity.id)}
+                missingPrerequisites={getIncompletePrerequisites(activity)}
+                isSelected={currentActivityId === activity.id}
+                depth={depth}
+                parentId={parentId}
+                groupLabel={groupLabel}
+                onClick={() => onActivityClick(activity, isLocked)}
+              />
+            );
+          })}
         </ul>
       )}
     </div>
@@ -297,6 +332,9 @@ interface ActivityItemProps {
   isActivityLocked: boolean;
   missingPrerequisites: PrerequisiteInfo[];
   isSelected: boolean;
+  depth?: 0 | 1;
+  parentId?: string;
+  groupLabel?: string;
   onClick: () => void;
 }
 
@@ -306,6 +344,9 @@ function ActivityItem({
   isActivityLocked,
   missingPrerequisites,
   isSelected,
+  depth = 0,
+  parentId,
+  groupLabel,
   onClick,
 }: ActivityItemProps) {
   // Compute effective status
@@ -316,17 +357,30 @@ function ActivityItem({
     : 'Additional prerequisites required.';
 
   return (
-    <li className={styles.activityItem}>
+    <li
+      className={`${styles.activityItem} ${depth === 1 ? styles.nestedActivityItem : ''}`}
+      role="listitem"
+      aria-level={depth + 1}
+    >
       <button
         className={`${styles.activityButton} ${isSelected ? styles.selected : ''} ${
           isLocked ? styles.locked : ''
-        } ${activity.alwaysAccessible ? styles.alwaysAccessible : ''}`}
+        } ${activity.alwaysAccessible ? styles.alwaysAccessible : ''} ${
+          depth === 1 ? styles.nestedActivityButton : ''
+        }`}
         onClick={onClick}
         title={`${activity.name}${isLocked ? ' (Locked - prerequisites not met)' : ''}`}
         aria-current={isSelected ? 'true' : undefined}
+        aria-describedby={groupLabel ? `${activity.id}-group-label` : undefined}
+        data-parent-id={parentId}
       >
         <StatusIcon status={displayStatus} small />
         <span className={styles.activityName}>{activity.name}</span>
+        {groupLabel && (
+          <span id={`${activity.id}-group-label`} className={styles.activityGroupLabel}>
+            {groupLabel}
+          </span>
+        )}
         <CanvasTypeIcon canvasType={activity.canvasType} />
       </button>
       {isLocked && (

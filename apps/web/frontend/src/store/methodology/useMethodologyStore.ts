@@ -14,8 +14,42 @@ import {
   computeStageStatus,
   isActivityLocked,
   isStageLocked,
+  flattenMethodologyActivities,
 } from './types';
 import { projectApolloMethodology, methodologyTemplates } from './demoData';
+
+
+function updateActivityStatusInTree(
+  activities: MethodologyActivity[],
+  activityId: string,
+  status: MethodologyStatus
+): { activities: MethodologyActivity[]; updated: boolean } {
+  let updated = false;
+
+  const nextActivities = activities.map((activity) => {
+    if (activity.id === activityId) {
+      updated = true;
+      return { ...activity, status };
+    }
+
+    if (!activity.children?.length) {
+      return activity;
+    }
+
+    const nextChildResult = updateActivityStatusInTree(activity.children, activityId, status);
+    if (!nextChildResult.updated) {
+      return activity;
+    }
+
+    updated = true;
+    return {
+      ...activity,
+      children: nextChildResult.activities,
+    };
+  });
+
+  return { activities: nextActivities, updated };
+}
 
 interface MethodologyStoreState {
   // Current project methodology
@@ -141,19 +175,13 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   updateActivityStatus: (activityId, status) => {
     set((state) => {
       const newStages = state.projectMethodology.methodology.stages.map((stage) => {
-        const activityIndex = stage.activities.findIndex((a) => a.id === activityId);
-        if (activityIndex === -1) return stage;
-
-        const newActivities = [...stage.activities];
-        newActivities[activityIndex] = {
-          ...newActivities[activityIndex],
-          status,
-        };
+        const nextActivityTree = updateActivityStatusInTree(stage.activities, activityId, status);
+        if (!nextActivityTree.updated) return stage;
 
         // Recompute stage status based on activities
         const newStage = {
           ...stage,
-          activities: newActivities,
+          activities: nextActivityTree.activities,
         };
         newStage.status = computeStageStatus(newStage);
 
@@ -233,7 +261,7 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   getActivity: (activityId) => {
     const stages = get().projectMethodology.methodology.stages;
     for (const stage of stages) {
-      const activity = stage.activities.find((a) => a.id === activityId);
+      const activity = flattenMethodologyActivities(stage.activities).find((a) => a.id === activityId);
       if (activity) return activity;
     }
     return undefined;
@@ -247,7 +275,9 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
 
   getStageForActivity: (activityId) => {
     const stages = get().projectMethodology.methodology.stages;
-    return stages.find((stage) => stage.activities.some((a) => a.id === activityId));
+    return stages.find((stage) =>
+      flattenMethodologyActivities(stage.activities).some((a) => a.id === activityId)
+    );
   },
 
   isStageLockedComputed: (stageId) => {
@@ -278,6 +308,8 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   },
 
   getAllActivities: () => {
-    return get().projectMethodology.methodology.stages.flatMap((s) => s.activities);
+    return get().projectMethodology.methodology.stages.flatMap((stage) =>
+      flattenMethodologyActivities(stage.activities)
+    );
   },
 }));
