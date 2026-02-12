@@ -6,6 +6,8 @@ import asyncio
 import logging
 from typing import Any, Dict, Iterable
 
+import httpx
+
 from integrations.connectors.mcp_client.auth import AuthConfig
 from integrations.connectors.mcp_client.client import MCPClient
 from integrations.connectors.mcp_client.errors import MCPToolNotFoundError
@@ -117,8 +119,12 @@ class McpConnectorBase(BaseIntegrationConnector):
             return []
         try:
             response = self._rest_connector.fetch(endpoint)
-        except Exception as exc:
-            logger.warning("REST fallback failed for %s: %s", self.system_name, exc)
+        except httpx.HTTPError as exc:
+            logger.warning(
+                "REST fallback list failed",
+                extra={"system": self.system_name, "endpoint": endpoint},
+                exc_info=True,
+            )
             return []
         return self._extract_records(response)
 
@@ -130,8 +136,12 @@ class McpConnectorBase(BaseIntegrationConnector):
             return {"status": "skipped", "reason": "no_fallback_endpoint"}
         try:
             return self._rest_connector.post(endpoint, payload)
-        except Exception as exc:
-            logger.warning("REST fallback failed for %s: %s", self.system_name, exc)
+        except httpx.HTTPError as exc:
+            logger.warning(
+                "REST fallback create failed",
+                extra={"system": self.system_name, "endpoint": endpoint},
+                exc_info=True,
+            )
             return {"status": "failed", "reason": str(exc)}
 
     def _merge_records(

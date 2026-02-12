@@ -116,8 +116,12 @@ class BaseIntegrationConnector:
     def health_check(self) -> bool:
         try:
             return self.authenticate()
-        except Exception as exc:
-            logger.warning("Connector health check failed", extra={"error": str(exc)})
+        except (RuntimeError, ValueError) as exc:
+            logger.warning(
+                "Connector health check failed",
+                extra={"system": self.system_name, "error": str(exc)},
+                exc_info=True,
+            )
             return False
 
     def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
