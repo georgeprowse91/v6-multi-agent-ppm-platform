@@ -1,5 +1,10 @@
 import Constants from 'expo-constants';
 
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken?: string;
+};
+
 type ApiOptions = RequestInit & {
   tenantId?: string | null;
 };
@@ -11,6 +16,14 @@ const extraBaseUrl =
 
 export const API_BASE_URL = extraBaseUrl || fallbackBaseUrl;
 
+let authTokens: AuthTokens | null = null;
+
+export const setAuthTokens = (tokens: AuthTokens | null) => {
+  authTokens = tokens;
+};
+
+export const getAuthTokens = () => authTokens;
+
 export const apiFetch = async (path: string, options: ApiOptions = {}) => {
   const { tenantId, headers, ...rest } = options;
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -19,10 +32,17 @@ export const apiFetch = async (path: string, options: ApiOptions = {}) => {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...(authTokens?.accessToken ? { Authorization: `Bearer ${authTokens.accessToken}` } : {}),
       ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
       ...(headers || {}),
     },
   });
+
+  if (response.status === 401) {
+    const unauthorizedError = new Error('Unauthorized');
+    unauthorizedError.name = 'UnauthorizedError';
+    throw unauthorizedError;
+  }
 
   if (!response.ok) {
     const message = await response.text();
@@ -46,11 +66,9 @@ export const logout = async () => apiFetch('/logout', { method: 'POST' });
 export const fetchPortfolioSummary = async (tenantId?: string | null) =>
   apiFetch('/api/portfolios/summary', { tenantId });
 
-export const fetchPortfolios = async (tenantId?: string | null) =>
-  apiFetch('/api/portfolios', { tenantId });
+export const fetchPortfolios = async (tenantId?: string | null) => apiFetch('/api/portfolios', { tenantId });
 
-export const fetchProjects = async (tenantId?: string | null) =>
-  apiFetch('/api/projects', { tenantId });
+export const fetchProjects = async (tenantId?: string | null) => apiFetch('/api/projects', { tenantId });
 
 export const fetchApprovals = async (tenantId?: string | null, status?: string) => {
   const query = status ? `?status=${encodeURIComponent(status)}` : '';

@@ -16,6 +16,8 @@ import { CanvasScreen } from './src/screens/CanvasScreen';
 import { ApprovalsScreen } from './src/screens/ApprovalsScreen';
 import { ConnectorsScreen } from './src/screens/ConnectorsScreen';
 import { AssistantScreen } from './src/screens/AssistantScreen';
+import { AppErrorBoundary } from './src/components/AppErrorBoundary';
+import { reportCrash } from './src/services/telemetry';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -59,11 +61,7 @@ const WorkspaceTabs = () => {
         component={DashboardScreen}
         options={{ title: t('mobile.tabs.dashboard') }}
       />
-      <Tab.Screen
-        name="Canvas"
-        component={CanvasScreen}
-        options={{ title: t('mobile.tabs.canvas') }}
-      />
+      <Tab.Screen name="Canvas" component={CanvasScreen} options={{ title: t('mobile.tabs.canvas') }} />
       <Tab.Screen
         name="Approvals"
         component={ApprovalsScreen}
@@ -124,13 +122,38 @@ const navigationTheme = {
   },
 };
 
-const AppRoot = () => (
-  <I18nProvider>
-    <AppProvider>
+const AppBootstrap = () => {
+  const { session, tenantId, refreshSession, logout } = useAppContext();
+
+  return (
+    <AppErrorBoundary
+      onRecover={() => {
+        void refreshSession();
+      }}
+      onSignOut={() => {
+        void logout();
+      }}
+      onReport={(error, componentStack) => {
+        reportCrash(error, {
+          componentStack,
+          phase: 'render',
+          sessionAuthenticated: session.authenticated,
+          tenantId,
+        });
+      }}
+    >
       <NavigationContainer theme={navigationTheme}>
         <StatusBar style="light" />
         <RootNavigator />
       </NavigationContainer>
+    </AppErrorBoundary>
+  );
+};
+
+const AppRoot = () => (
+  <I18nProvider>
+    <AppProvider>
+      <AppBootstrap />
     </AppProvider>
   </I18nProvider>
 );
