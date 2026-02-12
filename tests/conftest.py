@@ -3,6 +3,7 @@ Pytest configuration and fixtures for Multi-Agent PPM Platform tests.
 """
 
 import asyncio
+import collections
 import importlib.util
 import inspect
 import os
@@ -11,6 +12,32 @@ from pathlib import Path
 
 import jwt
 import pytest
+
+
+CI_OPTIONAL_TEST_DEPENDENCIES = {
+    "api_security": ["slowapi"],
+    "workflow_execution": ["celery"],
+    "web_governance": ["email_validator"],
+}
+
+_MISSING_DEPENDENCY_SKIP_PATTERNS = (
+    "is not installed",
+    "no module named",
+    "could not import",
+    "module not found",
+)
+_PLATFORM_SKIP_PATTERNS = (
+    "[platform]",
+    "platform-specific",
+    "platform specific",
+    "unsupported platform",
+    "requires linux",
+    "requires macos",
+    "requires windows",
+)
+
+
+_PYTEST_CONFIG = None
 
 
 def _bootstrap_paths() -> None:
@@ -120,6 +147,87 @@ def pytest_ignore_collect(collection_path: Path, config):
     if path_str.endswith("tests/test_schema_validation.py") and not _jsonschema_has_validator():
         return True
     return False
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--fail-on-unexpected-skips",
+        action="store_true",
+        default=os.getenv("PYTEST_FAIL_ON_UNEXPECTED_SKIPS", "0") == "1",
+        help="Fail the run when missing-dependency or unclassified skips are observed.",
+    )
+
+
+def pytest_configure(config):
+    global _PYTEST_CONFIG
+    _PYTEST_CONFIG = config
+    config._ppm_skip_counts = collections.Counter()
+    config._ppm_skip_examples = {}
+
+
+def _extract_skip_reason(report: pytest.TestReport) -> str:
+    longrepr = report.longrepr
+    if isinstance(longrepr, tuple) and len(longrepr) == 3:
+        return str(longrepr[2])
+    return str(longrepr)
+
+
+def _classify_skip_reason(reason: str) -> str:
+    lowered = reason.lower()
+    if any(pattern in lowered for pattern in _PLATFORM_SKIP_PATTERNS):
+        return "intentional_platform"
+    if any(pattern in lowered for pattern in _MISSING_DEPENDENCY_SKIP_PATTERNS):
+        return "missing_dependency"
+    return "unclassified"
+
+
+def _record_skip(config: pytest.Config, reason: str) -> None:
+    category = _classify_skip_reason(reason)
+    config._ppm_skip_counts[category] += 1
+    config._ppm_skip_examples.setdefault(category, reason)
+
+
+def pytest_collectreport(report):
+    if report.outcome != "skipped" or _PYTEST_CONFIG is None:
+        return
+    _record_skip(_PYTEST_CONFIG, str(report.longrepr))
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    if report.when != "setup" or not report.skipped:
+        return
+
+    reason = _extract_skip_reason(report)
+    _record_skip(item.config, reason)
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    counts = config._ppm_skip_counts
+    if not counts:
+        return
+
+    terminalreporter.section("Skip classification summary")
+    for category in ("intentional_platform", "missing_dependency", "unclassified"):
+        count = counts.get(category, 0)
+        example = config._ppm_skip_examples.get(category)
+        message = f"{category.replace('_', ' ').title()}: {count}"
+        if example:
+            message += f" (example: {example})"
+        terminalreporter.line(message)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    if not session.config.getoption("--fail-on-unexpected-skips"):
+        return
+
+    counts = session.config._ppm_skip_counts
+    missing_dependency_skips = counts.get("missing_dependency", 0)
+    unclassified_skips = counts.get("unclassified", 0)
+    if missing_dependency_skips or unclassified_skips:
+        session.exitstatus = 1
 
 
 try:

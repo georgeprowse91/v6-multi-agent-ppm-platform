@@ -11,6 +11,7 @@ Define the CI/CD, security, and compliance pipelines that validate and release t
 - `.github/workflows/cd.yml`: Release/promotion flow for tagged builds.
 - `.github/workflows/contract-tests.yml`: Contract test runs for shared schemas.
 - `.github/workflows/e2e-tests.yml`: End-to-end workflow validations.
+- `docs/testing/test-dependency-matrix.md`: Test matrix and dependency profile documentation for CI.
 - `.github/workflows/security-scan.yml`: Security scanning and policy enforcement.
 - `.github/workflows/secret-scan.yml`: Secret scanning checks.
 - `.github/workflows/iac-scan.yml`: Infrastructure-as-code scan (when enabled).
@@ -21,7 +22,7 @@ These workflows run automatically on pull requests, pushes to protected branches
 
 ## How to run / develop / test
 
-Most checks can be run locally before opening a PR:
+Most checks can be run locally before opening a PR (see also `docs/testing/test-dependency-matrix.md` for dependency sets):
 
 ```bash
 make lint
