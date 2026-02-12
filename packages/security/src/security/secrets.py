@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import NoReturn
 from urllib.parse import urlparse
 
 _DEFAULT_MOUNT_PATH = Path("/mnt/secrets-store")
+_FILE_ROOT_ENV_VAR = "SECRETS_FILE_ROOT"
+_ALLOW_ABSOLUTE_FILE_PATHS_ENV_VAR = "SECRETS_ALLOW_ABSOLUTE_PATHS"
+_ALLOWED_SECRET_FILE_EXTENSIONS = {"", ".txt", ".secret", ".pem", ".key", ".crt", ".json"}
+
+logger = logging.getLogger("security-secrets")
 
 
 class SecretResolutionError(ValueError):
@@ -33,11 +39,80 @@ def _resolve_braced_env(value: str) -> str:
 
 
 def _resolve_file_reference(value: str) -> str:
-    path = Path(value[len("file:") :])
-    try:
-        content = path.read_text(encoding="utf-8")
-    except FileNotFoundError:
+    raw_path = value[len("file:") :]
+    candidate_path = Path(raw_path)
+
+    if not raw_path.strip():
+        logger.warning("secret_file_reference_rejected", extra={"reason": "empty_path", "scheme": "file"})
         _raise_unresolved("file")
+
+    if any(part == ".." for part in candidate_path.parts):
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "path_traversal", "scheme": "file", "path": raw_path},
+        )
+        _raise_unresolved("file")
+
+    allow_absolute_paths = os.getenv(_ALLOW_ABSOLUTE_FILE_PATHS_ENV_VAR, "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if candidate_path.is_absolute() and not allow_absolute_paths:
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "absolute_path_not_allowed", "scheme": "file", "path": raw_path},
+        )
+        _raise_unresolved("file")
+
+    configured_root = Path(os.getenv(_FILE_ROOT_ENV_VAR, str(_DEFAULT_MOUNT_PATH)))
+    try:
+        root = configured_root.resolve(strict=True)
+    except FileNotFoundError:
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "root_missing", "scheme": "file", "root": str(configured_root)},
+        )
+        _raise_unresolved("file")
+
+    unresolved_candidate = candidate_path if candidate_path.is_absolute() else root / candidate_path
+
+    try:
+        candidate = unresolved_candidate.resolve(strict=True)
+    except FileNotFoundError:
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "path_missing", "scheme": "file", "path": raw_path},
+        )
+        _raise_unresolved("file")
+
+    try:
+        within_root = candidate.is_relative_to(root)
+    except AttributeError:
+        within_root = root == candidate or root in candidate.parents
+    if not within_root:
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "path_outside_root", "scheme": "file", "path": raw_path, "root": str(root)},
+        )
+        _raise_unresolved("file")
+
+    if candidate.suffix.lower() not in _ALLOWED_SECRET_FILE_EXTENSIONS:
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "extension_not_allowed", "scheme": "file", "path": raw_path},
+        )
+        _raise_unresolved("file")
+
+    if not candidate.is_file():
+        logger.warning(
+            "secret_file_reference_rejected",
+            extra={"reason": "not_a_regular_file", "scheme": "file", "path": raw_path},
+        )
+        _raise_unresolved("file")
+
+    content = candidate.read_text(encoding="utf-8")
     return content.rstrip("\n")
 
 
