@@ -19,6 +19,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
 from api.leader_election import build_leader_elector
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
@@ -55,11 +56,7 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
-from common.exceptions import (  # noqa: E402
-    PPMPlatformError,
-    ValidationError,
-    exception_to_http_status,
-)
+from common.exceptions import PPMPlatformError, exception_to_http_status  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -91,25 +88,15 @@ def _version_payload() -> dict[str, str]:
 environment = os.getenv("ENVIRONMENT", "development").lower()
 
 # Configure CORS
-allowed_origins_env = os.getenv(
-    "ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8501,http://localhost:8000"
-)
-allowed_origins = (
-    ["*"]
-    if allowed_origins_env.strip() == "*"
-    else [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
-)
-if "*" in allowed_origins and environment not in {"dev", "development", "local", "test"}:
-    raise ValidationError("Wildcard CORS origins are not permitted outside development environments.")
-
+allowed_origins = get_allowed_origins(environment)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=ALLOWED_CORS_METHODS,
+    allow_headers=ALLOWED_CORS_HEADERS,
 )
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)

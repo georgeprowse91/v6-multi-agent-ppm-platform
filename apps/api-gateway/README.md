@@ -28,6 +28,27 @@ python -m tools.component_runner run --type app --name api-gateway --dry-run
 
 Runtime configuration is supplied via `.env` and service URLs in the repo configuration files.
 
+### CORS configuration
+
+CORS is configured per environment with explicit trusted origins. Wildcards (`*`) are rejected because the API enables credentials and therefore requires strict origin controls.
+
+Use the following variables (highest to lowest precedence):
+
+1. `CORS_ALLOWED_ORIGINS_<ENVIRONMENT>` (for example `CORS_ALLOWED_ORIGINS_PRODUCTION`)
+2. `CORS_ALLOWED_ORIGINS`
+3. `ALLOWED_ORIGINS` (legacy fallback)
+
+If none are set, the API applies environment defaults in `apps/api-gateway/src/api/main.py`:
+
+- Local / development / dev: `http://localhost:3000`, `http://localhost:8501`, `http://localhost:8000`
+- Test: `http://localhost:3000`
+- Staging: `https://staging.ppm.example.com`
+- Production / prod: `https://ppm.example.com`
+
+Approved cross-origin methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`.
+
+Approved cross-origin headers: `Authorization`, `Content-Type`, `Accept`, `X-Tenant-ID`, `X-Dev-User`, `X-Webhook-Secret`, `X-Webhook-Signature`.
+
 ## Troubleshooting
 
 - Missing dependencies: install dev dependencies with `make install-dev`.
