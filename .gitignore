@@ -25,6 +25,7 @@ __pycache__/
 # Environment files
 .env
 .env.*
+!.env.example
 
 # Signing keys
 config/signing/*_private.pem

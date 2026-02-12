@@ -2,27 +2,25 @@
 
 ## Purpose
 
-Document the local dev tooling used to automate development and CI workflows.
+Document the local dev tooling used to automate **local development** workflows.
 
 ## What's inside
 
-- `tools/local-dev/dev_down.sh`: File asset used by this component.
-- `tools/local-dev/dev_up.sh`: File asset used by this component.
-- `tools/local-dev/docker-compose.override.example.yml`: YAML definition or configuration used by this component.
+- `ops/tools/local-dev/dev_down.sh`: Stops the local Docker Compose stack.
+- `ops/tools/local-dev/dev_up.sh`: Boots the local Docker Compose stack and can initialize `.env` from `.env.example`.
+- `ops/tools/local-dev/docker-compose.override.example.yml`: Optional local override template.
 
 ## How it's used
 
-These tools are invoked by Make targets and CI pipelines.
-
-## How to run / develop / test
-
-Refer to the Makefile targets or run the module directly as needed.
+These tools are invoked by local Make targets (for example, `make dev-up` and `make dev-down`).
 
 ## Configuration
 
-Tooling configuration lives in repo-level config files and `.env` where applicable.
+- Configuration is sourced from repository-level `.env`.
+- If `.env` is missing, `dev_up.sh` copies `.env.example` and randomizes local password defaults for safer local posture.
+- `.env.example` values are **dev-only** and must never be reused in CI/staging/production.
 
 ## Troubleshooting
 
-- Command not found: ensure dev dependencies are installed (`make install-dev`).
+- Command not found: ensure Docker Compose is installed (`docker compose version` or `docker-compose --version`).
 - Tool errors: inspect logs and verify referenced paths exist.

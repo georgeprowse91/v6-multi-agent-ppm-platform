@@ -42,8 +42,12 @@ The repository delivers a production-ready, multi-agent PPM platform with valida
 > Requires Python 3.11+ and Docker Compose.
 
 ```bash
+cp .env.example .env
+# Optional: update .env values for your machine (dev-only values by default)
 make dev-up
 ```
+
+> ⚠️ `.env.example` contains **dev-only local defaults**. Never reuse these values in CI, staging, or production.
 
 See the detailed runbook in `docs/runbooks/quickstart.md` for the deterministic, end-to-end
 scenario that exercises the API gateway, workflow engine, orchestration service, and agents.

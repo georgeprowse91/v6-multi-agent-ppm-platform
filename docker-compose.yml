@@ -1,5 +1,7 @@
 version: '3.8'
 
+# DEV-ONLY COMPOSE PROFILE
+# Do not use local defaults from .env/.env.example in CI or production.
 services:
   # API Service
   api:
@@ -11,19 +13,19 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://ppm:ppm_password@db:5432/ppm
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
       - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT}
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=development
-      - ORCHESTRATION_STATE_BACKEND=db
-      - AUTH_DEV_MODE=${AUTH_DEV_MODE:-true}
-      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-PMO_ADMIN}
-      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID:-dev-tenant}
-      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
-      - LLM_MOCK_RESPONSE_PATH=${LLM_MOCK_RESPONSE_PATH:-/app/examples/demo-scenarios/quickstart-llm-response.json}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - ORCHESTRATION_STATE_BACKEND=${ORCHESTRATION_STATE_BACKEND}
+      - AUTH_DEV_MODE=${AUTH_DEV_MODE}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES}
+      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID}
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - LLM_MOCK_RESPONSE_PATH=${LLM_MOCK_RESPONSE_PATH}
     depends_on:
       db:
         condition: service_healthy
@@ -49,10 +51,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ENVIRONMENT=development
-      - AUTH_DEV_MODE=${AUTH_DEV_MODE:-true}
-      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES:-PMO_ADMIN}
-      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID:-dev-tenant}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - AUTH_DEV_MODE=${AUTH_DEV_MODE}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES}
+      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID}
       - WORKFLOW_DB_PATH=/app/apps/workflow-engine/storage/workflows.db
     volumes:
       - ./apps/workflow-engine:/app/apps/workflow-engine
@@ -64,9 +66,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: ppm
-      POSTGRES_USER: ppm
-      POSTGRES_PASSWORD: ppm_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -75,7 +77,7 @@ services:
     networks:
       - ppm-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ppm"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -123,9 +125,9 @@ services:
     volumes:
       - ./apps/web:/app
     environment:
-      - API_GATEWAY_URL=http://api:8000
-      - IDENTITY_ACCESS_URL=http://identity-access:8080
-      - WORKFLOW_ENGINE_URL=http://workflow-engine:8080
+      - API_GATEWAY_URL=${API_GATEWAY_URL}
+      - IDENTITY_ACCESS_URL=${IDENTITY_ACCESS_URL}
+      - WORKFLOW_ENGINE_URL=${WORKFLOW_ENGINE_URL}
     networks:
       - ppm-network
     restart: unless-stopped

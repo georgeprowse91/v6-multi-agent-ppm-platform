@@ -53,15 +53,20 @@ locally, understand core services, and start contributing safely.
    ```bash
    pnpm install
    ```
-3. **Start the local stack**
+3. **Create local environment file (dev-only defaults)**
+   ```bash
+   cp .env.example .env
+   ```
+   > Never reuse `.env.example` values in CI/staging/production.
+4. **Start the local stack**
    ```bash
    make dev-up
    ```
-4. **Apply database migrations**
+5. **Apply database migrations**
    ```bash
-   DATABASE_URL=postgresql://ppm:ppm_password@localhost:5432/ppm alembic upgrade head
+   DATABASE_URL=${DATABASE_URL:-postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB} alembic upgrade head
    ```
-5. **Verify health endpoints**
+6. **Verify health endpoints**
    ```bash
    curl -sS http://localhost:8000/healthz
    curl -sS http://localhost:8080/healthz
@@ -107,6 +112,7 @@ CI enforces major version bumps when breaking changes are recorded in the change
 ## Configuration tips
 
 - Local development uses auth dev mode in docker-compose (`AUTH_DEV_MODE=true`).
+- `.env.example` is explicitly dev-only; CI and production must use managed secrets and environment-specific values.
 - Update `.env` for local overrides (LLM provider, credentials, feature flags).
 - Service-specific environment variables live in each service README.
 - External research features rely on `SEARCH_API_ENDPOINT`/`SEARCH_API_KEY` and per-agent flags such as
