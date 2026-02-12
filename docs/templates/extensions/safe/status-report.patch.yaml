@@ -1,0 +1,3 @@
+extends: core/status-report/base.yaml
+add_sections:
+  - train-level-metrics

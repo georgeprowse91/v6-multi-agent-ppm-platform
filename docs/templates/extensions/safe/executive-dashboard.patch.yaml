@@ -1,0 +1,4 @@
+extends: core/executive-dashboard/base.yaml
+add_tiles:
+  - pi-predictability
+  - dependency-health

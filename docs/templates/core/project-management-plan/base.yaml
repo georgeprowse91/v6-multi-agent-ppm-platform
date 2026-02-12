@@ -1,0 +1,13 @@
+artefact: project-management-plan
+version: 1.0.0
+owner: PMO
+sections:
+  - project-overview
+  - management-approach
+  - scope-baseline
+  - schedule-baseline
+  - cost-baseline
+  - quality-management
+  - risk-management
+  - change-control
+  - stakeholder-engagement

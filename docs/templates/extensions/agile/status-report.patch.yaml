@@ -1,0 +1,4 @@
+extends: core/status-report/base.yaml
+add_sections:
+  - velocity-trend
+  - burnup-burndown

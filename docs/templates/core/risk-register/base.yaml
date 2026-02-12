@@ -1,0 +1,14 @@
+artefact: risk-register
+version: 1.0.0
+owner: PMO
+fields:
+  - id
+  - title
+  - category
+  - probability
+  - impact
+  - score
+  - response-strategy
+  - owner
+  - due-date
+  - status

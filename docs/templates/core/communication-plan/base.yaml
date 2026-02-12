@@ -1,0 +1,11 @@
+artefact: communication-plan
+version: 1.0.0
+owner: PMO
+fields:
+  - stakeholder-group
+  - communication-objective
+  - channel
+  - cadence
+  - sender
+  - escalation-path
+  - success-measure

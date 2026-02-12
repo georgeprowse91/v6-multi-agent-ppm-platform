@@ -1,0 +1,3 @@
+extends: core/sprint-planning/base.yaml
+add_sections:
+  - refinement-readiness

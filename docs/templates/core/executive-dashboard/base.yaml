@@ -1,0 +1,10 @@
+artefact: executive-dashboard
+version: 1.0.0
+owner: PMO
+tiles:
+  - portfolio-health
+  - schedule-performance
+  - budget-performance
+  - top-risks
+  - benefits-realization
+  - decisions-required

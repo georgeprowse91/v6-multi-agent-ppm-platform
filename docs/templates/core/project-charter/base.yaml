@@ -1,0 +1,12 @@
+artefact: project-charter
+version: 1.0.0
+owner: PMO
+sections:
+  - problem-statement
+  - objectives
+  - scope
+  - success-criteria
+  - governance
+  - milestones
+  - budget-summary
+  - risks-assumptions-dependencies

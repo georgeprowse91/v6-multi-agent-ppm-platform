@@ -1,0 +1,12 @@
+artefact: deployment-checklist
+version: 1.0.0
+owner: Engineering
+stages:
+  - pre-deployment
+  - deployment
+  - post-deployment
+checks:
+  - rollback-ready
+  - approvals-complete
+  - monitoring-enabled
+  - validation-complete
