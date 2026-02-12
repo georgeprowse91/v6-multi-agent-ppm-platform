@@ -13,5 +13,15 @@
       "avg_ms": 150,
       "p95_ms": 300
     }
+  },
+  "thresholds_pct": {
+    "default": 20,
+    "critical-path": 10,
+    "supporting": 25
+  },
+  "benchmark_groups": {
+    "Aggregated": "critical-path",
+    "api_health": "supporting",
+    "connector_sync": "critical-path"
   }
 }

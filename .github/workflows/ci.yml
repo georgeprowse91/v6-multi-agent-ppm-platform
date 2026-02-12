@@ -491,14 +491,10 @@ jobs:
 
       - name: Compare benchmarks against baselines
         run: |
-          set +e
-          python scripts/compare_benchmarks.py \
+          python ops/scripts/compare_benchmarks.py \
             --baseline tests/performance/baselines.json \
             --stats tests/performance/results/quick_perf_stats.csv \
             --output tests/performance/results/comparison.md
-          status=$?
-          echo "COMPARE_STATUS=$status" >> "$GITHUB_ENV"
-          exit 0
 
       - name: Prepare PR comment
         run: |
@@ -507,46 +503,18 @@ jobs:
             > tests/performance/results/pr-comment.md
 
       - name: Post PR performance summary
+        if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: tests/performance/results/pr-comment.md
 
-      - name: Enforce benchmark thresholds
-        run: |
-          if [ "${COMPARE_STATUS}" -ne 0 ]; then
-            echo "Performance regression detected."
-            exit 1
-          fi
-
       - name: Upload performance artifacts
+        if: always()
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
         with:
           name: performance-smoke-results
           path: tests/performance/results/
           retention-days: 14
-
-      - name: Check performance regression
-        run: |
-          # Fail if critical performance thresholds are exceeded
-          python -c "
-          import json
-          import sys
-          try:
-              with open('benchmark-results.json') as f:
-                  results = json.load(f)
-              # Check for performance regressions
-              for benchmark in results.get('benchmarks', []):
-                  mean = benchmark.get('stats', {}).get('mean', 0)
-                  name = benchmark.get('name', 'unknown')
-                  # Alert if any benchmark takes longer than 5 seconds
-                  if mean > 5.0:
-                      print(f'WARNING: {name} took {mean:.2f}s (threshold: 5s)')
-              print('Performance check passed')
-          except FileNotFoundError:
-              print('No benchmark results found, skipping check')
-          except Exception as e:
-              print(f'Performance check skipped: {e}')
-          "
 
   # Build Docker Images
   build-images:

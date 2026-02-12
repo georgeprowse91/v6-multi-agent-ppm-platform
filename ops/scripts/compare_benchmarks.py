@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
         "--threshold-pct",
         type=float,
         default=None,
-        help="Override allowed degradation percentage.",
+        help="Override allowed degradation percentage for all benchmark groups.",
     )
     return parser.parse_args()
 
@@ -83,27 +83,47 @@ def main() -> None:
     baseline_data = load_baselines(args.baseline)
     stats = load_stats(args.stats)
 
-    threshold_pct = args.threshold_pct
-    if threshold_pct is None:
-        threshold_pct = float(baseline_data.get("threshold_pct", 20))
+    default_threshold_pct = args.threshold_pct
+    if default_threshold_pct is None:
+        default_threshold_pct = float(baseline_data.get("threshold_pct", 20))
+
+    thresholds_by_group: dict[str, float] = {
+        key: float(value)
+        for key, value in baseline_data.get("thresholds_pct", {}).items()
+    }
+    benchmark_groups: dict[str, str] = baseline_data.get("benchmark_groups", {})
 
     comparisons: list[str] = []
     failures: list[str] = []
 
     comparisons.append("## Benchmark Comparison")
     comparisons.append("")
-    comparisons.append(f"Threshold: {threshold_pct:.0f}% degradation allowed")
+    comparisons.append(
+        f"Default threshold: {default_threshold_pct:.0f}% degradation allowed"
+    )
+    if thresholds_by_group:
+        comparisons.append("Group thresholds:")
+        for group_name in sorted(thresholds_by_group):
+            comparisons.append(
+                f"- `{group_name}`: {thresholds_by_group[group_name]:.0f}%"
+            )
     comparisons.append("")
-    comparisons.append("| Name | Metric | Baseline | Actual | Delta | Status |")
-    comparisons.append("| --- | --- | --- | --- | --- | --- |")
+    comparisons.append(
+        "| Name | Group | Metric | Baseline | Actual | Delta | Threshold | Status |"
+    )
+    comparisons.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
 
     metrics: dict[str, dict[str, float]] = baseline_data.get("metrics", {})
     for name, baseline_metrics in metrics.items():
         row = stats.get(name)
+        benchmark_group = benchmark_groups.get(name, "default")
+        threshold_pct = thresholds_by_group.get(
+            benchmark_group, default_threshold_pct
+        )
         if not row:
             failures.append(f"{name} (missing)")
             comparisons.append(
-                f"| {name} | all | n/a | n/a | n/a | ❌ missing |"
+                f"| {name} | {benchmark_group} | all | n/a | n/a | n/a | {threshold_pct:.0f}% | ❌ missing |"
             )
             continue
 
@@ -117,7 +137,7 @@ def main() -> None:
                 if degraded:
                     failures.append(f"{name} avg_ms")
                 comparisons.append(
-                    f"| {name} | avg_ms | {baseline_value:.1f} | {actual:.1f} | {delta} | {status} |"
+                    f"| {name} | {benchmark_group} | avg_ms | {baseline_value:.1f} | {actual:.1f} | {delta} | {threshold_pct:.0f}% | {status} |"
                 )
             elif metric_key == "p95_ms":
                 actual = parse_float(row["95%"])
@@ -128,7 +148,7 @@ def main() -> None:
                 if degraded:
                     failures.append(f"{name} p95_ms")
                 comparisons.append(
-                    f"| {name} | p95_ms | {baseline_value:.1f} | {actual:.1f} | {delta} | {status} |"
+                    f"| {name} | {benchmark_group} | p95_ms | {baseline_value:.1f} | {actual:.1f} | {delta} | {threshold_pct:.0f}% | {status} |"
                 )
             elif metric_key == "rps":
                 actual = parse_float(row["Requests/s"])
@@ -139,7 +159,7 @@ def main() -> None:
                 if degraded:
                     failures.append(f"{name} rps")
                 comparisons.append(
-                    f"| {name} | rps | {baseline_value:.2f} | {actual:.2f} | {delta} | {status} |"
+                    f"| {name} | {benchmark_group} | rps | {baseline_value:.2f} | {actual:.2f} | {delta} | {threshold_pct:.0f}% | {status} |"
                 )
 
     comparisons.append("")
