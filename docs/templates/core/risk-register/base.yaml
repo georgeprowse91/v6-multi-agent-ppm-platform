@@ -39,27 +39,64 @@ sections:
     type: string
   - name: status
     type: string
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{id}}'
+  - '{{title}}'
+  - '{{category}}'
+  - '{{probability}}'
+  - '{{impact}}'
+  - '{{score}}'
+  - '{{response_strategy}}'
+  - '{{owner}}'
+  - '{{due_date}}'
+  - '{{status}}'
 guidance:
   purpose: Canonical base structure for the risk-register template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - data-table
 - key: id
   token: '{{id}}'
+  consumed_by_sections:
+  - data-table
 - key: title
   token: '{{title}}'
+  consumed_by_sections:
+  - data-table
 - key: category
   token: '{{category}}'
+  consumed_by_sections:
+  - data-table
 - key: probability
   token: '{{probability}}'
+  consumed_by_sections:
+  - data-table
 - key: impact
   token: '{{impact}}'
+  consumed_by_sections:
+  - data-table
 - key: score
   token: '{{score}}'
+  consumed_by_sections:
+  - data-table
 - key: response_strategy
   token: '{{response_strategy}}'
+  consumed_by_sections:
+  - data-table
 - key: owner
   token: '{{owner}}'
+  consumed_by_sections:
+  - data-table
 - key: due_date
   token: '{{due_date}}'
+  consumed_by_sections:
+  - data-table
 - key: status
   token: '{{status}}'
+  consumed_by_sections:
+  - data-table

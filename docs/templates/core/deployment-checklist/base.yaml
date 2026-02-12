@@ -18,24 +18,42 @@ sections:
 - id: pre-deployment
   title: Pre Deployment
   type: checklist
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{pre_deployment}}'
 - id: deployment
   title: Deployment
   type: checklist
+  consumes_placeholders:
+  - '{{deployment}}'
 - id: post-deployment
   title: Post Deployment
   type: checklist
+  consumes_placeholders:
+  - '{{post_deployment}}'
 guidance:
   purpose: Canonical base structure for the deployment-checklist template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
   quality_gates:
   - rollback-ready
   - approvals-complete
   - monitoring-enabled
   - validation-complete
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - pre-deployment
 - key: pre_deployment
   token: '{{pre_deployment}}'
+  consumed_by_sections:
+  - pre-deployment
 - key: deployment
   token: '{{deployment}}'
+  consumed_by_sections:
+  - deployment
 - key: post_deployment
   token: '{{post_deployment}}'
+  consumed_by_sections:
+  - post-deployment

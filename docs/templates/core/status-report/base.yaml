@@ -18,44 +18,87 @@ sections:
 - id: reporting-period
   title: Reporting Period
   type: narrative
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{reporting_period}}'
 - id: overall-health-rag
   title: Overall Health Rag
   type: narrative
+  consumes_placeholders:
+  - '{{overall_health_rag}}'
 - id: summary
   title: Summary
   type: narrative
+  consumes_placeholders:
+  - '{{summary}}'
 - id: progress-vs-plan
   title: Progress Vs Plan
   type: narrative
+  consumes_placeholders:
+  - '{{progress_vs_plan}}'
 - id: budget-status
   title: Budget Status
   type: narrative
+  consumes_placeholders:
+  - '{{budget_status}}'
+  - '{{total_budget}}'
 - id: risks-issues
   title: Risks Issues
   type: narrative
+  consumes_placeholders:
+  - '{{risks_issues}}'
 - id: decisions-needed
   title: Decisions Needed
   type: narrative
+  consumes_placeholders:
+  - '{{decisions_needed}}'
 - id: next-period-plan
   title: Next Period Plan
   type: narrative
+  consumes_placeholders:
+  - '{{next_period_plan}}'
 guidance:
   purpose: Canonical base structure for the status-report template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - reporting-period
 - key: reporting_period
   token: '{{reporting_period}}'
+  consumed_by_sections:
+  - reporting-period
 - key: overall_health_rag
   token: '{{overall_health_rag}}'
+  consumed_by_sections:
+  - overall-health-rag
 - key: summary
   token: '{{summary}}'
+  consumed_by_sections:
+  - summary
 - key: progress_vs_plan
   token: '{{progress_vs_plan}}'
+  consumed_by_sections:
+  - progress-vs-plan
 - key: budget_status
   token: '{{budget_status}}'
+  consumed_by_sections:
+  - budget-status
 - key: risks_issues
   token: '{{risks_issues}}'
+  consumed_by_sections:
+  - risks-issues
 - key: decisions_needed
   token: '{{decisions_needed}}'
+  consumed_by_sections:
+  - decisions-needed
 - key: next_period_plan
   token: '{{next_period_plan}}'
+  consumed_by_sections:
+  - next-period-plan
+- key: total_budget
+  token: '{{total_budget}}'
+  consumed_by_sections:
+  - budget-status

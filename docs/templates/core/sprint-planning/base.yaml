@@ -18,34 +18,64 @@ sections:
 - id: sprint-goal
   title: Sprint Goal
   type: narrative
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{sprint_goal}}'
 - id: capacity
   title: Capacity
   type: narrative
+  consumes_placeholders:
+  - '{{capacity}}'
 - id: candidate-work
   title: Candidate Work
   type: narrative
+  consumes_placeholders:
+  - '{{candidate_work}}'
 - id: commitment
   title: Commitment
   type: narrative
+  consumes_placeholders:
+  - '{{commitment}}'
 - id: dependencies
   title: Dependencies
   type: narrative
+  consumes_placeholders:
+  - '{{dependencies}}'
 - id: definition-of-done-check
   title: Definition Of Done Check
   type: narrative
+  consumes_placeholders:
+  - '{{definition_of_done_check}}'
 guidance:
   purpose: Canonical base structure for the sprint-planning template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - sprint-goal
 - key: sprint_goal
   token: '{{sprint_goal}}'
+  consumed_by_sections:
+  - sprint-goal
 - key: capacity
   token: '{{capacity}}'
+  consumed_by_sections:
+  - capacity
 - key: candidate_work
   token: '{{candidate_work}}'
+  consumed_by_sections:
+  - candidate-work
 - key: commitment
   token: '{{commitment}}'
+  consumed_by_sections:
+  - commitment
 - key: dependencies
   token: '{{dependencies}}'
+  consumed_by_sections:
+  - dependencies
 - key: definition_of_done_check
   token: '{{definition_of_done_check}}'
+  consumed_by_sections:
+  - definition-of-done-check
