@@ -24,3 +24,8 @@ yarn-error.log*
 
 # OS
 .DS_Store
+
+# Generated CSS module type definitions
+src/**/*.module.css.d.ts
+src/**/*.module.scss.d.ts
+src/**/*.module.sass.d.ts
