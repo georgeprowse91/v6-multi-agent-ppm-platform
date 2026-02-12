@@ -1,9 +1,46 @@
-artefact: sprint-review
-version: 1.0.0
-owner: Product+Engineering
+metadata:
+  template_id: sprint-review
+  title: Sprint Review
+  version: 1.0.0
+  owner: Product+Engineering
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - sprint-goal-outcome
-  - completed-increment
-  - rejected-or-carried-over-items
-  - stakeholder-feedback
-  - backlog-adjustments
+- id: sprint-goal-outcome
+  title: Sprint Goal Outcome
+  type: narrative
+- id: completed-increment
+  title: Completed Increment
+  type: narrative
+- id: rejected-or-carried-over-items
+  title: Rejected Or Carried Over Items
+  type: narrative
+- id: stakeholder-feedback
+  title: Stakeholder Feedback
+  type: narrative
+- id: backlog-adjustments
+  title: Backlog Adjustments
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the sprint-review template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: sprint_goal_outcome
+  token: '{{sprint_goal_outcome}}'
+- key: completed_increment
+  token: '{{completed_increment}}'
+- key: rejected_or_carried_over_items
+  token: '{{rejected_or_carried_over_items}}'
+- key: stakeholder_feedback
+  token: '{{stakeholder_feedback}}'
+- key: backlog_adjustments
+  token: '{{backlog_adjustments}}'

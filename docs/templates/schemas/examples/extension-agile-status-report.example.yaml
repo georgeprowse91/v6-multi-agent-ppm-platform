@@ -1,0 +1,31 @@
+metadata:
+  template_id: agile-status-report-extension
+  title: Agile Status Report Extension
+  version: 1.0.0
+  owner: PMO
+  classification: extension
+  methodology: agile
+inputs:
+  - name: project_name
+    type: string
+    required: true
+  - name: methodology
+    type: enum
+    values: [agile]
+    required: true
+sections:
+  - id: velocity-trend
+    title: Velocity Trend
+    type: narrative
+guidance:
+  purpose: |
+    Add sprint-level delivery signals to the canonical status report.
+  application: |
+    Apply this extension after loading `core/status-report/base.yaml`.
+placeholders:
+  - key: velocity_trend
+    token: "{{velocity_trend}}"
+extends: core/status-report/base.yaml
+add_sections:
+  - velocity-trend
+  - burnup-burndown

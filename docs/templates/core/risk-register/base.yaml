@@ -1,14 +1,65 @@
-artefact: risk-register
-version: 1.0.0
-owner: PMO
-fields:
-  - id
-  - title
-  - category
-  - probability
-  - impact
-  - score
-  - response-strategy
-  - owner
-  - due-date
-  - status
+metadata:
+  template_id: risk-register
+  title: Risk Register
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+sections:
+- id: data-table
+  title: Data Table
+  type: table
+  columns:
+  - name: id
+    type: string
+  - name: title
+    type: string
+  - name: category
+    type: string
+  - name: probability
+    type: string
+  - name: impact
+    type: string
+  - name: score
+    type: string
+  - name: response-strategy
+    type: string
+  - name: owner
+    type: string
+  - name: due-date
+    type: string
+  - name: status
+    type: string
+guidance:
+  purpose: Canonical base structure for the risk-register template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: id
+  token: '{{id}}'
+- key: title
+  token: '{{title}}'
+- key: category
+  token: '{{category}}'
+- key: probability
+  token: '{{probability}}'
+- key: impact
+  token: '{{impact}}'
+- key: score
+  token: '{{score}}'
+- key: response_strategy
+  token: '{{response_strategy}}'
+- key: owner
+  token: '{{owner}}'
+- key: due_date
+  token: '{{due_date}}'
+- key: status
+  token: '{{status}}'

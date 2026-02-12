@@ -1,4 +1,35 @@
+metadata:
+  template_id: waterfall-project-charter-extension
+  title: Waterfall Project Charter Extension
+  version: 1.0.0
+  owner: PMO
+  classification: extension
+  methodology: waterfall
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: methodology
+  type: enum
+  values:
+  - waterfall
+  required: true
+sections:
+- id: phase-gate-criteria
+  title: Phase Gate Criteria
+  type: narrative
+- id: procurement-summary
+  title: Procurement Summary
+  type: narrative
+guidance:
+  purpose: Patch overlay for project-charter tailored to waterfall delivery.
+  application: Apply this extension on top of the referenced core template to add methodology-specific content.
+placeholders:
+- key: phase_gate_criteria
+  token: '{{phase_gate_criteria}}'
+- key: procurement_summary
+  token: '{{procurement_summary}}'
 extends: core/project-charter/base.yaml
 add_sections:
-  - phase-gate-criteria
-  - procurement-summary
+- phase-gate-criteria
+- procurement-summary

@@ -1,0 +1,33 @@
+metadata:
+  template_id: project-charter
+  title: Project Charter
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+  - name: project_name
+    type: string
+    required: true
+  - name: delivery_model
+    type: enum
+    values: [agile, hybrid, waterfall]
+    required: true
+sections:
+  - id: problem-statement
+    title: Problem Statement
+    type: narrative
+  - id: success-criteria
+    title: Success Criteria
+    type: narrative
+guidance:
+  purpose: |
+    Define strategic intent, scope boundaries, and governance expectations.
+    Confirm shared alignment before execution begins.
+  authoring_notes: |
+    Keep each section concise and measurable.
+    Reference baselines where available.
+placeholders:
+  - key: project_name
+    token: "{{project_name}}"
+  - key: sponsor_name
+    token: "{{sponsor_name}}"

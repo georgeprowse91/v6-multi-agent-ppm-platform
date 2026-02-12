@@ -1,12 +1,57 @@
-artefact: product-backlog
-version: 1.0.0
-owner: Product
-fields:
-  - backlog-item-id
-  - title
-  - description
-  - priority
-  - estimate
-  - acceptance-criteria
-  - dependencies
-  - target-release
+metadata:
+  template_id: product-backlog
+  title: Product Backlog
+  version: 1.0.0
+  owner: Product
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+sections:
+- id: data-table
+  title: Data Table
+  type: table
+  columns:
+  - name: backlog-item-id
+    type: string
+  - name: title
+    type: string
+  - name: description
+    type: string
+  - name: priority
+    type: string
+  - name: estimate
+    type: string
+  - name: acceptance-criteria
+    type: string
+  - name: dependencies
+    type: string
+  - name: target-release
+    type: string
+guidance:
+  purpose: Canonical base structure for the product-backlog template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: backlog_item_id
+  token: '{{backlog_item_id}}'
+- key: title
+  token: '{{title}}'
+- key: description
+  token: '{{description}}'
+- key: priority
+  token: '{{priority}}'
+- key: estimate
+  token: '{{estimate}}'
+- key: acceptance_criteria
+  token: '{{acceptance_criteria}}'
+- key: dependencies
+  token: '{{dependencies}}'
+- key: target_release
+  token: '{{target_release}}'

@@ -1,12 +1,61 @@
-artefact: project-charter
-version: 1.0.0
-owner: PMO
+metadata:
+  template_id: project-charter
+  title: Project Charter
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - problem-statement
-  - objectives
-  - scope
-  - success-criteria
-  - governance
-  - milestones
-  - budget-summary
-  - risks-assumptions-dependencies
+- id: problem-statement
+  title: Problem Statement
+  type: narrative
+- id: objectives
+  title: Objectives
+  type: narrative
+- id: scope
+  title: Scope
+  type: narrative
+- id: success-criteria
+  title: Success Criteria
+  type: narrative
+- id: governance
+  title: Governance
+  type: narrative
+- id: milestones
+  title: Milestones
+  type: narrative
+- id: budget-summary
+  title: Budget Summary
+  type: narrative
+- id: risks-assumptions-dependencies
+  title: Risks Assumptions Dependencies
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the project-charter template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: problem_statement
+  token: '{{problem_statement}}'
+- key: objectives
+  token: '{{objectives}}'
+- key: scope
+  token: '{{scope}}'
+- key: success_criteria
+  token: '{{success_criteria}}'
+- key: governance
+  token: '{{governance}}'
+- key: milestones
+  token: '{{milestones}}'
+- key: budget_summary
+  token: '{{budget_summary}}'
+- key: risks_assumptions_dependencies
+  token: '{{risks_assumptions_dependencies}}'

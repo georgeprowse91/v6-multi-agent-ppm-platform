@@ -1,4 +1,35 @@
+metadata:
+  template_id: waterfall-requirements-extension
+  title: Waterfall Requirements Extension
+  version: 1.0.0
+  owner: PMO
+  classification: extension
+  methodology: waterfall
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: methodology
+  type: enum
+  values:
+  - waterfall
+  required: true
+sections:
+- id: requirements-baseline
+  title: Requirements Baseline
+  type: narrative
+- id: requirements-signoff
+  title: Requirements Signoff
+  type: narrative
+guidance:
+  purpose: Patch overlay for requirements tailored to waterfall delivery.
+  application: Apply this extension on top of the referenced core template to add methodology-specific content.
+placeholders:
+- key: requirements_baseline
+  token: '{{requirements_baseline}}'
+- key: requirements_signoff
+  token: '{{requirements_signoff}}'
 extends: core/requirements/base.yaml
 add_sections:
-  - requirements-baseline
-  - requirements-signoff
+- requirements-baseline
+- requirements-signoff

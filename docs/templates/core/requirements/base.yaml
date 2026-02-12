@@ -1,11 +1,56 @@
-artefact: requirements
-version: 1.0.0
-owner: PMO
+metadata:
+  template_id: requirements
+  title: Requirements
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - business-requirements
-  - functional-requirements
-  - non-functional-requirements
-  - constraints
-  - assumptions
-  - traceability
-  - acceptance-criteria
+- id: business-requirements
+  title: Business Requirements
+  type: narrative
+- id: functional-requirements
+  title: Functional Requirements
+  type: narrative
+- id: non-functional-requirements
+  title: Non Functional Requirements
+  type: narrative
+- id: constraints
+  title: Constraints
+  type: narrative
+- id: assumptions
+  title: Assumptions
+  type: narrative
+- id: traceability
+  title: Traceability
+  type: narrative
+- id: acceptance-criteria
+  title: Acceptance Criteria
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the requirements template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: business_requirements
+  token: '{{business_requirements}}'
+- key: functional_requirements
+  token: '{{functional_requirements}}'
+- key: non_functional_requirements
+  token: '{{non_functional_requirements}}'
+- key: constraints
+  token: '{{constraints}}'
+- key: assumptions
+  token: '{{assumptions}}'
+- key: traceability
+  token: '{{traceability}}'
+- key: acceptance_criteria
+  token: '{{acceptance_criteria}}'

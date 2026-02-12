@@ -1,12 +1,41 @@
-artefact: deployment-checklist
-version: 1.0.0
-owner: Engineering
-stages:
-  - pre-deployment
-  - deployment
-  - post-deployment
-checks:
+metadata:
+  template_id: deployment-checklist
+  title: Deployment Checklist
+  version: 1.0.0
+  owner: Engineering
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+sections:
+- id: pre-deployment
+  title: Pre Deployment
+  type: checklist
+- id: deployment
+  title: Deployment
+  type: checklist
+- id: post-deployment
+  title: Post Deployment
+  type: checklist
+guidance:
+  purpose: Canonical base structure for the deployment-checklist template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  quality_gates:
   - rollback-ready
   - approvals-complete
   - monitoring-enabled
   - validation-complete
+placeholders:
+- key: pre_deployment
+  token: '{{pre_deployment}}'
+- key: deployment
+  token: '{{deployment}}'
+- key: post_deployment
+  token: '{{post_deployment}}'

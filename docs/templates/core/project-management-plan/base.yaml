@@ -1,13 +1,66 @@
-artefact: project-management-plan
-version: 1.0.0
-owner: PMO
+metadata:
+  template_id: project-management-plan
+  title: Project Management Plan
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - project-overview
-  - management-approach
-  - scope-baseline
-  - schedule-baseline
-  - cost-baseline
-  - quality-management
-  - risk-management
-  - change-control
-  - stakeholder-engagement
+- id: project-overview
+  title: Project Overview
+  type: narrative
+- id: management-approach
+  title: Management Approach
+  type: narrative
+- id: scope-baseline
+  title: Scope Baseline
+  type: narrative
+- id: schedule-baseline
+  title: Schedule Baseline
+  type: narrative
+- id: cost-baseline
+  title: Cost Baseline
+  type: narrative
+- id: quality-management
+  title: Quality Management
+  type: narrative
+- id: risk-management
+  title: Risk Management
+  type: narrative
+- id: change-control
+  title: Change Control
+  type: narrative
+- id: stakeholder-engagement
+  title: Stakeholder Engagement
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the project-management-plan template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: project_overview
+  token: '{{project_overview}}'
+- key: management_approach
+  token: '{{management_approach}}'
+- key: scope_baseline
+  token: '{{scope_baseline}}'
+- key: schedule_baseline
+  token: '{{schedule_baseline}}'
+- key: cost_baseline
+  token: '{{cost_baseline}}'
+- key: quality_management
+  token: '{{quality_management}}'
+- key: risk_management
+  token: '{{risk_management}}'
+- key: change_control
+  token: '{{change_control}}'
+- key: stakeholder_engagement
+  token: '{{stakeholder_engagement}}'

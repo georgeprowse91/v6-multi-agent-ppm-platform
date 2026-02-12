@@ -1,9 +1,46 @@
-artefact: sprint-retrospective
-version: 1.0.0
-owner: Product+Engineering
+metadata:
+  template_id: sprint-retrospective
+  title: Sprint Retrospective
+  version: 1.0.0
+  owner: Product+Engineering
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - what-went-well
-  - what-did-not-go-well
-  - root-causes
-  - experiments
-  - owners-and-dates
+- id: what-went-well
+  title: What Went Well
+  type: narrative
+- id: what-did-not-go-well
+  title: What Did Not Go Well
+  type: narrative
+- id: root-causes
+  title: Root Causes
+  type: narrative
+- id: experiments
+  title: Experiments
+  type: narrative
+- id: owners-and-dates
+  title: Owners And Dates
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the sprint-retrospective template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: what_went_well
+  token: '{{what_went_well}}'
+- key: what_did_not_go_well
+  token: '{{what_did_not_go_well}}'
+- key: root_causes
+  token: '{{root_causes}}'
+- key: experiments
+  token: '{{experiments}}'
+- key: owners_and_dates
+  token: '{{owners_and_dates}}'

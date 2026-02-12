@@ -1,10 +1,51 @@
-artefact: executive-dashboard
-version: 1.0.0
-owner: PMO
-tiles:
-  - portfolio-health
-  - schedule-performance
-  - budget-performance
-  - top-risks
-  - benefits-realization
-  - decisions-required
+metadata:
+  template_id: executive-dashboard
+  title: Executive Dashboard
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+sections:
+- id: portfolio-health
+  title: Portfolio Health
+  type: metric
+- id: schedule-performance
+  title: Schedule Performance
+  type: metric
+- id: budget-performance
+  title: Budget Performance
+  type: metric
+- id: top-risks
+  title: Top Risks
+  type: metric
+- id: benefits-realization
+  title: Benefits Realization
+  type: metric
+- id: decisions-required
+  title: Decisions Required
+  type: metric
+guidance:
+  purpose: Canonical base structure for the executive-dashboard template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: portfolio_health
+  token: '{{portfolio_health}}'
+- key: schedule_performance
+  token: '{{schedule_performance}}'
+- key: budget_performance
+  token: '{{budget_performance}}'
+- key: top_risks
+  token: '{{top_risks}}'
+- key: benefits_realization
+  token: '{{benefits_realization}}'
+- key: decisions_required
+  token: '{{decisions_required}}'

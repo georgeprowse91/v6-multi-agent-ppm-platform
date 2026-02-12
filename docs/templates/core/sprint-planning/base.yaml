@@ -1,10 +1,51 @@
-artefact: sprint-planning
-version: 1.0.0
-owner: Product+Engineering
+metadata:
+  template_id: sprint-planning
+  title: Sprint Planning
+  version: 1.0.0
+  owner: Product+Engineering
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - sprint-goal
-  - capacity
-  - candidate-work
-  - commitment
-  - dependencies
-  - definition-of-done-check
+- id: sprint-goal
+  title: Sprint Goal
+  type: narrative
+- id: capacity
+  title: Capacity
+  type: narrative
+- id: candidate-work
+  title: Candidate Work
+  type: narrative
+- id: commitment
+  title: Commitment
+  type: narrative
+- id: dependencies
+  title: Dependencies
+  type: narrative
+- id: definition-of-done-check
+  title: Definition Of Done Check
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the sprint-planning template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: sprint_goal
+  token: '{{sprint_goal}}'
+- key: capacity
+  token: '{{capacity}}'
+- key: candidate_work
+  token: '{{candidate_work}}'
+- key: commitment
+  token: '{{commitment}}'
+- key: dependencies
+  token: '{{dependencies}}'
+- key: definition_of_done_check
+  token: '{{definition_of_done_check}}'

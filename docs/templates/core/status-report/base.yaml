@@ -1,12 +1,61 @@
-artefact: status-report
-version: 1.0.0
-owner: PMO
+metadata:
+  template_id: status-report
+  title: Status Report
+  version: 1.0.0
+  owner: PMO
+  classification: core
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
 sections:
-  - reporting-period
-  - overall-health-rag
-  - summary
-  - progress-vs-plan
-  - budget-status
-  - risks-issues
-  - decisions-needed
-  - next-period-plan
+- id: reporting-period
+  title: Reporting Period
+  type: narrative
+- id: overall-health-rag
+  title: Overall Health Rag
+  type: narrative
+- id: summary
+  title: Summary
+  type: narrative
+- id: progress-vs-plan
+  title: Progress Vs Plan
+  type: narrative
+- id: budget-status
+  title: Budget Status
+  type: narrative
+- id: risks-issues
+  title: Risks Issues
+  type: narrative
+- id: decisions-needed
+  title: Decisions Needed
+  type: narrative
+- id: next-period-plan
+  title: Next Period Plan
+  type: narrative
+guidance:
+  purpose: Canonical base structure for the status-report template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: reporting_period
+  token: '{{reporting_period}}'
+- key: overall_health_rag
+  token: '{{overall_health_rag}}'
+- key: summary
+  token: '{{summary}}'
+- key: progress_vs_plan
+  token: '{{progress_vs_plan}}'
+- key: budget_status
+  token: '{{budget_status}}'
+- key: risks_issues
+  token: '{{risks_issues}}'
+- key: decisions_needed
+  token: '{{decisions_needed}}'
+- key: next_period_plan
+  token: '{{next_period_plan}}'
