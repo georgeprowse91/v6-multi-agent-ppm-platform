@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Keep React + TS stack aligned across web/mobile/workspace manifests.",
+      "groupName": "react-and-typescript-stack",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "react-native",
+        "@types/react",
+        "@types/react-dom",
+        "@types/react-native",
+        "typescript"
+      ],
+      "matchFileNames": [
+        "apps/web/frontend/package.json",
+        "apps/mobile/package.json",
+        "packages/canvas-engine/package.json",
+        "pnpm-workspace.yaml"
+      ],
+      "separateMajorMinor": false,
+      "separateMinorPatch": false
+    }
+  ]
+}
