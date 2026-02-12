@@ -1,3 +1,5 @@
+import { requestJson } from '@/services/apiClient';
+
 export type DocumentStatus = 'draft' | 'published';
 
 export interface DocumentVersionPayload {
@@ -64,18 +66,10 @@ export interface LessonRecommendationRequest {
 
 const API_BASE = '/api/knowledge';
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || 'Request failed');
-  }
-  return response.json() as Promise<T>;
-}
-
 export async function createDocumentVersion(
   payload: DocumentVersionPayload
 ): Promise<DocumentVersion> {
-  const response = await fetch(`${API_BASE}/documents`, {
+  return requestJson<DocumentVersion>(`${API_BASE}/documents`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -89,7 +83,6 @@ export async function createDocumentVersion(
       metadata: payload.metadata ?? {},
     }),
   });
-  return handleResponse<DocumentVersion>(response);
 }
 
 export async function fetchDocuments(
@@ -100,19 +93,17 @@ export async function fetchDocuments(
   if (query) {
     params.set('query', query);
   }
-  const response = await fetch(`${API_BASE}/documents?${params.toString()}`);
-  return handleResponse<DocumentSummary[]>(response);
+  return requestJson<DocumentSummary[]>(`${API_BASE}/documents?${params.toString()}`);
 }
 
 export async function fetchDocumentVersions(
   documentId: string
 ): Promise<DocumentVersion[]> {
-  const response = await fetch(`${API_BASE}/documents/${documentId}/versions`);
-  return handleResponse<DocumentVersion[]>(response);
+  return requestJson<DocumentVersion[]>(`${API_BASE}/documents/${documentId}/versions`);
 }
 
 export async function createLesson(payload: LessonPayload): Promise<LessonRecord> {
-  const response = await fetch(`${API_BASE}/lessons`, {
+  return requestJson<LessonRecord>(`${API_BASE}/lessons`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -125,14 +116,13 @@ export async function createLesson(payload: LessonPayload): Promise<LessonRecord
       topics: payload.topics,
     }),
   });
-  return handleResponse<LessonRecord>(response);
 }
 
 export async function updateLesson(
   lessonId: string,
   payload: LessonPayload
 ): Promise<LessonRecord> {
-  const response = await fetch(`${API_BASE}/lessons/${lessonId}`, {
+  return requestJson<LessonRecord>(`${API_BASE}/lessons/${lessonId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -145,14 +135,12 @@ export async function updateLesson(
       topics: payload.topics,
     }),
   });
-  return handleResponse<LessonRecord>(response);
 }
 
 export async function deleteLesson(lessonId: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/lessons/${lessonId}`, {
+  await requestJson<void>(`${API_BASE}/lessons/${lessonId}`, {
     method: 'DELETE',
   });
-  await handleResponse(response);
 }
 
 export async function fetchLessons(
@@ -165,14 +153,13 @@ export async function fetchLessons(
   if (query) params.set('query', query);
   if (tags && tags.length) params.set('tags', tags.join(','));
   if (topics && topics.length) params.set('topics', topics.join(','));
-  const response = await fetch(`${API_BASE}/lessons?${params.toString()}`);
-  return handleResponse<LessonRecord[]>(response);
+  return requestJson<LessonRecord[]>(`${API_BASE}/lessons?${params.toString()}`);
 }
 
 export async function fetchLessonRecommendations(
   payload: LessonRecommendationRequest
 ): Promise<LessonRecord[]> {
-  const response = await fetch(`${API_BASE}/lessons/recommendations`, {
+  return requestJson<LessonRecord[]>(`${API_BASE}/lessons/recommendations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -182,5 +169,4 @@ export async function fetchLessonRecommendations(
       limit: payload.limit ?? 5,
     }),
   });
-  return handleResponse<LessonRecord[]>(response);
 }

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useRequestState } from '@/hooks/useRequestState';
+import { getErrorMessage, requestJson } from '@/services/apiClient';
 import styles from './ApprovalsPage.module.css';
 
 const API_BASE = '/v1';
@@ -37,13 +39,19 @@ export function ApprovalsPage() {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('project');
   const [approvals, setApprovals] = useState<ApprovalSummary[]>([]);
-  const [selectedApproval, setSelectedApproval] =
-    useState<ApprovalDetail | null>(null);
+  const [selectedApproval, setSelectedApproval] = useState<ApprovalDetail | null>(null);
   const [comments, setComments] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [bannerMessage, setBannerMessage] = useState<string | null>(null);
+  const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
+  const listRequest = useRequestState();
+  const detailRequest = useRequestState();
+  const { start: startList, succeed: succeedList, fail: failList } = listRequest;
+  const { start: startDetail, succeed: succeedDetail, fail: failDetail } = detailRequest;
 
   const fetchApprovals = useCallback(async () => {
-    setLoading(true);
+    startList();
+    setBannerMessage(null);
+
     try {
       const params = new URLSearchParams({
         status: 'pending',
@@ -52,34 +60,48 @@ export function ApprovalsPage() {
       if (projectId) {
         params.set('project_id', projectId);
       }
-      const response = await fetch(`${API_BASE}/workflows/approvals?${params.toString()}`);
-      const data = await response.json();
+
+      const data = await requestJson<ApprovalSummary[]>(
+        `${API_BASE}/workflows/approvals?${params.toString()}`
+      );
+
       setApprovals(data);
       if (data.length === 0) {
         setSelectedApproval(null);
       }
+      succeedList();
     } catch (error) {
-      console.error('Failed to fetch approvals', error);
-    } finally {
-      setLoading(false);
+      const message = getErrorMessage(error, 'Failed to load approvals.');
+      failList(message);
+      setApprovals([]);
     }
-  }, [projectId]);
+  }, [failList, projectId, startList, succeedList]);
 
-  const fetchApprovalDetail = async (approvalId: string) => {
-    try {
-      const response = await fetch(
-        `${API_BASE}/workflows/approvals/${approvalId}`
-      );
-      const detail = await response.json();
-      setSelectedApproval(detail);
-    } catch (error) {
-      console.error('Failed to fetch approval detail', error);
-    }
-  };
+  const fetchApprovalDetail = useCallback(
+    async (approvalId: string) => {
+      startDetail();
+      setBannerMessage(null);
+
+      try {
+        const detail = await requestJson<ApprovalDetail>(
+          `${API_BASE}/workflows/approvals/${approvalId}`
+        );
+        setSelectedApproval(detail);
+        succeedDetail();
+      } catch (error) {
+        const message = getErrorMessage(error, 'Failed to load approval details.');
+        failDetail(message);
+      }
+    },
+    [failDetail, startDetail, succeedDetail]
+  );
 
   const submitDecision = async (approvalId: string, decision: string) => {
+    setIsSubmittingDecision(true);
+    setBannerMessage(null);
+
     try {
-      await fetch(`${API_BASE}/workflows/approvals/${approvalId}/decision`, {
+      await requestJson<void>(`${API_BASE}/workflows/approvals/${approvalId}/decision`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -88,12 +110,16 @@ export function ApprovalsPage() {
           comments: comments[approvalId] || '',
         }),
       });
+
+      setBannerMessage(`Decision saved: ${decision}.`);
       await fetchApprovals();
       if (selectedApproval?.approval_id === approvalId) {
         await fetchApprovalDetail(approvalId);
       }
     } catch (error) {
-      console.error('Failed to submit decision', error);
+      setBannerMessage(getErrorMessage(error, 'Failed to submit approval decision.'));
+    } finally {
+      setIsSubmittingDecision(false);
     }
   };
 
@@ -108,10 +134,16 @@ export function ApprovalsPage() {
         <p>
           Pending approvals assigned to <strong>{DEFAULT_APPROVER}</strong>
           {projectId ? (
-            <> for project <strong>{projectId}</strong></>
-          ) : null}.
+            <>
+              {' '}
+              for project <strong>{projectId}</strong>
+            </>
+          ) : null}
+          .
         </p>
       </header>
+
+      {bannerMessage && <div className={styles.infoBanner}>{bannerMessage}</div>}
 
       <div className={styles.layout}>
         <section className={styles.listSection}>
@@ -122,90 +154,99 @@ export function ApprovalsPage() {
             </button>
           </div>
 
-          {loading && <div className={styles.emptyState}>Loading...</div>}
-          {!loading && approvals.length === 0 && (
-            <div className={styles.emptyState}>
-              No approvals awaiting your decision.
+          {listRequest.isLoading && <div className={styles.emptyState}>Loading...</div>}
+          {listRequest.isError && (
+            <div className={styles.errorState}>
+              <span>{listRequest.error}</span>
+              <button onClick={fetchApprovals}>Retry</button>
             </div>
           )}
-          <ul className={styles.cardList}>
-            {approvals.map((approval) => (
-              <li key={approval.approval_id} className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <div>
-                    <h3>
-                      {approval.metadata?.details?.description ??
-                        approval.metadata?.request_type ??
-                        'Approval Request'}
-                    </h3>
-                    <p>
-                      Workflow run {approval.run_id} · Step{' '}
-                      {approval.step_id}
-                    </p>
+          {!listRequest.isLoading && !listRequest.isError && approvals.length === 0 && (
+            <div className={styles.emptyState}>No approvals awaiting your decision.</div>
+          )}
+          {!listRequest.isLoading && !listRequest.isError && approvals.length > 0 && (
+            <ul className={styles.cardList}>
+              {approvals.map((approval) => (
+                <li key={approval.approval_id} className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <div>
+                      <h3>
+                        {approval.metadata?.details?.description ??
+                          approval.metadata?.request_type ??
+                          'Approval Request'}
+                      </h3>
+                      <p>
+                        Workflow run {approval.run_id} · Step {approval.step_id}
+                      </p>
+                    </div>
+                    <span className={styles.badge}>{approval.status}</span>
                   </div>
-                  <span className={styles.badge}>{approval.status}</span>
-                </div>
-                <div className={styles.metaRow}>
-                  <span>Request ID: {approval.metadata?.request_id}</span>
-                  <span>
-                    Deadline: {approval.metadata?.deadline ?? 'Not set'}
-                  </span>
-                </div>
-                <textarea
-                  className={styles.commentBox}
-                  placeholder="Add a comment (optional)"
-                  value={comments[approval.approval_id] || ''}
-                  onChange={(event) =>
-                    setComments((prev) => ({
-                      ...prev,
-                      [approval.approval_id]: event.target.value,
-                    }))
-                  }
-                />
-                <div className={styles.cardActions}>
-                  <button
-                    className={styles.secondaryButton}
-                    onClick={() => fetchApprovalDetail(approval.approval_id)}
-                  >
-                    View details
-                  </button>
-                  <div className={styles.actionGroup}>
-                    <button
-                      className={styles.rejectButton}
-                      onClick={() =>
-                        submitDecision(approval.approval_id, 'rejected')
-                      }
-                    >
-                      Reject
-                    </button>
-                    <button
-                      className={styles.approveButton}
-                      onClick={() =>
-                        submitDecision(approval.approval_id, 'approved')
-                      }
-                    >
-                      Approve
-                    </button>
+                  <div className={styles.metaRow}>
+                    <span>Request ID: {approval.metadata?.request_id}</span>
+                    <span>Deadline: {approval.metadata?.deadline ?? 'Not set'}</span>
                   </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <textarea
+                    className={styles.commentBox}
+                    placeholder="Add a comment (optional)"
+                    value={comments[approval.approval_id] || ''}
+                    onChange={(event) =>
+                      setComments((prev) => ({
+                        ...prev,
+                        [approval.approval_id]: event.target.value,
+                      }))
+                    }
+                  />
+                  <div className={styles.cardActions}>
+                    <button
+                      className={styles.secondaryButton}
+                      onClick={() => fetchApprovalDetail(approval.approval_id)}
+                    >
+                      View details
+                    </button>
+                    <div className={styles.actionGroup}>
+                      <button
+                        className={styles.rejectButton}
+                        onClick={() => submitDecision(approval.approval_id, 'rejected')}
+                        disabled={isSubmittingDecision}
+                      >
+                        Reject
+                      </button>
+                      <button
+                        className={styles.approveButton}
+                        onClick={() => submitDecision(approval.approval_id, 'approved')}
+                        disabled={isSubmittingDecision}
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <aside className={styles.detailSection}>
           <h2>Approval details</h2>
-          {!selectedApproval && (
-            <div className={styles.emptyState}>
-              Select an approval to see the audit trail.
+          {detailRequest.isError && (
+            <div className={styles.errorState}>
+              <span>{detailRequest.error}</span>
+              {selectedApproval && (
+                <button onClick={() => fetchApprovalDetail(selectedApproval.approval_id)}>
+                  Retry
+                </button>
+              )}
             </div>
           )}
-          {selectedApproval && (
+          {!selectedApproval && !detailRequest.isLoading && (
+            <div className={styles.emptyState}>Select an approval to see the audit trail.</div>
+          )}
+          {detailRequest.isLoading && <div className={styles.emptyState}>Loading details...</div>}
+          {selectedApproval && !detailRequest.isLoading && (
             <div className={styles.detailCard}>
               <h3>{selectedApproval.metadata?.request_type}</h3>
               <p className={styles.detailSubtitle}>
-                {selectedApproval.metadata?.details?.description ??
-                  selectedApproval.metadata?.request_id}
+                {selectedApproval.metadata?.details?.description ?? selectedApproval.metadata?.request_id}
               </p>
               <div className={styles.detailMeta}>
                 <div>
@@ -218,9 +259,7 @@ export function ApprovalsPage() {
                 </div>
                 <div>
                   <span>Approvers</span>
-                  <strong>
-                    {selectedApproval.metadata?.approvers?.join(', ') ?? 'N/A'}
-                  </strong>
+                  <strong>{selectedApproval.metadata?.approvers?.join(', ') ?? 'N/A'}</strong>
                 </div>
               </div>
               <h4>Audit trail</h4>

@@ -14,6 +14,7 @@
 - [ ] Secret scan and IaC scan workflows passing.
 
 ## Application
+- [ ] Frontend API calls use shared `requestJson` helper (no raw `fetch` in pages/components) and expose retry + user-facing error states.
 - [ ] Helm charts linted and rendered without errors.
 - [ ] HPA configured for CPU autoscaling.
 - [ ] Rate limiting and CORS policies validated in production mode.

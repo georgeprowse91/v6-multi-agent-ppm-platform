@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
+import { getErrorMessage, requestJson } from '@/services/apiClient';
 import type { AgentConfig, AgentParameter } from '@/store/agentConfig/types';
 import type { ConfigField, Connector } from '@/store/connectors/types';
 import styles from './ConfigPage.module.css';
@@ -96,6 +97,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
   const [workflowsError, setWorkflowsError] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null);
   const [selectedWorkflowIndex, setSelectedWorkflowIndex] = useState<number | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveTab(type);
@@ -105,14 +107,10 @@ export function ConfigPage({ type }: ConfigPageProps) {
     setAgentsLoading(true);
     setAgentsError(null);
     try {
-      const response = await fetch(`${API_BASE}/agents/config`);
-      if (!response.ok) {
-        throw new Error(`Failed to load agents: ${response.statusText}`);
-      }
-      const data = (await response.json()) as AgentConfig[];
+      const data = await requestJson<AgentConfig[]>(`${API_BASE}/agents/config`);
       setAgents(data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load agents.';
+      const message = getErrorMessage(error, 'Failed to load agents.');
       setAgentsError(message);
       setAgents([]);
     } finally {
@@ -124,14 +122,10 @@ export function ConfigPage({ type }: ConfigPageProps) {
     setConnectorsLoading(true);
     setConnectorsError(null);
     try {
-      const response = await fetch(`${API_BASE}/connectors`);
-      if (!response.ok) {
-        throw new Error(`Failed to load connectors: ${response.statusText}`);
-      }
-      const data = (await response.json()) as Connector[];
+      const data = await requestJson<Connector[]>(`${API_BASE}/connectors`);
       setConnectors(data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load connectors.';
+      const message = getErrorMessage(error, 'Failed to load connectors.');
       setConnectorsError(message);
       setConnectors([]);
     } finally {
@@ -143,15 +137,11 @@ export function ConfigPage({ type }: ConfigPageProps) {
     setWorkflowsLoading(true);
     setWorkflowsError(null);
     try {
-      const response = await fetch(`${API_BASE}/orchestration/config`);
-      if (!response.ok) {
-        throw new Error(`Failed to load workflows: ${response.statusText}`);
-      }
-      const data = (await response.json()) as OrchestrationConfig;
+      const data = await requestJson<OrchestrationConfig>(`${API_BASE}/orchestration/config`);
       setWorkflowConfig(data);
       setRoutingEntries(data.default_routing ?? []);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load workflows.';
+      const message = getErrorMessage(error, 'Failed to load workflows.');
       setWorkflowsError(message);
       setWorkflowConfig(null);
       setRoutingEntries([]);
@@ -186,22 +176,13 @@ export function ConfigPage({ type }: ConfigPageProps) {
       parameters: updatedParameters,
     };
 
-    const response = await fetch(`${API_BASE}/agents/config/${agent.catalog_id}`, {
+    const updatedAgent = await requestJson<AgentConfig>(`${API_BASE}/agents/config/${agent.catalog_id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to update ${agent.display_name}.`);
-    }
-
-    let updatedAgent: AgentConfig | null = null;
-    try {
-      updatedAgent = (await response.json()) as AgentConfig;
-    } catch {
-      updatedAgent = null;
-    }
+    setActionMessage(`Updated ${agent.display_name}.`);
 
     setAgents((prev) =>
       prev.map((entry) =>
@@ -238,15 +219,13 @@ export function ConfigPage({ type }: ConfigPageProps) {
       custom_fields: Object.keys(customFields).length ? customFields : undefined,
     };
 
-    const response = await fetch(`${API_BASE}/connectors/${connector.connector_id}/config`, {
+    await requestJson<Connector>(`${API_BASE}/connectors/${connector.connector_id}/config`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to update ${connector.name}.`);
-    }
+    setActionMessage(`Updated ${connector.name}.`);
 
     setConnectors((prev) =>
       prev.map((entry) =>
@@ -297,17 +276,12 @@ export function ConfigPage({ type }: ConfigPageProps) {
       last_updated_by: 'web-ui',
     };
 
-    const response = await fetch(`${API_BASE}/orchestration/config`, {
+    const updated = await requestJson<OrchestrationConfig>(`${API_BASE}/orchestration/config`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to update workflow routing.');
-    }
-
-    const updated = (await response.json()) as OrchestrationConfig;
+    setActionMessage('Workflow routing updated.');
     setWorkflowConfig(updated);
     setRoutingEntries(updated.default_routing ?? []);
   };
@@ -359,6 +333,8 @@ export function ConfigPage({ type }: ConfigPageProps) {
           </button>
         ))}
       </div>
+
+      {actionMessage && <div className={styles.state}>{actionMessage}</div>}
 
       <section
         id={`tab-panel-${activeTab}`}
