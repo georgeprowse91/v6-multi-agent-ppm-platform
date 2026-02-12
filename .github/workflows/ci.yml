@@ -212,6 +212,10 @@ jobs:
           npm ci
           npm install --no-save @vitest/coverage-v8
 
+      - name: Enforce frontend API boundary validation
+        working-directory: apps/web/frontend
+        run: npm run lint:api-boundary
+
       - name: Run frontend tests with coverage
         working-directory: apps/web/frontend
         run: |

@@ -12,7 +12,8 @@
     "lint:tokens": "node scripts/check-design-tokens.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint:api-boundary": "node scripts/check-raw-json-casts.mjs"
   },
   "dependencies": {
     "@ppm/canvas-engine": "workspace:*",

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { hasPermission } from '@/auth/permissions';
 import { useAppStore } from '@/store';
+import { parseJsonResponse } from '@/utils/apiValidation';
+import { s } from '@/utils/schema';
 import styles from './AnalyticsDashboard.module.css';
 
 interface TrendPoint {
@@ -49,6 +51,42 @@ interface TrendResponse {
   series: TrendSeries[];
   warnings: TrendWarning[];
 }
+
+const trendResponseSchema = s.object({
+  project_id: s.string(),
+  computed_at: s.string(),
+  period_count: s.number(),
+  series: s.array(
+    s.object({
+      metric: s.string(),
+      points: s.array(s.object({ timestamp: s.string(), value: s.number().nullish() })),
+      slope: s.number().nullish(),
+      forecast: s.number().nullish(),
+      forecast_method: s.string().nullish(),
+      recent_change: s.number().nullish(),
+    })
+  ),
+  warnings: s.array(
+    s.object({
+      type: s.string(),
+      message: s.string(),
+      forecast: s.number().optional(),
+    })
+  ),
+});
+
+const predictiveAlertSchema = s.object({
+  alert_id: s.string(),
+  project_id: s.string(),
+  agent_id: s.string(),
+  metric: s.string(),
+  percentile: s.number(),
+  severity: s.string().nullish(),
+  rationale: s.string(),
+  mitigations: s.array(s.string()),
+  links: s.array(s.object({ label: s.string(), url: s.string() })),
+  detected_at: s.string(),
+});
 
 const formatMetric = (metric: string) =>
   metric
@@ -111,7 +149,11 @@ export function AnalyticsDashboard() {
       if (!response.ok) {
         throw new Error(`Failed to load trends (${response.status})`);
       }
-      const payload = (await response.json()) as TrendResponse;
+      const payload = await parseJsonResponse(
+        response,
+        trendResponseSchema,
+        'analytics trends response'
+      );
       setData(payload);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load analytics trends.');
@@ -155,7 +197,11 @@ export function AnalyticsDashboard() {
       if (!response.ok) {
         throw new Error(`Failed to load predictive alerts (${response.status})`);
       }
-      const payload = (await response.json()) as PredictiveAlert[];
+      const payload = await parseJsonResponse(
+        response,
+        s.array(predictiveAlertSchema),
+        'analytics predictive alerts response'
+      );
       setPredictiveAlerts(payload);
     } catch (err) {
       console.error(err);
