@@ -1,0 +1,19 @@
+component_id: core-deployment-checklist--deployment
+version: 1.0.0
+kind: core-section
+title: Deployment
+interface:
+  inputs:
+  - name: deployment
+    source_placeholder: '{{deployment}}'
+    required: false
+  outputs:
+  - name: deployment_section
+    type: section
+render:
+  section:
+    id: deployment
+    title: Deployment
+    type: checklist
+    consumes_placeholders:
+    - '{{deployment}}'

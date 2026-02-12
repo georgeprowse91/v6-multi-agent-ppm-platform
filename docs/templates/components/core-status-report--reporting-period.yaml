@@ -1,0 +1,28 @@
+component_id: core-status-report--reporting-period
+version: 1.0.0
+kind: core-section
+title: Reporting Period
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: reporting_period
+    source_placeholder: '{{reporting_period}}'
+    required: false
+  outputs:
+  - name: reporting-period_section
+    type: section
+render:
+  section:
+    id: reporting-period
+    title: Reporting Period
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Include period start/end and data cut-off date.
+    - For governance tier 3, include formal reporting cadence reference.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{reporting_period}}'

@@ -29,7 +29,7 @@ placeholders:
   token: '{{delivery_model_split}}'
 - key: control_points
   token: '{{control_points}}'
-extends: core/project-charter/base.yaml
+extends: core/project-charter/manifest.yaml
 add_sections:
 - delivery-model-split
 - control-points

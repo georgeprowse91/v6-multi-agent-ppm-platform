@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: refinement_readiness
   token: '{{refinement_readiness}}'
-extends: core/sprint-planning/base.yaml
+extends: core/sprint-planning/manifest.yaml
 add_sections:
 - refinement-readiness

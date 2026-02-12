@@ -31,7 +31,7 @@ placeholders:
   token: '{{story_points}}'
 - key: sprint_candidate
   token: '{{sprint_candidate}}'
-extends: core/product-backlog/base.yaml
+extends: core/product-backlog/manifest.yaml
 add_fields:
 - story-points
 - sprint-candidate

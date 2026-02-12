@@ -1,0 +1,25 @@
+component_id: core-project-charter--success-criteria
+version: 1.0.0
+kind: core-section
+title: Success Criteria
+interface:
+  inputs:
+  - name: success_criteria
+    source_placeholder: '{{success_criteria}}'
+    required: false
+  outputs:
+  - name: success-criteria_section
+    type: section
+render:
+  section:
+    id: success-criteria
+    title: Success Criteria
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Use objective acceptance criteria with baseline and target values.
+    - For low-risk initiatives, a concise metric set is acceptable when traceable
+      to objectives.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{success_criteria}}'

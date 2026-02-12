@@ -1,0 +1,28 @@
+component_id: core-sprint-planning--sprint-goal
+version: 1.0.0
+kind: core-section
+title: Sprint Goal
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: sprint_goal
+    source_placeholder: '{{sprint_goal}}'
+    required: false
+  outputs:
+  - name: sprint-goal_section
+    type: section
+render:
+  section:
+    id: sprint-goal
+    title: Sprint Goal
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Define a single coherent sprint outcome tied to product objectives.
+    - For high-risk delivery, include explicit risk burn-down intent in the goal.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{sprint_goal}}'

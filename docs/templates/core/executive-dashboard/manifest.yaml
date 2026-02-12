@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: PMO
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,39 +15,32 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: portfolio-health
-  title: Portfolio Health
-  type: metric
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{portfolio_health}}'
-- id: schedule-performance
-  title: Schedule Performance
-  type: metric
-  consumes_placeholders:
-  - '{{schedule_performance}}'
-- id: budget-performance
-  title: Budget Performance
-  type: metric
-  consumes_placeholders:
-  - '{{budget_performance}}'
-  - '{{total_budget}}'
-- id: top-risks
-  title: Top Risks
-  type: metric
-  consumes_placeholders:
-  - '{{top_risks}}'
-- id: benefits-realization
-  title: Benefits Realization
-  type: metric
-  consumes_placeholders:
-  - '{{benefits_realization}}'
-- id: decisions-required
-  title: Decisions Required
-  type: metric
-  consumes_placeholders:
-  - '{{decisions_required}}'
+composition:
+  order:
+  - component_instance_id: core-executive-dashboard--portfolio-health
+    ref: ../../components/core-executive-dashboard--portfolio-health.yaml
+    bind:
+      section_id: portfolio-health
+  - component_instance_id: core-executive-dashboard--schedule-performance
+    ref: ../../components/core-executive-dashboard--schedule-performance.yaml
+    bind:
+      section_id: schedule-performance
+  - component_instance_id: core-executive-dashboard--budget-performance
+    ref: ../../components/core-executive-dashboard--budget-performance.yaml
+    bind:
+      section_id: budget-performance
+  - component_instance_id: executive-dashboard--top-risks
+    ref: ../../components/risks.yaml
+    bind:
+      section_id: top-risks
+  - component_instance_id: executive-dashboard--benefits-realization
+    ref: ../../components/benefits.yaml
+    bind:
+      section_id: benefits-realization
+  - component_instance_id: core-executive-dashboard--decisions-required
+    ref: ../../components/core-executive-dashboard--decisions-required.yaml
+    bind:
+      section_id: decisions-required
 guidance:
   purpose: Canonical base structure for the executive-dashboard template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

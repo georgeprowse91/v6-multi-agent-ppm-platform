@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: Product+Engineering
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,33 +15,28 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: what-went-well
-  title: What Went Well
-  type: narrative
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{what_went_well}}'
-- id: what-did-not-go-well
-  title: What Did Not Go Well
-  type: narrative
-  consumes_placeholders:
-  - '{{what_did_not_go_well}}'
-- id: root-causes
-  title: Root Causes
-  type: narrative
-  consumes_placeholders:
-  - '{{root_causes}}'
-- id: experiments
-  title: Experiments
-  type: narrative
-  consumes_placeholders:
-  - '{{experiments}}'
-- id: owners-and-dates
-  title: Owners And Dates
-  type: narrative
-  consumes_placeholders:
-  - '{{owners_and_dates}}'
+composition:
+  order:
+  - component_instance_id: core-sprint-retrospective--what-went-well
+    ref: ../../components/core-sprint-retrospective--what-went-well.yaml
+    bind:
+      section_id: what-went-well
+  - component_instance_id: core-sprint-retrospective--what-did-not-go-well
+    ref: ../../components/core-sprint-retrospective--what-did-not-go-well.yaml
+    bind:
+      section_id: what-did-not-go-well
+  - component_instance_id: core-sprint-retrospective--root-causes
+    ref: ../../components/core-sprint-retrospective--root-causes.yaml
+    bind:
+      section_id: root-causes
+  - component_instance_id: core-sprint-retrospective--experiments
+    ref: ../../components/core-sprint-retrospective--experiments.yaml
+    bind:
+      section_id: experiments
+  - component_instance_id: core-sprint-retrospective--owners-and-dates
+    ref: ../../components/core-sprint-retrospective--owners-and-dates.yaml
+    bind:
+      section_id: owners-and-dates
 guidance:
   purpose: Canonical base structure for the sprint-retrospective template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

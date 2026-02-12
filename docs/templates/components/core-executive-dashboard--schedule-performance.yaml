@@ -1,0 +1,19 @@
+component_id: core-executive-dashboard--schedule-performance
+version: 1.0.0
+kind: core-section
+title: Schedule Performance
+interface:
+  inputs:
+  - name: schedule_performance
+    source_placeholder: '{{schedule_performance}}'
+    required: false
+  outputs:
+  - name: schedule-performance_section
+    type: section
+render:
+  section:
+    id: schedule-performance
+    title: Schedule Performance
+    type: metric
+    consumes_placeholders:
+    - '{{schedule_performance}}'

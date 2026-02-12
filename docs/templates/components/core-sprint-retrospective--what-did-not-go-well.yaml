@@ -1,0 +1,19 @@
+component_id: core-sprint-retrospective--what-did-not-go-well
+version: 1.0.0
+kind: core-section
+title: What Did Not Go Well
+interface:
+  inputs:
+  - name: what_did_not_go_well
+    source_placeholder: '{{what_did_not_go_well}}'
+    required: false
+  outputs:
+  - name: what-did-not-go-well_section
+    type: section
+render:
+  section:
+    id: what-did-not-go-well
+    title: What Did Not Go Well
+    type: narrative
+    consumes_placeholders:
+    - '{{what_did_not_go_well}}'

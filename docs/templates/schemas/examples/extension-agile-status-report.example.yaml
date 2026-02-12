@@ -21,11 +21,11 @@ guidance:
   purpose: |
     Add sprint-level delivery signals to the canonical status report.
   application: |
-    Apply this extension after loading `core/status-report/base.yaml`.
+    Apply this extension after loading `core/status-report/manifest.yaml`.
 placeholders:
   - key: velocity_trend
     token: "{{velocity_trend}}"
-extends: core/status-report/base.yaml
+extends: core/status-report/manifest.yaml
 add_sections:
   - velocity-trend
   - burnup-burndown

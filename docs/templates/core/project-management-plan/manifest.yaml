@@ -1,0 +1,100 @@
+metadata:
+  template_id: project-management-plan
+  title: Project Management Plan
+  version: 1.0.0
+  owner: PMO
+  classification: core
+  composition_model: modular-v1
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+composition:
+  order:
+  - component_instance_id: core-project-management-plan--project-overview
+    ref: ../../components/core-project-management-plan--project-overview.yaml
+    bind:
+      section_id: project-overview
+  - component_instance_id: core-project-management-plan--management-approach
+    ref: ../../components/core-project-management-plan--management-approach.yaml
+    bind:
+      section_id: management-approach
+  - component_instance_id: core-project-management-plan--scope-baseline
+    ref: ../../components/core-project-management-plan--scope-baseline.yaml
+    bind:
+      section_id: scope-baseline
+  - component_instance_id: core-project-management-plan--schedule-baseline
+    ref: ../../components/core-project-management-plan--schedule-baseline.yaml
+    bind:
+      section_id: schedule-baseline
+  - component_instance_id: core-project-management-plan--cost-baseline
+    ref: ../../components/core-project-management-plan--cost-baseline.yaml
+    bind:
+      section_id: cost-baseline
+  - component_instance_id: project-management-plan--quality-management
+    ref: ../../components/controls.yaml
+    bind:
+      section_id: quality-management
+  - component_instance_id: project-management-plan--risk-management
+    ref: ../../components/risks.yaml
+    bind:
+      section_id: risk-management
+  - component_instance_id: project-management-plan--change-control
+    ref: ../../components/controls.yaml
+    bind:
+      section_id: change-control
+  - component_instance_id: core-project-management-plan--stakeholder-engagement
+    ref: ../../components/core-project-management-plan--stakeholder-engagement.yaml
+    bind:
+      section_id: stakeholder-engagement
+guidance:
+  purpose: Canonical base structure for the project-management-plan template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - project-overview
+- key: project_overview
+  token: '{{project_overview}}'
+  consumed_by_sections:
+  - project-overview
+- key: management_approach
+  token: '{{management_approach}}'
+  consumed_by_sections:
+  - management-approach
+- key: scope_baseline
+  token: '{{scope_baseline}}'
+  consumed_by_sections:
+  - scope-baseline
+- key: schedule_baseline
+  token: '{{schedule_baseline}}'
+  consumed_by_sections:
+  - schedule-baseline
+- key: cost_baseline
+  token: '{{cost_baseline}}'
+  consumed_by_sections:
+  - cost-baseline
+- key: quality_management
+  token: '{{quality_management}}'
+  consumed_by_sections:
+  - quality-management
+- key: risk_management
+  token: '{{risk_management}}'
+  consumed_by_sections:
+  - risk-management
+- key: change_control
+  token: '{{change_control}}'
+  consumed_by_sections:
+  - change-control
+- key: stakeholder_engagement
+  token: '{{stakeholder_engagement}}'
+  consumed_by_sections:
+  - stakeholder-engagement

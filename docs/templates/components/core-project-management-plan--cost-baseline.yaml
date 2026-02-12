@@ -1,0 +1,19 @@
+component_id: core-project-management-plan--cost-baseline
+version: 1.0.0
+kind: core-section
+title: Cost Baseline
+interface:
+  inputs:
+  - name: cost_baseline
+    source_placeholder: '{{cost_baseline}}'
+    required: false
+  outputs:
+  - name: cost-baseline_section
+    type: section
+render:
+  section:
+    id: cost-baseline
+    title: Cost Baseline
+    type: narrative
+    consumes_placeholders:
+    - '{{cost_baseline}}'

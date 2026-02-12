@@ -1,0 +1,19 @@
+component_id: core-project-management-plan--stakeholder-engagement
+version: 1.0.0
+kind: core-section
+title: Stakeholder Engagement
+interface:
+  inputs:
+  - name: stakeholder_engagement
+    source_placeholder: '{{stakeholder_engagement}}'
+    required: false
+  outputs:
+  - name: stakeholder-engagement_section
+    type: section
+render:
+  section:
+    id: stakeholder-engagement
+    title: Stakeholder Engagement
+    type: narrative
+    consumes_placeholders:
+    - '{{stakeholder_engagement}}'

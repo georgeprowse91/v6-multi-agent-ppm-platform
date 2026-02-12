@@ -1,0 +1,19 @@
+component_id: core-project-management-plan--schedule-baseline
+version: 1.0.0
+kind: core-section
+title: Schedule Baseline
+interface:
+  inputs:
+  - name: schedule_baseline
+    source_placeholder: '{{schedule_baseline}}'
+    required: false
+  outputs:
+  - name: schedule-baseline_section
+    type: section
+render:
+  section:
+    id: schedule-baseline
+    title: Schedule Baseline
+    type: narrative
+    consumes_placeholders:
+    - '{{schedule_baseline}}'

@@ -1,0 +1,28 @@
+component_id: core-project-charter--problem-statement
+version: 1.0.0
+kind: core-section
+title: Problem Statement
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: problem_statement
+    source_placeholder: '{{problem_statement}}'
+    required: false
+  outputs:
+  - name: problem-statement_section
+    type: section
+render:
+  section:
+    id: problem-statement
+    title: Problem Statement
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Keep as a focused 2-6 sentence narrative for all project sizes.
+    - For high-risk projects, explicitly quantify business or operational impact.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{problem_statement}}'

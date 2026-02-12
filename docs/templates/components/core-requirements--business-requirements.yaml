@@ -1,0 +1,23 @@
+component_id: core-requirements--business-requirements
+version: 1.0.0
+kind: core-section
+title: Business Requirements
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: business_requirements
+    source_placeholder: '{{business_requirements}}'
+    required: false
+  outputs:
+  - name: business-requirements_section
+    type: section
+render:
+  section:
+    id: business-requirements
+    title: Business Requirements
+    type: narrative
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{business_requirements}}'

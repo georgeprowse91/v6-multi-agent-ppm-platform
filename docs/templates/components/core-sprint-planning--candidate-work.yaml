@@ -1,0 +1,24 @@
+component_id: core-sprint-planning--candidate-work
+version: 1.0.0
+kind: core-section
+title: Candidate Work
+interface:
+  inputs:
+  - name: candidate_work
+    source_placeholder: '{{candidate_work}}'
+    required: false
+  outputs:
+  - name: candidate-work_section
+    type: section
+render:
+  section:
+    id: candidate-work
+    title: Candidate Work
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Prioritize backlog candidates based on value, risk, and dependencies.
+    - For governance tier 3 products, include traceability to approved scope.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{candidate_work}}'

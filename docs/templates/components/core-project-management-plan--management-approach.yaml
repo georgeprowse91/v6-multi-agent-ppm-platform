@@ -1,0 +1,19 @@
+component_id: core-project-management-plan--management-approach
+version: 1.0.0
+kind: core-section
+title: Management Approach
+interface:
+  inputs:
+  - name: management_approach
+    source_placeholder: '{{management_approach}}'
+    required: false
+  outputs:
+  - name: management-approach_section
+    type: section
+render:
+  section:
+    id: management-approach
+    title: Management Approach
+    type: narrative
+    consumes_placeholders:
+    - '{{management_approach}}'

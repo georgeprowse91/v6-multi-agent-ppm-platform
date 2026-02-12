@@ -1,0 +1,19 @@
+component_id: core-sprint-retrospective--experiments
+version: 1.0.0
+kind: core-section
+title: Experiments
+interface:
+  inputs:
+  - name: experiments
+    source_placeholder: '{{experiments}}'
+    required: false
+  outputs:
+  - name: experiments_section
+    type: section
+render:
+  section:
+    id: experiments
+    title: Experiments
+    type: narrative
+    consumes_placeholders:
+    - '{{experiments}}'

@@ -29,7 +29,7 @@ placeholders:
   token: '{{requirements_baseline}}'
 - key: requirements_signoff
   token: '{{requirements_signoff}}'
-extends: core/requirements/base.yaml
+extends: core/requirements/manifest.yaml
 add_sections:
 - requirements-baseline
 - requirements-signoff

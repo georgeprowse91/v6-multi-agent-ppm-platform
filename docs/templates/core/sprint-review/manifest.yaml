@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: Product+Engineering
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,33 +15,28 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: sprint-goal-outcome
-  title: Sprint Goal Outcome
-  type: narrative
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{sprint_goal_outcome}}'
-- id: completed-increment
-  title: Completed Increment
-  type: narrative
-  consumes_placeholders:
-  - '{{completed_increment}}'
-- id: rejected-or-carried-over-items
-  title: Rejected Or Carried Over Items
-  type: narrative
-  consumes_placeholders:
-  - '{{rejected_or_carried_over_items}}'
-- id: stakeholder-feedback
-  title: Stakeholder Feedback
-  type: narrative
-  consumes_placeholders:
-  - '{{stakeholder_feedback}}'
-- id: backlog-adjustments
-  title: Backlog Adjustments
-  type: narrative
-  consumes_placeholders:
-  - '{{backlog_adjustments}}'
+composition:
+  order:
+  - component_instance_id: core-sprint-review--sprint-goal-outcome
+    ref: ../../components/core-sprint-review--sprint-goal-outcome.yaml
+    bind:
+      section_id: sprint-goal-outcome
+  - component_instance_id: core-sprint-review--completed-increment
+    ref: ../../components/core-sprint-review--completed-increment.yaml
+    bind:
+      section_id: completed-increment
+  - component_instance_id: core-sprint-review--rejected-or-carried-over-items
+    ref: ../../components/core-sprint-review--rejected-or-carried-over-items.yaml
+    bind:
+      section_id: rejected-or-carried-over-items
+  - component_instance_id: core-sprint-review--stakeholder-feedback
+    ref: ../../components/core-sprint-review--stakeholder-feedback.yaml
+    bind:
+      section_id: stakeholder-feedback
+  - component_instance_id: core-sprint-review--backlog-adjustments
+    ref: ../../components/core-sprint-review--backlog-adjustments.yaml
+    bind:
+      section_id: backlog-adjustments
 guidance:
   purpose: Canonical base structure for the sprint-review template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

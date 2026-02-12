@@ -1,0 +1,19 @@
+component_id: core-requirements--constraints
+version: 1.0.0
+kind: core-section
+title: Constraints
+interface:
+  inputs:
+  - name: constraints
+    source_placeholder: '{{constraints}}'
+    required: false
+  outputs:
+  - name: constraints_section
+    type: section
+render:
+  section:
+    id: constraints
+    title: Constraints
+    type: narrative
+    consumes_placeholders:
+    - '{{constraints}}'

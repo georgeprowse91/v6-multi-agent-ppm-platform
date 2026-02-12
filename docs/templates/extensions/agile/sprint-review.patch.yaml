@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: demo_script
   token: '{{demo_script}}'
-extends: core/sprint-review/base.yaml
+extends: core/sprint-review/manifest.yaml
 add_sections:
 - demo-script

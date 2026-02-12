@@ -1,0 +1,23 @@
+component_id: core-sprint-retrospective--what-went-well
+version: 1.0.0
+kind: core-section
+title: What Went Well
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: what_went_well
+    source_placeholder: '{{what_went_well}}'
+    required: false
+  outputs:
+  - name: what-went-well_section
+    type: section
+render:
+  section:
+    id: what-went-well
+    title: What Went Well
+    type: narrative
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{what_went_well}}'

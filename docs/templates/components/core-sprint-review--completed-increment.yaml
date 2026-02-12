@@ -1,0 +1,19 @@
+component_id: core-sprint-review--completed-increment
+version: 1.0.0
+kind: core-section
+title: Completed Increment
+interface:
+  inputs:
+  - name: completed_increment
+    source_placeholder: '{{completed_increment}}'
+    required: false
+  outputs:
+  - name: completed-increment_section
+    type: section
+render:
+  section:
+    id: completed-increment
+    title: Completed Increment
+    type: narrative
+    consumes_placeholders:
+    - '{{completed_increment}}'

@@ -1,0 +1,19 @@
+component_id: core-sprint-review--stakeholder-feedback
+version: 1.0.0
+kind: core-section
+title: Stakeholder Feedback
+interface:
+  inputs:
+  - name: stakeholder_feedback
+    source_placeholder: '{{stakeholder_feedback}}'
+    required: false
+  outputs:
+  - name: stakeholder-feedback_section
+    type: section
+render:
+  section:
+    id: stakeholder-feedback
+    title: Stakeholder Feedback
+    type: narrative
+    consumes_placeholders:
+    - '{{stakeholder_feedback}}'

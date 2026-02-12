@@ -31,7 +31,7 @@ placeholders:
   token: '{{epic_feature_story_level}}'
 - key: program_increment
   token: '{{program_increment}}'
-extends: core/product-backlog/base.yaml
+extends: core/product-backlog/manifest.yaml
 add_fields:
 - epic-feature-story-level
 - program-increment

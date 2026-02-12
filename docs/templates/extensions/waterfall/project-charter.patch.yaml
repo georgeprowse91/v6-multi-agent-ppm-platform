@@ -29,7 +29,7 @@ placeholders:
   token: '{{phase_gate_criteria}}'
 - key: procurement_summary
   token: '{{procurement_summary}}'
-extends: core/project-charter/base.yaml
+extends: core/project-charter/manifest.yaml
 add_sections:
 - phase-gate-criteria
 - procurement-summary

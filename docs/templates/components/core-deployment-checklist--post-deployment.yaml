@@ -1,0 +1,19 @@
+component_id: core-deployment-checklist--post-deployment
+version: 1.0.0
+kind: core-section
+title: Post Deployment
+interface:
+  inputs:
+  - name: post_deployment
+    source_placeholder: '{{post_deployment}}'
+    required: false
+  outputs:
+  - name: post-deployment_section
+    type: section
+render:
+  section:
+    id: post-deployment
+    title: Post Deployment
+    type: checklist
+    consumes_placeholders:
+    - '{{post_deployment}}'

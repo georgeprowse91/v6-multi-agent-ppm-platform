@@ -1,0 +1,96 @@
+metadata:
+  template_id: status-report
+  title: Status Report
+  version: 1.0.0
+  owner: PMO
+  classification: core
+  composition_model: modular-v1
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+composition:
+  order:
+  - component_instance_id: core-status-report--reporting-period
+    ref: ../../components/core-status-report--reporting-period.yaml
+    bind:
+      section_id: reporting-period
+  - component_instance_id: core-status-report--overall-health-rag
+    ref: ../../components/core-status-report--overall-health-rag.yaml
+    bind:
+      section_id: overall-health-rag
+  - component_instance_id: core-status-report--summary
+    ref: ../../components/core-status-report--summary.yaml
+    bind:
+      section_id: summary
+  - component_instance_id: core-status-report--progress-vs-plan
+    ref: ../../components/core-status-report--progress-vs-plan.yaml
+    bind:
+      section_id: progress-vs-plan
+  - component_instance_id: core-status-report--budget-status
+    ref: ../../components/core-status-report--budget-status.yaml
+    bind:
+      section_id: budget-status
+  - component_instance_id: status-report--risks-issues
+    ref: ../../components/risks.yaml
+    bind:
+      section_id: risks-issues
+  - component_instance_id: core-status-report--decisions-needed
+    ref: ../../components/core-status-report--decisions-needed.yaml
+    bind:
+      section_id: decisions-needed
+  - component_instance_id: core-status-report--next-period-plan
+    ref: ../../components/core-status-report--next-period-plan.yaml
+    bind:
+      section_id: next-period-plan
+guidance:
+  purpose: Canonical base structure for the status-report template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - reporting-period
+- key: reporting_period
+  token: '{{reporting_period}}'
+  consumed_by_sections:
+  - reporting-period
+- key: overall_health_rag
+  token: '{{overall_health_rag}}'
+  consumed_by_sections:
+  - overall-health-rag
+- key: summary
+  token: '{{summary}}'
+  consumed_by_sections:
+  - summary
+- key: progress_vs_plan
+  token: '{{progress_vs_plan}}'
+  consumed_by_sections:
+  - progress-vs-plan
+- key: budget_status
+  token: '{{budget_status}}'
+  consumed_by_sections:
+  - budget-status
+- key: risks_issues
+  token: '{{risks_issues}}'
+  consumed_by_sections:
+  - risks-issues
+- key: decisions_needed
+  token: '{{decisions_needed}}'
+  consumed_by_sections:
+  - decisions-needed
+- key: next_period_plan
+  token: '{{next_period_plan}}'
+  consumed_by_sections:
+  - next-period-plan
+- key: total_budget
+  token: '{{total_budget}}'
+  consumed_by_sections:
+  - budget-status

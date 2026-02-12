@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: PMO
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,34 +15,12 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: data-table
-  title: Data Table
-  type: table
-  columns:
-  - name: stakeholder-group
-    type: string
-  - name: communication-objective
-    type: string
-  - name: channel
-    type: string
-  - name: cadence
-    type: string
-  - name: sender
-    type: string
-  - name: escalation-path
-    type: string
-  - name: success-measure
-    type: string
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{stakeholder_group}}'
-  - '{{communication_objective}}'
-  - '{{channel}}'
-  - '{{cadence}}'
-  - '{{sender}}'
-  - '{{escalation_path}}'
-  - '{{success_measure}}'
+composition:
+  order:
+  - component_instance_id: core-communication-plan--data-table
+    ref: ../../components/core-communication-plan--data-table.yaml
+    bind:
+      section_id: data-table
 guidance:
   purpose: Canonical base structure for the communication-plan template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

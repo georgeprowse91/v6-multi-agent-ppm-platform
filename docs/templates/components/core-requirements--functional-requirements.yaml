@@ -1,0 +1,19 @@
+component_id: core-requirements--functional-requirements
+version: 1.0.0
+kind: core-section
+title: Functional Requirements
+interface:
+  inputs:
+  - name: functional_requirements
+    source_placeholder: '{{functional_requirements}}'
+    required: false
+  outputs:
+  - name: functional-requirements_section
+    type: section
+render:
+  section:
+    id: functional-requirements
+    title: Functional Requirements
+    type: narrative
+    consumes_placeholders:
+    - '{{functional_requirements}}'

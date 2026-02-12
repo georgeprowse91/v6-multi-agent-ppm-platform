@@ -1,0 +1,76 @@
+metadata:
+  template_id: sprint-planning
+  title: Sprint Planning
+  version: 1.0.0
+  owner: Product+Engineering
+  classification: core
+  composition_model: modular-v1
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+composition:
+  order:
+  - component_instance_id: core-sprint-planning--sprint-goal
+    ref: ../../components/core-sprint-planning--sprint-goal.yaml
+    bind:
+      section_id: sprint-goal
+  - component_instance_id: core-sprint-planning--capacity
+    ref: ../../components/core-sprint-planning--capacity.yaml
+    bind:
+      section_id: capacity
+  - component_instance_id: core-sprint-planning--candidate-work
+    ref: ../../components/core-sprint-planning--candidate-work.yaml
+    bind:
+      section_id: candidate-work
+  - component_instance_id: core-sprint-planning--commitment
+    ref: ../../components/core-sprint-planning--commitment.yaml
+    bind:
+      section_id: commitment
+  - component_instance_id: core-sprint-planning--dependencies
+    ref: ../../components/core-sprint-planning--dependencies.yaml
+    bind:
+      section_id: dependencies
+  - component_instance_id: sprint-planning--definition-of-done-check
+    ref: ../../components/controls.yaml
+    bind:
+      section_id: definition-of-done-check
+guidance:
+  purpose: Canonical base structure for the sprint-planning template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - sprint-goal
+- key: sprint_goal
+  token: '{{sprint_goal}}'
+  consumed_by_sections:
+  - sprint-goal
+- key: capacity
+  token: '{{capacity}}'
+  consumed_by_sections:
+  - capacity
+- key: candidate_work
+  token: '{{candidate_work}}'
+  consumed_by_sections:
+  - candidate-work
+- key: commitment
+  token: '{{commitment}}'
+  consumed_by_sections:
+  - commitment
+- key: dependencies
+  token: '{{dependencies}}'
+  consumed_by_sections:
+  - dependencies
+- key: definition_of_done_check
+  token: '{{definition_of_done_check}}'
+  consumed_by_sections:
+  - definition-of-done-check

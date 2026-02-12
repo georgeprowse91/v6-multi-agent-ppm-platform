@@ -1,0 +1,24 @@
+component_id: core-project-charter--scope
+version: 1.0.0
+kind: core-section
+title: Scope
+interface:
+  inputs:
+  - name: scope
+    source_placeholder: '{{scope}}'
+    required: false
+  outputs:
+  - name: scope_section
+    type: section
+render:
+  section:
+    id: scope
+    title: Scope
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Define in-scope and out-of-scope boundaries.
+    - For high governance tier projects, include explicit boundary controls and assumptions.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{scope}}'

@@ -1,0 +1,24 @@
+component_id: core-sprint-planning--capacity
+version: 1.0.0
+kind: core-section
+title: Capacity
+interface:
+  inputs:
+  - name: capacity
+    source_placeholder: '{{capacity}}'
+    required: false
+  outputs:
+  - name: capacity_section
+    type: section
+render:
+  section:
+    id: capacity
+    title: Capacity
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Quantify available team capacity and major constraints.
+    - For small teams, a simple person-day estimate is acceptable.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{capacity}}'

@@ -29,7 +29,7 @@ placeholders:
   token: '{{integrated_master_schedule}}'
 - key: earned_value_management
   token: '{{earned_value_management}}'
-extends: core/project-management-plan/base.yaml
+extends: core/project-management-plan/manifest.yaml
 add_sections:
 - integrated-master-schedule
 - earned-value-management

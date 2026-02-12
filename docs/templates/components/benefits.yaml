@@ -1,0 +1,19 @@
+component_id: benefits
+version: 1.0.0
+kind: reusable-block
+title: Benefits Block
+description: Reusable section for benefits realization expectations and KPI mapping.
+interface:
+  inputs:
+  - name: benefits
+    source_placeholder: '{{benefits}}'
+    required: false
+  outputs:
+  - name: benefits_section
+    type: section
+render:
+  default_section:
+    id: benefits-realization
+    title: Benefits Realization
+    type: metric
+    required_level: recommended

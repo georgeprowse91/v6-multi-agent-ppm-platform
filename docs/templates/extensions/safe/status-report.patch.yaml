@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: train_level_metrics
   token: '{{train_level_metrics}}'
-extends: core/status-report/base.yaml
+extends: core/status-report/manifest.yaml
 add_sections:
 - train-level-metrics

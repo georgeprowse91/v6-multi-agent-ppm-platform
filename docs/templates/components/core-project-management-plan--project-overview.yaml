@@ -1,0 +1,23 @@
+component_id: core-project-management-plan--project-overview
+version: 1.0.0
+kind: core-section
+title: Project Overview
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: project_overview
+    source_placeholder: '{{project_overview}}'
+    required: false
+  outputs:
+  - name: project-overview_section
+    type: section
+render:
+  section:
+    id: project-overview
+    title: Project Overview
+    type: narrative
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{project_overview}}'

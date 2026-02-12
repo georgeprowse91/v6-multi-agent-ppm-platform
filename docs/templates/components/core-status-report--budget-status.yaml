@@ -1,0 +1,30 @@
+component_id: core-status-report--budget-status
+version: 1.0.0
+kind: core-section
+title: Budget Status
+interface:
+  inputs:
+  - name: budget_status
+    source_placeholder: '{{budget_status}}'
+    required: false
+  - name: total_budget
+    source_placeholder: '{{total_budget}}'
+    required: false
+  outputs:
+  - name: budget-status_section
+    type: section
+render:
+  section:
+    id: budget-status
+    title: Budget Status
+    type: narrative
+    required_level: recommended
+    tailoring_rules:
+    - Provide spend-to-date, forecast, and variance.
+    - For governance tier 3 or high-risk projects, include burn-rate and corrective
+      actions.
+    applicability_conditions: Required for funded projects; optional for non-funded
+      operational work.
+    consumes_placeholders:
+    - '{{budget_status}}'
+    - '{{total_budget}}'

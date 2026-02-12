@@ -1,0 +1,24 @@
+component_id: core-sprint-planning--commitment
+version: 1.0.0
+kind: core-section
+title: Commitment
+interface:
+  inputs:
+  - name: commitment
+    source_placeholder: '{{commitment}}'
+    required: false
+  outputs:
+  - name: commitment_section
+    type: section
+render:
+  section:
+    id: commitment
+    title: Commitment
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - State committed backlog items and confidence level.
+    - For high-risk sprints, add contingency items and trigger thresholds.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{commitment}}'

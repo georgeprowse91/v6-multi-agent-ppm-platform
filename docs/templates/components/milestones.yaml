@@ -1,0 +1,19 @@
+component_id: milestones
+version: 1.0.0
+kind: reusable-block
+title: Milestones Block
+description: Reusable section for phase gates, due dates, and acceptance checkpoints.
+interface:
+  inputs:
+  - name: milestones
+    source_placeholder: '{{milestones}}'
+    required: false
+  outputs:
+  - name: milestones_section
+    type: section
+render:
+  default_section:
+    id: milestones
+    title: Milestones
+    type: narrative
+    required_level: recommended

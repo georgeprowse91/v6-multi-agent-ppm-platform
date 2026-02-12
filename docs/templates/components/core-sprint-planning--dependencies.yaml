@@ -1,0 +1,24 @@
+component_id: core-sprint-planning--dependencies
+version: 1.0.0
+kind: core-section
+title: Dependencies
+interface:
+  inputs:
+  - name: dependencies
+    source_placeholder: '{{dependencies}}'
+    required: false
+  outputs:
+  - name: dependencies_section
+    type: section
+render:
+  section:
+    id: dependencies
+    title: Dependencies
+    type: narrative
+    required_level: recommended
+    tailoring_rules:
+    - Capture cross-team, vendor, or environment dependencies.
+    - For medium/large programs, include dependency owner and due date.
+    applicability_conditions: Required when external dependencies exist.
+    consumes_placeholders:
+    - '{{dependencies}}'

@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: milestone_and_sprint_view
   token: '{{milestone_and_sprint_view}}'
-extends: core/status-report/base.yaml
+extends: core/status-report/manifest.yaml
 add_sections:
 - milestone-and-sprint-view

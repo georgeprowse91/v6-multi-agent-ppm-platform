@@ -2,7 +2,7 @@
   "templates": [
     {
       "template_id": "communication-plan.universal.v1",
-      "path": "docs/templates/core/communication-plan/base.yaml",
+      "path": "docs/templates/core/communication-plan/manifest.yaml",
       "artefact_type": "plan",
       "methodology": "universal",
       "compliance_tags": [],
@@ -22,7 +22,7 @@
     },
     {
       "template_id": "deployment-checklist.universal.v1",
-      "path": "docs/templates/core/deployment-checklist/base.yaml",
+      "path": "docs/templates/core/deployment-checklist/manifest.yaml",
       "artefact_type": "checklist",
       "methodology": "universal",
       "compliance_tags": [],
@@ -37,7 +37,7 @@
     },
     {
       "template_id": "executive-dashboard.universal.v1",
-      "path": "docs/templates/core/executive-dashboard/base.yaml",
+      "path": "docs/templates/core/executive-dashboard/manifest.yaml",
       "artefact_type": "dashboard",
       "methodology": "universal",
       "compliance_tags": [],
@@ -56,7 +56,7 @@
     },
     {
       "template_id": "product-backlog.universal.v1",
-      "path": "docs/templates/core/product-backlog/base.yaml",
+      "path": "docs/templates/core/product-backlog/manifest.yaml",
       "artefact_type": "backlog",
       "methodology": "universal",
       "compliance_tags": [],
@@ -77,7 +77,7 @@
     },
     {
       "template_id": "project-charter.universal.v1",
-      "path": "docs/templates/core/project-charter/base.yaml",
+      "path": "docs/templates/core/project-charter/manifest.yaml",
       "artefact_type": "charter",
       "methodology": "universal",
       "compliance_tags": [],
@@ -98,7 +98,7 @@
     },
     {
       "template_id": "project-management-plan.universal.v1",
-      "path": "docs/templates/core/project-management-plan/base.yaml",
+      "path": "docs/templates/core/project-management-plan/manifest.yaml",
       "artefact_type": "plan",
       "methodology": "universal",
       "compliance_tags": [],
@@ -120,7 +120,7 @@
     },
     {
       "template_id": "requirements.universal.v1",
-      "path": "docs/templates/core/requirements/base.yaml",
+      "path": "docs/templates/core/requirements/manifest.yaml",
       "artefact_type": "plan",
       "methodology": "universal",
       "compliance_tags": [],
@@ -140,7 +140,7 @@
     },
     {
       "template_id": "risk-register.universal.v1",
-      "path": "docs/templates/core/risk-register/base.yaml",
+      "path": "docs/templates/core/risk-register/manifest.yaml",
       "artefact_type": "risk-register",
       "methodology": "universal",
       "compliance_tags": [],
@@ -163,7 +163,7 @@
     },
     {
       "template_id": "sprint-planning.universal.v1",
-      "path": "docs/templates/core/sprint-planning/base.yaml",
+      "path": "docs/templates/core/sprint-planning/manifest.yaml",
       "artefact_type": "plan",
       "methodology": "universal",
       "compliance_tags": [],
@@ -182,7 +182,7 @@
     },
     {
       "template_id": "sprint-retrospective.universal.v1",
-      "path": "docs/templates/core/sprint-retrospective/base.yaml",
+      "path": "docs/templates/core/sprint-retrospective/manifest.yaml",
       "artefact_type": "report",
       "methodology": "universal",
       "compliance_tags": [],
@@ -200,7 +200,7 @@
     },
     {
       "template_id": "sprint-review.universal.v1",
-      "path": "docs/templates/core/sprint-review/base.yaml",
+      "path": "docs/templates/core/sprint-review/manifest.yaml",
       "artefact_type": "report",
       "methodology": "universal",
       "compliance_tags": [],
@@ -218,7 +218,7 @@
     },
     {
       "template_id": "status-report.universal.v1",
-      "path": "docs/templates/core/status-report/base.yaml",
+      "path": "docs/templates/core/status-report/manifest.yaml",
       "artefact_type": "report",
       "methodology": "universal",
       "compliance_tags": [],
@@ -248,7 +248,7 @@
       "status": "active",
       "replaces": "product-backlog.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/product-backlog/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/product-backlog/manifest.yaml"
     },
     {
       "template_id": "project-charter.agile.v1",
@@ -260,7 +260,7 @@
       "status": "active",
       "replaces": "project-charter.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/project-charter/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
     },
     {
       "template_id": "risk-register.agile.v1",
@@ -272,7 +272,7 @@
       "status": "active",
       "replaces": "risk-register.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/risk-register/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/risk-register/manifest.yaml"
     },
     {
       "template_id": "sprint-planning.agile.v1",
@@ -284,7 +284,7 @@
       "status": "active",
       "replaces": "sprint-planning.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/sprint-planning/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/sprint-planning/manifest.yaml"
     },
     {
       "template_id": "sprint-retrospective.agile.v1",
@@ -296,7 +296,7 @@
       "status": "active",
       "replaces": "sprint-retrospective.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/sprint-retrospective/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/sprint-retrospective/manifest.yaml"
     },
     {
       "template_id": "sprint-review.agile.v1",
@@ -308,7 +308,7 @@
       "status": "active",
       "replaces": "sprint-review.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/sprint-review/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/sprint-review/manifest.yaml"
     },
     {
       "template_id": "status-report.agile.v1",
@@ -320,7 +320,7 @@
       "status": "active",
       "replaces": "status-report.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
 
     {
@@ -333,7 +333,7 @@
       "status": "active",
       "replaces": "project-charter.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/project-charter/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
     },
     {
       "template_id": "project-management-plan.hybrid.v1",
@@ -345,7 +345,7 @@
       "status": "active",
       "replaces": "project-management-plan.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/project-management-plan/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/project-management-plan/manifest.yaml"
     },
     {
       "template_id": "risk-register.hybrid.v1",
@@ -357,7 +357,7 @@
       "status": "active",
       "replaces": "risk-register.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/risk-register/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/risk-register/manifest.yaml"
     },
     {
       "template_id": "status-report.hybrid.v1",
@@ -369,7 +369,7 @@
       "status": "active",
       "replaces": "status-report.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
 
     {
@@ -382,7 +382,7 @@
       "status": "active",
       "replaces": "executive-dashboard.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/executive-dashboard/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/executive-dashboard/manifest.yaml"
     },
     {
       "template_id": "product-backlog.safe.v1",
@@ -394,7 +394,7 @@
       "status": "active",
       "replaces": "product-backlog.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/product-backlog/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/product-backlog/manifest.yaml"
     },
     {
       "template_id": "sprint-planning.safe.v1",
@@ -406,7 +406,7 @@
       "status": "active",
       "replaces": "sprint-planning.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/sprint-planning/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/sprint-planning/manifest.yaml"
     },
     {
       "template_id": "status-report.safe.v1",
@@ -418,7 +418,7 @@
       "status": "active",
       "replaces": "status-report.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
 
     {
@@ -431,7 +431,7 @@
       "status": "active",
       "replaces": "project-charter.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/project-charter/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
     },
     {
       "template_id": "project-management-plan.waterfall.v1",
@@ -443,7 +443,7 @@
       "status": "active",
       "replaces": "project-management-plan.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/project-management-plan/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/project-management-plan/manifest.yaml"
     },
     {
       "template_id": "requirements.waterfall.v1",
@@ -455,7 +455,7 @@
       "status": "active",
       "replaces": "requirements.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/requirements/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/requirements/manifest.yaml"
     },
     {
       "template_id": "status-report.waterfall.v1",
@@ -467,7 +467,7 @@
       "status": "active",
       "replaces": "status-report.universal.v1",
       "supports_modular": false,
-      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+      "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     }
   ]
 }

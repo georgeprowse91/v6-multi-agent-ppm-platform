@@ -1,0 +1,19 @@
+component_id: core-requirements--non-functional-requirements
+version: 1.0.0
+kind: core-section
+title: Non Functional Requirements
+interface:
+  inputs:
+  - name: non_functional_requirements
+    source_placeholder: '{{non_functional_requirements}}'
+    required: false
+  outputs:
+  - name: non-functional-requirements_section
+    type: section
+render:
+  section:
+    id: non-functional-requirements
+    title: Non Functional Requirements
+    type: narrative
+    consumes_placeholders:
+    - '{{non_functional_requirements}}'

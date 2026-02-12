@@ -1,0 +1,20 @@
+component_id: assumptions
+version: 1.0.0
+kind: reusable-block
+title: Assumptions Block
+description: Reusable section for documenting assumptions and validating confidence
+  levels across artefacts.
+interface:
+  inputs:
+  - name: assumptions
+    source_placeholder: '{{assumptions}}'
+    required: false
+  outputs:
+  - name: assumptions_section
+    type: section
+render:
+  default_section:
+    id: assumptions
+    title: Assumptions
+    type: narrative
+    required_level: recommended

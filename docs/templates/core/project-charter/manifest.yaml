@@ -1,0 +1,96 @@
+metadata:
+  template_id: project-charter
+  title: Project Charter
+  version: 1.0.0
+  owner: PMO
+  classification: core
+  composition_model: modular-v1
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: prepared_by
+  type: string
+  required: false
+- name: reporting_period
+  type: string
+  required: false
+composition:
+  order:
+  - component_instance_id: core-project-charter--problem-statement
+    ref: ../../components/core-project-charter--problem-statement.yaml
+    bind:
+      section_id: problem-statement
+  - component_instance_id: core-project-charter--objectives
+    ref: ../../components/core-project-charter--objectives.yaml
+    bind:
+      section_id: objectives
+  - component_instance_id: core-project-charter--scope
+    ref: ../../components/core-project-charter--scope.yaml
+    bind:
+      section_id: scope
+  - component_instance_id: core-project-charter--success-criteria
+    ref: ../../components/core-project-charter--success-criteria.yaml
+    bind:
+      section_id: success-criteria
+  - component_instance_id: core-project-charter--governance
+    ref: ../../components/core-project-charter--governance.yaml
+    bind:
+      section_id: governance
+  - component_instance_id: project-charter--milestones
+    ref: ../../components/milestones.yaml
+    bind:
+      section_id: milestones
+  - component_instance_id: core-project-charter--budget-summary
+    ref: ../../components/core-project-charter--budget-summary.yaml
+    bind:
+      section_id: budget-summary
+  - component_instance_id: project-charter--risks-assumptions-dependencies
+    ref: ../../components/assumptions.yaml
+    bind:
+      section_id: risks-assumptions-dependencies
+guidance:
+  purpose: Canonical base structure for the project-charter template.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - problem-statement
+- key: problem_statement
+  token: '{{problem_statement}}'
+  consumed_by_sections:
+  - problem-statement
+- key: objectives
+  token: '{{objectives}}'
+  consumed_by_sections:
+  - objectives
+- key: scope
+  token: '{{scope}}'
+  consumed_by_sections:
+  - scope
+- key: success_criteria
+  token: '{{success_criteria}}'
+  consumed_by_sections:
+  - success-criteria
+- key: governance
+  token: '{{governance}}'
+  consumed_by_sections:
+  - governance
+- key: milestones
+  token: '{{milestones}}'
+  consumed_by_sections:
+  - milestones
+- key: budget_summary
+  token: '{{budget_summary}}'
+  consumed_by_sections:
+  - budget-summary
+- key: risks_assumptions_dependencies
+  token: '{{risks_assumptions_dependencies}}'
+  consumed_by_sections:
+  - risks-assumptions-dependencies
+- key: total_budget
+  token: '{{total_budget}}'
+  consumed_by_sections:
+  - budget-summary

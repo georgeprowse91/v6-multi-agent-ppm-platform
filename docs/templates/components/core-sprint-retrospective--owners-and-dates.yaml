@@ -1,0 +1,19 @@
+component_id: core-sprint-retrospective--owners-and-dates
+version: 1.0.0
+kind: core-section
+title: Owners And Dates
+interface:
+  inputs:
+  - name: owners_and_dates
+    source_placeholder: '{{owners_and_dates}}'
+    required: false
+  outputs:
+  - name: owners-and-dates_section
+    type: section
+render:
+  section:
+    id: owners-and-dates
+    title: Owners And Dates
+    type: narrative
+    consumes_placeholders:
+    - '{{owners_and_dates}}'

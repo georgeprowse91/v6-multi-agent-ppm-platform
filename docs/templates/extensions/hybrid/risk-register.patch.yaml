@@ -27,6 +27,6 @@ guidance:
 placeholders:
 - key: delivery_track
   token: '{{delivery_track}}'
-extends: core/risk-register/base.yaml
+extends: core/risk-register/manifest.yaml
 add_fields:
 - delivery-track

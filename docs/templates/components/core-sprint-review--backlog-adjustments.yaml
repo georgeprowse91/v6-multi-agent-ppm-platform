@@ -1,0 +1,19 @@
+component_id: core-sprint-review--backlog-adjustments
+version: 1.0.0
+kind: core-section
+title: Backlog Adjustments
+interface:
+  inputs:
+  - name: backlog_adjustments
+    source_placeholder: '{{backlog_adjustments}}'
+    required: false
+  outputs:
+  - name: backlog-adjustments_section
+    type: section
+render:
+  section:
+    id: backlog-adjustments
+    title: Backlog Adjustments
+    type: narrative
+    consumes_placeholders:
+    - '{{backlog_adjustments}}'

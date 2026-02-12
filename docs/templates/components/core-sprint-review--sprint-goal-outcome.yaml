@@ -1,0 +1,23 @@
+component_id: core-sprint-review--sprint-goal-outcome
+version: 1.0.0
+kind: core-section
+title: Sprint Goal Outcome
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: sprint_goal_outcome
+    source_placeholder: '{{sprint_goal_outcome}}'
+    required: false
+  outputs:
+  - name: sprint-goal-outcome_section
+    type: section
+render:
+  section:
+    id: sprint-goal-outcome
+    title: Sprint Goal Outcome
+    type: narrative
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{sprint_goal_outcome}}'

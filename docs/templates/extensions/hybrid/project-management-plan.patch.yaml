@@ -29,7 +29,7 @@ placeholders:
   token: '{{adaptive_planning_cadence}}'
 - key: governance_tailoring
   token: '{{governance_tailoring}}'
-extends: core/project-management-plan/base.yaml
+extends: core/project-management-plan/manifest.yaml
 add_sections:
 - adaptive-planning-cadence
 - governance-tailoring

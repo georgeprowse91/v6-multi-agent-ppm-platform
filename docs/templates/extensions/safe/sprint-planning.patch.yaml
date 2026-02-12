@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: pi_objective_alignment
   token: '{{pi_objective_alignment}}'
-extends: core/sprint-planning/base.yaml
+extends: core/sprint-planning/manifest.yaml
 add_sections:
 - pi-objective-alignment

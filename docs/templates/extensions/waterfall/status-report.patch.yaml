@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: phase_gate_status
   token: '{{phase_gate_status}}'
-extends: core/status-report/base.yaml
+extends: core/status-report/manifest.yaml
 add_sections:
 - phase-gate-status

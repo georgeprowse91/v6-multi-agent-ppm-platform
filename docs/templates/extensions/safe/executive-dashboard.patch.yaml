@@ -29,7 +29,7 @@ placeholders:
   token: '{{pi_predictability}}'
 - key: dependency_health
   token: '{{dependency_health}}'
-extends: core/executive-dashboard/base.yaml
+extends: core/executive-dashboard/manifest.yaml
 add_tiles:
 - pi-predictability
 - dependency-health

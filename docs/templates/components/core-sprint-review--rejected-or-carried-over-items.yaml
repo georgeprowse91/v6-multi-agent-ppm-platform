@@ -1,0 +1,19 @@
+component_id: core-sprint-review--rejected-or-carried-over-items
+version: 1.0.0
+kind: core-section
+title: Rejected Or Carried Over Items
+interface:
+  inputs:
+  - name: rejected_or_carried_over_items
+    source_placeholder: '{{rejected_or_carried_over_items}}'
+    required: false
+  outputs:
+  - name: rejected-or-carried-over-items_section
+    type: section
+render:
+  section:
+    id: rejected-or-carried-over-items
+    title: Rejected Or Carried Over Items
+    type: narrative
+    consumes_placeholders:
+    - '{{rejected_or_carried_over_items}}'

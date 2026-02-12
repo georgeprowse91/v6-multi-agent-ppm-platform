@@ -1,0 +1,20 @@
+component_id: controls
+version: 1.0.0
+kind: reusable-block
+title: Controls Block
+description: Reusable section for operational, quality, and governance controls with
+  approval checkpoints.
+interface:
+  inputs:
+  - name: controls
+    source_placeholder: '{{controls}}'
+    required: false
+  outputs:
+  - name: controls_section
+    type: section
+render:
+  default_section:
+    id: controls
+    title: Controls
+    type: narrative
+    required_level: recommended

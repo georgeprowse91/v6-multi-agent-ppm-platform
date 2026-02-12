@@ -1,0 +1,24 @@
+component_id: core-status-report--overall-health-rag
+version: 1.0.0
+kind: core-section
+title: Overall Health Rag
+interface:
+  inputs:
+  - name: overall_health_rag
+    source_placeholder: '{{overall_health_rag}}'
+    required: false
+  outputs:
+  - name: overall-health-rag_section
+    type: section
+render:
+  section:
+    id: overall-health-rag
+    title: Overall Health Rag
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Provide explicit RAG status and rationale.
+    - For high-risk projects, include trend versus prior period.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{overall_health_rag}}'

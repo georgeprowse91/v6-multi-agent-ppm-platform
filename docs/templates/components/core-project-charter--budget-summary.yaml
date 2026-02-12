@@ -1,0 +1,30 @@
+component_id: core-project-charter--budget-summary
+version: 1.0.0
+kind: core-section
+title: Budget Summary
+interface:
+  inputs:
+  - name: budget_summary
+    source_placeholder: '{{budget_summary}}'
+    required: false
+  - name: total_budget
+    source_placeholder: '{{total_budget}}'
+    required: false
+  outputs:
+  - name: budget-summary_section
+    type: section
+render:
+  section:
+    id: budget-summary
+    title: Budget Summary
+    type: narrative
+    required_level: recommended
+    tailoring_rules:
+    - Provide total budget and major cost buckets.
+    - For high-risk or governance tier 3 projects, include contingency and variance
+      tolerance.
+    applicability_conditions: Required when financial approval is needed; optional
+      for non-funded internal efforts.
+    consumes_placeholders:
+    - '{{budget_summary}}'
+    - '{{total_budget}}'

@@ -1,0 +1,24 @@
+component_id: core-status-report--next-period-plan
+version: 1.0.0
+kind: core-section
+title: Next Period Plan
+interface:
+  inputs:
+  - name: next_period_plan
+    source_placeholder: '{{next_period_plan}}'
+    required: false
+  outputs:
+  - name: next-period-plan_section
+    type: section
+render:
+  section:
+    id: next-period-plan
+    title: Next Period Plan
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Provide the next period's top priorities and expected outcomes.
+    - For high governance tiers, align items to stage gate or control objectives.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{next_period_plan}}'

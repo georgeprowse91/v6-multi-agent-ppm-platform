@@ -1,0 +1,19 @@
+component_id: core-sprint-retrospective--root-causes
+version: 1.0.0
+kind: core-section
+title: Root Causes
+interface:
+  inputs:
+  - name: root_causes
+    source_placeholder: '{{root_causes}}'
+    required: false
+  outputs:
+  - name: root-causes_section
+    type: section
+render:
+  section:
+    id: root-causes
+    title: Root Causes
+    type: narrative
+    consumes_placeholders:
+    - '{{root_causes}}'

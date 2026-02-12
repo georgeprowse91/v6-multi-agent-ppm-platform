@@ -23,45 +23,45 @@ Useful links:
 
 | Template | Type | Base |
 |---|---|---|
-| [Project Charter](./core/project-charter/base.yaml) | Charter | ✅ |
-| [Project Management Plan](./core/project-management-plan/base.yaml) | Plan | ✅ |
-| [Status Report](./core/status-report/base.yaml) | Report | ✅ |
-| [Risk Register](./core/risk-register/base.yaml) | Risk Register | ✅ |
-| [Communication Plan](./core/communication-plan/base.yaml) | Plan | ✅ |
+| [Project Charter](./core/project-charter/manifest.yaml) | Charter | ✅ |
+| [Project Management Plan](./core/project-management-plan/manifest.yaml) | Plan | ✅ |
+| [Status Report](./core/status-report/manifest.yaml) | Report | ✅ |
+| [Risk Register](./core/risk-register/manifest.yaml) | Risk Register | ✅ |
+| [Communication Plan](./core/communication-plan/manifest.yaml) | Plan | ✅ |
 
 ### Product & engineering delivery
 
 | Template | Type | Base |
 |---|---|---|
-| [Product Backlog](./core/product-backlog/base.yaml) | Backlog | ✅ |
-| [Requirements](./core/requirements/base.yaml) | Plan | ✅ |
-| [Sprint Planning](./core/sprint-planning/base.yaml) | Plan | ✅ |
-| [Sprint Review](./core/sprint-review/base.yaml) | Report | ✅ |
-| [Sprint Retrospective](./core/sprint-retrospective/base.yaml) | Report | ✅ |
+| [Product Backlog](./core/product-backlog/manifest.yaml) | Backlog | ✅ |
+| [Requirements](./core/requirements/manifest.yaml) | Plan | ✅ |
+| [Sprint Planning](./core/sprint-planning/manifest.yaml) | Plan | ✅ |
+| [Sprint Review](./core/sprint-review/manifest.yaml) | Report | ✅ |
+| [Sprint Retrospective](./core/sprint-retrospective/manifest.yaml) | Report | ✅ |
 
 ### Operations & executive oversight
 
 | Template | Type | Base |
 |---|---|---|
-| [Executive Dashboard](./core/executive-dashboard/base.yaml) | Dashboard | ✅ |
-| [Deployment Checklist](./core/deployment-checklist/base.yaml) | Checklist | ✅ |
+| [Executive Dashboard](./core/executive-dashboard/manifest.yaml) | Dashboard | ✅ |
+| [Deployment Checklist](./core/deployment-checklist/manifest.yaml) | Checklist | ✅ |
 
 ## Category index by methodology
 
 ### Universal (base only)
 
-- [communication-plan.universal.v1](./core/communication-plan/base.yaml)
-- [deployment-checklist.universal.v1](./core/deployment-checklist/base.yaml)
-- [executive-dashboard.universal.v1](./core/executive-dashboard/base.yaml)
-- [product-backlog.universal.v1](./core/product-backlog/base.yaml)
-- [project-charter.universal.v1](./core/project-charter/base.yaml)
-- [project-management-plan.universal.v1](./core/project-management-plan/base.yaml)
-- [requirements.universal.v1](./core/requirements/base.yaml)
-- [risk-register.universal.v1](./core/risk-register/base.yaml)
-- [sprint-planning.universal.v1](./core/sprint-planning/base.yaml)
-- [sprint-retrospective.universal.v1](./core/sprint-retrospective/base.yaml)
-- [sprint-review.universal.v1](./core/sprint-review/base.yaml)
-- [status-report.universal.v1](./core/status-report/base.yaml)
+- [communication-plan.universal.v1](./core/communication-plan/manifest.yaml)
+- [deployment-checklist.universal.v1](./core/deployment-checklist/manifest.yaml)
+- [executive-dashboard.universal.v1](./core/executive-dashboard/manifest.yaml)
+- [product-backlog.universal.v1](./core/product-backlog/manifest.yaml)
+- [project-charter.universal.v1](./core/project-charter/manifest.yaml)
+- [project-management-plan.universal.v1](./core/project-management-plan/manifest.yaml)
+- [requirements.universal.v1](./core/requirements/manifest.yaml)
+- [risk-register.universal.v1](./core/risk-register/manifest.yaml)
+- [sprint-planning.universal.v1](./core/sprint-planning/manifest.yaml)
+- [sprint-retrospective.universal.v1](./core/sprint-retrospective/manifest.yaml)
+- [sprint-review.universal.v1](./core/sprint-review/manifest.yaml)
+- [status-report.universal.v1](./core/status-report/manifest.yaml)
 
 ### Agile extensions
 
@@ -106,7 +106,7 @@ Useful links:
 
 End-to-end substitution flow for canonical rendering:
 
-1. **Load template structure** from a base file (for example, `core/project-charter/base.yaml`).
+1. **Load template structure** from a base file (for example, `core/project-charter/manifest.yaml`).
 2. **Resolve placeholders** listed in `placeholders[]` against the mapping registry in `mappings/template-field-map.json`.
 3. **Validate source data** using registry data type and validation hints.
 4. **Apply fallback policy** (error/default/empty) based on `required` + `fallback.strategy`.

@@ -1,0 +1,20 @@
+component_id: risks
+version: 1.0.0
+kind: reusable-block
+title: Risks Block
+description: Reusable section for identifying key risks, owners, mitigations, and
+  trigger conditions.
+interface:
+  inputs:
+  - name: risks
+    source_placeholder: '{{risks}}'
+    required: false
+  outputs:
+  - name: risks_section
+    type: section
+render:
+  default_section:
+    id: risks
+    title: Risks
+    type: narrative
+    required_level: mandatory

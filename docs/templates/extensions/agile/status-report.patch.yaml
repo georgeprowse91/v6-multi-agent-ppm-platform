@@ -29,7 +29,7 @@ placeholders:
   token: '{{velocity_trend}}'
 - key: burnup_burndown
   token: '{{burnup_burndown}}'
-extends: core/status-report/base.yaml
+extends: core/status-report/manifest.yaml
 add_sections:
 - velocity-trend
 - burnup-burndown

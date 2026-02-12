@@ -1,0 +1,23 @@
+component_id: core-executive-dashboard--portfolio-health
+version: 1.0.0
+kind: core-section
+title: Portfolio Health
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: portfolio_health
+    source_placeholder: '{{portfolio_health}}'
+    required: false
+  outputs:
+  - name: portfolio-health_section
+    type: section
+render:
+  section:
+    id: portfolio-health
+    title: Portfolio Health
+    type: metric
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{portfolio_health}}'

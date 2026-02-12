@@ -31,7 +31,7 @@ placeholders:
   token: '{{sprint_impact}}'
 - key: impediment_link
   token: '{{impediment_link}}'
-extends: core/risk-register/base.yaml
+extends: core/risk-register/manifest.yaml
 add_fields:
 - sprint-impact
 - impediment-link

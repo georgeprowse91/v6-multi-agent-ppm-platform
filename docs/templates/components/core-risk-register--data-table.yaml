@@ -1,0 +1,80 @@
+component_id: core-risk-register--data-table
+version: 1.0.0
+kind: core-section
+title: Data Table
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: id
+    source_placeholder: '{{id}}'
+    required: false
+  - name: title
+    source_placeholder: '{{title}}'
+    required: false
+  - name: category
+    source_placeholder: '{{category}}'
+    required: false
+  - name: probability
+    source_placeholder: '{{probability}}'
+    required: false
+  - name: impact
+    source_placeholder: '{{impact}}'
+    required: false
+  - name: score
+    source_placeholder: '{{score}}'
+    required: false
+  - name: response_strategy
+    source_placeholder: '{{response_strategy}}'
+    required: false
+  - name: owner
+    source_placeholder: '{{owner}}'
+    required: false
+  - name: due_date
+    source_placeholder: '{{due_date}}'
+    required: false
+  - name: status
+    source_placeholder: '{{status}}'
+    required: false
+  outputs:
+  - name: data-table_section
+    type: section
+render:
+  section:
+    id: data-table
+    title: Data Table
+    type: table
+    columns:
+    - name: id
+      type: string
+    - name: title
+      type: string
+    - name: category
+      type: string
+    - name: probability
+      type: string
+    - name: impact
+      type: string
+    - name: score
+      type: string
+    - name: response-strategy
+      type: string
+    - name: owner
+      type: string
+    - name: due-date
+      type: string
+    - name: status
+      type: string
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{id}}'
+    - '{{title}}'
+    - '{{category}}'
+    - '{{probability}}'
+    - '{{impact}}'
+    - '{{score}}'
+    - '{{response_strategy}}'
+    - '{{owner}}'
+    - '{{due_date}}'
+    - '{{status}}'

@@ -1,0 +1,23 @@
+component_id: core-executive-dashboard--budget-performance
+version: 1.0.0
+kind: core-section
+title: Budget Performance
+interface:
+  inputs:
+  - name: budget_performance
+    source_placeholder: '{{budget_performance}}'
+    required: false
+  - name: total_budget
+    source_placeholder: '{{total_budget}}'
+    required: false
+  outputs:
+  - name: budget-performance_section
+    type: section
+render:
+  section:
+    id: budget-performance
+    title: Budget Performance
+    type: metric
+    consumes_placeholders:
+    - '{{budget_performance}}'
+    - '{{total_budget}}'

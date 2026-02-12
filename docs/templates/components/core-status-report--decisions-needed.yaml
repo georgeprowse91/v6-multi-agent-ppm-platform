@@ -1,0 +1,24 @@
+component_id: core-status-report--decisions-needed
+version: 1.0.0
+kind: core-section
+title: Decisions Needed
+interface:
+  inputs:
+  - name: decisions_needed
+    source_placeholder: '{{decisions_needed}}'
+    required: false
+  outputs:
+  - name: decisions-needed_section
+    type: section
+render:
+  section:
+    id: decisions-needed
+    title: Decisions Needed
+    type: narrative
+    required_level: optional
+    tailoring_rules:
+    - Capture decisions needed from governance bodies with deadline.
+    - If no decisions are needed, explicitly state none.
+    applicability_conditions: Applicable when approvals or escalations are pending.
+    consumes_placeholders:
+    - '{{decisions_needed}}'

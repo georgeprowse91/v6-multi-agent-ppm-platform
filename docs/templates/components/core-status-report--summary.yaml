@@ -1,0 +1,24 @@
+component_id: core-status-report--summary
+version: 1.0.0
+kind: core-section
+title: Summary
+interface:
+  inputs:
+  - name: summary
+    source_placeholder: '{{summary}}'
+    required: false
+  outputs:
+  - name: summary_section
+    type: section
+render:
+  section:
+    id: summary
+    title: Summary
+    type: narrative
+    required_level: mandatory
+    tailoring_rules:
+    - Summarize key outcomes, variances, and executive message in 2-6 sentences.
+    - For small projects, this may consolidate progress and next steps.
+    applicability_conditions: Always applicable.
+    consumes_placeholders:
+    - '{{summary}}'

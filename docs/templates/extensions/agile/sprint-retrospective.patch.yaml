@@ -24,6 +24,6 @@ guidance:
 placeholders:
 - key: team_health_check
   token: '{{team_health_check}}'
-extends: core/sprint-retrospective/base.yaml
+extends: core/sprint-retrospective/manifest.yaml
 add_sections:
 - team-health-check

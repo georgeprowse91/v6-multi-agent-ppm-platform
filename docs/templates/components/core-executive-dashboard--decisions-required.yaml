@@ -1,0 +1,19 @@
+component_id: core-executive-dashboard--decisions-required
+version: 1.0.0
+kind: core-section
+title: Decisions Required
+interface:
+  inputs:
+  - name: decisions_required
+    source_placeholder: '{{decisions_required}}'
+    required: false
+  outputs:
+  - name: decisions-required_section
+    type: section
+render:
+  section:
+    id: decisions-required
+    title: Decisions Required
+    type: metric
+    consumes_placeholders:
+    - '{{decisions_required}}'

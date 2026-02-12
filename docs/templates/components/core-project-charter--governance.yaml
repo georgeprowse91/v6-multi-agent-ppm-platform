@@ -1,0 +1,25 @@
+component_id: core-project-charter--governance
+version: 1.0.0
+kind: core-section
+title: Governance
+interface:
+  inputs:
+  - name: governance
+    source_placeholder: '{{governance}}'
+    required: false
+  outputs:
+  - name: governance_section
+    type: section
+render:
+  section:
+    id: governance
+    title: Governance
+    type: narrative
+    required_level: recommended
+    tailoring_rules:
+    - Minimum: identify decision owner and escalation path.
+    - For medium/large projects or governance tier 2+, define cadence and forum structure.
+    applicability_conditions: Required when governance tier is 2 or 3; optional for
+      tier 1.
+    consumes_placeholders:
+    - '{{governance}}'

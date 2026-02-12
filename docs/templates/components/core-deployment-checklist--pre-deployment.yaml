@@ -1,0 +1,23 @@
+component_id: core-deployment-checklist--pre-deployment
+version: 1.0.0
+kind: core-section
+title: Pre Deployment
+interface:
+  inputs:
+  - name: project_name
+    source_placeholder: '{{project_name}}'
+    required: false
+  - name: pre_deployment
+    source_placeholder: '{{pre_deployment}}'
+    required: false
+  outputs:
+  - name: pre-deployment_section
+    type: section
+render:
+  section:
+    id: pre-deployment
+    title: Pre Deployment
+    type: checklist
+    consumes_placeholders:
+    - '{{project_name}}'
+    - '{{pre_deployment}}'

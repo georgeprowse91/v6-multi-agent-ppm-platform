@@ -1,0 +1,24 @@
+component_id: core-status-report--progress-vs-plan
+version: 1.0.0
+kind: core-section
+title: Progress Vs Plan
+interface:
+  inputs:
+  - name: progress_vs_plan
+    source_placeholder: '{{progress_vs_plan}}'
+    required: false
+  outputs:
+  - name: progress-vs-plan_section
+    type: section
+render:
+  section:
+    id: progress-vs-plan
+    title: Progress Vs Plan
+    type: narrative
+    required_level: recommended
+    tailoring_rules:
+    - Compare delivered outcomes against baseline plan.
+    - For medium/large projects, call out milestone-level variance.
+    applicability_conditions: Required when a baseline plan exists.
+    consumes_placeholders:
+    - '{{progress_vs_plan}}'

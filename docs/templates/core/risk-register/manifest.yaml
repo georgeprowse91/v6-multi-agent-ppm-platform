@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: PMO
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,43 +15,12 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: data-table
-  title: Data Table
-  type: table
-  columns:
-  - name: id
-    type: string
-  - name: title
-    type: string
-  - name: category
-    type: string
-  - name: probability
-    type: string
-  - name: impact
-    type: string
-  - name: score
-    type: string
-  - name: response-strategy
-    type: string
-  - name: owner
-    type: string
-  - name: due-date
-    type: string
-  - name: status
-    type: string
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{id}}'
-  - '{{title}}'
-  - '{{category}}'
-  - '{{probability}}'
-  - '{{impact}}'
-  - '{{score}}'
-  - '{{response_strategy}}'
-  - '{{owner}}'
-  - '{{due_date}}'
-  - '{{status}}'
+composition:
+  order:
+  - component_instance_id: core-risk-register--data-table
+    ref: ../../components/core-risk-register--data-table.yaml
+    bind:
+      section_id: data-table
 guidance:
   purpose: Canonical base structure for the risk-register template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

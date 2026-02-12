@@ -1,0 +1,19 @@
+component_id: core-requirements--acceptance-criteria
+version: 1.0.0
+kind: core-section
+title: Acceptance Criteria
+interface:
+  inputs:
+  - name: acceptance_criteria
+    source_placeholder: '{{acceptance_criteria}}'
+    required: false
+  outputs:
+  - name: acceptance-criteria_section
+    type: section
+render:
+  section:
+    id: acceptance-criteria
+    title: Acceptance Criteria
+    type: narrative
+    consumes_placeholders:
+    - '{{acceptance_criteria}}'

@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: PMO
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,43 +15,36 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: business-requirements
-  title: Business Requirements
-  type: narrative
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{business_requirements}}'
-- id: functional-requirements
-  title: Functional Requirements
-  type: narrative
-  consumes_placeholders:
-  - '{{functional_requirements}}'
-- id: non-functional-requirements
-  title: Non Functional Requirements
-  type: narrative
-  consumes_placeholders:
-  - '{{non_functional_requirements}}'
-- id: constraints
-  title: Constraints
-  type: narrative
-  consumes_placeholders:
-  - '{{constraints}}'
-- id: assumptions
-  title: Assumptions
-  type: narrative
-  consumes_placeholders:
-  - '{{assumptions}}'
-- id: traceability
-  title: Traceability
-  type: narrative
-  consumes_placeholders:
-  - '{{traceability}}'
-- id: acceptance-criteria
-  title: Acceptance Criteria
-  type: narrative
-  consumes_placeholders:
-  - '{{acceptance_criteria}}'
+composition:
+  order:
+  - component_instance_id: core-requirements--business-requirements
+    ref: ../../components/core-requirements--business-requirements.yaml
+    bind:
+      section_id: business-requirements
+  - component_instance_id: core-requirements--functional-requirements
+    ref: ../../components/core-requirements--functional-requirements.yaml
+    bind:
+      section_id: functional-requirements
+  - component_instance_id: core-requirements--non-functional-requirements
+    ref: ../../components/core-requirements--non-functional-requirements.yaml
+    bind:
+      section_id: non-functional-requirements
+  - component_instance_id: core-requirements--constraints
+    ref: ../../components/core-requirements--constraints.yaml
+    bind:
+      section_id: constraints
+  - component_instance_id: requirements--assumptions
+    ref: ../../components/assumptions.yaml
+    bind:
+      section_id: assumptions
+  - component_instance_id: core-requirements--traceability
+    ref: ../../components/core-requirements--traceability.yaml
+    bind:
+      section_id: traceability
+  - component_instance_id: core-requirements--acceptance-criteria
+    ref: ../../components/core-requirements--acceptance-criteria.yaml
+    bind:
+      section_id: acceptance-criteria
 guidance:
   purpose: Canonical base structure for the requirements template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

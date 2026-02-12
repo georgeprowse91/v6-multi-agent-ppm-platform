@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   owner: Engineering
   classification: core
+  composition_model: modular-v1
 inputs:
 - name: project_name
   type: string
@@ -14,23 +15,20 @@ inputs:
 - name: reporting_period
   type: string
   required: false
-sections:
-- id: pre-deployment
-  title: Pre Deployment
-  type: checklist
-  consumes_placeholders:
-  - '{{project_name}}'
-  - '{{pre_deployment}}'
-- id: deployment
-  title: Deployment
-  type: checklist
-  consumes_placeholders:
-  - '{{deployment}}'
-- id: post-deployment
-  title: Post Deployment
-  type: checklist
-  consumes_placeholders:
-  - '{{post_deployment}}'
+composition:
+  order:
+  - component_instance_id: core-deployment-checklist--pre-deployment
+    ref: ../../components/core-deployment-checklist--pre-deployment.yaml
+    bind:
+      section_id: pre-deployment
+  - component_instance_id: core-deployment-checklist--deployment
+    ref: ../../components/core-deployment-checklist--deployment.yaml
+    bind:
+      section_id: deployment
+  - component_instance_id: core-deployment-checklist--post-deployment
+    ref: ../../components/core-deployment-checklist--post-deployment.yaml
+    bind:
+      section_id: post-deployment
 guidance:
   purpose: Canonical base structure for the deployment-checklist template.
   authoring_notes: Use concise, role-specific language. Keep each narrative block

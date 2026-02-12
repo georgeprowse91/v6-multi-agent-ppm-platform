@@ -1,0 +1,19 @@
+component_id: core-requirements--traceability
+version: 1.0.0
+kind: core-section
+title: Traceability
+interface:
+  inputs:
+  - name: traceability
+    source_placeholder: '{{traceability}}'
+    required: false
+  outputs:
+  - name: traceability_section
+    type: section
+render:
+  section:
+    id: traceability
+    title: Traceability
+    type: narrative
+    consumes_placeholders:
+    - '{{traceability}}'
