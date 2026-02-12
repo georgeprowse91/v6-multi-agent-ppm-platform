@@ -26,4 +26,4 @@ jobs:
           pip install -e .
 
       - name: Run load test suite
-        run: pytest tests/load -v
+        run: pytest tests/load -v -ra --durations=10 --timeout=120 --timeout-method=thread

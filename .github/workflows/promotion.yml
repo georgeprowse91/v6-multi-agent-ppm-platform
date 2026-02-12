@@ -32,7 +32,7 @@ jobs:
           pip install -e .
 
       - name: Run end-to-end tests
-        run: pytest tests/e2e -v
+        run: pytest tests/e2e -v -ra --durations=10 --timeout=120 --timeout-method=thread
 
   contract:
     name: Contract Tests (promotion gate)
@@ -54,7 +54,7 @@ jobs:
           pip install -e .
 
       - name: Run contract tests
-        run: pytest tests/contract -v
+        run: pytest tests/contract -v -ra --durations=10 --timeout=90 --timeout-method=thread
 
   deploy-staging:
     name: Promote to Staging

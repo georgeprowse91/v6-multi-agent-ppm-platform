@@ -307,7 +307,7 @@ jobs:
           DATABASE_URL: postgresql://ppm:ppm_password@localhost:5432/ppm_test
           REDIS_URL: redis://localhost:6379/0
         run: |
-          pytest tests/ -v --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+          pytest tests/ -v -ra --durations=10 --timeout=60 --timeout-method=thread --cov=agents --cov=apps --cov=packages --cov=tools --cov-report=xml --cov-report=term-missing --cov-fail-under=80
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@3e0b0c4b3f1a3da48b6b0b9a1f401d4d2f1d8d3e
@@ -340,10 +340,10 @@ jobs:
         run: python scripts/validate-mcp-manifests.py
 
       - name: Run MCP unit tests
-        run: pytest tests/connectors/test_mcp_client.py -v
+        run: pytest tests/connectors/test_mcp_client.py -v -ra --durations=10 --timeout=60 --timeout-method=thread
 
       - name: Run MCP integration tests
-        run: pytest tests/integration/test_mcp_connector_routing.py -v
+        run: pytest tests/integration/test_mcp_connector_routing.py -v -ra --durations=10 --timeout=60 --timeout-method=thread
 
   quickstart-smoke:
     name: Quickstart Smoke Scenario
@@ -425,7 +425,7 @@ jobs:
           LOAD_PROFILE: staging
           PERFORMANCE_BASE_URL: ${{ secrets.STAGING_API_GATEWAY_URL || 'https://staging.api.ppm-platform.com' }}
         run: |
-          pytest tests/load -v --tb=short
+          pytest tests/load -v -ra --durations=10 --timeout=120 --timeout-method=thread --tb=short
 
       - name: Run performance benchmarks
         env:
@@ -433,7 +433,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
         run: |
           # Run performance benchmarks and save results
-          pytest tests/ -v -k "perf or benchmark" --benchmark-json=benchmark-results.json || true
+          pytest tests/ -v -ra --durations=10 --timeout=120 --timeout-method=thread -k "perf or benchmark" --benchmark-json=benchmark-results.json || true
 
       - name: Upload performance results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3

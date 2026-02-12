@@ -64,7 +64,7 @@ jobs:
 
       - name: Run targeted compatibility tests
         run: |
-          pytest tests/test_api.py tests/agents/test_intent_router.py -q
+          pytest tests/test_api.py tests/agents/test_intent_router.py -q -ra --durations=10 --timeout=60 --timeout-method=thread
 
       - name: Export outdated report
         run: |

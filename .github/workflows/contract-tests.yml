@@ -30,4 +30,4 @@ jobs:
           pip install -e .
 
       - name: Run contract tests
-        run: pytest tests/contract -v
+        run: pytest tests/contract -v -ra --durations=10 --timeout=90 --timeout-method=thread

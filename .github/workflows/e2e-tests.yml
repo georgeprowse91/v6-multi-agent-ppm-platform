@@ -54,7 +54,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://ppm:ppm_password@localhost:5432/ppm_test
           REDIS_URL: redis://localhost:6379/0
-        run: pytest tests/e2e -v
+        run: pytest tests/e2e -v -ra --durations=10 --timeout=120 --timeout-method=thread
 
       - name: Stop test services
         if: always()

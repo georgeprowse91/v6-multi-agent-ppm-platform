@@ -89,6 +89,7 @@ def test_connector_client_schema_registry(monkeypatch, tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(120)
 async def test_agent_client_schema_registry(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("DATA_SERVICE_DATABASE_URL", _database_url(tmp_path))
     monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")

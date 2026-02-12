@@ -62,6 +62,7 @@ class EventPublisherAdapter:
 
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(180)
 async def test_end_to_end_project_lifecycle(tmp_path):
     event_bus = build_test_event_bus()
     observed_events: list[tuple[str, dict]] = []

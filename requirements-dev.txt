@@ -9,6 +9,7 @@ pytest==8.3.3
 pytest-asyncio==0.24.0
 pytest-cov==5.0.0
 pytest-mock==3.14.0
+pytest-timeout==2.3.1
 
 # Dev tooling dependencies
 black==24.8.0
