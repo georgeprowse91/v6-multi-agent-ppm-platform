@@ -13,10 +13,62 @@ def test_resolve_env_reference(monkeypatch: pytest.MonkeyPatch) -> None:
     assert resolve_secret("${FOO}") == "bar"
 
 
-def test_resolve_file_reference(tmp_path: Path) -> None:
+def test_resolve_file_reference(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     secret_path = tmp_path / "secret"
     secret_path.write_text("super-secret\n", encoding="utf-8")
-    assert resolve_secret(f"file:{secret_path}") == "super-secret"
+    monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))
+    assert resolve_secret("file:secret") == "super-secret"
+
+
+def test_resolve_file_reference_rejects_parent_traversal(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))
+    with pytest.raises(SecretResolutionError):
+        resolve_secret("file:../secret")
+
+
+def test_resolve_file_reference_rejects_absolute_paths_by_default(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    secret_path = tmp_path / "secret"
+    secret_path.write_text("super-secret\n", encoding="utf-8")
+    monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))
+    monkeypatch.delenv("SECRETS_ALLOW_ABSOLUTE_PATHS", raising=False)
+    with pytest.raises(SecretResolutionError):
+        resolve_secret(f"file:{secret_path}")
+
+
+def test_resolve_file_reference_rejects_symlink_escape(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "root"
+    outside = tmp_path / "outside"
+    root.mkdir()
+    outside.mkdir()
+    (outside / "secret").write_text("escape", encoding="utf-8")
+    (root / "link").symlink_to(outside / "secret")
+    monkeypatch.setenv("SECRETS_FILE_ROOT", str(root))
+
+    with pytest.raises(SecretResolutionError):
+        resolve_secret("file:link")
+
+
+def test_resolve_file_reference_rejects_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))
+    with pytest.raises(SecretResolutionError):
+        resolve_secret("file:not-found")
+
+
+def test_resolve_file_reference_rejects_non_file_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    non_file = tmp_path / "dir"
+    non_file.mkdir()
+    monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))
+    with pytest.raises(SecretResolutionError):
+        resolve_secret("file:dir")
 
 
 def test_missing_reference_is_non_leaky() -> None:
