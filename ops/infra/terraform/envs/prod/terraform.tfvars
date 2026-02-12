@@ -48,3 +48,19 @@ workload_identity_subject = "system:serviceaccount:ppm-platform:audit-log-kv"
 
 # Azure Monitor connection string (populate via CI/TF Cloud for production)
 azure_monitor_connection_string = "REPLACE_ME"
+
+
+# Monitoring overrides (prod)
+monitoring_log_retention_in_days                    = 120
+monitoring_api_error_rate_threshold_count           = 50
+monitoring_api_latency_p95_threshold_ms             = 2000
+monitoring_memory_usage_threshold_percent           = 85
+monitoring_cpu_usage_threshold_percent              = 80
+monitoring_db_connection_failures_threshold_count   = 10
+monitoring_agent_failures_threshold_count           = 10
+monitoring_auth_failures_threshold_count            = 100
+monitoring_availability_threshold_percent           = 99.9
+monitoring_deployment_failures_threshold_count      = 1
+monitoring_secret_rotation_failures_threshold_count = 1
+monitoring_cert_expiry_threshold_days               = 30
+monitoring_backup_failures_threshold_count          = 1

@@ -344,6 +344,86 @@ variable "app_gateway_capacity" {
   default     = 2
 }
 
+
+# Monitoring thresholds and retention
+variable "monitoring_log_retention_in_days" {
+  description = "Log Analytics retention in days. Raise for audit-heavy environments."
+  type        = number
+  default     = 90
+}
+
+variable "monitoring_api_error_rate_threshold_count" {
+  description = "Failed API requests per 5m before alerting."
+  type        = number
+  default     = 50
+}
+
+variable "monitoring_api_latency_p95_threshold_ms" {
+  description = "P95 API latency threshold in milliseconds."
+  type        = number
+  default     = 2000
+}
+
+variable "monitoring_memory_usage_threshold_percent" {
+  description = "Container memory usage threshold percentage."
+  type        = number
+  default     = 85
+}
+
+variable "monitoring_cpu_usage_threshold_percent" {
+  description = "Container CPU usage threshold percentage."
+  type        = number
+  default     = 80
+}
+
+variable "monitoring_db_connection_failures_threshold_count" {
+  description = "Database connection failures per 5m before alerting."
+  type        = number
+  default     = 10
+}
+
+variable "monitoring_agent_failures_threshold_count" {
+  description = "Agent execution failures per 5m bucket before alerting."
+  type        = number
+  default     = 10
+}
+
+variable "monitoring_auth_failures_threshold_count" {
+  description = "Authentication failures per 1m bucket before alerting."
+  type        = number
+  default     = 100
+}
+
+variable "monitoring_availability_threshold_percent" {
+  description = "Minimum availability percentage before critical alerting."
+  type        = number
+  default     = 99.9
+}
+
+variable "monitoring_deployment_failures_threshold_count" {
+  description = "Deployment failures per 15m before alerting."
+  type        = number
+  default     = 1
+}
+
+variable "monitoring_secret_rotation_failures_threshold_count" {
+  description = "Secret rotation failures per 1h before alerting."
+  type        = number
+  default     = 1
+}
+
+variable "monitoring_cert_expiry_threshold_days" {
+  description = "Days before certificate expiry to alert on."
+  type        = number
+  default     = 30
+}
+
+variable "monitoring_backup_failures_threshold_count" {
+  description = "Backup failures per day before alerting."
+  type        = number
+  default     = 1
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_prefix}-${var.environment}-rg"
@@ -362,6 +442,20 @@ module "monitoring" {
   location            = azurerm_resource_group.main.location
   resource_prefix     = var.resource_prefix
   environment         = var.environment
+
+  log_retention_in_days                     = var.monitoring_log_retention_in_days
+  api_error_rate_threshold_count            = var.monitoring_api_error_rate_threshold_count
+  api_latency_p95_threshold_ms              = var.monitoring_api_latency_p95_threshold_ms
+  memory_usage_threshold_percent            = var.monitoring_memory_usage_threshold_percent
+  cpu_usage_threshold_percent               = var.monitoring_cpu_usage_threshold_percent
+  db_connection_failures_threshold_count    = var.monitoring_db_connection_failures_threshold_count
+  agent_failures_threshold_count            = var.monitoring_agent_failures_threshold_count
+  auth_failures_threshold_count             = var.monitoring_auth_failures_threshold_count
+  availability_threshold_percent            = var.monitoring_availability_threshold_percent
+  deployment_failures_threshold_count       = var.monitoring_deployment_failures_threshold_count
+  secret_rotation_failures_threshold_count  = var.monitoring_secret_rotation_failures_threshold_count
+  cert_expiry_threshold_days                = var.monitoring_cert_expiry_threshold_days
+  backup_failures_threshold_count           = var.monitoring_backup_failures_threshold_count
 }
 
 module "networking" {
