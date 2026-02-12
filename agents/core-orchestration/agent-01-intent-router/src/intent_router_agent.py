@@ -252,7 +252,7 @@ class IntentRouterAgent(BaseAgent):
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
         )
 
-        self.logger.info(f"Classifying query: {query}")
+        self.logger.info("Classifying query", extra={"query": query, "tenant_id": tenant_id, "correlation_id": correlation_id})
 
         llm_payload = {
             "request": {"text": query, "context": context},

@@ -95,7 +95,7 @@ class BaseAgent(ABC):
         Called once before the agent starts processing requests.
         Override this method to perform setup tasks.
         """
-        self.logger.info(f"Initializing agent {self.agent_id}")
+        self.logger.info("Initializing agent %s", self.agent_id, extra={"agent_id": self.agent_id})
         self.initialized = True
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
@@ -138,7 +138,7 @@ class BaseAgent(ABC):
         Called when the agent is shutting down.
         Override this method to perform cleanup tasks.
         """
-        self.logger.info(f"Cleaning up agent {self.agent_id}")
+        self.logger.info("Cleaning up agent %s", self.agent_id, extra={"agent_id": self.agent_id})
         if self.data_service:
             await self.data_service.close()
 
@@ -336,7 +336,12 @@ class BaseAgent(ABC):
                 return response.model_dump()
 
         except Exception as e:
-            self.logger.error(f"Error in agent {self.agent_id}: {str(e)}", exc_info=True)
+            self.logger.exception(
+                "Error in agent %s: %s",
+                self.agent_id,
+                e,
+                extra={"agent_id": self.agent_id, "correlation_id": correlation_id},
+            )
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             self._log_event(
                 action="execution_failed",

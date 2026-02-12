@@ -263,7 +263,7 @@ async def platform_exception_handler(request: Request, exc: PPMPlatformError) ->
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle all uncaught exceptions."""
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    logger.error("Unhandled exception: %s", exc, exc_info=True)
     # Only include the exception message in development; production gets a generic message.
     message = (
         str(exc) if environment in {"dev", "development", "local", "test"} else "Internal server error"
