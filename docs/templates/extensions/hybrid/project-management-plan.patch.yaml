@@ -1,0 +1,4 @@
+extends: core/project-management-plan/base.yaml
+add_sections:
+  - adaptive-planning-cadence
+  - governance-tailoring

@@ -1,0 +1,4 @@
+extends: core/project-charter/base.yaml
+add_sections:
+  - delivery-model-split
+  - control-points

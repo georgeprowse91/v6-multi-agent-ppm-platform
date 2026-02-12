@@ -1,0 +1,12 @@
+artefact: status-report
+version: 1.0.0
+owner: PMO
+sections:
+  - reporting-period
+  - overall-health-rag
+  - summary
+  - progress-vs-plan
+  - budget-status
+  - risks-issues
+  - decisions-needed
+  - next-period-plan

@@ -1,0 +1,11 @@
+artefact: requirements
+version: 1.0.0
+owner: PMO
+sections:
+  - business-requirements
+  - functional-requirements
+  - non-functional-requirements
+  - constraints
+  - assumptions
+  - traceability
+  - acceptance-criteria

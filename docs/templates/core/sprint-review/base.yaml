@@ -1,0 +1,9 @@
+artefact: sprint-review
+version: 1.0.0
+owner: Product+Engineering
+sections:
+  - sprint-goal-outcome
+  - completed-increment
+  - rejected-or-carried-over-items
+  - stakeholder-feedback
+  - backlog-adjustments

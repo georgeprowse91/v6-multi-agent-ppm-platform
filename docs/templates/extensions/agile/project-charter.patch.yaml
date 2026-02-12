@@ -1,0 +1,6 @@
+extends: core/project-charter/base.yaml
+add_sections:
+  - product-vision
+  - release-strategy
+replace:
+  governance: lightweight-roles-and-ceremonies

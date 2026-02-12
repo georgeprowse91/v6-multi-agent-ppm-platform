@@ -1,0 +1,4 @@
+extends: core/risk-register/base.yaml
+add_fields:
+  - sprint-impact
+  - impediment-link

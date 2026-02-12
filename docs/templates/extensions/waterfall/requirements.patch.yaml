@@ -1,0 +1,4 @@
+extends: core/requirements/base.yaml
+add_sections:
+  - requirements-baseline
+  - requirements-signoff

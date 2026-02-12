@@ -1,0 +1,12 @@
+artefact: product-backlog
+version: 1.0.0
+owner: Product
+fields:
+  - backlog-item-id
+  - title
+  - description
+  - priority
+  - estimate
+  - acceptance-criteria
+  - dependencies
+  - target-release

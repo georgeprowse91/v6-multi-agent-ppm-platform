@@ -1,0 +1,4 @@
+extends: core/product-backlog/base.yaml
+add_fields:
+  - story-points
+  - sprint-candidate

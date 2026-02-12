@@ -1,0 +1,4 @@
+extends: core/project-management-plan/base.yaml
+add_sections:
+  - integrated-master-schedule
+  - earned-value-management

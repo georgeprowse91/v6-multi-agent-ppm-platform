@@ -1,0 +1,3 @@
+extends: core/sprint-retrospective/base.yaml
+add_sections:
+  - team-health-check

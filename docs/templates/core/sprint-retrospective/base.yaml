@@ -1,0 +1,9 @@
+artefact: sprint-retrospective
+version: 1.0.0
+owner: Product+Engineering
+sections:
+  - what-went-well
+  - what-did-not-go-well
+  - root-causes
+  - experiments
+  - owners-and-dates

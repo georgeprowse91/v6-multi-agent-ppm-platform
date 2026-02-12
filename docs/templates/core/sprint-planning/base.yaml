@@ -1,0 +1,10 @@
+artefact: sprint-planning
+version: 1.0.0
+owner: Product+Engineering
+sections:
+  - sprint-goal
+  - capacity
+  - candidate-work
+  - commitment
+  - dependencies
+  - definition-of-done-check

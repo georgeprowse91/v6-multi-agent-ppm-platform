@@ -1,0 +1,4 @@
+extends: core/project-charter/base.yaml
+add_sections:
+  - phase-gate-criteria
+  - procurement-summary
