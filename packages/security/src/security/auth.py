@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 from collections.abc import Awaitable, Callable
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -78,32 +80,83 @@ import time as _time
 
 # Cache TTL in seconds (default 5 minutes)
 _CACHE_TTL = float(os.getenv("AUTH_CACHE_TTL_SECONDS", "300"))
+_CACHE_MAX_SIZE = int(os.getenv("AUTH_CACHE_MAX_ENTRIES", "128"))
 
-_OIDC_CONFIG_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
-_JWKS_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+
+@dataclass
+class _CacheEntry:
+    value: dict[str, Any]
+    inserted_at: float
+    last_fetched_at: float
+
+
+class _TTLCache:
+    def __init__(self, ttl_seconds: float, max_size: int) -> None:
+        self._ttl_seconds = ttl_seconds
+        self._max_size = max(1, max_size)
+        self._entries: OrderedDict[str, _CacheEntry] = OrderedDict()
+        self._lock = threading.RLock()
+
+    def _evict_stale_locked(self, now: float) -> None:
+        stale_keys = [
+            key
+            for key, entry in self._entries.items()
+            if now - entry.inserted_at >= self._ttl_seconds
+        ]
+        for key in stale_keys:
+            self._entries.pop(key, None)
+
+    def get(self, key: str) -> dict[str, Any] | None:
+        now = _time.time()
+        with self._lock:
+            self._evict_stale_locked(now)
+            entry = self._entries.get(key)
+            if not entry:
+                return None
+            entry.last_fetched_at = now
+            self._entries.move_to_end(key)
+            return entry.value
+
+    def set(self, key: str, value: dict[str, Any]) -> None:
+        now = _time.time()
+        with self._lock:
+            self._evict_stale_locked(now)
+            self._entries[key] = _CacheEntry(value=value, inserted_at=now, last_fetched_at=now)
+            self._entries.move_to_end(key)
+
+            while len(self._entries) > self._max_size:
+                self._entries.popitem(last=False)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._entries.clear()
+
+
+_OIDC_CONFIG_CACHE = _TTLCache(ttl_seconds=_CACHE_TTL, max_size=_CACHE_MAX_SIZE)
+_JWKS_CACHE = _TTLCache(ttl_seconds=_CACHE_TTL, max_size=_CACHE_MAX_SIZE)
 
 
 async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
     cached = _OIDC_CONFIG_CACHE.get(discovery_url)
-    if cached and _time.time() < cached[0]:
-        return cached[1]
+    if cached:
+        return cached
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(discovery_url)
         response.raise_for_status()
         data = cast(dict[str, Any], response.json())
-    _OIDC_CONFIG_CACHE[discovery_url] = (_time.time() + _CACHE_TTL, data)
+    _OIDC_CONFIG_CACHE.set(discovery_url, data)
     return data
 
 
 async def _load_jwks(jwks_url: str) -> dict[str, Any]:
     cached = _JWKS_CACHE.get(jwks_url)
-    if cached and _time.time() < cached[0]:
-        return cached[1]
+    if cached:
+        return cached
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(jwks_url)
         response.raise_for_status()
         data = cast(dict[str, Any], response.json())
-    _JWKS_CACHE[jwks_url] = (_time.time() + _CACHE_TTL, data)
+    _JWKS_CACHE.set(jwks_url, data)
     return data
 
 
