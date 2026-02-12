@@ -1,0 +1,74 @@
+name: Dependency Audit & Compatibility
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Weekly Monday at 06:00 UTC
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-audit:
+    name: Security Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies and tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Audit runtime and development dependencies
+        run: |
+          pip-audit -r requirements.txt -r requirements-dev.txt
+
+  compatibility-check:
+    name: Compatibility Smoke Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install package with dev and test extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev,test]
+
+      - name: Verify dependency resolution health
+        run: |
+          pip check
+
+      - name: Run targeted compatibility tests
+        run: |
+          pytest tests/test_api.py tests/agents/test_intent_router.py -q
+
+      - name: Export outdated report
+        run: |
+          pip list --outdated --format=json > dependency-outdated-report.json
+
+      - name: Upload outdated report artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e9eac5b10f0eefd7c5f3f0
+        with:
+          name: dependency-outdated-${{ matrix.python-version }}
+          path: dependency-outdated-report.json
