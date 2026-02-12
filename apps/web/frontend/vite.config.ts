@@ -21,31 +21,31 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/v1': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/healthz': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/config': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/session': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/login': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/logout': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/app': {
-        target: 'http://localhost:8501',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
     },

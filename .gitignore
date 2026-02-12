@@ -51,3 +51,8 @@ apps/web/frontend/vite.config.d.ts
 apps/web/frontend/vitest.config.d.ts
 apps/web/frontend/vite.config.js
 apps/web/frontend/vitest.config.js
+apps/web/frontend/dist/
+
+# Replit
+.pythonlibs/
+.cache/
