@@ -1,0 +1,473 @@
+{
+  "templates": [
+    {
+      "template_id": "communication-plan.universal.v1",
+      "path": "docs/templates/core/communication-plan/base.yaml",
+      "artefact_type": "plan",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": false,
+      "required_fields": [
+        "stakeholder-group",
+        "communication-objective",
+        "channel",
+        "cadence",
+        "sender",
+        "escalation-path",
+        "success-measure"
+      ]
+    },
+    {
+      "template_id": "deployment-checklist.universal.v1",
+      "path": "docs/templates/core/deployment-checklist/base.yaml",
+      "artefact_type": "checklist",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": false,
+      "required_fields": [
+        "stages",
+        "checks"
+      ]
+    },
+    {
+      "template_id": "executive-dashboard.universal.v1",
+      "path": "docs/templates/core/executive-dashboard/base.yaml",
+      "artefact_type": "dashboard",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "portfolio-health",
+        "schedule-performance",
+        "budget-performance",
+        "top-risks",
+        "benefits-realization",
+        "decisions-required"
+      ]
+    },
+    {
+      "template_id": "product-backlog.universal.v1",
+      "path": "docs/templates/core/product-backlog/base.yaml",
+      "artefact_type": "backlog",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "backlog-item-id",
+        "title",
+        "description",
+        "priority",
+        "estimate",
+        "acceptance-criteria",
+        "dependencies",
+        "target-release"
+      ]
+    },
+    {
+      "template_id": "project-charter.universal.v1",
+      "path": "docs/templates/core/project-charter/base.yaml",
+      "artefact_type": "charter",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "problem-statement",
+        "objectives",
+        "scope",
+        "success-criteria",
+        "governance",
+        "milestones",
+        "budget-summary",
+        "risks-assumptions-dependencies"
+      ]
+    },
+    {
+      "template_id": "project-management-plan.universal.v1",
+      "path": "docs/templates/core/project-management-plan/base.yaml",
+      "artefact_type": "plan",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "project-overview",
+        "management-approach",
+        "scope-baseline",
+        "schedule-baseline",
+        "cost-baseline",
+        "quality-management",
+        "risk-management",
+        "change-control",
+        "stakeholder-engagement"
+      ]
+    },
+    {
+      "template_id": "requirements.universal.v1",
+      "path": "docs/templates/core/requirements/base.yaml",
+      "artefact_type": "plan",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "business-requirements",
+        "functional-requirements",
+        "non-functional-requirements",
+        "constraints",
+        "assumptions",
+        "traceability",
+        "acceptance-criteria"
+      ]
+    },
+    {
+      "template_id": "risk-register.universal.v1",
+      "path": "docs/templates/core/risk-register/base.yaml",
+      "artefact_type": "risk-register",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "id",
+        "title",
+        "category",
+        "probability",
+        "impact",
+        "score",
+        "response-strategy",
+        "owner",
+        "due-date",
+        "status"
+      ]
+    },
+    {
+      "template_id": "sprint-planning.universal.v1",
+      "path": "docs/templates/core/sprint-planning/base.yaml",
+      "artefact_type": "plan",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "sprint-goal",
+        "capacity",
+        "candidate-work",
+        "commitment",
+        "dependencies",
+        "definition-of-done-check"
+      ]
+    },
+    {
+      "template_id": "sprint-retrospective.universal.v1",
+      "path": "docs/templates/core/sprint-retrospective/base.yaml",
+      "artefact_type": "report",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "what-went-well",
+        "what-did-not-go-well",
+        "root-causes",
+        "experiments",
+        "owners-and-dates"
+      ]
+    },
+    {
+      "template_id": "sprint-review.universal.v1",
+      "path": "docs/templates/core/sprint-review/base.yaml",
+      "artefact_type": "report",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "sprint-goal-outcome",
+        "completed-increment",
+        "rejected-or-carried-over-items",
+        "stakeholder-feedback",
+        "backlog-adjustments"
+      ]
+    },
+    {
+      "template_id": "status-report.universal.v1",
+      "path": "docs/templates/core/status-report/base.yaml",
+      "artefact_type": "report",
+      "methodology": "universal",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": null,
+      "supports_modular": true,
+      "required_fields": [
+        "reporting-period",
+        "overall-health-rag",
+        "summary",
+        "progress-vs-plan",
+        "budget-status",
+        "risks-issues",
+        "decisions-needed",
+        "next-period-plan"
+      ]
+    },
+
+    {
+      "template_id": "product-backlog.agile.v1",
+      "path": "docs/templates/extensions/agile/product-backlog.patch.yaml",
+      "artefact_type": "backlog",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "product-backlog.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/product-backlog/base.yaml"
+    },
+    {
+      "template_id": "project-charter.agile.v1",
+      "path": "docs/templates/extensions/agile/project-charter.patch.yaml",
+      "artefact_type": "charter",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "project-charter.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/project-charter/base.yaml"
+    },
+    {
+      "template_id": "risk-register.agile.v1",
+      "path": "docs/templates/extensions/agile/risk-register.patch.yaml",
+      "artefact_type": "risk-register",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "risk-register.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/risk-register/base.yaml"
+    },
+    {
+      "template_id": "sprint-planning.agile.v1",
+      "path": "docs/templates/extensions/agile/sprint-planning.patch.yaml",
+      "artefact_type": "plan",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "sprint-planning.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/sprint-planning/base.yaml"
+    },
+    {
+      "template_id": "sprint-retrospective.agile.v1",
+      "path": "docs/templates/extensions/agile/sprint-retrospective.patch.yaml",
+      "artefact_type": "report",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "sprint-retrospective.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/sprint-retrospective/base.yaml"
+    },
+    {
+      "template_id": "sprint-review.agile.v1",
+      "path": "docs/templates/extensions/agile/sprint-review.patch.yaml",
+      "artefact_type": "report",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "sprint-review.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/sprint-review/base.yaml"
+    },
+    {
+      "template_id": "status-report.agile.v1",
+      "path": "docs/templates/extensions/agile/status-report.patch.yaml",
+      "artefact_type": "report",
+      "methodology": "agile",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "status-report.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+    },
+
+    {
+      "template_id": "project-charter.hybrid.v1",
+      "path": "docs/templates/extensions/hybrid/project-charter.patch.yaml",
+      "artefact_type": "charter",
+      "methodology": "hybrid",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "project-charter.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/project-charter/base.yaml"
+    },
+    {
+      "template_id": "project-management-plan.hybrid.v1",
+      "path": "docs/templates/extensions/hybrid/project-management-plan.patch.yaml",
+      "artefact_type": "plan",
+      "methodology": "hybrid",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "project-management-plan.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/project-management-plan/base.yaml"
+    },
+    {
+      "template_id": "risk-register.hybrid.v1",
+      "path": "docs/templates/extensions/hybrid/risk-register.patch.yaml",
+      "artefact_type": "risk-register",
+      "methodology": "hybrid",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "risk-register.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/risk-register/base.yaml"
+    },
+    {
+      "template_id": "status-report.hybrid.v1",
+      "path": "docs/templates/extensions/hybrid/status-report.patch.yaml",
+      "artefact_type": "report",
+      "methodology": "hybrid",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "status-report.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+    },
+
+    {
+      "template_id": "executive-dashboard.safe.v1",
+      "path": "docs/templates/extensions/safe/executive-dashboard.patch.yaml",
+      "artefact_type": "dashboard",
+      "methodology": "safe",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "executive-dashboard.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/executive-dashboard/base.yaml"
+    },
+    {
+      "template_id": "product-backlog.safe.v1",
+      "path": "docs/templates/extensions/safe/product-backlog.patch.yaml",
+      "artefact_type": "backlog",
+      "methodology": "safe",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "product-backlog.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/product-backlog/base.yaml"
+    },
+    {
+      "template_id": "sprint-planning.safe.v1",
+      "path": "docs/templates/extensions/safe/sprint-planning.patch.yaml",
+      "artefact_type": "plan",
+      "methodology": "safe",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "sprint-planning.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/sprint-planning/base.yaml"
+    },
+    {
+      "template_id": "status-report.safe.v1",
+      "path": "docs/templates/extensions/safe/status-report.patch.yaml",
+      "artefact_type": "report",
+      "methodology": "safe",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "status-report.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+    },
+
+    {
+      "template_id": "project-charter.waterfall.v1",
+      "path": "docs/templates/extensions/waterfall/project-charter.patch.yaml",
+      "artefact_type": "charter",
+      "methodology": "waterfall",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "project-charter.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/project-charter/base.yaml"
+    },
+    {
+      "template_id": "project-management-plan.waterfall.v1",
+      "path": "docs/templates/extensions/waterfall/project-management-plan.patch.yaml",
+      "artefact_type": "plan",
+      "methodology": "waterfall",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "project-management-plan.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/project-management-plan/base.yaml"
+    },
+    {
+      "template_id": "requirements.waterfall.v1",
+      "path": "docs/templates/extensions/waterfall/requirements.patch.yaml",
+      "artefact_type": "plan",
+      "methodology": "waterfall",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "requirements.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/requirements/base.yaml"
+    },
+    {
+      "template_id": "status-report.waterfall.v1",
+      "path": "docs/templates/extensions/waterfall/status-report.patch.yaml",
+      "artefact_type": "report",
+      "methodology": "waterfall",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "status-report.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/status-report/base.yaml"
+    }
+  ]
+}
