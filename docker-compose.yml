@@ -30,7 +30,7 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./apps/api-gateway/src:/app/apps/api-gateway/src
       - ./apps/orchestration-service/src:/app/apps/orchestration-service/src
@@ -40,6 +40,18 @@ services:
       - ./examples:/app/examples
     networks:
       - ppm-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
   workflow-engine:
@@ -60,6 +72,18 @@ services:
       - ./apps/workflow-engine:/app/apps/workflow-engine
     networks:
       - ppm-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
   # PostgreSQL Database
@@ -128,8 +152,25 @@ services:
       - API_GATEWAY_URL=${API_GATEWAY_URL}
       - IDENTITY_ACCESS_URL=${IDENTITY_ACCESS_URL}
       - WORKFLOW_ENGINE_URL=${WORKFLOW_ENGINE_URL}
+    depends_on:
+      api:
+        condition: service_healthy
+      workflow-engine:
+        condition: service_healthy
     networks:
       - ppm-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/healthz', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
 volumes:

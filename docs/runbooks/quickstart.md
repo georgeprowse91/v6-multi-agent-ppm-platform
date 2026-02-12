@@ -24,6 +24,26 @@ make dev-up
 
 > ⚠️ `.env.example` is for local development only. Never use these values in CI, staging, or production.
 
+
+## Startup order and failure behavior
+Docker Compose now uses health-gated startup for dependent services:
+
+1. `db` and `redis` start first and must report healthy.
+2. `api` waits for healthy `db` and healthy `redis`.
+3. `workflow-engine` starts independently and must report healthy.
+4. `web` waits for both `api` and `workflow-engine` to be healthy.
+
+Health checks are intentionally lightweight and deterministic:
+- `db`: `pg_isready`
+- `redis`: `redis-cli ping`
+- `api`, `workflow-engine`, `web`: local `GET /healthz` probes from inside each container
+
+Failure behavior expectations:
+- If `db` or `redis` is unhealthy, `api` does not transition to running.
+- If `api` or `workflow-engine` is unhealthy, `web` does not transition to running.
+- A service becoming unhealthy after startup does not automatically restart dependents; use `docker compose ps` and `docker compose logs <service>` for diagnosis.
+- Verify dependency health with `docker compose ps` before running migrations or smoke flows.
+
 ## Apply database migrations
 The orchestration service stores workflow state in Postgres. Apply migrations after the database
 container is healthy:
