@@ -48,7 +48,6 @@ resource "azurerm_federated_identity_credential" "key_vault" {
 
 locals {
   secrets = {
-    "database-url"               = var.database_url
     "redis-url"                  = var.redis_url
     "azure-openai-endpoint"      = var.azure_openai_endpoint
     "azure-openai-api-key"       = var.azure_openai_api_key
@@ -84,7 +83,6 @@ resource "azurerm_key_vault_secret" "secrets" {
 locals {
   # Rotation periods for different secret types
   secret_rotation_policies = {
-    "database-url"                    = "180-days"
     "redis-url"                       = "180-days"
     "azure-openai-endpoint"           = "365-days"
     "azure-openai-api-key"            = "90-days"
@@ -97,7 +95,6 @@ locals {
   }
 
   secret_rotation_periods = {
-    "database-url"                    = "4320h"  # 180 days
     "redis-url"                       = "4320h"  # 180 days
     "azure-openai-endpoint"           = "8760h"  # 365 days
     "azure-openai-api-key"            = "2160h"  # 90 days

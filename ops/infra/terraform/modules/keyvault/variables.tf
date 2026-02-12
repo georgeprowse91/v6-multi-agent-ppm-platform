@@ -39,11 +39,6 @@ variable "workload_identity_issuer_url" {
   type = string
 }
 
-variable "database_url" {
-  type      = string
-  sensitive = true
-}
-
 variable "redis_url" {
   type      = string
   sensitive = true

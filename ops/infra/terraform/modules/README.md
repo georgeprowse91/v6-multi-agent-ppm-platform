@@ -10,7 +10,7 @@ Document infrastructure resources under infra/terraform/modules.
 - `infra/terraform/modules/keyvault`: Subdirectory containing keyvault assets for this area.
 - `infra/terraform/modules/monitoring`: Subdirectory containing monitoring assets for this area.
 - `infra/terraform/modules/networking`: Subdirectory containing networking assets for this area.
-- `infra/terraform/modules/postgresql`: Subdirectory containing postgresql assets for this area.
+- `infra/terraform/modules/postgresql`: Subdirectory containing postgresql assets for this area (including secret-management runbook in `postgresql/README.md`).
 
 ## How it's used
 

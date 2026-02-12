@@ -3,6 +3,12 @@ resource "random_password" "db_password" {
   special = true
 }
 
+locals {
+  administrator_login    = "ppmadmin"
+  administrator_password = random_password.db_password.result
+  database_url           = "postgresql://${local.administrator_login}:${local.administrator_password}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.postgres_database_name}?sslmode=require"
+}
+
 resource "azurerm_postgresql_flexible_server" "main" {
   name                = "${var.resource_prefix}-${var.environment}-psql"
   resource_group_name = var.resource_group_name
@@ -12,8 +18,8 @@ resource "azurerm_postgresql_flexible_server" "main" {
   storage_mb = var.postgres_storage_mb
   version    = "15"
 
-  administrator_login    = "ppmadmin"
-  administrator_password = random_password.db_password.result
+  administrator_login    = local.administrator_login
+  administrator_password = local.administrator_password
 
   backup_retention_days        = var.postgres_backup_retention_days
   geo_redundant_backup_enabled = var.postgres_geo_redundant_backup_enabled
@@ -30,6 +36,32 @@ resource "azurerm_postgresql_flexible_server" "main" {
 
   tags = {
     Environment = var.environment
+  }
+}
+
+resource "azurerm_key_vault_secret" "postgres_admin_password" {
+  name            = "${var.key_vault_secret_name_prefix}-postgres-admin-password"
+  value           = local.administrator_password
+  key_vault_id    = var.key_vault_id
+  content_type    = "postgresql/admin-password"
+  expiration_date = timeadd(timestamp(), "4320h")
+
+  tags = {
+    rotation-policy = "180-days"
+    managed-by      = "terraform"
+  }
+}
+
+resource "azurerm_key_vault_secret" "postgres_database_url" {
+  name            = "database-url"
+  value           = local.database_url
+  key_vault_id    = var.key_vault_id
+  content_type    = "postgresql/database-url"
+  expiration_date = timeadd(timestamp(), "4320h")
+
+  tags = {
+    rotation-policy = "180-days"
+    managed-by      = "terraform"
   }
 }
 

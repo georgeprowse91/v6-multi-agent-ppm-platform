@@ -53,3 +53,16 @@ variable "private_endpoint_subnet_id" {
 variable "private_dns_zone_id" {
   type = string
 }
+
+variable "key_vault_id" {
+  type = string
+}
+
+variable "key_vault_secret_name_prefix" {
+  type = string
+}
+
+variable "postgres_database_name" {
+  type      = string
+  sensitive = true
+}

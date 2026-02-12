@@ -515,6 +515,9 @@ module "postgresql" {
   postgres_minimum_tls_version        = var.postgres_minimum_tls_version
   private_endpoint_subnet_id          = module.networking.private_endpoint_subnet_id
   private_dns_zone_id                 = module.networking.private_dns_zone_ids["postgres"]
+  key_vault_id                        = module.keyvault.key_vault_id
+  key_vault_secret_name_prefix        = "${var.resource_prefix}-${var.environment}"
+  postgres_database_name              = var.postgres_database_name
 }
 
 # Azure Cosmos DB (optional - for production scale)
@@ -585,8 +588,7 @@ resource "azurerm_cognitive_account" "openai" {
 data "azurerm_client_config" "current" {}
 
 locals {
-  database_url = "postgresql://${module.postgresql.administrator_login}:${module.postgresql.administrator_password}@${module.postgresql.fqdn}:5432/${var.postgres_database_name}?sslmode=require"
-  redis_url    = "rediss://:${azurerm_redis_cache.main.primary_access_key}@${azurerm_redis_cache.main.hostname}:${azurerm_redis_cache.main.ssl_port}/0"
+  redis_url = "rediss://:${azurerm_redis_cache.main.primary_access_key}@${azurerm_redis_cache.main.hostname}:${azurerm_redis_cache.main.ssl_port}/0"
 }
 
 resource "random_password" "audit_log_encryption_key" {
@@ -607,7 +609,6 @@ module "keyvault" {
   workload_identity_subject      = var.workload_identity_subject
   workload_identity_audience     = var.workload_identity_audience
   workload_identity_issuer_url   = coalesce(nullif(var.workload_identity_issuer_url, ""), module.aks.oidc_issuer_url)
-  database_url                   = local.database_url
   redis_url                      = local.redis_url
   azure_openai_endpoint          = azurerm_cognitive_account.openai.endpoint
   azure_openai_api_key           = var.azure_openai_api_key
