@@ -1,0 +1,92 @@
+{
+  "name": "ppm-icons",
+  "version": "1.0.0",
+  "library": "lucide-react",
+  "defaults": {
+    "sizePx": {
+      "sm": 14,
+      "md": 18,
+      "lg": 24
+    },
+    "colorTokens": {
+      "primaryText": "tokens.color.text.primary",
+      "brand": "tokens.color.brand.orange500",
+      "neutral": "tokens.color.neutral.grey500",
+      "success": "tokens.color.state.success.fg",
+      "warning": "tokens.color.state.warning.fg",
+      "error": "tokens.color.state.error.fg",
+      "info": "tokens.color.state.info.fg"
+    }
+  },
+  "rules": {
+    "requireSemanticUsage": true
+  },
+  "categories": {
+    "status": {
+      "healthy": { "icon": "CheckCircle", "color": "success", "size": "md" },
+      "warning": { "icon": "AlertTriangle", "color": "warning", "size": "md" },
+      "error": { "icon": "XCircle", "color": "error", "size": "md" },
+      "info": { "icon": "Info", "color": "info", "size": "md" },
+      "loading": { "icon": "Loader2", "color": "neutral", "size": "md", "animate": "spin" },
+      "paused": { "icon": "PauseCircle", "color": "neutral", "size": "md" },
+      "locked": { "icon": "Lock", "color": "neutral", "size": "md" },
+      "unlocked": { "icon": "Unlock", "color": "success", "size": "md" },
+      "blocked": { "icon": "Ban", "color": "error", "size": "md" }
+    },
+    "nav": {
+      "dashboard": { "icon": "LayoutDashboard", "color": "primaryText", "size": "md" },
+      "projects": { "icon": "Folder", "color": "primaryText", "size": "md" },
+      "settings": { "icon": "Settings", "color": "primaryText", "size": "md" },
+      "back": { "icon": "ArrowLeft", "color": "primaryText", "size": "md" },
+      "forward": { "icon": "ArrowRight", "color": "primaryText", "size": "md" },
+      "external": { "icon": "ExternalLink", "color": "primaryText", "size": "md" },
+      "search": { "icon": "Search", "color": "primaryText", "size": "md" },
+      "help": { "icon": "HelpCircle", "color": "primaryText", "size": "md" }
+    },
+    "action": {
+      "send": { "icon": "Send", "color": "brand", "size": "md" },
+      "edit": { "icon": "Edit3", "color": "primaryText", "size": "md" },
+      "download": { "icon": "Download", "color": "primaryText", "size": "md" },
+      "refresh": { "icon": "RefreshCw", "color": "primaryText", "size": "md" },
+      "close": { "icon": "X", "color": "primaryText", "size": "md" },
+      "more": { "icon": "MoreHorizontal", "color": "primaryText", "size": "md" },
+      "undo": { "icon": "Undo2", "color": "primaryText", "size": "md" },
+      "check": { "icon": "Check", "color": "success", "size": "md" },
+      "attach": { "icon": "Paperclip", "color": "primaryText", "size": "md" },
+      "mic": { "icon": "Mic", "color": "primaryText", "size": "md" },
+      "link": { "icon": "Link2", "color": "primaryText", "size": "md" }
+    },
+    "domain": {
+      "agent": { "icon": "Brain", "color": "brand", "size": "md" },
+      "workflow": { "icon": "GitBranch", "color": "primaryText", "size": "md" },
+      "document": { "icon": "FileText", "color": "primaryText", "size": "md" },
+      "calendar": { "icon": "Calendar", "color": "primaryText", "size": "md" },
+      "notification": { "icon": "Bell", "color": "primaryText", "size": "md" },
+      "analytics": { "icon": "BarChart3", "color": "primaryText", "size": "md" },
+      "connector": { "icon": "Server", "color": "primaryText", "size": "md" },
+      "compliance": { "icon": "Shield", "color": "primaryText", "size": "md" },
+      "risk": { "icon": "Flag", "color": "warning", "size": "md" },
+      "financial": { "icon": "DollarSign", "color": "primaryText", "size": "md" },
+      "resource": { "icon": "User", "color": "primaryText", "size": "md" },
+      "timeline": { "icon": "Clock", "color": "primaryText", "size": "md" },
+      "task": { "icon": "ClipboardList", "color": "primaryText", "size": "md" },
+      "template": { "icon": "Package", "color": "primaryText", "size": "md" },
+      "history": { "icon": "History", "color": "primaryText", "size": "md" },
+      "ai": { "icon": "Sparkles", "color": "brand", "size": "md" },
+      "rocket": { "icon": "Rocket", "color": "brand", "size": "md" },
+      "wrench": { "icon": "Wrench", "color": "primaryText", "size": "md" },
+      "cpu": { "icon": "Cpu", "color": "primaryText", "size": "md" },
+      "lightbulb": { "icon": "Lightbulb", "color": "warning", "size": "md" },
+      "note": { "icon": "StickyNote", "color": "primaryText", "size": "md" },
+      "table": { "icon": "Table", "color": "primaryText", "size": "md" },
+      "layers": { "icon": "Layers", "color": "primaryText", "size": "md" },
+      "message": { "icon": "MessageSquare", "color": "primaryText", "size": "md" },
+      "compare": { "icon": "GitCompare", "color": "primaryText", "size": "md" },
+      "activity": { "icon": "Activity", "color": "primaryText", "size": "md" },
+      "view": { "icon": "Eye", "color": "primaryText", "size": "md" },
+      "circle": { "icon": "Circle", "color": "primaryText", "size": "md" },
+      "expand": { "icon": "ChevronRight", "color": "primaryText", "size": "md" },
+      "collapse": { "icon": "ChevronDown", "color": "primaryText", "size": "md" }
+    }
+  }
+}

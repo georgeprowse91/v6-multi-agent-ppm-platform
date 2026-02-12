@@ -1,0 +1,18 @@
+modules = ["python-3.11", "nodejs-20", "web"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["cargo", "libiconv", "libxcrypt", "libyaml", "openssl", "pkg-config", "pnpm", "postgresql", "rustc"]
+
+[userenv]
+
+[userenv.shared]
+ENVIRONMENT = "development"
+AUTH_DEV_MODE = "true"
+AUTH_DEV_ROLES = "PMO_ADMIN"
+AUTH_DEV_TENANT_ID = "dev-tenant-local"
+LLM_PROVIDER = "mock"
+DEMO_MODE = "true"
+LOG_LEVEL = "INFO"

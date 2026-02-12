@@ -12,13 +12,19 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../static/dist',
+    outDir: 'dist',
     emptyOutDir: true,
   },
   server: {
-    port: 3000,
+    port: 5000,
+    host: '0.0.0.0',
+    allowedHosts: true,
     proxy: {
-      '/api': {
+      '/v1': {
+        target: 'http://localhost:8501',
+        changeOrigin: true,
+      },
+      '/healthz': {
         target: 'http://localhost:8501',
         changeOrigin: true,
       },
@@ -35,6 +41,10 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/logout': {
+        target: 'http://localhost:8501',
+        changeOrigin: true,
+      },
+      '/app': {
         target: 'http://localhost:8501',
         changeOrigin: true,
       },
