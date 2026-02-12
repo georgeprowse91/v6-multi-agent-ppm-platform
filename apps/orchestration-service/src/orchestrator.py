@@ -110,7 +110,7 @@ class AgentOrchestrator:
             response_orchestrator.agent_registry = self.agents
 
         self.initialized = True
-        logger.info(f"Orchestrator initialized with {len(self.agents)} agents")
+        logger.info("Orchestrator initialized with %s agents", len(self.agents), extra={"agent_count": len(self.agents)})
 
     def register_dependency(self, agent_id: str, depends_on: list[str]) -> None:
         self.dependencies[agent_id] = depends_on

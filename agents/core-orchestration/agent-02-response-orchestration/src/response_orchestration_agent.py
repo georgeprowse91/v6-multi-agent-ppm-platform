@@ -726,7 +726,7 @@ class ResponseOrchestrationAgent(BaseAgent):
                     metadata={"agent_id": agent_id, "attempt": attempt + 1},
                 )
                 if endpoint:
-                    self.logger.info(f"Invoking agent via HTTP: {agent_id} -> {endpoint}")
+                    self.logger.info("Invoking agent via HTTP: %s -> %s", agent_id, endpoint, extra={"agent_id": agent_id, "endpoint": endpoint})
                     headers = inject_trace_headers({})
                     headers["X-Correlation-ID"] = correlation_id
                     response = await self.http_client.post(endpoint, json=payload, headers=headers)
@@ -746,7 +746,7 @@ class ResponseOrchestrationAgent(BaseAgent):
                     if isinstance(data, dict) and data.get("success") is False:
                         raise RuntimeError(data.get("error") or "Local agent execution failed")
                 else:
-                    self.logger.info(f"Invoking agent via event bus: {agent_id}")
+                    self.logger.info("Invoking agent via event bus: %s", agent_id, extra={"agent_id": agent_id})
                     data = {
                         "message": f"Event published for {agent_id}",
                         "parameters": parameters,
@@ -768,10 +768,10 @@ class ResponseOrchestrationAgent(BaseAgent):
                 return result
             except (httpx.TimeoutException, TimeoutError):
                 last_error = "Agent timeout"
-                self.logger.warning(f"Agent {agent_id} timed out")
+                self.logger.warning("Agent %s timed out", agent_id, extra={"agent_id": agent_id})
             except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as e:
                 last_error = str(e)
-                self.logger.error(f"Error invoking agent {agent_id}: {str(e)}")
+                self.logger.error("Error invoking agent %s: %s", agent_id, e, extra={"agent_id": agent_id})
 
             attempt += 1
             if attempt <= self.max_retries:

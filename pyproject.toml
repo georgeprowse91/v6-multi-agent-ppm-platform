@@ -149,7 +149,7 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP"]
+select = ["E", "F", "I", "N", "W", "UP", "G"]
 ignore = ["E501", "UP017"]  # Line too long (handled by black); UTC alias not in Py3.10
 
 [tool.ruff.lint.per-file-ignores]
