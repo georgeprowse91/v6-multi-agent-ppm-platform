@@ -18,43 +18,83 @@ sections:
 - id: problem-statement
   title: Problem Statement
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Keep as a focused 2-6 sentence narrative for all project sizes.
+  - For high-risk projects, explicitly quantify business or operational impact.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{project_name}}'
   - '{{problem_statement}}'
 - id: objectives
   title: Objectives
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Document measurable outcomes for all governance tiers.
+  - For small projects, limit to the top 3-5 objectives.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{objectives}}'
 - id: scope
   title: Scope
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Define in-scope and out-of-scope boundaries.
+  - For high governance tier projects, include explicit boundary controls and assumptions.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{scope}}'
 - id: success-criteria
   title: Success Criteria
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Use objective acceptance criteria with baseline and target values.
+  - For low-risk initiatives, a concise metric set is acceptable when traceable to objectives.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{success_criteria}}'
 - id: governance
   title: Governance
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Minimum: identify decision owner and escalation path.
+  - For medium/large projects or governance tier 2+, define cadence and forum structure.
+  applicability_conditions: Required when governance tier is 2 or 3; optional for tier 1.
   consumes_placeholders:
   - '{{governance}}'
 - id: milestones
   title: Milestones
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Capture major stage gates or delivery checkpoints.
+  - For small projects, milestone list may be condensed to 3-5 key dates.
+  applicability_conditions: Applicable when the project has phased or date-driven delivery.
   consumes_placeholders:
   - '{{milestones}}'
 - id: budget-summary
   title: Budget Summary
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Provide total budget and major cost buckets.
+  - For high-risk or governance tier 3 projects, include contingency and variance tolerance.
+  applicability_conditions: Required when financial approval is needed; optional for non-funded internal efforts.
   consumes_placeholders:
   - '{{budget_summary}}'
   - '{{total_budget}}'
 - id: risks-assumptions-dependencies
   title: Risks Assumptions Dependencies
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Include top risks, key assumptions, and external dependencies.
+  - For high-risk projects, add owners and mitigation intent for each item.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{risks_assumptions_dependencies}}'
 guidance:

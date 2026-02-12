@@ -18,32 +18,62 @@ sections:
 - id: sprint-goal
   title: Sprint Goal
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Define a single coherent sprint outcome tied to product objectives.
+  - For high-risk delivery, include explicit risk burn-down intent in the goal.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{project_name}}'
   - '{{sprint_goal}}'
 - id: capacity
   title: Capacity
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Quantify available team capacity and major constraints.
+  - For small teams, a simple person-day estimate is acceptable.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{capacity}}'
 - id: candidate-work
   title: Candidate Work
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Prioritize backlog candidates based on value, risk, and dependencies.
+  - For governance tier 3 products, include traceability to approved scope.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{candidate_work}}'
 - id: commitment
   title: Commitment
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - State committed backlog items and confidence level.
+  - For high-risk sprints, add contingency items and trigger thresholds.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{commitment}}'
 - id: dependencies
   title: Dependencies
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Capture cross-team, vendor, or environment dependencies.
+  - For medium/large programs, include dependency owner and due date.
+  applicability_conditions: Required when external dependencies exist.
   consumes_placeholders:
   - '{{dependencies}}'
 - id: definition-of-done-check
   title: Definition Of Done Check
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Confirm planned work satisfies quality and acceptance criteria.
+  - For low-risk internal changes, concise checklist references are acceptable.
+  applicability_conditions: Required when release quality gates apply.
   consumes_placeholders:
   - '{{definition_of_done_check}}'
 guidance:

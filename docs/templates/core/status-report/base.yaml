@@ -18,43 +18,83 @@ sections:
 - id: reporting-period
   title: Reporting Period
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Include period start/end and data cut-off date.
+  - For governance tier 3, include formal reporting cadence reference.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{project_name}}'
   - '{{reporting_period}}'
 - id: overall-health-rag
   title: Overall Health Rag
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Provide explicit RAG status and rationale.
+  - For high-risk projects, include trend versus prior period.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{overall_health_rag}}'
 - id: summary
   title: Summary
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Summarize key outcomes, variances, and executive message in 2-6 sentences.
+  - For small projects, this may consolidate progress and next steps.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{summary}}'
 - id: progress-vs-plan
   title: Progress Vs Plan
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Compare delivered outcomes against baseline plan.
+  - For medium/large projects, call out milestone-level variance.
+  applicability_conditions: Required when a baseline plan exists.
   consumes_placeholders:
   - '{{progress_vs_plan}}'
 - id: budget-status
   title: Budget Status
   type: narrative
+  required_level: recommended
+  tailoring_rules:
+  - Provide spend-to-date, forecast, and variance.
+  - For governance tier 3 or high-risk projects, include burn-rate and corrective actions.
+  applicability_conditions: Required for funded projects; optional for non-funded operational work.
   consumes_placeholders:
   - '{{budget_status}}'
   - '{{total_budget}}'
 - id: risks-issues
   title: Risks Issues
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - List top active risks/issues and immediate actions.
+  - For high-risk projects, include owner and target resolution date.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{risks_issues}}'
 - id: decisions-needed
   title: Decisions Needed
   type: narrative
+  required_level: optional
+  tailoring_rules:
+  - Capture decisions needed from governance bodies with deadline.
+  - If no decisions are needed, explicitly state none.
+  applicability_conditions: Applicable when approvals or escalations are pending.
   consumes_placeholders:
   - '{{decisions_needed}}'
 - id: next-period-plan
   title: Next Period Plan
   type: narrative
+  required_level: mandatory
+  tailoring_rules:
+  - Provide the next period's top priorities and expected outcomes.
+  - For high governance tiers, align items to stage gate or control objectives.
+  applicability_conditions: Always applicable.
   consumes_placeholders:
   - '{{next_period_plan}}'
 guidance:
