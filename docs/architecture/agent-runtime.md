@@ -63,6 +63,17 @@ Product interfaces should surface AgentRun state and context to users:
 - **Async notifications**: Deliver notifications when a blocked run resumes or completes to avoid
   requiring continuous polling.
 
+## Runtime secret handling policy
+
+Agent request/task handlers **must not** mutate process-global environment variables
+(e.g., `os.environ[...] = ...`). Runtime code should pass secrets through explicit
+inputs such as dependency-injected secret providers, per-agent context objects, or
+function parameters.
+
+When integrating with legacy APIs that only accept environment variables, project
+secrets into a tightly scoped subprocess environment and avoid mutating the current
+process environment.
+
 ## Related Documentation
 
 - [Agent Orchestration](agent-orchestration.md)

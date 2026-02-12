@@ -13,9 +13,10 @@ import json
 import os
 import sys
 import uuid
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import httpx
 import yaml
@@ -72,6 +73,30 @@ except ImportError:  # pragma: no cover - optional dependencies
     create_engine = None
 
 
+class SecretContext(Protocol):
+    def get(self, name: str) -> str | None: ...
+
+    def set_many(self, values: Mapping[str, str]) -> None: ...
+
+    def snapshot(self) -> dict[str, str]: ...
+
+
+class InMemorySecretContext:
+    def __init__(self, initial: Mapping[str, str] | None = None) -> None:
+        self._values = dict(initial or {})
+
+    def get(self, name: str) -> str | None:
+        return self._values.get(name)
+
+    def set_many(self, values: Mapping[str, str]) -> None:
+        self._values.update(values)
+
+    def snapshot(self) -> dict[str, str]:
+        return dict(self._values)
+
+
+
+
 class DataSyncAgent(BaseAgent):
     """
     Data Synchronization & Consistency Agent - Manages data synchronization across systems.
@@ -89,6 +114,12 @@ class DataSyncAgent(BaseAgent):
 
     def __init__(self, agent_id: str = "agent_023", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
+
+        self.secret_context: SecretContext = (
+            config.get("secret_context")
+            if config and config.get("secret_context")
+            else InMemorySecretContext(config.get("secrets") if config else None)
+        )
 
         # Configuration parameters
         self.sync_latency_sla_seconds = config.get("sync_latency_sla_seconds", 60) if config else 60
@@ -217,6 +248,12 @@ class DataSyncAgent(BaseAgent):
         self.max_retry_attempts = config.get("max_retry_attempts", 3) if config else 3
         self.log_analytics_client: Any | None = None
         self.connectors: dict[str, Any] = {}
+
+    def _get_setting(self, key: str, default: str | None = None) -> str | None:
+        secret_value = self.secret_context.get(key)
+        if secret_value is not None:
+            return secret_value
+        return os.getenv(key, default)
 
     async def initialize(self) -> None:
         """Initialize data sync infrastructure and integrations."""
@@ -1685,7 +1722,7 @@ class DataSyncAgent(BaseAgent):
         return pipelines, functions
 
     async def _initialize_key_vault_secrets(self) -> None:
-        key_vault_url = os.getenv("AZURE_KEY_VAULT_URL")
+        key_vault_url = self._get_setting("AZURE_KEY_VAULT_URL")
         if not key_vault_url or not DefaultAzureCredential or not SecretClient:
             return
         credential = DefaultAzureCredential()
@@ -1706,8 +1743,9 @@ class DataSyncAgent(BaseAgent):
             "WORKDAY_REFRESH_TOKEN",
             "WORKDAY_API_URL",
         ]
+        loaded_secrets: dict[str, str] = {}
         for secret_name in secret_names:
-            if os.getenv(secret_name):
+            if self._get_setting(secret_name):
                 continue
             try:
                 secret = client.get_secret(secret_name)
@@ -1718,7 +1756,10 @@ class DataSyncAgent(BaseAgent):
                 )
                 continue
             if secret and secret.value:
-                os.environ[secret_name] = secret.value
+                loaded_secrets[secret_name] = secret.value
+
+        if loaded_secrets:
+            self.secret_context.set_many(loaded_secrets)
 
     async def _initialize_connectors(self) -> None:
         _ensure_connector_paths()
@@ -1740,7 +1781,7 @@ class DataSyncAgent(BaseAgent):
                 connector_id="planview",
                 name="Planview",
                 category=ConnectorCategory.PPM,
-                instance_url=os.getenv("PLANVIEW_INSTANCE_URL", ""),
+                instance_url=self._get_setting("PLANVIEW_INSTANCE_URL", "") or "",
             )
             self.connectors["planview"] = PlanviewConnector(planview_config)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
@@ -1750,7 +1791,7 @@ class DataSyncAgent(BaseAgent):
                 connector_id="sap",
                 name="SAP",
                 category=ConnectorCategory.ERP,
-                instance_url=os.getenv("SAP_URL", ""),
+                instance_url=self._get_setting("SAP_URL", "") or "",
             )
             self.connectors["sap"] = SapConnector(sap_config)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
@@ -1760,7 +1801,7 @@ class DataSyncAgent(BaseAgent):
                 connector_id="jira",
                 name="Jira",
                 category=ConnectorCategory.PM,
-                instance_url=os.getenv("JIRA_INSTANCE_URL", ""),
+                instance_url=self._get_setting("JIRA_INSTANCE_URL", "") or "",
             )
             self.connectors["jira"] = JiraConnector(jira_config)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
@@ -1770,7 +1811,7 @@ class DataSyncAgent(BaseAgent):
                 connector_id="workday",
                 name="Workday",
                 category=ConnectorCategory.HRIS,
-                instance_url=os.getenv("WORKDAY_API_URL", ""),
+                instance_url=self._get_setting("WORKDAY_API_URL", "") or "",
             )
             self.connectors["workday"] = WorkdayConnector(workday_config)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
@@ -1780,7 +1821,7 @@ class DataSyncAgent(BaseAgent):
                 connector_id="smartsheet",
                 name="Smartsheet",
                 category=ConnectorCategory.PM,
-                instance_url=os.getenv("SMARTSHEET_API_URL", ""),
+                instance_url=self._get_setting("SMARTSHEET_API_URL", "") or "",
             )
             self.connectors["smartsheet"] = SmartsheetConnector(smartsheet_config)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
@@ -1790,7 +1831,7 @@ class DataSyncAgent(BaseAgent):
                 connector_id="azure_devops",
                 name="Azure DevOps",
                 category=ConnectorCategory.PM,
-                instance_url=os.getenv("AZURE_DEVOPS_ORG_URL", ""),
+                instance_url=self._get_setting("AZURE_DEVOPS_ORG_URL", "") or "",
             )
             self.connectors["azure_devops"] = AzureDevOpsConnector(ado_config)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
@@ -1799,7 +1840,7 @@ class DataSyncAgent(BaseAgent):
     async def _initialize_service_bus(self) -> None:
         if self.config and self.config.get("event_bus"):
             self.event_bus = self.config["event_bus"]
-        connection_string = os.getenv("AZURE_SERVICE_BUS_CONNECTION_STRING")
+        connection_string = self._get_setting("AZURE_SERVICE_BUS_CONNECTION_STRING")
         if not connection_string:
             return
         self.event_bus = ServiceBusEventBus(
@@ -1820,25 +1861,25 @@ class DataSyncAgent(BaseAgent):
             self.logger.warning("service_bus_sender_unavailable", extra={"error": str(exc)})
 
     async def _initialize_event_grid(self) -> None:
-        endpoint = os.getenv("EVENT_GRID_ENDPOINT")
-        key = os.getenv("EVENT_GRID_KEY")
+        endpoint = self._get_setting("EVENT_GRID_ENDPOINT")
+        key = self._get_setting("EVENT_GRID_KEY")
         if not endpoint or not key or not EventGridPublisherClient or not AzureKeyCredential:
             return
         self.event_grid_client = EventGridPublisherClient(endpoint, AzureKeyCredential(key))
 
     async def _initialize_datastores(self) -> None:
-        sql_connection_string = os.getenv("SQL_CONNECTION_STRING")
+        sql_connection_string = self._get_setting("SQL_CONNECTION_STRING")
         if sql_connection_string and create_engine:
             self.sql_engine = create_engine(sql_connection_string)
-        cosmos_endpoint = os.getenv("COSMOS_ENDPOINT")
-        cosmos_key = os.getenv("COSMOS_KEY")
+        cosmos_endpoint = self._get_setting("COSMOS_ENDPOINT")
+        cosmos_key = self._get_setting("COSMOS_KEY")
         if cosmos_endpoint and cosmos_key and CosmosClient:
             self.cosmos_client = CosmosClient(cosmos_endpoint, credential=cosmos_key)
 
     async def _initialize_data_factory(self) -> None:
         if not DataFactoryManagementClient or not DefaultAzureCredential:
             return
-        subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
+        subscription_id = self._get_setting("AZURE_SUBSCRIPTION_ID")
         if not subscription_id:
             return
         credential = DefaultAzureCredential()
@@ -1872,7 +1913,7 @@ class DataSyncAgent(BaseAgent):
             )
 
     async def _initialize_monitoring(self) -> None:
-        endpoint = os.getenv("LOG_ANALYTICS_ENDPOINT")
+        endpoint = self._get_setting("LOG_ANALYTICS_ENDPOINT")
         if not endpoint or not LogsIngestionClient or not DefaultAzureCredential:
             return
         credential = DefaultAzureCredential()
@@ -2039,8 +2080,8 @@ class DataSyncAgent(BaseAgent):
     async def _ingest_latency_metric(self, record: dict[str, Any]) -> None:
         if not self.log_analytics_client:
             return
-        rule_id = os.getenv("LOG_ANALYTICS_RULE_ID")
-        stream_name = os.getenv("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency")
+        rule_id = self._get_setting("LOG_ANALYTICS_RULE_ID")
+        stream_name = self._get_setting("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency") or "DataSyncLatency"
         if not rule_id:
             return
         try:
@@ -2055,8 +2096,8 @@ class DataSyncAgent(BaseAgent):
     async def _ingest_quality_metric(self, record: dict[str, Any]) -> None:
         if not self.log_analytics_client:
             return
-        rule_id = os.getenv("LOG_ANALYTICS_RULE_ID")
-        stream_name = os.getenv("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics")
+        rule_id = self._get_setting("LOG_ANALYTICS_RULE_ID")
+        stream_name = self._get_setting("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics") or "DataQualityMetrics"
         if not rule_id:
             return
         try:
@@ -2196,10 +2237,10 @@ class DataSyncAgent(BaseAgent):
         source_system: str,
         payload: dict[str, Any],
     ) -> None:
-        base_url = os.getenv("DATA_LINEAGE_SERVICE_URL")
+        base_url = self._get_setting("DATA_LINEAGE_SERVICE_URL")
         if not base_url:
             return
-        token = os.getenv("DATA_LINEAGE_SERVICE_TOKEN")
+        token = self._get_setting("DATA_LINEAGE_SERVICE_TOKEN")
         headers = {"X-Tenant-ID": tenant_id}
         if token:
             headers["Authorization"] = f"Bearer {token}"
