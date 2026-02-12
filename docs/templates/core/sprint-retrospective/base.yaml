@@ -18,29 +18,55 @@ sections:
 - id: what-went-well
   title: What Went Well
   type: narrative
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{what_went_well}}'
 - id: what-did-not-go-well
   title: What Did Not Go Well
   type: narrative
+  consumes_placeholders:
+  - '{{what_did_not_go_well}}'
 - id: root-causes
   title: Root Causes
   type: narrative
+  consumes_placeholders:
+  - '{{root_causes}}'
 - id: experiments
   title: Experiments
   type: narrative
+  consumes_placeholders:
+  - '{{experiments}}'
 - id: owners-and-dates
   title: Owners And Dates
   type: narrative
+  consumes_placeholders:
+  - '{{owners_and_dates}}'
 guidance:
   purpose: Canonical base structure for the sprint-retrospective template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - what-went-well
 - key: what_went_well
   token: '{{what_went_well}}'
+  consumed_by_sections:
+  - what-went-well
 - key: what_did_not_go_well
   token: '{{what_did_not_go_well}}'
+  consumed_by_sections:
+  - what-did-not-go-well
 - key: root_causes
   token: '{{root_causes}}'
+  consumed_by_sections:
+  - root-causes
 - key: experiments
   token: '{{experiments}}'
+  consumed_by_sections:
+  - experiments
 - key: owners_and_dates
   token: '{{owners_and_dates}}'
+  consumed_by_sections:
+  - owners-and-dates

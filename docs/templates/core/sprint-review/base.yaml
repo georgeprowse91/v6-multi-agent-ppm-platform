@@ -18,29 +18,55 @@ sections:
 - id: sprint-goal-outcome
   title: Sprint Goal Outcome
   type: narrative
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{sprint_goal_outcome}}'
 - id: completed-increment
   title: Completed Increment
   type: narrative
+  consumes_placeholders:
+  - '{{completed_increment}}'
 - id: rejected-or-carried-over-items
   title: Rejected Or Carried Over Items
   type: narrative
+  consumes_placeholders:
+  - '{{rejected_or_carried_over_items}}'
 - id: stakeholder-feedback
   title: Stakeholder Feedback
   type: narrative
+  consumes_placeholders:
+  - '{{stakeholder_feedback}}'
 - id: backlog-adjustments
   title: Backlog Adjustments
   type: narrative
+  consumes_placeholders:
+  - '{{backlog_adjustments}}'
 guidance:
   purpose: Canonical base structure for the sprint-review template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - sprint-goal-outcome
 - key: sprint_goal_outcome
   token: '{{sprint_goal_outcome}}'
+  consumed_by_sections:
+  - sprint-goal-outcome
 - key: completed_increment
   token: '{{completed_increment}}'
+  consumed_by_sections:
+  - completed-increment
 - key: rejected_or_carried_over_items
   token: '{{rejected_or_carried_over_items}}'
+  consumed_by_sections:
+  - rejected-or-carried-over-items
 - key: stakeholder_feedback
   token: '{{stakeholder_feedback}}'
+  consumed_by_sections:
+  - stakeholder-feedback
 - key: backlog_adjustments
   token: '{{backlog_adjustments}}'
+  consumed_by_sections:
+  - backlog-adjustments

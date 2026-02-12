@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Registry mapping canonical template placeholders to platform model paths with binding rules.",
+  "fields": [
+    {
+      "placeholder": "{{project_name}}",
+      "model_path": "project.name",
+      "data_type": "string",
+      "validation": {
+        "min_length": 3,
+        "max_length": 120
+      },
+      "required": true,
+      "fallback": {
+        "strategy": "error",
+        "value": null,
+        "note": "Binding fails when project name is missing."
+      }
+    },
+    {
+      "placeholder": "{{total_budget}}",
+      "model_path": "financials.total_budget.amount",
+      "data_type": "number",
+      "validation": {
+        "min": 0,
+        "currency_path": "financials.total_budget.currency"
+      },
+      "required": true,
+      "fallback": {
+        "strategy": "default",
+        "value": 0,
+        "note": "Use 0 only for template previews; production pipelines should provide actual budget."
+      }
+    },
+    {
+      "placeholder": "{{reporting_period}}",
+      "model_path": "reporting.period.label",
+      "data_type": "string",
+      "validation": {
+        "pattern": "^[A-Za-z]{3,9}\\s\\d{4}$"
+      },
+      "required": false,
+      "fallback": {
+        "strategy": "default",
+        "value": "Current Period",
+        "note": "Applied when report cadence metadata is unavailable."
+      }
+    },
+    {
+      "placeholder": "{{prepared_by}}",
+      "model_path": "workflow.prepared_by.display_name",
+      "data_type": "string",
+      "validation": {
+        "min_length": 2,
+        "max_length": 80
+      },
+      "required": false,
+      "fallback": {
+        "strategy": "default",
+        "value": "PMO Automation",
+        "note": "Fallback signer for auto-generated documents."
+      }
+    }
+  ]
+}

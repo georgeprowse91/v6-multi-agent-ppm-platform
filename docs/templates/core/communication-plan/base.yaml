@@ -33,21 +33,49 @@ sections:
     type: string
   - name: success-measure
     type: string
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{stakeholder_group}}'
+  - '{{communication_objective}}'
+  - '{{channel}}'
+  - '{{cadence}}'
+  - '{{sender}}'
+  - '{{escalation_path}}'
+  - '{{success_measure}}'
 guidance:
   purpose: Canonical base structure for the communication-plan template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - data-table
 - key: stakeholder_group
   token: '{{stakeholder_group}}'
+  consumed_by_sections:
+  - data-table
 - key: communication_objective
   token: '{{communication_objective}}'
+  consumed_by_sections:
+  - data-table
 - key: channel
   token: '{{channel}}'
+  consumed_by_sections:
+  - data-table
 - key: cadence
   token: '{{cadence}}'
+  consumed_by_sections:
+  - data-table
 - key: sender
   token: '{{sender}}'
+  consumed_by_sections:
+  - data-table
 - key: escalation_path
   token: '{{escalation_path}}'
+  consumed_by_sections:
+  - data-table
 - key: success_measure
   token: '{{success_measure}}'
+  consumed_by_sections:
+  - data-table

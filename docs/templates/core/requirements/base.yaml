@@ -18,39 +18,73 @@ sections:
 - id: business-requirements
   title: Business Requirements
   type: narrative
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{business_requirements}}'
 - id: functional-requirements
   title: Functional Requirements
   type: narrative
+  consumes_placeholders:
+  - '{{functional_requirements}}'
 - id: non-functional-requirements
   title: Non Functional Requirements
   type: narrative
+  consumes_placeholders:
+  - '{{non_functional_requirements}}'
 - id: constraints
   title: Constraints
   type: narrative
+  consumes_placeholders:
+  - '{{constraints}}'
 - id: assumptions
   title: Assumptions
   type: narrative
+  consumes_placeholders:
+  - '{{assumptions}}'
 - id: traceability
   title: Traceability
   type: narrative
+  consumes_placeholders:
+  - '{{traceability}}'
 - id: acceptance-criteria
   title: Acceptance Criteria
   type: narrative
+  consumes_placeholders:
+  - '{{acceptance_criteria}}'
 guidance:
   purpose: Canonical base structure for the requirements template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - business-requirements
 - key: business_requirements
   token: '{{business_requirements}}'
+  consumed_by_sections:
+  - business-requirements
 - key: functional_requirements
   token: '{{functional_requirements}}'
+  consumed_by_sections:
+  - functional-requirements
 - key: non_functional_requirements
   token: '{{non_functional_requirements}}'
+  consumed_by_sections:
+  - non-functional-requirements
 - key: constraints
   token: '{{constraints}}'
+  consumed_by_sections:
+  - constraints
 - key: assumptions
   token: '{{assumptions}}'
+  consumed_by_sections:
+  - assumptions
 - key: traceability
   token: '{{traceability}}'
+  consumed_by_sections:
+  - traceability
 - key: acceptance_criteria
   token: '{{acceptance_criteria}}'
+  consumed_by_sections:
+  - acceptance-criteria

@@ -35,23 +35,54 @@ sections:
     type: string
   - name: target-release
     type: string
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{backlog_item_id}}'
+  - '{{title}}'
+  - '{{description}}'
+  - '{{priority}}'
+  - '{{estimate}}'
+  - '{{acceptance_criteria}}'
+  - '{{dependencies}}'
+  - '{{target_release}}'
 guidance:
   purpose: Canonical base structure for the product-backlog template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - data-table
 - key: backlog_item_id
   token: '{{backlog_item_id}}'
+  consumed_by_sections:
+  - data-table
 - key: title
   token: '{{title}}'
+  consumed_by_sections:
+  - data-table
 - key: description
   token: '{{description}}'
+  consumed_by_sections:
+  - data-table
 - key: priority
   token: '{{priority}}'
+  consumed_by_sections:
+  - data-table
 - key: estimate
   token: '{{estimate}}'
+  consumed_by_sections:
+  - data-table
 - key: acceptance_criteria
   token: '{{acceptance_criteria}}'
+  consumed_by_sections:
+  - data-table
 - key: dependencies
   token: '{{dependencies}}'
+  consumed_by_sections:
+  - data-table
 - key: target_release
   token: '{{target_release}}'
+  consumed_by_sections:
+  - data-table

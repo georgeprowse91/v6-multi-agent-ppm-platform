@@ -18,34 +18,69 @@ sections:
 - id: portfolio-health
   title: Portfolio Health
   type: metric
+  consumes_placeholders:
+  - '{{project_name}}'
+  - '{{portfolio_health}}'
 - id: schedule-performance
   title: Schedule Performance
   type: metric
+  consumes_placeholders:
+  - '{{schedule_performance}}'
 - id: budget-performance
   title: Budget Performance
   type: metric
+  consumes_placeholders:
+  - '{{budget_performance}}'
+  - '{{total_budget}}'
 - id: top-risks
   title: Top Risks
   type: metric
+  consumes_placeholders:
+  - '{{top_risks}}'
 - id: benefits-realization
   title: Benefits Realization
   type: metric
+  consumes_placeholders:
+  - '{{benefits_realization}}'
 - id: decisions-required
   title: Decisions Required
   type: metric
+  consumes_placeholders:
+  - '{{decisions_required}}'
 guidance:
   purpose: Canonical base structure for the executive-dashboard template.
-  authoring_notes: Use concise, role-specific language. Keep each narrative block as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
+  authoring_notes: Use concise, role-specific language. Keep each narrative block
+    as 2-6 sentences and avoid embedding methodology-specific guidance in core templates.
 placeholders:
+- key: project_name
+  token: '{{project_name}}'
+  consumed_by_sections:
+  - portfolio-health
 - key: portfolio_health
   token: '{{portfolio_health}}'
+  consumed_by_sections:
+  - portfolio-health
 - key: schedule_performance
   token: '{{schedule_performance}}'
+  consumed_by_sections:
+  - schedule-performance
 - key: budget_performance
   token: '{{budget_performance}}'
+  consumed_by_sections:
+  - budget-performance
 - key: top_risks
   token: '{{top_risks}}'
+  consumed_by_sections:
+  - top-risks
 - key: benefits_realization
   token: '{{benefits_realization}}'
+  consumed_by_sections:
+  - benefits-realization
 - key: decisions_required
   token: '{{decisions_required}}'
+  consumed_by_sections:
+  - decisions-required
+- key: total_budget
+  token: '{{total_budget}}'
+  consumed_by_sections:
+  - budget-performance

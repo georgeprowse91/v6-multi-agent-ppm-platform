@@ -99,3 +99,37 @@ Useful links:
 - [Template taxonomy](./standards/template-taxonomy.md)
 - [Template naming rules and migration table](./standards/template-naming-rules.md)
 - [Index governance policy](./standards/index-governance.md)
+- [Placeholder token standard](./standards/placeholders.md)
+- [Template field mapping registry](./mappings/template-field-map.json)
+
+## Binding examples
+
+End-to-end substitution flow for canonical rendering:
+
+1. **Load template structure** from a base file (for example, `core/project-charter/base.yaml`).
+2. **Resolve placeholders** listed in `placeholders[]` against the mapping registry in `mappings/template-field-map.json`.
+3. **Validate source data** using registry data type and validation hints.
+4. **Apply fallback policy** (error/default/empty) based on `required` + `fallback.strategy`.
+5. **Render sections** using `sections[].consumes_placeholders` to scope substitutions.
+
+Example:
+
+- Template tokens: `{{project_name}}`, `{{total_budget}}`
+- Mapping:
+  - `{{project_name}}` -> `project.name`
+  - `{{total_budget}}` -> `financials.total_budget.amount`
+- Input model:
+
+```json
+{
+  "project": { "name": "ERP Modernization" },
+  "financials": { "total_budget": { "amount": 2500000, "currency": "USD" } }
+}
+```
+
+- Rendered excerpt:
+
+```text
+Project: ERP Modernization
+Total Budget: 2500000 USD
+```
