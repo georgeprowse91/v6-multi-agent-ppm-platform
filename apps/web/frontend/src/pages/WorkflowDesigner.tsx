@@ -12,6 +12,8 @@ import ReactFlow, {
 } from 'reactflow';
 import type { AgentConfig } from '@/store/agentConfig/types';
 import type { Connector } from '@/store/connectors/types';
+import { parseJsonResponse, parseWithSchema } from '@/utils/apiValidation';
+import { s } from '@/utils/schema';
 import styles from './WorkflowDesigner.module.css';
 import 'reactflow/dist/style.css';
 
@@ -68,6 +70,110 @@ interface WorkflowDefinitionRecord {
   edges: Array<Edge>;
   definition: Record<string, unknown>;
 }
+
+
+const agentConfigSchema = s.object({
+  agent_id: s.string(),
+  name: s.string().optional(),
+  status: s.string().optional(),
+  role: s.string().optional(),
+  temperature: s.number().optional(),
+  model: s.string().optional(),
+  prompts: s.array(s.string()).optional(),
+  capabilities: s.array(s.string()).optional(),
+  rag_sources: s.array(s.string()).optional(),
+  tools: s.array(s.string()).optional(),
+});
+
+const connectorSchema = s.object({
+  id: s.string(),
+  name: s.string(),
+  category: s.string(),
+  enabled: s.boolean(),
+  status: s.string(),
+  description: s.string().optional(),
+  type: s.string().optional(),
+  endpoint: s.string().optional(),
+  auth_type: s.string().optional(),
+  capabilities: s.array(s.string()).optional(),
+  metrics: s.array(s.string()).optional(),
+  mcp_enabled: s.boolean().optional(),
+  mcp_server_id: s.string().nullish(),
+  mcp_server_url: s.string().nullish(),
+  mcp_tool_map: s.record(s.unknown()).nullish(),
+});
+
+const workflowConditionSchema = s.object({
+  field: s.string(),
+  operator: s.enum(conditionOperators),
+  value: s.string().optional(),
+});
+
+const workflowNodeSchema = s.object({
+  id: s.string(),
+  position: s.object({ x: s.number(), y: s.number() }),
+  data: s.object({
+    label: s.string(),
+    trigger: s.string().optional(),
+    condition: workflowConditionSchema.optional(),
+    agent_id: s.string().optional(),
+    action: s.string().optional(),
+    connector_id: s.string().optional(),
+    step_type: s.enum(stepTypes),
+  }),
+});
+
+const workflowEdgeSchema = s.object({
+  id: s.string(),
+  source: s.string(),
+  target: s.string(),
+});
+
+const workflowDefinitionSummarySchema = s.object({
+  workflow_id: s.string(),
+  name: s.string(),
+  description: s.string().nullish(),
+});
+
+const workflowStepDefinitionSchema = s.object({
+  id: s.string(),
+  type: s.enum(stepTypes).optional(),
+  next: s.string().optional(),
+  default_next: s.string().optional(),
+  branches: s.array(
+    s.object({
+      name: s.string().optional(),
+      condition: workflowConditionSchema.optional(),
+      next: s.string().optional(),
+    })
+  ).optional(),
+  condition: workflowConditionSchema.optional(),
+  config: s
+    .object({
+      trigger: s.string().optional(),
+      agent: s.string().optional(),
+      action: s.string().optional(),
+      connector_id: s.string().optional(),
+    })
+    .optional(),
+});
+
+const workflowDefinitionGraphSchema = s.object({
+  steps: s.array(workflowStepDefinitionSchema).default([]),
+});
+
+const workflowDefinitionRecordSchema = s.object({
+  workflow_id: s.string(),
+  name: s.string(),
+  description: s.string().nullish(),
+  nodes: s.array(workflowNodeSchema).default([]),
+  edges: s.array(workflowEdgeSchema).default([]),
+  definition: s.record(s.unknown()).default({}),
+});
+
+type WorkflowDefinitionGraph = {
+  steps: WorkflowStepDefinition[];
+};
 
 interface WorkflowStepDefinition {
   id: string;
@@ -229,10 +335,11 @@ const detectCycles = (nodeIds: string[], edges: Edge[]) => {
 };
 
 const buildGraphFromDefinition = (definition: Record<string, unknown>) => {
-  const definitionSteps = (definition as { steps?: unknown }).steps;
-  const steps = Array.isArray(definitionSteps)
-    ? (definitionSteps as WorkflowStepDefinition[])
-    : [];
+  const { steps } = parseWithSchema<WorkflowDefinitionGraph>(
+    workflowDefinitionGraphSchema,
+    definition,
+    'workflow definition graph'
+  );
   const nodes: Array<Node<WorkflowNodeData>> = steps.map((step, index) => {
     const nodeId = step.id ?? `step-${index + 1}`;
     const stepType = step.type ?? 'task';
@@ -320,17 +427,19 @@ export function WorkflowDesigner() {
         fetch(`${API_BASE}/api/workflows`),
       ]);
       if (agentsResponse.ok) {
-        setAgents((await agentsResponse.json()) as AgentConfig[]);
+        setAgents(await parseJsonResponse(agentsResponse, s.array(agentConfigSchema), 'workflow designer agents'));
       }
       if (connectorsResponse.ok) {
-        setConnectors((await connectorsResponse.json()) as Connector[]);
+        setConnectors(await parseJsonResponse(connectorsResponse, s.array(connectorSchema), 'workflow designer connectors'));
       }
       if (workflowResponse.ok) {
-        setWorkflowList((await workflowResponse.json()) as WorkflowDefinitionSummary[]);
+        setWorkflowList(await parseJsonResponse(workflowResponse, s.array(workflowDefinitionSummarySchema), 'workflow designer workflow list'));
       }
     };
     fetchBasics().catch((error) => {
       console.error('Failed to load workflow designer dependencies', error);
+      setStatus('Some workflow designer data failed validation.');
+      setErrors(['Unable to load one or more external payloads.']);
     });
   }, []);
 
@@ -454,28 +563,37 @@ export function WorkflowDesigner() {
       definition,
     };
     const existing = workflowList.some((workflow) => workflow.workflow_id === workflowId);
-    const response = await fetch(
-      `${API_BASE}/api/workflows${existing ? `/${workflowId}` : ''}`,
-      {
-        method: existing ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/workflows${existing ? `/${workflowId}` : ''}`,
+        {
+          method: existing ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!response.ok) {
+        setStatus('Failed to save workflow definition.');
+        return;
       }
-    );
-    if (!response.ok) {
-      setStatus('Failed to save workflow definition.');
-      return;
+      const updated = await parseJsonResponse(
+        response,
+        workflowDefinitionRecordSchema,
+        'workflow save response'
+      );
+      setStatus('Workflow saved successfully.');
+      setWorkflowList((current) => {
+        const without = current.filter((workflow) => workflow.workflow_id !== updated.workflow_id);
+        return [...without, {
+          workflow_id: updated.workflow_id,
+          name: updated.name,
+          description: updated.description,
+        }];
+      });
+    } catch (error) {
+      console.error('Failed to save workflow', error);
+      setStatus('Workflow save failed due to invalid response payload.');
     }
-    const updated = (await response.json()) as WorkflowDefinitionRecord;
-    setStatus('Workflow saved successfully.');
-    setWorkflowList((current) => {
-      const without = current.filter((workflow) => workflow.workflow_id !== updated.workflow_id);
-      return [...without, {
-        workflow_id: updated.workflow_id,
-        name: updated.name,
-        description: updated.description,
-      }];
-    });
   };
 
   const handleExport = () => {
@@ -508,7 +626,7 @@ export function WorkflowDesigner() {
     }
     const text = await file.text();
     try {
-      const payload = JSON.parse(text) as WorkflowDefinitionRecord;
+      const payload = parseWithSchema(workflowDefinitionRecordSchema, JSON.parse(text), 'workflow import file');
       if (!payload.nodes || !payload.edges) {
         if (payload.definition) {
           const graph = buildGraphFromDefinition(payload.definition);
@@ -534,22 +652,32 @@ export function WorkflowDesigner() {
   };
 
   const handleLoadWorkflow = async (workflow: WorkflowDefinitionSummary) => {
-    const response = await fetch(`${API_BASE}/api/workflows/${workflow.workflow_id}`);
-    if (!response.ok) {
-      setStatus('Failed to load workflow.');
-      return;
-    }
-    const record = (await response.json()) as WorkflowDefinitionRecord;
-    setWorkflowId(record.workflow_id);
-    setWorkflowName(record.name);
-    setWorkflowDescription(record.description ?? '');
-    if (record.nodes && record.edges) {
-      setNodes(record.nodes);
-      setEdges(record.edges);
-    } else {
-      const graph = buildGraphFromDefinition(record.definition ?? {});
-      setNodes(graph.nodes);
-      setEdges(graph.edges);
+    try {
+      const response = await fetch(`${API_BASE}/api/workflows/${workflow.workflow_id}`);
+      if (!response.ok) {
+        setStatus('Failed to load workflow.');
+        return;
+      }
+      const record = await parseJsonResponse(
+        response,
+        workflowDefinitionRecordSchema,
+        'workflow load response'
+      );
+      setWorkflowId(record.workflow_id);
+      setWorkflowName(record.name);
+      setWorkflowDescription(record.description ?? '');
+      if (record.nodes && record.edges) {
+        setNodes(record.nodes);
+        setEdges(record.edges);
+      } else {
+        const graph = buildGraphFromDefinition(record.definition ?? {});
+        setNodes(graph.nodes);
+        setEdges(graph.edges);
+      }
+    } catch (error) {
+      console.error('Failed to load workflow', error);
+      setStatus('Workflow load failed due to invalid response payload.');
+      setErrors(['Workflow payload did not match expected schema.']);
     }
   };
 
