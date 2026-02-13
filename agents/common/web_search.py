@@ -15,7 +15,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
-from llm.client import LLMClient, LLMProviderError  # noqa: E402
+from llm.client import LLMGateway, LLMProviderError  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +158,7 @@ async def search_web(query: str, *, result_limit: int | None = None) -> list[str
 async def summarize_snippets(
     snippets: list[str],
     *,
-    llm_client: LLMClient | None = None,
+    llm_client: LLMGateway | None = None,
     purpose: SearchPurpose = "general",
 ) -> str:
     """Summarize web search snippets using the LLM.
@@ -174,7 +174,7 @@ async def summarize_snippets(
     if not snippets:
         return ""
 
-    llm = llm_client or LLMClient()
+    llm = llm_client or LLMGateway()
     system_prompt = _SUMMARY_PROMPTS.get(purpose, _SUMMARY_PROMPTS["general"])
     user_prompt = "\n".join(f"- {snippet}" for snippet in snippets)
 

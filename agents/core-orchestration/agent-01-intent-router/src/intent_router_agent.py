@@ -26,7 +26,7 @@ LLM_ROOT = Path(__file__).resolve().parents[5] / "packages" / "llm" / "src"
 if str(LLM_ROOT) not in sys.path:
     sys.path.insert(0, str(LLM_ROOT))
 
-from llm import LLMClient  # noqa: E402
+from llm import LLMGateway  # noqa: E402
 from observability.tracing import get_trace_id  # noqa: E402
 from prompt_registry import PromptRegistry, enforce_redaction  # noqa: E402
 
@@ -194,7 +194,7 @@ class IntentRouterAgent(BaseAgent):
             if mock_response is not None:
                 llm_config = {"mock_response": mock_response}
 
-        self.llm_client = self.config.get("llm_client") or LLMClient(
+        self.llm_client = self.config.get("llm_client") or LLMGateway(
             provider=self.config.get("llm_provider"),
             config=llm_config,
         )

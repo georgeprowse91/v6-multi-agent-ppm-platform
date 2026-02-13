@@ -28,7 +28,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
-from llm.client import LLMClient, LLMProviderError  # noqa: E402
+from llm.client import LLMGateway, LLMProviderError  # noqa: E402
 
 from agents.common.connector_integration import (  # noqa: E402
     DatabaseStorageService,
@@ -1150,7 +1150,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         domain: str,
         region: str | None,
         *,
-        llm_client: LLMClient | None = None,
+        llm_client: LLMGateway | None = None,
         result_limit: int | None = None,
     ) -> dict[str, Any]:
         """Monitor external sources for new or changing regulations."""
@@ -1322,7 +1322,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         summary: str,
         snippets: list[str],
         *,
-        llm_client: LLMClient | None = None,
+        llm_client: LLMGateway | None = None,
     ) -> list[dict[str, Any]]:
         sources = self._extract_sources(snippets)
         system_prompt = (
@@ -1335,7 +1335,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             indent=2,
         )
 
-        llm = llm_client or LLMClient()
+        llm = llm_client or LLMGateway()
         try:
             response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
             data = json.loads(response.content)

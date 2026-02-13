@@ -9,7 +9,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
-from llm.client import LLMClient, LLMProviderError  # noqa: E402
+from llm.client import LLMGateway, LLMProviderError  # noqa: E402
 from web_search import summarize_snippets  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def generate_scope_from_search(
     template_requirements: list[str],
     template_wbs: list[str],
     *,
-    llm_client: LLMClient | None = None,
+    llm_client: LLMGateway | None = None,
 ) -> dict[str, Any]:
     fallback = {
         "scope": template_scope,
@@ -60,7 +60,7 @@ async def generate_scope_from_search(
     if not snippets:
         return fallback
 
-    llm = llm_client or LLMClient()
+    llm = llm_client or LLMGateway()
     summary = await summarize_snippets(snippets, llm_client=llm, purpose="scope")
 
     system_prompt = (

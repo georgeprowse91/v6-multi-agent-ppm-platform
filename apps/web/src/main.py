@@ -75,7 +75,7 @@ from workflow_models import (  # noqa: E402
 )
 from workflow_store import WorkflowDefinitionStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402
-from llm.client import LLMClient, LLMProviderError  # noqa: E402
+from llm.client import LLMGateway, LLMProviderError  # noqa: E402
 from methodologies import (  # noqa: E402
     METHODOLOGY_STORAGE_PATH,
     available_methodologies,
@@ -1592,7 +1592,7 @@ async def _llm_suggestions(
     context: dict[str, Any],
     methodology_map: dict[str, Any],
 ) -> list[AssistantSuggestion]:
-    llm = LLMClient()
+    llm = LLMGateway()
     system_prompt = (
         "You are a PMO assistant generating next best action suggestions. "
         "Return JSON with a top-level key 'suggestions' that is a list of objects. "
@@ -1860,7 +1860,7 @@ async def _extract_intake_fields(
         document_name=document_name,
         document_content=document_content,
     )
-    llm = LLMClient()
+    llm = LLMGateway()
     response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt)
     try:
         data = json.loads(response.content)

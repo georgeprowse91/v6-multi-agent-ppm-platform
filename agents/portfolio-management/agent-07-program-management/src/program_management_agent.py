@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from events import ProgramCreatedEvent, ProgramRoadmapUpdatedEvent
-from llm.client import LLMClient
+from llm.client import LLMGateway
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import DatabaseStorageService
@@ -1943,7 +1943,7 @@ class ProgramManagementAgent(BaseAgent):
             provider = llm_config.get("provider") or (
                 "azure_openai" if os.getenv("AZURE_OPENAI_ENDPOINT") else None
             )
-            self.llm_client = LLMClient(provider=provider, config=llm_config)
+            self.llm_client = LLMGateway(provider=provider, config=llm_config)
 
     async def _initialize_integrations(self) -> None:
         if self.planview_connector is None:
