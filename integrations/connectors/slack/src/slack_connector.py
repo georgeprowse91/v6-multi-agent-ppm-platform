@@ -38,6 +38,8 @@ class SlackConnector(RestConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.COLLABORATION
     SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("ts", "client_msg_id", "channel")
+    CONFLICT_TIMESTAMP_FIELD = "ts"
 
     AUTH_TEST_ENDPOINT = "/auth.test"
     RESOURCE_PATHS = {

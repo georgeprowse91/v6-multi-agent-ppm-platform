@@ -33,7 +33,9 @@ class WorkdayConnector(OAuth2RestConnector):
     CONNECTOR_NAME = "Workday"
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.HRIS
-    SUPPORTS_WRITE = False
+    SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("id", "worker_id", "position_id")
+    CONFLICT_TIMESTAMP_FIELD = "updated_at"
 
     INSTANCE_URL_ENV = "WORKDAY_API_URL"
     CLIENT_ID_ENV = "WORKDAY_CLIENT_ID"
@@ -50,8 +52,8 @@ class WorkdayConnector(OAuth2RestConnector):
     AUTH_TEST_ENDPOINT = "/ccx/api/v1/workers"
     AUTH_TEST_PARAMS = {"limit": 1}
     RESOURCE_PATHS = {
-        "workers": {"path": "/ccx/api/v1/workers", "items_path": "data"},
-        "positions": {"path": "/ccx/api/v1/positions", "items_path": "data"},
+        "workers": {"path": "/ccx/api/v1/workers", "items_path": "data", "write_path": "/ccx/api/v1/workers", "write_method": "POST"},
+        "positions": {"path": "/ccx/api/v1/positions", "items_path": "data", "write_path": "/ccx/api/v1/positions", "write_method": "POST"},
     }
     SCHEMA = {
         "workers": {"id": "string", "name": "string", "status": "string"},

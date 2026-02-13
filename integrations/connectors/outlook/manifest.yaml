@@ -1,28 +1,40 @@
-id: "outlook"
-version: "1.0.0"
-name: "Outlook"
-description: "Sync calendar events and schedules from Outlook via Microsoft Graph."
-owner: "integration-team"
-category: "collaboration"
+id: outlook
+version: 1.0.0
+name: Outlook
+description: Sync calendar events and schedules from Outlook via Microsoft Graph.
+owner: integration-team
+category: collaboration
 auth:
-  type: "oauth2"
-  token_url: "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  type: oauth2
+  token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
   scopes:
-    - "Calendars.Read"
-    - "Calendars.ReadWrite"
+  - Calendars.Read
+  - Calendars.ReadWrite
   fields:
-    - "client_id"
-    - "client_secret"
-    - "refresh_token"
-    - "tenant_id"
+  - client_id
+  - client_secret
+  - refresh_token
+  - tenant_id
 sync:
   modes:
-    - "full"
-    - "incremental"
-  default_schedule: "*/30 * * * *"
+  - full
+  - incremental
+  default_schedule: '*/30 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 60
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "mappings/project.yaml"
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 2
+  tier: strategic
+  business_priority: 9
+  capabilities:
+    read: true
+    write: true
+    webhook: true
+    declarative_mapping: true
+    idempotent_write: true
+    conflict_handling: true
+  notes: Level 2 priority connector baseline

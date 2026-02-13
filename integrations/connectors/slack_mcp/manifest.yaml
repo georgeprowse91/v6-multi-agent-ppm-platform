@@ -1,43 +1,55 @@
-id: "slack_mcp"
-version: "1.0.0"
-name: "Slack (MCP)"
-description: "Sync collaboration metadata and notifications from Slack via an MCP server."
-owner: "integration-team"
-category: "collaboration"
-protocol: "mcp"
+id: slack_mcp
+version: 1.0.0
+name: Slack (MCP)
+description: Sync collaboration metadata and notifications from Slack via an MCP server.
+owner: integration-team
+category: collaboration
+protocol: mcp
 auth:
-  type: "api_key"
+  type: api_key
   fields:
-    - "mcp_server_url"
-    - "mcp_server_id"
-    - "tool_map"
-    - "mcp_api_key"
-    - "mcp_api_key_header"
+  - mcp_server_url
+  - mcp_server_id
+  - tool_map
+  - mcp_api_key
+  - mcp_api_key_header
 mcp:
-  server_url: "https://mcp.example.com"
-  server_id: "slack"
-  protocol_version: "2025-06-18"
+  server_url: https://mcp.example.com
+  server_id: slack
+  protocol_version: '2025-06-18'
   tool_map:
-    list_channels: "slack.listChannels"
-    post_message: "slack.postMessage"
-    list_users: "slack.listUsers"
-mcp_server_url: "https://mcp.example.com"
-mcp_server_id: "slack"
+    list_channels: slack.listChannels
+    post_message: slack.postMessage
+    list_users: slack.listUsers
+mcp_server_url: https://mcp.example.com
+mcp_server_id: slack
 tool_map:
-  list_channels: "slack.listChannels"
-  post_message: "slack.postMessage"
-  list_users: "slack.listUsers"
+  list_channels: slack.listChannels
+  post_message: slack.postMessage
+  list_users: slack.listUsers
 sync:
   modes:
-    - "full"
-    - "incremental"
-  default_schedule: "*/30 * * * *"
+  - full
+  - incremental
+  default_schedule: '*/30 * * * *'
   supports_webhooks: false
   rate_limit_per_minute: 1000
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "mappings/project.yaml"
-  - source: "resource"
-    target: "resource"
-    mapping_file: "mappings/resource.yaml"
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+- source: resource
+  target: resource
+  mapping_file: mappings/resource.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

@@ -21,6 +21,7 @@ from base_connector import (
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
 from secrets import fetch_keyvault_secret, resolve_secret
+from sync_controls import WriteControlPolicy, dedupe_by_idempotency
 
 
 class RestConnector(BaseConnector):
@@ -183,6 +184,11 @@ class RestConnector(BaseConnector):
         if resource_type not in self.RESOURCE_PATHS:
             raise ValueError(f"Unsupported resource type: {resource_type}")
         info = self.RESOURCE_PATHS[resource_type]
+        policy = WriteControlPolicy(
+            idempotency_fields=tuple(getattr(self, "IDEMPOTENCY_FIELDS", ("id", "external_id", "key"))),
+            conflict_timestamp_field=getattr(self, "CONFLICT_TIMESTAMP_FIELD", "updated_at"),
+        )
+        data = dedupe_by_idempotency(data, policy)
         write_path = info.get("write_path")
         if not write_path:
             raise ValueError(f"Write not supported for resource: {resource_type}")

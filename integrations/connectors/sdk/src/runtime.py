@@ -32,6 +32,7 @@ class ConnectorManifest:
     auth: dict[str, Any]
     sync: dict[str, Any]
     mappings: list[dict[str, Any]]
+    maturity: dict[str, Any]
 
 
 @dataclass
@@ -69,6 +70,20 @@ class ConnectorRuntime:
 
     def _load_mapping(self, path: Path) -> MappingSpec:
         data = yaml.safe_load(path.read_text())
+        schema_path = (
+            Path(__file__).resolve().parents[4]
+            / "integrations"
+            / "connectors"
+            / "registry"
+            / "schemas"
+            / "connector-mapping.schema.json"
+        )
+        schema = yaml.safe_load(schema_path.read_text())
+        validator = Draft202012Validator(schema, format_checker=FormatChecker())
+        errors = sorted(validator.iter_errors(data), key=lambda err: err.path)
+        if errors:
+            formatted = "; ".join(error.message for error in errors)
+            raise ValueError(f"Connector mapping validation failed ({path}): {formatted}")
         return MappingSpec(
             source=data["source"],
             target=data["target"],

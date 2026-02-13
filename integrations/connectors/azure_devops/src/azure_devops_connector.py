@@ -32,6 +32,8 @@ class AzureDevOpsConnector(RestConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.PM
     SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("id", "workItemId", "rev")
+    CONFLICT_TIMESTAMP_FIELD = "changedDate"
 
     AUTH_TEST_ENDPOINT = "/_apis/projects"
     AUTH_TEST_PARAMS = {"api-version": "7.0", "$top": 1}

@@ -1,27 +1,39 @@
-id: "clarity"
-version: "1.0.0"
-name: "Clarity PPM"
-description: "Sync portfolio and project data from Clarity PPM."
-owner: "integration-team"
-category: "ppm"
+id: clarity
+version: 1.0.0
+name: Clarity PPM
+description: Sync portfolio and project data from Clarity PPM.
+owner: integration-team
+category: ppm
 auth:
-  type: "oauth2"
-  token_url: "https://clarity.example.com/oauth/token"
+  type: oauth2
+  token_url: https://clarity.example.com/oauth/token
   scopes:
-    - "read"
+  - read
   fields:
-    - "client_id"
-    - "client_secret"
-    - "refresh_token"
-    - "instance_url"
+  - client_id
+  - client_secret
+  - refresh_token
+  - instance_url
 sync:
   modes:
-    - "full"
-    - "incremental"
-  default_schedule: "0 3 * * *"
+  - full
+  - incremental
+  default_schedule: 0 3 * * *
   supports_webhooks: false
   rate_limit_per_minute: 200
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "mappings/project.yaml"
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

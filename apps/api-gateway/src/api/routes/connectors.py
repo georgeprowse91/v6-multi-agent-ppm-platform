@@ -24,6 +24,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import AnyHttpUrl, BaseModel, Field, TypeAdapter, field_validator, model_validator
 
@@ -2243,3 +2245,64 @@ async def delete_connector_config(connector_id: str, http_request: Request) -> d
     )
 
     return {"status": "deleted", "connector_id": connector_id}
+
+
+@router.get("/connectors/health/dashboard")
+async def connector_health_dashboard(request: Request) -> dict[str, Any]:
+    """Connector health dashboard metrics (sync lag, error proxy, mapping coverage)."""
+    manifests = sorted(CONNECTORS_ROOT.glob("*/manifest.yaml"))
+    webhook_store = get_webhook_store(request)
+    connector_rows: list[dict[str, Any]] = []
+
+    for manifest_path in manifests:
+        manifest = yaml.safe_load(manifest_path.read_text())
+        connector_id = manifest.get("id", manifest_path.parent.name)
+        maturity = manifest.get("maturity", {})
+        capabilities = maturity.get("capabilities", {})
+        events = webhook_store.list_events(connector_id=connector_id)
+        latest = events[-1] if events else None
+        sync_lag_seconds = None
+        if latest and latest.get("received_at"):
+            try:
+                received_at = datetime.fromisoformat(str(latest["received_at"]).replace("Z", "+00:00"))
+                sync_lag_seconds = max((datetime.now(timezone.utc) - received_at).total_seconds(), 0)
+            except ValueError:
+                sync_lag_seconds = None
+
+        error_events = [
+            event for event in events if isinstance(event.get("result"), dict) and event["result"].get("status") == "error"
+        ]
+        mapping_entries = manifest.get("mappings", [])
+        existing_mapping_files = [
+            m for m in mapping_entries if (manifest_path.parent / str(m.get("mapping_file", ""))).exists()
+        ]
+        mapping_coverage = (
+            len(existing_mapping_files) / len(mapping_entries) if mapping_entries else 0.0
+        )
+
+        connector_rows.append(
+            {
+                "connector_id": connector_id,
+                "maturity_level": maturity.get("level", 0),
+                "sync_lag_seconds": sync_lag_seconds,
+                "error_rate": (len(error_events) / len(events)) if events else 0.0,
+                "mapping_coverage": round(mapping_coverage, 2),
+                "capabilities": {
+                    "read": bool(capabilities.get("read")),
+                    "write": bool(capabilities.get("write")),
+                    "webhook": bool(capabilities.get("webhook")),
+                },
+            }
+        )
+
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "connectors": connector_rows,
+        "metrics": {
+            "avg_mapping_coverage": round(
+                sum(row["mapping_coverage"] for row in connector_rows) / max(len(connector_rows), 1),
+                2,
+            ),
+            "connectors_with_webhook": sum(1 for row in connector_rows if row["capabilities"]["webhook"]),
+        },
+    }

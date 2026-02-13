@@ -49,6 +49,7 @@ from mcp_client.errors import (
 )
 from .mappers import map_from_mcp_response, map_to_mcp_params
 from secrets import resolve_secret
+from sync_controls import WriteControlPolicy, dedupe_by_idempotency
 
 logger = logging.getLogger(__name__)
 
@@ -102,9 +103,11 @@ class JiraConnector(BaseConnector):
             if not self.authenticate():
                 raise RuntimeError("Failed to authenticate with Jira")
 
+        policy = WriteControlPolicy(idempotency_fields=("id", "key", "summary"), conflict_timestamp_field="updated")
+        deduped_data = dedupe_by_idempotency(data, policy)
         results: list[dict[str, Any]] = []
 
-        for record in data:
+        for record in deduped_data:
             issue_id = record.get("id") or record.get("key")
             status_value = record.get("status")
 

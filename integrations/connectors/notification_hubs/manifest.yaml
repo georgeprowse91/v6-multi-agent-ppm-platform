@@ -1,23 +1,35 @@
-id: "notification_hubs"
-version: "1.0.0"
-name: "Azure Notification Hubs"
-description: "Send push notifications via Azure Notification Hubs."
-owner: "integration-team"
-category: "collaboration"
+id: notification_hubs
+version: 1.0.0
+name: Azure Notification Hubs
+description: Send push notifications via Azure Notification Hubs.
+owner: integration-team
+category: collaboration
 auth:
-  type: "sas"
+  type: sas
   fields:
-    - "namespace"
-    - "hub_name"
-    - "sas_key_name"
-    - "sas_key"
+  - namespace
+  - hub_name
+  - sas_key_name
+  - sas_key
 sync:
   modes:
-    - "incremental"
-  default_schedule: "*/30 * * * *"
+  - incremental
+  default_schedule: '*/30 * * * *'
   supports_webhooks: false
   rate_limit_per_minute: 60
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "mappings/project.yaml"
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

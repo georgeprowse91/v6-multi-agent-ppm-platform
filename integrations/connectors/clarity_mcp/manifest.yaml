@@ -1,38 +1,50 @@
-id: "clarity_mcp"
-version: "1.0.0"
-name: "Clarity PPM (MCP)"
-description: "Sync Clarity projects and work items via an MCP server."
-owner: "integration-team"
-category: "ppm"
-protocol: "mcp"
+id: clarity_mcp
+version: 1.0.0
+name: Clarity PPM (MCP)
+description: Sync Clarity projects and work items via an MCP server.
+owner: integration-team
+category: ppm
+protocol: mcp
 auth:
-  type: "api_key"
+  type: api_key
   fields:
-    - "mcp_server_url"
-    - "mcp_server_id"
-    - "tool_map"
-    - "mcp_api_key"
-    - "mcp_api_key_header"
+  - mcp_server_url
+  - mcp_server_id
+  - tool_map
+  - mcp_api_key
+  - mcp_api_key_header
 mcp:
-  server_url: "https://mcp.example.com"
-  server_id: "clarity"
-  protocol_version: "2025-06-18"
+  server_url: https://mcp.example.com
+  server_id: clarity
+  protocol_version: '2025-06-18'
   tool_map:
-    list_projects: "clarity.listProjects"
-    create_project: "clarity.createProject"
-mcp_server_url: "https://mcp.example.com"
-mcp_server_id: "clarity"
+    list_projects: clarity.listProjects
+    create_project: clarity.createProject
+mcp_server_url: https://mcp.example.com
+mcp_server_id: clarity
 tool_map:
-  list_projects: "clarity.listProjects"
-  create_project: "clarity.createProject"
+  list_projects: clarity.listProjects
+  create_project: clarity.createProject
 sync:
   modes:
-    - "full"
-    - "incremental"
-  default_schedule: "0 3 * * *"
+  - full
+  - incremental
+  default_schedule: 0 3 * * *
   supports_webhooks: false
   rate_limit_per_minute: 200
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "../clarity/mappings/project.yaml"
+- source: project
+  target: project
+  mapping_file: ../clarity/mappings/project.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

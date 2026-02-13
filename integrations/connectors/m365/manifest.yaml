@@ -1,62 +1,75 @@
-id: "m365"
-version: "1.1.0"
-name: "Microsoft 365"
-description: "Sync Microsoft 365 workloads (Teams, Exchange, SharePoint, Planner, OneDrive, Power BI, Viva) via Microsoft Graph and MCP."
-owner: "integration-team"
-category: "collaboration"
-protocol: "mcp"
-tool_map: "tool_map.yaml"
+id: m365
+version: 1.1.0
+name: Microsoft 365
+description: Sync Microsoft 365 workloads (Teams, Exchange, SharePoint, Planner, OneDrive,
+  Power BI, Viva) via Microsoft Graph and MCP.
+owner: integration-team
+category: collaboration
+protocol: mcp
+tool_map: tool_map.yaml
 auth:
-  type: "oauth2"
-  token_url: "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  type: oauth2
+  token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
   scopes:
-    - "offline_access"
-    - "User.Read"
-    - "Group.Read.All"
-    - "Calendars.Read"
-    - "Mail.Read"
-    - "Sites.Read.All"
-    - "Tasks.Read"
-    - "Files.Read.All"
-    - "Reports.Read.All"
+  - offline_access
+  - User.Read
+  - Group.Read.All
+  - Calendars.Read
+  - Mail.Read
+  - Sites.Read.All
+  - Tasks.Read
+  - Files.Read.All
+  - Reports.Read.All
   fields:
-    - "client_id"
-    - "client_secret"
-    - "refresh_token"
-    - "tenant_id"
-    - "scopes"
-    - "mcp_server_url"
-    - "mcp_server_id"
-    - "tool_map"
+  - client_id
+  - client_secret
+  - refresh_token
+  - tenant_id
+  - scopes
+  - mcp_server_url
+  - mcp_server_id
+  - tool_map
 mcp:
-  server_url: "https://mcp.example.com"
-  server_id: "m365"
-  protocol_version: "2025-06-18"
+  server_url: https://mcp.example.com
+  server_id: m365
+  protocol_version: '2025-06-18'
   tool_map:
-    list_workloads: "m365.listWorkloads"
-    list_items: "m365.listItems"
-    get_item: "m365.getItem"
-mcp_server_url: "https://mcp.example.com"
-mcp_server_id: "m365"
+    list_workloads: m365.listWorkloads
+    list_items: m365.listItems
+    get_item: m365.getItem
+mcp_server_url: https://mcp.example.com
+mcp_server_id: m365
 sync:
   modes:
-    - "full"
-    - "incremental"
-  default_schedule: "*/30 * * * *"
+  - full
+  - incremental
+  default_schedule: '*/30 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 600
   workloads:
-    - "teams"
-    - "exchange"
-    - "sharepoint"
-    - "planner"
-    - "onedrive"
-    - "power_bi"
-    - "viva"
+  - teams
+  - exchange
+  - sharepoint
+  - planner
+  - onedrive
+  - power_bi
+  - viva
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "mappings/project.yaml"
-  - source: "resource"
-    target: "resource"
-    mapping_file: "mappings/resource.yaml"
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+- source: resource
+  target: resource
+  mapping_file: mappings/resource.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: true
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

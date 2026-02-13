@@ -34,7 +34,9 @@ class SapConnector(BasicAuthRestConnector):
     CONNECTOR_NAME = "SAP"
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.ERP
-    SUPPORTS_WRITE = False
+    SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("ProjectID", "id", "external_id")
+    CONFLICT_TIMESTAMP_FIELD = "LastChangedAt"
 
     INSTANCE_URL_ENV = "SAP_URL"
     USERNAME_ENV = "SAP_USERNAME"
@@ -42,10 +44,12 @@ class SapConnector(BasicAuthRestConnector):
     AUTH_TEST_ENDPOINT = "/sap/opu/odata/sap/PROJECT_SRV/Projects"
     AUTH_TEST_PARAMS = {"$top": 1}
     RESOURCE_PATHS = {
-        "projects": {"path": "/sap/opu/odata/sap/PROJECT_SRV/Projects", "items_path": "d.results"},
+        "projects": {"path": "/sap/opu/odata/sap/PROJECT_SRV/Projects", "items_path": "d.results", "write_path": "/sap/opu/odata/sap/PROJECT_SRV/Projects", "write_method": "POST"},
         "costs": {
             "path": "/sap/opu/odata/sap/PROJECT_SRV/ProjectCosts",
             "items_path": "d.results",
+            "write_path": "/sap/opu/odata/sap/PROJECT_SRV/ProjectCosts",
+            "write_method": "POST",
         },
     }
     SCHEMA = {

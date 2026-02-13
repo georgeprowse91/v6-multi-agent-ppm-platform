@@ -31,6 +31,8 @@ class OutlookConnector(OAuth2RestConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.COLLABORATION
     SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("id", "iCalUId", "external_id")
+    CONFLICT_TIMESTAMP_FIELD = "lastModifiedDateTime"
 
     INSTANCE_URL_ENV = "OUTLOOK_API_URL"
     CLIENT_ID_ENV = "OUTLOOK_CLIENT_ID"

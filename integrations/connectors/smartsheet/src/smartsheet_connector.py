@@ -30,6 +30,8 @@ class SmartsheetConnector(ApiKeyRestConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.PM
     SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("id", "rowId", "sheetId")
+    CONFLICT_TIMESTAMP_FIELD = "modifiedAt"
 
     INSTANCE_URL_ENV = "SMARTSHEET_API_URL"
     API_KEY_ENV = "SMARTSHEET_API_TOKEN"

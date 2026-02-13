@@ -43,6 +43,9 @@ jobs:
       - name: Verify API versioning
         run: python scripts/check_api_versioning.py
 
+      - name: Enforce connector maturity gate
+        run: python scripts/check_connector_maturity.py
+
       - name: Run Ruff
         run: ruff check agents/ apps/ packages/ tests/ --output-format=github
 

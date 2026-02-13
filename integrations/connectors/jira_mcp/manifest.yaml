@@ -1,43 +1,55 @@
-id: "jira_mcp"
-version: "1.0.0"
-name: "Jira (MCP)"
-description: "Sync projects and work items from Jira via an MCP server."
-owner: "integration-team"
-category: "work-management"
-protocol: "mcp"
+id: jira_mcp
+version: 1.0.0
+name: Jira (MCP)
+description: Sync projects and work items from Jira via an MCP server.
+owner: integration-team
+category: work-management
+protocol: mcp
 auth:
-  type: "api_key"
+  type: api_key
   fields:
-    - "mcp_server_url"
-    - "mcp_server_id"
-    - "tool_map"
-    - "mcp_api_key"
-    - "mcp_api_key_header"
+  - mcp_server_url
+  - mcp_server_id
+  - tool_map
+  - mcp_api_key
+  - mcp_api_key_header
 mcp:
-  server_url: "https://mcp.example.com"
-  server_id: "jira"
-  protocol_version: "2025-06-18"
+  server_url: https://mcp.example.com
+  server_id: jira
+  protocol_version: '2025-06-18'
   tool_map:
-    list_projects: "jira.listProjects"
-    list_work_items: "jira.listIssues"
-    upsert_work_item: "jira.upsertIssue"
-mcp_server_url: "https://mcp.example.com"
-mcp_server_id: "jira"
+    list_projects: jira.listProjects
+    list_work_items: jira.listIssues
+    upsert_work_item: jira.upsertIssue
+mcp_server_url: https://mcp.example.com
+mcp_server_id: jira
 tool_map:
-  list_projects: "jira.listProjects"
-  list_work_items: "jira.listIssues"
-  upsert_work_item: "jira.upsertIssue"
+  list_projects: jira.listProjects
+  list_work_items: jira.listIssues
+  upsert_work_item: jira.upsertIssue
 sync:
   modes:
-    - "full"
-    - "incremental"
-  default_schedule: "0 */4 * * *"
+  - full
+  - incremental
+  default_schedule: 0 */4 * * *
   supports_webhooks: false
   rate_limit_per_minute: 600
 mappings:
-  - source: "project"
-    target: "project"
-    mapping_file: "mappings/project.yaml"
-  - source: "work_item"
-    target: "work-item"
-    mapping_file: "mappings/work-item.yaml"
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+- source: work_item
+  target: work-item
+  mapping_file: mappings/work-item.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

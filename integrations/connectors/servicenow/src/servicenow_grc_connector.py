@@ -26,6 +26,8 @@ class ServiceNowGrcConnector(OAuth2RestConnector):
     CONNECTOR_VERSION = "1.0.0"
     CONNECTOR_CATEGORY = ConnectorCategory.GRC
     SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("sys_id", "number", "id")
+    CONFLICT_TIMESTAMP_FIELD = "sys_updated_on"
 
     INSTANCE_URL_ENV = "SERVICENOW_URL"
     CLIENT_ID_ENV = "SERVICENOW_CLIENT_ID"
