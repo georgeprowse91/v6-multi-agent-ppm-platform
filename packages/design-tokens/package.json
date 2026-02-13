@@ -1,0 +1,23 @@
+{
+  "name": "@ppm/design-tokens",
+  "version": "1.0.0",
+  "private": false,
+  "type": "module",
+  "files": [
+    "tokens.css",
+    "tokens.ts",
+    "tokens.json"
+  ],
+  "exports": {
+    ".": {
+      "types": "./tokens.ts",
+      "default": "./tokens.ts"
+    },
+    "./tokens.css": "./tokens.css",
+    "./tokens.json": "./tokens.json",
+    "./tokens": {
+      "types": "./tokens.ts",
+      "default": "./tokens.ts"
+    }
+  }
+}

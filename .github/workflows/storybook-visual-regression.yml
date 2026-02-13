@@ -1,0 +1,49 @@
+name: Storybook Visual Regression
+
+on:
+  pull_request:
+    paths:
+      - 'design-system/**'
+      - 'packages/ui-kit/**'
+      - 'packages/design-tokens/**'
+      - 'apps/web/frontend/**'
+      - '.github/workflows/storybook-visual-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'design-system/**'
+      - 'packages/ui-kit/**'
+      - 'packages/design-tokens/**'
+      - 'apps/web/frontend/**'
+
+jobs:
+  storybook:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Storybook
+        run: npm run build-storybook
+
+      - name: Storybook a11y test runner (baseline: 0 axe violations)
+        run: npm run test-storybook
+
+      - name: Publish visual regression to Chromatic
+        uses: chromaui/action@v11
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/web/frontend
+          storybookBuildDir: apps/web/frontend/storybook-static
+        if: ${{ secrets.CHROMATIC_PROJECT_TOKEN != '' }}
