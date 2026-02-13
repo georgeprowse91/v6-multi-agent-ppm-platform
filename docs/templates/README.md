@@ -142,7 +142,7 @@ Example:
 ```json
 {
   "project": { "name": "ERP Modernization" },
-  "financials": { "total_budget": { "amount": 2500000, "currency": "USD" } }
+  "financials": { "total_budget": { "amount": 2500000, "currency": "AUD" } }
 }
 ```
 
@@ -150,5 +150,5 @@ Example:
 
 ```text
 Project: ERP Modernization
-Total Budget: 2500000 USD
+Total Budget: 2500000 AUD
 ```

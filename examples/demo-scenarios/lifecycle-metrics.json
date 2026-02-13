@@ -1,7 +1,7 @@
 {
   "portfolio_id": "demo-portfolio",
   "project_id": "demo-1",
-  "as_of": "2024-08-15T12:00:00Z",
+  "as_of": "2026-08-15T12:00:00Z",
   "summary": {
     "avg_cycle_time_days": 42,
     "gates_on_track": 3,
@@ -15,7 +15,7 @@
       "status": "on_track",
       "percent_complete": 85,
       "gate": "Discovery Gate",
-      "due_date": "2024-09-05"
+      "due_date": "2026-09-05"
     },
     {
       "stage_id": "agile-planning",
@@ -23,7 +23,7 @@
       "status": "at_risk",
       "percent_complete": 62,
       "gate": "Planning Gate",
-      "due_date": "2024-09-18"
+      "due_date": "2026-09-18"
     },
     {
       "stage_id": "agile-delivery",
@@ -31,7 +31,7 @@
       "status": "on_track",
       "percent_complete": 40,
       "gate": "Delivery Gate",
-      "due_date": "2024-10-02"
+      "due_date": "2026-10-02"
     },
     {
       "stage_id": "agile-review",
@@ -39,7 +39,7 @@
       "status": "on_track",
       "percent_complete": 15,
       "gate": "Review Gate",
-      "due_date": "2024-10-20"
+      "due_date": "2026-10-20"
     }
   ],
   "capacity": {

@@ -463,9 +463,9 @@ export function getMockAgents(): AgentConfig[] {
           display_name: 'Default Currency',
           description: 'Default currency for financial calculations',
           param_type: 'select',
-          default_value: 'USD',
-          current_value: 'USD',
-          options: ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY'],
+          default_value: 'AUD',
+          current_value: 'AUD',
+          options: ['AUD', 'EUR', 'GBP', 'NZD', 'CAD', 'JPY'],
           required: true,
         },
         {

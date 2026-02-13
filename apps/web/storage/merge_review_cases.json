@@ -17,7 +17,7 @@
           "email": "accounts@apex-industrial.com",
           "phone": "+1 303-555-0144"
         },
-        "last_updated": "2024-02-18T10:32:00+00:00"
+        "last_updated": "2026-02-18T10:32:00+00:00"
       },
       "duplicate_record": {
         "record_id": "vendor-204",
@@ -30,7 +30,7 @@
           "email": "finance@apex-industrial.com",
           "phone": "+1 303-555-0144"
         },
-        "last_updated": "2024-02-12T08:15:00+00:00"
+        "last_updated": "2026-02-12T08:15:00+00:00"
       },
       "merge_preview": {
         "summary": "Apex Industrial Supplies (ERP primary)",
@@ -42,8 +42,8 @@
           "phone": "+1 303-555-0144"
         }
       },
-      "created_at": "2024-02-20T09:00:00+00:00",
-      "updated_at": "2024-02-20T09:00:00+00:00"
+      "created_at": "2026-02-20T09:00:00+00:00",
+      "updated_at": "2026-02-20T09:00:00+00:00"
     },
     {
       "case_id": "merge-002",
@@ -61,7 +61,7 @@
           "email": "jordan.blake@ppm.example.com",
           "location": "London"
         },
-        "last_updated": "2024-02-19T14:45:00+00:00"
+        "last_updated": "2026-02-19T14:45:00+00:00"
       },
       "duplicate_record": {
         "record_id": "resource-102",
@@ -73,7 +73,7 @@
           "email": "j.blake@ppm.example.com",
           "location": "London"
         },
-        "last_updated": "2024-02-17T16:20:00+00:00"
+        "last_updated": "2026-02-17T16:20:00+00:00"
       },
       "merge_preview": {
         "summary": "Jordan Blake (HRIS primary)",
@@ -84,8 +84,8 @@
           "location": "London"
         }
       },
-      "created_at": "2024-02-20T12:30:00+00:00",
-      "updated_at": "2024-02-20T12:30:00+00:00"
+      "created_at": "2026-02-20T12:30:00+00:00",
+      "updated_at": "2026-02-20T12:30:00+00:00"
     }
   ]
 }

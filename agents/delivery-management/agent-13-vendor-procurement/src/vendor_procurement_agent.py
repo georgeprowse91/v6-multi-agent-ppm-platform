@@ -884,7 +884,7 @@ class VendorProcurementAgent(BaseAgent):
         super().__init__(agent_id, config)
 
         # Configuration parameters
-        self.default_currency = config.get("default_currency", "USD") if config else "USD"
+        self.default_currency = config.get("default_currency", "AUD") if config else "AUD"
         self.procurement_threshold = config.get("procurement_threshold", 10000) if config else 10000
         self.min_vendor_proposals = config.get("min_vendor_proposals", 3) if config else 3
         self.invoice_tolerance_pct = config.get("invoice_tolerance_pct", 0.05) if config else 0.05

@@ -177,7 +177,7 @@ def build_cost_metrics(service_name: str) -> CostMetrics:
     external_api_cost = meter.create_counter(
         name="external_api_cost",
         description="Total estimated cost of external connector/API calls",
-        unit="USD",
+        unit="AUD",
     )
     return CostMetrics(
         llm_tokens_consumed=llm_tokens_consumed,

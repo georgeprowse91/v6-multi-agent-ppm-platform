@@ -236,17 +236,17 @@ Why It Matters:
 
 **Methodology expertise embedded:** Junior PMs guided by AI that knows best practices
 
-**Regulatory confidence:** SOX, SOC 2, GDPR compliance built into workflows
+**Regulatory confidence:** APRA CPS 234, SOC 2, Privacy Act 1988 (APPs) compliance built into workflows
 
 **Competitive Advantage:** Traditional PPM tools provide templates and hope users follow them. We enforce methodology through AI-guided navigation. You cannot accidentally skip a required approval or quality gate.
 
 Industry Relevance:
 
-**Financial Services:** SOX compliance, change approval boards, segregation of duties
+**Financial Services:** APRA CPS 234 compliance, change approval boards, segregation of duties
 
-**Healthcare/Pharma:** FDA validation requirements, clinical trial protocols
+**Healthcare/Pharma:** TGA validation requirements, clinical trial protocols
 
-**Government/Defense:** NIST, FedRAMP, acquisition lifecycle compliance
+**Government/Defense:** NIST, IRAP, acquisition lifecycle compliance
 
 **Aerospace:** AS9100, stage-gate product development
 
@@ -338,7 +338,7 @@ Our Multi-Agent System:
 
 **What It Means:** The platform adapts to yourcontext:
 
-**Industry:** Pharma projects have FDA compliance workflows; Financial Services have SOX controls
+**Industry:** Pharma projects have TGA compliance workflows; Financial Services have APRA CPS 234 controls
 
 **Methodology:** Agile sprints vs. Waterfall phases vs. SAFe release trains
 
@@ -718,7 +718,7 @@ Cross-Sell:
 
 Upsell:
 
-**Premium agents:** Industry-specific agents (FDA validation, SOX compliance)
+**Premium agents:** Industry-specific agents (TGA validation, APRA CPS 234 compliance)
 
 **Advanced analytics:** ML model customization for client-specific predictions
 
@@ -834,13 +834,13 @@ Characteristics:
 
 Large project portfolios (100-1,000+ projects)
 
-Strict compliance requirements (FISMA, FedRAMP, NIST)
+Strict compliance requirements (FISMA, IRAP, NIST)
 
 Existing systems deeply entrenched (often legacy)
 
 Long procurement cycles (12-24 months)
 
-FedRAMP certification required for cloud deployment
+IRAP certification required for cloud deployment
 
 Pain Points:
 
@@ -856,7 +856,7 @@ Security concerns about public cloud AI
 
 Willingness to Pay:
 
-**Implementation:** $1M-$3M (one-time, includes FedRAMP certification)
+**Implementation:** $1M-$3M (one-time, includes IRAP certification)
 
 **Managed service:** $75K-$150K/month ($900K-$1.8M/year)
 
@@ -870,7 +870,7 @@ Tier 1 - Immediate Focus (Year 1):
 
 Financial Services (Banking, Insurance, Asset Management)
 
-High compliance requirements (SOX, Dodd-Frank)
+High compliance requirements (APRA CPS 234, Corporations Act 2001)
 
 Existing PwC relationships (audit + consulting)
 
@@ -880,7 +880,7 @@ Willing to pay premium for risk mitigation
 
 Pharmaceutical / Life Sciences
 
-FDA compliance critical
+TGA compliance critical
 
 Complex clinical trial project management
 
@@ -924,7 +924,7 @@ Healthcare / Payers
 
 System transformation projects
 
-HIPAA compliance
+My Health Records Act 2012 compliance
 
 Merger integration programs
 
@@ -954,9 +954,9 @@ Add-Ons:
 
 **Premium Industry Agents:** $10K-$25K/month
 
-**Pharma:** FDA Validation Agent, Clinical Trial Agent
+**Pharma:** TGA Validation Agent, Clinical Trial Agent
 
-**FinServ:** SOX Compliance Agent, Trading Desk PMO Agent
+**FinServ:** APRA CPS 234 Compliance Agent, Trading Desk PMO Agent
 
 **Aerospace:** CMMI Agent, DO-178C Compliance Agent
 
@@ -988,7 +988,7 @@ Disadvantages:
 
 **Data residency concerns:** Some clients require private cloud
 
-**Compliance certification:** FedRAMP, ISO 27001 required (12-18 month effort)
+**Compliance certification:** IRAP, ISO 27001 required (12-18 month effort)
 
 **Scalability investment:** PwC must invest in cloud infrastructure upfront
 
@@ -1142,9 +1142,9 @@ Premium Agents ($2K-$5K/month):
 
 Industry Agents ($10K-$25K/month):
 
-├── Pharma: FDA Validation Agent
+├── Pharma: TGA Validation Agent
 
-├── FinServ: SOX Compliance Agent
+├── FinServ: APRA CPS 234 Compliance Agent
 
 ├── Aerospace: CMMI Agent
 
@@ -1494,7 +1494,7 @@ Mitigation:
 
 Mitigation:
 
-**Enterprise-grade security:** ISO 27001, SOC 2, FedRAMP certified
+**Enterprise-grade security:** ISO 27001, SOC 2, IRAP certified
 
 **Encryption:** Data encrypted at rest and in transit
 
@@ -1508,7 +1508,7 @@ Mitigation:
 
 **Risk 6:** Regulatory Compliance
 
-**Risk:** Platform fails audit (SOX, GDPR, HIPAA)Likelihood: Low Impact: High
+**Risk:** Platform fails audit (APRA CPS 234, Privacy Act 1988 (APPs), My Health Records Act 2012)Likelihood: Low Impact: High
 
 Mitigation:
 
@@ -1518,9 +1518,9 @@ Mitigation:
 
 **PwC audit team validation:** Internal audit before client go-live
 
-**Compliance certifications:** SOC 2, ISO 27001, FedRAMP
+**Compliance certifications:** SOC 2, ISO 27001, IRAP
 
-**Industry-specific controls:** Pre-configured for SOX, HIPAA, 21 CFR Part 11
+**Industry-specific controls:** Pre-configured for APRA CPS 234, My Health Records Act 2012, Therapeutic Goods (Medical Devices) Regulations 2002
 
 Go-to-Market Strategy
 
@@ -1654,11 +1654,11 @@ Success Metrics:
 
 **Phase 5:** Geographic Expansion (Months 18-36)
 
-**Objective:** Expand beyond US to UK, EU, APAC
+**Objective:** Expand beyond Australia to UK, EU, APAC
 
 Market Entry Strategy:
 
-**UK:** Leverage PwC UK relationships, strong compliance focus (GDPR)
+**UK:** Leverage PwC UK relationships, strong compliance focus (Privacy Act 1988 (APPs))
 
 **Germany:** Manufacturing/automotive focus (SAP integration)
 
@@ -1668,7 +1668,7 @@ Market Entry Strategy:
 
 Localization Requirements:
 
-Data residency (EU, UK servers for GDPR)
+Data residency (EU, UK servers for Privacy Act 1988 (APPs))
 
 Language support (German, Mandarin, Japanese)
 
@@ -1678,7 +1678,7 @@ Success Metrics:
 
 10+ international clients by end of Year 3
 
-25% of revenue from outside US
+25% of revenue from outside Australia
 
 **Investment:** $2M (localization, regional sales teams)
 
@@ -1862,11 +1862,11 @@ This document represents PwC’s opportunity to lead the AI-powered enterprise P
 
 | Industry | Specialized Workflows | Compliance Requirements |
 | --- | --- | --- |
-| Pharmaceutical | Clinical trial phases, FDA validation gates, adverse event tracking | 21 CFR Part 11, GxP |
-| Financial Services | Change approval boards, SOX controls, release windows | SOX, PCI-DSS, Dodd-Frank |
+| Pharmaceutical | Clinical trial phases, TGA validation gates, adverse event tracking | Therapeutic Goods (Medical Devices) Regulations 2002, GxP |
+| Financial Services | Change approval boards, APRA CPS 234 controls, release windows | APRA CPS 234, PCI-DSS, Corporations Act 2001 |
 | Aerospace/Defense | CMMI processes, ITAR controls, DO-178C compliance | NIST 800-171, DFARS |
 | Energy/Utilities | NERC CIP compliance, grid modernization workflows | NERC CIP, FERC regulations |
-| Government | ALC compliance, ATO processes, FITARA | FISMA, NIST 800-53, FedRAMP |
+| Government | ALC compliance, ATO processes, FITARA | FISMA, NIST 800-53, IRAP |
 
 **Table 3**
 
@@ -1931,7 +1931,7 @@ This document represents PwC’s opportunity to lead the AI-powered enterprise P
 | Market | SMB / Mid-market | Enterprise |
 | AI Architecture | Single ChatGPT integration | Multi-agent architecture |
 | Governance | Manual checklists | Methodology-embedded |
-| Compliance | Basic workflow | SOX, HIPAA, FedRAMP ready |
+| Compliance | Basic workflow | APRA CPS 234, My Health Records Act 2012, IRAP ready |
 | Integration | Google/Microsoft only | 20+ enterprise systems |
 | Pricing | $25/user/month | $30K-$100K/month (enterprise) |
 | Our Value Prop | “Enterprise-grade governance + AI intelligence” |  |

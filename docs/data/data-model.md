@@ -38,7 +38,7 @@ The platform uses a canonical schema layer to normalize data from multiple syste
   "owner_email": "pm@ppm.georgeprowse91.com",
   "start_date": "2026-01-15",
   "end_date": "2026-12-20",
-  "currency": "USD"
+  "currency": "AUD"
 }
 ```
 

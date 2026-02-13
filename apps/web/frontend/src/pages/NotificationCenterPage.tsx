@@ -19,25 +19,25 @@ export function NotificationCenterPage() {
   const seedNotifications = useMemo<NotificationItem[]>(
     () => [
       {
-        id: 'run-2024-09-27-01',
+        id: 'run-2026-09-27-01',
         title: 'Agent run completed',
-        message: 'Agent run run-2024-09-27-01 completed successfully.',
+        message: 'Agent run run-2026-09-27-01 completed successfully.',
         status: 'success',
         timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
         source: 'Orchestrator',
       },
       {
-        id: 'run-2024-09-27-02',
+        id: 'run-2026-09-27-02',
         title: 'Agent run failed',
-        message: 'Agent run run-2024-09-27-02 failed during task orchestration.',
+        message: 'Agent run run-2026-09-27-02 failed during task orchestration.',
         status: 'failed',
         timestamp: new Date(Date.now() - 1000 * 60 * 46).toISOString(),
         source: 'Orchestrator',
       },
       {
-        id: 'run-2024-09-27-03',
+        id: 'run-2026-09-27-03',
         title: 'Agent run update',
-        message: 'Agent run run-2024-09-27-03 is awaiting downstream inputs.',
+        message: 'Agent run run-2026-09-27-03 is awaiting downstream inputs.',
         status: 'info',
         timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
         source: 'Notification Service',

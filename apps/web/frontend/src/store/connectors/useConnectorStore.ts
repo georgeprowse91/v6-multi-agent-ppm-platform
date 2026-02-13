@@ -1325,7 +1325,7 @@ function getMockConnectors(): Connector[] {
     {
       connector_id: 'regulatory_compliance',
       name: 'Regulatory Compliance',
-      description: 'Regulatory compliance APIs for HIPAA and FDA CFR 21 Part 11 audit trails',
+      description: 'Regulatory compliance APIs for My Health Records Act 2012 and Therapeutic Goods (Medical Devices) Regulations 2002 audit trails',
       category: 'compliance',
       system: 'regulatory_compliance',
       connector_type: 'rest',

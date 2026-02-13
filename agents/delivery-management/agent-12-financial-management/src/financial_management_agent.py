@@ -49,7 +49,7 @@ class FinancialManagementAgent(BaseAgent):
         super().__init__(agent_id, config)
 
         # Configuration parameters
-        self.default_currency = config.get("default_currency", "USD") if config else "USD"
+        self.default_currency = config.get("default_currency", "AUD") if config else "AUD"
         self.fiscal_year_start = config.get("fiscal_year_start", "01-01") if config else "01-01"
         self.variance_threshold_pct = config.get("variance_threshold_pct", 0.10) if config else 0.10
         self.variance_threshold_abs = (
@@ -1021,9 +1021,9 @@ class FinancialManagementAgent(BaseAgent):
         ):
             raise ValueError(f"Unsupported currency: {from_currency} or {to_currency}")
 
-        # Convert to USD first, then to target currency
-        usd_amount = amount / exchange_rates["rates"][from_currency]
-        converted_amount = usd_amount * exchange_rates["rates"][to_currency]
+        # Convert to AUD first, then to target currency
+        base_amount = amount / exchange_rates["rates"][from_currency]
+        converted_amount = base_amount * exchange_rates["rates"][to_currency]
 
         return {
             "original_amount": amount,
@@ -1800,7 +1800,7 @@ class ExchangeRateProvider:
             data = json.loads(self.fixture_path.read_text())
 
         self._cache = {
-            "base": data.get("base", "USD"),
+            "base": data.get("base", "AUD"),
             "rates": data.get("rates", {}),
             "as_of": data.get("as_of", datetime.now(timezone.utc).isoformat()),
         }
@@ -1834,7 +1834,7 @@ class TaxRateProvider:
 
         self._cache = {
             "default_rate": data.get("default_rate", 0),
-            "default_region": data.get("default_region", "US"),
+            "default_region": data.get("default_region", "AU"),
             "rates": data.get("rates", {}),
             "as_of": data.get("as_of", datetime.now(timezone.utc).isoformat()),
         }

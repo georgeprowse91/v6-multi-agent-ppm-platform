@@ -33,7 +33,7 @@ def test_budget_rules() -> None:
         "tenant_id": "tenant-a",
         "portfolio_id": "port-1",
         "name": "Core",
-        "currency": "USD",
+        "currency": "AUD",
         "amount": 0,
         "fiscal_year": 2019,
         "status": "draft",

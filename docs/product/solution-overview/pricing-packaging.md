@@ -8,7 +8,7 @@ This document is pricing collateral. Validate feature claims against the current
 
 ## Market Context
 
-The Project Portfolio Management (PPM) market is projected to grow from USD 6.90 B in 2025 to USD 13.21 B by 2031, with a compound annual growth rate of around 11 %[1]. Drivers include hybrid work, the need for AI‑enabled forecasting and real‑time governance, and a shift toward unified platforms[1]. Adoption of AI is becoming mainstream; surveys show that 79 % of organisations already use AI agents and 74 % rank AI among their top three strategic priorities[2]. However, interoperability and clear organisational strategy remain barriers[3][4].
+The Project Portfolio Management (PPM) market is projected to grow from AUD 6.90 B in 2025 to AUD 13.21 B by 2031, with a compound annual growth rate of around 11 %[1]. Drivers include hybrid work, the need for AI‑enabled forecasting and real‑time governance, and a shift toward unified platforms[1]. Adoption of AI is becoming mainstream; surveys show that 79 % of organisations already use AI agents and 74 % rank AI among their top three strategic priorities[2]. However, interoperability and clear organisational strategy remain barriers[3][4].
 
 ## Commercial Objectives
 

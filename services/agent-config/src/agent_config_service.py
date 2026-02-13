@@ -647,8 +647,8 @@ class AgentConfigStore:
                     display_name="Default Currency",
                     description="Default currency for financial calculations",
                     param_type="select",
-                    default_value="USD",
-                    options=["USD", "EUR", "GBP", "AUD", "CAD", "JPY"],
+                    default_value="AUD",
+                    options=["AUD", "EUR", "GBP", "NZD", "CAD", "JPY"],
                 ),
                 AgentParameter(
                     name="cost_variance_threshold",
@@ -709,7 +709,7 @@ class AgentConfigStore:
                     display_name="Default Currency",
                     description="Currency used for procurement transactions",
                     param_type="string",
-                    default_value="USD",
+                    default_value="AUD",
                 ),
                 AgentParameter(
                     name="procurement_threshold",

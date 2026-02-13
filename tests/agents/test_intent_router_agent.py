@@ -44,10 +44,10 @@ async def test_intent_router_extracts_structured_parameters():
     )
     await agent.initialize()
 
-    result = await agent.process({"query": "Budget for project Apollo is $5m in USD"})
+    result = await agent.process({"query": "Budget for project Apollo is $5m in AUD"})
 
     assert result["parameters"]["project_id"] == "APOLLO"
-    assert result["parameters"]["currency"] == "USD"
+    assert result["parameters"]["currency"] == "AUD"
     assert result["parameters"]["amount"] == 5_000_000
 
 

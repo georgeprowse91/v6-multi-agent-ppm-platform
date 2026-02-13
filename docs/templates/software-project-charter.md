@@ -292,7 +292,7 @@
 
 *Example:
 
-| Category | Amount (USD) | % of Total |
+| Category | Amount (AUD) | % of Total |
 |----------|--------------|------------|
 | Software development labor | $550,000 | 64.7% |
 | Quality assurance and testing | $85,000 | 10.0% |

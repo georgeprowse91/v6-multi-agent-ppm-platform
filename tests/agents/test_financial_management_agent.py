@@ -12,7 +12,7 @@ async def test_financial_exchange_rates_and_profitability():
     )
     await agent.initialize()
 
-    conversion = await agent._convert_currency(100, "EUR", "USD")
+    conversion = await agent._convert_currency(100, "EUR", "AUD")
     assert conversion["converted_amount"] > 0
 
     npv = await agent._calculate_npv(1000, [400, 400, 400])
@@ -38,14 +38,14 @@ async def test_financial_forecast_normalizes_currency(monkeypatch):
 
     async def _mock_history(project_id):
         return [
-            {"amount": 1000, "currency": "USD"},
+            {"amount": 1000, "currency": "AUD"},
             {"amount": 1000, "currency": "EUR"},
         ]
 
     monkeypatch.setattr(agent, "_get_historical_spending", _mock_history)
 
     forecast = await agent._generate_forecast("proj-1", {}, tenant_id="tenant-a")
-    assert forecast["forecast"]["currency"] == "USD"
+    assert forecast["forecast"]["currency"] == "AUD"
 
 
 class ApprovalMock:
@@ -80,7 +80,7 @@ async def test_financial_budget_persistence_and_approvals(tmp_path):
                 "total_amount": 1000,
                 "cost_breakdown": {"labor": 1000},
                 "owner": "finance-1",
-                "currency": "USD",
+                "currency": "AUD",
                 "name": "Budget FY25",
             },
         }
@@ -171,7 +171,7 @@ async def test_financial_cost_classification_and_accruals(monkeypatch):
                 "amount": 200,
                 "description": "flight and hotel",
                 "project_id": project_id,
-                "tax_region": "US",
+                "tax_region": "AU",
             },
         ]
 

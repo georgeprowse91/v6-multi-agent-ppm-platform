@@ -21,7 +21,7 @@ interface WorkflowEvent {
 }
 
 const samplePayload = {
-  charter_id: 'charter-2024-001',
+  charter_id: 'charter-2026-001',
   requester: 'project-manager',
   project_id: 'project-alpha',
   description: 'Publish charter for Project Alpha',

@@ -14,7 +14,7 @@ When engaging with prospects, focus on three core messages:
 
 **Transformational Value:** the platform orchestrates existing systems of record, eliminates manual data entry and improves decision‑making through AI‑powered agents. Highlight efficiency gains, improved governance and better portfolio outcomes.
 
-**Proven Market Fit:** cite market growth projections (PPM market expected to grow from USD 6.90 B in 2025 to USD 13.21 B by 2031 at an 11.4 % CAGR, driven by hybrid work and AI adoption[1]) and adoption statistics (79 % of organisations already use AI agents; interoperability is critical[2]). Stress that the platform is built for the modern enterprise.
+**Proven Market Fit:** cite market growth projections (PPM market expected to grow from AUD 6.90 B in 2025 to AUD 13.21 B by 2031 at an 11.4 % CAGR, driven by hybrid work and AI adoption[1]) and adoption statistics (79 % of organisations already use AI agents; interoperability is critical[2]). Stress that the platform is built for the modern enterprise.
 
 **Flexibility & Scalability:** emphasise modular architecture, multi‑deployment options (SaaS, private cloud, on‑premises) and configurable agents that allow customers to adopt at their own pace and integrate with their existing tools.
 

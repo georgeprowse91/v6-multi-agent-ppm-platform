@@ -38,7 +38,7 @@ Agent runtime configuration is centralized in `.env` (see `.env.example`) and sh
 The agent now supports richer investment modelling driven by `ops/config/agents/business-case-settings.yaml`:
 
 - Configurable `discount_rate` and `inflation_rate` used in NPV/IRR calculations.
-- `currency_rates` mapping for converting input costs/benefits/cash flows into a base USD view.
+- `currency_rates` mapping for converting input costs/benefits/cash flows into a base AUD view.
 - Configurable `simulation_iterations` for Monte Carlo NPV simulation.
 - Configurable `sensitivity_variations` range applied to cost/revenue assumptions for sensitivity analysis.
 
@@ -50,7 +50,7 @@ Example:
 discount_rate: 0.08
 inflation_rate: 0.025
 currency_rates:
-  USD: 1.0
+  AUD: 1.0
   EUR: 1.08
   GBP: 1.25
   JPY: 0.0068

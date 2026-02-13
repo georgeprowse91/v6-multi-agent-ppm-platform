@@ -146,9 +146,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         # Configuration parameters
         self.regulations = (
-            config.get("regulations", ["GDPR", "SOX", "ISO 27001", "HIPAA", "PCI DSS"])
+            config.get("regulations", ["Privacy Act 1988", "APRA CPS 234", "ISO 27001", "ASD ISM", "PSPF"])
             if config
-            else ["GDPR", "SOX", "ISO 27001", "HIPAA", "PCI DSS"]
+            else ["Privacy Act 1988", "APRA CPS 234", "ISO 27001", "ASD ISM", "PSPF"]
         )
         self.enable_regulatory_monitoring = (
             config.get("enable_regulatory_monitoring", False) if config else False
@@ -1536,17 +1536,17 @@ class ComplianceRegulatoryAgent(BaseAgent):
                     "data_sensitivity_filter": ["medium", "high"],
                 },
             },
-            "REG-GDPR": {
-                "name": "GDPR",
-                "description": "EU General Data Protection Regulation.",
-                "jurisdiction": ["eu", "eea", "uk"],
+            "REG-PRIVACY-ACT-AU": {
+                "name": "Privacy Act 1988 (Cth)",
+                "description": "Australian Privacy Act 1988 including the Australian Privacy Principles (APPs).",
+                "jurisdiction": ["au"],
                 "industry": [],
                 "data_sensitivity": ["high"],
-                "effective_date": "2018-05-25",
+                "effective_date": "1988-12-21",
                 "related_controls": [],
                 "applicability_rules": {
                     "applies_to_all": False,
-                    "jurisdiction_filter": ["eu", "eea", "uk"],
+                    "jurisdiction_filter": ["au"],
                     "industry_filter": [],
                     "data_sensitivity_filter": ["high"],
                 },
@@ -1591,18 +1591,18 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "test_frequency": "monthly",
             },
             {
-                "control_id": "CTL-GDPR-01",
-                "description": "Conduct data protection impact assessments for personal data.",
-                "regulation": "REG-GDPR",
+                "control_id": "CTL-PRIVACY-AU-01",
+                "description": "Conduct privacy impact assessments for personal information under APP obligations.",
+                "regulation": "REG-PRIVACY-ACT-AU",
                 "control_type": "preventive",
                 "owner": "privacy",
                 "requirements": ["implemented", "data_privacy", "evidence"],
                 "test_frequency": "annually",
             },
             {
-                "control_id": "CTL-GDPR-02",
-                "description": "Ensure data subject rights requests are tracked and fulfilled.",
-                "regulation": "REG-GDPR",
+                "control_id": "CTL-PRIVACY-AU-02",
+                "description": "Ensure APP access and correction requests are tracked and fulfilled within statutory timelines.",
+                "regulation": "REG-PRIVACY-ACT-AU",
                 "control_type": "detective",
                 "owner": "privacy",
                 "requirements": ["implemented", "quality_tests", "evidence"],
@@ -1718,7 +1718,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             not data_sensitivity_filter or data_sensitivity in data_sensitivity_filter
         )
 
-        if regulation.get("name", "").upper() == "GDPR":
+        if "PRIVACY ACT" in regulation.get("name", "").upper():
             return (
                 jurisdiction_match
                 or "personal" in data_types

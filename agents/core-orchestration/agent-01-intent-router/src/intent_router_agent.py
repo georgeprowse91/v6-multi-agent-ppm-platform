@@ -110,7 +110,7 @@ class ExtractedParameters(BaseModel):
         if value is None:
             return None
         currency = value.upper()
-        allowed = {"USD", "EUR", "GBP", "JPY"}
+        allowed = {"AUD", "EUR", "GBP", "JPY"}
         if currency not in allowed:
             raise ValueError("Unsupported currency")
         return currency
@@ -182,7 +182,7 @@ class IntentRouterAgent(BaseAgent):
         self.nlp_model = self.config.get("nlp_model")
         self._entity_patterns = self._build_entity_patterns()
         self._label_prefix_pattern = re.compile(r"^[A-Z_]+\s*:\s*")
-        self._currency_aliases = {"$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY"}
+        self._currency_aliases = {"$": "AUD", "€": "EUR", "£": "GBP", "¥": "JPY"}
         self._portfolio_pattern = re.compile(r"^PORT(?:FOLIO)?[-_\s]?\d{1,6}$", re.IGNORECASE)
         self._project_pattern = re.compile(r"^(?:PROJ|PRJ|PROJECT)?[-_\s]?[A-Z0-9]{2,20}$", re.IGNORECASE)
         llm_config = self.config.get("llm_config") or {}
