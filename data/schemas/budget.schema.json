@@ -4,19 +4,66 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "portfolio_id": {"type": "string"},
-    "name": {"type": "string"},
-    "currency": {"type": "string", "enum": ["AUD", "EUR", "GBP", "AUD"]},
-    "amount": {"type": "number", "minimum": 0},
-    "fiscal_year": {"type": "integer", "minimum": 2020},
-    "status": {"type": "string", "enum": ["draft", "approved", "committed"]},
-    "owner": {"type": "string"},
-    "classification": {"type": "string", "enum": ["public", "internal", "confidential", "restricted"]},
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"},
-    "metadata": {"type": "object"}
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "portfolio_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "AUD",
+        "EUR",
+        "GBP",
+        "AUD"
+      ]
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fiscal_year": {
+      "type": "integer",
+      "minimum": 2020
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "committed"
+      ]
+    },
+    "owner": {
+      "type": "string"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object"
+    }
   },
   "required": [
     "id",
@@ -30,5 +77,10 @@
     "owner",
     "classification",
     "created_at"
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "budget",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

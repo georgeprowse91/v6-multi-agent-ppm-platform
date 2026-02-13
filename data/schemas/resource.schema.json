@@ -4,14 +4,48 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "name": {"type": "string"},
-    "role": {"type": "string"},
-    "location": {"type": "string"},
-    "status": {"type": "string", "enum": ["active", "inactive", "on_leave"]},
-    "created_at": {"type": "string", "format": "date-time"},
-    "metadata": {"type": "object"}
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "on_leave"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object"
+    }
   },
-  "required": ["id", "tenant_id", "name", "role", "status", "created_at"]
+  "required": [
+    "id",
+    "tenant_id",
+    "name",
+    "role",
+    "status",
+    "created_at"
+  ],
+  "x-schema-metadata": {
+    "name": "resource",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

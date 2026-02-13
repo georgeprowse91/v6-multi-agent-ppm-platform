@@ -4,17 +4,59 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "project_id": {"type": "string"},
-    "title": {"type": "string"},
-    "type": {"type": "string", "enum": ["task", "milestone", "deliverable"]},
-    "status": {"type": "string", "enum": ["todo", "in_progress", "done", "blocked"]},
-    "assigned_to": {"type": "string"},
-    "due_date": {"type": "string", "format": "date"},
-    "classification": {"type": "string", "enum": ["public", "internal", "confidential", "restricted"]},
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"}
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "task",
+        "milestone",
+        "deliverable"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "todo",
+        "in_progress",
+        "done",
+        "blocked"
+      ]
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
   "required": [
     "id",
@@ -26,5 +68,10 @@
     "assigned_to",
     "classification",
     "created_at"
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "work-item",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

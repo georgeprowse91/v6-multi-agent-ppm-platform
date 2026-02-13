@@ -4,17 +4,64 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "title": {"type": "string"},
-    "description": {"type": "string"},
-    "impact": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
-    "likelihood": {"type": "string", "enum": ["rare", "unlikely", "possible", "likely"]},
-    "status": {"type": "string", "enum": ["open", "mitigated", "closed"]},
-    "owner": {"type": "string"},
-    "classification": {"type": "string", "enum": ["public", "internal", "confidential", "restricted"]},
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"}
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "impact": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "likelihood": {
+      "type": "string",
+      "enum": [
+        "rare",
+        "unlikely",
+        "possible",
+        "likely"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "mitigated",
+        "closed"
+      ]
+    },
+    "owner": {
+      "type": "string"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
   "required": [
     "id",
@@ -26,5 +73,10 @@
     "owner",
     "classification",
     "created_at"
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "risk",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

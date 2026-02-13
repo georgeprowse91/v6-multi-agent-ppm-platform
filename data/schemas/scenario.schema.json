@@ -4,28 +4,56 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "name": {"type": "string"},
-    "description": {"type": "string"},
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
-      "enum": ["draft", "ready", "evaluated", "archived"]
+      "enum": [
+        "draft",
+        "ready",
+        "evaluated",
+        "archived"
+      ]
     },
     "baseline": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "schema_name": {"type": "string"},
-        "entity_id": {"type": "string"},
-        "schema_version": {"type": "integer"},
-        "baseline_id": {"type": "string"},
+        "schema_name": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "integer"
+        },
+        "baseline_id": {
+          "type": "string"
+        },
         "reference_type": {
           "type": "string",
-          "enum": ["entity", "baseline", "snapshot"]
+          "enum": [
+            "entity",
+            "baseline",
+            "snapshot"
+          ]
         }
       },
-      "required": ["schema_name", "entity_id"]
+      "required": [
+        "schema_name",
+        "entity_id"
+      ]
     },
     "deltas": {
       "type": "array",
@@ -33,24 +61,54 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "delta_id": {"type": "string"},
-          "domain": {"type": "string"},
-          "description": {"type": "string"},
+          "delta_id": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
           "payload": {
             "type": "object",
             "additionalProperties": true
           },
-          "created_at": {"type": "string", "format": "date-time"}
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["domain", "payload"]
+        "required": [
+          "domain",
+          "payload"
+        ]
       }
     },
     "metadata": {
       "type": "object",
       "additionalProperties": true
     },
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"}
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
-  "required": ["id", "tenant_id", "name", "baseline", "deltas", "created_at"]
+  "required": [
+    "id",
+    "tenant_id",
+    "name",
+    "baseline",
+    "deltas",
+    "created_at"
+  ],
+  "x-schema-metadata": {
+    "name": "scenario",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

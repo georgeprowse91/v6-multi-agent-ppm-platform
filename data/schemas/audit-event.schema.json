@@ -4,35 +4,95 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string", "minLength": 8},
-    "timestamp": {"type": "string", "format": "date-time"},
-    "tenant_id": {"type": "string", "minLength": 3},
-    "action": {"type": "string", "minLength": 3},
-    "outcome": {"type": "string", "enum": ["success", "failure", "denied"]},
-    "classification": {"type": "string", "enum": ["public", "internal", "confidential", "restricted"]},
+    "id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "action": {
+      "type": "string",
+      "minLength": 3
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failure",
+        "denied"
+      ]
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
     "actor": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
-        "type": {"type": "string", "enum": ["user", "service", "system"]},
-        "roles": {"type": "array", "items": {"type": "string"}}
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "user",
+            "service",
+            "system"
+          ]
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
-      "required": ["id", "type", "roles"]
+      "required": [
+        "id",
+        "type",
+        "roles"
+      ]
     },
     "resource": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
-        "type": {"type": "string"},
-        "attributes": {"type": "object"}
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        }
       },
-      "required": ["id", "type"]
+      "required": [
+        "id",
+        "type"
+      ]
     },
-    "metadata": {"type": "object"},
-    "trace_id": {"type": "string"},
-    "correlation_id": {"type": "string"}
+    "metadata": {
+      "type": "object"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "correlation_id": {
+      "type": "string"
+    }
   },
   "required": [
     "id",
@@ -43,5 +103,10 @@
     "classification",
     "actor",
     "resource"
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "audit-event",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

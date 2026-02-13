@@ -4,17 +4,59 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "title": {"type": "string"},
-    "description": {"type": "string"},
-    "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
-    "status": {"type": "string", "enum": ["open", "in_progress", "resolved", "closed"]},
-    "project_id": {"type": "string"},
-    "owner": {"type": "string"},
-    "classification": {"type": "string", "enum": ["public", "internal", "confidential", "restricted"]},
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"}
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "resolved",
+        "closed"
+      ]
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
   "required": [
     "id",
@@ -26,5 +68,10 @@
     "owner",
     "classification",
     "created_at"
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "issue",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

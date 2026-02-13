@@ -2,25 +2,40 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ROI Inputs",
   "type": "object",
-  "required": ["roi"],
+  "required": [
+    "roi"
+  ],
   "properties": {
     "roi": {
       "type": "object",
-      "required": ["costs", "benefits"],
+      "required": [
+        "costs",
+        "benefits"
+      ],
       "properties": {
         "costs": {
           "type": "object",
-          "required": ["total_cost"],
+          "required": [
+            "total_cost"
+          ],
           "properties": {
-            "total_cost": {"type": "number", "minimum": 0}
+            "total_cost": {
+              "type": "number",
+              "minimum": 0
+            }
           },
           "additionalProperties": true
         },
         "benefits": {
           "type": "object",
-          "required": ["total_benefits"],
+          "required": [
+            "total_benefits"
+          ],
           "properties": {
-            "total_benefits": {"type": "number", "minimum": 0}
+            "total_benefits": {
+              "type": "number",
+              "minimum": 0
+            }
           },
           "additionalProperties": true
         }
@@ -28,5 +43,10 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "x-schema-metadata": {
+    "name": "roi",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

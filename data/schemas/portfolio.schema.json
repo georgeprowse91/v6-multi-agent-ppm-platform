@@ -4,14 +4,43 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "name": {"type": "string"},
-    "status": {"type": "string", "enum": ["planning", "active", "archived"]},
-    "owner": {"type": "string"},
-    "classification": {"type": "string", "enum": ["public", "internal", "confidential", "restricted"]},
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"}
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "active",
+        "archived"
+      ]
+    },
+    "owner": {
+      "type": "string"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
   "required": [
     "id",
@@ -21,5 +50,10 @@
     "owner",
     "classification",
     "created_at"
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "portfolio",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

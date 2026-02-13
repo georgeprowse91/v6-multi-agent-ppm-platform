@@ -4,20 +4,61 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "tenant_id": {"type": "string"},
-    "agent_id": {"type": "string"},
+    "id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
-      "enum": ["queued", "running", "succeeded", "failed", "canceled"]
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "canceled"
+      ]
     },
-    "created_at": {"type": "string", "format": "date-time"},
-    "updated_at": {"type": "string", "format": "date-time"},
-    "started_at": {"type": "string", "format": "date-time"},
-    "completed_at": {"type": "string", "format": "date-time"},
-    "delay_reason": {"type": "string"},
-    "completion_reason": {"type": "string"},
-    "metadata": {"type": "object"}
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delay_reason": {
+      "type": "string"
+    },
+    "completion_reason": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
   },
-  "required": ["id", "tenant_id", "agent_id", "status", "created_at"]
+  "required": [
+    "id",
+    "tenant_id",
+    "agent_id",
+    "status",
+    "created_at"
+  ],
+  "x-schema-metadata": {
+    "name": "agent-run",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

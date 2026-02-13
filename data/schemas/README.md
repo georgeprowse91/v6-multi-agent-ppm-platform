@@ -26,3 +26,7 @@ Canonical JSON schemas defining the structure of platform entities. Each schema 
 | `document.schema.json` | Document entity schema |
 | `agent_config.schema.json` | Agent configuration schema |
 | `audit-event.schema.json` | Audit event schema |
+
+## Versioning and compatibility
+
+Schemas can declare `x-schema-metadata` with semantic `version` and `compatibility_mode`. See `docs/schema-compatibility-matrix.md` for compatibility policy, CI enforcement, and migration CLI usage.

@@ -4,7 +4,10 @@
   "title": "Agent Configuration Schema",
   "description": "Schema for agent configuration storage, including global agent settings and project-specific configurations.",
   "type": "object",
-  "required": ["agents", "project_configs"],
+  "required": [
+    "agents",
+    "project_configs"
+  ],
   "properties": {
     "agents": {
       "type": "object",
@@ -28,23 +31,48 @@
   "$defs": {
     "AgentCategory": {
       "type": "string",
-      "enum": ["core", "portfolio", "delivery", "operations", "platform", "governance"],
+      "enum": [
+        "core",
+        "portfolio",
+        "delivery",
+        "operations",
+        "platform",
+        "governance"
+      ],
       "description": "Category for grouping agents"
     },
     "UserRole": {
       "type": "string",
-      "enum": ["PMO_ADMIN", "PM", "TEAM_MEMBER", "AUDITOR"],
+      "enum": [
+        "PMO_ADMIN",
+        "PM",
+        "TEAM_MEMBER",
+        "AUDITOR"
+      ],
       "description": "User role for permission checks"
     },
     "ParameterType": {
       "type": "string",
-      "enum": ["string", "number", "boolean", "select", "multiselect"],
+      "enum": [
+        "string",
+        "number",
+        "boolean",
+        "select",
+        "multiselect"
+      ],
       "description": "Type of configurable parameter"
     },
     "AgentParameter": {
       "type": "object",
       "description": "A configurable parameter for an agent",
-      "required": ["name", "display_name", "description", "param_type", "default_value", "required"],
+      "required": [
+        "name",
+        "display_name",
+        "description",
+        "param_type",
+        "default_value",
+        "required"
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -69,7 +97,9 @@
         },
         "options": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Available options for select/multiselect types"
         },
         "min_value": {
@@ -89,7 +119,14 @@
     "AgentConfig": {
       "type": "object",
       "description": "Configuration for a single agent",
-      "required": ["catalog_id", "agent_id", "display_name", "description", "category", "enabled"],
+      "required": [
+        "catalog_id",
+        "agent_id",
+        "display_name",
+        "description",
+        "category",
+        "enabled"
+      ],
       "properties": {
         "catalog_id": {
           "type": "string",
@@ -116,12 +153,16 @@
         },
         "parameters": {
           "type": "array",
-          "items": { "$ref": "#/$defs/AgentParameter" },
+          "items": {
+            "$ref": "#/$defs/AgentParameter"
+          },
           "description": "Configurable parameters for this agent"
         },
         "capabilities": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "List of agent capabilities"
         },
         "updated_at": {
@@ -130,7 +171,10 @@
           "description": "Last update timestamp"
         },
         "updated_by": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "User ID who last updated the config"
         }
       }
@@ -138,7 +182,11 @@
     "ProjectAgentConfig": {
       "type": "object",
       "description": "Project-specific agent configuration (enablement + parameter overrides)",
-      "required": ["project_id", "agent_id", "enabled"],
+      "required": [
+        "project_id",
+        "agent_id",
+        "enabled"
+      ],
       "properties": {
         "project_id": {
           "type": "string",
@@ -163,7 +211,10 @@
           "description": "Last update timestamp"
         },
         "updated_by": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "User ID who last updated the config"
         }
       }
@@ -186,7 +237,12 @@
               "description": "Method for assessing risk severity",
               "param_type": "select",
               "default_value": "probability_impact",
-              "options": ["probability_impact", "monte_carlo", "qualitative", "quantitative"],
+              "options": [
+                "probability_impact",
+                "monte_carlo",
+                "qualitative",
+                "quantitative"
+              ],
               "required": true
             },
             {
@@ -210,11 +266,19 @@
               "display_name": "Risk Search Keywords",
               "description": "Extra keywords appended to external risk queries",
               "param_type": "string_list",
-              "default_value": ["risk", "incident", "supplier"],
+              "default_value": [
+                "risk",
+                "incident",
+                "supplier"
+              ],
               "required": false
             }
           ],
-          "capabilities": ["risk_identification", "risk_assessment", "issue_tracking"],
+          "capabilities": [
+            "risk_identification",
+            "risk_assessment",
+            "issue_tracking"
+          ],
           "updated_at": "2025-01-27T12:00:00Z",
           "updated_by": "admin"
         }
@@ -243,5 +307,10 @@
         }
       }
     }
-  ]
+  ],
+  "x-schema-metadata": {
+    "name": "agent_config",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
 }

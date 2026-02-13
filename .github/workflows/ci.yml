@@ -330,6 +330,7 @@ jobs:
       - name: Validate schemas and manifests
         run: |
           python scripts/validate-schemas.py
+          python scripts/schema_tool.py enforce-bumps
           python scripts/validate-manifests.py
 
       - name: Run tests with coverage
