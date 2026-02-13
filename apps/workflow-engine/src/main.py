@@ -161,6 +161,21 @@ class WorkflowDefinitionUpdateRequest(BaseModel):
     definition: dict[str, Any]
 
 
+class WorkflowCompensationRetryRequest(BaseModel):
+    step_id: str | None = None
+    actor: dict[str, Any] | None = None
+
+
+class WorkflowJournalResponse(BaseModel):
+    journal_id: str
+    run_id: str
+    step_id: str | None
+    phase: str
+    status: str
+    attempt: int
+    details: dict[str, Any]
+    created_at: str
+
 ROLE_POLICIES = {
     "workflow:manage_definitions": {"workflow_admin", "workflow_editor"},
     "workflow:start": {"workflow_admin", "workflow_operator", "portfolio_admin"},
@@ -627,6 +642,44 @@ async def decide_approval(
         current_step_id=instance.current_step_id,
         created_at=instance.created_at,
         updated_at=instance.updated_at,
+    )
+
+
+@api_router.get("/workflows/{run_id}/compensation", response_model=list[WorkflowJournalResponse])
+async def get_compensation_journal(run_id: str, http_request: Request) -> list[WorkflowJournalResponse]:
+    _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
+    instance = store.get(run_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    if instance.tenant_id != http_request.state.auth.tenant_id:
+        raise HTTPException(status_code=403, detail="Tenant mismatch")
+    entries = await runtime.inspect_compensation(run_id)
+    return [WorkflowJournalResponse(**entry) for entry in entries]
+
+
+@api_router.post("/workflows/{run_id}/compensation/retry", response_model=WorkflowRunResponse)
+async def retry_compensation(
+    run_id: str, request: WorkflowCompensationRetryRequest, http_request: Request
+) -> WorkflowRunResponse:
+    _require_roles(http_request, ROLE_POLICIES["workflow:update"])
+    instance = store.get(run_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    if instance.tenant_id != http_request.state.auth.tenant_id:
+        raise HTTPException(status_code=403, detail="Tenant mismatch")
+    definition = _get_definition(instance.workflow_id)
+    actor = request.actor or {"id": http_request.state.auth.subject}
+    updated = await runtime.retry_compensation(
+        instance, definition, actor, step_id=request.step_id
+    )
+    return WorkflowRunResponse(
+        run_id=updated.run_id,
+        workflow_id=updated.workflow_id,
+        tenant_id=updated.tenant_id,
+        status=updated.status,
+        current_step_id=updated.current_step_id,
+        created_at=updated.created_at,
+        updated_at=updated.updated_at,
     )
 
 

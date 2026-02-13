@@ -70,6 +70,18 @@ class WorkflowApproval:
     metadata: dict[str, Any]
 
 
+@dataclass
+class WorkflowJournalEntry:
+    journal_id: str
+    run_id: str
+    step_id: str | None
+    phase: str
+    status: str
+    attempt: int
+    details: dict[str, Any]
+    created_at: str
+
+
 class WorkflowStore:
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
@@ -155,6 +167,20 @@ class WorkflowStore:
                     approver_id TEXT,
                     comments TEXT,
                     metadata TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS workflow_state_journal (
+                    journal_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    step_id TEXT,
+                    phase TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    attempt INTEGER NOT NULL,
+                    details TEXT NOT NULL,
+                    created_at TEXT NOT NULL
                 )
                 """
             )
@@ -699,3 +725,67 @@ class WorkflowStore:
                 comments=row[9],
                 metadata=json.loads(row[10]),
             )
+
+    def add_journal_entry(
+        self,
+        run_id: str,
+        phase: str,
+        status: str,
+        attempt: int,
+        details: dict[str, Any] | None = None,
+        step_id: str | None = None,
+    ) -> WorkflowJournalEntry:
+        now = datetime.now(timezone.utc).isoformat()
+        journal_id = f"journal_{run_id}_{phase}_{status}_{attempt}_{now}"
+        payload = details or {}
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO workflow_state_journal (
+                    journal_id, run_id, step_id, phase, status, attempt, details, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (journal_id, run_id, step_id, phase, status, attempt, json.dumps(payload), now),
+            )
+        return WorkflowJournalEntry(
+            journal_id=journal_id,
+            run_id=run_id,
+            step_id=step_id,
+            phase=phase,
+            status=status,
+            attempt=attempt,
+            details=payload,
+            created_at=now,
+        )
+
+    def list_journal_entries(
+        self, run_id: str, phase: str | None = None, step_id: str | None = None
+    ) -> list[WorkflowJournalEntry]:
+        query = (
+            "SELECT journal_id, run_id, step_id, phase, status, attempt, details, created_at "
+            "FROM workflow_state_journal WHERE run_id = ?"
+        )
+        params: list[Any] = [run_id]
+        if phase:
+            query += " AND phase = ?"
+            params.append(phase)
+        if step_id:
+            query += " AND step_id = ?"
+            params.append(step_id)
+        query += " ORDER BY created_at ASC"
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [
+            WorkflowJournalEntry(
+                journal_id=row[0],
+                run_id=row[1],
+                step_id=row[2],
+                phase=row[3],
+                status=row[4],
+                attempt=row[5],
+                details=json.loads(row[6]),
+                created_at=row[7],
+            )
+            for row in rows
+        ]

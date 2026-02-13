@@ -180,7 +180,16 @@
             "minimum": 0
           },
           "on_error": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "compensation": {
+                "$ref": "#/$defs/compensationAction"
+              }
+            },
+            "additionalProperties": true
+          },
+          "compensation": {
+            "$ref": "#/$defs/compensationAction"
           },
           "max_iterations": {
             "type": "integer",
@@ -192,6 +201,41 @@
         },
         "additionalProperties": false
       }
+    }
+  },
+  "$defs": {
+    "compensationAction": {
+      "type": "object",
+      "required": [
+        "agent",
+        "action"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "max_attempts": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "delay_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "config": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

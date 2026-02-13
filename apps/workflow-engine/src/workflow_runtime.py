@@ -309,6 +309,7 @@ class WorkflowRuntime:
                     attempts=1,
                     output={"approval_id": existing_approval.approval_id},
                 )
+                self._register_compensable_step(instance, step, step_id, 1)
                 self.store.add_event(
                     instance.run_id,
                     "completed",
@@ -403,7 +404,7 @@ class WorkflowRuntime:
                 f"Step {step_id} timed out",
                 step_id,
             )
-            await self._run_compensation(instance, step, actor, reason="timeout")
+            await self._fail_and_compensate(instance, definition, actor, step_id, reason="timeout")
             await self._publish_event(
                 "workflow.failed",
                 {
@@ -427,6 +428,7 @@ class WorkflowRuntime:
                 step_output,
                 breaker,
                 failure_message="Simulated failure before success",
+                definition=definition,
             )
 
         if step_type == "task":
@@ -447,7 +449,7 @@ class WorkflowRuntime:
                     f"Agent client not configured for step {step_id}",
                     step_id,
                 )
-                await self._run_compensation(instance, step, actor, reason="agent_client_missing")
+                await self._fail_and_compensate(instance, definition, actor, step_id, reason="agent_client_missing")
                 await self._publish_event(
                     "workflow.failed",
                     {
@@ -472,7 +474,7 @@ class WorkflowRuntime:
                     f"Task step {step_id} missing agent/action",
                     step_id,
                 )
-                await self._run_compensation(instance, step, actor, reason="agent_config_missing")
+                await self._fail_and_compensate(instance, definition, actor, step_id, reason="agent_config_missing")
                 await self._publish_event(
                     "workflow.failed",
                     {
@@ -517,6 +519,7 @@ class WorkflowRuntime:
                     step_output,
                     breaker,
                     failure_message=f"Agent call failed: {exc}",
+                    definition=definition,
                 )
             step_output = {
                 "agent": agent_id,
@@ -533,7 +536,7 @@ class WorkflowRuntime:
                 self.store.add_event(
                     instance.run_id, "failed", f"API step {step_id} missing endpoint", step_id
                 )
-                await self._run_compensation(instance, step, actor, reason="api_missing_endpoint")
+                await self._fail_and_compensate(instance, definition, actor, step_id, reason="api_missing_endpoint")
                 await self._publish_event(
                     "workflow.failed",
                     {
@@ -565,6 +568,7 @@ class WorkflowRuntime:
                     step_output,
                     breaker,
                     failure_message=f"API call failed: {exc}",
+                    definition=definition,
                 )
         elif step_type == "notification":
             step_output = {
@@ -608,6 +612,7 @@ class WorkflowRuntime:
         self.store.upsert_step_state(
             instance.run_id, step_id, "completed", attempts, step_output
         )
+        self._register_compensable_step(instance, step, step_id, attempts)
         self.store.add_event(
             instance.run_id,
             "completed",
@@ -658,6 +663,7 @@ class WorkflowRuntime:
         step_output: dict[str, Any],
         breaker: CircuitBreaker | None,
         failure_message: str,
+        definition: dict[str, Any],
     ) -> StepExecutionResult:
         if breaker:
             breaker.record_failure()
@@ -700,7 +706,7 @@ class WorkflowRuntime:
             f"Step {step_id} failed after retries",
             step_id,
         )
-        await self._run_compensation(instance, step, actor, reason="retries_exhausted")
+        await self._fail_and_compensate(instance, definition, actor, step_id, reason="retries_exhausted")
         return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
     def _maybe_trigger_parallel_join(
@@ -796,6 +802,7 @@ class WorkflowRuntime:
                         attempts=1,
                         output={"approval_id": existing_approval.approval_id},
                     )
+                    self._register_compensable_step(instance, step, current_step_id, 1)
                     self.store.add_event(
                         instance.run_id,
                         "completed",
@@ -1009,42 +1016,164 @@ class WorkflowRuntime:
             metadata=metadata,
         )
 
-    async def _run_compensation(
-        self, instance: WorkflowInstance, step: dict[str, Any], actor: dict[str, Any], reason: str
+    def _register_compensable_step(
+        self, instance: WorkflowInstance, step: dict[str, Any], step_id: str, attempts: int
     ) -> None:
         compensation = step.get("on_error", {}).get("compensation") or step.get("compensation")
         if not compensation:
             return
-        if not self.agent_client:
-            return
-        agent_id = compensation.get("agent")
-        action = compensation.get("action")
-        if not agent_id or not action:
-            return
-        config = compensation.get("config", {})
-        await self.agent_client.execute(
-            agent_id=agent_id,
-            action=action,
-            payload={
-                "workflow_id": instance.workflow_id,
-                "run_id": instance.run_id,
-                "step_id": step.get("id"),
-                "payload": instance.payload,
-                "config": config,
-                "actor": actor,
-                "reason": reason,
-            },
-            context={
-                "tenant_id": instance.tenant_id,
-                "correlation_id": instance.run_id,
-            },
+        entries = self.store.list_journal_entries(
+            instance.run_id, phase="execution", step_id=step_id
         )
-        self.store.add_event(
+        if any(entry.status == "completed" for entry in entries):
+            return
+        self.store.add_journal_entry(
             instance.run_id,
-            "compensated",
-            f"Compensation executed for step {step.get('id')}",
-            step.get("id"),
+            phase="execution",
+            status="completed",
+            attempt=attempts,
+            step_id=step_id,
+            details={"compensable": True},
         )
+
+    async def _fail_and_compensate(
+        self,
+        instance: WorkflowInstance,
+        definition: dict[str, Any],
+        actor: dict[str, Any],
+        failed_step_id: str,
+        reason: str,
+    ) -> None:
+        self.store.update_status(instance.run_id, "failing", failed_step_id)
+        self.store.add_journal_entry(
+            instance.run_id,
+            phase="workflow",
+            status="failing",
+            attempt=1,
+            step_id=failed_step_id,
+            details={"reason": reason},
+        )
+        success = await self._run_compensation_chain(instance, definition, actor, reason)
+        terminal = "failed" if success else "compensation_failed"
+        self.store.update_status(instance.run_id, terminal, failed_step_id)
+
+    async def _run_compensation_chain(
+        self,
+        instance: WorkflowInstance,
+        definition: dict[str, Any],
+        actor: dict[str, Any],
+        reason: str,
+        target_step_id: str | None = None,
+    ) -> bool:
+        if not self.agent_client:
+            return False
+        step_map = {step["id"]: step for step in definition.get("steps", [])}
+        executions = [
+            entry
+            for entry in self.store.list_journal_entries(instance.run_id, phase="execution")
+            if entry.status == "completed"
+        ]
+        ordered_ids = [entry.step_id for entry in executions if entry.step_id]
+        if target_step_id:
+            ordered_ids = [step_id for step_id in ordered_ids if step_id == target_step_id]
+        for step_id in reversed(ordered_ids):
+            step = step_map.get(step_id)
+            if not step:
+                continue
+            compensation = step.get("on_error", {}).get("compensation") or step.get("compensation")
+            if not compensation:
+                continue
+            if any(
+                entry.status == "completed"
+                for entry in self.store.list_journal_entries(
+                    instance.run_id, phase="compensation", step_id=step_id
+                )
+            ):
+                continue
+            retry = compensation.get("retry", {})
+            max_attempts = max(1, int(retry.get("max_attempts", 1)))
+            delay_seconds = max(0, int(retry.get("delay_seconds", 0)))
+            for attempt in range(1, max_attempts + 1):
+                self.store.add_journal_entry(
+                    instance.run_id,
+                    phase="compensation",
+                    status="started",
+                    attempt=attempt,
+                    step_id=step_id,
+                    details={"reason": reason},
+                )
+                try:
+                    await self.agent_client.execute(
+                        agent_id=compensation.get("agent"),
+                        action=compensation.get("action"),
+                        payload={
+                            "workflow_id": instance.workflow_id,
+                            "run_id": instance.run_id,
+                            "step_id": step_id,
+                            "payload": instance.payload,
+                            "config": compensation.get("config", {}),
+                            "actor": actor,
+                            "reason": reason,
+                            "compensation": True,
+                        },
+                        context={
+                            "tenant_id": instance.tenant_id,
+                            "correlation_id": instance.run_id,
+                        },
+                    )
+                    self.store.add_journal_entry(
+                        instance.run_id,
+                        phase="compensation",
+                        status="completed",
+                        attempt=attempt,
+                        step_id=step_id,
+                        details={"reason": reason},
+                    )
+                    self.store.add_event(
+                        instance.run_id,
+                        "compensated",
+                        f"Compensation executed for step {step_id}",
+                        step_id,
+                    )
+                    break
+                except Exception as exc:  # noqa: BLE001
+                    self.store.add_journal_entry(
+                        instance.run_id,
+                        phase="compensation",
+                        status="failed",
+                        attempt=attempt,
+                        step_id=step_id,
+                        details={"reason": reason, "error": str(exc)},
+                    )
+                    if attempt == max_attempts:
+                        self.store.add_event(
+                            instance.run_id,
+                            "compensation_failed",
+                            f"Compensation failed for step {step_id}: {exc}",
+                            step_id,
+                        )
+                        return False
+                    if delay_seconds:
+                        await asyncio.sleep(delay_seconds * (2 ** (attempt - 1)))
+        return True
+
+    async def inspect_compensation(self, run_id: str) -> list[dict[str, Any]]:
+        return [entry.__dict__ for entry in self.store.list_journal_entries(run_id, phase="compensation")]
+
+    async def retry_compensation(
+        self,
+        instance: WorkflowInstance,
+        definition: dict[str, Any],
+        actor: dict[str, Any],
+        step_id: str | None = None,
+    ) -> WorkflowInstance:
+        success = await self._run_compensation_chain(
+            instance, definition, actor, reason="manual_retry", target_step_id=step_id
+        )
+        current = self._require_instance(instance.run_id)
+        if success and current.status == "compensation_failed":
+            self.store.update_status(instance.run_id, "failed", current.current_step_id)
+        return self._require_instance(instance.run_id)
 
     def _load_event_bus(self) -> Any | None:
         if get_event_bus is None:

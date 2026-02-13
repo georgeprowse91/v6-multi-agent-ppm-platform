@@ -74,6 +74,29 @@ class WorkflowStepExecutor:
             join_step_id=result.join_step_id,
         )
 
+
+    def compensation_journal(self, run_id: str) -> list[dict[str, Any]]:
+        return _run_async(self.runtime.inspect_compensation(run_id))
+
+    def retry_compensation(
+        self, run_id: str, actor: dict[str, Any], step_id: str | None = None
+    ) -> Any:
+        instance = self.store.get(run_id)
+        if not instance:
+            raise ValueError(f"Workflow run {run_id} not found")
+        definition_record = self.store.get_definition(instance.workflow_id)
+        if not definition_record:
+            definition = self._load_definition(instance.workflow_id)
+            self.store.upsert_definition(instance.workflow_id, definition)
+            definition_record = self.store.get_definition(instance.workflow_id)
+        if not definition_record:
+            raise ValueError("Workflow definition missing")
+        return _run_async(
+            self.runtime.retry_compensation(
+                instance, definition_record.definition, actor, step_id=step_id
+            )
+        )
+
     def _load_definition(self, workflow_id: str) -> dict[str, Any]:
         workflow_root = REPO_ROOT / "apps" / "workflow-engine"
         definition_path = workflow_root / "workflows" / "definitions" / f"{workflow_id}.workflow.yaml"
