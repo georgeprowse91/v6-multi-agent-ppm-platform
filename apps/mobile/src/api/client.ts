@@ -9,6 +9,15 @@ type ApiOptions = RequestInit & {
   tenantId?: string | null;
 };
 
+export type ApprovalAction = 'approve' | 'reject';
+
+export type StatusUpdatePayload = {
+  project_id: string;
+  status: string;
+  summary: string;
+  updated_at?: string;
+};
+
 const fallbackBaseUrl = 'http://localhost:8000';
 const extraBaseUrl =
   (Constants.expoConfig?.extra?.apiBaseUrl as string | undefined) ||
@@ -74,6 +83,24 @@ export const fetchApprovals = async (tenantId?: string | null, status?: string) 
   const query = status ? `?status=${encodeURIComponent(status)}` : '';
   return apiFetch(`/api/workflows/approvals${query}`, { tenantId });
 };
+
+export const submitApprovalAction = async (
+  approvalId: string,
+  action: ApprovalAction,
+  tenantId?: string | null
+) =>
+  apiFetch(`/api/workflows/approvals/${encodeURIComponent(approvalId)}/actions`, {
+    method: 'POST',
+    tenantId,
+    body: JSON.stringify({ action }),
+  });
+
+export const submitProjectStatus = async (payload: StatusUpdatePayload, tenantId?: string | null) =>
+  apiFetch('/api/projects/status', {
+    method: 'POST',
+    tenantId,
+    body: JSON.stringify(payload),
+  });
 
 export const fetchCanvasSnapshot = async (projectId: string, tenantId?: string | null) =>
   apiFetch(`/api/canvas/${projectId}`, { tenantId });

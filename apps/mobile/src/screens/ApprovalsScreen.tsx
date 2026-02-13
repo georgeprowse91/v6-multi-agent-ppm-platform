@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { fetchApprovals } from '../api/client';
+import { fetchApprovals, submitApprovalAction } from '../api/client';
 import { Card } from '../components/Card';
 import { LabelValueRow } from '../components/LabelValueRow';
 import { useAppContext } from '../context/AppContext';
-import { colors, spacing } from '../theme';
+import { colors, radius, spacing } from '../theme';
 
 type Approval = {
   approval_id?: string;
@@ -50,6 +50,15 @@ export const ApprovalsScreen = () => {
     void loadApprovals();
   }, [tenantId]);
 
+  const handleAction = async (approvalId: string, action: 'approve' | 'reject') => {
+    try {
+      await submitApprovalAction(approvalId, action, tenantId);
+      await loadApprovals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Unable to ${action} approval.`);
+    }
+  };
+
   const pendingCount = useMemo(
     () => approvals.filter((approval) => approval.status?.toLowerCase() !== 'approved').length,
     [approvals]
@@ -57,7 +66,7 @@ export const ApprovalsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Approvals</Text>
+      <Text style={styles.heading}>Approval Inbox</Text>
       <Text style={styles.subheading}>Review pending workflow approvals and stage-gate requests.</Text>
       {error && <Text style={styles.error}>{error}</Text>}
       <Card>
@@ -77,6 +86,22 @@ export const ApprovalsScreen = () => {
             <LabelValueRow label="Requested by" value={item.requested_by || 'Automated agent'} />
             <LabelValueRow label="Due" value={item.due_date || 'No deadline'} />
             <LabelValueRow label="Status" value={item.status || 'Pending'} accent />
+            {item.approval_id ? (
+              <View style={styles.actionsRow}>
+                <Pressable
+                  style={[styles.actionButton, styles.approveButton]}
+                  onPress={() => handleAction(item.approval_id as string, 'approve')}
+                >
+                  <Text style={styles.actionText}>Approve</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.actionButton, styles.rejectButton]}
+                  onPress={() => handleAction(item.approval_id as string, 'reject')}
+                >
+                  <Text style={styles.actionText}>Reject</Text>
+                </Pressable>
+              </View>
+            ) : null}
           </Card>
         )}
         ListEmptyComponent={
@@ -125,6 +150,27 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginTop: spacing.xs,
+  },
+  actionsRow: {
+    marginTop: spacing.sm,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+  },
+  approveButton: {
+    backgroundColor: colors.accent,
+  },
+  rejectButton: {
+    backgroundColor: colors.danger,
+  },
+  actionText: {
+    color: colors.text,
+    fontWeight: '600',
   },
   empty: {
     color: colors.muted,

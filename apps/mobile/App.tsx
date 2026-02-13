@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -16,8 +16,10 @@ import { CanvasScreen } from './src/screens/CanvasScreen';
 import { ApprovalsScreen } from './src/screens/ApprovalsScreen';
 import { ConnectorsScreen } from './src/screens/ConnectorsScreen';
 import { AssistantScreen } from './src/screens/AssistantScreen';
+import { StatusUpdatesScreen } from './src/screens/StatusUpdatesScreen';
 import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 import { reportCrash } from './src/services/telemetry';
+import { registerForApprovalNotifications, subscribeToApprovalDeepLinks } from './src/services/notifications';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -66,6 +68,11 @@ const WorkspaceTabs = () => {
         name="Approvals"
         component={ApprovalsScreen}
         options={{ title: t('mobile.tabs.approvals') }}
+      />
+      <Tab.Screen
+        name="StatusQueue"
+        component={StatusUpdatesScreen}
+        options={{ title: 'Status Queue' }}
       />
       <Tab.Screen
         name="Connectors"
@@ -124,6 +131,17 @@ const navigationTheme = {
 
 const AppBootstrap = () => {
   const { session, tenantId, refreshSession, logout } = useAppContext();
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    void registerForApprovalNotifications();
+    const unsubscribe = subscribeToApprovalDeepLinks((url) => {
+      if (url.includes('approvals')) {
+        navigationRef.navigate('Workspace' as never);
+      }
+    });
+    return unsubscribe;
+  }, [navigationRef]);
 
   return (
     <AppErrorBoundary
@@ -142,7 +160,7 @@ const AppBootstrap = () => {
         });
       }}
     >
-      <NavigationContainer theme={navigationTheme}>
+      <NavigationContainer theme={navigationTheme} ref={navigationRef}>
         <StatusBar style="light" />
         <RootNavigator />
       </NavigationContainer>
