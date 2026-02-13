@@ -49,8 +49,9 @@ make dev-up
 
 > ⚠️ `.env.example` contains **dev-only local defaults**. Never reuse these values in CI, staging, or production.
 
-See the detailed runbook in `docs/runbooks/quickstart.md` for the deterministic, end-to-end
-scenario that exercises the API gateway, workflow engine, orchestration service, and agents.
+See `docs/runbooks/quickstart.md` for the deterministic, end-to-end scenario that exercises the
+API gateway, workflow engine, orchestration service, and agents using the Makefile workflow
+(`make dev-up`, `make run-api`, `make run-web`).
 
 **Expected services**
 - API: http://localhost:8000

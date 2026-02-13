@@ -3,18 +3,8 @@ from workflow_engine_agent import WorkflowEngineAgent
 from workflow_state_store import DatabaseWorkflowStateStore, JsonWorkflowStateStore
 from workflow_task_queue import InMemoryWorkflowTaskQueue
 
-import sqlalchemy
-
 
 def _build_state_store(database_url: str, tmp_path):
-    if "multi-agent-ppm-platform/sqlalchemy" in str(getattr(sqlalchemy, "__file__", "")):
-        return JsonWorkflowStateStore(
-            tmp_path / "workflow_definitions.json",
-            tmp_path / "workflow_instances.json",
-            tmp_path / "workflow_tasks.json",
-            tmp_path / "workflow_events.json",
-            tmp_path / "workflow_subscriptions.json",
-        )
     return DatabaseWorkflowStateStore(database_url)
 
 

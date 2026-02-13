@@ -365,7 +365,7 @@ When adding features, update:
 - README.md (if public-facing feature)
 - API documentation (docstrings for endpoints)
 - Configuration examples (if new config options)
-- ARCHITECTURE.md (if architectural changes)
+- docs/architecture/ documentation (if architectural changes)
 
 ## Pull Request Process
 
