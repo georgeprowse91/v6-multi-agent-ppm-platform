@@ -34,6 +34,7 @@ from api.routes import (
     documents,
     health,
     lineage,
+    prompts,
     risk_research,
     scope_research,
     vendor_management,
@@ -233,6 +234,7 @@ api_v1.include_router(agents.router, tags=["agents"])
 api_v1.include_router(health.router, tags=["health"])
 api_v1.include_router(agent_config.router, tags=["agent-config"])
 api_v1.include_router(analytics.router, tags=["analytics"])
+api_v1.include_router(prompts.router, tags=["prompts"])
 api_v1.include_router(connectors.router, tags=["connectors"])
 api_v1.include_router(certifications.router, tags=["certifications"])
 api_v1.include_router(workflows.router, tags=["workflows"])

@@ -1,5 +1,6 @@
 from llm.client import LLMClient, LLMGateway, LLMProviderError, LLMResponse, LLMStreamChunk
-from llm.prompts import PromptRegistry, PromptVersion
+from llm.evaluation import EvaluationResult, EvaluationSample, PromptEvaluationHarness
+from llm.prompts import PromptMetadata, PromptRegistry, PromptVersion
 
 __all__ = [
     "LLMClient",
@@ -7,6 +8,10 @@ __all__ = [
     "LLMProviderError",
     "LLMResponse",
     "LLMStreamChunk",
+    "PromptMetadata",
     "PromptRegistry",
     "PromptVersion",
+    "EvaluationSample",
+    "EvaluationResult",
+    "PromptEvaluationHarness",
 ]
