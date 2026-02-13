@@ -22,6 +22,7 @@ SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 WORKFLOW_PACKAGE_ROOT = REPO_ROOT / "packages" / "workflow" / "src"
 EVENT_BUS_ROOT = REPO_ROOT / "packages" / "event-bus" / "src"
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
 for root in (
     REPO_ROOT,
     WORKFLOW_ROOT,
@@ -29,11 +30,13 @@ for root in (
     OBSERVABILITY_ROOT,
     WORKFLOW_PACKAGE_ROOT,
     EVENT_BUS_ROOT,
+    COMMON_ROOT,
 ):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
 from packages.version import API_VERSION  # noqa: E402
+from config import validate_startup_config  # noqa: E402
 from agent_client import get_agent_client  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
@@ -52,6 +55,8 @@ from workflow.dispatcher import WorkflowDispatcher  # noqa: E402
 
 logger = logging.getLogger("workflow-engine")
 logging.basicConfig(level=logging.INFO)
+
+validate_startup_config()
 
 WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"

@@ -14,7 +14,8 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DOCUMENT_ROOT = Path(__file__).resolve().parent
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (REPO_ROOT, DOCUMENT_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
+for root in (REPO_ROOT, DOCUMENT_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, COMMON_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -33,9 +34,12 @@ from security.dlp import DLPFinding, ensure_dlp_environment, scan_payload  # noq
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from packages.version import API_VERSION  # noqa: E402
+from config import validate_startup_config  # noqa: E402
 
 logger = logging.getLogger("document-service")
 logging.basicConfig(level=logging.INFO)
+
+validate_startup_config()
 
 app = FastAPI(title="Document Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")

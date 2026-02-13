@@ -41,6 +41,7 @@ from api.routes import (
     workflows,
 )
 from api.runtime_bootstrap import bootstrap_runtime_paths
+from api.config import validate_startup_config
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
@@ -64,6 +65,8 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+validate_startup_config()
 
 # Create FastAPI application
 app = FastAPI(

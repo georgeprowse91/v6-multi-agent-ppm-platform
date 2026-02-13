@@ -34,11 +34,13 @@ OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 LLM_ROOT = REPO_ROOT / "packages" / "llm" / "src"
 FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-for root in (REPO_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT, LLM_ROOT, FEATURE_FLAGS_ROOT):
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
+for root in (REPO_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT, LLM_ROOT, FEATURE_FLAGS_ROOT, COMMON_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
 from packages.version import API_VERSION  # noqa: E402
+from config import validate_startup_config  # noqa: E402
 from agent_registry import load_agent_registry  # noqa: E402
 from agent_settings_models import (  # noqa: E402
     AgentConfigUpdate,
@@ -207,6 +209,8 @@ merge_review_store = MergeReviewStore(MERGE_REVIEW_PATH, MERGE_REVIEW_SEED_PATH)
 pipeline_store = PipelineStore(PIPELINE_STATE_PATH)
 workflow_definition_store = WorkflowDefinitionStore(WORKFLOW_DEFINITIONS_PATH)
 logger = logging.getLogger("web-ui")
+
+validate_startup_config()
 
 
 class HealthResponse(BaseModel):

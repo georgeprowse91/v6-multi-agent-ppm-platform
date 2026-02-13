@@ -18,7 +18,8 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT):
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT, COMMON_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -54,6 +55,8 @@ from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 
 logger = logging.getLogger("analytics-service")
 logging.basicConfig(level=logging.INFO)
+
+validate_startup_config()
 
 app = FastAPI(title="Analytics Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")

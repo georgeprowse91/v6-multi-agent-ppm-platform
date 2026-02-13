@@ -11,11 +11,13 @@ from pydantic import BaseModel, Field
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, COMMON_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
 from leader_election import build_leader_elector  # noqa: E402
+from config import validate_startup_config  # noqa: E402
 from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
@@ -27,6 +29,8 @@ from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("orchestration-service")
 logging.basicConfig(level=logging.INFO)
+
+validate_startup_config()
 
 app = FastAPI(title="Orchestration Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
