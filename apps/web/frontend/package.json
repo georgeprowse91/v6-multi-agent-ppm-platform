@@ -17,7 +17,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:api-boundary": "node scripts/check-raw-json-casts.mjs",
-    "css-modules:check": "npm run css-modules:types && tsc -p tsconfig.css-modules.json"
+    "css-modules:check": "npm run css-modules:types && tsc -p tsconfig.css-modules.json",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test-storybook": "test-storybook --storybook-build-dir storybook-static --failOnConsole"
   },
   "dependencies": {
     "@ppm/canvas-engine": "workspace:*",
@@ -28,7 +31,8 @@
     "reactflow": "^11.11.4",
     "react-router-dom": "^6.22.0",
     "shepherd.js": "^11.2.0",
-    "zustand": "^4.5.0"
+    "zustand": "^4.5.0",
+    "@ppm/design-tokens": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
@@ -46,6 +50,13 @@
     "jsdom": "^24.0.0",
     "typescript": "catalog:",
     "vite": "^5.2.0",
-    "vitest": "^1.3.0"
+    "vitest": "^1.3.0",
+    "@storybook/addon-a11y": "^8.5.2",
+    "@storybook/addon-essentials": "^8.5.2",
+    "@storybook/addon-interactions": "^8.5.2",
+    "@storybook/react-vite": "^8.5.2",
+    "@storybook/test": "^8.5.2",
+    "@storybook/test-runner": "^0.19.1",
+    "storybook": "^8.5.2"
   }
 }
