@@ -1,0 +1,67 @@
+metadata:
+  template_id: compliance-privacy-project-charter-extension
+  title: Compliance Privacy Project Charter Extension
+  version: 1.0.0
+  owner: Privacy and Compliance Office
+  classification: extension
+  methodology: compliance-privacy
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: methodology
+  type: enum
+  values:
+  - compliance-privacy
+  required: true
+sections:
+- id: personal-data-classification
+  title: Personal Data Classification
+  type: table
+  columns:
+  - name: data-category
+    type: string
+  - name: classification-level
+    type: string
+  - name: processing-purpose
+    type: string
+- id: legal-basis-and-dpia-screening
+  title: Legal Basis and DPIA Screening
+  type: narrative
+- id: control-evidence-register
+  title: Control Evidence Register
+  type: table
+  columns:
+  - name: control-id
+    type: string
+  - name: control-description
+    type: string
+  - name: evidence-reference
+    type: string
+  - name: evidence-owner
+    type: string
+guidance:
+  purpose: Patch overlay for project-charter with privacy-by-design and compliance evidence requirements.
+  application: Apply this extension on top of the referenced core template when initiatives process personal data or trigger regulatory review.
+placeholders:
+- key: data_classification_summary
+  token: '{{data_classification_summary}}'
+- key: legal_basis
+  token: '{{legal_basis}}'
+- key: dpia_trigger_assessment
+  token: '{{dpia_trigger_assessment}}'
+- key: control_evidence_references
+  token: '{{control_evidence_references}}'
+extends: core/project-charter/manifest.yaml
+add_fields:
+- data-category
+- classification-level
+- processing-purpose
+- legal-basis
+- dpia-trigger
+- control-id
+- evidence-reference
+add_sections:
+- personal-data-classification
+- legal-basis-and-dpia-screening
+- control-evidence-register

@@ -237,7 +237,6 @@
         "next-period-plan"
       ]
     },
-
     {
       "template_id": "product-backlog.agile.v1",
       "path": "docs/templates/extensions/agile/product-backlog.patch.yaml",
@@ -322,7 +321,6 @@
       "supports_modular": false,
       "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
-
     {
       "template_id": "project-charter.hybrid.v1",
       "path": "docs/templates/extensions/hybrid/project-charter.patch.yaml",
@@ -371,7 +369,6 @@
       "supports_modular": false,
       "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
-
     {
       "template_id": "executive-dashboard.safe.v1",
       "path": "docs/templates/extensions/safe/executive-dashboard.patch.yaml",
@@ -420,7 +417,6 @@
       "supports_modular": false,
       "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
-
     {
       "template_id": "project-charter.waterfall.v1",
       "path": "docs/templates/extensions/waterfall/project-charter.patch.yaml",
@@ -468,6 +464,46 @@
       "replaces": "status-report.universal.v1",
       "supports_modular": false,
       "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
+    },
+    {
+      "template_id": "deployment-checklist.devops.v1",
+      "path": "docs/templates/extensions/devops/deployment-checklist.patch.yaml",
+      "artefact_type": "checklist",
+      "methodology": "devops",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "deployment-checklist.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/deployment-checklist/manifest.yaml"
+    },
+    {
+      "template_id": "risk-register.safe.v1",
+      "path": "docs/templates/extensions/safe/risk-register.patch.yaml",
+      "artefact_type": "risk-register",
+      "methodology": "safe",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "risk-register.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/risk-register/manifest.yaml"
+    },
+    {
+      "template_id": "project-charter.compliance-privacy.v1",
+      "path": "docs/templates/extensions/compliance/privacy/project-charter.patch.yaml",
+      "artefact_type": "charter",
+      "methodology": "compliance-privacy",
+      "compliance_tags": [
+        "privacy",
+        "gdpr",
+        "pii"
+      ],
+      "version": "1.0.0",
+      "status": "active",
+      "replaces": "project-charter.universal.v1",
+      "supports_modular": false,
+      "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
     }
   ]
 }
