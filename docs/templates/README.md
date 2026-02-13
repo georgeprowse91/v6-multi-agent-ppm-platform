@@ -9,7 +9,7 @@ This folder contains a canonical, modular template system:
 
 1. **Pick your discipline** (delivery governance, product engineering, operations).
 2. **Select a base template** that matches the primary artefact.
-3. **Apply a methodology extension** (Agile, SAFe, Hybrid, Waterfall) when needed.
+3. **Apply a methodology extension** (Agile, SAFe, Hybrid, Waterfall, DevOps, Compliance Privacy) when needed.
 4. **Check migration notes** if coming from legacy Markdown templates.
 
 Useful links:
@@ -78,7 +78,26 @@ Useful links:
 - [executive-dashboard.safe.v1](./extensions/safe/executive-dashboard.patch.yaml)
 - [product-backlog.safe.v1](./extensions/safe/product-backlog.patch.yaml)
 - [sprint-planning.safe.v1](./extensions/safe/sprint-planning.patch.yaml)
+- [risk-register.safe.v1](./extensions/safe/risk-register.patch.yaml)
 - [status-report.safe.v1](./extensions/safe/status-report.patch.yaml)
+
+### DevOps extensions
+
+- [deployment-checklist.devops.v1](./extensions/devops/deployment-checklist.patch.yaml)
+
+### Compliance privacy extensions
+
+- [project-charter.compliance-privacy.v1](./extensions/compliance/privacy/project-charter.patch.yaml)
+
+## Selection guidance (compliance-aware)
+
+- Use **DevOps extensions** when deployment governance needs CI/CD automation, release controls, rollback readiness, and observability evidence.
+- Use **SAFe risk extensions** when teams need PI-level risk rollups and ROAM disposition tracking in addition to base risk logging.
+- Use **Compliance Privacy extensions** for initiatives processing personal data or handling regulated data flows. Ensure the extension captures:
+  - **Data classification** for each personal data category processed.
+  - **Legal basis** for processing and jurisdictional applicability.
+  - **DPIA trigger assessment** and escalation criteria.
+  - **Control evidence references** (control IDs, evidence links, and accountable owners).
 
 ### Hybrid extensions
 

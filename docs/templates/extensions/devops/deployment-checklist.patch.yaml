@@ -1,0 +1,41 @@
+metadata:
+  template_id: devops-deployment-checklist-extension
+  title: DevOps Deployment Checklist Extension
+  version: 1.0.0
+  owner: Platform Engineering
+  classification: extension
+  methodology: devops
+inputs:
+- name: project_name
+  type: string
+  required: true
+- name: methodology
+  type: enum
+  values:
+  - devops
+  required: true
+sections:
+- id: ci-cd-pipeline-readiness
+  title: CI/CD Pipeline Readiness
+  type: checklist
+- id: deployment-automation-controls
+  title: Deployment Automation Controls
+  type: checklist
+- id: rollback-and-observability
+  title: Rollback and Observability
+  type: narrative
+guidance:
+  purpose: Patch overlay for deployment-checklist tailored to DevOps delivery.
+  application: Apply this extension on top of the referenced core template to add DevOps automation and operability controls.
+placeholders:
+- key: pipeline_readiness
+  token: '{{pipeline_readiness}}'
+- key: deployment_automation_controls
+  token: '{{deployment_automation_controls}}'
+- key: rollback_observability_plan
+  token: '{{rollback_observability_plan}}'
+extends: core/deployment-checklist/manifest.yaml
+add_sections:
+- ci-cd-pipeline-readiness
+- deployment-automation-controls
+- rollback-and-observability
