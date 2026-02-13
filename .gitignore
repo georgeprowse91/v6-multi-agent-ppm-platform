@@ -56,3 +56,6 @@ apps/web/frontend/dist/
 # Replit
 .pythonlibs/
 .cache/
+
+# Local runtime artifacts
+data/*.sqlite3

@@ -627,8 +627,8 @@ class ERPIntegrationService:
         if connector is None:
             logger.info("Mock retrieving ERP transactions")
             return [
-                {"transaction_id": "TXN-001", "amount": 1250.0, "currency": "USD"},
-                {"transaction_id": "TXN-002", "amount": 300.0, "currency": "USD"},
+                {"transaction_id": "TXN-001", "amount": 1250.0, "currency": "AUD"},
+                {"transaction_id": "TXN-002", "amount": 300.0, "currency": "AUD"},
             ]
 
         try:

@@ -130,7 +130,7 @@ The project excludes application modernization/refactoring, end-user desktop sys
 
 ### 6.2 Budget Summary
 
-| Category | Amount (USD) | % of Total |
+| Category | Amount (AUD) | % of Total |
 |----------|--------------|------------|
 | Hardware | $800,000 | 32% |
 | Software and cloud services | $600,000 | 24% |

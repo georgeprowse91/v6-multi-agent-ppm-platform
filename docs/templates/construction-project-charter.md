@@ -285,7 +285,7 @@
 
 *Example:
 
-| Category | Amount (USD) | % of Total |
+| Category | Amount (AUD) | % of Total |
 |----------|--------------|------------|
 | Land acquisition | $15,000,000 | 20.0% |
 | Site preparation and excavation | $5,500,000 | 7.3% |

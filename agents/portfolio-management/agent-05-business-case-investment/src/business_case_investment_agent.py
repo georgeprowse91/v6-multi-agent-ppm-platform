@@ -66,7 +66,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         )
         self.currency_rates = {
             code.upper(): float(rate)
-            for code, rate in self.financial_settings.get("currency_rates", {"USD": 1.0}).items()
+            for code, rate in self.financial_settings.get("currency_rates", {"AUD": 1.0}).items()
         }
         self.simulation_iterations = int(
             self.financial_settings.get("simulation_iterations", 1000)
@@ -134,7 +134,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         defaults: dict[str, Any] = {
             "discount_rate": 0.10,
             "inflation_rate": 0.0,
-            "currency_rates": {"USD": 1.0},
+            "currency_rates": {"AUD": 1.0},
             "simulation_iterations": 1000,
             "sensitivity_variations": [-0.2, -0.1, 0.0, 0.1, 0.2],
         }
@@ -858,14 +858,14 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     def _convert_currency_inputs(self, data: dict[str, Any]) -> dict[str, Any]:
         converted = dict(data)
-        currency = str(converted.get("currency", "USD")).upper()
+        currency = str(converted.get("currency", "AUD")).upper()
         rate = float(self.currency_rates.get(currency, 1.0))
         for key in ("total_cost", "total_benefits", "operational_costs"):
             if key in converted:
                 converted[key] = float(converted[key]) * rate
         if isinstance(converted.get("cash_flow"), list):
             converted["cash_flow"] = [float(amount) * rate for amount in converted["cash_flow"]]
-        converted["base_currency"] = "USD"
+        converted["base_currency"] = "AUD"
         return converted
 
     def _inflate_adjust_cash_flows(self, cash_flows: list[float]) -> list[float]:

@@ -1,5 +1,5 @@
 {
-  "query": "Show portfolio status, financial summary, and top risks for Project Apollo in USD",
+  "query": "Show portfolio status, financial summary, and top risks for Project Apollo in AUD",
   "context": {
     "tenant_id": "dev-tenant",
     "correlation_id": "quickstart-demo-001"

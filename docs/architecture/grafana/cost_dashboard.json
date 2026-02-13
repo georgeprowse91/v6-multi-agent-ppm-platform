@@ -6,7 +6,7 @@
   "panels": [
     {
       "type": "timeseries",
-      "title": "External API Cost by Agent (USD)",
+      "title": "External API Cost by Agent (AUD)",
       "targets": [
         {
           "expr": "sum by (agent_id) (rate(external_api_cost[5m]))",
@@ -26,7 +26,7 @@
     },
     {
       "type": "stat",
-      "title": "Total External API Cost (USD)",
+      "title": "Total External API Cost (AUD)",
       "targets": [
         {
           "expr": "sum(rate(external_api_cost[5m]))"

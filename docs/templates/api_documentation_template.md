@@ -620,7 +620,7 @@ All API requests must use HTTPS to ensure data encryption in transit. HTTP reque
 | uuid | string | Universally unique identifier (e.g., "550e8400-e29b-41d4-a716-446655440000") |
 | timestamp | string | ISO 8601 date and time (e.g., "2023-02-15T14:30:00Z") |
 | email | string | Valid email address (e.g., "user@example.com") |
-| currency | string | Three-letter ISO currency code (e.g., "USD") |
+| currency | string | Three-letter ISO currency code (e.g., "AUD") |
 | country | string | Two-letter ISO country code (e.g., "US") |
 | phone | string | E.164 formatted phone number (e.g., "+12125551234") |
 

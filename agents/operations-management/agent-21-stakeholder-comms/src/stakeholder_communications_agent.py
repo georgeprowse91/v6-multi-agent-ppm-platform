@@ -364,7 +364,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             (config or {}).get("calendar") if config else None
         )
 
-        self.default_locale = (config or {}).get("default_locale", "en-US")
+        self.default_locale = (config or {}).get("default_locale", "en-AU")
         self.delivery_batch_size = int((config or {}).get("delivery_batch_size", 50))
         self.delivery_batch_interval = int((config or {}).get("delivery_batch_interval_minutes", 15))
         self.digest_window_minutes = int((config or {}).get("digest_window_minutes", 60))
@@ -2284,7 +2284,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
     def _load_default_templates(self) -> dict[str, dict[str, dict[str, str]]]:
         return {
             "project_status_update": {
-                "en-US": {
+                "en-AU": {
                     "subject": "Project status update: {project_name}",
                     "body": (
                         "Hello {name},\n\n"
@@ -2306,7 +2306,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 },
             },
             "risk_alert": {
-                "en-US": {
+                "en-AU": {
                     "subject": "Risk alert: {risk_title}",
                     "body": (
                         "Hello {name},\n\n"
@@ -2317,7 +2317,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 }
             },
             "risk_alert_summary": {
-                "en-US": {
+                "en-AU": {
                     "subject": "Risk summary for {project_name}",
                     "body": (
                         "Hello {name},\n\n"
@@ -2337,7 +2337,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 },
             },
             "deployment_outcome": {
-                "en-US": {
+                "en-AU": {
                     "subject": "Deployment outcome: {release_name}",
                     "body": (
                         "Hello {name},\n\n"
@@ -2348,7 +2348,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 }
             },
             "digest_update": {
-                "en-US": {
+                "en-AU": {
                     "subject": "Your update digest: {project_name}",
                     "body": (
                         "Hello {name},\n\n"

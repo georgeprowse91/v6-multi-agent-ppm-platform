@@ -18,7 +18,7 @@ async def test_business_case_manual_financial_calculations_with_inflation_and_di
 discount_rate: 0.08
 inflation_rate: 0.02
 currency_rates:
-  USD: 1.0
+  AUD: 1.0
 simulation_iterations: 100
 """.strip()
     )
@@ -33,11 +33,11 @@ simulation_iterations: 100
     response = await agent.process(
         {
             "action": "calculate_roi",
-            "costs": {"total_cost": 300, "cash_flow": [100, 100, 100], "currency": "USD"},
+            "costs": {"total_cost": 300, "cash_flow": [100, 100, 100], "currency": "AUD"},
             "benefits": {
                 "total_benefits": 510,
                 "cash_flow": [150, 170, 190],
-                "currency": "USD",
+                "currency": "AUD",
             },
         }
     )
@@ -60,7 +60,7 @@ async def test_business_case_monte_carlo_is_stable_with_seed(tmp_path) -> None:
 discount_rate: 0.1
 inflation_rate: 0.0
 currency_rates:
-  USD: 1.0
+  AUD: 1.0
 simulation_iterations: 200
 """.strip()
     )
@@ -88,7 +88,7 @@ async def test_business_case_currency_conversion_applies_rates(tmp_path) -> None
 discount_rate: 0.1
 inflation_rate: 0.0
 currency_rates:
-  USD: 1.0
+  AUD: 1.0
   EUR: 1.2
 simulation_iterations: 100
 """.strip()

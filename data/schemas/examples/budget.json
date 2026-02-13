@@ -3,14 +3,14 @@
   "tenant_id": "tenant-alpha",
   "portfolio_id": "portfolio-001",
   "name": "FY24 Cloud Migration",
-  "currency": "USD",
+  "currency": "AUD",
   "amount": 1250000,
-  "fiscal_year": 2024,
+  "fiscal_year": 2026,
   "status": "approved",
   "owner": "finance.lead@ppm.example",
   "classification": "confidential",
-  "created_at": "2024-01-15T09:00:00Z",
-  "updated_at": "2024-02-01T10:00:00Z",
+  "created_at": "2026-01-15T09:00:00Z",
+  "updated_at": "2026-02-01T10:00:00Z",
   "metadata": {
     "cost_center": "CC-420"
   }

@@ -158,7 +158,7 @@ updated: "2026-02-11"
 
 *Example:
 
-| Category | Amount (USD) | % of Total |
+| Category | Amount (AUD) | % of Total |
 |----------|--------------|------------|
 | Software licensing | $350,000 | 29.2% |
 | Implementation services | $450,000 | 37.5% |

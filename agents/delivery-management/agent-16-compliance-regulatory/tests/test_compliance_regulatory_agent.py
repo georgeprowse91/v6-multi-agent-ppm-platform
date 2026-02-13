@@ -76,7 +76,7 @@ async def test_control_mapping_includes_applicable_regulations() -> None:
     )
 
     regulations = result["applicable_regulation_ids"]
-    assert "REG-GDPR" in regulations
+    assert "REG-PRIVACY-ACT-AU" in regulations
     assert "REG-SOC-2" in regulations
     assert "REG-ISO-27001" in regulations
 

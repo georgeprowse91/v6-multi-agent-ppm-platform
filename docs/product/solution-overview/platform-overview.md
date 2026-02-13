@@ -80,7 +80,7 @@ The Multi‑Agent PPM Platform delivers several compelling benefits:
 
 **Modular Agents & Connector Marketplace:** Organisations can enable only the agents they need and connect to their existing tools. New agents can be added to support emerging use cases without rewriting core code.
 
-**Embedded Governance & Compliance:** The platform embeds stage‑gates, approval workflows, RBAC, audit trails and compliance checks into every process. It is designed to satisfy regulatory requirements such as GDPR, Australian ISM/PSPF and SOX.
+**Embedded Governance & Compliance:** The platform embeds stage‑gates, approval workflows, RBAC, audit trails and compliance checks into every process. It is designed to satisfy regulatory requirements such as Privacy Act 1988 (APPs), Australian ISM/PSPF and APRA CPS 234.
 
 **Continuous Improvement:** Built‑in process mining and lessons‑learned capture enable organisations to refine their methodologies over time and increase project success rates.
 

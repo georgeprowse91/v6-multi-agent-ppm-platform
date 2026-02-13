@@ -6,7 +6,7 @@
       "title": "Risk Register Q2",
       "summary": "Risk register · Confidential",
       "project_id": "phoenix",
-      "updated_at": "2024-06-18T14:12:00Z",
+      "updated_at": "2026-06-18T14:12:00Z",
       "highlights": {
         "excerpt": "Review the <mark>risk</mark> exposure for Q2."
       },
@@ -19,8 +19,8 @@
         "classification": "Confidential",
         "latestVersion": 3,
         "latestStatus": "Approved",
-        "createdAt": "2024-05-12T09:25:00Z",
-        "updatedAt": "2024-06-18T14:12:00Z"
+        "createdAt": "2026-05-12T09:25:00Z",
+        "updatedAt": "2026-06-18T14:12:00Z"
       }
     },
     {
@@ -29,7 +29,7 @@
       "title": "Project Phoenix",
       "summary": "Template modernization · Methodology Hybrid",
       "project_id": "phoenix",
-      "updated_at": "2024-06-10T10:00:00Z",
+      "updated_at": "2026-06-10T10:00:00Z",
       "highlights": {
         "title": "Project <mark>Phoenix</mark>"
       },
@@ -40,7 +40,7 @@
         "methodology": {
           "name": "Hybrid"
         },
-        "createdAt": "2024-03-01T10:00:00Z"
+        "createdAt": "2026-03-01T10:00:00Z"
       }
     },
     {
@@ -49,7 +49,7 @@
       "title": "Vendor onboarding delays",
       "summary": "Compliance review slowed vendor onboarding by two weeks.",
       "project_id": "orion",
-      "updated_at": "2024-06-16T08:30:00Z",
+      "updated_at": "2026-06-16T08:30:00Z",
       "highlights": {
         "excerpt": "<mark>Compliance</mark> review slowed vendor onboarding by two weeks."
       },
@@ -62,8 +62,8 @@
         "description": "Compliance review slowed vendor onboarding by two weeks.",
         "tags": ["vendor", "compliance"],
         "topics": ["risk", "procurement"],
-        "createdAt": "2024-05-20T12:00:00Z",
-        "updatedAt": "2024-06-16T08:30:00Z"
+        "createdAt": "2026-05-20T12:00:00Z",
+        "updatedAt": "2026-06-16T08:30:00Z"
       }
     },
     {
@@ -72,7 +72,7 @@
       "title": "Budget Change +12%",
       "summary": "Orion · Risk: High · Due in 8h",
       "project_id": "orion",
-      "updated_at": "2024-06-19T07:45:00Z",
+      "updated_at": "2026-06-19T07:45:00Z",
       "highlights": {
         "summary": "Orion · <mark>Risk</mark>: High · Due in 8h"
       },
@@ -89,7 +89,7 @@
       "title": "Approval Escalation",
       "summary": "Run WF-2042 · Failed · Agent: Governance",
       "project_id": null,
-      "updated_at": "2024-06-19T06:55:00Z",
+      "updated_at": "2026-06-19T06:55:00Z",
       "highlights": {
         "summary": "Run WF-2042 · <mark>Failed</mark> · Agent: Governance"
       },

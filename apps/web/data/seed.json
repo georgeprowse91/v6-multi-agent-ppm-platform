@@ -146,11 +146,11 @@
   ],
   "policies": [
     {
-      "title": "GDPR",
+      "title": "Privacy Act 1988 (APPs)",
       "status": "Active",
       "classification": "Public",
       "data": {
-        "framework": "GDPR",
+        "framework": "Privacy Act 1988 (APPs)",
         "controls": [
           "Data minimisation",
           "Right to erasure",
