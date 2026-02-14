@@ -183,6 +183,28 @@ make db-reset
 
 > `db-reset` destroys local DB state and recreates migrations; use only for disposable demo data.
 
+### Reset and regenerate with helper script
+
+Use `scripts/reset_demo_data.sh` to run a full refresh workflow: stop app services, recreate the PostgreSQL demo database, clear Redis cache, run migrations, reload demo JSON/CSV assets, and start services again.
+
+```bash
+./scripts/reset_demo_data.sh
+```
+
+To generate a fresh dataset before loading, pass `--regenerate` (optionally with generator args):
+
+```bash
+./scripts/reset_demo_data.sh --regenerate --size 5 --seed 123
+```
+
+The regeneration step uses `scripts/generate_demo_data.py`, which can also be run standalone to rewrite the canonical demo files under `data/demo/*.json` and the `data/seed/manifest.csv` summary.
+
+```bash
+python scripts/generate_demo_data.py --size 4 --seed 77
+```
+
+> `generate_demo_data.py` uses Faker when available and otherwise falls back to built-in pseudo-random generators, while preserving canonical entity shapes expected by `scripts/load_demo_data.py`.
+
 ### Reset cloud demo deployment
 
 - Reapply Helm release to restore desired state:
