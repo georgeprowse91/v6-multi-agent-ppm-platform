@@ -1,6 +1,6 @@
 ---
 title: "Portfolio Kanban Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -12,7 +12,7 @@ updated: "2026-02-11"
 This template provides a framework for implementing Portfolio Kanban in SAFe, enabling organizations to visualize and manage the flow of portfolio epics from ideation to implementation. Portfolio Kanban helps establish a pull-based system for portfolio investment decisions.
 
 ## Template Information
-- **Framework:** SAFe (Scaled Agile Framework)
+- **Framework:** SAFe (Scaled Adaptive Framework)
 - **Level:** Portfolio
 - **Purpose:** Epic flow management and investment decision-making
 - **Participants:** Portfolio Management, Epic Owners, Business Owners

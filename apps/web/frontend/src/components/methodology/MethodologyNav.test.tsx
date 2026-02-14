@@ -10,7 +10,7 @@ vi.mock('@/components/icon/Icon', () => ({
 
 describe('MethodologyNav', () => {
   afterEach(() => {
-    useMethodologyStore.getState().createFromTemplate('methodology-waterfall', 'project-demo', 'Project Apollo');
+    useMethodologyStore.getState().createFromTemplate('methodology-predictive', 'project-demo', 'Project Apollo');
   });
 
   it('renders methodology tree for project workspace context', () => {

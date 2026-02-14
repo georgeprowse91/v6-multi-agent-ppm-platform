@@ -70,7 +70,7 @@ criticality_levels:
   normal: 24
   low: 48
 reminder_before_deadline_hours: 24
-default_chain_type: waterfall
+default_chain_type: predictive
 digest_interval_minutes: 60
 response_time_threshold_hours: 48
 """.strip(),

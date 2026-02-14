@@ -426,7 +426,7 @@ class QualityManagementAgent(BaseAgent):
         quality_plan = {
             "plan_id": plan_id,
             "project_id": plan_data.get("project_id"),
-            "methodology": plan_data.get("methodology", "waterfall"),
+            "methodology": plan_data.get("methodology", "predictive"),
             "objectives": plan_data.get("objectives", []),
             "metrics": plan_data.get("metrics", recommended_metrics),
             "acceptance_criteria": plan_data.get("acceptance_criteria", []),

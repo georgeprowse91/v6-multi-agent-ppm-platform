@@ -1,12 +1,12 @@
 # Hybrid Project Management Templates & Tools
 
-> **Best of Both Worlds** - Intelligently combine Traditional structure with Agile flexibility for optimal project outcomes across diverse organizational contexts.
+> **Best of Both Worlds** - Intelligently combine Traditional structure with Adaptive flexibility for optimal project outcomes across diverse organizational contexts.
 
 ---
 
 ## 🎯 **Overview**
 
-This directory provides sophisticated hybrid methodology templates that seamlessly blend traditional project management rigor with agile adaptability. Perfect for complex programs, regulated environments requiring agile benefits, and organizations transitioning between methodologies.
+This directory provides sophisticated hybrid methodology templates that seamlessly blend traditional project management rigor with adaptive adaptability. Perfect for complex programs, regulated environments requiring adaptive benefits, and organizations transitioning between methodologies.
 
 ### **Who This Is For:**
 - **Program Managers** - Managing complex, multi-methodology initiatives
@@ -29,11 +29,11 @@ Hybrid/
 ```
 
 ### **🔄 Hybrid Approach Types:**
-- **Traditional Planning → Agile Execution** - Detailed upfront planning with sprint-based delivery
-- **Phase-Gate + Sprints** - Traditional phase gates with agile development cycles
+- **Traditional Planning → Adaptive Execution** - Detailed upfront planning with sprint-based delivery
+- **Phase-Gate + Sprints** - Traditional phase gates with adaptive development cycles
 - **Risk-Driven Hybrid** - Methodology selection based on project risk profile
-- **Regulatory Agile** - Agile practices within compliance frameworks
-- **Scaled Agile Enterprise** - SAFe, LeSS, and other enterprise scaling patterns
+- **Regulatory Adaptive** - Adaptive practices within compliance frameworks
+- **Scaled Adaptive Enterprise** - SAFe, LeSS, and other enterprise scaling patterns
 
 ---
 
@@ -43,7 +43,7 @@ Hybrid/
 Start with: `Frameworks/` → Understanding hybrid methodology principles and selection criteria
 
 ### **2. Tool Integration Needed?**
-Explore: `MPP-Jira-Integration/` → Connect traditional planning tools with agile execution
+Explore: `MPP-Jira-Integration/` → Connect traditional planning tools with adaptive execution
 
 ### **3. Specific Hybrid Templates?**
 Browse: `Templates/` → Ready-to-use hybrid approach templates
@@ -55,33 +55,33 @@ Check: `Tools/` → Methodology selection and maturity assessment tools
 
 ## 🎯 **Hybrid Methodology Patterns**
 
-### **🏗️ Traditional Planning → Agile Execution**
+### **🏗️ Traditional Planning → Adaptive Execution**
 **Best For:** Large programs, fixed budgets, regulatory requirements
 - **Phase 1:** Traditional initiation and detailed planning
-- **Phase 2:** Agile execution with sprints and iterations
+- **Phase 2:** Adaptive execution with sprints and iterations
 - **Phase 3:** Traditional closure and governance reporting
 
 **Key Benefits:**
 - Predictable budgets and timelines from traditional planning
-- Responsive delivery and quality from agile execution
+- Responsive delivery and quality from adaptive execution
 - Stakeholder confidence through familiar governance structures
 
 ### **⚡ Phase-Gate with Sprints**
 **Best For:** Product development, innovation projects, R&D initiatives
 - **Gate Reviews:** Traditional stage-gate decision points
-- **Sprint Cycles:** Agile development between gates
+- **Sprint Cycles:** Adaptive development between gates
 - **Hybrid Ceremonies:** Combined planning and review sessions
 
 ### **🎲 Risk-Driven Methodology Selection**
 **Best For:** Portfolio management, diverse project types
-- **High Risk/Uncertainty:** Agile approaches for adaptability
+- **High Risk/Uncertainty:** Adaptive approaches for adaptability
 - **Low Risk/Compliance:** Traditional approaches for predictability
 - **Mixed Risk:** Hybrid approaches tailored to specific contexts
 
-### **📋 Regulatory Agile**
+### **📋 Regulatory Adaptive**
 **Best For:** Healthcare, finance, government, manufacturing
 - **Compliance Framework:** Traditional governance and documentation
-- **Delivery Approach:** Agile development and testing
+- **Delivery Approach:** Adaptive development and testing
 - **Audit Trail:** Comprehensive traceability and reporting
 
 ---
@@ -91,7 +91,7 @@ Check: `Tools/` → Methodology selection and maturity assessment tools
 ### **📋 Planning & Governance**
 | Template | Methodology Mix | Best For |
 |----------|----------------|----------|
-| Hybrid Project Charter | Traditional structure + Agile vision | Executive alignment |
+| Hybrid Project Charter | Traditional structure + Adaptive vision | Executive alignment |
 | Adaptive WBS | Traditional breakdown + Sprint flexibility | Complex scope management |
 | Phase-Gate Planning | Traditional gates + Sprint planning | Staged product development |
 | Risk-Based Methodology Selector | Assessment-driven approach selection | Portfolio standardization |
@@ -100,16 +100,16 @@ Check: `Tools/` → Methodology selection and maturity assessment tools
 | Template | Methodology Mix | Best For |
 |----------|----------------|----------|
 | Sprint-Gate Hybrid | Sprint cycles between phase gates | Innovation projects |
-| Compliance Sprint Planning | Agile planning + Regulatory oversight | Regulated industries |
-| Hybrid Stand-up Format | Traditional status + Agile impediments | Mixed methodology teams |
-| Integrated Change Control | Traditional change + Agile backlog refinement | Large programs |
+| Compliance Sprint Planning | Adaptive planning + Regulatory oversight | Regulated industries |
+| Hybrid Stand-up Format | Traditional status + Adaptive impediments | Mixed methodology teams |
+| Integrated Change Control | Traditional change + Adaptive backlog refinement | Large programs |
 
 ### **📊 Monitoring & Control**
 | Template | Methodology Mix | Best For |
 |----------|----------------|----------|
-| Hybrid Dashboard | EVM + Agile metrics | Executive reporting |
+| Hybrid Dashboard | EVM + Adaptive metrics | Executive reporting |
 | Dual-Track Reporting | Traditional status + Sprint reports | Stakeholder communication |
-| Gate Review with Demo | Traditional review + Agile demonstration | Product validation |
+| Gate Review with Demo | Traditional review + Adaptive demonstration | Product validation |
 | Integrated Retrospectives | Lessons learned + Sprint retrospectives | Continuous improvement |
 
 ---
@@ -123,7 +123,7 @@ Check: `Tools/` → Methodology selection and maturity assessment tools
 - **Distributed teams with limited collaboration capability**
 - **Executive preference for predictable reporting**
 
-### **🔍 When to Use Agile Approach**
+### **🔍 When to Use Adaptive Approach**
 - **Uncertain or evolving requirements**
 - **High innovation or technology risk**
 - **Need for frequent stakeholder feedback**
@@ -168,13 +168,13 @@ Check: `Tools/` → Methodology selection and maturity assessment tools
 ### **Microsoft Project + JIRA Integration**
 Located in: `MPP-Jira-Integration/`
 - **Traditional Planning:** Microsoft Project for scheduling and resource management
-- **Agile Execution:** JIRA for sprint management and team collaboration
+- **Adaptive Execution:** JIRA for sprint management and team collaboration
 - **Automated Sync:** Bi-directional data flow and reporting
-- **Governance Reporting:** Combined traditional and agile metrics
+- **Governance Reporting:** Combined traditional and adaptive metrics
 
 ### **Hybrid Reporting Dashboards**
 - **Executive View:** Traditional project health and financial metrics
-- **Team View:** Agile velocity, burndown, and impediment tracking
+- **Team View:** Adaptive velocity, burndown, and impediment tracking
 - **Program View:** Cross-methodology portfolio overview
 - **Stakeholder View:** Customized reporting by audience needs
 
@@ -189,7 +189,7 @@ Located in: `MPP-Jira-Integration/`
 | Cost Performance Index | EV / AC | Monitor budget compliance |
 | Scope Completion | Delivered / Planned | Measure deliverable achievement |
 
-### **Agile Metrics (Adaptability)**
+### **Adaptive Metrics (Adaptability)**
 | Metric | Calculation | Hybrid Application |
 |--------|-------------|-------------------|
 | Sprint Velocity | Story Points / Sprint | Track execution phases |
@@ -238,10 +238,10 @@ Located in: `MPP-Jira-Integration/`
 
 ### **→ Traditional Project Management**
 - **Leverage:** Structured planning, risk management, stakeholder communication
-- **Enhance:** Add agile flexibility and rapid feedback loops
+- **Enhance:** Add adaptive flexibility and rapid feedback loops
 - **Maintain:** Governance, compliance, and predictability requirements
 
-### **→ Agile Methodologies**
+### **→ Adaptive Methodologies**
 - **Leverage:** Iterative delivery, team collaboration, adaptive planning
 - **Enhance:** Add structured governance and stakeholder management
 - **Maintain:** Team autonomy, continuous improvement, customer focus
@@ -275,16 +275,16 @@ Located in: `MPP-Jira-Integration/`
 ## 🔗 **Related Resources**
 
 ### **Within This Repository:**
-- [`/Agile/`](../Agile/) - Pure agile methodology templates and tools
+- [`/Adaptive/`](../Adaptive/) - Pure adaptive methodology templates and tools
 - [`/Traditional/`](../Traditional/) - Traditional-aligned project management
 - [`/role-based-toolkits/`](../role-based-toolkits/) - Role-specific hybrid tools
 - [`/methodology-frameworks/`](../methodology-frameworks/) - Comparative methodology guidance
 
 ### **External Standards & Frameworks:**
-- [SAFe (Scaled Agile Framework)](https://scaledagileframework.com/) - Enterprise agile scaling
-- [Industry Standard Agile Practice Guide](https://pmi.org/learning/library/agile-practice-guide-better-results-6063) - Industry Standard's hybrid guidance
-- [PRINCE2 Agile](https://prince2.com/prince2-agile) - Structured hybrid approach
-- [Disciplined Agile (DA)](https://disciplinedagiledelivery.com/) - Context-driven methodology selection
+- [SAFe (Scaled Adaptive Framework)](https://scaledagileframework.com/) - Enterprise adaptive scaling
+- [Industry Standard Adaptive Practice Guide](https://pmi.org/learning/library/adaptive-practice-guide-better-results-6063) - Industry Standard's hybrid guidance
+- [PRINCE2 Adaptive](https://prince2.com/prince2-adaptive) - Structured hybrid approach
+- [Disciplined Adaptive (DA)](https://disciplinedagiledelivery.com/) - Context-driven methodology selection
 
 ---
 
@@ -297,7 +297,7 @@ Located in: `MPP-Jira-Integration/`
 - Follow implementation roadmap for systematic adoption
 
 ### **Building Hybrid Expertise:**
-- **Cross-Training:** Develop competency in both traditional and agile approaches
+- **Cross-Training:** Develop competency in both traditional and adaptive approaches
 - **Tool Proficiency:** Master integration between planning and execution tools
 - **Change Management:** Build skills in methodology transformation
 - **Stakeholder Management:** Learn to communicate with diverse methodology preferences
@@ -315,7 +315,7 @@ Located in: `MPP-Jira-Integration/`
 ### **Quality Standards:**
 - **Consistency:** Templates should work together seamlessly
 - **Completeness:** Cover all necessary project management aspects
-- **Compliance:** Meet both traditional governance and agile principles
+- **Compliance:** Meet both traditional governance and adaptive principles
 - **Usability:** Clear instructions and practical application guidance
 
 ---
@@ -325,4 +325,4 @@ Located in: `MPP-Jira-Integration/`
 **Last Updated:** August 2025  
 **Maintained By:** PM Tools Templates Community  
 **Framework Version:** 3.0 - Multi-Pattern Hybrid  
-**Integration:** Traditional ↔ Agile ↔ Hybrid
+**Integration:** Traditional ↔ Adaptive ↔ Hybrid

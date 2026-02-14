@@ -108,10 +108,10 @@ updated: "2026-02-11"
 *Define the methodology and framework that will guide program management.*
 
 **Framework:** Industry Standard Program Management Standard (Fourth Edition)
-**Approach:** Integrated program management combining traditional and agile methodologies
+**Approach:** Integrated program management combining traditional and adaptive methodologies
 **Supporting Methodologies:**
 - Traditional Guide for traditional project management components
-- Agile/Scrum for software development components
+- Adaptive/Scrum for software development components
 - ITIL for technology service management
 - COBIT for IT governance
 
@@ -140,7 +140,7 @@ updated: "2026-02-11"
 
 **Primary Tools:**
 - Microsoft Project for program and project scheduling
-- Jira for agile component management
+- Jira for adaptive component management
 - SharePoint for document management and collaboration
 - Power BI for reporting and dashboards
 - Teams for communication and meetings
@@ -1288,7 +1288,7 @@ Low Influence, Low Interest: External Partners, Media
 
 **Training and Development:**
 - Technical skills training
-- Methodology training (Agile, Traditional)
+- Methodology training (Adaptive, Traditional)
 - Leadership and soft skills development
 - Certification support
 - Cross-training and job rotation

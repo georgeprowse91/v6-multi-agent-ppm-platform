@@ -50,13 +50,13 @@ def test_select_persists_canvas_tab(client, monkeypatch):
             "current_stage_id": None,
             "current_activity_id": None,
             "current_canvas_tab": "timeline",
-            "methodology": "agile",
+            "methodology": "adaptive",
         },
     )
     assert response.status_code == 200
     payload = response.json()
     assert payload["current_canvas_tab"] == "timeline"
-    assert payload["methodology"] == "agile"
+    assert payload["methodology"] == "adaptive"
 
     response = client.get("/api/workspace/demo-1")
     assert response.status_code == 200

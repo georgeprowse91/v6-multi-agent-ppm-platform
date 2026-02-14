@@ -115,11 +115,11 @@
 ### 3.1 Development Methodology
 *Specify the software development methodology that will be followed and why it was chosen.*
 
-*Example: This project will use an Agile/Scrum methodology with two-week sprints. This approach was chosen because:
+*Example: This project will use an Adaptive/Scrum methodology with two-week sprints. This approach was chosen because:
 - Requirements are expected to evolve as stakeholder feedback is incorporated
 - The need to deliver incremental value through minimum viable products (MVPs)
 - The complex nature of integrations requires iterative testing
-- The team has expertise and established processes for Agile development*
+- The team has expertise and established processes for Adaptive development*
 
 ### 3.2 Release Strategy
 *Outline the planned approach for software releases, including phasing and incremental delivery.*

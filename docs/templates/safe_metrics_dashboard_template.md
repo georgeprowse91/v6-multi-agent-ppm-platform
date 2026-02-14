@@ -1,6 +1,6 @@
 ---
 title: "Safe Metrics Dashboard Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -16,7 +16,7 @@ updated: "2026-02-11"
 
 ## 📋 Metrics Dashboard Overview
 
-A comprehensive metrics dashboard is essential for effective measurement and improvement in a SAFe environment. This template provides a structured approach to implementing metrics at all levels of the Scaled Agile Framework:
+A comprehensive metrics dashboard is essential for effective measurement and improvement in a SAFe environment. This template provides a structured approach to implementing metrics at all levels of the Scaled Adaptive Framework:
 
 - **Team Level:** Focused on iteration delivery and team performance
 - **Program Level:** Measuring ART effectiveness and program increment success
@@ -68,7 +68,7 @@ This template follows SAFe best practices for metrics and measurement, emphasizi
 
 ## 📊 Team-Level Metrics Dashboard
 
-### Agile Team Performance Metrics
+### Adaptive Team Performance Metrics
 
 #### Iteration/Sprint Flow Metrics
 
@@ -526,7 +526,7 @@ Actual Split: 38% Growth / 27% Transformation / 22% Operations / 13% Compliance
 
 ```
 SAFe Competency Radar
-                   Lean-Agile 
+                   Lean-Adaptive 
                    Leadership
                        4
                        │
@@ -537,7 +537,7 @@ Culture                │
                        │
                        │
                 3      │        4
-Organizational ●───────┼────────● Agile Product
+Organizational ●───────┼────────● Adaptive Product
 Agility                │          Delivery
                        │
                        │
@@ -683,4 +683,4 @@ Sources          →   Collection    →   Processing     →   Presentation
 
 ---
 
-*This template follows the Scaled Agile Framework (SAFe) practices for metrics and measurement. Customize as needed for your organization's specific implementation of SAFe.*
+*This template follows the Scaled Adaptive Framework (SAFe) practices for metrics and measurement. Customize as needed for your organization's specific implementation of SAFe.*

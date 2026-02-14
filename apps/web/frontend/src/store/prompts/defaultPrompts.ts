@@ -83,7 +83,7 @@ export const defaultPrompts: PromptDefinition[] = [
     label: 'Adjust delivery backlog',
     description:
       'Assess the current backlog and propose adjustments based on recent progress, priority shifts, and capacity constraints. Provide an updated backlog order.',
-    tags: ['execution', 'monitoring', 'agile'],
+    tags: ['execution', 'monitoring', 'adaptive'],
   },
   {
     id: 'vendor_research',

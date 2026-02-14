@@ -193,7 +193,7 @@ The Information Technology (IT) industry encompasses organizations that provide 
    - Continuous improvement
    - Maintenance and updates
 
-### Agile IT Implementation
+### Adaptive IT Implementation
 
 1. **Vision and Roadmap**
    - Strategic planning
@@ -219,7 +219,7 @@ The Information Technology (IT) industry encompasses organizations that provide 
    - Architecture design
    - Risk assessment
 
-2. **Agile Execution**
+2. **Adaptive Execution**
    - Iterative implementation
    - Regular demonstrations
    - Adaptive planning

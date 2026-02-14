@@ -127,5 +127,5 @@ If this story is too large, consider splitting into:
 **Last Updated**: [Date]  
 **Status**: [To Do/In Progress/Testing/Done]
 
-*Comprehensive user story documentation for agile development*
+*Comprehensive user story documentation for adaptive development*
 

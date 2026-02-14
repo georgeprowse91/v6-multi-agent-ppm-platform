@@ -1,5 +1,5 @@
 ---
-title: "Waterfall Project Assessment Template"
+title: "Predictive Project Assessment Template"
 methodology: "traditional"
 complexity: "basic"
 process_group: "initiating"
@@ -13,18 +13,18 @@ estimated_completion_time: "15-30 minutes"
 ---
 
 
-title: "Waterfall Project Assessment Template"
+title: "Predictive Project Assessment Template"
 methodology: "traditional"
 complexity: "starter"
 owner: "firstname lastname"
 updated: "2026-02-11"
 
-# Waterfall Project Assessment Template
+# Predictive Project Assessment Template
 
 ## Executive Summary
-This template provides assessment criteria specifically for traditional waterfall project management approaches.
+This template provides assessment criteria specifically for traditional predictive project management approaches.
 
-## Waterfall Assessment Framework
+## Predictive Assessment Framework
 **Project:** [Project name]
 **Phase:** [Current project phase]
 **Assessment Date:** [Date]

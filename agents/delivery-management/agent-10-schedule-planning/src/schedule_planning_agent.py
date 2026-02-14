@@ -293,7 +293,7 @@ class SchedulePlanningAgent(BaseAgent):
             return await self._create_schedule(
                 input_data.get("project_id"),  # type: ignore
                 input_data.get("wbs", {}),
-                input_data.get("methodology", "waterfall"),
+                input_data.get("methodology", "predictive"),
                 risk_data=input_data.get("risk_data"),
                 dependency_results=input_data.get("dependency_results", {}),
                 context=context,
@@ -381,7 +381,7 @@ class SchedulePlanningAgent(BaseAgent):
         self,
         project_id: str,
         wbs: dict[str, Any],
-        methodology: str = "waterfall",
+        methodology: str = "predictive",
         risk_data: dict[str, Any] | None = None,
         dependency_results: dict[str, Any] | None = None,
         context: dict[str, Any] | None = None,
@@ -1229,7 +1229,7 @@ class SchedulePlanningAgent(BaseAgent):
         self, project_id: str, sprint_data: dict[str, Any]
     ) -> dict[str, Any]:
         """
-        Perform sprint planning for Agile projects.
+        Perform sprint planning for Adaptive projects.
 
         Returns sprint backlog and capacity planning.
         """

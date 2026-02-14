@@ -100,7 +100,7 @@
 ## Project Approach and Methodology
 
 ### Implementation Methodology
-[Specify whether using Traditional/Waterfall, Agile, Hybrid, or other methodology]
+[Specify whether using Traditional/Predictive, Adaptive, Hybrid, or other methodology]
 
 ### Project Phases
 1. **[Phase 1 Name]** - [Duration] - [Key Activities]

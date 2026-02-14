@@ -19,13 +19,13 @@ This guide provides instructions for implementing PM Tools Templates within Atla
 
 ## Jira Overview
 
-Jira is a versatile work management platform developed by Atlassian that supports various project management approaches from traditional to agile methodologies.
+Jira is a versatile work management platform developed by Atlassian that supports various project management approaches from traditional to adaptive methodologies.
 
 ### Key Capabilities
 
 - **Issue Tracking**: Track tasks, stories, bugs, and any custom work item
 - **Customizable Workflows**: Define state transitions and approval processes
-- **Agile Boards**: Scrum and Kanban boards with sprint planning
+- **Adaptive Boards**: Scrum and Kanban boards with sprint planning
 - **Advanced Reporting**: Built-in reports and custom dashboard creation
 - **Field Customization**: Create custom fields to track specific data
 - **Workflow Automation**: Rules to automate repetitive tasks
@@ -86,7 +86,7 @@ Create custom fields in Jira to track project management metadata:
 | Risk Score | Calculated Number (ScriptRunner) | Calculate Risk Priority Number | Formula: Probability × Impact |
 | Process Group | Select List | Traditional process group | For traditional projects |
 | Knowledge Area | Select List | Traditional knowledge area | For traditional projects |
-| Story Points | Story Points (native field) | Track estimated effort | For Agile projects |
+| Story Points | Story Points (native field) | Track estimated effort | For Adaptive projects |
 | Acceptance Criteria | Text Field (multi-line) | Define completion criteria | For all issues |
 | Business Value | Number Field | Prioritization metric | For value-based prioritization |
 | Phase | Select List | Project lifecycle phase | For traditional/hybrid projects |
@@ -115,7 +115,7 @@ Create custom fields in Jira to track project management metadata:
    - Navigate to Administration > Issues > Issue Types
    - Create issue types to match template requirements:
      - For Traditional: Task, Deliverable, Milestone, Risk, Issue, Change Request, Decision
-     - For Agile: Epic, Story, Task, Bug, Impediment
+     - For Adaptive: Epic, Story, Task, Bug, Impediment
      - For Hybrid: Appropriate combination based on needs
 
 2. **Configure Issue Type Scheme**
@@ -155,7 +155,7 @@ Create custom fields in Jira to track project management metadata:
 1. **Create Status Workflows**
    - Design workflows for each issue type
    - For Traditional: Align with process groups
-   - For Agile: To Do, In Progress, Review, Done
+   - For Adaptive: To Do, In Progress, Review, Done
    - For Hybrid: Appropriate combination
 
 2. **Configure Transitions and Conditions**
@@ -243,7 +243,7 @@ Configure automatic transitions and actions based on issue events:
    - Post-function: Update affected documentation
 ```
 
-#### Agile User Story Workflow
+#### Adaptive User Story Workflow
 
 ```
 1. Backlog → Sprint Backlog
@@ -339,7 +339,7 @@ Create Jira automation rules to streamline processes:
    - Risk monitoring
    - Issue tracking
 
-### Agile Configuration
+### Adaptive Configuration
 
 1. **Project Structure**
    - Use Scrum project type
@@ -377,15 +377,15 @@ Create Jira automation rules to streamline processes:
 1. **Project Structure**
    - Use combination of Scrum and traditional approaches
    - Plan phases using Traditional approach
-   - Execute work using Agile sprints
+   - Execute work using Adaptive sprints
    - Track both deadlines and velocity
 
 2. **Issue Types**
-   - Combination of Traditional and Agile issue types
+   - Combination of Traditional and Adaptive issue types
    - Clear distinction between planning vs. execution items
 
 3. **Custom Fields**
-   - Methodology Type (Agile, Traditional, Hybrid)
+   - Methodology Type (Adaptive, Traditional, Hybrid)
    - All relevant fields from both methodologies
    - Phase and Sprint fields
 
@@ -411,7 +411,7 @@ Create Jira automation rules to streamline processes:
    - Status summary
 
 2. **Progress Tracking**
-   - Sprint burndown (Agile)
+   - Sprint burndown (Adaptive)
    - Version burndown (Traditional)
    - Cumulative flow diagram
    - Resolution time
@@ -434,7 +434,7 @@ Create Jira automation rules to streamline processes:
    - Risk register report
    - Change log report
 
-2. **Agile Reports**
+2. **Adaptive Reports**
    - Velocity report
    - Sprint report
    - Epic report
@@ -550,7 +550,7 @@ Create Jira automation rules to streamline processes:
    - Track baseline vs. actual dates
    - Implement change control workflow
 
-### Agile Implementation Best Practices
+### Adaptive Implementation Best Practices
 
 1. **Backlog Management**
    - Maintain a refined backlog with prioritized items

@@ -593,7 +593,7 @@ For each change request:
 
 ### Methodology Alignment
 - **Traditional PM**: Formal agendas and documentation
-- **Agile PM**: Shorter, more frequent meetings
+- **Adaptive PM**: Shorter, more frequent meetings
 - **Hybrid PM**: Mix formal and informal based on context
 
 ---

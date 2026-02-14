@@ -1,6 +1,6 @@
 ---
 title: "Sprint Review Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"

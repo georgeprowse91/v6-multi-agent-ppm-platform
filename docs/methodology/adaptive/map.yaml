@@ -1,6 +1,6 @@
 id: adaptive
 name: Adaptive
-type: agile
+type: adaptive
 description: Adaptive iterative methodology with sprint cycle navigation.
 version: '2.0'
 nodes:

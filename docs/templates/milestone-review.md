@@ -427,13 +427,13 @@ The Milestone Review Template provides a structured approach to assess project p
 - Evaluate scope delivery
 
 ### Methodology Alignment
-**Traditional/Waterfall**:
+**Traditional/Predictive**:
 - Formal phase gate structure
 - Comprehensive documentation requirements
 - Sequential approval process
 - Detailed milestone criteria
 
-**Agile Projects**:
+**Adaptive Projects**:
 - Sprint review integration
 - Iterative improvement focus
 - Flexible success criteria

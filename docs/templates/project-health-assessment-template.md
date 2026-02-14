@@ -30,7 +30,7 @@ updated: "2026-02-11"
 | **Assessment Date** | |
 | **Assessment Period** | |
 | **Project Phase** | |
-| **Project Methodology** | ☐ Agile ☐ Waterfall ☐ Hybrid ☐ Other: |
+| **Project Methodology** | ☐ Adaptive ☐ Predictive ☐ Hybrid ☐ Other: |
 | **Assessed By** | |
 | **Stakeholders Involved** | |
 

@@ -6,7 +6,7 @@ owner: "firstname lastname"
 updated: "2026-02-11"
 ---
 
-# Business Case Template - Waterfall Methodology
+# Business Case Template - Predictive Methodology
 
 ## Executive Summary
 
@@ -202,7 +202,7 @@ updated: "2026-02-11"
 
 ## 6. Implementation Approach
 
-### Waterfall Project Phases
+### Predictive Project Phases
 
 #### Phase 1: Requirements and Analysis ({{ phase1_duration }})
 - **Objectives:** {{ phase1_objectives }}
@@ -465,7 +465,7 @@ updated: "2026-02-11"
 
 ---
 
-**Waterfall Methodology Alignment:**
+**Predictive Methodology Alignment:**
 - **Phase:** Initiation
 - **Process Group:** Initiating
 - **Knowledge Areas:** Project Integration Management, Project Scope Management

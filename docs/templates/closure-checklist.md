@@ -520,13 +520,13 @@ The Project Closure Checklist ensures systematic and complete project terminatio
 - Revenue recognition finalization
 
 ### Methodology Alignment
-**Traditional/Waterfall**:
+**Traditional/Predictive**:
 - Formal phase closure procedures
 - Comprehensive documentation requirements
 - Sequential closure activities
 - Detailed approval processes
 
-**Agile Projects**:
+**Adaptive Projects**:
 - Sprint retrospective integration
 - Incremental closure approach
 - Continuous improvement focus

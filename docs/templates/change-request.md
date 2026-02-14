@@ -490,13 +490,13 @@ The Change Request Template provides a systematic approach to managing changes t
 - Formal governance processes
 
 ### Project Type Adaptation
-**Traditional/Waterfall Projects**:
+**Traditional/Predictive Projects**:
 - Formal change control gates
 - Baseline change management
 - Detailed documentation requirements
 - Sequential approval process
 
-**Agile Projects**:
+**Adaptive Projects**:
 - Lightweight change process
 - Sprint-level change decisions
 - Product owner authority

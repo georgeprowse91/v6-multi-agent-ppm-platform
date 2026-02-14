@@ -1,4 +1,4 @@
-methodology: waterfall
+methodology: predictive
 version: "1.0"
 gates:
   - id: gate-initiation
@@ -9,7 +9,7 @@ gates:
         template: docs/templates/portfolio-program/business-case-var3-template-cross.md
         evidence: Approved business case.
       - name: Project charter
-        template: docs/templates/governance/project-charter-template-waterfall.md
+        template: docs/templates/governance/project-charter-template-predictive.md
         evidence: Signed charter.
     criteria:
       - id: init-1
@@ -32,16 +32,16 @@ gates:
     stage: planning
     required_artefacts:
       - name: Work breakdown structure
-        template: docs/templates/schedule/wbs-template-waterfall.yaml
+        template: docs/templates/schedule/wbs-template-predictive.yaml
         evidence: WBS signed off.
       - name: Schedule baseline
-        template: docs/templates/schedule/schedule-baseline-waterfall.xlsx
+        template: docs/templates/schedule/schedule-baseline-predictive.xlsx
         evidence: Baseline schedule approved.
       - name: Risk register
-        template: docs/templates/risk/risk-register-waterfall.xlsx
+        template: docs/templates/risk/risk-register-predictive.xlsx
         evidence: Initial risk register completed.
       - name: QA checklist
-        template: docs/templates/quality/qa-checklist-waterfall.xlsx
+        template: docs/templates/quality/qa-checklist-predictive.xlsx
         evidence: Quality plan reviewed.
     criteria:
       - id: plan-1
@@ -97,7 +97,7 @@ gates:
         template: docs/templates/finance/variance-report-template-cross.md
         evidence: Latest performance report.
       - name: Risk register
-        template: docs/templates/risk/risk-register-waterfall.xlsx
+        template: docs/templates/risk/risk-register-predictive.xlsx
         evidence: Updated risk register.
     criteria:
       - id: monitor-1
@@ -120,7 +120,7 @@ gates:
     stage: closure
     required_artefacts:
       - name: Closure report
-        template: docs/templates/governance/closure-report-template-waterfall.md
+        template: docs/templates/governance/closure-report-template-predictive.md
         evidence: Signed closure report.
       - name: DPIA report
         template: docs/compliance/privacy-dpia-template.md

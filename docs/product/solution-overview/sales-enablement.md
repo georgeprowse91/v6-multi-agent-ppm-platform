@@ -44,7 +44,7 @@ When engaging with prospects, focus on three core messages:
 
 **PMO Director:** highlight process consistency, stage‑gate enforcement, resource balancing and the interactive methodology map. Demonstrate how the platform integrates with existing tools and supports multiple methodologies.
 
-**Project Manager:** show day‑to‑day efficiencies (conversational intake, schedule creation, risk dashboards). Emphasise flexibility (Agile vs Waterfall) and collaboration features.
+**Project Manager:** show day‑to‑day efficiencies (conversational intake, schedule creation, risk dashboards). Emphasise flexibility (Adaptive vs Predictive) and collaboration features.
 
 **IT/Security Leader:** address deployment options, API integrations, security controls (encryption, RBAC, audit logging). Provide the security and compliance plan and reference the ISM and PSPF frameworks.
 

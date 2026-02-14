@@ -29,7 +29,7 @@ Authorization: Bearer <your-api-key>
 {
   "project": {
     "id": "string",
-    "methodology": "string", // "agile", "waterfall", "hybrid"
+    "methodology": "string", // "adaptive", "predictive", "hybrid"
     "phase": "string",
     "complexity": "string" // "low", "medium", "high"
   },

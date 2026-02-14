@@ -58,7 +58,7 @@ FTE numbers can scale up or down based on organisational size and outsourcing. D
 
 ## Tracking Progress
 
-**Sprint planning & retrospectives:** Use Agile ceremonies to plan tasks, review progress and address impediments. Maintain a programme backlog with epics for each agent and feature.
+**Sprint planning & retrospectives:** Use Adaptive ceremonies to plan tasks, review progress and address impediments. Maintain a programme backlog with epics for each agent and feature.
 
 **Milestone reviews:** At the end of each phase or release, hold a review session to evaluate deliverables against objectives, update the roadmap and adjust resource allocation.
 

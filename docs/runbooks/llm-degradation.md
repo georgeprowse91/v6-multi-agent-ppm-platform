@@ -10,7 +10,7 @@
 
 **Closed‑Loop Feedback:** capture feedback from users, agents and stakeholders through surveys, retrospectives, performance dashboards and operational metrics. Feed insights into the backlog and change‑management processes.
 
-**Process Transparency:** visualise end‑to‑end processes using process‑mining techniques, revealing actual flows, bottlenecks and deviations from expected paths. Compare against methodology‑embedded process flows for Agile, Waterfall and hybrid projects.
+**Process Transparency:** visualise end‑to‑end processes using process‑mining techniques, revealing actual flows, bottlenecks and deviations from expected paths. Compare against methodology‑embedded process flows for Adaptive, Predictive and hybrid projects.
 
 **Iterative & Incremental:** prioritise small, high‑impact improvements. Use MVP experiments, A/B testing and feature flags to validate assumptions before wider rollout.
 
@@ -26,7 +26,7 @@ The Continuous Improvement & Process Mining Agent uses event logs, trace data an
 
 **Bottleneck Detection:** analyse waiting times and throughput at each stage. Highlight areas where approvals take longest, resources are over‑allocated or tasks frequently return to a previous state.
 
-**Compliance Checking:** compare actual sequences to methodology‑defined process flows (Agile, Waterfall, hybrid) to detect violations (e.g., phase gates skipped, unapproved scope changes). Flag potential governance breaches for review.
+**Compliance Checking:** compare actual sequences to methodology‑defined process flows (Adaptive, Predictive, hybrid) to detect violations (e.g., phase gates skipped, unapproved scope changes). Flag potential governance breaches for review.
 
 **Root‑Cause Analysis:** correlate issues with contributing factors (team workload, skill gaps, external dependencies, integration failures). Use Pareto analysis to identify the small number of causes driving the majority of delays.
 

@@ -55,7 +55,7 @@ This document outlines the strategy and activities to verify that the product or
 - Manual test execution with supporting test scripts
 - Use of test case management tools (e.g., TestRail, Zephyr)
 - Daily triage meetings for defect resolution
-- Agile teams to test during sprint (if applicable)
+- Adaptive teams to test during sprint (if applicable)
 
 ## Environment & Tools
 - Test Environment: [Environment Name/URL]

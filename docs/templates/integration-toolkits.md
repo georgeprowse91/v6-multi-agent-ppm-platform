@@ -59,7 +59,7 @@ integration-toolkits/
 ## 💻 **Development Tools Integration**
 
 ### **JIRA + GitHub Integration**
-**Purpose:** Connect agile project management with source code development  
+**Purpose:** Connect adaptive project management with source code development  
 **Use Cases:**
 - Automatic issue creation from GitHub commits
 - Sprint planning with development velocity tracking

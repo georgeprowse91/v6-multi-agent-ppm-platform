@@ -105,7 +105,7 @@ Current State → Transition → Future State
 | [Component 3] | [Technology] | [Rationale] | [Yes/No - Details] |
 
 ### Implementation Approach
-**Methodology**: [Agile/Waterfall/Hybrid]
+**Methodology**: [Adaptive/Predictive/Hybrid]
 **Phases**: [Number] phases over [timeline]
 
 | Phase | Duration | Key Deliverables | Success Criteria |

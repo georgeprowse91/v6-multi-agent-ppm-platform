@@ -69,7 +69,7 @@ Grafana dashboards are stored as JSON exports in `infra/observability/dashboards
 
 - `ppm-platform.json` for latency, throughput, error rate, and connector sync duration.
 - `ppm-slo.json` for SLO adherence, connector sync success, and error budget tracking.
-- `multi_agent_tracing.json` for correlation-based multi-agent waterfall views, retries/errors overlays, and cost breakdowns by agent.
+- `multi_agent_tracing.json` for correlation-based multi-agent predictive views, retries/errors overlays, and cost breakdowns by agent.
 
 #### Dashboard screenshots
 

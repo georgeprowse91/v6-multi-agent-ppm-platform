@@ -1,19 +1,19 @@
-# Waterfall Documentation
+# Predictive Documentation
 
 ## Purpose
 
-Describe the waterfall documentation set and link the narrative to the repo assets that implement it.
+Describe the predictive documentation set and link the narrative to the repo assets that implement it.
 
 ## What's inside
 
-- `docs/templates/`: Template library organized by discipline. Waterfall variants are labeled with
-  the `-waterfall` suffix in the filename.
-- `docs/methodology/waterfall/gates.yaml`: YAML definition or configuration used by this component.
-- `docs/methodology/waterfall/map.yaml`: YAML definition or configuration used by this component.
+- `docs/templates/`: Template library organized by discipline. Predictive variants are labeled with
+  the `-predictive` suffix in the filename.
+- `docs/methodology/predictive/gates.yaml`: YAML definition or configuration used by this component.
+- `docs/methodology/predictive/map.yaml`: YAML definition or configuration used by this component.
 
 ## Stages & Activities
 
-The waterfall methodology is defined in `docs/methodology/waterfall/map.yaml` and includes:
+The predictive methodology is defined in `docs/methodology/predictive/map.yaml` and includes:
 
 1. **Initiation**: capture demand, build the business case, and approve the charter.
 2. **Planning**: define scope, schedule, risk, and quality baselines.

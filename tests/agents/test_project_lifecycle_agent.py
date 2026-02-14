@@ -68,7 +68,7 @@ async def test_project_lifecycle_gate_and_health(tmp_path):
         "risk": {"open_risks": 2},
         "quality": {"defects": 2},
     }
-    methodology_map = await agent._load_methodology_map("waterfall")
+    methodology_map = await agent._load_methodology_map("predictive")
     agent.lifecycle_states[project_id] = {
         "current_phase": "Initiate",
         "methodology_map": methodology_map,
@@ -132,13 +132,13 @@ async def test_project_lifecycle_dashboard_success(tmp_path):
     agent.projects[project_id] = {
         "project_id": project_id,
         "name": "Project Vega",
-        "methodology": "waterfall",
+        "methodology": "predictive",
         "current_phase": "Initiate",
         "status": "On Track",
     }
     state = {
         "current_phase": "Initiate",
-        "methodology_map": await agent._load_methodology_map("waterfall"),
+        "methodology_map": await agent._load_methodology_map("predictive"),
         "phase_start_date": "2024-01-01T00:00:00",
         "transitions": [],
         "gates_passed": [],

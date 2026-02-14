@@ -15,7 +15,7 @@
 The project schedule provides a detailed timeline of all project activities, milestones, and deliverables, serving as the roadmap for project execution and control.
 
 ### Schedule Methodology
-- **Scheduling Method**: [Critical Path Method/Agile/Hybrid]
+- **Scheduling Method**: [Critical Path Method/Adaptive/Hybrid]
 - **Scheduling Tool**: [MS Project/Smartsheet/Jira/Other]
 - **Update Frequency**: [Weekly/Bi-weekly/Monthly]
 - **Baseline Management**: [How baselines are managed]

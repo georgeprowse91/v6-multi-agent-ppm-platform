@@ -1,6 +1,6 @@
 ---
 title: "Metrics Dashboard Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -12,7 +12,7 @@ updated: "2026-02-11"
 This template provides a comprehensive framework for implementing SAFe metrics and reporting dashboards across all levels of the organization - Team, Program (ART), Large Solution, and Portfolio. It includes key performance indicators (KPIs), measurement practices, and dashboard designs that support decision-making and continuous improvement in SAFe implementations.
 
 ## Template Information
-- **Framework:** SAFe (Scaled Agile Framework)
+- **Framework:** SAFe (Scaled Adaptive Framework)
 - **Scope:** All SAFe levels (Team, Program, Large Solution, Portfolio)
 - **Purpose:** Measure flow, quality, outcomes, and competency
 - **Audience:** Teams, Management, Leadership, Stakeholders
@@ -34,7 +34,7 @@ This template provides a comprehensive framework for implementing SAFe metrics a
 
 #### 3. Competency Metrics
 **Purpose:** Measure organizational and individual capabilities
-**Focus:** Lean-Agile maturity, skills development, coaching effectiveness
+**Focus:** Lean-Adaptive maturity, skills development, coaching effectiveness
 
 #### 4. Predictability Metrics
 **Purpose:** Measure planning accuracy and reliability
@@ -354,9 +354,9 @@ Objective 2: Improve operational efficiency
 #### Core Competency Evaluation
 | Competency | Team Level | Program Level | Portfolio Level | Target |
 |------------|------------|---------------|----------------|---------|
-| Lean-Agile Leadership | 3.2 | 3.8 | 3.5 | 4.0 |
+| Lean-Adaptive Leadership | 3.2 | 3.8 | 3.5 | 4.0 |
 | Team and Technical Agility | 4.1 | 3.9 | N/A | 4.0 |
-| Agile Product Delivery | 3.7 | 3.6 | 3.4 | 4.0 |
+| Adaptive Product Delivery | 3.7 | 3.6 | 3.4 | 4.0 |
 | Enterprise Solution Delivery | N/A | 3.2 | 3.1 | 3.5 |
 | Lean Portfolio Management | N/A | N/A | 3.0 | 3.5 |
 | Organizational Agility | 3.4 | 3.5 | 3.2 | 3.5 |

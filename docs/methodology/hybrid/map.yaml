@@ -127,9 +127,9 @@ nodes:
   type: phase
   order: 3
   children:
-  - id: 0.3.1-confirm-sponsor-and-governance-model-stage-gates-agile-cadences
+  - id: 0.3.1-confirm-sponsor-and-governance-model-stage-gates-adaptive-cadences
     wbs: 0.3.1
-    title: Confirm sponsor and governance model (stage gates + agile cadences)
+    title: Confirm sponsor and governance model (stage gates + adaptive cadences)
     type: activity
     order: 3001
   - id: 0.3.2-appoint-project-manager-and-product-owner-dual-leadership

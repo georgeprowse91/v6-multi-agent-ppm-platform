@@ -63,14 +63,14 @@ tools/
 **Features:**
 - Interactive project setup wizard
 - Customizable template parameters
-- Multiple methodology support (Agile, Traditional, Hybrid)
+- Multiple methodology support (Adaptive, Traditional, Hybrid)
 - Integration with popular PM tools
 - Bulk template generation capabilities
 
 **Quick Usage:**
 ```bash
 npm install -g pm-template-generator
-pm-generate --methodology=agile --project-type=software --team-size=8
+pm-generate --methodology=adaptive --project-type=software --team-size=8
 ```
 
 ### **Project Estimation Calculator Suite**
@@ -128,7 +128,7 @@ pm-generate --methodology=agile --project-type=software --team-size=8
 ### **📈 Performance Metrics Calculator**
 **Supported Metrics:**
 - **Earned Value Management** - CPI, SPI, EAC, BAC calculations
-- **Agile Metrics** - Velocity, burndown rate, sprint effectiveness
+- **Adaptive Metrics** - Velocity, burndown rate, sprint effectiveness
 - **Quality Metrics** - Defect density, customer satisfaction scores
 - **Productivity Measures** - Output per resource, cycle time analysis
 - **Financial Metrics** - ROI, NPV, payback period calculations

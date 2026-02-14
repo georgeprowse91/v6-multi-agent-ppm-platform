@@ -490,7 +490,7 @@ updated: "2026-02-11"
 **Key Lessons Learned This Period:**
 1. **Early vendor engagement reduces technical risks** - Implemented weekly vendor technical reviews
 2. **User involvement in testing improves acceptance** - Increased user participation in UAT
-3. **Parallel development reduces schedule risk** - Adopted agile development practices
+3. **Parallel development reduces schedule risk** - Adopted adaptive development practices
 4. **Regular risk reviews improve prediction** - Implemented bi-weekly risk assessment sessions*
 
 ---

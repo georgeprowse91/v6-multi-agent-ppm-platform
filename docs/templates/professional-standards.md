@@ -58,7 +58,7 @@ This document outlines professional standards and best practices for using proje
 Recommended certifications include:
 - **PMP** (Project Management Professional) - PMI
 - **PRINCE2** - AXELOS
-- **Agile/Scrum** certifications - Various bodies
+- **Adaptive/Scrum** certifications - Various bodies
 - **Industry-specific** certifications
 - **Regulatory compliance** certifications
 

@@ -529,7 +529,7 @@ The Quality Checklist ensures that all project deliverables meet defined quality
 
 ### Project Type Adaptations
 
-#### Agile Projects
+#### Adaptive Projects
 - [ ] **Sprint Quality Gates**
   - Definition of Done criteria
   - Sprint review quality checks

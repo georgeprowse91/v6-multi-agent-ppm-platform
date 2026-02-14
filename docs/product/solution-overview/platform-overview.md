@@ -12,7 +12,7 @@ This overview maps to the current repository implementation. The repo provides a
 
 ### Methodology‑Driven Navigation
 
-**At the heart of the platform is a methodology map:** a visual workflow that guides users through the entire project lifecycle. Whether your organisation follows Waterfall, Agile, or a hybrid approach, the platform turns the methodology into the primary navigation mechanism. Each stage (e.g., Initiation, Planning, Execution, Monitoring and Closing) contains detailed sub‑tasks and stage‑gates that must be completed. The left panel of the user interface displays this map, allowing users to see where they are and what comes next. Selecting a node surfaces the relevant tasks and documentation, ensuring consistent governance and best practice across projects.
+**At the heart of the platform is a methodology map:** a visual workflow that guides users through the entire project lifecycle. Whether your organisation follows Predictive, Adaptive, or a hybrid approach, the platform turns the methodology into the primary navigation mechanism. Each stage (e.g., Initiation, Planning, Execution, Monitoring and Closing) contains detailed sub‑tasks and stage‑gates that must be completed. The left panel of the user interface displays this map, allowing users to see where they are and what comes next. Selecting a node surfaces the relevant tasks and documentation, ensuring consistent governance and best practice across projects.
 
 ### AI as the Primary Interface
 
@@ -50,13 +50,13 @@ The platform offers a broad set of capabilities spanning the entire project and 
 
 ## Use‑Case Scenarios
 
-### Waterfall Example
+### Predictive Example
 
 Consider a capital infrastructure project. A new demand comes in from a business unit. The Demand & Intake agent captures the request and classifies it as a “capital project.” The Business Case agent generates a cost–benefit analysis, which is approved via the Approval Workflow agent. The Portfolio Strategy agent evaluates the business case against existing portfolio constraints and recommends adding it. The Program Management agent creates a program if related initiatives exist. The Project Definition agent generates a charter and detailed scope, while the Schedule & Planning agent converts the WBS into a baseline schedule. As the project moves through phases (Initiation → Planning → Execution → Monitoring → Closing) represented in the methodology map, the Project Lifecycle & Governance agent enforces stage‑gates (e.g., requiring a signed charter before leaving Initiation). Resource & Capacity, Financial Management, Vendor Procurement, Quality, Risk and Compliance agents perform their roles, while the Knowledge Management agent captures documentation. Reporting & Insights summarises progress, and Continuous Improvement agents feed lessons back into templates.
 
-### Agile Example
+### Adaptive Example
 
-For an Agile software project, the methodology map shows Sprints rather than phases. During a Sprint, the Schedule & Planning agent handles backlog refinement and sprint planning, while the Resource agent ensures capacity. The Portfolio Strategy agent may re‑prioritise backlog items based on strategic value. Daily stand‑up summaries and risk alerts appear in the canvas via the Communications agent. The methodology map resets for each Sprint (Planning → Execution → Review → Retrospective). The agents still orchestrate tasks—requests, approvals, budget updates, vendor onboarding, code review quality checks, compliance scans and release planning—but in shorter cycles. The platform adapts the stage‑gates to Agile: instead of a single “Closing” phase, each Sprint must complete definition of done criteria before starting the next iteration.
+For an Adaptive software project, the methodology map shows Sprints rather than phases. During a Sprint, the Schedule & Planning agent handles backlog refinement and sprint planning, while the Resource agent ensures capacity. The Portfolio Strategy agent may re‑prioritise backlog items based on strategic value. Daily stand‑up summaries and risk alerts appear in the canvas via the Communications agent. The methodology map resets for each Sprint (Planning → Execution → Review → Retrospective). The agents still orchestrate tasks—requests, approvals, budget updates, vendor onboarding, code review quality checks, compliance scans and release planning—but in shorter cycles. The platform adapts the stage‑gates to Adaptive: instead of a single “Closing” phase, each Sprint must complete definition of done criteria before starting the next iteration.
 
 ## Value Proposition
 

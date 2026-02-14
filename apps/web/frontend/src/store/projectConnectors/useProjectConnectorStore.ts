@@ -528,7 +528,7 @@ function getMockConnectors(): Connector[] {
     {
       connector_id: 'jira',
       name: 'Jira',
-      description: 'Atlassian Jira for agile project tracking and issue management',
+      description: 'Atlassian Jira for adaptive project tracking and issue management',
       category: 'pm',
       status: 'production',
       icon: 'jira',

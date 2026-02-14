@@ -1,12 +1,12 @@
 ---
-title: "Agile Release Plan Template"
+title: "Adaptive Release Plan Template"
 methodology: "universal"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
 ---
 
-# Agile Release Plan Template
+# Adaptive Release Plan Template
 
 ## Release Information
 - **Product/Project Name**: [Enter Product Name]
@@ -248,5 +248,5 @@ updated: "2026-02-11"
 | Stakeholder | [Name] | | |
 
 ---
-*This template follows Agile/Scrum best practices for release planning and management.*
+*This template follows Adaptive/Scrum best practices for release planning and management.*
 

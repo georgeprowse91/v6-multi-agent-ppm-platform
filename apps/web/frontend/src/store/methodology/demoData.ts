@@ -13,7 +13,7 @@ export const predictiveMethodology: MethodologyMap = {
   id: 'predictive',
   name: 'Predictive',
   description: 'Sequential phases with stage-gate governance.',
-  type: 'waterfall',
+  type: 'predictive',
   version: '2.0',
   stages: [
     mkStage('0.1-demand-intake-triage', 'Demand Intake & Triage', 1),
@@ -29,8 +29,8 @@ export const predictiveMethodology: MethodologyMap = {
 export const adaptiveMethodology: MethodologyMap = {
   id: 'adaptive',
   name: 'Adaptive',
-  description: 'Agile lifecycle with repeatable sprint cycle.',
-  type: 'agile',
+  description: 'Adaptive lifecycle with repeatable sprint cycle.',
+  type: 'adaptive',
   version: '2.0',
   stages: [
     mkStage('0.1-demand-intake-triage', 'Demand Intake & Triage', 1),

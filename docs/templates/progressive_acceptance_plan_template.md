@@ -38,7 +38,7 @@ updated: "2026-02-11"
 | Component | Type | Acceptance Approach | Rationale |
 |-----------|------|---------------------|----------|
 | [Component 1] | Core Platform | Formal UAT | Critical foundation, high risk |
-| [Component 2] | User Features | Agile acceptance | Evolutionary requirements |
+| [Component 2] | User Features | Adaptive acceptance | Evolutionary requirements |
 | [Component 3] | Integrations | Hybrid approach | Mixed complexity levels |
 | [Component 4] | Reporting | Formal UAT | Compliance requirements |
 
@@ -63,7 +63,7 @@ updated: "2026-02-11"
 ### Tactical Level Acceptance
 
 #### Phase-Based Acceptance Framework
-| Phase | Duration | Formal Elements | Agile Elements | Integration Method |
+| Phase | Duration | Formal Elements | Adaptive Elements | Integration Method |
 |-------|----------|-----------------|----------------|--------------------|
 | **Phase 1: Foundation** | [Timeframe] | Infrastructure acceptance | User experience validation | Milestone reviews with user feedback |
 | **Phase 2: Core Build** | [Timeframe] | System integration testing | Feature acceptance | Sprint reviews with formal checkpoints |
@@ -73,7 +73,7 @@ updated: "2026-02-11"
 #### Cross-Phase Acceptance Activities
 - **User Engagement**: Continuous user involvement with formal decision points
 - **Quality Assurance**: Structured testing with iterative improvements
-- **Risk Management**: Formal risk assessment with agile response
+- **Risk Management**: Formal risk assessment with adaptive response
 - **Stakeholder Alignment**: Regular formal reviews with ongoing collaboration
 
 ### Operational Level Acceptance
@@ -87,7 +87,7 @@ updated: "2026-02-11"
 | Feature Category | Acceptance Method | Criteria Source | Decision Authority |
 |------------------|-------------------|-----------------|--------------------|
 | **Core Business Functions** | Formal UAT | Business requirements | Business Sponsor |
-| **User Experience Features** | Agile acceptance | User stories | Product Owner |
+| **User Experience Features** | Adaptive acceptance | User stories | Product Owner |
 | **Technical Integrations** | Hybrid approach | Technical + user requirements | Technical Lead + Users |
 | **Compliance Features** | Formal UAT | Regulatory requirements | Compliance Officer |
 
@@ -148,7 +148,7 @@ Operational Criteria (Feature/Story Level)
 | IT Managers | Solution delivery | Sprint reviews | Bi-weekly | Technical implementation |
 | Process Owners | Workflow validation | User testing sessions | Weekly | Process acceptance |
 
-#### Operational Level (Agile)
+#### Operational Level (Adaptive)
 | Stakeholder | Role | Engagement Method | Frequency | Decision Authority |
 |-------------|------|------------------|-----------|--------------------|
 | End Users | Feature validation | Sprint demos | Sprint-based | Feature acceptance |
@@ -157,15 +157,15 @@ Operational Criteria (Feature/Story Level)
 
 ### Engagement Integration Points
 
-#### Formal-to-Agile Integration
+#### Formal-to-Adaptive Integration
 - **Monthly Alignment Sessions**: Connect sprint outcomes to formal milestones
-- **Quarterly Reviews**: Validate agile delivery against formal commitments
-- **Risk Escalation**: Move agile-identified risks to formal governance
+- **Quarterly Reviews**: Validate adaptive delivery against formal commitments
+- **Risk Escalation**: Move adaptive-identified risks to formal governance
 
-#### Agile-to-Formal Integration
-- **Sprint Summary Reports**: Inform formal stakeholders of agile progress
-- **User Feedback Integration**: Include agile insights in formal decisions
-- **Continuous Planning**: Use agile learnings to adjust formal plans
+#### Adaptive-to-Formal Integration
+- **Sprint Summary Reports**: Inform formal stakeholders of adaptive progress
+- **User Feedback Integration**: Include adaptive insights in formal decisions
+- **Continuous Planning**: Use adaptive learnings to adjust formal plans
 
 ## Test Environment Strategy
 
@@ -178,7 +178,7 @@ Operational Criteria (Feature/Story Level)
 | **Pre-Production** | Final acceptance testing | Production-like | Formal approval |
 | **Production Parallel** | Go-live validation | Exact production copy | Business approval |
 
-#### Agile Testing Environments
+#### Adaptive Testing Environments
 | Environment | Purpose | Characteristics | Access Control |
 |-------------|---------|-----------------|----------------|
 | **Development** | Continuous integration | Dynamic, evolving | Team access |
@@ -186,7 +186,7 @@ Operational Criteria (Feature/Story Level)
 | **Staging** | Release preparation | Flexible, realistic | Product owner approval |
 
 #### Hybrid Environment Management
-- **Environment Promotion**: Structured process from agile to formal environments
+- **Environment Promotion**: Structured process from adaptive to formal environments
 - **Data Management**: Consistent test data across environment types
 - **Access Bridge**: Seamless user experience across environment types
 - **Configuration Control**: Balanced change management for different environment needs
@@ -194,13 +194,13 @@ Operational Criteria (Feature/Story Level)
 ### Environment Lifecycle
 
 #### Environment Setup
-1. **Agile Environments**: Rapid provisioning for sprint needs
+1. **Adaptive Environments**: Rapid provisioning for sprint needs
 2. **Formal Environments**: Structured setup with documentation
 3. **Integration Points**: Careful coordination between environment types
 4. **Validation**: Acceptance criteria for environment readiness
 
 #### Environment Maintenance
-- **Agile Refresh**: Frequent updates to support iteration
+- **Adaptive Refresh**: Frequent updates to support iteration
 - **Formal Stability**: Controlled changes with approval processes
 - **Data Refresh**: Regular updates while maintaining test scenarios
 - **Performance Monitoring**: Continuous monitoring with formal reporting
@@ -209,7 +209,7 @@ Operational Criteria (Feature/Story Level)
 
 ### Testing Evolution Model
 
-#### Phase 1: Agile Foundation
+#### Phase 1: Adaptive Foundation
 - **Focus**: Core functionality and user experience
 - **Method**: Sprint-based acceptance testing
 - **Stakeholders**: Development team and product owners
@@ -229,7 +229,7 @@ Operational Criteria (Feature/Story Level)
 
 ### Test Execution Framework
 
-#### Sprint-Level Testing (Agile)
+#### Sprint-Level Testing (Adaptive)
 | Activity | Frequency | Participants | Outputs |
 |----------|-----------|--------------|----------|
 | Feature demos | End of sprint | Product owner, users | Feature acceptance |
@@ -301,7 +301,7 @@ Operational Criteria (Feature/Story Level)
 #### Operational Risks (Sprint Level)
 | Risk Category | Examples | Management Approach | Escalation Trigger |
 |---------------|----------|---------------------|--------------------|
-| Feature Quality | User story defects | Agile risk management | Multiple sprint failures |
+| Feature Quality | User story defects | Adaptive risk management | Multiple sprint failures |
 | User Acceptance | Feature rejection | User feedback management | Low acceptance scores |
 | Technical Issues | Development blockers | Development team management | Sprint goal at risk |
 
@@ -392,7 +392,7 @@ Sprint Reports (Operational)
 #### Report Integration Process
 - **Sprint → Phase**: Weekly aggregation of sprint outcomes
 - **Phase → Program**: Monthly consolidation of phase progress
-- **Real-time Updates**: Continuous integration of agile insights
+- **Real-time Updates**: Continuous integration of adaptive insights
 - **Formal Reviews**: Quarterly comprehensive program assessment
 
 ## Success Measurement
@@ -443,7 +443,7 @@ Sprint Reports (Operational)
 
 ### Improvement Implementation
 
-#### Agile Improvements
+#### Adaptive Improvements
 - **Immediate**: Within current sprint
 - **Next Sprint**: Following sprint planning
 - **Release**: Next release cycle
@@ -459,7 +459,7 @@ Sprint Reports (Operational)
 [Comprehensive acceptance criteria for all levels]
 
 ### Appendix B: Test Case Library
-[Formal and agile test cases organized by component]
+[Formal and adaptive test cases organized by component]
 
 ### Appendix C: Stakeholder Engagement Calendar
 [Detailed schedule of all engagement activities]
@@ -477,14 +477,14 @@ Sprint Reports (Operational)
 
 **Usage Instructions:**
 1. Customize the template based on your specific program context
-2. Adjust the balance of formal vs. agile elements based on organizational needs
+2. Adjust the balance of formal vs. adaptive elements based on organizational needs
 3. Ensure alignment with overall program management approach
 4. Regular reviews and updates as the program evolves
 5. Use in conjunction with component-specific acceptance plans
 
 **Related Templates:**
 - [UAT Plan Template (Traditional)](../../Traditional/Templates/uat_plan_template.md)
-- [UAT Feedback Canvas (Agile)](../../Agile/Tools/uat_feedback_canvas.md)
+- [UAT Feedback Canvas (Adaptive)](../../Adaptive/Tools/uat_feedback_canvas.md)
 - [Integrated Change Strategy](integrated_change_strategy_template.md)
 - [UAT Governance Framework](uat_governance_framework_template.md)
 

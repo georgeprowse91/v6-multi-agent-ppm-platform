@@ -122,7 +122,7 @@ Project Manager
 ## Team Operating Model
 
 ### Work Methodology
-**Primary Methodology**: [Agile/Waterfall/Hybrid]
+**Primary Methodology**: [Adaptive/Predictive/Hybrid]
 **Framework**: [Scrum/Kanban/SAFe/Custom]
 
 **Key Practices**:

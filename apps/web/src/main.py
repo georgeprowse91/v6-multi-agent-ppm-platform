@@ -1328,7 +1328,7 @@ def _mock_lifecycle_metrics(portfolio_id: str | None, project_id: str | None) ->
         },
         "stage_gates": [
             {
-                "stage_id": "agile-discovery",
+                "stage_id": "adaptive-discovery",
                 "stage_name": "Discovery",
                 "status": "on_track",
                 "percent_complete": 82,
@@ -1336,7 +1336,7 @@ def _mock_lifecycle_metrics(portfolio_id: str | None, project_id: str | None) ->
                 "due_date": "2026-09-05",
             },
             {
-                "stage_id": "agile-planning",
+                "stage_id": "adaptive-planning",
                 "stage_name": "Planning",
                 "status": "at_risk",
                 "percent_complete": 58,
@@ -1344,7 +1344,7 @@ def _mock_lifecycle_metrics(portfolio_id: str | None, project_id: str | None) ->
                 "due_date": "2026-09-18",
             },
             {
-                "stage_id": "agile-delivery",
+                "stage_id": "adaptive-delivery",
                 "stage_name": "Delivery",
                 "status": "on_track",
                 "percent_complete": 43,
@@ -1352,7 +1352,7 @@ def _mock_lifecycle_metrics(portfolio_id: str | None, project_id: str | None) ->
                 "due_date": "2026-10-02",
             },
             {
-                "stage_id": "agile-review",
+                "stage_id": "adaptive-review",
                 "stage_name": "Review",
                 "status": "on_track",
                 "percent_complete": 18,
@@ -2225,10 +2225,10 @@ def _select_project_template(
 
 
 _METHODOLOGY_ALIASES = {
-    "agile": "adaptive",
-    "waterfall": "predictive",
-    "methodology-agile": "adaptive",
-    "methodology-waterfall": "predictive",
+    "adaptive": "adaptive",
+    "predictive": "predictive",
+    "methodology-adaptive": "adaptive",
+    "methodology-predictive": "predictive",
 }
 
 
@@ -3056,7 +3056,7 @@ async def get_methodology_editor(
     available = available_methodologies()
     if not methodology_id:
         methodology_id = (
-            "hybrid" if "hybrid" in available else (available[0] if available else "agile")
+            "hybrid" if "hybrid" in available else (available[0] if available else "adaptive")
         )
     if methodology_id not in available:
         raise HTTPException(status_code=404, detail="Methodology not found")

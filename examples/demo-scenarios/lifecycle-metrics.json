@@ -10,7 +10,7 @@
   },
   "stage_gates": [
     {
-      "stage_id": "agile-discovery",
+      "stage_id": "adaptive-discovery",
       "stage_name": "Discovery",
       "status": "on_track",
       "percent_complete": 85,
@@ -18,7 +18,7 @@
       "due_date": "2026-09-05"
     },
     {
-      "stage_id": "agile-planning",
+      "stage_id": "adaptive-planning",
       "stage_name": "Planning",
       "status": "at_risk",
       "percent_complete": 62,
@@ -26,7 +26,7 @@
       "due_date": "2026-09-18"
     },
     {
-      "stage_id": "agile-delivery",
+      "stage_id": "adaptive-delivery",
       "stage_name": "Delivery",
       "status": "on_track",
       "percent_complete": 40,
@@ -34,7 +34,7 @@
       "due_date": "2026-10-02"
     },
     {
-      "stage_id": "agile-review",
+      "stage_id": "adaptive-review",
       "stage_name": "Review",
       "status": "on_track",
       "percent_complete": 15,

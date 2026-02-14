@@ -746,13 +746,13 @@ class ProjectLifecycleAgent(BaseAgent):
 
         # Simplified rule-based logic
         if requirement_volatility == "high" and stakeholder_engagement == "high":
-            methodology = "agile"
+            methodology = "adaptive"
             rationale = (
-                "High requirement volatility and stakeholder engagement favor Agile approach"
+                "High requirement volatility and stakeholder engagement favor Adaptive approach"
             )
         elif regulatory_requirements or complexity == "high":
-            methodology = "waterfall"
-            rationale = "Regulatory requirements and high complexity favor Waterfall approach"
+            methodology = "predictive"
+            rationale = "Regulatory requirements and high complexity favor Predictive approach"
         else:
             methodology = "hybrid"
             rationale = "Mixed characteristics suggest Hybrid approach for optimal flexibility"
@@ -961,7 +961,7 @@ class ProjectLifecycleAgent(BaseAgent):
         if methodology in self.methodology_maps:
             return self.methodology_maps[methodology]
 
-        if methodology == "agile":
+        if methodology == "adaptive":
             return {
                 "initial_phase": "Sprint 0",
                 "phases": {
@@ -982,7 +982,7 @@ class ProjectLifecycleAgent(BaseAgent):
                     },
                 },
             }
-        if methodology == "waterfall":
+        if methodology == "predictive":
             return {
                 "initial_phase": "Initiate",
                 "phases": {
@@ -1238,7 +1238,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     async def _get_alternative_methodologies(self, primary: str) -> list[str]:
         """Get alternative methodologies."""
-        all_methodologies = ["agile", "waterfall", "hybrid"]
+        all_methodologies = ["adaptive", "predictive", "hybrid"]
         return [m for m in all_methodologies if m != primary]
 
     async def _map_phase_to_methodology(

@@ -9,7 +9,7 @@ updated: "2026-02-11"
 # Hybrid Project Charter Template
 
 ## Overview
-This template provides a framework for project charters in hybrid project environments that combine traditional (predictive) and agile (adaptive) approaches. It enables teams to establish formal project authorization while maintaining the flexibility needed for iterative delivery. Adapt sections as needed based on your specific project context, methodology balance, and organizational requirements.
+This template provides a framework for project charters in hybrid project environments that combine traditional (predictive) and adaptive (adaptive) approaches. It enables teams to establish formal project authorization while maintaining the flexibility needed for iterative delivery. Adapt sections as needed based on your specific project context, methodology balance, and organizational requirements.
 
 ## Document Control
 
@@ -44,7 +44,7 @@ This template provides a framework for project charters in hybrid project enviro
 A concise summary (1-2 paragraphs) of the project's purpose, approach, and expected outcomes. Highlight the need for a hybrid approach and key business drivers.
 
 *Example:*
-> This project aims to develop a new customer relationship management system that will replace our legacy system while adding new capabilities for mobile access and customer analytics. We're adopting a hybrid approach to delivery, using traditional methods for infrastructure and compliance requirements while leveraging agile practices for user interface development and analytics features. This approach will allow us to deliver key functionality to the business in increments while ensuring we meet our regulatory and enterprise architecture requirements.
+> This project aims to develop a new customer relationship management system that will replace our legacy system while adding new capabilities for mobile access and customer analytics. We're adopting a hybrid approach to delivery, using traditional methods for infrastructure and compliance requirements while leveraging adaptive practices for user interface development and analytics features. This approach will allow us to deliver key functionality to the business in increments while ensuring we meet our regulatory and enterprise architecture requirements.
 
 ## Business Case
 
@@ -112,7 +112,7 @@ Define interfaces with existing systems, organizational boundaries, or other con
 ## Mixed Delivery Approach
 
 ### Delivery Methodology Rationale
-Explain why a hybrid approach was selected for this project rather than a purely traditional or purely agile approach.
+Explain why a hybrid approach was selected for this project rather than a purely traditional or purely adaptive approach.
 
 *Example:*
 > This project combines regulatory requirements with user-facing features. The regulatory components require detailed upfront planning and formal validation, while the user interface benefits from iterative development with frequent stakeholder feedback.
@@ -121,15 +121,15 @@ Explain why a hybrid approach was selected for this project rather than a purely
 
 | Project Component | Methodology | Rationale |
 |-------------------|-------------|-----------|
-| [Component 1] | [Traditional/Agile/Hybrid] | [Brief explanation] |
-| [Component 2] | [Traditional/Agile/Hybrid] | [Brief explanation] |
-| [Component 3] | [Traditional/Agile/Hybrid] | [Brief explanation] |
+| [Component 1] | [Traditional/Adaptive/Hybrid] | [Brief explanation] |
+| [Component 2] | [Traditional/Adaptive/Hybrid] | [Brief explanation] |
+| [Component 3] | [Traditional/Adaptive/Hybrid] | [Brief explanation] |
 
 ### Integration Points
 Describe how the different methodological approaches will be integrated.
 
 *Example:*
-> Agile teams will deliver increments that align with the project's master schedule milestones. Integration testing will occur at these milestone points. Status reporting will be synchronized weekly with consolidated dashboards showing both traditional and agile metrics.
+> Adaptive teams will deliver increments that align with the project's master schedule milestones. Integration testing will occur at these milestone points. Status reporting will be synchronized weekly with consolidated dashboards showing both traditional and adaptive metrics.
 
 ## Minimum Viable Product (MVP) and Value Streams
 
@@ -156,7 +156,7 @@ High-level view of planned incremental deliveries.
 ## Hybrid Governance Structure
 
 ### Governance Framework
-Describe the overall governance approach, balancing traditional oversight with agile autonomy.
+Describe the overall governance approach, balancing traditional oversight with adaptive autonomy.
 
 *Example:*
 > This project will use a two-tier governance structure: a traditional Project Steering Committee for major milestone approvals, budget decisions, and strategic direction, coupled with a Scrum of Scrums for day-to-day operational coordination across work streams.
@@ -167,8 +167,8 @@ Describe the overall governance approach, balancing traditional oversight with a
 |------|------|------------------|---------------------|
 | Executive Sponsor | [Name] | [Responsibilities] | [Traditional] |
 | Project Manager | [Name] | [Responsibilities] | [Traditional] |
-| Product Owner | [Name] | [Responsibilities] | [Agile] |
-| Scrum Master | [Name] | [Responsibilities] | [Agile] |
+| Product Owner | [Name] | [Responsibilities] | [Adaptive] |
+| Scrum Master | [Name] | [Responsibilities] | [Adaptive] |
 | [Other Roles] | [Name] | [Responsibilities] | [Context] |
 
 ### Decision-Making Framework
@@ -181,7 +181,7 @@ Describe the overall governance approach, balancing traditional oversight with a
 | Technical | [Role/Board] | [Process] | [Timeframe] |
 
 ### Change Management Approach
-Define how changes will be managed, distinguishing between traditional change control processes and agile adaptation mechanisms.
+Define how changes will be managed, distinguishing between traditional change control processes and adaptive adaptation mechanisms.
 
 | Change Category | Process | Approval Authority |
 |-----------------|---------|-------------------|
@@ -201,7 +201,7 @@ Define how changes will be managed, distinguishing between traditional change co
 | Scope | [Metric] | [Target] | [Method] |
 | Quality | [Metric] | [Target] | [Method] |
 
-### Agile Success Metrics
+### Adaptive Success Metrics
 
 | Category | Metric | Target | Measurement Method |
 |----------|--------|--------|-------------------|
@@ -245,7 +245,7 @@ Describe how releases will be planned.
 ## Risk and Opportunity Management
 
 ### Risk Management Approach
-Describe the overall approach to risk management, combining traditional risk planning with agile risk adaptation.
+Describe the overall approach to risk management, combining traditional risk planning with adaptive risk adaptation.
 
 ### Initial Risk Register
 
@@ -265,7 +265,7 @@ Describe the overall approach to risk management, combining traditional risk pla
 ## Team Structure
 
 ### Team Organization
-Describe the overall team structure, including how traditional and agile teams will interface.
+Describe the overall team structure, including how traditional and adaptive teams will interface.
 
 *Example visualization:*
 ```
@@ -273,11 +273,11 @@ Describe the overall team structure, including how traditional and agile teams w
 ├── [Traditional Work Stream Lead]
 │   ├── [Team Member 1]
 │   └── [Team Member 2]
-├── [Agile Team 1]
+├── [Adaptive Team 1]
 │   ├── [Product Owner]
 │   ├── [Scrum Master]
 │   └── [Development Team Members]
-└── [Agile Team 2]
+└── [Adaptive Team 2]
     ├── [Product Owner]
     ├── [Scrum Master]
     └── [Development Team Members]
@@ -365,7 +365,7 @@ By signing below, the undersigned acknowledge that they have reviewed and approv
 - For components with clear, stable requirements
 - When formal documentation is a deliverable requirement
 
-### When to Emphasize Agile Elements
+### When to Emphasize Adaptive Elements
 - For projects with rapidly evolving requirements
 - When early value delivery is a priority
 - When user feedback is critical to success
@@ -374,9 +374,9 @@ By signing below, the undersigned acknowledge that they have reviewed and approv
 
 ### How to Balance Approaches
 1. **Segment the project**: Identify which parts are best suited to each approach
-2. **Create integration points**: Define clear interfaces between traditional and agile work streams
+2. **Create integration points**: Define clear interfaces between traditional and adaptive work streams
 3. **Establish hybrid ceremonies**: Adapt standard meetings to accommodate both approaches
-4. **Use appropriate metrics**: Track both traditional (scope, schedule, budget) and agile (value, velocity) metrics
+4. **Use appropriate metrics**: Track both traditional (scope, schedule, budget) and adaptive (value, velocity) metrics
 5. **Adapt documentation**: Scale documentation based on risk and complexity, not methodology
 6. **Create a unified cadence**: Establish synchronization points for combined planning and review
 
@@ -400,18 +400,18 @@ Traditional Planning -> |-> Sprint 1 -> Sprint 2 -> | -> Traditional Validation
 
 ### When to Use This Template
 This template is most appropriate for:
-- Projects that require formal governance but need agile delivery capabilities
-- Organizations transitioning from traditional to agile methodologies
+- Projects that require formal governance but need adaptive delivery capabilities
+- Organizations transitioning from traditional to adaptive methodologies
 - Complex initiatives with multiple workstreams that require different approaches
 - Projects with mixed elements of certainty and uncertainty
 - Products being delivered in regulated environments that still need frequent adaptation
 
 ### How to Complete This Template
 
-1. **Start with stakeholder interviews**: Gather input from both traditional and agile stakeholders
+1. **Start with stakeholder interviews**: Gather input from both traditional and adaptive stakeholders
 2. **Workshop key sections**: Collaboratively develop the vision, approach, and governance models
 3. **Right-size for your project**: Expand or condense sections based on your project's complexity
-4. **Iterate on the charter**: Revisit and refine as you learn more (especially agile elements)
+4. **Iterate on the charter**: Revisit and refine as you learn more (especially adaptive elements)
 5. **Focus on value**: Ensure the template serves the project, not the other way around
 
 ### Common Pitfalls to Avoid

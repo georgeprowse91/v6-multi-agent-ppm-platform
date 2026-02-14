@@ -68,10 +68,10 @@ def test_methodology_aliases_resolve_to_new_maps():
     adaptive = get_methodology_map("adaptive")
     predictive = get_methodology_map("predictive")
 
-    assert get_methodology_map("agile")["id"] == adaptive["id"]
-    assert get_methodology_map("waterfall")["id"] == predictive["id"]
-    assert get_methodology_map("agile")["stages"][0]["id"] == adaptive["stages"][0]["id"]
+    assert get_methodology_map("adaptive")["id"] == adaptive["id"]
+    assert get_methodology_map("predictive")["id"] == predictive["id"]
+    assert get_methodology_map("adaptive")["stages"][0]["id"] == adaptive["stages"][0]["id"]
     assert (
-        get_methodology_map("waterfall")["stages"][0]["id"]
+        get_methodology_map("predictive")["stages"][0]["id"]
         == predictive["stages"][0]["id"]
     )

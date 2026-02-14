@@ -40,7 +40,7 @@ This document is competitive positioning collateral. Validate feature claims aga
 
 **Positioning:** Work management platform focused on collaboration, tasks and team productivity.
 
-**Strengths:** Intuitive user experience and collaboration features. - Extensive app marketplace and integrations for productivity tools. - Flexible for agile teams and marketing workflows.
+**Strengths:** Intuitive user experience and collaboration features. - Extensive app marketplace and integrations for productivity tools. - Flexible for adaptive teams and marketing workflows.
 
 **Weaknesses:** Limited portfolio and financial management capabilities; premium features require higher tiers. - No built‑in PPM methodology framework or stage‑gate processes. - AI capabilities limited to simple automations and workload management. - Data remains scattered across projects; lacks unified reporting.
 

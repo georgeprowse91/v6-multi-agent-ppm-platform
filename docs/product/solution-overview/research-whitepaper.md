@@ -74,7 +74,7 @@ The Multi‑Agent PPM Platform addresses these challenges by combining an extens
 
 **Portfolio optimisation:** A dedicated agent uses multi‑criteria decision analysis and capacity‑constrained optimisation to recommend portfolios aligned with strategy.
 
-**Integrated lifecycle governance:** Agents manage project initiation, stage‑gates, schedules, resources, financials, risks, quality and compliance. The methodology map guides users through stages for agile, waterfall and hybrid approaches.
+**Integrated lifecycle governance:** Agents manage project initiation, stage‑gates, schedules, resources, financials, risks, quality and compliance. The methodology map guides users through stages for adaptive, predictive and hybrid approaches.
 
 **Connector ecosystem:** Prebuilt connectors for Planview, Jira, SAP, Workday, Slack, Microsoft 365 and more provide interoperability. A connector SDK allows custom integrations.
 

@@ -1,18 +1,18 @@
 # Methodology‑Embedded Process Flows
 
-This document describes how the multi‑agent PPM platform embeds Agile, Waterfall and Hybrid methodologies into the user interface to guide users through stage‑gate workflows and enforce governance. The platform presents each methodology as an interactive map; the project management methodology becomes the navigation mechanism. This map guides users through stages and activities, while the conversational assistant and specialist agents execute tasks and enforce gate criteria. The objective is to provide clear user journeys, ensure compliance with best practices and allow continuous monitoring and governance.
+This document describes how the multi‑agent PPM platform embeds Adaptive, Predictive and Hybrid methodologies into the user interface to guide users through stage‑gate workflows and enforce governance. The platform presents each methodology as an interactive map; the project management methodology becomes the navigation mechanism. This map guides users through stages and activities, while the conversational assistant and specialist agents execute tasks and enforce gate criteria. The objective is to provide clear user journeys, ensure compliance with best practices and allow continuous monitoring and governance.
 
-## 1. Agile Process Flow
+## 1. Adaptive Process Flow
 
-The Agile process is iterative and adaptive, emphasising incremental delivery, sprint ceremonies and continuous refinement. The platform’s Agile methodology map, presented in the left panel, shows current and future sprints and allows users to navigate through initiation, release planning, sprint cycles and release delivery. Continuous activities like backlog refinement and impediment tracking remain accessible throughout.
+The Adaptive process is iterative and adaptive, emphasising incremental delivery, sprint ceremonies and continuous refinement. The platform’s Adaptive methodology map, presented in the left panel, shows current and future sprints and allows users to navigate through initiation, release planning, sprint cycles and release delivery. Continuous activities like backlog refinement and impediment tracking remain accessible throughout.
 
 ### 1.1 User Journey
 
-**Demand & Ideation:** A stakeholder submits a demand/proposal. The Demand & Intake Agent classifies the request and recommends the Agile methodology based on factors such as uncertainty and stakeholder expectations.
+**Demand & Ideation:** A stakeholder submits a demand/proposal. The Demand & Intake Agent classifies the request and recommends the Adaptive methodology based on factors such as uncertainty and stakeholder expectations.
 
 **Business Case & Approval:** The Business Case Agent crafts a lean business case emphasising iterative value delivery and minimum viable product (MVP). Approval is typically streamlined; a product owner or program manager can approve the case.
 
-**Project Definition (Initiation):** The Project Definition Agent generates the Agile project charter and initial backlog. The methodology map highlights the initiation stage, with tasks such as product vision, initial backlog creation and team formation.
+**Project Definition (Initiation):** The Project Definition Agent generates the Adaptive project charter and initial backlog. The methodology map highlights the initiation stage, with tasks such as product vision, initial backlog creation and team formation.
 
 **Release Planning:** Users plan releases at a high level. The Release Goal Definition, feature prioritisation and release roadmap are surfaced as discrete activities on the map. Agents assist in prioritising features and estimating release cadence.
 
@@ -24,9 +24,9 @@ The Agile process is iterative and adaptive, emphasising incremental delivery, s
 
 **Closure & Lessons Learned:** Once releases meet stakeholder acceptance criteria, the project may transition to maintenance or closure. The knowledge gained is stored for continuous improvement.
 
-### 1.2 Stage‑Gate Governance in Agile
+### 1.2 Stage‑Gate Governance in Adaptive
 
-Agile projects rely on sprint ceremonies rather than formal gates. The platform enforces governance through:
+Adaptive projects rely on sprint ceremonies rather than formal gates. The platform enforces governance through:
 
 **Definition of Done (DoD) gates:** Each user story or feature must meet agreed acceptance criteria before being marked complete. The Quality Management Agent validates DoD, test coverage and defect metrics. The agent can block completion if criteria are not met and prompt the user to update tests or remediate defects.
 
@@ -38,9 +38,9 @@ Agile projects rely on sprint ceremonies rather than formal gates. The platform 
 
 The methodology map functions as a timeline and checklist. Completed activities are ticked, the current sprint is highlighted and future sprints are collapsed for clarity. Users can click any activity to open the corresponding canvas (e.g., backlog board, sprint plan). The assistant uses context from the map to guide users to the next logical action and can jump between sprints or release‑level views. Monitoring widgets remain pinned in the workspace to ensure continuous oversight.
 
-## 2. Waterfall Process Flow
+## 2. Predictive Process Flow
 
-**The Waterfall process is linear and predictive, with discrete phases separated by formal stage gates. The platform’s Waterfall methodology map displays the phases:** Initiating, Planning, Executing and Closing – with stage gates between them. Monitoring and controlling activities operate continuously.
+**The Predictive process is linear and predictive, with discrete phases separated by formal stage gates. The platform’s Predictive methodology map displays the phases:** Initiating, Planning, Executing and Closing – with stage gates between them. Monitoring and controlling activities operate continuously.
 
 ### 2.1 User Journey
 
@@ -64,7 +64,7 @@ The methodology map functions as a timeline and checklist. Completed activities 
 
 ### 2.2 Stage‑Gate Governance
 
-The Waterfall methodology relies heavily on stage gates. The platform enforces gates by evaluating criteria and preventing phase transitions if conditions are not met. For example, if a user attempts to transition from Planning to Executing without required approvals or risk identification, the agent presents an error message and directs the user to complete outstanding tasks. Users may either complete missing work, check status (e.g., CFO approval), or request an override requiring senior approval.
+The Predictive methodology relies heavily on stage gates. The platform enforces gates by evaluating criteria and preventing phase transitions if conditions are not met. For example, if a user attempts to transition from Planning to Executing without required approvals or risk identification, the agent presents an error message and directs the user to complete outstanding tasks. Users may either complete missing work, check status (e.g., CFO approval), or request an override requiring senior approval.
 
 ### 2.3 UI & Navigation
 
@@ -72,23 +72,23 @@ The methodology map uses clearly delineated phases and gates. Each gate is rende
 
 ## 3. Hybrid Process Flow
 
-Hybrid methodologies combine elements of Agile and Waterfall to suit complex projects with both predictive and adaptive components. The platform supports hybrid approaches by allowing teams to configure stage gates at major milestones while operating iteratively within phases. Methodology selection is dynamic: the platform chooses a default methodology based on business case recommendations and activates the relevant agents. Users may adjust the mix of phases and sprints to align with organisational standards.
+Hybrid methodologies combine elements of Adaptive and Predictive to suit complex projects with both predictive and adaptive components. The platform supports hybrid approaches by allowing teams to configure stage gates at major milestones while operating iteratively within phases. Methodology selection is dynamic: the platform chooses a default methodology based on business case recommendations and activates the relevant agents. Users may adjust the mix of phases and sprints to align with organisational standards.
 
 ### 3.1 User Journey
 
-**Methodology Selection:** When a demand is received, the platform analyses the business case and recommends a hybrid approach if uncertainty exists alongside regulatory constraints. The Project Lifecycle Agent loads a hybrid methodology map combining Waterfall phases and Agile iterations.
+**Methodology Selection:** When a demand is received, the platform analyses the business case and recommends a hybrid approach if uncertainty exists alongside regulatory constraints. The Project Lifecycle Agent loads a hybrid methodology map combining Predictive phases and Adaptive iterations.
 
-**Initiation & Charter:** Similar to Waterfall, a formal charter and stakeholder analysis are prepared and approved through a stage gate.
+**Initiation & Charter:** Similar to Predictive, a formal charter and stakeholder analysis are prepared and approved through a stage gate.
 
 **Planning & Release Framing:** The team defines high‑level scope, budget and schedule. The Release Planning Agent outlines milestones (e.g., release 1, release 2) and chooses to deliver value incrementally via sprints within each release. The stage gate for planning ensures baseline approvals.
 
 **Iterative Development within Phases:** Each release is executed through a series of sprints. The methodology map nests sprints under the corresponding phase; for example, within the “Execution” phase there may be “Sprint 1”, “Sprint 2”, etc. Teams perform sprint planning, daily work, review and retrospectives while still maintaining overall phase objectives and deliverables.
 
-**Milestone Reviews:** At the end of each release or phase, the platform enforces milestone gates requiring validation of deliverables, acceptance from stakeholders, and updated risk and financial assessments. These gates combine Agile acceptance criteria (DoD) with Waterfall governance (formal sign‑offs).
+**Milestone Reviews:** At the end of each release or phase, the platform enforces milestone gates requiring validation of deliverables, acceptance from stakeholders, and updated risk and financial assessments. These gates combine Adaptive acceptance criteria (DoD) with Predictive governance (formal sign‑offs).
 
 **Continuous Monitoring:** The Project Lifecycle Agent monitors both sprint‑level metrics (velocity, burnup) and phase‑level metrics (schedule variance, budget variance). This dual view ensures that iterative progress does not diverge from strategic objectives.
 
-**Closing & Hand‑over:** As with Waterfall, formal closing activities occur once all iterations and milestones are complete, including lessons learned and documentation archiving.
+**Closing & Hand‑over:** As with Predictive, formal closing activities occur once all iterations and milestones are complete, including lessons learned and documentation archiving.
 
 ### 3.2 Governance & Gates
 
@@ -114,4 +114,4 @@ Across all methodologies, the platform enforces governance and best practice thr
 
 ## Conclusion
 
-By embedding Agile, Waterfall and Hybrid methodologies directly into the user interface, the multi‑agent PPM platform guides teams through appropriate workflows and enforces governance. The methodology map provides a visual representation of the project lifecycle, while agents validate stage‑gate criteria, manage approvals and surface performance insights. Continuous monitoring and conversational guidance ensure that best practices are followed and deviations are quickly addressed.
+By embedding Adaptive, Predictive and Hybrid methodologies directly into the user interface, the multi‑agent PPM platform guides teams through appropriate workflows and enforces governance. The methodology map provides a visual representation of the project lifecycle, while agents validate stage‑gate criteria, manage approvals and surface performance insights. Continuous monitoring and conversational guidance ensure that best practices are followed and deviations are quickly addressed.

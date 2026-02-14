@@ -261,7 +261,7 @@
 - **Timeline:** Gantt chart with milestone markers
 
 ### Financial Dashboard Charts
-- **Budget Variance:** Waterfall chart showing categories
+- **Budget Variance:** Predictive chart showing categories
 - **Burn Rate:** Line chart with trend analysis
 - **Forecast vs. Actual:** Combination chart
 

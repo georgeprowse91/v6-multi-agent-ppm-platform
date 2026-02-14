@@ -18,7 +18,7 @@ Digital transformation efforts are a central catalyst for PPM adoption. As organ
 
 ### Complexity and Resource Constraints
 
-Modern projects involve multiple stakeholders, diverse methodologies (Agile, Waterfall, hybrid), and global teams. This complexity makes manual coordination impractical and increases the risk of delays, cost overruns and governance failures. Markets and Markets notes that the growing complexity of projects and the need for better resource management are key drivers of PPM adoption[6]. Enterprises are turning to advanced PPM tools to manage dependencies, prioritise initiatives and allocate resources effectively.
+Modern projects involve multiple stakeholders, diverse methodologies (Adaptive, Predictive, hybrid), and global teams. This complexity makes manual coordination impractical and increases the risk of delays, cost overruns and governance failures. Markets and Markets notes that the growing complexity of projects and the need for better resource management are key drivers of PPM adoption[6]. Enterprises are turning to advanced PPM tools to manage dependencies, prioritise initiatives and allocate resources effectively.
 
 ### AI, Automation and Predictive Analytics
 

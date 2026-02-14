@@ -107,7 +107,7 @@ updated: "2026-02-11"
 
 This Test Plan document outlines the comprehensive testing approach for the [System/Application Name]. It defines the testing strategy, methodologies, resource requirements, schedule, and deliverables necessary to ensure the system meets the quality standards and requirements specified in the Software Requirements Specification (SRS) and Technical Design Document (TDD).
 
-The Test Plan is designed to align with SAFe (Scaled Agile Framework) principles while adhering to IEEE 829 standards for test documentation, adapted for modern agile environments.
+The Test Plan is designed to align with SAFe (Scaled Adaptive Framework) principles while adhering to IEEE 829 standards for test documentation, adapted for modern adaptive environments.
 
 ### 1.2 Scope
 
@@ -267,7 +267,7 @@ The following metrics and targets will be used to measure testing effectiveness 
 | Mean Time to Detect (MTTD) | <24 hours | Time between defect introduction and detection |
 | Mean Time to Repair (MTTR) | <2.3 hours | Time between defect detection and fix deployment |
 
-These metrics align with the SAFe quality metrics as outlined in the [SAFe Metrics Dashboard](../../../../methodology-frameworks/agile-scrum/scaling-frameworks/safe/metrics_dashboard_template.md) and will be reported regularly through our quality dashboard.
+These metrics align with the SAFe quality metrics as outlined in the [SAFe Metrics Dashboard](../../../../methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/metrics_dashboard_template.md) and will be reported regularly through our quality dashboard.
 
 ## 3. Test Environments
 
@@ -1092,7 +1092,7 @@ Environment Setup  │Automation Development   │Defect Management        │Pe
 | Risk ID | Mitigation Strategy |
 |---------|---------------------|
 | RISK-01 | - Early environment setup<br>- Environment backup plan<br>- Cloud-based contingency environments |
-| RISK-02 | - Frequent requirement reviews<br>- Agile change management process<br>- Impact analysis for each change |
+| RISK-02 | - Frequent requirement reviews<br>- Adaptive change management process<br>- Impact analysis for each change |
 | RISK-03 | - Early test data requirements identification<br>- Automated test data generation<br>- Data masking of production data |
 | RISK-04 | - Daily defect triage meetings<br>- Prioritization framework<br>- Developer-tester pairing for critical issues |
 | RISK-05 | - Start automation early<br>- Use proven frameworks<br>- Focus on stable areas first |
@@ -1528,7 +1528,7 @@ Notes:
 4. **Keep current**: Update this document as the project evolves.
 5. **Cross-reference**: Provide clear references to related documents and sections.
 6. **Focus on value**: Emphasize how testing activities contribute to business and quality outcomes.
-7. **Adapt to Agile**: Balance formal documentation with agile values of collaboration and responsiveness.
+7. **Adapt to Adaptive**: Balance formal documentation with adaptive values of collaboration and responsiveness.
 
 ---
 

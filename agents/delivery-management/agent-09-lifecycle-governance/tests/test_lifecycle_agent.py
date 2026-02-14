@@ -86,7 +86,7 @@ async def test_gate_transition_persists_and_publishes() -> None:
     )
     project_id = "P-100"
     await agent._initiate_project(
-        {"project_id": project_id, "name": "Apollo", "methodology": "waterfall"},
+        {"project_id": project_id, "name": "Apollo", "methodology": "predictive"},
         tenant_id="tenant-a",
     )
     agent.projects[project_id]["artifacts"] = {"charter": {"complete": True}}
@@ -136,7 +136,7 @@ async def test_gate_summarization_and_ai_training() -> None:
     )
     project_id = "P-200"
     await agent._initiate_project(
-        {"project_id": project_id, "name": "Helios", "methodology": "waterfall"},
+        {"project_id": project_id, "name": "Helios", "methodology": "predictive"},
         tenant_id="tenant-b",
     )
     agent.projects[project_id]["approvals"] = {

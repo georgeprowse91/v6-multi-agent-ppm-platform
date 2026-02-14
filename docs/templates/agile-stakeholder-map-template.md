@@ -1,5 +1,5 @@
 ---
-title: "Agile Stakeholder Map Template"
+title: "Adaptive Stakeholder Map Template"
 methodology: "universal"
 complexity: "intermediate"
 owner: "firstname lastname"
@@ -7,15 +7,15 @@ updated: "2026-02-11"
 ---
 
 
-# Agile Stakeholder Map Template
+# Adaptive Stakeholder Map Template
 
 ## Purpose/Overview
-This agile stakeholder map template is designed specifically for agile and iterative project environments. It focuses on collaborative stakeholder engagement, continuous feedback loops, and adaptive communication strategies. The template emphasizes user-centric approaches and supports the dynamic nature of agile projects where stakeholder needs and project requirements evolve continuously.
+This adaptive stakeholder map template is designed specifically for adaptive and iterative project environments. It focuses on collaborative stakeholder engagement, continuous feedback loops, and adaptive communication strategies. The template emphasizes user-centric approaches and supports the dynamic nature of adaptive projects where stakeholder needs and project requirements evolve continuously.
 
 ## Usage Instructions
-1. **Core Team Setup**: Start by identifying your core agile team roles and responsibilities
+1. **Core Team Setup**: Start by identifying your core adaptive team roles and responsibilities
 2. **Stakeholder Mapping**: Map all product stakeholders using the influence/interest matrix
-3. **Ceremony Planning**: Define who participates in which agile ceremonies and their roles
+3. **Ceremony Planning**: Define who participates in which adaptive ceremonies and their roles
 4. **Communication Rhythms**: Establish regular touchpoints and communication frequencies
 5. **User Representation**: Ensure strong user personas and feedback channels are established
 6. **Decision Rights**: Clarify decision-making authority to avoid delays and conflicts
@@ -66,7 +66,7 @@ This agile stakeholder map template is designed specifically for agile and itera
 - [Stakeholder 1]: [Monitoring approach]
 - [Stakeholder 2]: [Monitoring approach]
 
-## Agile Ceremony Participation
+## Adaptive Ceremony Participation
 
 ### Sprint Planning
 **Participants**: [List of stakeholders]
@@ -178,5 +178,5 @@ This agile stakeholder map template is designed specifically for agile and itera
 **Date**: [Date]  
 **Next Review**: [Date]
 
-*Agile-focused stakeholder engagement for collaborative success*
+*Adaptive-focused stakeholder engagement for collaborative success*
 

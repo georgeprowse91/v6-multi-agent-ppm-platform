@@ -9,7 +9,7 @@ updated: "2026-02-11"
 # Hybrid Project Management Plan
 
 ## Overview
-Project management plan template combining traditional and agile methodologies.
+Project management plan template combining traditional and adaptive methodologies.
 
 ## Usage
 This template provides a standardized approach for Hybrid Project Management Plan.

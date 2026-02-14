@@ -140,7 +140,7 @@ async def test_project_definition_scope_baseline_snapshot(tmp_path) -> None:
                 "title": "Project Nova",
                 "description": "Improve onboarding",
                 "project_type": "delivery",
-                "methodology": "agile",
+                "methodology": "adaptive",
             },
         }
     )

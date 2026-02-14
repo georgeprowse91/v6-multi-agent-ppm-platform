@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LFS_POINTER = b"version https://git-lfs.github.com/spec/v1"
 
 TEMPLATE_DIRS = [
-    ROOT / "docs" / "methodology" / "agile" / "templates",
-    ROOT / "docs" / "methodology" / "waterfall" / "templates",
+    ROOT / "docs" / "methodology" / "adaptive" / "templates",
+    ROOT / "docs" / "methodology" / "predictive" / "templates",
     ROOT / "docs" / "methodology" / "hybrid" / "templates",
     ROOT / "docs" / "templates" / "shared",
     ROOT / "services" / "notification-service" / "templates",

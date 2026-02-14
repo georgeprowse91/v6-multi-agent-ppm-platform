@@ -2856,7 +2856,7 @@ class ResourceCapacityAgent(BaseAgent):
         """Generate training recommendations."""
         return [
             {"skill": "Cloud Architecture", "target_count": 3, "priority": "high"},
-            {"skill": "Agile Methodologies", "target_count": 5, "priority": "medium"},
+            {"skill": "Adaptive Methodologies", "target_count": 5, "priority": "medium"},
         ]
 
     async def _create_baseline_scenario(self) -> dict[str, Any]:

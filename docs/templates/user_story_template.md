@@ -1,12 +1,12 @@
 ---
 title: "Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "intermediate"
 process_group: "initiating"
 industry: "technology"
 role: "po"
 tags:
-  - "agile"
+  - "adaptive"
   - "communication"
   - "initiating"
   - "planning"

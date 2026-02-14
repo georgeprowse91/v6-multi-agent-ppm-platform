@@ -1,12 +1,12 @@
 ---
 title: "Interactive Template Selector"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 process_group: "initiating"
 industry: "healthcare"
 role: "pm"
 tags:
-  - "agile"
+  - "adaptive"
   - "communication"
   - "initiating"
   - "planning"
@@ -74,12 +74,12 @@ Once comfortable with basics:
 ### Step 2A: What type of project?
 
 **💻 Software/Technology Project**
-- Methodology: [Agile or Hybrid](methodology-selector.md#agile-hybrid-decision)
+- Methodology: [Adaptive or Hybrid](methodology-selector.md#adaptive-hybrid-decision)
 - Templates: [Scrum Master Toolkit](../../role-based-toolkits/scrum-master/) + [Product Owner Toolkit](../../role-based-toolkits/product-owner/)
 - Specialization: [IT Templates](../../industry_templates/information_technology/)
 
 **🏗️ Traditional Project** (Construction, Manufacturing, etc.)
-- Methodology: [Traditional/Waterfall](methodology-selector.md#traditional-waterfall)
+- Methodology: [Traditional/Predictive](methodology-selector.md#traditional-predictive)
 - Templates: [Project Manager Toolkit](../../role-based-toolkits/project-manager/)
 - Industry: [Construction & Engineering](../../industry_templates/construction_engineering/)
 
@@ -104,7 +104,7 @@ Once comfortable with basics:
 → Automation: [Excel Automation](../../integration_guides/excel_automation/)
 
 **"Too many meetings, not enough progress"**
-→ Consider: [Agile Transformation Kit](../../quick-start-kits/agile-transformation/)
+→ Consider: [Adaptive Transformation Kit](../../quick-start-kits/adaptive-transformation/)
 → Efficiency: [Scrum Master Toolkit](../../role-based-toolkits/scrum-master/)
 
 **"Executive reporting is painful"**
@@ -165,27 +165,27 @@ Once comfortable with basics:
 
 ## Methodology-Specific Selections
 
-### Agile/Scrum Projects
+### Adaptive/Scrum Projects
 **Core Templates:**
-- [Product Backlog](../../methodology-frameworks/agile-scrum/product-backlog-template.md)
-- [Sprint Planning](../../methodology-frameworks/agile-scrum/sprint-planning-template.md)
-- [Sprint Review](../../methodology-frameworks/agile-scrum/sprint-review-template.md)
-- [Sprint Retrospective](../../methodology-frameworks/agile-scrum/sprint-retrospective-template.md)
+- [Product Backlog](../../methodology-frameworks/adaptive-scrum/product-backlog-template.md)
+- [Sprint Planning](../../methodology-frameworks/adaptive-scrum/sprint-planning-template.md)
+- [Sprint Review](../../methodology-frameworks/adaptive-scrum/sprint-review-template.md)
+- [Sprint Retrospective](../../methodology-frameworks/adaptive-scrum/sprint-retrospective-template.md)
 
 **Role-Specific:**
 - [Scrum Master Toolkit](../../role-based-toolkits/scrum-master/)
 - [Product Owner Toolkit](../../role-based-toolkits/product-owner/)
 
-### Traditional/Waterfall Projects
+### Traditional/Predictive Projects
 **Planning Phase:**
-- [Project Management Plan](../../methodology-frameworks/traditional-waterfall/project-management-plan.md)
-- [Work Breakdown Structure](../../methodology-frameworks/traditional-waterfall/wbs-template.md)
-- [Resource Planning](../../methodology-frameworks/traditional-waterfall/resource-planning.md)
+- [Project Management Plan](../../methodology-frameworks/traditional-predictive/project-management-plan.md)
+- [Work Breakdown Structure](../../methodology-frameworks/traditional-predictive/wbs-template.md)
+- [Resource Planning](../../methodology-frameworks/traditional-predictive/resource-planning.md)
 
 **Execution & Control:**
-- [Change Management](../../methodology-frameworks/traditional-waterfall/change-management.md)
-- [Quality Management](../../methodology-frameworks/traditional-waterfall/quality-management.md)
-- [Risk Management](../../methodology-frameworks/traditional-waterfall/risk-management.md)
+- [Change Management](../../methodology-frameworks/traditional-predictive/change-management.md)
+- [Quality Management](../../methodology-frameworks/traditional-predictive/quality-management.md)
+- [Risk Management](../../methodology-frameworks/traditional-predictive/risk-management.md)
 
 ### Hybrid Approaches
 **Combination Templates:**
@@ -235,7 +235,7 @@ Executive Role? ──Yes──> Executive Suite
    No
    │
    v
-Software Project? ──Yes──> Agile/Scrum Templates
+Software Project? ──Yes──> Adaptive/Scrum Templates
    │
    No
    │
@@ -245,7 +245,7 @@ Regulated Industry? ──Yes──> Industry Templates + Hybrid
    No
    │
    v
-Traditional Project ──> Traditional/Waterfall Templates
+Traditional Project ──> Traditional/Predictive Templates
 ```
 
 ---
@@ -253,18 +253,18 @@ Traditional Project ──> Traditional/Waterfall Templates
 ## Template Index (Alphabetical)
 
 ### A-C
-- [Acceptance Criteria](../../methodology-frameworks/agile-scrum/acceptance-criteria-template.md)
+- [Acceptance Criteria](../../methodology-frameworks/adaptive-scrum/acceptance-criteria-template.md)
 - [Budget Tracking](../../business-stakeholder-suite/financial-governance/budget-tracking.md)
-- [Change Request](../../methodology-frameworks/traditional-waterfall/change-request-template.md)
+- [Change Request](../../methodology-frameworks/traditional-predictive/change-request-template.md)
 - [Communication Plan](../../project-lifecycle/02-planning/communication-planning/communication-plan-template.md)
 
 ### D-F
-- [Daily Standup](../../methodology-frameworks/agile-scrum/daily-standup-template.md)
+- [Daily Standup](../../methodology-frameworks/adaptive-scrum/daily-standup-template.md)
 - [Executive Dashboard](../../business-stakeholder-suite/executive-dashboards/executive-dashboard-template.md)
 - [Financial Governance](../../business-stakeholder-suite/financial-governance/)
 
 ### G-I
-- [Gantt Chart](../../methodology-frameworks/traditional-waterfall/gantt-chart-template.md)
+- [Gantt Chart](../../methodology-frameworks/traditional-predictive/gantt-chart-template.md)
 - [Issue Log](../../project-lifecycle/03-execution/issue-tracking/issue-log-template.md)
 
 ### J-L
@@ -275,21 +275,21 @@ Traditional Project ──> Traditional/Waterfall Templates
 - [Organizational Change](../../organizational-frameworks/change-management/)
 
 ### P-R
-- [Product Backlog](../../methodology-frameworks/agile-scrum/product-backlog-template.md)
+- [Product Backlog](../../methodology-frameworks/adaptive-scrum/product-backlog-template.md)
 - [Project Charter](../../project-lifecycle/01-initiation/project-charter/project-charter-template.md)
 - [Risk Register](../../project-lifecycle/02-planning/risk-management/risk-register-template.md)
 - [ROI Tracking](../../business-stakeholder-suite/financial-governance/roi-tracking.md)
 
 ### S-U
-- [Sprint Planning](../../methodology-frameworks/agile-scrum/sprint-planning-template.md)
-- [Sprint Review](../../methodology-frameworks/agile-scrum/sprint-review-template.md)
-- [Sprint Retrospective](../../methodology-frameworks/agile-scrum/sprint-retrospective-template.md)
+- [Sprint Planning](../../methodology-frameworks/adaptive-scrum/sprint-planning-template.md)
+- [Sprint Review](../../methodology-frameworks/adaptive-scrum/sprint-review-template.md)
+- [Sprint Retrospective](../../methodology-frameworks/adaptive-scrum/sprint-retrospective-template.md)
 - [Stakeholder Register](../../project-lifecycle/01-initiation/stakeholder-analysis/stakeholder-register-template.md)
 - [Status Report](../../project-lifecycle/04-monitoring-control/status-reporting/status-report-template.md)
-- [User Stories](../../methodology-frameworks/agile-scrum/user-story-template.md)
+- [User Stories](../../methodology-frameworks/adaptive-scrum/user-story-template.md)
 
 ### V-Z
-- [Work Breakdown Structure](../../methodology-frameworks/traditional-waterfall/wbs-template.md)
+- [Work Breakdown Structure](../../methodology-frameworks/traditional-predictive/wbs-template.md)
 
 ---
 
@@ -300,8 +300,8 @@ Traditional Project ──> Traditional/Waterfall Templates
 **"I'm managing my first project"**
 → [First-Time PM Kit](../../quick-start-kits/first-time-pm-starter/)
 
-**"My team wants to be more agile"**
-→ [Agile Transformation Kit](../../quick-start-kits/agile-transformation/)
+**"My team wants to be more adaptive"**
+→ [Adaptive Transformation Kit](../../quick-start-kits/adaptive-transformation/)
 
 **"Executives want better visibility"**
 → [Executive Reporting Kit](../../quick-start-kits/executive-reporting/)
@@ -340,7 +340,7 @@ This guide helps you identify and download the specific templates you need based
 
 **Reporting to executives** → [Executive Reporting Templates](#executive-reporting-templates)
 
-**Running agile ceremonies** → [Agile Templates](#agile-templates)
+**Running adaptive ceremonies** → [Adaptive Templates](#adaptive-templates)
 
 **Managing a program** → [Program Management Templates](#program-management-templates)
 
@@ -353,7 +353,7 @@ This guide helps you identify and download the specific templates you need based
 #### 📦 **Project Charter Package**
 - **[Basic Project Charter](../../project-lifecycle/01-initiation/project-charter/)** - Single page project authorization
 - **[Detailed Project Charter](../../project-lifecycle/01-initiation/project-charter/)** - Comprehensive project definition
-- **[Agile Project Charter](../../methodology-frameworks/agile-scrum/)** - Lightweight project vision
+- **[Adaptive Project Charter](../../methodology-frameworks/adaptive-scrum/)** - Lightweight project vision
 
 #### 👥 **Stakeholder Analysis Package**
 - **[Stakeholder Register](../../project-lifecycle/01-initiation/stakeholder-analysis/)** - Who's involved and how
@@ -432,15 +432,15 @@ This guide helps you identify and download the specific templates you need based
 
 ---
 
-## 🌀 Agile Templates
+## 🌀 Adaptive Templates
 
 ### 🏃 **Scrum Master Toolkit**
 | Template | Ceremony | Duration | Team Size |
 |----------|----------|----------|----------|
-| **[Sprint Planning](../../role-based-toolkits/scrum-master/agile-ceremonies/)** | Sprint start | 2-4 hours | 5-9 people |
-| **[Daily Standup](../../role-based-toolkits/scrum-master/agile-ceremonies/)** | Daily | 15 minutes | 5-9 people |
-| **[Sprint Review](../../role-based-toolkits/scrum-master/agile-ceremonies/)** | Sprint end | 1-2 hours | All stakeholders |
-| **[Sprint Retrospective](../../role-based-toolkits/scrum-master/agile-ceremonies/)** | Sprint end | 1-1.5 hours | 5-9 people |
+| **[Sprint Planning](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)** | Sprint start | 2-4 hours | 5-9 people |
+| **[Daily Standup](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)** | Daily | 15 minutes | 5-9 people |
+| **[Sprint Review](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)** | Sprint end | 1-2 hours | All stakeholders |
+| **[Sprint Retrospective](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)** | Sprint end | 1-1.5 hours | 5-9 people |
 
 ### 📎 **Product Owner Toolkit**
 | Template | Purpose | Update Frequency | Stakeholders |
@@ -450,12 +450,12 @@ This guide helps you identify and download the specific templates you need based
 | **[Acceptance Criteria](../../role-based-toolkits/product-owner/backlog-management/)** | Definition of done | Per story | Dev + QA |
 | **[Release Planning](../../role-based-toolkits/product-owner/product-strategy/)** | Strategic roadmap | Quarterly | All stakeholders |
 
-### 📊 **Agile Metrics**
+### 📊 **Adaptive Metrics**
 | Template | Metric Type | Update Frequency | Purpose |
 |----------|-------------|------------------|----------|
-| **[Burndown Chart](../../role-based-toolkits/scrum-master/agile-metrics/)** | Progress tracking | Daily | Sprint management |
-| **[Velocity Tracking](../../role-based-toolkits/scrum-master/agile-metrics/)** | Team performance | Per sprint | Capacity planning |
-| **[Cumulative Flow](../../role-based-toolkits/scrum-master/agile-metrics/)** | Workflow health | Daily | Process improvement |
+| **[Burndown Chart](../../role-based-toolkits/scrum-master/adaptive-metrics/)** | Progress tracking | Daily | Sprint management |
+| **[Velocity Tracking](../../role-based-toolkits/scrum-master/adaptive-metrics/)** | Team performance | Per sprint | Capacity planning |
+| **[Cumulative Flow](../../role-based-toolkits/scrum-master/adaptive-metrics/)** | Workflow health | Daily | Process improvement |
 
 ---
 
@@ -508,8 +508,8 @@ What do you need?
     │
     ├── Managing ongoing work?
     │   ├── Traditional approach → Status Reports + Issue Tracking
-    │   ├── Agile approach → Scrum Ceremonies + Backlog Management
-    │   └── Hybrid approach → Program Management + Agile Templates
+    │   ├── Adaptive approach → Scrum Ceremonies + Backlog Management
+    │   └── Hybrid approach → Program Management + Adaptive Templates
     │
     ├── Reporting to executives?
     │   ├── Regular updates → Dashboard + Status Reports
@@ -549,8 +549,8 @@ What do you need?
 - [Strategic Alignment](../../business-stakeholder-suite/strategic-alignment/)
 
 #### Methodology Frameworks
-- [Traditional/Waterfall](../../methodology-frameworks/traditional-waterfall/)
-- [Agile/Scrum](../../methodology-frameworks/agile-scrum/)
+- [Traditional/Predictive](../../methodology-frameworks/traditional-predictive/)
+- [Adaptive/Scrum](../../methodology-frameworks/adaptive-scrum/)
 - [Hybrid Approaches](../../methodology-frameworks/hybrid-approaches/)
 - [Emerging Methods](../../methodology-frameworks/emerging-methods/)
 

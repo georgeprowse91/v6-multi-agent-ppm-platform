@@ -1,19 +1,19 @@
 {
   "templates": [
     {
-      "id": "agile-software-dev",
-      "name": "Agile Software Dev",
+      "id": "adaptive-software-dev",
+      "name": "Adaptive Software Dev",
       "version": "1.1",
       "available_versions": [
         "1.0",
         "1.1"
       ],
       "summary": "Iterative delivery template for software product teams.",
-      "description": "Bootstraps an agile workspace with product vision, backlog planning, sprint execution, and metrics dashboards.",
+      "description": "Bootstraps an adaptive workspace with product vision, backlog planning, sprint execution, and metrics dashboards.",
       "methodology": {
         "id": "adaptive",
         "name": "Adaptive",
-        "description": "Iterative agile approach with sprints",
+        "description": "Iterative adaptive approach with sprints",
         "type": "adaptive",
         "version": "1.0",
         "stages": [
@@ -122,9 +122,9 @@
             }
           },
           {
-            "id": "stage-agile-monitoring",
+            "id": "stage-adaptive-monitoring",
             "name": "Monitoring & Metrics",
-            "description": "Track agile metrics and team health",
+            "description": "Track adaptive metrics and team health",
             "status": "not_started",
             "prerequisites": [],
             "alwaysAccessible": true,
@@ -196,8 +196,8 @@
       ]
     },
     {
-      "id": "waterfall-infrastructure",
-      "name": "Waterfall Infrastructure",
+      "id": "predictive-infrastructure",
+      "name": "Predictive Infrastructure",
       "version": "1.0",
       "available_versions": [
         "1.0"
@@ -953,18 +953,18 @@
       "title": "Daily Standup Template",
       "category": "Meetings",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/product/daily-standup-template-agile.md"
+      "path": "docs/templates/product/daily-standup-template-adaptive.md"
     },
     {
       "id": "pi-planning-template",
       "title": "PI Planning Template",
       "category": "Meetings",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/product/pi-planning-plan-template-agile.md"
+      "path": "docs/templates/product/pi-planning-plan-template-adaptive.md"
     },
     {
       "id": "risk-report",
@@ -1041,95 +1041,95 @@
     {
       "id": "iteration-plan",
       "title": "Iteration Plan",
-      "category": "Agile",
+      "category": "Adaptive",
       "methodologies": [
-        "agile",
+        "adaptive",
         "hybrid"
       ],
-      "path": "docs/templates/product/iteration-plan-template-agile.md"
+      "path": "docs/templates/product/iteration-plan-template-adaptive.md"
     },
     {
       "id": "backlog-management-template",
       "title": "Backlog Management Template",
-      "category": "Agile",
+      "category": "Adaptive",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/product/backlog-management-template-agile.md"
+      "path": "docs/templates/product/backlog-management-template-adaptive.md"
     },
     {
       "id": "backlog-refinement-template",
       "title": "Backlog Refinement Template",
-      "category": "Agile",
+      "category": "Adaptive",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/product/backlog-refinement-template-agile.md"
+      "path": "docs/templates/product/backlog-refinement-template-adaptive.md"
     },
     {
       "id": "risk-adjusted-backlog",
       "title": "Risk-adjusted Backlog",
-      "category": "Agile",
+      "category": "Adaptive",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/risk/risk-adjusted-backlog-template-agile.csv"
+      "path": "docs/templates/risk/risk-adjusted-backlog-template-adaptive.csv"
     },
     {
-      "id": "roles-responsibilities-agile",
+      "id": "roles-responsibilities-adaptive",
       "title": "Roles & Responsibilities Matrix",
-      "description": "Defines Agile roles, responsibilities, and decision rights (Product Owner, Scrum Master, Team, Stakeholders).",
-      "category": "Agile",
+      "description": "Defines Adaptive roles, responsibilities, and decision rights (Product Owner, Scrum Master, Team, Stakeholders).",
+      "category": "Adaptive",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "file": "docs/templates/resources/roles-responsibilities-template-agile.md",
-      "path": "docs/templates/resources/roles-responsibilities-template-agile.md",
-      "methodology": "agile",
+      "file": "docs/templates/resources/roles-responsibilities-template-adaptive.md",
+      "path": "docs/templates/resources/roles-responsibilities-template-adaptive.md",
+      "methodology": "adaptive",
       "stage": "sprint-0",
       "agents": [
-        "agile-delivery",
+        "adaptive-delivery",
         "lifecycle-governance"
       ]
     },
     {
       "id": "user-story-template",
       "title": "User Story Template",
-      "category": "Agile",
+      "category": "Adaptive",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/product/user-story-template-agile.md"
+      "path": "docs/templates/product/user-story-template-adaptive.md"
     },
     {
       "id": "user-story-mapping-template",
       "title": "User Story Mapping Template",
-      "category": "Agile",
+      "category": "Adaptive",
       "methodologies": [
-        "agile"
+        "adaptive"
       ],
-      "path": "docs/templates/product/user-story-mapping-template-agile.md"
+      "path": "docs/templates/product/user-story-mapping-template-adaptive.md"
     },
     {
-      "id": "waterfall-risk-management-plan",
-      "title": "Risk Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-risk-management-plan",
+      "title": "Risk Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/risk/risk-management-plan-cross.md"
     },
     {
-      "id": "roles-responsibilities-waterfall",
+      "id": "roles-responsibilities-predictive",
       "title": "Roles & Responsibilities Matrix",
-      "description": "Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.).",
-      "category": "Waterfall",
+      "description": "Defines the key roles and responsibilities for Predictive projects (Sponsor, PM, BA, Functional Leads, etc.).",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
-      "file": "docs/templates/resources/roles-responsibilities-template-waterfall.md",
-      "path": "docs/templates/resources/roles-responsibilities-template-waterfall.md",
-      "methodology": "waterfall",
+      "file": "docs/templates/resources/roles-responsibilities-template-predictive.md",
+      "path": "docs/templates/resources/roles-responsibilities-template-predictive.md",
+      "methodology": "predictive",
       "stage": "initiation",
       "agents": [
         "project-definition",
@@ -1137,74 +1137,74 @@
       ]
     },
     {
-      "id": "waterfall-resource-management-plan",
-      "title": "Resource Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-resource-management-plan",
+      "title": "Resource Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/resources/resource-management-plan-cross.md"
     },
     {
-      "id": "waterfall-quality-management-plan",
-      "title": "Quality Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-quality-management-plan",
+      "title": "Quality Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/quality/quality-management-plan-cross.md"
     },
     {
-      "id": "waterfall-procurement-management-plan",
-      "title": "Procurement Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-procurement-management-plan",
+      "title": "Procurement Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/finance/procurement-management-plan-cross.md"
     },
     {
-      "id": "waterfall-schedule-management-plan",
-      "title": "Schedule Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-schedule-management-plan",
+      "title": "Schedule Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/schedule/schedule-management-plan-cross.md"
     },
     {
-      "id": "waterfall-scope-management-plan",
-      "title": "Scope Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-scope-management-plan",
+      "title": "Scope Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/requirements/scope-management-plan-cross.md"
     },
     {
-      "id": "waterfall-cost-management-plan",
-      "title": "Cost Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-cost-management-plan",
+      "title": "Cost Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/finance/cost-management-plan-cross.md"
     },
     {
-      "id": "waterfall-project-management-plan",
-      "title": "Project Management Plan (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-project-management-plan",
+      "title": "Project Management Plan (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/governance/project-management-plan-cross.md"
     },
     {
-      "id": "waterfall-risk-breakdown-structure",
-      "title": "Risk Breakdown Structure (Waterfall)",
-      "category": "Waterfall",
+      "id": "predictive-risk-breakdown-structure",
+      "title": "Risk Breakdown Structure (Predictive)",
+      "category": "Predictive",
       "methodologies": [
-        "waterfall"
+        "predictive"
       ],
       "path": "docs/templates/risk/risk-breakdown-structure-template-cross.yaml"
     },
@@ -1220,7 +1220,7 @@
     {
       "id": "roles-responsibilities-hybrid",
       "title": "Roles & Responsibilities Matrix",
-      "description": "Defines hybrid roles and shared responsibilities when governance and Agile delivery overlap.",
+      "description": "Defines hybrid roles and shared responsibilities when governance and Adaptive delivery overlap.",
       "category": "Hybrid",
       "methodologies": [
         "hybrid"
@@ -1231,7 +1231,7 @@
       "stage": "initiation",
       "agents": [
         "project-definition",
-        "agile-delivery",
+        "adaptive-delivery",
         "lifecycle-governance"
       ]
     },

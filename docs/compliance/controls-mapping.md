@@ -16,7 +16,7 @@ This document defines the governance and compliance framework for the multi‑ag
 
 **Risk Management Lead:** monitors and manages technical, commercial and adoption risks across the solution, coordinating mitigation strategies defined in the risk management plan.
 
-**Project/Programme Management Office (PMO):** drives implementation governance, stage‑gate approvals, and methodology adherence (Agile, Waterfall or hybrid), ensuring alignment with the platform’s process flows.
+**Project/Programme Management Office (PMO):** drives implementation governance, stage‑gate approvals, and methodology adherence (Adaptive, Predictive or hybrid), ensuring alignment with the platform’s process flows.
 
 **Legal & Privacy Counsel:** interprets data‑protection laws (GDPR, Australian Privacy Act, CCPA) and ensures data processing agreements and privacy notices are kept up to date.
 

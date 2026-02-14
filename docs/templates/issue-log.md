@@ -511,12 +511,12 @@ Common issue types:
 - Enterprise tool integration
 
 ### Methodology Alignment
-**Traditional/Waterfall Projects**:
+**Traditional/Predictive Projects**:
 - Formal issue review processes
 - Comprehensive documentation
 - Structured escalation procedures
 
-**Agile Projects**:
+**Adaptive Projects**:
 - Rapid issue resolution cycles
 - Team-level issue management
 - Lightweight documentation

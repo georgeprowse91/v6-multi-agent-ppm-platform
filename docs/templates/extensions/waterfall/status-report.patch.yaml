@@ -1,10 +1,10 @@
 metadata:
-  template_id: waterfall-status-report-extension
-  title: Waterfall Status Report Extension
+  template_id: predictive-status-report-extension
+  title: Predictive Status Report Extension
   version: 1.0.0
   owner: PMO
   classification: extension
-  methodology: waterfall
+  methodology: predictive
 inputs:
 - name: project_name
   type: string
@@ -12,14 +12,14 @@ inputs:
 - name: methodology
   type: enum
   values:
-  - waterfall
+  - predictive
   required: true
 sections:
 - id: phase-gate-status
   title: Phase Gate Status
   type: narrative
 guidance:
-  purpose: Patch overlay for status-report tailored to waterfall delivery.
+  purpose: Patch overlay for status-report tailored to predictive delivery.
   application: Apply this extension on top of the referenced core template to add methodology-specific content.
 placeholders:
 - key: phase_gate_status

@@ -7,7 +7,7 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 
 ## Methodology Template Index
 - Templates are organized by discipline under [docs/templates](../templates/README.md). Methodology
-  variants are labeled with `-agile`, `-hybrid`, or `-waterfall` in the filename.
+  variants are labeled with `-adaptive`, `-hybrid`, or `-predictive` in the filename.
 
 ## Shared Template Library
 | Artefact | Purpose | Used by (agent) | Template Path |
@@ -72,33 +72,33 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 > **Note:** Spreadsheet templates (e.g., cost baseline, risk register, stakeholder register) are stored in the repository but cannot be rendered directly in Markdown previews. Open them in Excel or Google Sheets for full functionality.
 
 ## Methodology Variants
-| Artefact | Agile | Waterfall | Hybrid |
+| Artefact | Adaptive | Predictive | Hybrid |
 | --- | --- | --- | --- |
-| Charter |  | [Project charter](../templates/governance/project-charter-template-waterfall.md) | [Hybrid charter](../templates/governance/charter-template-hybrid.md) |
-| Roles & responsibilities matrix | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-agile.md) — Defines the key roles and responsibilities for Agile projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-waterfall.md) — Defines the key roles and responsibilities for Waterfall projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-hybrid.md) — Defines hybrid roles and shared responsibilities where governance and Agile delivery overlap. |
-| User story mapping | [User story mapping](../templates/product/user-story-mapping-template-agile.md) |  |  |
-| User story template | [User story template](../templates/product/user-story-template-agile.md) |  |  |
-| Backlog | [Backlog](../templates/product/backlog-template-agile.csv) |  |  |
-| Backlog management | [Backlog management](../templates/product/backlog-management-template-agile.md) |  |  |
-| Backlog refinement | [Backlog refinement](../templates/product/backlog-refinement-template-agile.md) |  |  |
-| Risk-adjusted backlog | [Risk-adjusted backlog](../templates/risk/risk-adjusted-backlog-template-agile.csv) |  |  |
-| Agile risk board | [Agile risk board](../templates/risk/risk-board-template-agile.md) |  |  |
-| Sprint plan | [Sprint plan](../templates/product/sprint-plan-template-agile.md) |  | [Sprint plan](../templates/product/sprint-plan-template-agile.md) |
-| Iteration plan | [Iteration plan](../templates/product/iteration-plan-template-agile.md) |  |  |
-| Release plan | [Release plan](../templates/schedule/release-plan-template-agile.md) |  | [Release plan](../templates/schedule/release-plan-template-agile.md) |
-| Burndown | [Burndown](../templates/product/burndown-template-agile.xlsx) |  |  |
-| WBS |  | [WBS](../templates/schedule/wbs-template-waterfall.yaml) |  |
-| Schedule baseline |  | [Schedule baseline](../templates/schedule/schedule-baseline-waterfall.xlsx) |  |
-| Risk register |  | [Risk register](../templates/risk/risk-register-waterfall.xlsx) | [Integrated risk register](../templates/risk/integrated-risk-register-hybrid.xlsx) |
+| Charter |  | [Project charter](../templates/governance/project-charter-template-predictive.md) | [Hybrid charter](../templates/governance/charter-template-hybrid.md) |
+| Roles & responsibilities matrix | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-adaptive.md) — Defines the key roles and responsibilities for Adaptive projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-predictive.md) — Defines the key roles and responsibilities for Predictive projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-hybrid.md) — Defines hybrid roles and shared responsibilities where governance and Adaptive delivery overlap. |
+| User story mapping | [User story mapping](../templates/product/user-story-mapping-template-adaptive.md) |  |  |
+| User story template | [User story template](../templates/product/user-story-template-adaptive.md) |  |  |
+| Backlog | [Backlog](../templates/product/backlog-template-adaptive.csv) |  |  |
+| Backlog management | [Backlog management](../templates/product/backlog-management-template-adaptive.md) |  |  |
+| Backlog refinement | [Backlog refinement](../templates/product/backlog-refinement-template-adaptive.md) |  |  |
+| Risk-adjusted backlog | [Risk-adjusted backlog](../templates/risk/risk-adjusted-backlog-template-adaptive.csv) |  |  |
+| Adaptive risk board | [Adaptive risk board](../templates/risk/risk-board-template-adaptive.md) |  |  |
+| Sprint plan | [Sprint plan](../templates/product/sprint-plan-template-adaptive.md) |  | [Sprint plan](../templates/product/sprint-plan-template-adaptive.md) |
+| Iteration plan | [Iteration plan](../templates/product/iteration-plan-template-adaptive.md) |  |  |
+| Release plan | [Release plan](../templates/schedule/release-plan-template-adaptive.md) |  | [Release plan](../templates/schedule/release-plan-template-adaptive.md) |
+| Burndown | [Burndown](../templates/product/burndown-template-adaptive.xlsx) |  |  |
+| WBS |  | [WBS](../templates/schedule/wbs-template-predictive.yaml) |  |
+| Schedule baseline |  | [Schedule baseline](../templates/schedule/schedule-baseline-predictive.xlsx) |  |
+| Risk register |  | [Risk register](../templates/risk/risk-register-predictive.xlsx) | [Integrated risk register](../templates/risk/integrated-risk-register-hybrid.xlsx) |
 | Integrated risk register |  |  | [Integrated risk register](../templates/risk/integrated-risk-register-template-hybrid.md) |
 | Risk breakdown structure |  | [RBS](../templates/risk/risk-breakdown-structure-template-cross.yaml) |  |
-| QA checklist |  | [QA checklist](../templates/quality/qa-checklist-waterfall.xlsx) |  |
+| QA checklist |  | [QA checklist](../templates/quality/qa-checklist-predictive.xlsx) |  |
 | Milestone plan |  |  | [Milestone plan](../templates/schedule/milestone-plan-hybrid.xlsx) |
 | Governance pack |  |  | [Governance pack](../templates/governance/governance-pack-template-hybrid.md) |
 | Decision log |  |  | [Decision log](../templates/governance/decision-log-template-hybrid.md) |
 | Hybrid team management |  |  | [Hybrid team management](../templates/resources/team-management-template-hybrid.md) |
 | Hybrid resource plan |  |  | [Hybrid resource plan](../templates/resources/resource-plan-template-hybrid.md) |
-| Closure report |  | [Closure report](../templates/governance/closure-report-template-waterfall.md) | [Closure report](../templates/governance/closure-report-template-waterfall.md) |
+| Closure report |  | [Closure report](../templates/governance/closure-report-template-predictive.md) | [Closure report](../templates/governance/closure-report-template-predictive.md) |
 | Project management plan |  | [Project management plan](../templates/governance/project-management-plan-template-cross.md) |  |
 | Scope management plan |  | [Scope management plan](../templates/requirements/scope-management-plan-template-cross.md) |  |
 | Schedule management plan |  | [Schedule management plan](../templates/schedule/schedule-management-plan-template-cross.md) |  |

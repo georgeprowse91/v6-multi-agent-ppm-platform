@@ -112,7 +112,7 @@ AI limited to chatbot interface or basic predictions
 
 Still requires manual data aggregation
 
-No methodology-specific intelligence (treats Agile and Waterfall identically)
+No methodology-specific intelligence (treats Adaptive and Predictive identically)
 
 **Example:** Smartsheet with “AI assistant” - answers questions but doesn’t orchestrate workflows
 
@@ -172,7 +172,7 @@ For PMO Directors and Portfolio Managers:
 
 Single pane of glass across Jira, Planview, SAP, Workday
 
-AI assistant that understands methodology context (Agile vs. Waterfall)
+AI assistant that understands methodology context (Adaptive vs. Predictive)
 
 Automated status reports (4 hours/week → 10 minutes)
 
@@ -226,7 +226,7 @@ Client Proof Point:
 
 2. Methodology-Embedded Governance
 
-**What It Means:** The navigation structure is the project methodology. Agile projects see sprint-based navigation; Waterfall sees phase gates. Compliance isn’t a checklist - it’s enforced by the UI.
+**What It Means:** The navigation structure is the project methodology. Adaptive projects see sprint-based navigation; Predictive sees phase gates. Compliance isn’t a checklist - it’s enforced by the UI.
 
 Why It Matters:
 
@@ -340,7 +340,7 @@ Our Multi-Agent System:
 
 **Industry:** Pharma projects have TGA compliance workflows; Financial Services have APRA CPS 234 controls
 
-**Methodology:** Agile sprints vs. Waterfall phases vs. SAFe release trains
+**Methodology:** Adaptive sprints vs. Predictive phases vs. SAFe release trains
 
 **Tech Stack:** Connects to your existing systems (SAP or Oracle, Jira or Azure DevOps)
 
@@ -348,7 +348,7 @@ Our Multi-Agent System:
 
 Software development ≠ Construction ≠ Pharmaceutical trials
 
-Agile sprints ≠ Waterfall gates ≠ Hybrid programs
+Adaptive sprints ≠ Predictive gates ≠ Hybrid programs
 
 Customization Examples:
 
@@ -388,7 +388,7 @@ How We Achieve This:
 
 **Pre-built connectors:** 20+ systems ready out-of-box (Planview, SAP, Jira, Workday)
 
-**Methodology templates:** Agile, Waterfall, SAFe, Hybrid pre-configured
+**Methodology templates:** Adaptive, Predictive, SAFe, Hybrid pre-configured
 
 **Industry accelerators:** Pharma, FinServ, Aerospace patterns ready to deploy
 
@@ -768,7 +768,7 @@ Dedicated PMO team (10-50 people)
 
 Existing investment in PPM tools (Planview, Clarity, etc.)
 
-Multiple methodologies in use (Agile for IT, Waterfall for infrastructure)
+Multiple methodologies in use (Adaptive for IT, Predictive for infrastructure)
 
 Pain Points:
 
@@ -804,7 +804,7 @@ Small PMO team (2-10 people) or no dedicated PMO
 
 Using entry-level tools (Smartsheet, Monday.com, Asana)
 
-Single methodology (usually Agile or Waterfall, not both)
+Single methodology (usually Adaptive or Predictive, not both)
 
 Pain Points:
 
@@ -914,7 +914,7 @@ Technology / Telecommunications
 
 Software development at scale
 
-Agile/DevOps methodology focus
+Adaptive/DevOps methodology focus
 
 AI early adopters
 
@@ -1704,7 +1704,7 @@ For CFOs:
 
 For Project Managers:
 
-“Follow best practices effortlessly. Our methodology-driven navigation guides you through Agile sprints or Waterfall gates, ensuring compliance without the administrative burden.”
+“Follow best practices effortlessly. Our methodology-driven navigation guides you through Adaptive sprints or Predictive gates, ensuring compliance without the administrative burden.”
 
 Content Marketing Strategy
 
@@ -1850,7 +1850,7 @@ This document represents PwC’s opportunity to lead the AI-powered enterprise P
 | System Integration | Replace all systems | Limited connectors | Orchestrates 20+ existing systems |
 | Real-time Data | Manual updates | Nightly batch sync | Event-driven (< 5 min latency) |
 | AI Intelligence | None or basic | Single chatbot | 25 specialized agents working in concert |
-| Methodology Support | Template-based | One-size-fits-all | Agile, Waterfall, Hybrid with adaptive behavior |
+| Methodology Support | Template-based | One-size-fits-all | Adaptive, Predictive, Hybrid with adaptive behavior |
 | Governance | Manual checklists | Workflow automation | AI-enforced methodology compliance |
 | Predictive Insights | Historical reports | Basic forecasts | Multi-model predictions (85%+ accuracy) |
 | Human Oversight | System-driven | System-driven | Human-in-the-loop for all decisions |

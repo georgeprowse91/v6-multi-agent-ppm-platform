@@ -10,7 +10,7 @@ inputs:
     required: true
   - name: delivery_model
     type: enum
-    values: [agile, hybrid, waterfall]
+    values: [adaptive, hybrid, predictive]
     required: true
 sections:
   - id: problem-statement

@@ -1,6 +1,6 @@
 ---
 title: "Safe Portfolio Kanban Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -24,7 +24,7 @@ The Portfolio Kanban system visualizes the flow of business and enabler epics fr
 - Implement a structured approach to portfolio prioritization
 - Provide transparency into the enterprise's most significant initiatives
 
-This template provides a framework for implementing a SAFe Portfolio Kanban system following Scaled Agile Framework best practices.
+This template provides a framework for implementing a SAFe Portfolio Kanban system following Scaled Adaptive Framework best practices.
 
 ## 🔄 Kanban Board Structure
 
@@ -389,4 +389,4 @@ For digital implementation:
 
 ---
 
-*This template follows the Scaled Agile Framework (SAFe) Portfolio Kanban practices. Customize as needed for your organization's specific implementation of SAFe.*
+*This template follows the Scaled Adaptive Framework (SAFe) Portfolio Kanban practices. Customize as needed for your organization's specific implementation of SAFe.*

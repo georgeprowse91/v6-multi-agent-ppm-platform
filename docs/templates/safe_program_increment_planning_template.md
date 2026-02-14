@@ -1,6 +1,6 @@
 ---
 title: "Safe Program Increment Planning Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -8,7 +8,7 @@ updated: "2026-02-11"
 
 # SAFe Program Increment Planning Template
 
-**Agile Release Train:** [ART Name]  
+**Adaptive Release Train:** [ART Name]  
 **Program Increment:** [PI Number]  
 **PI Planning Dates:** [Start Date] - [End Date]  
 **Location:** [Physical Location and/or Virtual Meeting Details]  
@@ -17,7 +17,7 @@ updated: "2026-02-11"
 
 ## 📋 PI Planning Overview
 
-Program Increment (PI) Planning is a cadence-based, face-to-face event that serves as the heartbeat of the Agile Release Train (ART), aligning all teams to a shared mission and vision. This two-day event brings together all ART members to:
+Program Increment (PI) Planning is a cadence-based, face-to-face event that serves as the heartbeat of the Adaptive Release Train (ART), aligning all teams to a shared mission and vision. This two-day event brings together all ART members to:
 
 - Align on a common mission and vision
 - Identify dependencies and foster cross-team collaboration
@@ -311,4 +311,4 @@ Iteration 2 (2 weeks): Jan 24-Feb 6
 
 ---
 
-*This template follows the Scaled Agile Framework (SAFe) PI Planning process. Customize as needed for your organization's specific implementation of SAFe.*
+*This template follows the Scaled Adaptive Framework (SAFe) PI Planning process. Customize as needed for your organization's specific implementation of SAFe.*

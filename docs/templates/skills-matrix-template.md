@@ -114,7 +114,7 @@ This matrix covers:
 
 | Team Member | Domain Knowledge | Business Analysis | Process Improvement | Financial Acumen | Stakeholder Mgmt | Average |
 |-------------|------------------|-------------------|---------------------|------------------|------------------|---------|
-| **John Smith** | E-commerce (3) | Requirements (3) | Agile (4) | Basic (2) | Technical (3) | 3.0 |
+| **John Smith** | E-commerce (3) | Requirements (3) | Adaptive (4) | Basic (2) | Technical (3) | 3.0 |
 | **Sarah Jones** | UX/UI (4) | User Research (4) | Design Thinking (4) | Basic (2) | User-focused (4) | 3.6 |
 | **Mike Chen** | Enterprise (4) | System Analysis (4) | Optimization (3) | Intermediate (3) | Technical (3) | 3.4 |
 | **Lisa Wang** | Analytics (5) | Data Analysis (5) | Statistical (4) | Advanced (4) | Data-driven (4) | 4.4 |

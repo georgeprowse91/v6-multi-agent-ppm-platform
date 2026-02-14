@@ -1,6 +1,6 @@
 ---
 title: "Pi Planning Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -9,10 +9,10 @@ updated: "2026-02-11"
 # SAFe Program Increment (PI) Planning Template
 
 ## Overview
-This template provides a comprehensive framework for conducting SAFe Program Increment (PI) Planning events, typically held every 8-12 weeks to align multiple Agile Release Trains (ARTs) on a common mission and vision.
+This template provides a comprehensive framework for conducting SAFe Program Increment (PI) Planning events, typically held every 8-12 weeks to align multiple Adaptive Release Trains (ARTs) on a common mission and vision.
 
 ## Template Information
-- **Framework:** SAFe (Scaled Agile Framework)
+- **Framework:** SAFe (Scaled Adaptive Framework)
 - **Event Type:** PI Planning
 - **Duration:** 2 days (typical)
 - **Participants:** 50-125 people per ART

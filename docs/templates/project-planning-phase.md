@@ -155,7 +155,7 @@ The planning phase bridges the gap between project authorization and execution b
 - **Parametric Estimation** - Statistical relationship-based estimation
 - **Bottom-Up Estimation** - Detailed component-level estimation
 <a id="common-planning-pitfalls"></a>
-- **Planning Poker** - Collaborative estimation for agile environments
+- **Planning Poker** - Collaborative estimation for adaptive environments
 
 ### Risk Assessment Tools
 - **Risk Register** - Comprehensive risk documentation
@@ -218,7 +218,7 @@ The planning phase bridges the gap between project authorization and execution b
 
 ### Methodology Integration
 1. **[Traditional Processes](../../methodology-frameworks/traditional/)** - Standard planning procedures
-2. **[Agile Planning](../../methodology-frameworks/agile-scrum/)** - Iterative planning and backlog management
+2. **[Adaptive Planning](../../methodology-frameworks/adaptive-scrum/)** - Iterative planning and backlog management
 3. **[Lean Planning](../../methodology-frameworks/emerging-methods/lean-startup/)** - Validated learning and experimentation
 
 ---

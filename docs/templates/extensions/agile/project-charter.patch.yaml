@@ -1,10 +1,10 @@
 metadata:
-  template_id: agile-project-charter-extension
-  title: Agile Project Charter Extension
+  template_id: adaptive-project-charter-extension
+  title: Adaptive Project Charter Extension
   version: 1.0.0
   owner: PMO
   classification: extension
-  methodology: agile
+  methodology: adaptive
 inputs:
 - name: project_name
   type: string
@@ -12,7 +12,7 @@ inputs:
 - name: methodology
   type: enum
   values:
-  - agile
+  - adaptive
   required: true
 sections:
 - id: product-vision
@@ -22,7 +22,7 @@ sections:
   title: Release Strategy
   type: narrative
 guidance:
-  purpose: Patch overlay for project-charter tailored to agile delivery.
+  purpose: Patch overlay for project-charter tailored to adaptive delivery.
   application: Apply this extension on top of the referenced core template to add methodology-specific content.
 placeholders:
 - key: product_vision

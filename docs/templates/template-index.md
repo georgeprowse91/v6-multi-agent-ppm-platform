@@ -3,16 +3,16 @@
 | Template | Methodology | Complexity | Owner | Last Updated |
 |---|---|---|---|---|
 | [Advanced Business Case Template](business-stakeholder-suite/financial-governance/enhanced-business-cases/advanced-business-case-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Agile Project Assessment Template](project-assessment-suite/agile-project-assessment-template.md) | universal | starter | firstname lastname | 2025-08-05 |
-| [Agile Release Plan Template](project-lifecycle/02-planning/project-management-plan/agile-release-plan-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Agile Risk Board Template](project-lifecycle/02-planning/risk-management/agile-risk-board-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Agile Stakeholder Map Template](project-lifecycle/01-initiation/stakeholder-analysis/agile-stakeholder-map-template.md) | universal | intermediate | firstname lastname | 2025-08-05 |
-| [Agile Team Charter Template](project-lifecycle/01-initiation/project-charter/agile-team-charter-template.md) | universal | intermediate | firstname lastname | 2025-08-05 |
+| [Adaptive Project Assessment Template](project-assessment-suite/adaptive-project-assessment-template.md) | universal | starter | firstname lastname | 2025-08-05 |
+| [Adaptive Release Plan Template](project-lifecycle/02-planning/project-management-plan/adaptive-release-plan-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
+| [Adaptive Risk Board Template](project-lifecycle/02-planning/risk-management/adaptive-risk-board-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
+| [Adaptive Stakeholder Map Template](project-lifecycle/01-initiation/stakeholder-analysis/adaptive-stakeholder-map-template.md) | universal | intermediate | firstname lastname | 2025-08-05 |
+| [Adaptive Team Charter Template](project-lifecycle/01-initiation/project-charter/adaptive-team-charter-template.md) | universal | intermediate | firstname lastname | 2025-08-05 |
 | [Api Documentation Template](industry-specializations/information-technology/software-development/api_documentation_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Art Coordination Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/art_coordination_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Art Coordination Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/art_coordination_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Assessment Report Template](project-assessment-suite/assessment-report-template.md) | universal | starter | firstname lastname | 2025-08-05 |
 | [Backlog Management Template](role-based-toolkits/product-owner/backlog-management-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Backlog Refinement Template](role-based-toolkits/scrum-master/agile-ceremonies/backlog-refinement-template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Backlog Refinement Template](role-based-toolkits/scrum-master/adaptive-ceremonies/backlog-refinement-template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Batch Record Template](industry-specializations/healthcare-pharmaceutical/manufacturing/batch_record_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Budget Dashboard Template](business-stakeholder-suite/financial-governance/budget-dashboard-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Budget Template](role-based-toolkits/project-manager/essential-templates/budget-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
@@ -28,10 +28,10 @@
 | [Compliance Management Template](industry-specializations/financial-services/compliance/compliance-management-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Compliance Risk Assessment Template](industry-specializations/healthcare-pharmaceutical/regulatory/compliance_risk_assessment_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Computer System Validation Protocol Template](industry-specializations/healthcare-pharmaceutical/regulatory/computer_system_validation_protocol_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Cross Team Coordination Template](methodology-frameworks/agile-scrum/scaling-frameworks/less/cross_team_coordination_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Cross Team Coordination Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/less/cross_team_coordination_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Current State Analysis Template](project-assessment-suite/current-state-analysis-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Cybersecurity Assessment Template](industry-specializations/information-technology/security/cybersecurity_assessment_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Daily Standup Template](role-based-toolkits/scrum-master/agile-ceremonies/daily-standup-template.md) | agile | intermediate | firstname lastname | 2025-08-05 |
+| [Daily Standup Template](role-based-toolkits/scrum-master/adaptive-ceremonies/daily-standup-template.md) | adaptive | intermediate | firstname lastname | 2025-08-05 |
 | [Data Center Design Template](industry-specializations/information-technology/infrastructure/data_center_design_template.md) | universal | starter | firstname lastname | 2025-08-05 |
 | [Design Thinking Workshop Template](methodology-frameworks/emerging-methods/design-thinking/design_thinking_workshop_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Devsecops Template](methodology-frameworks/emerging-methods/devops/devsecops_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
@@ -63,26 +63,26 @@
 | [Installation Qualification Protocol Template](industry-specializations/healthcare-pharmaceutical/validation/installation_qualification_protocol_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Integrated Change Strategy Template](templates/hybrid/Hybrid/Templates/integrated_change_strategy_template.md) | hybrid | advanced | firstname lastname | 2025-08-05 |
 | [Issue Log Template](templates/traditional/Traditional/Templates/issue_log_template.md) | traditional | advanced | firstname lastname | 2025-08-05 |
-| [Less Retrospective Template](methodology-frameworks/agile-scrum/scaling-frameworks/less/less_retrospective_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Less Sprint Planning Template](methodology-frameworks/agile-scrum/scaling-frameworks/less/less_sprint_planning_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Less Retrospective Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/less/less_retrospective_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Less Sprint Planning Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/less/less_sprint_planning_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Manufacturing Batch Record Template](industry-specializations/healthcare-pharmaceutical/manufacturing/manufacturing_batch_record_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Meeting Templates](role-based-toolkits/project-manager/essential-templates/meeting-templates.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Metrics Dashboard Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/metrics_dashboard_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Metrics Dashboard Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/metrics_dashboard_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Migration Plan Template](industry-specializations/information-technology/infrastructure/migration_plan_template.md) | universal | starter | firstname lastname | 2025-08-05 |
 | [Monitoring Alerting Template](methodology-frameworks/emerging-methods/devops/monitoring_alerting_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Okr Template](role-based-toolkits/product-owner/okr-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Operational Qualification Protocol Template](industry-specializations/healthcare-pharmaceutical/validation/operational_qualification_protocol_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Overall Product Backlog Template](methodology-frameworks/agile-scrum/scaling-frameworks/less/overall_product_backlog_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Overall Product Backlog Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/less/overall_product_backlog_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Performance Qualification Protocol Template](industry-specializations/healthcare-pharmaceutical/validation/performance_qualification_protocol_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Pharmaceutical Qbd Template](industry-specializations/healthcare-pharmaceutical/lifecycle/pharmaceutical_qbd_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Pi Planning Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/pi_planning_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Portfolio Kanban Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/portfolio_kanban_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Pi Planning Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/pi_planning_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Portfolio Kanban Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/portfolio_kanban_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Problem Management Process Template](industry-specializations/information-technology/service-management/problem_management_process_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Process Control Template](industry-specializations/healthcare-pharmaceutical/manufacturing/process_control_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Process Maturity Assessment Template](project-assessment-suite/process-maturity-assessment-template.md) | universal | starter | firstname lastname | 2025-08-05 |
 | [Process Validation Master Plan Template](industry-specializations/healthcare-pharmaceutical/validation/process_validation_master_plan_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Process Validation Protocol Template](industry-specializations/healthcare-pharmaceutical/regulatory/process_validation_protocol_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Product Backlog Template](templates/agile/product_backlog_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Product Backlog Template](templates/adaptive/product_backlog_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Product Vision Template](role-based-toolkits/product-owner/product-vision-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Program Charter Template](templates/traditional/Traditional/Templates/program_charter_template.md) | traditional | advanced | firstname lastname | 2025-08-05 |
 | [Program Management Plan Template](templates/traditional/Traditional/Templates/program_management_plan_template.md) | traditional | advanced | firstname lastname | 2025-08-05 |
@@ -113,16 +113,16 @@
 | [Risk Management Plan Template](project-lifecycle/02-planning/risk-management/risk-management-plan-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Risk Register Template](templates/traditional/Traditional/Templates/risk_register_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Roi Tracking Template](templates/traditional/Traditional/Knowledge_Areas/Project_Cost_Management/roi_tracking_template.md) | traditional | advanced | firstname lastname | 2025-08-05 |
-| [Safe Art Coordination Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/safe_art_coordination_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Safe Metrics Dashboard Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/safe_metrics_dashboard_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Safe Metrics Reporting Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/safe_metrics_reporting_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Safe Portfolio Kanban Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/safe_portfolio_kanban_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Safe Program Increment Planning Template](methodology-frameworks/agile-scrum/scaling-frameworks/safe/safe_program_increment_planning_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Safe Art Coordination Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_art_coordination_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Safe Metrics Dashboard Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_metrics_dashboard_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Safe Metrics Reporting Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_metrics_reporting_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Safe Portfolio Kanban Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_portfolio_kanban_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Safe Program Increment Planning Template](methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_program_increment_planning_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Skills Matrix Template](project-lifecycle/02-planning/resource-planning/skills-matrix-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Software Requirements Specification Template](industry-specializations/healthcare-pharmaceutical/validation/software_requirements_specification_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Sprint Planning Template](templates/agile/sprint_planning_template.md) | agile | intermediate | firstname lastname | 2025-08-05 |
-| [Sprint Retrospective Template](templates/agile/sprint_retrospective_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
-| [Sprint Review Template](templates/agile/sprint_review_template.md) | agile | advanced | firstname lastname | 2025-08-05 |
+| [Sprint Planning Template](templates/adaptive/sprint_planning_template.md) | adaptive | intermediate | firstname lastname | 2025-08-05 |
+| [Sprint Retrospective Template](templates/adaptive/sprint_retrospective_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
+| [Sprint Review Template](templates/adaptive/sprint_review_template.md) | adaptive | advanced | firstname lastname | 2025-08-05 |
 | [Stakeholder Engagement Assessment Template](project-assessment-suite/stakeholder-engagement-assessment-template.md) | universal | starter | firstname lastname | 2025-08-05 |
 | [Stakeholder Register Template](role-based-toolkits/project-manager/essential-templates/stakeholder-register.md) | universal | intermediate | firstname lastname | 2025-08-05 |
 | [Status Report Template](templates/traditional/Traditional/Templates/status_report_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
@@ -139,5 +139,5 @@
 | [User Story Mapping Template](industry-specializations/information-technology/software-development/user_story_mapping_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [User Story Template](role-based-toolkits/product-owner/user-story-template.md) | universal | advanced | firstname lastname | 2025-08-05 |
 | [Validation Master Plan Template](industry-specializations/healthcare-pharmaceutical/validation/validation_master_plan_template.md) | universal | advanced | firstname lastname | 2025-08-05 |
-| [Waterfall Project Assessment Template](project-assessment-suite/waterfall-project-assessment-template.md) | traditional | starter | firstname lastname | 2025-08-05 |
+| [Predictive Project Assessment Template](project-assessment-suite/predictive-project-assessment-template.md) | traditional | starter | firstname lastname | 2025-08-05 |
 | [Work Breakdown Structure Template](templates/traditional/Traditional/Process_Groups/Planning/work_breakdown_structure_template.md) | traditional | advanced | firstname lastname | 2025-08-05 |

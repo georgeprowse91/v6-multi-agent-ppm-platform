@@ -105,7 +105,7 @@ Based on the recommendation, the CLI:
 ## 📊 Supported Methodologies
 <a id="traditionalwaterfall-traditional"></a>
 
-### Agile/Scrum
+### Adaptive/Scrum
 **Best for:**
 - Frequently changing requirements
 - Small to medium teams (1-20 people)
@@ -119,7 +119,7 @@ Based on the recommendation, the CLI:
 - User story template
 
 <a id="traditionalwaterfall-traditional"></a>
-### Traditional/Waterfall (Traditional)
+### Traditional/Predictive (Traditional)
 **Best for:**
 - Stable, well-defined requirements
 - Large teams (20+ people)
@@ -156,7 +156,7 @@ The CLI provides specialized recommendations for:
 - **🏥 Healthcare/Pharmaceutical** - FDA compliance, validation activities
 <a id="example-output"></a>
 - **💻 Information Technology** - System integration, cybersecurity
-- **⚡ Software Development** - CI/CD, agile practices
+- **⚡ Software Development** - CI/CD, adaptive practices
 - **🌐 General/Other** - Universal best practices
 
 ## 📁 Generated Project Structure
@@ -195,9 +195,9 @@ Industry: software_development
 Team Size: medium
 Complexity: complex
 
-🎯 Recommended Methodology: AGILE
+🎯 Recommended Methodology: ADAPTIVE
 Confidence: 87%
-Reasoning: high change frequency suits iterative development, industry strongly benefits from agile practices, complex projects benefit from iterative discovery
+Reasoning: high change frequency suits iterative development, industry strongly benefits from adaptive practices, complex projects benefit from iterative discovery
 
 ✅ Project setup complete!
 📁 Project created at: ./e-commerce-platform
@@ -260,7 +260,7 @@ tools/template-generator-cli/
 npm run dev
 
 # Test with different project scenarios
-# - Small agile software project
+# - Small adaptive software project
 <a id="contributing"></a>
 # - Large traditional construction project
 # - Medium hybrid IT project

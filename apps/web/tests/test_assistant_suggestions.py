@@ -34,9 +34,9 @@ def test_assistant_suggestions_include_context(client, monkeypatch):
         "/api/assistant/suggestions",
         json={
             "project_id": "demo-1",
-            "activity_id": "agile-vision",
+            "activity_id": "adaptive-vision",
             "activity_name": "Product Vision Statement",
-            "stage_id": "agile-discovery",
+            "stage_id": "adaptive-discovery",
             "stage_name": "Discovery",
             "activity_status": "in_progress",
             "canvas_type": "document",
@@ -45,6 +45,6 @@ def test_assistant_suggestions_include_context(client, monkeypatch):
     )
     assert response.status_code == 200
     payload = response.json()
-    assert payload["context"]["activity_id"] == "agile-vision"
+    assert payload["context"]["activity_id"] == "adaptive-vision"
     assert payload["generated_by"] in {"llm", "heuristic"}
     assert payload["suggestions"]

@@ -15,7 +15,7 @@ This directory contains the canonical documentation set for the multi-agent PPM 
 | [compliance/](./compliance/) | Compliance guidance, DPIA, threat model |
 | [connectors/](./connectors/) | Connector documentation and integration guides |
 | [data/](./data/) | Data model, quality, and lineage docs |
-| [methodology/](./methodology/) | Methodology maps (agile, waterfall, hybrid) with templates |
+| [methodology/](./methodology/) | Methodology maps (adaptive, predictive, hybrid) with templates |
 | [onboarding/](./onboarding/) | Developer onboarding guides |
 | [product/](./product/) | Product documentation, personas, user guides |
 | [production-readiness/](./production-readiness/) | Release checklists and evidence packs |

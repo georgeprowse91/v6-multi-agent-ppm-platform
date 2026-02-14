@@ -30,10 +30,10 @@ def test_workspace_get_includes_selected_activity_prompts(client, monkeypatch):
     response = client.post(
         "/api/workspace/demo-1/select",
         json={
-            "current_stage_id": "agile-discovery",
-            "current_activity_id": "agile-vision",
+            "current_stage_id": "adaptive-discovery",
+            "current_activity_id": "adaptive-vision",
             "current_canvas_tab": "document",
-            "methodology": "agile",
+            "methodology": "adaptive",
         },
     )
     assert response.status_code == 200
@@ -42,7 +42,7 @@ def test_workspace_get_includes_selected_activity_prompts(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     selected_activity = payload["selected_activity"]
-    assert selected_activity["id"] == "agile-vision"
+    assert selected_activity["id"] == "adaptive-vision"
     assert 3 <= len(selected_activity["assistant_prompts"]) <= 6
 
 

@@ -22,7 +22,7 @@ The Lessons Learned Template provides a structured approach to capture, analyze,
 | **Project Duration** | [Start Date] to [End Date] |
 | **Project Budget** | [Final Budget] |
 | **Team Size** | [Number of team members] |
-| **Methodology** | [Traditional/Agile/Hybrid] |
+| **Methodology** | [Traditional/Adaptive/Hybrid] |
 
 ### Project Success Metrics
 | **Metric** | **Target** | **Actual** | **Variance** | **Achievement** |
@@ -294,7 +294,7 @@ The Lessons Learned Template provides a structured approach to capture, analyze,
 ## Process and Methodology Insights
 
 ### Methodology Effectiveness
-**Methodology Used**: [Traditional/Agile/Hybrid approach]
+**Methodology Used**: [Traditional/Adaptive/Hybrid approach]
 
 #### What Worked Well
 - [Aspect 1]: [Why it was effective]

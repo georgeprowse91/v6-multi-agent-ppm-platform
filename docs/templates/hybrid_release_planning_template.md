@@ -9,7 +9,7 @@ updated: "2026-02-11"
 # Hybrid Release Planning Template
 
 ## Overview
-This template provides a framework for planning and managing releases in hybrid project environments that combine traditional (predictive) and agile (adaptive) approaches. It enables teams to coordinate delivery across different methodologies while maintaining a coherent release strategy. Adapt sections as needed based on your specific project context, methodology balance, and organizational requirements.
+This template provides a framework for planning and managing releases in hybrid project environments that combine traditional (predictive) and adaptive (adaptive) approaches. It enables teams to coordinate delivery across different methodologies while maintaining a coherent release strategy. Adapt sections as needed based on your specific project context, methodology balance, and organizational requirements.
 
 ## Document Control
 
@@ -60,7 +60,7 @@ Describe how different planning methodologies will be combined.
 > Our hybrid release planning uses:
 > - Annual planning for infrastructure and compliance components (traditional)
 > - Quarterly planning for major features and integration points (hybrid)
-> - 2-week sprint planning for user-facing features (agile)
+> - 2-week sprint planning for user-facing features (adaptive)
 >
 > These planning horizons are synchronized through bi-weekly cross-team coordination meetings and formal quarterly release planning sessions.
 
@@ -91,22 +91,22 @@ Q1                    Q2                    Q3                    Q4
 
 | Release | Date | Key Themes | Components | Methodology |
 |---------|------|------------|------------|-------------|
-| [Release 1.0] | [Date] | [Themes] | [Components] | [Traditional/Agile/Mixed] |
-| [Release 1.1] | [Date] | [Themes] | [Components] | [Traditional/Agile/Mixed] |
-| [Release 2.0] | [Date] | [Themes] | [Components] | [Traditional/Agile/Mixed] |
+| [Release 1.0] | [Date] | [Themes] | [Components] | [Traditional/Adaptive/Mixed] |
+| [Release 1.1] | [Date] | [Themes] | [Components] | [Traditional/Adaptive/Mixed] |
+| [Release 2.0] | [Date] | [Themes] | [Components] | [Traditional/Adaptive/Mixed] |
 
 ### Feature-to-Release Mapping
 
 | Feature ID | Feature Name | Planned Release | Methodology | Owner | Status |
 |------------|--------------|-----------------|-------------|-------|--------|
-| F1 | [Feature Name] | [Release] | [Trad/Agile] | [Owner] | [Status] |
-| F2 | [Feature Name] | [Release] | [Trad/Agile] | [Owner] | [Status] |
-| F3 | [Feature Name] | [Release] | [Trad/Agile] | [Owner] | [Status] |
+| F1 | [Feature Name] | [Release] | [Trad/Adaptive] | [Owner] | [Status] |
+| F2 | [Feature Name] | [Release] | [Trad/Adaptive] | [Owner] | [Status] |
+| F3 | [Feature Name] | [Release] | [Trad/Adaptive] | [Owner] | [Status] |
 
 ## Dependency Management Framework
 
 ### Cross-Methodology Dependency Map
-Identify and track dependencies between traditional and agile work streams.
+Identify and track dependencies between traditional and adaptive work streams.
 
 | ID | Dependent Item | Dependency Type | Required From | Required By | Impact | Status |
 |----|----------------|-----------------|---------------|-------------|--------|--------|
@@ -144,7 +144,7 @@ Describe the process for identifying, tracking, and resolving dependencies.
 | [Milestone 2] | [Date] | [Description] | [Deliverables] | [Methodology] | [Owner] |
 
 ### Integration Points Calendar
-Define key integration points where agile and traditional work streams converge.
+Define key integration points where adaptive and traditional work streams converge.
 
 | Integration Point | Date | Teams/Components | Verification Activity | Owner |
 |-------------------|------|------------------|----------------------|-------|
@@ -179,9 +179,9 @@ Identify the key value streams that releases will deliver through.
 
 | Feature | Value Stream | Value Contribution | Methodology | Priority |
 |---------|--------------|-------------------|-------------|----------|
-| [Feature 1] | [Value Stream] | [Contribution] | [Traditional/Agile] | [H/M/L] |
-| [Feature 2] | [Value Stream] | [Contribution] | [Traditional/Agile] | [H/M/L] |
-| [Feature 3] | [Value Stream] | [Contribution] | [Traditional/Agile] | [H/M/L] |
+| [Feature 1] | [Value Stream] | [Contribution] | [Traditional/Adaptive] | [H/M/L] |
+| [Feature 2] | [Value Stream] | [Contribution] | [Traditional/Adaptive] | [H/M/L] |
+| [Feature 3] | [Value Stream] | [Contribution] | [Traditional/Adaptive] | [H/M/L] |
 
 ### Value Stream Flow Analysis Example
 
@@ -189,7 +189,7 @@ Identify the key value streams that releases will deliver through.
 
 ```
 [Application] → [Verification] → [Account Setup] → [Welcome Package] → [First Transaction]
-   (Agile)       (Traditional)      (Agile)        (Traditional)        (Agile)
+   (Adaptive)       (Traditional)      (Adaptive)        (Traditional)        (Adaptive)
  
 Lead Time: 3 days   7 days         1 day           5 days             2 days
 ```
@@ -214,7 +214,7 @@ Describe how scope changes are managed across different methodologies.
 > - Level 3: Changes that affect milestones or release dates require Change Control Board approval
 
 ### Scope Prioritization Framework
-Define how scope is prioritized across traditional and agile components.
+Define how scope is prioritized across traditional and adaptive components.
 
 | Priority Level | Description | Change Authority | Examples |
 |----------------|-------------|------------------|----------|
@@ -227,7 +227,7 @@ Define how scope is prioritized across traditional and agile components.
 
 ### Hybrid Metrics Dashboard
 
-| Metric Category | Traditional Metrics | Agile Metrics | Combined View |
+| Metric Category | Traditional Metrics | Adaptive Metrics | Combined View |
 |-----------------|---------------------|---------------|---------------|
 | Scope | % Requirements Complete | Story Points Completed | % Features Complete |
 | Schedule | Milestone Variance | Sprint Burndown/up | Release Burnup |
@@ -245,7 +245,7 @@ Define how scope is prioritized across traditional and agile components.
 
 **Key Metrics**:
 - Traditional Components: [X]% complete, [Y] milestones achieved
-- Agile Components: [X] story points complete ([Y]%), velocity of [Z]
+- Adaptive Components: [X] story points complete ([Y]%), velocity of [Z]
 - Integration: [X] of [Y] integration points completed
 
 **Accomplishments Since Last Report**:
@@ -277,7 +277,7 @@ Define how scope is prioritized across traditional and agile components.
 |                                    /
 |                              /----/
 |                            /      
-|                        /--/         /-- Completed (Agile)
+|                        /--/         /-- Completed (Adaptive)
 |                      /            /
 |                  /--/          /
 |                /            /
@@ -291,7 +291,7 @@ Define how scope is prioritized across traditional and agile components.
 
 Legend:
 ------ Traditional Components
------- Agile Components
+------ Adaptive Components
 ```
 
 ## Release Readiness Criteria
@@ -441,7 +441,7 @@ The release retrospective should be conducted within 1-2 weeks after the release
 
 #### What to Review
 
-| Area | Traditional Focus | Agile Focus | Questions to Explore |
+| Area | Traditional Focus | Adaptive Focus | Questions to Explore |
 |------|-------------------|-------------|---------------------|
 | Planning | Accuracy of plans | Adaptability | How accurate were our estimates? How effectively did we adapt? |
 | Scope | Requirements stability | Value delivered | Did we build the right things? Did we manage scope changes effectively? |
@@ -488,26 +488,26 @@ The release retrospective should be conducted within 1-2 weeks after the release
 
 This template is most appropriate for:
 
-- Projects that combine traditional and agile delivery methods
+- Projects that combine traditional and adaptive delivery methods
 - Products with mixed component types (e.g., backend services, user interfaces)
-- Organizations transitioning from waterfall to agile methodologies
+- Organizations transitioning from predictive to adaptive methodologies
 - Complex releases requiring coordination across multiple teams
 - Products with both fixed and variable scope elements
 
 ### How to Complete This Template
 
 1. **Start with release strategy**: Define your overall approach before detailing specific plans
-2. **Workshop key sections**: Involve both traditional and agile teams in planning sessions
+2. **Workshop key sections**: Involve both traditional and adaptive teams in planning sessions
 3. **Right-size for your project**: Expand or condense sections based on your project's complexity
 4. **Customize methodologies by component**: Apply different approaches to different components
 5. **Keep it living**: Update regularly as you learn and as circumstances change
 
 ### Best Practices
 
-1. **Focus on integration points**: Pay special attention to where traditional and agile work streams intersect
+1. **Focus on integration points**: Pay special attention to where traditional and adaptive work streams intersect
 2. **Use visual management**: Maintain visible roadmaps and dependency maps for all teams
-3. **Synchronize cadences**: Create a rhythm where agile iterations align with traditional milestones
-4. **Speak both languages**: Translate between traditional and agile terminology in communications
+3. **Synchronize cadences**: Create a rhythm where adaptive iterations align with traditional milestones
+4. **Speak both languages**: Translate between traditional and adaptive terminology in communications
 5. **Emphasize value delivery**: Keep focus on business outcomes rather than methodology purity
 6. **Maintain flexibility**: Build buffers and contingency for adaptability
 7. **Cross-train teams**: Help team members understand both methodologies
@@ -516,7 +516,7 @@ This template is most appropriate for:
 
 - **Methodology wars**: Avoid debates about which approach is "better"
 - **Over-planning**: Don't try to plan everything in detail upfront
-- **Silos**: Don't let traditional and agile teams become isolated from each other
+- **Silos**: Don't let traditional and adaptive teams become isolated from each other
 - **Rigid governance**: Don't apply the same governance to all components
 - **Ignoring dependencies**: Dependencies between methodologies need special attention
 - **Communication gaps**: Different teams may use different terminology

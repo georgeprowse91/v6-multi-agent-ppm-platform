@@ -2,7 +2,7 @@
 
 **Choose the right project management approach for your situation**
 
-This guide helps you select between Traditional/Waterfall, Agile, and Hybrid methodologies based on your specific project characteristics.
+This guide helps you select between Traditional/Predictive, Adaptive, and Hybrid methodologies based on your specific project characteristics.
 
 ---
 
@@ -70,9 +70,9 @@ Use this weighted scoring system to determine the most appropriate methodology f
 5. **Minimal** - Primary engagement at project start and completion
 
 #### 6. Team Experience
-1. **Highly Agile** - Team experienced with self-organization and iterative work
-2. **Mostly Agile** - Some agile experience, comfortable with adaptation
-3. **Mixed** - Experience with both traditional and agile approaches
+1. **Highly Adaptive** - Team experienced with self-organization and iterative work
+2. **Mostly Adaptive** - Some adaptive experience, comfortable with adaptation
+3. **Mixed** - Experience with both traditional and adaptive approaches
 4. **Mostly Traditional** - Team familiar with defined processes and roles
 5. **Highly Traditional** - Team experienced with detailed planning and control
 
@@ -108,7 +108,7 @@ Use this weighted scoring system to determine the most appropriate methodology f
 
 | Total Score | Primary Recommendation | Secondary Consideration |
 |-------------|------------------------|-------------------------|
-| 30-60       | **Agile** | Consider Hybrid if compliance needs score >3 |
+| 30-60       | **Adaptive** | Consider Hybrid if compliance needs score >3 |
 | 61-90       | **Hybrid** | Consider methodology mix based on subsystem needs |
 | 91-120      | **Traditional** | Consider Hybrid if complexity score <3 |
 | 121-150     | **Highly Traditional** | Consider formal/regulated project approaches |
@@ -157,7 +157,7 @@ If you prefer a simpler approach, answer these key questions:
 - Milestone-based stakeholder engagement
 - Linear, sequential delivery expected
 
-**Recommended methodology:** **Traditional/Waterfall**
+**Recommended methodology:** **Traditional/Predictive**
 
 **Your starting toolkit:**
 1. **[Project Charter Template](../../project-lifecycle/01-initiation/project-charter/)**
@@ -173,7 +173,7 @@ If you prefer a simpler approach, answer these key questions:
 
 ---
 
-### Mostly 🔴 Red = Agile Approach
+### Mostly 🔴 Red = Adaptive Approach
 
 **Your project characteristics:**
 - Evolving or unclear requirements
@@ -182,13 +182,13 @@ If you prefer a simpler approach, answer these key questions:
 - Incremental value delivery
 - Innovation-focused work
 
-**Recommended methodology:** **Agile/Scrum**
+**Recommended methodology:** **Adaptive/Scrum**
 
 **Your starting toolkit:**
 1. **[Scrum Master Toolkit](../../role-based-toolkits/scrum-master/)**
 2. **[Product Owner Backlog Management](../../role-based-toolkits/product-owner/backlog-management/)**
-3. **[Agile Ceremonies Templates](../../role-based-toolkits/scrum-master/agile-ceremonies/)**
-4. **[Agile Metrics Dashboard](../../role-based-toolkits/scrum-master/agile-metrics/)**
+3. **[Adaptive Ceremonies Templates](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)**
+4. **[Adaptive Metrics Dashboard](../../role-based-toolkits/scrum-master/adaptive-metrics/)**
 
 **Industry examples:**
 - Software development
@@ -236,7 +236,7 @@ Start Here
     │   │                  └── NO → 🟢 TRADITIONAL
     │   │
     │   └── NO → Can stakeholders engage continuously?
-    │             ├── YES → 🔴 AGILE
+    │             ├── YES → 🔴 ADAPTIVE
     │             └── NO → Mix of predictable/adaptive needed?
     │                      ├── YES → 🟡 HYBRID
     │                      └── NO → 🟢 TRADITIONAL with change control
@@ -247,7 +247,7 @@ Start Here
         │         └── NO → 🟢 TRADITIONAL
         │
         └── NO → Customer feedback crucial to success?
-                  ├── YES → 🔴 AGILE
+                  ├── YES → 🔴 ADAPTIVE
                   └── NO → Choose based on team experience
 ```
 
@@ -279,7 +279,7 @@ Start Here
 
 ---
 
-## 🔴 Agile: When to Choose
+## 🔴 Adaptive: When to Choose
 
 ### ✅ Ideal Situations
 - **Software development** - Especially new products or features
@@ -298,10 +298,10 @@ Start Here
 
 ### 🛠️ Core Templates You'll Use
 - [Product Backlog](../../role-based-toolkits/product-owner/backlog-management/)
-- [Sprint Planning](../../role-based-toolkits/scrum-master/agile-ceremonies/)
-- [Daily Standup](../../role-based-toolkits/scrum-master/agile-ceremonies/)
-- [Sprint Review](../../role-based-toolkits/scrum-master/agile-ceremonies/)
-- [Retrospective](../../role-based-toolkits/scrum-master/agile-ceremonies/)
+- [Sprint Planning](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
+- [Daily Standup](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
+- [Sprint Review](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
+- [Retrospective](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
 
 ---
 
@@ -315,7 +315,7 @@ Start Here
 - **Large programs** - Multiple projects with different characteristics
 
 ### 📋 Key Characteristics
-- Combines structure of traditional with flexibility of agile
+- Combines structure of traditional with flexibility of adaptive
 - Phase-based planning with iterative execution
 - Formal governance with adaptive implementation
 - Scaled documentation based on risk and compliance needs
@@ -325,7 +325,7 @@ Start Here
 ### 🛠️ Core Templates You'll Use
 - [Hybrid Project Charter](../../methodology-frameworks/hybrid-approaches/)
 - [Program Management Plan](../../role-based-toolkits/program-manager/)
-- [Agile + Traditional Status Reports](../../business-stakeholder-suite/executive-dashboards/)
+- [Adaptive + Traditional Status Reports](../../business-stakeholder-suite/executive-dashboards/)
 - [Scaled Risk Management](../../project-lifecycle/02-planning/risk-management/)
 - [Multi-methodology Team Coordination](../../role-based-toolkits/program-manager/cross-project-coordination/)
 
@@ -333,7 +333,7 @@ Start Here
 
 ## 📈 Methodology Comparison Matrix
 
-| Factor | Traditional/Traditional | Agile | Hybrid |
+| Factor | Traditional/Traditional | Adaptive | Hybrid |
 |--------|------------------|-------|--------|
 | **Requirements** | Stable, well-defined | Evolving, emergent | Mixed stability |
 | **Planning** | Comprehensive upfront | Adaptive, just-in-time | Layered planning |
@@ -369,7 +369,7 @@ Start Here
 | Project Size/Duration | 4 | Large-scale, 18-month implementation |
 | **Total Weighted Score** | **83** | **→ Hybrid Methodology** |
 
-**Recommendation:** A hybrid approach with traditional governance and documentation for compliance, with agile techniques for configuration and user acceptance phases. Program-level traditional planning with sprint-based implementation teams.
+**Recommendation:** A hybrid approach with traditional governance and documentation for compliance, with adaptive techniques for configuration and user acceptance phases. Program-level traditional planning with sprint-based implementation teams.
 
 ### Scenario 2: New Mobile App Development
 
@@ -389,9 +389,9 @@ Start Here
 | Delivery Expectations | 1 | Continuous delivery with frequent updates |
 | Compliance Needs | 2 | Standard app store and data privacy requirements |
 | Stakeholder Involvement | 2 | Regular feedback from users and business owners |
-| **Total Weighted Score** | **47** | **→ Agile Methodology** |
+| **Total Weighted Score** | **47** | **→ Adaptive Methodology** |
 
-**Recommendation:** Full Agile/Scrum approach with 2-week sprints, continuous user feedback, and flexible backlog prioritization. Use Minimum Viable Product (MVP) strategy with regular app store updates based on analytics and user feedback.
+**Recommendation:** Full Adaptive/Scrum approach with 2-week sprints, continuous user feedback, and flexible backlog prioritization. Use Minimum Viable Product (MVP) strategy with regular app store updates based on analytics and user feedback.
 
 ### Scenario 3: Hospital Construction Project
 
@@ -413,7 +413,7 @@ Start Here
 | Project Size/Duration | 5 | Large-scale, multi-year project |
 | **Total Weighted Score** | **127** | **→ Highly Traditional Methodology** |
 
-**Recommendation:** Traditional/Waterfall methodology with comprehensive planning, formal change control, detailed documentation, and phase-based delivery. Implement stage-gate reviews and robust risk management protocols.
+**Recommendation:** Traditional/Predictive methodology with comprehensive planning, formal change control, detailed documentation, and phase-based delivery. Implement stage-gate reviews and robust risk management protocols.
 
 ---
 
@@ -432,7 +432,7 @@ The following factors have the greatest influence on methodology selection:
 
 **Methodology alignment indicators:**
 
-| Factor | Traditional Indicator | Agile Indicator | 
+| Factor | Traditional Indicator | Adaptive Indicator | 
 |-------|---------------------|----------------|
 | Requirements | Stable from start | Evolve throughout |
 | Stakeholders | Prefer oversight | Prefer involvement |
@@ -448,15 +448,15 @@ The following factors have the greatest influence on methodology selection:
 2. **Varied stakeholder groups** - Some need regular involvement, others milestone reviews
 3. **Multiple project components** - Different work streams have different characteristics
 4. **Compliance + innovation tension** - Need to satisfy both governance and adaptability
-5. **Scaling transition** - Organization moving from traditional to agile practices
+5. **Scaling transition** - Organization moving from traditional to adaptive practices
 
 **Hybrid composition options:**
 
-1. **Phase-based hybrid** - Traditional planning and initiation, agile execution
-2. **Component-based hybrid** - Traditional for stable elements, agile for evolving parts
-3. **Layer-based hybrid** - Agile teams with traditional program governance
+1. **Phase-based hybrid** - Traditional planning and initiation, adaptive execution
+2. **Component-based hybrid** - Traditional for stable elements, adaptive for evolving parts
+3. **Layer-based hybrid** - Adaptive teams with traditional program governance
 4. **Ceremony-based hybrid** - Modified ceremonies that blend approaches
-5. **Documentation-based hybrid** - Agile delivery with traditional documentation
+5. **Documentation-based hybrid** - Adaptive delivery with traditional documentation
 
 ### 3. Tailoring Your Methodology
 

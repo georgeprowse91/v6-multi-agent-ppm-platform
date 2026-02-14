@@ -1,17 +1,17 @@
 metadata:
-  template_id: agile-status-report-extension
-  title: Agile Status Report Extension
+  template_id: adaptive-status-report-extension
+  title: Adaptive Status Report Extension
   version: 1.0.0
   owner: PMO
   classification: extension
-  methodology: agile
+  methodology: adaptive
 inputs:
   - name: project_name
     type: string
     required: true
   - name: methodology
     type: enum
-    values: [agile]
+    values: [adaptive]
     required: true
 sections:
   - id: velocity-trend

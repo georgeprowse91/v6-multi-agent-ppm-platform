@@ -89,7 +89,7 @@ Create custom fields in Microsoft Project to track project management metadata:
 | Acceptance Criteria | Notes | RTF | Add to task notes |
 | Change Request ID | Text5 | Text | Reference to change request |
 | Phase | Outline Level or Text6 | Number/Text | Group tasks by project phase |
-| Sprint | Text7 | Text | For Agile/Hybrid implementations |
+| Sprint | Text7 | Text | For Adaptive/Hybrid implementations |
 
 ### WBS Structure Example
 
@@ -403,12 +403,12 @@ Microsoft Project can represent our template WBS structure as follows:
    - Earned Value Management reports
 
 4. **Baseline Management**
-<a id="agile-implementation-hybrid"></a>
+<a id="adaptive-implementation-hybrid"></a>
    - Set multiple baselines at key approval points
    - Track schedule, cost, and scope baselines
    - Report variances per Traditional guidelines
 
-### Agile Implementation (Hybrid)
+### Adaptive Implementation (Hybrid)
 
 1. **Sprint Planning**
    - Create time-boxed sprints as summary tasks
@@ -427,9 +427,9 @@ Microsoft Project can represent our template WBS structure as follows:
    - Velocity tracking
 
 4. **Limitations Note**
-   - MS Project is not ideal for pure Agile
+   - MS Project is not ideal for pure Adaptive
    - Better suited for hybrid approaches
-   - Consider integration with dedicated Agile tools
+   - Consider integration with dedicated Adaptive tools
 
 ### Hybrid Implementation
 
@@ -439,7 +439,7 @@ Microsoft Project can represent our template WBS structure as follows:
    - Maintain clear transition points
 
 2. **Custom Fields**
-   - Methodology Type (Text11: Traditional, Agile, Hybrid)
+   - Methodology Type (Text11: Traditional, Adaptive, Hybrid)
    - Combined tracking fields from both methodologies
 
 3. **Views and Reports**
@@ -539,7 +539,7 @@ Microsoft Project can represent our template WBS structure as follows:
 #### Hybrid Best Practices
 
 1. **Clear Boundary Definition**
-   - Define which aspects use traditional vs. agile
+   - Define which aspects use traditional vs. adaptive
    - Document transition points
    - Train team on hybrid approach
 

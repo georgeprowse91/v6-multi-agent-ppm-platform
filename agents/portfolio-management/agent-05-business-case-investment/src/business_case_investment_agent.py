@@ -832,12 +832,12 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         """Generate implementation approach."""
         methodology = request_data.get("methodology", "hybrid")
 
-        if methodology == "agile":
+        if methodology == "adaptive":
             return "Iterative delivery with 2-week sprints, focusing on MVP and incremental value."
-        elif methodology == "waterfall":
+        elif methodology == "predictive":
             return "Phased approach with defined gates and deliverables at each stage."
         else:
-            return "Hybrid approach combining agile delivery within waterfall governance."
+            return "Hybrid approach combining adaptive delivery within predictive governance."
 
     def _build_cash_flow(self, costs: dict[str, Any], benefits: dict[str, Any]) -> list[float]:
         costs = self._convert_currency_inputs(costs)

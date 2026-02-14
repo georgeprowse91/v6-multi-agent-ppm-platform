@@ -42,7 +42,7 @@ updated: "2026-02-11"
 | Risk Management Framework | | |
 | Quality Assurance | | |
 
-#### Adaptive Components (Agile)
+#### Adaptive Components (Adaptive)
 | Component | Application | Rationale |
 |-----------|-------------|----------|
 | User Feedback Integration | | |
@@ -101,7 +101,7 @@ updated: "2026-02-11"
 - **Release Frequency**: [e.g., Monthly]
 - **Feedback Cycles**: [e.g., Weekly user feedback sessions]
 
-#### Agile Teams Structure
+#### Adaptive Teams Structure
 | Team | Composition | Responsibilities | Reporting |
 |------|-------------|------------------|------------|
 | Change Team 1 | | | |
@@ -118,7 +118,7 @@ updated: "2026-02-11"
 | [Name/Role] | | | | |
 | [Name/Role] | | | | |
 
-#### Operational Stakeholders (Agile Engagement)
+#### Operational Stakeholders (Adaptive Engagement)
 | Stakeholder Group | Size | Engagement Method | Frequency | Key Concerns |
 |-------------------|------|------------------|-----------|---------------|
 | [Group 1] | | | | |
@@ -223,7 +223,7 @@ Strategic Level    ←→    Tactical Level    ←→    Operational Level
 
 #### Operational Governance (Adaptive)
 **Scrum of Scrums**
-- **Facilitator**: [Agile Coach]
+- **Facilitator**: [Adaptive Coach]
 - **Members**: [Scrum Masters]
 - **Frequency**: Weekly
 - **Decisions**: Sprint coordination, impediment removal
@@ -274,7 +274,7 @@ Strategic Level    ←→    Tactical Level    ←→    Operational Level
 | [Strategic Risk 1] | | | | | Monthly |
 | [Strategic Risk 2] | | | | | Monthly |
 
-#### Operational Risks (Agile Management)
+#### Operational Risks (Adaptive Management)
 | Risk | Sprint Impact | Response Strategy | Team Responsibility |
 |------|---------------|-------------------|---------------------|
 | [Operational Risk 1] | | | |
@@ -379,11 +379,11 @@ Operational Level → Tactical Level → Strategic Level
 2. Adjust the balance of predictive vs. adaptive elements based on organizational readiness
 3. Ensure alignment with overall program management approach
 4. Regular reviews and updates as the change evolves
-5. Use in conjunction with both Traditional and Agile planning documents
+5. Use in conjunction with both Traditional and Adaptive planning documents
 
 **Related Templates:**
 - [Change Management Plan (Traditional)](../../Traditional/Templates/change_management_plan_template.md)
-- [Change Vision Canvas (Agile)](../../Agile/Tools/change_vision_canvas.md)
+- [Change Vision Canvas (Adaptive)](../../Adaptive/Tools/change_vision_canvas.md)
 - [Progressive Change Roadmap](progressive_change_roadmap_template.md)
 - [Change Governance Framework](change_governance_framework_template.md)
 

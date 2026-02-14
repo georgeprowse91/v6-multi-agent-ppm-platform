@@ -117,7 +117,7 @@ async def test_project_definition_get_charter(tmp_path):
                 "title": "Project Borealis",
                 "description": "Define scope",
                 "project_type": "delivery",
-                "methodology": "agile",
+                "methodology": "adaptive",
             },
         }
     )
@@ -262,7 +262,7 @@ async def test_project_definition_openai_charter_and_wbs(tmp_path):
                 "title": "Project Orion",
                 "description": "AI scope",
                 "project_type": "delivery",
-                "methodology": "agile",
+                "methodology": "adaptive",
             },
         }
     )

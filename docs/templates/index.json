@@ -238,10 +238,10 @@
       ]
     },
     {
-      "template_id": "product-backlog.agile.v1",
-      "path": "docs/templates/extensions/agile/product-backlog.patch.yaml",
+      "template_id": "product-backlog.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/product-backlog.patch.yaml",
       "artefact_type": "backlog",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -250,10 +250,10 @@
       "placeholder_schema_ref": "docs/templates/core/product-backlog/manifest.yaml"
     },
     {
-      "template_id": "project-charter.agile.v1",
-      "path": "docs/templates/extensions/agile/project-charter.patch.yaml",
+      "template_id": "project-charter.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/project-charter.patch.yaml",
       "artefact_type": "charter",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -262,10 +262,10 @@
       "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
     },
     {
-      "template_id": "risk-register.agile.v1",
-      "path": "docs/templates/extensions/agile/risk-register.patch.yaml",
+      "template_id": "risk-register.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/risk-register.patch.yaml",
       "artefact_type": "risk-register",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -274,10 +274,10 @@
       "placeholder_schema_ref": "docs/templates/core/risk-register/manifest.yaml"
     },
     {
-      "template_id": "sprint-planning.agile.v1",
-      "path": "docs/templates/extensions/agile/sprint-planning.patch.yaml",
+      "template_id": "sprint-planning.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/sprint-planning.patch.yaml",
       "artefact_type": "plan",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -286,10 +286,10 @@
       "placeholder_schema_ref": "docs/templates/core/sprint-planning/manifest.yaml"
     },
     {
-      "template_id": "sprint-retrospective.agile.v1",
-      "path": "docs/templates/extensions/agile/sprint-retrospective.patch.yaml",
+      "template_id": "sprint-retrospective.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml",
       "artefact_type": "report",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -298,10 +298,10 @@
       "placeholder_schema_ref": "docs/templates/core/sprint-retrospective/manifest.yaml"
     },
     {
-      "template_id": "sprint-review.agile.v1",
-      "path": "docs/templates/extensions/agile/sprint-review.patch.yaml",
+      "template_id": "sprint-review.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/sprint-review.patch.yaml",
       "artefact_type": "report",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -310,10 +310,10 @@
       "placeholder_schema_ref": "docs/templates/core/sprint-review/manifest.yaml"
     },
     {
-      "template_id": "status-report.agile.v1",
-      "path": "docs/templates/extensions/agile/status-report.patch.yaml",
+      "template_id": "status-report.adaptive.v1",
+      "path": "docs/templates/extensions/adaptive/status-report.patch.yaml",
       "artefact_type": "report",
-      "methodology": "agile",
+      "methodology": "adaptive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -418,10 +418,10 @@
       "placeholder_schema_ref": "docs/templates/core/status-report/manifest.yaml"
     },
     {
-      "template_id": "project-charter.waterfall.v1",
-      "path": "docs/templates/extensions/waterfall/project-charter.patch.yaml",
+      "template_id": "project-charter.predictive.v1",
+      "path": "docs/templates/extensions/predictive/project-charter.patch.yaml",
       "artefact_type": "charter",
-      "methodology": "waterfall",
+      "methodology": "predictive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -430,10 +430,10 @@
       "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
     },
     {
-      "template_id": "project-management-plan.waterfall.v1",
-      "path": "docs/templates/extensions/waterfall/project-management-plan.patch.yaml",
+      "template_id": "project-management-plan.predictive.v1",
+      "path": "docs/templates/extensions/predictive/project-management-plan.patch.yaml",
       "artefact_type": "plan",
-      "methodology": "waterfall",
+      "methodology": "predictive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -442,10 +442,10 @@
       "placeholder_schema_ref": "docs/templates/core/project-management-plan/manifest.yaml"
     },
     {
-      "template_id": "requirements.waterfall.v1",
-      "path": "docs/templates/extensions/waterfall/requirements.patch.yaml",
+      "template_id": "requirements.predictive.v1",
+      "path": "docs/templates/extensions/predictive/requirements.patch.yaml",
       "artefact_type": "plan",
-      "methodology": "waterfall",
+      "methodology": "predictive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",
@@ -454,10 +454,10 @@
       "placeholder_schema_ref": "docs/templates/core/requirements/manifest.yaml"
     },
     {
-      "template_id": "status-report.waterfall.v1",
-      "path": "docs/templates/extensions/waterfall/status-report.patch.yaml",
+      "template_id": "status-report.predictive.v1",
+      "path": "docs/templates/extensions/predictive/status-report.patch.yaml",
       "artefact_type": "report",
-      "methodology": "waterfall",
+      "methodology": "predictive",
       "compliance_tags": [],
       "version": "1.0.0",
       "status": "active",

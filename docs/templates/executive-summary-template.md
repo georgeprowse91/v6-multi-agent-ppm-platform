@@ -33,7 +33,7 @@ updated: "2026-02-11"
 | **Project Manager** | |
 | **Executive Sponsor** | |
 | **Project Phase** | ☐ Initiation ☐ Planning ☐ Execution ☐ Monitoring ☐ Closing |
-| **Project Methodology** | ☐ Agile ☐ Waterfall ☐ Hybrid ☐ Other: |
+| **Project Methodology** | ☐ Adaptive ☐ Predictive ☐ Hybrid ☐ Other: |
 
 
 ## Assessment Results at a Glance

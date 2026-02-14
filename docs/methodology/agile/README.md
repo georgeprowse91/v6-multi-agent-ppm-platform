@@ -1,19 +1,19 @@
-# Agile Documentation
+# Adaptive Documentation
 
 ## Purpose
 
-Describe the agile documentation set and link the narrative to the repo assets that implement it.
+Describe the adaptive documentation set and link the narrative to the repo assets that implement it.
 
 ## What's inside
 
-- `docs/templates/`: Template library organized by discipline. Agile variants are labeled with
-  the `-agile` suffix in the filename.
-- `docs/methodology/agile/gates.yaml`: YAML definition or configuration used by this component.
-- `docs/methodology/agile/map.yaml`: YAML definition or configuration used by this component.
+- `docs/templates/`: Template library organized by discipline. Adaptive variants are labeled with
+  the `-adaptive` suffix in the filename.
+- `docs/methodology/adaptive/gates.yaml`: YAML definition or configuration used by this component.
+- `docs/methodology/adaptive/map.yaml`: YAML definition or configuration used by this component.
 
 ## Stages & Activities
 
-The agile methodology is defined in `docs/methodology/agile/map.yaml` and includes:
+The adaptive methodology is defined in `docs/methodology/adaptive/map.yaml` and includes:
 
 1. **Intake & Discovery**: capture demand, build the business case, and seed the backlog.
 2. **Sprint & Release Planning**: define sprint commitments and release readiness.

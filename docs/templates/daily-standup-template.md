@@ -1,6 +1,6 @@
 ---
 title: "Daily Standup Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "intermediate"
 owner: "firstname lastname"
 updated: "2026-02-11"

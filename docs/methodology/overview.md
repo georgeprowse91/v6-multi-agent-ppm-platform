@@ -4,8 +4,8 @@ Methodologies are first-class, data-driven configs under `docs/methodology/<id>/
 
 ## Supported methodologies
 
-- `predictive` (Waterfall/Predictive)
-- `adaptive` (Agile/Adaptive)
+- `predictive` (Predictive/Predictive)
+- `adaptive` (Adaptive/Adaptive)
 - `hybrid`
 
 ## Files per methodology
@@ -18,7 +18,7 @@ Methodologies are first-class, data-driven configs under `docs/methodology/<id>/
 
 `apps/web/src/methodologies.py` discovers all `*/map.yaml` files, validates node schema, loads optional `gates.yaml`, and normalizes output into the frontend-consumable structure (`stages`, `activities`, `navigation_nodes`, `gates`).
 
-Legacy `agile`/`waterfall` IDs are aliased to `adaptive`/`predictive` for compatibility.
+Legacy `adaptive`/`predictive` IDs are aliased to `adaptive`/`predictive` for compatibility.
 
 ## Navigation model
 

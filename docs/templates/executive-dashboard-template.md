@@ -176,7 +176,7 @@ DIVIDE(
 **Key Visuals**:
 - ROI by Portfolio (Clustered bar chart)
 - Cost Performance Index Trend (Line chart)
-- Budget vs Actual vs Forecast (Waterfall chart)
+- Budget vs Actual vs Forecast (Predictive chart)
 - Cash Flow Analysis (Area chart)
 - Top Cost Drivers (Treemap)
 - Financial Forecast Accuracy (Scatter plot)
@@ -250,7 +250,7 @@ DIVIDE(
 - Business Impact Matrix (Scatter plot)
 - Goal Achievement Forecast (Line chart)
 - Strategic Initiatives Health (Scorecard)
-- Benefit Realization Tracking (Waterfall)
+- Benefit Realization Tracking (Predictive)
 
 **Key Metrics**:
 ```dax

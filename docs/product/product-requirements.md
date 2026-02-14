@@ -24,7 +24,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 **Pipeline Visualization:** Users shall have a dashboard showing all pending requests by stage (e.g., draft, under review, approved, rejected). Filters by business unit, type, priority and methodology must be available.
 
-**Methodology Recommendation:** Based on request attributes (size, complexity, risk), the agent shall recommend a suitable delivery methodology (Agile, Waterfall, hybrid). Users can override the recommendation but must provide justification.
+**Methodology Recommendation:** Based on request attributes (size, complexity, risk), the agent shall recommend a suitable delivery methodology (Adaptive, Predictive, hybrid). Users can override the recommendation but must provide justification.
 
 ### 2. Business Case & Investment Analysis
 
@@ -74,7 +74,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 ### 6. Project Lifecycle & Governance
 
-**Lifecycle Models & Methodology Map:** The platform shall support multiple lifecycle models (Waterfall phases, Agile Sprints, hybrid) and render them as interactive maps in the UI. Each stage or sprint includes required tasks and documentation.
+**Lifecycle Models & Methodology Map:** The platform shall support multiple lifecycle models (Predictive phases, Adaptive Sprints, hybrid) and render them as interactive maps in the UI. Each stage or sprint includes required tasks and documentation.
 
 **Stage‑Gate Enforcement:** The system shall enforce stage‑gate criteria, preventing transitions to the next phase until required artefacts are completed and approvals obtained. Criteria are configurable per methodology and organisation.
 
@@ -84,7 +84,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 ### 7. Schedule & Planning
 
-**Schedule Generation:** Generate project schedules from WBS elements, estimate durations using historical data and machine‑learning models, and assign resources. Support both Waterfall Gantt charts and Agile sprint plans.
+**Schedule Generation:** Generate project schedules from WBS elements, estimate durations using historical data and machine‑learning models, and assign resources. Support both Predictive Gantt charts and Adaptive sprint plans.
 
 **Dependency & Critical Path Analysis:** Visualise task dependencies and highlight critical paths. Provide what‑if analysis to assess the impact of changes on project end dates.
 
@@ -168,7 +168,7 @@ The Multi‑Agent PPM Platform addresses these challenges by orchestrating speci
 
 ### 14. Change & Configuration Management
 
-**Template & Methodology Management:** Store templates for charters, plans, reports and generate them on demand. Version control for methodologies (Agile, Waterfall, hybrid) to accommodate organisational changes. Track usage and update history.
+**Template & Methodology Management:** Store templates for charters, plans, reports and generate them on demand. Version control for methodologies (Adaptive, Predictive, hybrid) to accommodate organisational changes. Track usage and update history.
 
 **Configuration Item (CI) Repository:** Maintain a catalogue of configuration items (workflows, connectors, agent configurations) with version numbers and dependencies.
 

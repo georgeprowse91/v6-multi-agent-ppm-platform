@@ -440,8 +440,8 @@ Usage:
 List Name: PROJECT-[NAME]-TEAM
 Members:
 • Project Manager
-• Scrum Master (if Agile)
-• Product Owner (if Agile)
+• Scrum Master (if Adaptive)
+• Product Owner (if Adaptive)
 • Technical Leads
 • Business Analysts
 • Development Team

@@ -9,7 +9,7 @@ This folder contains a canonical, modular template system:
 
 1. **Pick your discipline** (delivery governance, product engineering, operations).
 2. **Select a base template** that matches the primary artefact.
-3. **Apply a methodology extension** (Agile, SAFe, Hybrid, Waterfall, DevOps, Compliance Privacy) when needed.
+3. **Apply a methodology extension** (Adaptive, SAFe, Hybrid, Predictive, DevOps, Compliance Privacy) when needed.
 4. **Check migration notes** if coming from legacy Markdown templates.
 
 Useful links:
@@ -63,15 +63,15 @@ Useful links:
 - [sprint-review.universal.v1](./core/sprint-review/manifest.yaml)
 - [status-report.universal.v1](./core/status-report/manifest.yaml)
 
-### Agile extensions
+### Adaptive extensions
 
-- [product-backlog.agile.v1](./extensions/agile/product-backlog.patch.yaml)
-- [project-charter.agile.v1](./extensions/agile/project-charter.patch.yaml)
-- [risk-register.agile.v1](./extensions/agile/risk-register.patch.yaml)
-- [sprint-planning.agile.v1](./extensions/agile/sprint-planning.patch.yaml)
-- [sprint-retrospective.agile.v1](./extensions/agile/sprint-retrospective.patch.yaml)
-- [sprint-review.agile.v1](./extensions/agile/sprint-review.patch.yaml)
-- [status-report.agile.v1](./extensions/agile/status-report.patch.yaml)
+- [product-backlog.adaptive.v1](./extensions/adaptive/product-backlog.patch.yaml)
+- [project-charter.adaptive.v1](./extensions/adaptive/project-charter.patch.yaml)
+- [risk-register.adaptive.v1](./extensions/adaptive/risk-register.patch.yaml)
+- [sprint-planning.adaptive.v1](./extensions/adaptive/sprint-planning.patch.yaml)
+- [sprint-retrospective.adaptive.v1](./extensions/adaptive/sprint-retrospective.patch.yaml)
+- [sprint-review.adaptive.v1](./extensions/adaptive/sprint-review.patch.yaml)
+- [status-report.adaptive.v1](./extensions/adaptive/status-report.patch.yaml)
 
 ### SAFe extensions
 
@@ -106,12 +106,12 @@ Useful links:
 - [risk-register.hybrid.v1](./extensions/hybrid/risk-register.patch.yaml)
 - [status-report.hybrid.v1](./extensions/hybrid/status-report.patch.yaml)
 
-### Waterfall extensions
+### Predictive extensions
 
-- [project-charter.waterfall.v1](./extensions/waterfall/project-charter.patch.yaml)
-- [project-management-plan.waterfall.v1](./extensions/waterfall/project-management-plan.patch.yaml)
-- [requirements.waterfall.v1](./extensions/waterfall/requirements.patch.yaml)
-- [status-report.waterfall.v1](./extensions/waterfall/status-report.patch.yaml)
+- [project-charter.predictive.v1](./extensions/predictive/project-charter.patch.yaml)
+- [project-management-plan.predictive.v1](./extensions/predictive/project-management-plan.patch.yaml)
+- [requirements.predictive.v1](./extensions/predictive/requirements.patch.yaml)
+- [status-report.predictive.v1](./extensions/predictive/status-report.patch.yaml)
 
 ## Related standards
 

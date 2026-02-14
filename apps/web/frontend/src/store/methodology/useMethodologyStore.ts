@@ -129,9 +129,9 @@ function mapWorkspaceResponseToProjectMethodology(payload: WorkspaceStateRespons
   });
 
   const methodologyType = methodologySummary.id === 'predictive'
-    ? 'waterfall'
+    ? 'predictive'
     : methodologySummary.id === 'adaptive'
-      ? 'agile'
+      ? 'adaptive'
       : methodologySummary.id === 'hybrid'
         ? 'hybrid'
         : 'custom';

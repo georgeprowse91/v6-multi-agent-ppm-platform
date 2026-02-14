@@ -212,7 +212,7 @@ The initiation phase is where project ideas transform into formal, authorized en
 ### Methodology Integration
 1. **[Traditional Framework](../../methodology-frameworks/traditional/)** - Standard initiation processes
 <a id="best-practices"></a>
-2. **[Agile Approaches](../../methodology-frameworks/agile-scrum/)** - Iterative initiation and discovery
+2. **[Adaptive Approaches](../../methodology-frameworks/adaptive-scrum/)** - Iterative initiation and discovery
 3. **[Lean Startup](../../methodology-frameworks/emerging-methods/lean-startup/)** - Validated learning and experimentation
 
 ### Planning Phase Handoff

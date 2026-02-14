@@ -1,12 +1,12 @@
 ---
 title: "Infrastructure Requirements Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 process_group: "initiating"
 industry: "healthcare"
 role: "pm"
 tags:
-  - "agile"
+  - "adaptive"
   - "communication"
   - "initiating"
   - "planning"

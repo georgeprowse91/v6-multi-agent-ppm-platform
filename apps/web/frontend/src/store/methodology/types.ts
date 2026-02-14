@@ -1,7 +1,7 @@
 /**
  * Methodology Map Types - Data model for project methodology navigation
  *
- * Supports various methodologies: Waterfall, Agile, Hybrid, etc.
+ * Supports various methodologies: Predictive, Adaptive, Hybrid, etc.
  * Extensible for templates and custom methodologies.
  */
 
@@ -21,7 +21,7 @@ export type MethodologyStatus =
 /**
  * Type of methodology template
  */
-export type MethodologyType = 'waterfall' | 'agile' | 'hybrid' | 'custom';
+export type MethodologyType = 'predictive' | 'adaptive' | 'hybrid' | 'custom';
 
 
 export type MethodologyNodeType = 'phase' | 'activity' | 'subactivity' | 'cycle' | 'governance';
@@ -139,7 +139,7 @@ export interface MethodologyMap {
   /** Unique identifier */
   id: string;
 
-  /** Display name (e.g., "Waterfall", "Agile Scrum", "Hybrid") */
+  /** Display name (e.g., "Predictive", "Adaptive Scrum", "Hybrid") */
   name: string;
 
   /** Description of this methodology */

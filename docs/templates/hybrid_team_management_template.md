@@ -9,7 +9,7 @@ updated: "2026-02-11"
 # Hybrid Team Management Template
 
 ## Overview
-This template provides a framework for structuring, managing, and optimizing teams in hybrid project environments that combine traditional (predictive) and agile (adaptive) approaches. It addresses the unique challenges of managing teams that must operate across different methodologies while maintaining cohesion and effectiveness. Adapt sections as needed based on your specific organizational context, methodology balance, and team composition.
+This template provides a framework for structuring, managing, and optimizing teams in hybrid project environments that combine traditional (predictive) and adaptive (adaptive) approaches. It addresses the unique challenges of managing teams that must operate across different methodologies while maintaining cohesion and effectiveness. Adapt sections as needed based on your specific organizational context, methodology balance, and team composition.
 
 ## Document Control
 
@@ -47,15 +47,15 @@ Separate teams organized by methodology, with defined integration points.
 │   ├── [Business Analyst]
 │   ├── [Systems Analyst]
 │   └── [QA Lead]
-└── [Agile Team(s)]
+└── [Adaptive Team(s)]
     ├── [Product Owner]
     ├── [Scrum Master]
     └── [Development Team]
 ```
 
 **Best for**:
-- Organizations early in agile transformation
-- Projects with clear separation between traditional and agile components
+- Organizations early in adaptive transformation
+- Projects with clear separation between traditional and adaptive components
 - Regulatory environments requiring specialized traditional approaches
 
 **Challenges**:
@@ -64,7 +64,7 @@ Separate teams organized by methodology, with defined integration points.
 - Communication barriers
 
 #### Model 2: Functional Teams with Mixed Methodology
-Teams organized by function, with each team capable of working in both traditional and agile modes.
+Teams organized by function, with each team capable of working in both traditional and adaptive modes.
 
 ```
 [Program/Project Manager]
@@ -80,7 +80,7 @@ Teams organized by function, with each team capable of working in both tradition
 ```
 
 **Best for**:
-- Organizations with moderate agile maturity
+- Organizations with moderate adaptive maturity
 - Projects with technologies requiring specialized skills
 - Complex solutions requiring multiple technical disciplines
 
@@ -90,7 +90,7 @@ Teams organized by function, with each team capable of working in both tradition
 - Feature fragmentation
 
 #### Model 3: Fully Integrated Hybrid Teams
-Cross-functional teams capable of both traditional and agile work, shifting methodologies based on work characteristics.
+Cross-functional teams capable of both traditional and adaptive work, shifting methodologies based on work characteristics.
 
 ```
 [Program Lead]
@@ -107,7 +107,7 @@ Cross-functional teams capable of both traditional and agile work, shifting meth
 ```
 
 **Best for**:
-- Organizations with high agile maturity
+- Organizations with high adaptive maturity
 - Teams with broad skill sets and methodology flexibility
 - Products requiring adaptive approaches to different components
 
@@ -121,14 +121,14 @@ Cross-functional teams capable of both traditional and agile work, shifting meth
 | Team Type | Optimal Size | Rationale |
 |-----------|--------------|-----------|
 | Traditional Component Teams | 5-8 | Allows for specialization while maintaining manageability |
-| Agile Teams | 5-9 | Small enough for effective collaboration, large enough for required skills |
+| Adaptive Teams | 5-9 | Small enough for effective collaboration, large enough for required skills |
 | Hybrid Integrated Teams | 6-10 | Allows for specialized roles while maintaining agility |
 
 ### Team Composition Considerations
 
 When building hybrid teams, consider:
 
-1. **Methodology experience**: Balance team members with experience in both traditional and agile approaches
+1. **Methodology experience**: Balance team members with experience in both traditional and adaptive approaches
 2. **Technical skills**: Ensure coverage of all required technical domains
 3. **Business knowledge**: Include sufficient business/domain expertise 
 4. **T-shaped skills**: Prioritize team members with depth in one area but breadth across others
@@ -138,7 +138,7 @@ When building hybrid teams, consider:
 
 ### Core Hybrid Team Roles
 
-| Role | Primary Responsibilities | Traditional Context | Agile Context | Hybrid Adaptations |
+| Role | Primary Responsibilities | Traditional Context | Adaptive Context | Hybrid Adaptations |
 |------|--------------------------|---------------------|---------------|-------------------|
 | **Hybrid Project/Program Manager** | Overall delivery, governance, stakeholder management | Plan-driven management, process adherence | Servant leadership, impediment removal | Contextual leadership style, flexible governance |
 | **Product Manager/Owner** | Vision, requirements, prioritization | Detailed requirements management, scope control | Product backlog management, value maximization | Balanced documentation, tiered prioritization framework |
@@ -159,7 +159,7 @@ When building hybrid teams, consider:
 | Requirements documentation | I | A | I | R | C | I |
 | Risk management | A,R | C | C | C | C | I |
 | Status reporting | A,R | C | C | C | C | I |
-| **Agile Activities** |  |  |  |  |  |  |
+| **Adaptive Activities** |  |  |  |  |  |  |
 | Backlog refinement | I | A,R | C | C | C | C |
 | Sprint planning | I | A | R | C | C | C |
 | Daily stand-up | I | C | A,R | C | C | R |
@@ -172,7 +172,7 @@ When building hybrid teams, consider:
 
 ### Role Interaction Guidelines
 
-1. **Power balance**: Establish clear decision rights between traditional management and agile self-organization
+1. **Power balance**: Establish clear decision rights between traditional management and adaptive self-organization
 2. **Conflict mediation**: Define escalation paths when role interpretations differ
 3. **Responsibility overlap**: Clarify primary ownership where roles may overlap
 4. **Cross-methodology translation**: Assign responsibility for "translating" between methodologies
@@ -182,7 +182,7 @@ When building hybrid teams, consider:
 
 ### Key Integration Points
 
-| Integration Point | Traditional Element | Agile Element | Integration Approach |
+| Integration Point | Traditional Element | Adaptive Element | Integration Approach |
 |-------------------|---------------------|---------------|----------------------|
 | Planning | Project plans, WBS | Release plans, product backlog | Multi-horizon planning with increasing detail at lower levels |
 | Requirements | Requirements specifications | User stories, acceptance criteria | Progressive elaboration with baseline documentation |
@@ -194,7 +194,7 @@ When building hybrid teams, consider:
 
 ### Dependency Management Process
 
-1. **Identify**: Catalog dependencies between traditional and agile workstreams
+1. **Identify**: Catalog dependencies between traditional and adaptive workstreams
 2. **Classify**: Categorize as technical, process, or organizational dependencies
 3. **Visualize**: Map dependencies visually to ensure understanding
 4. **Plan**: Create coordinated schedules with buffers for integration
@@ -214,10 +214,10 @@ When building hybrid teams, consider:
 
 ### Sample Working Agreement
 
-**Cross-Team Working Agreement: Traditional QA and Agile Development**
+**Cross-Team Working Agreement: Traditional QA and Adaptive Development**
 
 1. **Handoffs**:
-   - Agile team will provide feature documentation 2 days before sprint end
+   - Adaptive team will provide feature documentation 2 days before sprint end
    - QA team will provide test results within 3 days of handoff
    - Defects will be prioritized within 1 day of discovery
 
@@ -240,7 +240,7 @@ When building hybrid teams, consider:
 
 ### Communication Matrix
 
-| Audience | Traditional Format | Agile Format | Hybrid Approach | Frequency | Owner |
+| Audience | Traditional Format | Adaptive Format | Hybrid Approach | Frequency | Owner |
 |----------|-------------------|--------------|-----------------|-----------|-------|
 | Executive Stakeholders | Status reports, milestone reviews | Demos, big room planning | Executive dashboard with dual metrics | Bi-weekly | Project/Program Manager |
 | Business Partners | Requirements reviews, status meetings | Sprint reviews, backlog refinement | Tiered engagement based on impact | Weekly/Sprint-based | Product Owner |
@@ -250,7 +250,7 @@ When building hybrid teams, consider:
 
 ### Information Radiators and Visualization
 
-| Tool | Traditional Use | Agile Use | Hybrid Implementation |
+| Tool | Traditional Use | Adaptive Use | Hybrid Implementation |
 |------|----------------|-----------|------------------------|
 | Physical/Digital Boards | Status tracking, critical path | Sprint boards, kanban | Combined board with methodology indicators |
 | Burndown/Burnup Charts | Earned value, milestone tracking | Sprint/release burndown | Multi-level burnup showing both methodologies |
@@ -269,20 +269,20 @@ Q1                  Q2                  Q3                  Q4
     M1      M2              M3                  M4
     |       |               |                   |
     
-[Agile Delivery]
+[Adaptive Delivery]
     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
     S1 S2 S3 S4 S5 S6 S7 S8 S9 S10S11S12S13S14S15S16
 
 [Feature Progress]
 Feature 1: [======100%======]
 Feature 2: [======80%=====--]  (Traditional)
-Feature 3: [==40%=----------]  (Agile)
+Feature 3: [==40%=----------]  (Adaptive)
 Feature 4: [------------------] (Hybrid)
 ```
 
 ### Communication Principles for Hybrid Teams
 
-1. **Terminology agreement**: Create a shared vocabulary that bridges traditional and agile concepts
+1. **Terminology agreement**: Create a shared vocabulary that bridges traditional and adaptive concepts
 2. **Methodology respect**: Acknowledge the value and purpose of both approaches
 3. **Audience focus**: Adapt communication style to stakeholder methodology preference
 4. **Visibility**: Make work visible across methodological boundaries
@@ -294,7 +294,7 @@ Feature 4: [------------------] (Hybrid)
 
 ### Balanced Scorecard Approach
 
-| Perspective | Traditional Metrics | Agile Metrics | Hybrid Metrics |
+| Perspective | Traditional Metrics | Adaptive Metrics | Hybrid Metrics |
 |-------------|---------------------|---------------|----------------|
 | **Value Delivery** | • Earned value<br>• Project ROI<br>• Benefits realization | • Business value delivered<br>• Feature usage<br>• Customer satisfaction | • Value burn-up<br>• Time-to-value<br>• Value/effort ratio |
 | **Process Efficiency** | • Milestone variance<br>• Schedule performance<br>• Resource utilization | • Velocity<br>• Cycle time<br>• Flow efficiency | • Feature lead time<br>• Predictability index<br>• Methodology effectiveness |
@@ -314,7 +314,7 @@ Feature 4: [------------------] (Hybrid)
 
 **Delivery Metrics**:
 - Traditional components: [X]% complete, [Y] milestone variance
-- Agile components: [X] story points, velocity of [Y]
+- Adaptive components: [X] story points, velocity of [Y]
 - Overall predictability: [Score]/5
 
 **Quality Metrics**:
@@ -359,18 +359,18 @@ In hybrid teams, individual performance evaluation should reflect both:
 
 ### Capability Model for Hybrid Teams
 
-| Capability Level | Traditional Skills | Agile Skills | Hybrid Skills |
+| Capability Level | Traditional Skills | Adaptive Skills | Hybrid Skills |
 |------------------|-------------------|-------------|--------------|
-| **Foundational** | • Understand waterfall lifecycle<br>• Basic document creation<br>• Process adherence | • Agile mindset awareness<br>• Basic ceremonies participation<br>• User story understanding | • Methodology vocabulary<br>• Recognition of when to use each approach<br>• Basic adaptation skills |
+| **Foundational** | • Understand predictive lifecycle<br>• Basic document creation<br>• Process adherence | • Adaptive mindset awareness<br>• Basic ceremonies participation<br>• User story understanding | • Methodology vocabulary<br>• Recognition of when to use each approach<br>• Basic adaptation skills |
 | **Intermediate** | • Detailed planning<br>• Requirements elaboration<br>• Quality assurance | • Backlog management<br>• Sprint planning/execution<br>• Incremental delivery | • Methodology selection criteria<br>• Context switching<br>• Integrated planning techniques |
-| **Advanced** | • Risk management<br>• Variance analysis<br>• Governance expertise | • Scaling practices<br>• Agile coaching<br>• Value-driven prioritization | • Hybrid governance models<br>• Adaptive management<br>• Integration optimization |
-| **Expert** | • Tailoring frameworks<br>• Formal method optimization<br>• Complex governance | • Transformation leadership<br>• Advanced agile techniques<br>• Lean thinking | • Creating integrated frameworks<br>• Optimizing hybrid approaches<br>• Cultural transformation |
+| **Advanced** | • Risk management<br>• Variance analysis<br>• Governance expertise | • Scaling practices<br>• Adaptive coaching<br>• Value-driven prioritization | • Hybrid governance models<br>• Adaptive management<br>• Integration optimization |
+| **Expert** | • Tailoring frameworks<br>• Formal method optimization<br>• Complex governance | • Transformation leadership<br>• Advanced adaptive techniques<br>• Lean thinking | • Creating integrated frameworks<br>• Optimizing hybrid approaches<br>• Cultural transformation |
 
 ### Training Needs Assessment
 
 Complete a capability assessment for each team member:
 
-| Team Member | Current Traditional Skills | Current Agile Skills | Current Hybrid Skills | Development Needs |
+| Team Member | Current Traditional Skills | Current Adaptive Skills | Current Hybrid Skills | Development Needs |
 |-------------|---------------------------|---------------------|----------------------|-------------------|
 | [Name] | [Level] | [Level] | [Level] | [Specific needs] |
 | [Name] | [Level] | [Level] | [Level] | [Specific needs] |
@@ -383,8 +383,8 @@ Complete a capability assessment for each team member:
 | Module | Target Audience | Format | Duration | Key Learning Objectives |
 |--------|----------------|--------|----------|------------------------|
 | Hybrid Fundamentals | All team members | Workshop | 1 day | • Understanding both methodologies<br>• When to use each approach<br>• Communication across methodologies |
-| Traditional for Agile Practitioners | Team members with agile background | Workshop | 2 days | • Formal planning techniques<br>• Documentation standards<br>• Governance and compliance |
-| Agile for Traditional Practitioners | Team members with traditional background | Workshop | 2 days | • Agile mindset and values<br>• Iterative delivery practices<br>• Self-organization skills |
+| Traditional for Adaptive Practitioners | Team members with adaptive background | Workshop | 2 days | • Formal planning techniques<br>• Documentation standards<br>• Governance and compliance |
+| Adaptive for Traditional Practitioners | Team members with traditional background | Workshop | 2 days | • Adaptive mindset and values<br>• Iterative delivery practices<br>• Self-organization skills |
 | Hybrid Leadership | Team leads, managers | Workshop | 2 days | • Contextual leadership<br>• Balancing control and autonomy<br>• Hybrid governance models |
 | Integration Techniques | Technical team members | Hands-on | 1 day | • Technical practices across methodologies<br>• Integration patterns<br>• Continuous delivery in hybrid contexts |
 
@@ -421,7 +421,7 @@ Complete a capability assessment for each team member:
 
 ### Meeting Ecosystem
 
-| Meeting Type | Traditional Purpose | Agile Purpose | Hybrid Approach | Frequency | Duration | Participants |
+| Meeting Type | Traditional Purpose | Adaptive Purpose | Hybrid Approach | Frequency | Duration | Participants |
 |-------------|---------------------|--------------|-----------------|-----------|----------|--------------|
 | **Governance** | Steering Committee | - | Tiered Governance Board | Monthly | 1 hour | Executives, Key Stakeholders |
 | **Planning** | Project Planning | Release Planning | Integrated Planning | Quarterly | 4 hours | All Teams |
@@ -436,14 +436,14 @@ Complete a capability assessment for each team member:
 
 #### Integrated Planning
 
-**Purpose**: Align traditional milestone-based planning with agile iterative planning
+**Purpose**: Align traditional milestone-based planning with adaptive iterative planning
 
 **Process**:
 1. Define fixed milestones and constraints (traditional)
-2. Create a product backlog of user-valued features (agile)
+2. Create a product backlog of user-valued features (adaptive)
 3. Map features to milestones (hybrid)
 4. Plan detailed iterations within milestone boundaries (hybrid)
-5. Establish integration points between traditional and agile work (hybrid)
+5. Establish integration points between traditional and adaptive work (hybrid)
 
 **Success Criteria**:
 - All work streams are aligned to common milestones
@@ -455,7 +455,7 @@ Complete a capability assessment for each team member:
 **Purpose**: Provide appropriate status visibility across methodologies
 
 **Process**:
-1. Agile teams demonstrate working features (agile)
+1. Adaptive teams demonstrate working features (adaptive)
 2. Traditional teams present progress against milestones (traditional)
 3. Integration status is reviewed (hybrid)
 4. Blockers and dependencies across methodologies are addressed (hybrid)
@@ -468,18 +468,18 @@ Complete a capability assessment for each team member:
 
 #### Continuous Improvement Across Methodologies
 
-**Purpose**: Drive improvement that respects both traditional and agile values
+**Purpose**: Drive improvement that respects both traditional and adaptive values
 
 **Process**:
 1. Gather data on both process performance and team experience (hybrid)
 2. Identify improvement areas in both methodologies (hybrid)
 3. Prioritize improvements based on value and feasibility (hybrid)
-4. Implement improvements appropriate to each methodology (traditional/agile)
+4. Implement improvements appropriate to each methodology (traditional/adaptive)
 5. Measure effectiveness across methodological boundaries (hybrid)
 
 **Success Criteria**:
 - Improvements benefit the overall delivery, not just one methodology
-- Both traditional and agile values are respected
+- Both traditional and adaptive values are respected
 - Integration points continually improve
 
 ### Meeting Facilitation Tips for Hybrid Environments
@@ -487,7 +487,7 @@ Complete a capability assessment for each team member:
 1. **Set clear context**: Begin by stating which "mode" the meeting is operating in
 2. **Acknowledge diversity**: Recognize different methodological preferences
 3. **Translate terminology**: Provide translation of terms across methodologies
-4. **Balanced facilitation**: Ensure both traditional and agile voices are heard
+4. **Balanced facilitation**: Ensure both traditional and adaptive voices are heard
 5. **Mixed formats**: Use both structured agendas and interactive techniques
 6. **Appropriate artifacts**: Use documentation appropriate to the audience
 7. **Decision clarity**: Be explicit about how decisions are made and documented
@@ -496,7 +496,7 @@ Complete a capability assessment for each team member:
 
 ### Common Sources of Methodology Conflict
 
-| Conflict Area | Traditional Perspective | Agile Perspective | Resolution Approach |
+| Conflict Area | Traditional Perspective | Adaptive Perspective | Resolution Approach |
 |--------------|------------------------|-------------------|---------------------|
 | **Planning** | "We need detailed plans to manage risk" | "Plans change, we need to be adaptive" | Progressive elaboration with fixed milestones, flexible implementation |
 | **Documentation** | "Comprehensive documentation ensures clarity" | "Documentation should be just enough, no more" | Tiered documentation approach based on risk and audience needs |
@@ -539,12 +539,12 @@ When conflicts arise between methodological approaches:
 
 #### Scenario: Scope Change Management
 
-**Conflict**: Traditional team sees a change as requiring formal change control; agile team sees it as backlog refinement.
+**Conflict**: Traditional team sees a change as requiring formal change control; adaptive team sees it as backlog refinement.
 
 **Resolution Approach**:
 1. Assess the impact across all teams and methodologies
 2. Apply tiered change management based on impact and risk:
-   - Small changes → Backlog refinement (agile process)
+   - Small changes → Backlog refinement (adaptive process)
    - Medium changes → Product owner approval with notification to traditional teams
    - Large changes → Formal change control with all affected teams involved
 
@@ -563,9 +563,9 @@ When conflicts arise between methodological approaches:
 
 ### Cultural Assessment
 
-Before implementing hybrid approaches, assess the current state of both traditional and agile cultures in the organization:
+Before implementing hybrid approaches, assess the current state of both traditional and adaptive cultures in the organization:
 
-| Dimension | Traditional Indicators | Agile Indicators | Current State | Desired State |
+| Dimension | Traditional Indicators | Adaptive Indicators | Current State | Desired State |
 |-----------|----------------------|-----------------|--------------|--------------|
 | Planning Focus | Plan adherence, predictability | Adaptability, responsiveness | [Assessment] | [Target] |
 | Decision Making | Hierarchical, role-based | Decentralized, team-based | [Assessment] | [Target] |
@@ -577,7 +577,7 @@ Before implementing hybrid approaches, assess the current state of both traditio
 
 #### Foundational Principles
 
-Establish shared principles that honor both traditional and agile values:
+Establish shared principles that honor both traditional and adaptive values:
 
 1. **Balanced predictability and adaptability**: We value both reliable forecasting and responsive adaptation
 2. **Customer-centered approach**: We deliver value to customers through appropriate means
@@ -600,7 +600,7 @@ Establish shared principles that honor both traditional and agile values:
 
 Transitioning to hybrid teams requires deliberate cultural change management:
 
-1. **Assessment**: Evaluate current cultural state in traditional and agile teams
+1. **Assessment**: Evaluate current cultural state in traditional and adaptive teams
 2. **Vision**: Define target hybrid culture that respects both approaches
 3. **Gap Analysis**: Identify specific behavioral and mindset changes needed
 4. **Champion Network**: Establish leaders from both methodologies as advocates
@@ -645,7 +645,7 @@ Transitioning to hybrid teams requires deliberate cultural change management:
 
 This template is most appropriate for:
 
-- Organizations transitioning from traditional to agile approaches
+- Organizations transitioning from traditional to adaptive approaches
 - Projects requiring a mix of predictive and adaptive methodologies
 - Complex programs with diverse team structures
 - Teams facing integration challenges between different working methods
@@ -665,7 +665,7 @@ This template is most appropriate for:
 
 ### Implementation Best Practices
 
-1. **Start with leadership alignment**: Ensure leaders from both traditional and agile backgrounds support the hybrid approach
+1. **Start with leadership alignment**: Ensure leaders from both traditional and adaptive backgrounds support the hybrid approach
 2. **Focus on communication**: Invest heavily in cross-methodology communication
 3. **Build on strengths**: Identify and leverage the strengths of each methodology
 4. **Measure and adapt**: Regularly assess what's working and adjust your approach

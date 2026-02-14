@@ -126,7 +126,7 @@ Project Manager
 | Team Member | Technical Skills | Business Skills | Soft Skills | Certifications |
 |-------------|------------------|-----------------|-------------|----------------|
 | [Name] | [Technologies] | [Domain knowledge] | [Communication, etc.] | [Project Management Professional, etc.] |
-| [Name] | [Technologies] | [Domain knowledge] | [Communication, etc.] | [Agile, etc.] |
+| [Name] | [Technologies] | [Domain knowledge] | [Communication, etc.] | [Adaptive, etc.] |
 
 ## 4. Resource Acquisition Strategy
 

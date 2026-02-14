@@ -1,7 +1,7 @@
 # Organizational Change Management Framework
 
 ## Overview
-This framework provides a comprehensive approach to managing organizational change across Traditional, Agile, and Hybrid project management methodologies. It addresses the people side of change to achieve desired project outcomes and ensure successful adoption of project deliverables.
+This framework provides a comprehensive approach to managing organizational change across Traditional, Adaptive, and Hybrid project management methodologies. It addresses the people side of change to achieve desired project outcomes and ensure successful adoption of project deliverables.
 
 ## Framework Components
 
@@ -13,14 +13,14 @@ This framework provides a comprehensive approach to managing organizational chan
 
 ### 2. Methodology-Specific Approaches
 
-#### Traditional/Waterfall Change Management
+#### Traditional/Predictive Change Management
 - Formal change control processes
 - Structured communication plans
 - Phase-gate approvals for change initiatives
 - Detailed documentation and training plans
 - Risk-based change impact assessments
 
-#### Agile Change Management
+#### Adaptive Change Management
 - Iterative change adoption
 - Continuous stakeholder feedback
 - Sprint-based change implementation
@@ -38,27 +38,27 @@ This framework provides a comprehensive approach to managing organizational chan
 
 #### Initiation/Vision
 - **Traditional**: Formal change charter and stakeholder register
-- **Agile**: Change vision and impact story mapping
+- **Adaptive**: Change vision and impact story mapping
 - **Hybrid**: Integrated change strategy with adaptive elements
 
 #### Planning/Preparation
 - **Traditional**: Detailed change management plan and training curriculum
-- **Agile**: Change backlog and sprint planning for adoption activities
+- **Adaptive**: Change backlog and sprint planning for adoption activities
 - **Hybrid**: Phased change roadmap with iterative feedback loops
 
 #### Execution/Implementation
 - **Traditional**: Controlled rollout according to plan
-- **Agile**: Sprint-based change delivery and user feedback
+- **Adaptive**: Sprint-based change delivery and user feedback
 - **Hybrid**: Balanced implementation with course corrections
 
 #### Monitoring & Control/Inspection
 - **Traditional**: Formal change metrics and variance analysis
-- **Agile**: Daily standups and sprint reviews for change adoption
+- **Adaptive**: Daily standups and sprint reviews for change adoption
 - **Hybrid**: Multi-level monitoring with adaptive responses
 
 #### Closing/Sustainment
 - **Traditional**: Formal transition to operations and lessons learned
-- **Agile**: Retrospectives and continuous improvement planning
+- **Adaptive**: Retrospectives and continuous improvement planning
 - **Hybrid**: Structured closure with ongoing adaptation mechanisms
 
 ## Success Factors
@@ -79,12 +79,12 @@ This framework provides a comprehensive approach to managing organizational chan
 - [Training Plan Template](/templates/traditional/Templates/training_plan_template.md)
 - [Change Communication Plan](/templates/traditional/Templates/change_communication_plan_template.md)
 
-### Agile Templates
-- [Change Vision Canvas](/templates/agile/Tools/change_vision_canvas.md)
-- [Change Story Map](/templates/agile/Tools/change_story_map.md)
-- [Change Sprint Planning](/templates/agile/Templates/change_sprint_planning_template.md)
-- [Change Retrospective](/templates/agile/Templates/change_retrospective_template.md)
-- [Adoption User Stories](/templates/agile/Templates/adoption_user_stories_template.md)
+### Adaptive Templates
+- [Change Vision Canvas](/templates/adaptive/Tools/change_vision_canvas.md)
+- [Change Story Map](/templates/adaptive/Tools/change_story_map.md)
+- [Change Sprint Planning](/templates/adaptive/Templates/change_sprint_planning_template.md)
+- [Change Retrospective](/templates/adaptive/Templates/change_retrospective_template.md)
+- [Adoption User Stories](/templates/adaptive/Templates/adoption_user_stories_template.md)
 
 ### Hybrid Templates
 - [Integrated Change Strategy](/templates/hybrid/Templates/integrated_change_strategy_template.md)
@@ -104,7 +104,7 @@ This framework provides a comprehensive approach to managing organizational chan
 - Formal governance requirements
 - Stakeholders prefer structured, predictable approaches
 
-**Use Agile Change Management When:**
+**Use Adaptive Change Management When:**
 - Iterative product or service improvements
 - Technology adoption with evolving requirements
 - Team-based operational changes
@@ -131,7 +131,7 @@ This framework provides a comprehensive approach to managing organizational chan
 This framework integrates seamlessly with existing project management processes:
 
 - **Traditional**: Aligns with change control processes and stakeholder management
-- **Agile**: Complements sprint cycles and retrospective practices
+- **Adaptive**: Complements sprint cycles and retrospective practices
 - **Hybrid**: Supports balanced governance and adaptive execution
 
 ## Next Steps

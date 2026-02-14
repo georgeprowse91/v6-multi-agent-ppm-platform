@@ -135,7 +135,7 @@ The execution phase is where project plans come to life through coordinated team
 ## 🛠️ Execution Tools & Techniques
 
 ### Work Management Platforms
-- **Jira** - Agile project tracking and sprint management
+- **Jira** - Adaptive project tracking and sprint management
 - **Microsoft Project** - Traditional project scheduling and resource management
 - **Asana** - Team task management and collaboration
 - **Trello** - Visual workflow and kanban boards
@@ -217,7 +217,7 @@ The execution phase is where project plans come to life through coordinated team
 3. **[Change Control](../04-monitoring-control/change-control/)** - Scope and requirement management
 
 ### Methodology Integration
-1. **[Agile-Scrum](../../methodology-frameworks/agile-scrum/)** - Sprint execution and reviews
+1. **[Adaptive-Scrum](../../methodology-frameworks/adaptive-scrum/)** - Sprint execution and reviews
 2. **[Traditional Processes](../../methodology-frameworks/traditional/)** - Standard execution procedures
 3. **[DevOps Practices](../../methodology-frameworks/emerging-methods/devops/)** - Continuous integration and delivery
 

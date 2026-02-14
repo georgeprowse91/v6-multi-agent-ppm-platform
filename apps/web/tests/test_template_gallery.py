@@ -135,8 +135,8 @@ def test_tenant_isolation_instantiation(client, monkeypatch):
 def test_apply_template_with_version(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
     response = client.post(
-        "/api/templates/agile-software-dev/apply",
-        json={"project_name": "Agile Demo", "version": "1.0"},
+        "/api/templates/adaptive-software-dev/apply",
+        json={"project_name": "Adaptive Demo", "version": "1.0"},
     )
     assert response.status_code == 200
     payload = response.json()
@@ -147,8 +147,8 @@ def test_apply_template_with_version(client, monkeypatch):
 @pytest.mark.parametrize(
     ("template_id", "expected_methodology_id"),
     [
-        ("agile-software-dev", "adaptive"),
-        ("waterfall-infrastructure", "predictive"),
+        ("adaptive-software-dev", "adaptive"),
+        ("predictive-infrastructure", "predictive"),
         ("hybrid-transformation", "hybrid"),
     ],
 )

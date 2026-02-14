@@ -11,7 +11,7 @@ Every template must include (front matter, YAML header, or equivalent structured
 - `artefact_type`  
   Primary artefact class from taxonomy (e.g., `charter`, `risk-register`, `roadmap`).
 - `methodology`  
-  Method delivery model (e.g., `agile`, `waterfall`, `hybrid`, `safe`, `traditional`).
+  Method delivery model (e.g., `adaptive`, `predictive`, `hybrid`, `safe`, `traditional`).
 - `version`  
   Semantic template version (e.g., `1`, `1.1`, `2`).
 - `status`  

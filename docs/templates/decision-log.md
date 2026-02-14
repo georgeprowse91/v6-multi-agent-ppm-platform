@@ -478,12 +478,12 @@ Common decision types:
 - Integration with enterprise systems
 
 ### Methodology Alignment
-**Traditional/Waterfall Projects**:
+**Traditional/Predictive Projects**:
 - Formal decision gates at phase boundaries
 - Comprehensive documentation requirements
 - Structured approval hierarchies
 
-**Agile Projects**:
+**Adaptive Projects**:
 - Lightweight decision capture
 - Rapid decision-making cycles
 - Team-level decision authority

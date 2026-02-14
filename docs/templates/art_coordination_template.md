@@ -1,20 +1,20 @@
 ---
 title: "Art Coordination Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
 ---
 
-# SAFe Agile Release Train (ART) Coordination Template
+# SAFe Adaptive Release Train (ART) Coordination Template
 
 ## Overview
-This template provides a comprehensive framework for coordinating and synchronizing multiple agile teams within a SAFe Agile Release Train (ART). It covers the essential ceremonies, artifacts, and practices needed to ensure effective collaboration and delivery across 5-12 agile teams working toward common PI objectives.
+This template provides a comprehensive framework for coordinating and synchronizing multiple adaptive teams within a SAFe Adaptive Release Train (ART). It covers the essential ceremonies, artifacts, and practices needed to ensure effective collaboration and delivery across 5-12 adaptive teams working toward common PI objectives.
 
 ## Template Information
-- **Framework:** SAFe (Scaled Agile Framework)
+- **Framework:** SAFe (Scaled Adaptive Framework)
 - **Level:** Program (ART)
-- **Teams:** 5-12 Agile Teams (50-125 people)
+- **Teams:** 5-12 Adaptive Teams (50-125 people)
 - **Duration:** Program Increment (8-12 weeks)
 - **Key Role:** Release Train Engineer (RTE)
 
@@ -24,12 +24,12 @@ This template provides a comprehensive framework for coordinating and synchroniz
 
 ### ART Team Composition
 ```
-Agile Release Train (ART)
+Adaptive Release Train (ART)
 ├── Release Train Engineer (RTE)
 ├── Product Management
 ├── System Architect/Engineering
 ├── Business Owners
-├── Agile Teams (5-12 teams)
+├── Adaptive Teams (5-12 teams)
 │   ├── Team 1: Scrum Master + Product Owner + Dev Team
 │   ├── Team 2: Scrum Master + Product Owner + Dev Team
 │   ├── Team 3: Scrum Master + Product Owner + Dev Team
@@ -468,7 +468,7 @@ Rate each area from 1 (Beginning) to 5 (Optimizing):
 - [ ] Innovation and learning: [Score]
 
 **Culture and Leadership:**
-- [ ] Lean-Agile mindset adoption: [Score]
+- [ ] Lean-Adaptive mindset adoption: [Score]
 - [ ] Leadership support: [Score]
 - [ ] Team empowerment: [Score]
 

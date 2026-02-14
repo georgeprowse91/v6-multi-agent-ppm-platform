@@ -1,8 +1,8 @@
-# Agile-Scrum Framework
+# Adaptive-Scrum Framework
 
 **Iterative and incremental project delivery for dynamic environments**
 
-The Agile-Scrum framework provides a structured yet flexible approach to project management, emphasizing collaboration, customer feedback, and adaptive planning to deliver value quickly and continuously.
+The Adaptive-Scrum framework provides a structured yet flexible approach to project management, emphasizing collaboration, customer feedback, and adaptive planning to deliver value quickly and continuously.
 
 ---
 
@@ -12,8 +12,8 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 - **[Core Framework](core-framework/)** - Essential Scrum components and practices
 - **[Scaling Frameworks](scaling-frameworks/)** - SAFe, LeSS, and enterprise approaches
 - **[Team Practices](team-practices/)** - Development and collaboration techniques
-- **[Metrics & Measurement](metrics-measurement/)** - Agile performance indicators
-- **[Transition Support](transition-support/)** - Moving from traditional to Agile
+- **[Metrics & Measurement](metrics-measurement/)** - Adaptive performance indicators
+- **[Transition Support](transition-support/)** - Moving from traditional to Adaptive
 
 ---
 <a id="framework-overview"></a>
@@ -21,7 +21,7 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 ## 🎯 Framework Overview
 
 ### Core Principles
-**Agile Manifesto Values:**
+**Adaptive Manifesto Values:**
 - **Individuals and interactions** over processes and tools
 - **Working software** over comprehensive documentation
 - **Customer collaboration** over contract negotiation
@@ -53,7 +53,7 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 
 ### Prerequisites Assessment
 **Organizational Readiness:**
-- [ ] Leadership commitment to Agile transformation
+- [ ] Leadership commitment to Adaptive transformation
 - [ ] Willingness to embrace iterative delivery
 - [ ] Cross-functional team formation capability
 - [ ] Customer/stakeholder availability for feedback
@@ -80,7 +80,7 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 2. **Scaling Preparation** - Ready for multiple team coordination
 3. **Organizational Integration** - Align with enterprise processes
 4. **Performance Optimization** - Focus on delivery speed and quality
-5. **Cultural Embedding** - Agile becomes "how we work"
+5. **Cultural Embedding** - Adaptive becomes "how we work"
 <a id="key-performance-indicators"></a>
 
 ---
@@ -158,7 +158,7 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 - Scrum of Scrums coordination
 <a id="scaling-approaches"></a>
 - Scaled framework consideration
-<a id="safe-scaled-agile-framework"></a>
+<a id="safe-scaled-adaptive-framework"></a>
 - Enhanced communication protocols
 
 ---
@@ -166,10 +166,10 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 ## 🔄 Scaling Approaches
 
 <a id="less-large-scale-scrum"></a>
-### SAFe (Scaled Agile Framework)
+### SAFe (Scaled Adaptive Framework)
 **Best for:** Large enterprises with complex dependencies
 - **Program Increment** planning for coordination
-- **Agile Release Trains** for delivery alignment
+- **Adaptive Release Trains** for delivery alignment
 - **Portfolio Kanban** for strategic work management
 - **DevOps and CALMR** for technical excellence
 
@@ -204,7 +204,7 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 **Solutions:**
 - Start with pilot teams and success stories
 - Provide comprehensive change management
-- Train leadership on Agile principles
+- Train leadership on Adaptive principles
 - Demonstrate value through early wins
 
 ### Role Confusion
@@ -238,18 +238,18 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 
 <a id="measurement-improvement"></a>
 ### Implementation Support
-1. **[Quick Start Kits](../../quick-start-kits/agile-transformation/)** - Transformation roadmap and tools
+1. **[Quick Start Kits](../../quick-start-kits/adaptive-transformation/)** - Transformation roadmap and tools
 2. **[Role-Based Toolkits](../../role-based-toolkits/)** - Specific guidance for Scrum roles
 3. **[Project Lifecycle](../../project-lifecycle/)** - Integration with traditional project phases
 
 ### Advanced Topics
 <a id="success-factors"></a>
-1. **[Scaling Frameworks](scaling-frameworks/)** - Enterprise Agile approaches
+1. **[Scaling Frameworks](scaling-frameworks/)** - Enterprise Adaptive approaches
 2. **[DevOps Integration](../emerging-methods/devops/)** - Technical excellence practices
-3. **[Hybrid Approaches](../hybrid-approaches/)** - Combining Agile with traditional methods
+3. **[Hybrid Approaches](../hybrid-approaches/)** - Combining Adaptive with traditional methods
 
 ### Measurement & Improvement
-1. **[Analytics Platform](../../analytics-platform/)** - Agile metrics and dashboards
+1. **[Analytics Platform](../../analytics-platform/)** - Adaptive metrics and dashboards
 2. **[Progress Tracking](../../project-lifecycle/04-monitoring-control/progress-tracking/)** - Performance monitoring
 3. **[Quality Management](../../project-lifecycle/02-planning/quality-management/)** - Quality assurance integration
 
@@ -264,18 +264,18 @@ The Agile-Scrum framework provides a structured yet flexible approach to project
 4. **Collaborate actively** - Cross-functional teamwork is key
 
 ### For Organizations
-1. **Support cultural change** - Agile is more than process
-2. **Invest in training** - Build Agile capabilities across organization
+1. **Support cultural change** - Adaptive is more than process
+2. **Invest in training** - Build Adaptive capabilities across organization
 3. **Measure what matters** - Focus on value delivery metrics
 4. **Be patient with transformation** - Change takes time and persistence
 
 ### For Leaders
-1. **Model Agile behaviors** - Demonstrate adaptability and learning
+1. **Model Adaptive behaviors** - Demonstrate adaptability and learning
 2. **Empower teams** - Give teams authority to make decisions
 3. **Focus on outcomes** - Value delivery over activity completion
 4. **Support continuous improvement** - Fund learning and experimentation
 
 ---
 
-*Agile-Scrum is a journey, not a destination. Focus on continuous learning, adaptation, and value delivery to achieve sustainable success.*
+*Adaptive-Scrum is a journey, not a destination. Focus on continuous learning, adaptation, and value delivery to achieve sustainable success.*
 

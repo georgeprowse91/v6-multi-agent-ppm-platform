@@ -34,7 +34,7 @@ Authorization: Bearer <your-api-key>
     "duration_months": "number",
     "budget": "number",
     "team_size": "number",
-    "methodology": "string", // "agile", "waterfall", "hybrid"
+    "methodology": "string", // "adaptive", "predictive", "hybrid"
     "industry": "string",
     "complexity": "string", // "low", "medium", "high"
     "stakeholder_count": "number"

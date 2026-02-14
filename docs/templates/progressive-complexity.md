@@ -162,13 +162,13 @@ Our templates are designed with progressive disclosure - start with basics and a
 | **Risk Management** | [Simple Risk List](../../quick-start-kits/first-time-pm-starter/risk-register-simple.md) | [Risk Register](../../project-lifecycle/02-planning/risk-management/) | [Enterprise Risk Framework](../../role-based-toolkits/program-manager/) |
 | **Status Reporting** | [Basic Updates](../../quick-start-kits/first-time-pm-starter/status-report-simple.md) | [Professional Reports](../../role-based-toolkits/project-manager/reporting-dashboards/) | [Executive Dashboards](../../business-stakeholder-suite/executive-dashboards/) |
 
-### Path 2: Agile Methodology Progression
+### Path 2: Adaptive Methodology Progression
 
 | Template Category | Level 1 | Level 2 | Level 3 |
 |-------------------|---------|---------|----------|
-| **User Stories** | [Basic Stories](../../methodology-frameworks/agile-scrum/user-story-simple.md) | [Professional Stories](../../role-based-toolkits/product-owner/backlog-management/) | [Epic Management](../../role-based-toolkits/program-manager/) |
-| **Sprint Planning** | [Simple Planning](../../methodology-frameworks/agile-scrum/sprint-planning-simple.md) | [Full Sprint Planning](../../role-based-toolkits/scrum-master/agile-ceremonies/) | [Scaled Planning](../../methodology-frameworks/agile-scrum/scaling-frameworks/) |
-| **Retrospectives** | [Basic Retro](../../methodology-frameworks/agile-scrum/retrospective-simple.md) | [Structured Retrospectives](../../role-based-toolkits/scrum-master/team-development/) | [Organizational Retrospectives](../../organizational-frameworks/continuous-improvement/) |
+| **User Stories** | [Basic Stories](../../methodology-frameworks/adaptive-scrum/user-story-simple.md) | [Professional Stories](../../role-based-toolkits/product-owner/backlog-management/) | [Epic Management](../../role-based-toolkits/program-manager/) |
+| **Sprint Planning** | [Simple Planning](../../methodology-frameworks/adaptive-scrum/sprint-planning-simple.md) | [Full Sprint Planning](../../role-based-toolkits/scrum-master/adaptive-ceremonies/) | [Scaled Planning](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/) |
+| **Retrospectives** | [Basic Retro](../../methodology-frameworks/adaptive-scrum/retrospective-simple.md) | [Structured Retrospectives](../../role-based-toolkits/scrum-master/team-development/) | [Organizational Retrospectives](../../organizational-frameworks/continuous-improvement/) |
 
 ### Path 3: Executive Reporting Progression
 
@@ -280,7 +280,7 @@ Start Here: What's your primary goal?
 **Month 2-6:** Level 2 for stakeholder credibility  
 **Month 6+:** Level 3 to meet organizational standards  
 
-### Scenario 3: Agile Transformation
+### Scenario 3: Adaptive Transformation
 **Phase 1:** Level 1 for quick wins and adoption  
 **Phase 2:** Level 2 for sustainable practices  
 **Phase 3:** Level 3 for organizational scaling  

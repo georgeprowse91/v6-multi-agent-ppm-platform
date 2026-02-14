@@ -34,10 +34,10 @@ Variants are optional, composable qualifiers that refine a base artefact.
 
 ### 2.1 Methodology (`methodology`)
 Allowed examples:
-- `agile`
+- `adaptive`
 - `scrum`
 - `safe`
-- `waterfall`
+- `predictive`
 - `hybrid`
 - `lean`
 - `kanban`
@@ -92,7 +92,7 @@ Allowed examples:
 ```
 
 Examples:
-- `charter.agile.project.software.v1`
+- `charter.adaptive.project.software.v1`
 - `risk-register.hybrid.program.gdpr.financial-services.v2.1`
 - `compliance-assessment.enterprise.gxp.pharmaceutical.v1`
 
@@ -117,7 +117,7 @@ If content remains in Markdown, keep the same canonical stem and switch extensio
 - `.md` for narrative templates
 
 Example:
-- `roadmap.agile.portfolio.software.v1.md`
+- `roadmap.adaptive.portfolio.software.v1.md`
 
 ## 4) Lightweight Maintainer Lint Checklist
 Use this checklist manually or as script acceptance criteria.

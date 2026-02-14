@@ -7,7 +7,7 @@
         "Multi\u2011Channel Intake \u2013 The system shall capture new project requests via web forms, email, Slack/Teams bots and API submissions. It must support attachments and metadata such as requestor, business unit, and desired completion date. The Demand & Intake agent will classify requests by type (e.g., strategic initiative, operational improvement) using NLP and route them to appropriate reviewers.",
         "Duplicate Detection & Triage \u2013 The agent shall detect duplicate or similar requests using semantic similarity and highlight them to reviewers for consolidation. It shall assess complexity and urgency to triage requests into fast\u2011track or normal review queues.",
         "Pipeline Visualization \u2013 Users shall have a dashboard showing all pending requests by stage (e.g., draft, under review, approved, rejected). Filters by business unit, type, priority and methodology must be available.",
-        "Methodology Recommendation \u2013 Based on request attributes (size, complexity, risk), the agent shall recommend a suitable delivery methodology (Agile, Waterfall, hybrid). Users can override the recommendation but must provide justification."
+        "Methodology Recommendation \u2013 Based on request attributes (size, complexity, risk), the agent shall recommend a suitable delivery methodology (Adaptive, Predictive, hybrid). Users can override the recommendation but must provide justification."
       ]
     },
     {
@@ -52,7 +52,7 @@
     {
       "title": "6. Project Lifecycle & Governance",
       "requirements": [
-        "Lifecycle Models & Methodology Map \u2013 The platform shall support multiple lifecycle models (Waterfall phases, Agile Sprints, hybrid) and render them as interactive maps in the UI. Each stage or sprint includes required tasks and documentation.",
+        "Lifecycle Models & Methodology Map \u2013 The platform shall support multiple lifecycle models (Predictive phases, Adaptive Sprints, hybrid) and render them as interactive maps in the UI. Each stage or sprint includes required tasks and documentation.",
         "Stage\u2011Gate Enforcement \u2013 The system shall enforce stage\u2011gate criteria, preventing transitions to the next phase until required artefacts are completed and approvals obtained. Criteria are configurable per methodology and organisation.",
         "Health Scoring & Alerts \u2013 Calculate project health scores based on schedule, cost, risk and resource indicators. Provide early\u2011warning alerts when metrics fall below thresholds and recommendations for corrective actions.",
         "Lifecycle Dashboard \u2013 Display a timeline of phases or sprints, stage\u2011gate status, health metrics and outstanding tasks. Allow filtering by program, methodology and status."
@@ -61,7 +61,7 @@
     {
       "title": "7. Schedule & Planning",
       "requirements": [
-        "Schedule Generation \u2013 Generate project schedules from WBS elements, estimate durations using historical data and machine\u2011learning models, and assign resources. Support both Waterfall Gantt charts and Agile sprint plans.",
+        "Schedule Generation \u2013 Generate project schedules from WBS elements, estimate durations using historical data and machine\u2011learning models, and assign resources. Support both Predictive Gantt charts and Adaptive sprint plans.",
         "Dependency & Critical Path Analysis \u2013 Visualise task dependencies and highlight critical paths. Provide what\u2011if analysis to assess the impact of changes on project end dates.",
         "Resource\u2011Constrained Scheduling \u2013 Incorporate resource availability and skill profiles when producing schedules. Identify resource over\u2011allocations and recommend adjustments.",
         "Schedule Risk Analysis \u2013 Run Monte\u00a0Carlo simulations or advanced risk models to estimate schedule risk and generate confidence intervals for completion dates.",
@@ -130,7 +130,7 @@
     {
       "title": "14. Change & Configuration Management",
       "requirements": [
-        "Template & Methodology Management \u2013 Store templates for charters, plans, reports and generate them on demand. Version control for methodologies (Agile, Waterfall, hybrid) to accommodate organisational changes. Track usage and update history.",
+        "Template & Methodology Management \u2013 Store templates for charters, plans, reports and generate them on demand. Version control for methodologies (Adaptive, Predictive, hybrid) to accommodate organisational changes. Track usage and update history.",
         "Configuration Item (CI) Repository \u2013 Maintain a catalogue of configuration items (workflows, connectors, agent configurations) with version numbers and dependencies.",
         "Impact Analysis & Assessment \u2013 When a change is proposed (e.g., updating a workflow or template), the system shall identify affected agents, data flows and schedules. Provide simulation of the change impact before implementation.",
         "Change Approval & Deployment \u2013 Use approval workflows to manage changes. Support staged rollouts (development \u2192 test \u2192 production) and rollback in case of issues. Integrate with release and deployment pipelines."

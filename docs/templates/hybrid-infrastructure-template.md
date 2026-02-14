@@ -10,7 +10,7 @@ updated: "2026-02-11"
 
 ## Executive Summary
 
-This template provides a flexible infrastructure framework that combines traditional project management infrastructure with agile and emerging methodologies. Use this to establish project infrastructure that can adapt to changing project needs and organizational requirements.
+This template provides a flexible infrastructure framework that combines traditional project management infrastructure with adaptive and emerging methodologies. Use this to establish project infrastructure that can adapt to changing project needs and organizational requirements.
 
 ## Infrastructure Philosophy
 
@@ -23,7 +23,7 @@ This template provides a flexible infrastructure framework that combines traditi
 
 ### Infrastructure Layers
 1. **Foundation Layer** - Core systems and processes (stable)
-2. **Methodology Layer** - Agile, traditional, or emerging methods (flexible)
+2. **Methodology Layer** - Adaptive, traditional, or emerging methods (flexible)
 3. **Adaptation Layer** - Context-specific customizations (dynamic)
 4. **Integration Layer** - Cross-methodology coordination (responsive)
 
@@ -51,16 +51,16 @@ Hybrid Governance Model:
 
 **Governance Elements:**
 - [ ] Executive sponsor identified and engaged
-- [ ] Product owner assigned (agile components)
+- [ ] Product owner assigned (adaptive components)
 - [ ] Project manager assigned (traditional components)
-- [ ] Scrum masters assigned (agile teams)
+- [ ] Scrum masters assigned (adaptive teams)
 - [ ] Cross-functional team leads identified
 - [ ] Stakeholder advisory group established
 
 #### 2. Communication Infrastructure
 **Multi-Modal Communication Framework:**
 
-| Communication Type | Traditional Tools | Agile Tools | Hybrid Integration |
+| Communication Type | Traditional Tools | Adaptive Tools | Hybrid Integration |
 |-------------------|------------------|-------------|-------------------|
 | Status Reporting | Formal reports | Dashboards | Real-time dashboards with formal summaries |
 | Team Collaboration | Email, meetings | Slack, standups | Structured standups with formal minutes |
@@ -95,7 +95,7 @@ Hybrid Governance Model:
 
 ## Methodology-Specific Infrastructure
 
-### Agile Infrastructure Components
+### Adaptive Infrastructure Components
 
 #### Scrum Framework Setup
 - [ ] **Product backlog management tool** (Jira, Azure DevOps, etc.)
@@ -113,7 +113,7 @@ Hybrid Governance Model:
 - [ ] **Blocker identification system** (impediment tracking)
 - [ ] **Service level expectations** (SLEs) defined and monitored
 
-### Traditional/Waterfall Infrastructure
+### Traditional/Predictive Infrastructure
 
 #### Project Planning Infrastructure
 - [ ] **Work breakdown structure (WBS) tools** (MS Project, Smartsheet)
@@ -156,7 +156,7 @@ Hybrid Governance Model:
 #### 1. Unified Planning Approach
 **Planning Framework:**
 ```
-Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
+Traditional Planning ←→ Hybrid Integration ←→ Adaptive Planning
 ├─ Project Charter     ├─ Epic Definitions  ├─ Product Vision
 ├─ WBS                ├─ Feature Roadmap   ├─ Product Backlog
 ├─ Gantt Charts       ├─ Release Planning  ├─ Sprint Planning
@@ -182,7 +182,7 @@ Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
 
 #### 3. Quality Assurance Integration
 **Multi-Method Quality Framework:**
-- [ ] **Definition of Done** (unified across traditional and agile work)
+- [ ] **Definition of Done** (unified across traditional and adaptive work)
 - [ ] **Acceptance criteria** (story-level and deliverable-level)
 - [ ] **Testing strategy** (automated and manual testing integration)
 - [ ] **Review processes** (code reviews, design reviews, formal reviews)
@@ -206,8 +206,8 @@ Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
 - [ ] Professional project management tools (Jira + Confluence)
 - [ ] Advanced CI/CD with testing (Jenkins or Azure DevOps)
 - [ ] Comprehensive monitoring (APM + infrastructure monitoring)
-- [ ] Multiple team coordination (scaled agile practices)
-- [ ] Formal governance with agile flexibility
+- [ ] Multiple team coordination (scaled adaptive practices)
+- [ ] Formal governance with adaptive flexibility
 
 #### Large Program Infrastructure (12+ months, 50+ people)
 **Enterprise Stack:**
@@ -215,22 +215,22 @@ Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
 - [ ] Enterprise CI/CD with governance (Enterprise DevOps platform)
 - [ ] Enterprise monitoring and analytics (Full observability stack)
 - [ ] Program-level coordination (SAFe or similar framework)
-- [ ] Formal program governance with agile delivery
+- [ ] Formal program governance with adaptive delivery
 
 ### Industry-Specific Adaptations
 
 #### Healthcare/Pharmaceutical
-- [ ] **Compliance integration** (FDA validation in agile cycles)
+- [ ] **Compliance integration** (FDA validation in adaptive cycles)
 - [ ] **Documentation requirements** (hybrid living documentation)
 - [ ] **Quality system integration** (QMS integration with DevOps)
 - [ ] **Risk management** (clinical and technical risk integration)
-- [ ] **Regulatory coordination** (agile regulatory strategy)
+- [ ] **Regulatory coordination** (adaptive regulatory strategy)
 
 #### Financial Services
 - [ ] **Risk and compliance automation** (continuous compliance)
 - [ ] **Security integration** (DevSecOps practices)
 - [ ] **Audit trail management** (automated audit documentation)
-- [ ] **Change management** (regulatory change control with agile delivery)
+- [ ] **Change management** (regulatory change control with adaptive delivery)
 - [ ] **Performance monitoring** (business and technical SLAs)
 
 #### Technology/Software
@@ -250,7 +250,7 @@ Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
 - [ ] Create basic reporting framework
 
 ### Phase 2: Methodology Integration (Weeks 3-4)
-- [ ] Implement agile practices for appropriate work streams
+- [ ] Implement adaptive practices for appropriate work streams
 - [ ] Maintain traditional practices for appropriate components
 - [ ] Establish cross-methodology coordination
 - [ ] Create unified planning and tracking
@@ -297,7 +297,7 @@ Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
 - Focus on key integration points rather than complete automation
 
 ### Process Conflicts
-**Problem:** Traditional and agile processes conflict
+**Problem:** Traditional and adaptive processes conflict
 **Solution:**
 - Define clear boundaries for each methodology application
 - Create hybrid processes that satisfy both approaches
@@ -338,7 +338,7 @@ Traditional Planning ←→ Hybrid Integration ←→ Agile Planning
 - [DevOps Pipeline Template](../../emerging-methods/devops/cicd_pipeline_planning_template.md)
 
 ### Integration Resources
-- [Agile-Traditional Integration Guide](../integration-strategies.md)
+- [Adaptive-Traditional Integration Guide](../integration-strategies.md)
 - [Tool Integration Playbook](../tool-integration-guide.md)
 - [Hybrid Team Formation](../team-formation-guide.md)
 

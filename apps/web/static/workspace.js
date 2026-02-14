@@ -150,7 +150,7 @@ const renderWorkspaceShell = () => {
             </div>
             <label class="templates-search" for="template-methodology-filter">
               <span>Methodology</span>
-              <input id="template-methodology-filter" type="search" placeholder="e.g. agile" />
+              <input id="template-methodology-filter" type="search" placeholder="e.g. adaptive" />
             </label>
             <label class="templates-search" for="template-compliance-filter">
               <span>Compliance tag</span>

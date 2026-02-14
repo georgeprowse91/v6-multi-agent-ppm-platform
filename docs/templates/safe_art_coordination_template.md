@@ -1,6 +1,6 @@
 ---
 title: "Safe Art Coordination Template"
-methodology: "agile"
+methodology: "adaptive"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
@@ -16,7 +16,7 @@ updated: "2026-02-11"
 
 ## 📋 ART Coordination Overview
 
-Agile Release Train (ART) coordination is essential for synchronizing the work of multiple agile teams (5-12 teams, 50-125 people) working together on a common solution. This template provides a comprehensive framework for:
+Adaptive Release Train (ART) coordination is essential for synchronizing the work of multiple adaptive teams (5-12 teams, 50-125 people) working together on a common solution. This template provides a comprehensive framework for:
 
 - Synchronizing teams within and across ARTs
 - Managing dependencies between teams and with external groups
@@ -24,18 +24,18 @@ Agile Release Train (ART) coordination is essential for synchronizing the work o
 - Measuring program-level progress and health
 - Establishing effective coordination ceremonies and cadence
 
-This template follows SAFe (Scaled Agile Framework) best practices for program-level coordination.
+This template follows SAFe (Scaled Adaptive Framework) best practices for program-level coordination.
 
 ## 🏗️ ART Structure and Roles
 
 ### ART Team Composition
 ```
-Agile Release Train (ART)
+Adaptive Release Train (ART)
 ├── Release Train Engineer (RTE)
 ├── Product Management
 ├── System Architect/Engineering
 ├── Business Owners
-├── Agile Teams (5-12 teams)
+├── Adaptive Teams (5-12 teams)
 │   ├── Team 1: Scrum Master + Product Owner + Dev Team
 │   ├── Team 2: Scrum Master + Product Owner + Dev Team
 │   ├── Team 3: Scrum Master + Product Owner + Dev Team
@@ -516,7 +516,7 @@ Solution Level Metrics:
 - **SAFe Framework:** [www.scaledagileframework.com](https://www.scaledagileframework.com/)
 - **Program Board article:** [www.scaledagileframework.com/program-board](https://www.scaledagileframework.com/program-board/)
 - **PI Planning article:** [www.scaledagileframework.com/pi-planning](https://www.scaledagileframework.com/pi-planning/)
-- **Agile Release Train article:** [www.scaledagileframework.com/agile-release-train](https://www.scaledagileframework.com/agile-release-train/)
+- **Adaptive Release Train article:** [www.scaledagileframework.com/adaptive-release-train](https://www.scaledagileframework.com/adaptive-release-train/)
 
 ## 🔄 Related Templates
 
@@ -526,4 +526,4 @@ Solution Level Metrics:
 
 ---
 
-*This template follows the Scaled Agile Framework (SAFe) practices for ART coordination. Customize as needed for your organization's specific implementation of SAFe.*
+*This template follows the Scaled Adaptive Framework (SAFe) practices for ART coordination. Customize as needed for your organization's specific implementation of SAFe.*

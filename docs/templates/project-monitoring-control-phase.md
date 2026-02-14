@@ -138,7 +138,7 @@ The monitoring and control phase runs parallel to execution, providing the essen
 
 ### Project Management Platforms
 - **Microsoft Project** - Comprehensive scheduling and resource management
-- **Jira** - Agile project tracking and issue management
+- **Jira** - Adaptive project tracking and issue management
 - **Asana** - Team collaboration and task management
 - **Monday.com** - Visual project tracking and workflow automation
 - **Smartsheet** - Spreadsheet-based project management
@@ -219,7 +219,7 @@ The monitoring and control phase runs parallel to execution, providing the essen
 
 ### Organizational Frameworks
 1. **[Traditional Methodology](../../methodology-frameworks/traditional/)** - Standard monitoring procedures
-2. **[Agile-Scrum](../../methodology-frameworks/agile-scrum/)** - Sprint reviews and retrospectives
+2. **[Adaptive-Scrum](../../methodology-frameworks/adaptive-scrum/)** - Sprint reviews and retrospectives
 3. **[Change Management](../../organizational-frameworks/change-management/)** - Organizational change integration
 
 ---

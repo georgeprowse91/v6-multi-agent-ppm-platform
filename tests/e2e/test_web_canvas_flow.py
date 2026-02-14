@@ -62,9 +62,9 @@ def test_assistant_suggestions_include_context(web_client):
         "/api/assistant/suggestions",
         json={
             "project_id": "demo-1",
-            "activity_id": "agile-vision",
+            "activity_id": "adaptive-vision",
             "activity_name": "Product Vision Statement",
-            "stage_id": "agile-discovery",
+            "stage_id": "adaptive-discovery",
             "stage_name": "Discovery",
             "activity_status": "in_progress",
             "canvas_type": "document",
@@ -79,8 +79,8 @@ def test_assistant_suggestions_include_context(web_client):
 
 def test_template_apply_version(web_client):
     response = web_client.post(
-        "/api/templates/agile-software-dev/apply",
-        json={"project_name": "E2E Agile", "version": "1.0"},
+        "/api/templates/adaptive-software-dev/apply",
+        json={"project_name": "E2E Adaptive", "version": "1.0"},
     )
     assert response.status_code == 200
     payload = response.json()

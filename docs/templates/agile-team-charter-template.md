@@ -1,5 +1,5 @@
 ---
-title: "Agile Team Charter Template"
+title: "Adaptive Team Charter Template"
 methodology: "universal"
 complexity: "intermediate"
 owner: "firstname lastname"
@@ -7,10 +7,10 @@ updated: "2026-02-11"
 ---
 
 
-# Agile Team Charter Template
+# Adaptive Team Charter Template
 
 ## Purpose/Overview
-This agile team charter template establishes the foundation for effective agile teams by defining mission, values, and working agreements. It serves as a living document that guides team behavior, decision-making, and collaboration within the Scrum framework. The charter promotes team self-organization and continuous improvement.
+This adaptive team charter template establishes the foundation for effective adaptive teams by defining mission, values, and working agreements. It serves as a living document that guides team behavior, decision-making, and collaboration within the Scrum framework. The charter promotes team self-organization and continuous improvement.
 
 ## Usage Instructions
 1. **Team Workshop**: Create the charter collaboratively during a team formation workshop
@@ -74,5 +74,5 @@ This agile team charter template establishes the foundation for effective agile 
 - [Metric 3]
 
 
-*Agile team charter following Scrum framework principles*
+*Adaptive team charter following Scrum framework principles*
 

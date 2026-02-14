@@ -1,12 +1,12 @@
 ---
-title: "Agile Risk Board Template"
+title: "Adaptive Risk Board Template"
 methodology: "universal"
 complexity: "advanced"
 owner: "firstname lastname"
 updated: "2026-02-11"
 ---
 
-# Agile Risk Board Template
+# Adaptive Risk Board Template
 
 ## Document Information
 - **Project/Product Name**: [Enter Name]
@@ -16,24 +16,24 @@ updated: "2026-02-11"
 - **Sprint**: [Sprint Number]
 - **Version**: 1.0
 
-## 1. Agile Risk Board Overview
+## 1. Adaptive Risk Board Overview
 
 ### 1.1 Purpose
-The Agile Risk Board provides a visual, collaborative approach to risk management that integrates seamlessly with agile methodologies and promotes continuous risk awareness.
+The Adaptive Risk Board provides a visual, collaborative approach to risk management that integrates seamlessly with adaptive methodologies and promotes continuous risk awareness.
 
 ### 1.2 Key Principles
 - **Visual Management**: Risks are visible to the entire team
 - **Continuous Monitoring**: Risks reviewed in every sprint
 - **Collaborative Approach**: Team involvement in risk identification and response
 - **Adaptive Response**: Risk strategies evolve with project learning
-- **Integration**: Risk management embedded in agile ceremonies
+- **Integration**: Risk management embedded in adaptive ceremonies
 
 ### 1.3 Benefits
 - Real-time risk visibility for all team members
 - Quick identification and response to emerging risks
 - Team ownership of risk management
 - Reduced risk escalation through early intervention
-- Alignment with agile values and principles
+- Alignment with adaptive values and principles
 
 ## 2. Risk Board Structure
 
@@ -91,7 +91,7 @@ The Agile Risk Board provides a visual, collaborative approach to risk managemen
 - **Retrospectives**: Identify process and team risks
 - **Backlog Refinement**: Assess story-level risks
 
-### 3.2 Agile Risk Assessment Scale
+### 3.2 Adaptive Risk Assessment Scale
 
 #### Probability Scale
 - **High (3)**: Very likely to occur this sprint or next
@@ -207,7 +207,7 @@ The Agile Risk Board provides a visual, collaborative approach to risk managemen
 
 ## 5. Risk Response Strategies
 
-### 5.1 Agile Risk Responses
+### 5.1 Adaptive Risk Responses
 
 #### Avoid
 - **Spike Stories**: Research risky areas before implementation
@@ -256,7 +256,7 @@ The Agile Risk Board provides a visual, collaborative approach to risk managemen
 - Resource planning and backup
 - Communication improvements
 
-## 6. Integration with Agile Ceremonies
+## 6. Integration with Adaptive Ceremonies
 
 ### 6.1 Sprint Planning
 - **Risk Review**: Review risks affecting sprint goal
@@ -409,5 +409,5 @@ Sprint 12 Risk Metrics
 
 **Next Review**: [Date]
 
-*This Agile Risk Board template should be adapted to fit your team's specific needs and tools. Regular retrospectives should include evaluation of the risk board's effectiveness and opportunities for improvement.*
+*This Adaptive Risk Board template should be adapted to fit your team's specific needs and tools. Regular retrospectives should include evaluation of the risk board's effectiveness and opportunities for improvement.*
 

@@ -8,7 +8,7 @@ The user interface of the multi‑agent PPM platform brings together complex age
 
 ### Primary Regions
 
-**Left Navigation Pane:** displays the hierarchical methodology map (phases for Waterfall or sprints for Agile) and provides quick access to major modules (Dashboard, Portfolio, Programs, Projects, Reports, Settings). The map highlights the current phase and upcoming stages, enabling users to see their progress. Collapsible sections allow users to focus on specific areas.
+**Left Navigation Pane:** displays the hierarchical methodology map (phases for Predictive or sprints for Adaptive) and provides quick access to major modules (Dashboard, Portfolio, Programs, Projects, Reports, Settings). The map highlights the current phase and upcoming stages, enabling users to see their progress. Collapsible sections allow users to focus on specific areas.
 
 **Central Canvas:** the main workspace where users interact with agents and data. The canvas dynamically changes based on the selected phase or agent: for example, WBS tree with drag‑and‑drop for project definition, schedule Gantt chart, or business‑case form. Users can add, resize or reorder cards representing tasks, risks, approvals, or dashboards. The canvas supports multi‑select actions (e.g., bulk updates) and context menus.
 
@@ -58,7 +58,7 @@ Use tables to display structured data such as resource allocations, financial tr
 
 ### Gantt & Timeline Views
 
-The Schedule & Planning module uses interactive Gantt charts to visualise tasks, milestones, dependencies and progress. Features include drag‑and‑drop adjustments, critical path highlighting, grouping by resource or phase, zoom controls and baseline overlays. In agile mode, timeline view can switch to a sprint board with columns for backlog, in progress and done.
+The Schedule & Planning module uses interactive Gantt charts to visualise tasks, milestones, dependencies and progress. Features include drag‑and‑drop adjustments, critical path highlighting, grouping by resource or phase, zoom controls and baseline overlays. In adaptive mode, timeline view can switch to a sprint board with columns for backlog, in progress and done.
 
 ### Forms & Wizards
 

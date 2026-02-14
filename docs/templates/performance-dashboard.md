@@ -398,14 +398,14 @@ CPI:  1.0  1.1  1.0  0.9  0.8  0.9  1.0  1.0  1.1  1.0  0.9  1.0
 
 ### Methodology Alignment
 
-#### Traditional/Waterfall
+#### Traditional/Predictive
 **Dashboard Features**:
 - Baseline variance tracking
 - Phase gate status
 - Formal milestone tracking
 - Earned value management
 
-#### Agile/Scrum
+#### Adaptive/Scrum
 **Dashboard Features**:
 - Sprint burndown/burnup
 - Velocity tracking

@@ -24,7 +24,7 @@
   "panels": [
     {
       "id": 1,
-      "title": "Agent execution waterfall by correlation",
+      "title": "Agent execution predictive by correlation",
       "type": "timeseries",
       "datasource": "Prometheus",
       "targets": [

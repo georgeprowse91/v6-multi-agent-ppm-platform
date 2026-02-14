@@ -69,13 +69,13 @@ Create custom fields in GitHub Projects to track project management metadata:
 |------------------|------|---------|-------------------|
 | Priority | Single select (High, Medium, Low) | Track item priority | All methodologies |
 | Status | Single select (Not Started, In Progress, Blocked, Complete) | Track progress status | All methodologies |
-| Effort/Story Points | Number | Track estimated effort | Agile templates |
-| Sprint | Iteration | Group items into sprints | Agile templates |
+| Effort/Story Points | Number | Track estimated effort | Adaptive templates |
+| Sprint | Iteration | Group items into sprints | Adaptive templates |
 | Phase | Single select | Group by project phase | Traditional templates |
 | Risk Level | Single select | Risk classification | Risk register |
 | Due Date | Date | Deadline for completion | All methodologies |
 | Department | Single select | Organizational ownership | All methodologies |
-| Epic | Single select | Group items into epics | Agile templates |
+| Epic | Single select | Group items into epics | Adaptive templates |
 
 ---
 
@@ -120,7 +120,7 @@ Create custom fields in GitHub Projects to track project management metadata:
      - Assignees (people)
      
 2. **Add Methodology-Specific Fields**
-   - For Agile: Sprint, Story Points, Epic
+   - For Adaptive: Sprint, Story Points, Epic
 <a id="step-4-configure-views"></a>
    - For Traditional: Phase, Process Group, Knowledge Area
    - For Hybrid: Methodology Type, Delivery Increment
@@ -160,7 +160,7 @@ Create custom fields in GitHub Projects to track project management metadata:
 
 ## Specific Template Implementation Examples
 
-### Implementing an Agile Sprint Planning Template
+### Implementing an Adaptive Sprint Planning Template
 
 1. **Create a Sprint Planning Issue Template**
    ```
@@ -421,7 +421,7 @@ jobs:
 
 ### Methodology-Specific Best Practices
 
-#### Agile Implementation
+#### Adaptive Implementation
 
 1. **Sprint Structure**
    - Create iteration field with sprint dates
@@ -448,7 +448,7 @@ jobs:
 #### Hybrid Implementation
 
 1. **Methodology Designation**
-   - Use custom field to indicate methodology (Agile, Waterfall, Hybrid)
+   - Use custom field to indicate methodology (Adaptive, Predictive, Hybrid)
    - Apply appropriate workflow based on methodology
    - Allow mixed approaches for different work streams
 

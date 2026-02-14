@@ -153,9 +153,9 @@ def _load_all_methodologies() -> dict[str, dict[str, Any]]:
         maps[methodology_id] = _load_methodology_map(methodology_id)
 
     if "adaptive" in maps:
-        maps["agile"] = maps["adaptive"]
+        maps["adaptive"] = maps["adaptive"]
     if "predictive" in maps:
-        maps["waterfall"] = maps["predictive"]
+        maps["predictive"] = maps["predictive"]
     return maps
 
 

@@ -10,7 +10,7 @@ updated: "2026-02-11"
 # Hybrid Quality Management Template
 
 ## Overview
-This template provides a comprehensive framework for managing quality in hybrid project environments that combine traditional (predictive) and agile (adaptive) approaches. It enables teams to maintain appropriate quality standards and compliance requirements while supporting rapid, iterative delivery. Adapt sections as needed based on your specific project context, methodology balance, and organizational requirements.
+This template provides a comprehensive framework for managing quality in hybrid project environments that combine traditional (predictive) and adaptive (adaptive) approaches. It enables teams to maintain appropriate quality standards and compliance requirements while supporting rapid, iterative delivery. Adapt sections as needed based on your specific project context, methodology balance, and organizational requirements.
 
 ## Document Control
 
@@ -39,7 +39,7 @@ This template provides a comprehensive framework for managing quality in hybrid 
 ## Quality Strategy and Objectives
 
 ### Quality Vision Statement
-A clear, concise statement describing the overall quality philosophy for the project that bridges traditional and agile quality perspectives.
+A clear, concise statement describing the overall quality philosophy for the project that bridges traditional and adaptive quality perspectives.
 
 *Example:*
 > Our quality strategy balances rigorous validation of critical system components with rapid feedback cycles, ensuring we meet compliance requirements while delivering value continuously. We value both process adherence where necessary and built-in quality through automated testing, with the goal of creating a product that meets stakeholder needs, compliance requirements, and user expectations.
@@ -62,7 +62,7 @@ A clear, concise statement describing the overall quality philosophy for the pro
 
 ### Methodology-Specific Quality Focus
 
-| Quality Aspect | Traditional Focus | Agile Focus | Hybrid Approach |
+| Quality Aspect | Traditional Focus | Adaptive Focus | Hybrid Approach |
 |----------------|------------------|------------|-----------------|
 | Documentation | Comprehensive, formal documentation | Minimal, sufficient documentation | Scaled documentation based on risk and compliance needs |
 | Validation | Phase-based testing with formal sign-off | Continuous testing throughout development | Risk-based testing with appropriate formality |
@@ -86,9 +86,9 @@ Define quality standards for different components based on methodology and criti
 
 | Component | Methodology | Key Quality Standards | Rationale |
 |-----------|-------------|----------------------|-----------|
-| [Component 1] | [Traditional/Agile/Hybrid] | [Standards] | [Rationale] |
-| [Component 2] | [Traditional/Agile/Hybrid] | [Standards] | [Rationale] |
-| [Component 3] | [Traditional/Agile/Hybrid] | [Standards] | [Rationale] |
+| [Component 1] | [Traditional/Adaptive/Hybrid] | [Standards] | [Rationale] |
+| [Component 2] | [Traditional/Adaptive/Hybrid] | [Standards] | [Rationale] |
+| [Component 3] | [Traditional/Adaptive/Hybrid] | [Standards] | [Rationale] |
 
 ### Definition of Quality
 
@@ -118,7 +118,7 @@ Establish clear criteria for when work is considered complete, including quality
 - [Criterion 2]
 - [Criterion 3]
 
-**Agile Component Definition of Done**:
+**Adaptive Component Definition of Done**:
 - [Criterion 1]
 - [Criterion 2]
 - [Criterion 3]
@@ -137,10 +137,10 @@ Establish clear criteria for when work is considered complete, including quality
 
 ### Quality Assurance Strategy
 
-Describe the overall approach to quality assurance that balances traditional and agile practices:
+Describe the overall approach to quality assurance that balances traditional and adaptive practices:
 
 *Example:*
-> Our quality assurance strategy applies different QA approaches based on component risk, compliance requirements, and development methodology. High-risk or regulated components follow more traditional QA with detailed documentation and formal reviews, while other components utilize agile quality practices such as automated testing and continuous integration. All components, regardless of methodology, must meet defined quality gates before release.
+> Our quality assurance strategy applies different QA approaches based on component risk, compliance requirements, and development methodology. High-risk or regulated components follow more traditional QA with detailed documentation and formal reviews, while other components utilize adaptive quality practices such as automated testing and continuous integration. All components, regardless of methodology, must meet defined quality gates before release.
 
 ### Component Classification for QA Approach
 
@@ -150,7 +150,7 @@ Classify components to determine appropriate QA approach:
 |----------------|----------------|-------------|-------------------|
 | **High Criticality** | High risk, regulatory impact, core functionality | Formal QA with comprehensive documentation | Payment processing, security features, compliance modules |
 | **Medium Criticality** | Moderate risk, business-critical, significant impact | Balanced QA with key documentation and automation | Customer data management, reporting, primary user workflows |
-| **Standard Components** | Lower risk, less critical, UI components | Agile QA with automation focus | UI features, minor workflows, preference settings |
+| **Standard Components** | Lower risk, less critical, UI components | Adaptive QA with automation focus | UI features, minor workflows, preference settings |
 
 ### Traditional QA Practices
 
@@ -162,7 +162,7 @@ Classify components to determine appropriate QA approach:
 | Stage-Gate Reviews | Major milestones, release readiness | Formal assessment against defined criteria |
 | Validation and Verification | Throughout component development | Independent testing against requirements |
 
-### Agile QA Practices
+### Adaptive QA Practices
 
 | Practice | When to Apply | Implementation Approach |
 |----------|---------------|------------------------|
@@ -174,7 +174,7 @@ Classify components to determine appropriate QA approach:
 
 ### Hybrid QA Integration Strategy
 
-| Integration Point | Traditional Element | Agile Element | Integration Approach |
+| Integration Point | Traditional Element | Adaptive Element | Integration Approach |
 |-------------------|---------------------|---------------|----------------------|
 | Requirements | Formal requirements docs | User stories | Map user stories to formal requirements where needed |
 | Test Planning | Test plans | Test automation | Risk-based test planning with automation focus |
@@ -186,7 +186,7 @@ Classify components to determine appropriate QA approach:
 
 ### Testing Pyramid Approach
 
-Describe a balanced testing strategy that includes both traditional and agile testing practices:
+Describe a balanced testing strategy that includes both traditional and adaptive testing practices:
 
 ```
                     ┌───────────────┐
@@ -202,14 +202,14 @@ Describe a balanced testing strategy that includes both traditional and agile te
                   │      Testing      │ API/component testing
                   └───────────────────┘
                  ┌─────────────────────┐
-                 │        Unit         │ Agile focus
+                 │        Unit         │ Adaptive focus
                  │       Testing       │ Automated tests
                  └─────────────────────┘
 ```
 
 ### Test Types and Methodologies
 
-| Test Type | Traditional Approach | Agile Approach | Hybrid Implementation |
+| Test Type | Traditional Approach | Adaptive Approach | Hybrid Implementation |
 |-----------|----------------------|----------------|------------------------|
 | **Unit Testing** | Developer testing with documentation | TDD, automated unit tests | Automated tests with documentation for critical components |
 | **Integration Testing** | Formal test cases, defined phases | Continuous integration, automated tests | Automated integration tests with formal test cases for key interfaces |
@@ -230,7 +230,7 @@ Describe a balanced testing strategy that includes both traditional and agile te
 
 ### Test Data Management
 
-| Data Type | Traditional Management | Agile Management | Hybrid Approach |
+| Data Type | Traditional Management | Adaptive Management | Hybrid Approach |
 |-----------|------------------------|------------------|-----------------|
 | Test Data Sets | Comprehensive, documented test data | Just-in-time data creation | Core data sets maintained, supplemented as needed |
 | Sensitive Data | Masked/synthetic data with formal controls | Automated data generation | Automated generation with formal verification |
@@ -260,7 +260,7 @@ Describe a balanced testing strategy that includes both traditional and agile te
 
 ### Key Quality Metrics
 
-| Metric Category | Traditional Metrics | Agile Metrics | Hybrid Metrics |
+| Metric Category | Traditional Metrics | Adaptive Metrics | Hybrid Metrics |
 |-----------------|---------------------|---------------|----------------|
 | **Requirements Quality** | Requirements traceability, requirements stability | User story quality, backlog health | Hybrid requirements coverage |
 | **Code Quality** | Defect density, code standards compliance | Code coverage, technical debt | Combined code quality index |
@@ -337,9 +337,9 @@ Map compliance requirements to specific project deliverables and activities:
 
 | Compliance Requirement | Applicable Components | Verification Method | Responsible Role | Verification Timing | Documentation |
 |------------------------|------------------------|---------------------|-----------------|---------------------|---------------|
-| [Requirement 1] | [Traditional/Agile/Both] | [Method] | [Role] | [Phase/Sprint/Milestone] | [Document] |
-| [Requirement 2] | [Traditional/Agile/Both] | [Method] | [Role] | [Phase/Sprint/Milestone] | [Document] |
-| [Requirement 3] | [Traditional/Agile/Both] | [Method] | [Role] | [Phase/Sprint/Milestone] | [Document] |
+| [Requirement 1] | [Traditional/Adaptive/Both] | [Method] | [Role] | [Phase/Sprint/Milestone] | [Document] |
+| [Requirement 2] | [Traditional/Adaptive/Both] | [Method] | [Role] | [Phase/Sprint/Milestone] | [Document] |
+| [Requirement 3] | [Traditional/Adaptive/Both] | [Method] | [Role] | [Phase/Sprint/Milestone] | [Document] |
 
 ### Hybrid Compliance Approach
 
@@ -349,7 +349,7 @@ Map compliance requirements to specific project deliverables and activities:
 - Traceability matrices for requirements to compliance verification
 - Formal sign-offs by compliance stakeholders
 
-#### Agile Components
+#### Adaptive Components
 - Compliance as part of the "Definition of Done"
 - Incremental compliance verification
 - Automated compliance checks where possible
@@ -375,7 +375,7 @@ Identify and manage compliance risks in a hybrid environment:
 
 ### Core Quality Roles
 
-| Role | Traditional Responsibility | Agile Responsibility | Hybrid Integration Role |
+| Role | Traditional Responsibility | Adaptive Responsibility | Hybrid Integration Role |
 |------|----------------------------|----------------------|-------------------------|
 | **Quality Manager/Lead** | Quality planning, formal QA processes, compliance oversight | Quality enablement, metric definition, process improvement | Cross-methodology quality strategy, governance balance |
 | **Test Manager/Lead** | Test planning, comprehensive test coverage, formal verification | Test strategy, automated test guidance, quality advocacy | Integrated test strategy, risk-based approach |
@@ -396,7 +396,7 @@ Identify and manage compliance risks in a hybrid environment:
 | Test planning | A | R | C | C | I | C |
 | Quality audits | A,R | C | I | I | I | C |
 | Compliance verification | A | C | C | I | I | R |
-| **Agile Activities** |  |  |  |  |  |  |
+| **Adaptive Activities** |  |  |  |  |  |  |
 | Definition of Done | C | C | R | A | I | C |
 | Automated testing | I | A | R | C | I | I |
 | Sprint quality review | C | C | R | A | I | I |
@@ -409,7 +409,7 @@ Identify and manage compliance risks in a hybrid environment:
 ### Quality Team Organization Models
 
 #### Model 1: Centralized Quality Team
-A single quality team that serves both traditional and agile project components.
+A single quality team that serves both traditional and adaptive project components.
 
 **Best for**:
 - Organizations with limited quality resources
@@ -426,7 +426,7 @@ Quality specialists embedded within each team, with a centralized quality lead f
 
 **Best for**:
 - Projects with multiple teams
-- Organizations with mature agile practices
+- Organizations with mature adaptive practices
 - Complex quality requirements
 
 **Challenges**:
@@ -449,9 +449,9 @@ Core quality leads coupled with quality champions within each team.
 
 ### Cross-Functional Quality Skills Development
 
-| Role | Traditional Skills | Agile Skills | Hybrid Capabilities |
+| Role | Traditional Skills | Adaptive Skills | Hybrid Capabilities |
 |------|-------------------|--------------|---------------------|
-| **Quality Lead** | Quality planning, auditing, compliance | Agile quality practices, enablement | Adaptable quality approaches, context-specific governance |
+| **Quality Lead** | Quality planning, auditing, compliance | Adaptive quality practices, enablement | Adaptable quality approaches, context-specific governance |
 | **Test Specialists** | Test planning, test case design | Automated testing, exploratory testing | Risk-based testing strategy, appropriate test selection |
 | **Developers** | Unit testing, code reviews | TDD, pair programming, continuous integration | Quality-first mindset, appropriate technique selection |
 | **Business Analysts** | Requirements validation, formal reviews | User story crafting, acceptance criteria | Appropriate requirements definition and validation |
@@ -460,7 +460,7 @@ Core quality leads coupled with quality champions within each team.
 
 ### Tool Integration Strategy
 
-| Tool Category | Traditional Approach | Agile Approach | Hybrid Implementation |
+| Tool Category | Traditional Approach | Adaptive Approach | Hybrid Implementation |
 |---------------|----------------------|----------------|------------------------|
 | **Test Management** | Comprehensive test plans, formal test scripts | Lightweight, automated test frameworks | Integrated platform with configurable detail levels |
 | **Defect Tracking** | Formal defect management system, detailed workflow | Backlog items, minimal distinction from features | Unified system with methodology-appropriate views |
@@ -481,7 +481,7 @@ Core quality leads coupled with quality champions within each team.
 | **Testing** | Scripted testing, regression testing | Test management tool | Test plans, test cases |
 | **Deployment** | Operational readiness reviews | Deployment checklists | Deployment verification reports |
 
-#### For Agile Components
+#### For Adaptive Components
 
 | Activity | Key Techniques | Tools | Artifacts |
 |----------|---------------|-------|-----------|
@@ -494,7 +494,7 @@ Core quality leads coupled with quality champions within each team.
 ### Cross-Methodology Techniques
 
 1. **Quality Risk Analysis**
-   - Identify quality risks across both traditional and agile components
+   - Identify quality risks across both traditional and adaptive components
    - Assess impact and probability
    - Determine appropriate quality controls based on risk level
 
@@ -504,7 +504,7 @@ Core quality leads coupled with quality champions within each team.
    - Ensure consistent quality gates across methodologies
 
 3. **Integrated Quality Dashboards**
-   - Combine traditional and agile metrics
+   - Combine traditional and adaptive metrics
    - Provide appropriate views for different stakeholders
    - Enable drill-down from high-level indicators to details
 
@@ -531,7 +531,7 @@ When selecting quality tools for hybrid environments, consider:
 
 ### Technology Enablement
 
-| Quality Aspect | Traditional Technology | Agile Technology | Hybrid Solution |
+| Quality Aspect | Traditional Technology | Adaptive Technology | Hybrid Solution |
 |----------------|------------------------|------------------|-----------------|
 | **Test Automation** | Commercial test automation tools, scripted test cases | Open-source frameworks, developer-owned automation | Multi-level automation strategy with appropriate tools by level |
 | **Quality Monitoring** | Periodic quality reports, milestone reviews | Real-time quality dashboards, automated alerts | Integrated monitoring with appropriate detail by audience |
@@ -542,7 +542,7 @@ When selecting quality tools for hybrid environments, consider:
 
 ### Integrated Quality Review Framework
 
-| Review Type | Traditional Approach | Agile Approach | Hybrid Implementation |
+| Review Type | Traditional Approach | Adaptive Approach | Hybrid Implementation |
 |-------------|----------------------|----------------|------------------------|
 | **Requirements Review** | Formal validation against business requirements | Continuous refinement, acceptance criteria review | Tiered approach based on risk and complexity |
 | **Design Review** | Comprehensive design reviews with formal sign-off | Emergent design, just-enough documentation | Architectural runway with appropriate detail level |
@@ -594,7 +594,7 @@ Define an integrated quality gate approach that applies appropriate rigor to dif
 
 #### Quality Retrospectives
 - Conduct periodic quality-focused retrospectives
-- Involve both traditional and agile team members
+- Involve both traditional and adaptive team members
 - Analyze quality issues and root causes
 - Identify cross-methodology improvement opportunities
 
@@ -620,7 +620,7 @@ Define an integrated quality gate approach that applies appropriate rigor to dif
 
 ### Integration Point Reviews
 
-Establish specific review points for integration between traditional and agile components:
+Establish specific review points for integration between traditional and adaptive components:
 
 | Integration Point | Review Focus | Participants | Artifacts | Success Criteria |
 |-------------------|--------------|--------------|-----------|------------------|
@@ -634,7 +634,7 @@ Establish specific review points for integration between traditional and agile c
 
 Define a structured approach to quality improvement that works across methodologies:
 
-1. **Measure**: Collect quality metrics across traditional and agile components
+1. **Measure**: Collect quality metrics across traditional and adaptive components
 2. **Analyze**: Identify quality issues, patterns, and root causes 
 3. **Prioritize**: Select improvement areas based on impact and feasibility
 4. **Implement**: Apply improvements appropriate to each methodology
@@ -660,7 +660,7 @@ Regularly assess the maturity of your hybrid quality practices:
 | Dimension | Level 1: Initial | Level 2: Managed | Level 3: Defined | Level 4: Quantitatively Managed | Level 5: Optimizing |
 |-----------|-----------------|-----------------|------------------|--------------------------------|---------------------|
 | **Traditional Practices** | Ad hoc quality activities | Basic traditional quality processes | Standardized traditional practices | Measured traditional processes | Continuously improving traditional practices |
-| **Agile Practices** | Basic agile testing | Established agile quality practices | Integrated agile quality approach | Data-driven agile quality | Innovative agile quality practices |
+| **Adaptive Practices** | Basic adaptive testing | Established adaptive quality practices | Integrated adaptive quality approach | Data-driven adaptive quality | Innovative adaptive quality practices |
 | **Integration** | Separate approaches | Basic coordination | Defined integration points | Measured integration effectiveness | Optimized hybrid approach |
 | **Automation** | Limited automation | Basic automation | Integrated automation strategy | Optimized automation | Advanced predictive quality |
 | **Culture** | Quality as verification | Quality as responsibility | Quality as shared value | Quality as competitive advantage | Quality as innovation driver |
@@ -672,7 +672,7 @@ Create a progressive roadmap for quality improvement:
 | Phase | Focus Areas | Key Activities | Success Measures | Timeframe |
 |-------|------------|----------------|------------------|-----------|
 | **Foundation** | Establish baseline practices | • Implement core quality processes<br>• Establish key metrics<br>• Define roles and responsibilities | • Quality processes defined<br>• Baseline metrics established<br>• Teams understand quality approach | [Timeframe] |
-| **Integration** | Connect traditional and agile quality | • Develop integration points<br>• Implement hybrid reviews<br>• Create shared quality vision | • Reduced integration issues<br>• Seamless quality handoffs<br>• Consistent quality standards | [Timeframe] |
+| **Integration** | Connect traditional and adaptive quality | • Develop integration points<br>• Implement hybrid reviews<br>• Create shared quality vision | • Reduced integration issues<br>• Seamless quality handoffs<br>• Consistent quality standards | [Timeframe] |
 | **Optimization** | Enhance efficiency and effectiveness | • Optimize test automation<br>• Streamline quality processes<br>• Implement predictive quality measures | • Reduced quality costs<br>• Faster quality feedback<br>• Improved quality metrics | [Timeframe] |
 | **Innovation** | Develop next-generation practices | • Research quality innovations<br>• Pilot new approaches<br>• Share best practices | • Industry-leading quality practices<br>• Quality as competitive advantage<br>• Continuous evolution | [Timeframe] |
 
@@ -694,7 +694,7 @@ Conduct regular hybrid quality retrospectives to improve quality practices:
 **Focus Questions**:
 - What quality practices are working well across methodologies?
 - Where are we experiencing quality challenges or friction?
-- How effective are our integration points between traditional and agile quality?
+- How effective are our integration points between traditional and adaptive quality?
 - What can we learn from other teams or organizations?
 - What one quality improvement would make the biggest difference?
 
@@ -723,8 +723,8 @@ Establish mechanisms for quality knowledge sharing:
 
 This template is most appropriate for:
 
-- Projects combining traditional and agile development methodologies
-- Organizations transitioning from traditional to agile approaches
+- Projects combining traditional and adaptive development methodologies
+- Organizations transitioning from traditional to adaptive approaches
 - Programs with diverse teams using different methodologies
 - Environments with significant compliance or regulatory requirements
 - Complex projects requiring flexible quality approaches
@@ -764,7 +764,7 @@ This template is most appropriate for:
 - **Over-standardization**: Forcing one approach across all components
 - **Under-governance**: Insufficient quality oversight for critical components
 - **Tool fragmentation**: Too many disconnected quality tools
-- **Methodology wars**: Creating tension between traditional and agile practitioners
+- **Methodology wars**: Creating tension between traditional and adaptive practitioners
 - **Metrics overload**: Tracking too many metrics without clear purpose
 - **Documentation extremes**: Either too much or too little documentation
 
@@ -783,7 +783,7 @@ This template is most appropriate for:
 
 2. **Quality Approach**
    - Traditional Components: [Approach]
-   - Agile Components: [Approach]
+   - Adaptive Components: [Approach]
    - Integration Strategy: [Strategy]
 
 3. **Quality Roles and Responsibilities**
@@ -823,7 +823,7 @@ This template is most appropriate for:
 
 - [ ] Quality vision and objectives defined
 - [ ] Component classification approach established
-- [ ] Traditional and agile quality approaches integrated
+- [ ] Traditional and adaptive quality approaches integrated
 - [ ] Quality roles and responsibilities assigned
 - [ ] Quality metrics and targets defined
 - [ ] Quality tools selected and configured
@@ -872,7 +872,7 @@ A financial services organization implementing a hybrid approach to quality mana
 **Component Classification**:
 - High Criticality: Payment processing, security features, regulatory reporting (traditional approach)
 - Medium Criticality: Customer data management, transaction history (hybrid approach)
-- Standard Components: UI features, preferences (agile approach)
+- Standard Components: UI features, preferences (adaptive approach)
 
 **Key Quality Practices**:
 - Formal quality gates for high-criticality components
@@ -893,14 +893,14 @@ A healthcare provider implementing a hybrid quality model for a patient portal:
 
 **Integration Approach**:
 - Central quality team with embedded quality champions
-- Shared quality metrics across traditional and agile teams
+- Shared quality metrics across traditional and adaptive teams
 - Tiered documentation based on regulatory impact
 - Automated compliance testing
 
 **Key Challenges Addressed**:
 - Regulatory compliance while maintaining agility
 - Integration between legacy and new systems
-- Cultural differences between traditional and agile teams
+- Cultural differences between traditional and adaptive teams
 - Balance of documentation requirements
 
 **Success Factors**:
