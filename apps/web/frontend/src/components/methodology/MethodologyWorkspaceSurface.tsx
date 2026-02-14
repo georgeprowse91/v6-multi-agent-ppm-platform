@@ -73,6 +73,10 @@ export function MethodologyWorkspaceSurface() {
 
   const runLifecycleAction = useCallback(async (event: 'generate' | 'update' | 'review' | 'approve' | 'publish') => {
     if (!selectedActivity) return;
+    if (!backendReachable) {
+      addAssistantMessage('Backend unavailable. Runtime actions are disabled until connectivity is restored.');
+      return;
+    }
     const stageId = selectedStage?.id ?? 'monitoring';
     const response = await executeNodeAction({
       workspaceId: projectMethodology.projectId,
@@ -91,7 +95,7 @@ export function MethodologyWorkspaceSurface() {
     const runtimeCanvasType = contract?.canvas?.canvas_type ?? runtimeDefaultViewContract?.canvas?.canvas_type ?? selectedActivity.canvasType;
     const canvasType = (canvasMap[runtimeCanvasType] ?? selectedActivity.canvasType) as CanvasType;
     openArtifact(createArtifact(canvasType, selectedActivity.name, projectMethodology.projectId, createEmptyContent(canvasType)));
-  }, [addAssistantMessage, executeNodeAction, openArtifact, projectMethodology.methodology.id, projectMethodology.projectId, resolveNodeRuntime, runtimeDefaultViewContract?.canvas?.canvas_type, selectedActivity, selectedStage?.id]);
+  }, [addAssistantMessage, backendReachable, executeNodeAction, openArtifact, projectMethodology.methodology.id, projectMethodology.projectId, resolveNodeRuntime, runtimeDefaultViewContract?.canvas?.canvas_type, selectedActivity, selectedStage?.id]);
 
   if (!selectedActivity) {
     return (

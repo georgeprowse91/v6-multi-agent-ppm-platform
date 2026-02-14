@@ -819,6 +819,7 @@ async def startup() -> None:
             timeline_store=timeline_store,
             tree_store=tree_store,
             knowledge_db_path=KNOWLEDGE_DB_PATH,
+            demo_outbox=demo_outbox,
         )
 
 
@@ -1009,6 +1010,15 @@ def _highlight_query(query: str, text: str) -> str | None:
 
 
 def _approval_payload() -> dict[str, Any]:
+    if _demo_mode_enabled():
+        seeded = demo_outbox.read("approvals")
+        if seeded:
+            return {
+                "pending_count": len(seeded),
+                "queues": [{"id": "seeded", "label": "Seeded Demo", "count": len(seeded)}],
+                "items": seeded,
+                "history": [],
+            }
     return {
         "pending_count": 24,
         "queues": [
@@ -2660,6 +2670,43 @@ async def run_methodology_node_action(
             agent_ids_executed.append(agent_id)
 
     output_format = resolution_contract["assistant"]["response_contract"]["output_format"]
+
+    if _demo_mode_enabled() and connector_operations:
+        for operation in connector_operations:
+            for side_effect in operation.get("side_effects", []):
+                if side_effect in {"write_connector", "publish_external", "notify"}:
+                    demo_outbox.append(
+                        "external_side_effects",
+                        {
+                            "workspace_id": workspace_id,
+                            "methodology_id": methodology_id,
+                            "stage_id": stage_id,
+                            "activity_id": activity_id,
+                            "lifecycle_event": lifecycle_event,
+                            "side_effect": side_effect,
+                            "connector_binding": operation.get("connector_binding"),
+                            "status": "captured_in_demo_outbox",
+                            "correlation_id": correlation_id,
+                        },
+                    )
+
+        get_audit_log_store().record_event(
+            build_event(
+                tenant_id=workspace_state.tenant_id,
+                actor_id="demo-orchestrator",
+                actor_type="service",
+                roles=["automation"],
+                action="demo.external_side_effect.stubbed",
+                resource_type="workspace",
+                resource_id=workspace_id,
+                outcome="success",
+                metadata={
+                    "correlation_id": correlation_id,
+                    "connector_operations": connector_operations,
+                },
+            )
+        )
+
     assistant_content: Any
     if output_format == "json":
         assistant_content = {

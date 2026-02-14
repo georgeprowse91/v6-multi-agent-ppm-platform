@@ -279,3 +279,47 @@ def test_runtime_action_publish_requires_human_review(client, monkeypatch):
     payload = response.json()
     assert payload["status"] == "review_required"
     assert payload["human_review"]["status"] == "pending"
+
+
+def test_runtime_action_demo_mode_captures_external_side_effects_locally(client, monkeypatch, tmp_path):
+    _set_tenant(monkeypatch, "demo-tenant")
+    monkeypatch.setenv("DEMO_MODE", "true")
+    from demo_integrations import DemoOutbox  # noqa: E402
+
+    main.demo_outbox = DemoOutbox(tmp_path / "demo_outbox.json")
+
+    async def fake_run_methodology_node_action(self, **kwargs):
+        return OrchestrationResult(
+            results={
+                "task-1": {
+                    "agent_id": "agent-09",
+                    "metadata": {"template_id": "hybrid-infrastructure"},
+                    "input": {
+                        "connector_binding": {"connector_type": "jira"},
+                        "side_effects": ["write_connector", "publish_external", "notify"],
+                    },
+                }
+            },
+            context={"correlation_id": "corr-demo"},
+            metrics={"templates_executed": 1},
+        )
+
+    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+
+    response = client.post(
+        "/api/methodology/runtime/action",
+        json={
+            "methodology_id": "adaptive",
+            "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "activity_id": "0.5.1-sprint-iteration-planning",
+            "lifecycle_event": "generate",
+            "user_input": {"workspace_id": "demo-1", "human_review_approved": True},
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "completed"
+
+    outbox = main.demo_outbox.read("external_side_effects")
+    side_effects = {item["side_effect"] for item in outbox}
+    assert {"write_connector", "publish_external", "notify"}.issubset(side_effects)
