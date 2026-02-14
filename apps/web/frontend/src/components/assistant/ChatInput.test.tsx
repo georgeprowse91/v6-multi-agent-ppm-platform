@@ -27,6 +27,7 @@ describe('ChatInput', () => {
 
     fireEvent.change(textarea, { target: { value: '/research' } });
     fireEvent.keyDown(textarea, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: /start research/i }));
     expect(onStartScopeResearch).toHaveBeenCalledTimes(1);
 
     fireEvent.change(textarea, { target: { value: '/help' } });
@@ -39,6 +40,23 @@ describe('ChatInput', () => {
       expect(onSubmitMessage).toHaveBeenCalledWith('help');
       expect(onSubmitMessage).toHaveBeenCalledWith('status');
     });
+  });
+
+
+
+  it('shows discoverability hints for slash commands when input is empty', () => {
+    render(
+      <MemoryRouter>
+        <ChatInput onSubmitMessage={vi.fn()} onStartScopeResearch={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    const textarea = screen.getByLabelText(/ai assistant chat input/i);
+    expect(textarea).toHaveAttribute('placeholder', 'Type a message or / for commands');
+
+    fireEvent.focus(textarea);
+    expect(screen.getByText(/\/prompt/i)).toBeInTheDocument();
+    expect(screen.getByText(/\/research/i)).toBeInTheDocument();
   });
 
   it('auto-grows the textarea up to six rows', async () => {

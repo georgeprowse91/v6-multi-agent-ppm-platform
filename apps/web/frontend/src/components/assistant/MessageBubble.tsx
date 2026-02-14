@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { Icon } from '@/components/icon/Icon';
 import type { ActionChip, AssistantMessage } from '@/store/assistant';
 import styles from './MessageBubble.module.css';
 
@@ -55,20 +56,73 @@ function MarkdownInline({ text }: MarkdownInlineProps) {
   );
 }
 
+function renderNestedList(lines: string[]): ReactNode {
+  const root: Array<{ type: 'ul' | 'ol'; items: Array<{ text: string; children: typeof root }> }> = [];
+  const stack: Array<{ level: number; node: { type: 'ul' | 'ol'; items: Array<{ text: string; children: typeof root }> } }> = [];
+
+  const getContainer = (level: number, type: 'ul' | 'ol') => {
+    while (stack.length > 0 && stack[stack.length - 1].level >= level) {
+      stack.pop();
+    }
+
+    const parent = stack[stack.length - 1];
+    const target = parent?.node.items[parent.node.items.length - 1]?.children ?? root;
+    const existing = target[target.length - 1];
+
+    if (!existing || existing.type !== type) {
+      const next = { type, items: [] as Array<{ text: string; children: typeof root }> };
+      target.push(next);
+      stack.push({ level, node: next });
+      return next;
+    }
+
+    stack.push({ level, node: existing });
+    return existing;
+  };
+
+  lines.forEach((line) => {
+    const match = line.match(/^(\s*)([-*]|\d+\.)\s+(.*)$/);
+    if (!match) return;
+
+    const level = Math.floor(match[1].length / 2);
+    const type = /\d+\./.test(match[2]) ? 'ol' : 'ul';
+    const text = match[3];
+
+    const container = getContainer(level, type);
+    container.items.push({ text, children: [] });
+  });
+
+  const renderNodes = (nodes: typeof root, keyPrefix: string): ReactNode[] =>
+    nodes.map((node, nodeIndex) => {
+      const ListTag = node.type;
+      return (
+        <ListTag key={`${keyPrefix}-${nodeIndex}`}>
+          {node.items.map((item, itemIndex) => (
+            <li key={`${keyPrefix}-${nodeIndex}-${itemIndex}`}>
+              <MarkdownInline text={item.text} />
+              {item.children.length > 0 ? renderNodes(item.children, `${keyPrefix}-${nodeIndex}-${itemIndex}`) : null}
+            </li>
+          ))}
+        </ListTag>
+      );
+    });
+
+  return <>{renderNodes(root, 'nested-list')}</>;
+}
+
 function renderAssistantMarkdown(content: string): ReactNode {
   const lines = content.split('\n');
   const blocks: ReactNode[] = [];
   let paragraphLines: string[] = [];
-  let listItems: string[] = [];
+  let listLines: string[] = [];
+  let tableLines: string[] = [];
+  let blockquoteLines: string[] = [];
   let inCodeBlock = false;
   let codeLines: string[] = [];
   let codeBlockLanguage = '';
 
   const flushParagraph = () => {
-    if (paragraphLines.length === 0) {
-      return;
-    }
-
+    if (paragraphLines.length === 0) return;
     blocks.push(
       <p key={`p-${blocks.length}`}>
         {paragraphLines.map((line, index) => (
@@ -79,26 +133,68 @@ function renderAssistantMarkdown(content: string): ReactNode {
         ))}
       </p>
     );
-
     paragraphLines = [];
   };
 
   const flushList = () => {
-    if (listItems.length === 0) {
+    if (listLines.length === 0) return;
+    blocks.push(<div key={`list-${blocks.length}`}>{renderNestedList(listLines)}</div>);
+    listLines = [];
+  };
+
+  const flushTable = () => {
+    if (tableLines.length < 2) {
+      tableLines = [];
       return;
     }
 
-    blocks.push(
-      <ul key={`ul-${blocks.length}`}>
-        {listItems.map((item, index) => (
-          <li key={`li-${index}`}>
-            <MarkdownInline text={item} />
-          </li>
-        ))}
-      </ul>
+    const rows = tableLines.map((line) =>
+      line
+        .split('|')
+        .map((cell) => cell.trim())
+        .filter((cell, index, arr) => !(index === 0 && cell === '') && !(index === arr.length - 1 && cell === ''))
     );
+    const [header, ...bodyRows] = rows;
+    const normalizedBody = bodyRows.filter((row, idx) => !(idx === 0 && row.every((cell) => /^:?-{3,}:?$/.test(cell))));
 
-    listItems = [];
+    blocks.push(
+      <div key={`table-wrap-${blocks.length}`} className={styles.tableWrap}>
+        <table>
+          <thead>
+            <tr>
+              {header.map((cell, index) => (
+                <th key={`th-${index}`}><MarkdownInline text={cell} /></th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {normalizedBody.map((row, rowIndex) => (
+              <tr key={`tr-${rowIndex}`}>
+                {row.map((cell, cellIndex) => (
+                  <td key={`td-${rowIndex}-${cellIndex}`}><MarkdownInline text={cell} /></td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+    tableLines = [];
+  };
+
+  const flushBlockquote = () => {
+    if (blockquoteLines.length === 0) return;
+    blocks.push(
+      <blockquote key={`bq-${blocks.length}`}>
+        {blockquoteLines.map((line, index) => (
+          <Fragment key={`bq-line-${index}`}>
+            <MarkdownInline text={line} />
+            {index < blockquoteLines.length - 1 && <br />}
+          </Fragment>
+        ))}
+      </blockquote>
+    );
+    blockquoteLines = [];
   };
 
   const flushCodeBlock = () => {
@@ -109,7 +205,6 @@ function renderAssistantMarkdown(content: string): ReactNode {
         </code>
       </pre>
     );
-
     codeLines = [];
     codeBlockLanguage = '';
   };
@@ -123,6 +218,8 @@ function renderAssistantMarkdown(content: string): ReactNode {
       } else {
         flushParagraph();
         flushList();
+        flushTable();
+        flushBlockquote();
         codeBlockLanguage = codeFenceMatch[1] ?? '';
       }
 
@@ -135,20 +232,43 @@ function renderAssistantMarkdown(content: string): ReactNode {
       return;
     }
 
-    const listMatch = line.match(/^\s*[-*]\s+(.*)$/);
+    const listMatch = line.match(/^\s*([-*]|\d+\.)\s+(.*)$/);
     if (listMatch) {
       flushParagraph();
-      listItems.push(listMatch[1]);
+      flushTable();
+      flushBlockquote();
+      listLines.push(line);
+      return;
+    }
+
+    if (line.trim().startsWith('|')) {
+      flushParagraph();
+      flushList();
+      flushBlockquote();
+      tableLines.push(line);
+      return;
+    }
+
+    const blockquoteMatch = line.match(/^>\s?(.*)$/);
+    if (blockquoteMatch) {
+      flushParagraph();
+      flushList();
+      flushTable();
+      blockquoteLines.push(blockquoteMatch[1]);
       return;
     }
 
     if (line.trim() === '') {
       flushParagraph();
       flushList();
+      flushTable();
+      flushBlockquote();
       return;
     }
 
     flushList();
+    flushTable();
+    flushBlockquote();
     paragraphLines.push(line);
   });
 
@@ -158,6 +278,8 @@ function renderAssistantMarkdown(content: string): ReactNode {
 
   flushParagraph();
   flushList();
+  flushTable();
+  flushBlockquote();
 
   return <div className={styles.messageContentRendered}>{blocks}</div>;
 }
@@ -166,12 +288,21 @@ export function MessageBubble({
   message,
   renderActionChip
 }: MessageBubbleProps) {
-  const showGeneratedBadge = message.role === 'assistant' && message.provenance?.showModelOrTool === true;
+  const showGeneratedBadge = message.role === 'assistant';
 
   return (
     <div
       className={`${styles.message} ${styles[message.role]} ${message.isWarning ? styles.warning : ''}`}
     >
+      {showGeneratedBadge && (
+        <span
+          className={styles.generatedBadgeTopRight}
+          title="This response was generated by the AI assistant."
+        >
+          <Icon semantic="ai.automation" label="AI generated response" size="sm" />
+          Generated
+        </span>
+      )}
       <div className={styles.messageContent}>
         {message.role === 'assistant' ? renderAssistantMarkdown(message.content) : message.content}
       </div>
@@ -190,7 +321,6 @@ export function MessageBubble({
         </div>
       )}
       <div className={styles.messageMeta}>
-        {showGeneratedBadge && <span className={styles.generatedBadge}>Generated</span>}
         {message.role === 'assistant' && (!message.sources || message.sources.length === 0) && (
           <span className={styles.noSourcesBadge}>No sources</span>
         )}

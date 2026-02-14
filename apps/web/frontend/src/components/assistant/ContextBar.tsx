@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AssistantContext } from '@/store/assistant';
 import styles from './ContextBar.module.css';
 
 interface ContextBarProps {
   context: AssistantContext;
+  contextSyncLabel?: string;
 }
 
-export function ContextBar({ context }: ContextBarProps) {
+export function ContextBar({ context, contextSyncLabel }: ContextBarProps) {
   const [expanded, setExpanded] = useState(false);
+  const [isSyncPulseVisible, setIsSyncPulseVisible] = useState(false);
 
   const stageName = context.currentStageName ?? 'No stage selected';
   const activityName = context.currentActivityName ?? 'No activity selected';
   const stageProgress = Number.isFinite(context.stageProgress) ? context.stageProgress : 0;
+  const syncedEntity = context.currentActivityName ?? context.currentStageName ?? context.projectName;
+
+  useEffect(() => {
+    if (!contextSyncLabel) return;
+    setIsSyncPulseVisible(true);
+    const timeoutId = window.setTimeout(() => setIsSyncPulseVisible(false), 900);
+    return () => window.clearTimeout(timeoutId);
+  }, [contextSyncLabel]);
 
   return (
     <section className={styles.contextBar} aria-label="Current context">
@@ -23,6 +33,9 @@ export function ContextBar({ context }: ContextBarProps) {
       >
         <span className={styles.breadcrumb} title={`${stageName} > ${activityName}`}>
           {stageName} &gt; {activityName}
+        </span>
+        <span className={`${styles.contextChip} ${isSyncPulseVisible ? styles.contextChipPulse : ''}`}>
+          Context: {syncedEntity}
         </span>
         <span className={styles.progressBadge}>{stageProgress}%</span>
       </button>

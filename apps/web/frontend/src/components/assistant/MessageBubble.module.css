@@ -3,6 +3,7 @@
   padding: var(--space-3);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-sm);
+  position: relative;
 }
 
 .user {
@@ -38,26 +39,74 @@
   line-height: var(--line-height-relaxed);
 }
 
+.assistant .messageContent {
+  padding-top: var(--space-4);
+}
+
 .messageContentRendered p,
 .messageContentRendered ul,
-.messageContentRendered pre {
+.messageContentRendered ol,
+.messageContentRendered pre,
+.messageContentRendered blockquote {
   margin: 0;
 }
 
 .messageContentRendered p + p,
 .messageContentRendered p + ul,
+.messageContentRendered p + ol,
 .messageContentRendered p + pre,
+.messageContentRendered p + blockquote,
 .messageContentRendered ul + p,
 .messageContentRendered ul + ul,
+.messageContentRendered ul + ol,
 .messageContentRendered ul + pre,
+.messageContentRendered ol + p,
+.messageContentRendered ol + ul,
+.messageContentRendered ol + ol,
+.messageContentRendered ol + pre,
 .messageContentRendered pre + p,
 .messageContentRendered pre + ul,
-.messageContentRendered pre + pre {
+.messageContentRendered pre + ol,
+.messageContentRendered pre + pre,
+.messageContentRendered blockquote + p {
   margin-top: var(--space-2);
 }
 
-.messageContentRendered ul {
+.messageContentRendered ul,
+.messageContentRendered ol {
   padding-left: var(--space-4);
+}
+
+.messageContentRendered li > ul,
+.messageContentRendered li > ol {
+  margin-top: var(--space-1);
+}
+
+.messageContentRendered blockquote {
+  border-left: 3px solid var(--color-border-default);
+  padding-left: var(--space-3);
+  color: var(--color-text-secondary);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.messageContentRendered table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.messageContentRendered th,
+.messageContentRendered td {
+  border: 1px solid var(--color-border-subtle);
+  padding: 4px var(--space-2);
+  text-align: left;
+}
+
+.messageContentRendered th {
+  background: var(--color-surface-subtle);
 }
 
 .messageContentRendered code {
@@ -106,14 +155,22 @@
   margin-top: var(--space-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+  justify-content: flex-end;
 }
 
-.generatedBadge {
+.generatedBadgeTopRight {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 2px var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--color-brand-orange-100);
+  background: var(--color-primary-50, var(--color-brand-orange-100));
   color: var(--color-brand-orange-500);
   font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
 }
 
 .noSourcesBadge {

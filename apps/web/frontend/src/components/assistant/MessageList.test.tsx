@@ -28,13 +28,21 @@ describe('MessageList', () => {
 
   it('renders typing indicator for thinking/streaming/tool_use states', () => {
     const { rerender } = render(<MessageList messages={[]} aiState="thinking" context={context} onChipClick={vi.fn()} />);
-    expect(screen.getByText('Thinking…')).toBeInTheDocument();
+    expect(screen.getByText('Planning response…')).toBeInTheDocument();
 
     rerender(<MessageList messages={[]} aiState="streaming" context={context} onChipClick={vi.fn()} />);
-    expect(screen.getByText('Responding…')).toBeInTheDocument();
+    expect(screen.getByText('Drafting response…')).toBeInTheDocument();
 
-    rerender(<MessageList messages={[]} aiState="tool_use" context={context} onChipClick={vi.fn()} />);
-    expect(screen.getByText('Working…')).toBeInTheDocument();
+    rerender(
+      <MessageList
+        messages={[]}
+        aiState="tool_use"
+        typingStatus={{ detail: 'Step 2 of 3: Aggregating results…', step: 2, totalSteps: 3 }}
+        context={context}
+        onChipClick={vi.fn()}
+      />
+    );
+    expect(screen.getByText('Step 2 of 3: Aggregating results…')).toBeInTheDocument();
   });
 
   it('renders scope research and conversational command as inline cards', () => {

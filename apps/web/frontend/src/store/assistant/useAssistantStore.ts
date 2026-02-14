@@ -15,6 +15,7 @@ import type {
   AssistantMessage,
   AIState,
   PrerequisiteInfo,
+  TypingStatus,
 } from './types';
 import type { MethodologyActivity } from '../methodology/types';
 
@@ -33,6 +34,9 @@ interface AssistantStoreState {
 
   // Current AI state
   aiState: AIState;
+
+  // Current detailed typing status
+  typingStatus: TypingStatus | null;
 
   // Actions - Messages
   addMessage: (message: Omit<AssistantMessage, 'id' | 'timestamp'>) => void;
@@ -63,6 +67,7 @@ interface AssistantStoreState {
 
   // Actions - AI state
   setAiState: (state: AIState) => void;
+  setTypingStatus: (status: TypingStatus | null) => void;
 }
 
 export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
@@ -72,6 +77,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   actionChips: [],
   isGeneratingSuggestions: false,
   aiState: 'idle',
+  typingStatus: null,
 
   // Message actions
   addMessage: (message) => {
@@ -207,6 +213,10 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
 
   setAiState: (state) => {
     set({ aiState: state });
+  },
+
+  setTypingStatus: (status) => {
+    set({ typingStatus: status });
   },
 }));
 

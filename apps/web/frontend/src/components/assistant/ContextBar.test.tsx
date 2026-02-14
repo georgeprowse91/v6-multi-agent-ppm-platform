@@ -20,10 +20,11 @@ const context: AssistantContext = {
 
 describe('ContextBar', () => {
   it('starts collapsed and expands on click', () => {
-    render(<ContextBar context={context} />);
+    render(<ContextBar context={context} contextSyncLabel={context.currentActivityName ?? undefined} />);
 
     const toggle = screen.getByRole('button', { name: /plan > define scope/i });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText(/Context: Define Scope/i)).toBeInTheDocument();
     expect(screen.queryByText('Project')).not.toBeInTheDocument();
 
     fireEvent.click(toggle);
