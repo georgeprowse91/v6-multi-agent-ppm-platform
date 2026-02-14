@@ -14,5 +14,85 @@
     "framework": "SOC 2",
     "control_owner": "u_compliance_demo",
     "effective_date": "2025-01-15"
+  },
+  {
+    "id": "gen-policy-001",
+    "title": "Control Policy 1",
+    "framework": "SOC2",
+    "status": "active",
+    "control_owner": "Casey Garcia",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-002",
+    "title": "Control Policy 2",
+    "framework": "SOC2",
+    "status": "active",
+    "control_owner": "Morgan Singh",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-003",
+    "title": "Control Policy 3",
+    "framework": "ISO27001",
+    "status": "active",
+    "control_owner": "Taylor Nguyen",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-004",
+    "title": "Control Policy 4",
+    "framework": "ISO27001",
+    "status": "active",
+    "control_owner": "Taylor Johnson",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-005",
+    "title": "Control Policy 5",
+    "framework": "ISO27001",
+    "status": "active",
+    "control_owner": "Quinn Garcia",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-006",
+    "title": "Control Policy 6",
+    "framework": "NIST",
+    "status": "active",
+    "control_owner": "Alex Parker",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-007",
+    "title": "Control Policy 7",
+    "framework": "SOC2",
+    "status": "active",
+    "control_owner": "Jordan Kim",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-008",
+    "title": "Control Policy 8",
+    "framework": "NIST",
+    "status": "active",
+    "control_owner": "Alex Johnson",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-009",
+    "title": "Control Policy 9",
+    "framework": "SOC2",
+    "status": "active",
+    "control_owner": "Taylor Singh",
+    "effective_date": "2025-10-17"
+  },
+  {
+    "id": "gen-policy-010",
+    "title": "Control Policy 10",
+    "framework": "NIST",
+    "status": "active",
+    "control_owner": "Morgan Singh",
+    "effective_date": "2025-10-17"
   }
 ]

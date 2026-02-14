@@ -18,5 +18,205 @@
     "status": "approved_with_conditions",
     "requested_at": "2025-02-02T09:00:00Z",
     "decision_at": "2025-02-04T14:30:00Z"
+  },
+  {
+    "id": "gen-approval-001",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-001",
+    "requester": "Riley Singh",
+    "approver": "Morgan Patel",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-002",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-002",
+    "requester": "Quinn Garcia",
+    "approver": "Alex Patel",
+    "status": "approved",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-003",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-003",
+    "requester": "Alex Patel",
+    "approver": "Casey Johnson",
+    "status": "rejected",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-004",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-004",
+    "requester": "Morgan Garcia",
+    "approver": "Casey Patel",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-005",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-005",
+    "requester": "Jordan Singh",
+    "approver": "Riley Parker",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-006",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-006",
+    "requester": "Jordan Patel",
+    "approver": "Jordan Kim",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-007",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-007",
+    "requester": "Quinn Patel",
+    "approver": "Taylor Patel",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-008",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-008",
+    "requester": "Alex Singh",
+    "approver": "Casey Singh",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-009",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-009",
+    "requester": "Jordan Singh",
+    "approver": "Riley Johnson",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-010",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-010",
+    "requester": "Riley Garcia",
+    "approver": "Quinn Johnson",
+    "status": "approved",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-011",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-001",
+    "requester": "Alex Singh",
+    "approver": "Quinn Johnson",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-012",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-012",
+    "requester": "Morgan Parker",
+    "approver": "Morgan Parker",
+    "status": "approved",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-013",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-003",
+    "requester": "Riley Singh",
+    "approver": "Riley Singh",
+    "status": "rejected",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-014",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-014",
+    "requester": "Casey Singh",
+    "approver": "Taylor Parker",
+    "status": "approved",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-015",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-005",
+    "requester": "Alex Patel",
+    "approver": "Jordan Kim",
+    "status": "rejected",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-016",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-016",
+    "requester": "Morgan Kim",
+    "approver": "Casey Patel",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-017",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-007",
+    "requester": "Morgan Kim",
+    "approver": "Alex Nguyen",
+    "status": "approved",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-018",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-018",
+    "requester": "Riley Singh",
+    "approver": "Riley Parker",
+    "status": "approved",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-019",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-009",
+    "requester": "Quinn Patel",
+    "approver": "Casey Patel",
+    "status": "pending",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-020",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-020",
+    "requester": "Taylor Kim",
+    "approver": "Jordan Parker",
+    "status": "rejected",
+    "requested_at": "2026-02-14T06:43:13+00:00",
+    "decision_at": "2026-02-14T06:43:13+00:00"
   }
 ]

@@ -19,5 +19,215 @@
     "title": "Golden Signals Monitoring",
     "status": "in_progress",
     "target_release": "2025-Q3"
+  },
+  {
+    "id": "gen-epic-001",
+    "project_id": "gen-project-001",
+    "title": "Epic 1",
+    "status": "done",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-002",
+    "project_id": "gen-project-002",
+    "title": "Epic 2",
+    "status": "done",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-003",
+    "project_id": "gen-project-003",
+    "title": "Epic 3",
+    "status": "proposed",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-004",
+    "project_id": "gen-project-004",
+    "title": "Epic 4",
+    "status": "proposed",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-005",
+    "project_id": "gen-project-005",
+    "title": "Epic 5",
+    "status": "done",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-006",
+    "project_id": "gen-project-006",
+    "title": "Epic 6",
+    "status": "proposed",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-007",
+    "project_id": "gen-project-007",
+    "title": "Epic 7",
+    "status": "active",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-008",
+    "project_id": "gen-project-008",
+    "title": "Epic 8",
+    "status": "done",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-009",
+    "project_id": "gen-project-009",
+    "title": "Epic 9",
+    "status": "proposed",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-010",
+    "project_id": "gen-project-010",
+    "title": "Epic 10",
+    "status": "proposed",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-011",
+    "project_id": "gen-project-011",
+    "title": "Epic 11",
+    "status": "proposed",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-012",
+    "project_id": "gen-project-012",
+    "title": "Epic 12",
+    "status": "proposed",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-013",
+    "project_id": "gen-project-013",
+    "title": "Epic 13",
+    "status": "done",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-014",
+    "project_id": "gen-project-014",
+    "title": "Epic 14",
+    "status": "proposed",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-015",
+    "project_id": "gen-project-015",
+    "title": "Epic 15",
+    "status": "proposed",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-016",
+    "project_id": "gen-project-016",
+    "title": "Epic 16",
+    "status": "proposed",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-017",
+    "project_id": "gen-project-017",
+    "title": "Epic 17",
+    "status": "active",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-018",
+    "project_id": "gen-project-018",
+    "title": "Epic 18",
+    "status": "active",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-019",
+    "project_id": "gen-project-019",
+    "title": "Epic 19",
+    "status": "done",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-020",
+    "project_id": "gen-project-020",
+    "title": "Epic 20",
+    "status": "done",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-021",
+    "project_id": "gen-project-001",
+    "title": "Epic 21",
+    "status": "active",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-022",
+    "project_id": "gen-project-002",
+    "title": "Epic 22",
+    "status": "active",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-023",
+    "project_id": "gen-project-003",
+    "title": "Epic 23",
+    "status": "proposed",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-024",
+    "project_id": "gen-project-004",
+    "title": "Epic 24",
+    "status": "proposed",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-025",
+    "project_id": "gen-project-005",
+    "title": "Epic 25",
+    "status": "active",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-026",
+    "project_id": "gen-project-006",
+    "title": "Epic 26",
+    "status": "done",
+    "target_release": "R3"
+  },
+  {
+    "id": "gen-epic-027",
+    "project_id": "gen-project-007",
+    "title": "Epic 27",
+    "status": "active",
+    "target_release": "R4"
+  },
+  {
+    "id": "gen-epic-028",
+    "project_id": "gen-project-008",
+    "title": "Epic 28",
+    "status": "done",
+    "target_release": "R1"
+  },
+  {
+    "id": "gen-epic-029",
+    "project_id": "gen-project-009",
+    "title": "Epic 29",
+    "status": "active",
+    "target_release": "R2"
+  },
+  {
+    "id": "gen-epic-030",
+    "project_id": "gen-project-010",
+    "title": "Epic 30",
+    "status": "proposed",
+    "target_release": "R3"
   }
 ]

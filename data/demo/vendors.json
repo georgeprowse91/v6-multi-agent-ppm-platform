@@ -20,5 +20,115 @@
     "classification": "Internal",
     "created_at": "2025-01-18T08:05:00Z",
     "rating": 4.2
+  },
+  {
+    "id": "gen-vendor-001",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 1",
+    "status": "active",
+    "category": "hardware",
+    "owner": "Morgan Nguyen",
+    "rating": 4,
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-002",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 2",
+    "status": "active",
+    "category": "hardware",
+    "owner": "Morgan Singh",
+    "rating": 5,
+    "classification": "public",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-003",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 3",
+    "status": "active",
+    "category": "consulting",
+    "owner": "Morgan Patel",
+    "rating": 5,
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-004",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 4",
+    "status": "active",
+    "category": "consulting",
+    "owner": "Jordan Johnson",
+    "rating": 4,
+    "classification": "public",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-005",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 5",
+    "status": "active",
+    "category": "software",
+    "owner": "Quinn Parker",
+    "rating": 3,
+    "classification": "restricted",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-006",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 6",
+    "status": "active",
+    "category": "software",
+    "owner": "Casey Johnson",
+    "rating": 4,
+    "classification": "internal",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-007",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 7",
+    "status": "active",
+    "category": "software",
+    "owner": "Riley Garcia",
+    "rating": 5,
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-008",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 8",
+    "status": "active",
+    "category": "software",
+    "owner": "Morgan Patel",
+    "rating": 5,
+    "classification": "restricted",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-009",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 9",
+    "status": "active",
+    "category": "software",
+    "owner": "Taylor Garcia",
+    "rating": 4,
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-vendor-010",
+    "tenant_id": "tenant-demo",
+    "name": "Vendor 10",
+    "status": "active",
+    "category": "software",
+    "owner": "Riley Garcia",
+    "rating": 3,
+    "classification": "internal",
+    "created_at": "2026-02-14T06:43:13+00:00"
   }
 ]

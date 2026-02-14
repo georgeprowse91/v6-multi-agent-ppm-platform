@@ -18,5 +18,105 @@
     "owner": "u_program_demo",
     "classification": "Internal",
     "created_at": "2025-01-22T11:00:00Z"
+  },
+  {
+    "id": "gen-program-001",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-001",
+    "name": "Program 1",
+    "status": "active",
+    "owner": "Riley Kim",
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-002",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-002",
+    "name": "Program 2",
+    "status": "active",
+    "owner": "Riley Nguyen",
+    "classification": "public",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-003",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-003",
+    "name": "Program 3",
+    "status": "active",
+    "owner": "Alex Johnson",
+    "classification": "internal",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-004",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-004",
+    "name": "Program 4",
+    "status": "active",
+    "owner": "Quinn Patel",
+    "classification": "public",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-005",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-005",
+    "name": "Program 5",
+    "status": "active",
+    "owner": "Quinn Nguyen",
+    "classification": "public",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-006",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-006",
+    "name": "Program 6",
+    "status": "active",
+    "owner": "Morgan Patel",
+    "classification": "restricted",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-007",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-007",
+    "name": "Program 7",
+    "status": "active",
+    "owner": "Casey Kim",
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-008",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-008",
+    "name": "Program 8",
+    "status": "active",
+    "owner": "Jordan Patel",
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-009",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-009",
+    "name": "Program 9",
+    "status": "active",
+    "owner": "Jordan Johnson",
+    "classification": "confidential",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-program-010",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "gen-portfolio-010",
+    "name": "Program 10",
+    "status": "active",
+    "owner": "Casey Johnson",
+    "classification": "public",
+    "created_at": "2026-02-14T06:43:13+00:00"
   }
 ]

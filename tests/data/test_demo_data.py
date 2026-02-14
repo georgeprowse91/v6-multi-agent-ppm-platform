@@ -99,3 +99,15 @@ def test_demo_relationship_integrity() -> None:
         ("contract", contract_id) for contract_id in contract_ids
     }
     assert all((approval["entity_type"], approval["entity_id"]) in approval_targets for approval in approvals)
+
+
+def test_demo_minimum_record_counts() -> None:
+    projects = _read_json(DEMO_DIR / "projects.json")
+    tasks = _read_json(DEMO_DIR / "tasks.json")
+    risks = _read_json(DEMO_DIR / "risks.json")
+    issues = _read_json(DEMO_DIR / "issues.json")
+
+    assert len(projects) >= 10
+    assert len(tasks) >= 100
+    assert len(risks) >= 30
+    assert len(issues) >= 30

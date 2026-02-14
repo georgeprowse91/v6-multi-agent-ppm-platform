@@ -18,5 +18,205 @@
     "end_date": "2026-02-28",
     "value": 310000,
     "status": "active"
+  },
+  {
+    "id": "gen-contract-001",
+    "name": "Contract 1",
+    "vendor_id": "gen-vendor-001",
+    "project_id": "gen-project-001",
+    "value": 424318,
+    "status": "active",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-002",
+    "name": "Contract 2",
+    "vendor_id": "gen-vendor-002",
+    "project_id": "gen-project-002",
+    "value": 197568,
+    "status": "draft",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-003",
+    "name": "Contract 3",
+    "vendor_id": "gen-vendor-003",
+    "project_id": "gen-project-003",
+    "value": 263560,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-004",
+    "name": "Contract 4",
+    "vendor_id": "gen-vendor-004",
+    "project_id": "gen-project-004",
+    "value": 272707,
+    "status": "draft",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-005",
+    "name": "Contract 5",
+    "vendor_id": "gen-vendor-005",
+    "project_id": "gen-project-005",
+    "value": 226049,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-006",
+    "name": "Contract 6",
+    "vendor_id": "gen-vendor-006",
+    "project_id": "gen-project-006",
+    "value": 198572,
+    "status": "active",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-007",
+    "name": "Contract 7",
+    "vendor_id": "gen-vendor-007",
+    "project_id": "gen-project-007",
+    "value": 374107,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-008",
+    "name": "Contract 8",
+    "vendor_id": "gen-vendor-008",
+    "project_id": "gen-project-008",
+    "value": 401689,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-009",
+    "name": "Contract 9",
+    "vendor_id": "gen-vendor-009",
+    "project_id": "gen-project-009",
+    "value": 416959,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-010",
+    "name": "Contract 10",
+    "vendor_id": "gen-vendor-010",
+    "project_id": "gen-project-010",
+    "value": 93764,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-011",
+    "name": "Contract 11",
+    "vendor_id": "gen-vendor-001",
+    "project_id": "gen-project-011",
+    "value": 424893,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-012",
+    "name": "Contract 12",
+    "vendor_id": "gen-vendor-002",
+    "project_id": "gen-project-012",
+    "value": 220219,
+    "status": "draft",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-013",
+    "name": "Contract 13",
+    "vendor_id": "gen-vendor-003",
+    "project_id": "gen-project-013",
+    "value": 174589,
+    "status": "active",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-014",
+    "name": "Contract 14",
+    "vendor_id": "gen-vendor-004",
+    "project_id": "gen-project-014",
+    "value": 448416,
+    "status": "active",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-015",
+    "name": "Contract 15",
+    "vendor_id": "gen-vendor-005",
+    "project_id": "gen-project-015",
+    "value": 258165,
+    "status": "active",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-016",
+    "name": "Contract 16",
+    "vendor_id": "gen-vendor-006",
+    "project_id": "gen-project-016",
+    "value": 83201,
+    "status": "draft",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-017",
+    "name": "Contract 17",
+    "vendor_id": "gen-vendor-007",
+    "project_id": "gen-project-017",
+    "value": 155105,
+    "status": "expired",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-018",
+    "name": "Contract 18",
+    "vendor_id": "gen-vendor-008",
+    "project_id": "gen-project-018",
+    "value": 424637,
+    "status": "active",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-019",
+    "name": "Contract 19",
+    "vendor_id": "gen-vendor-009",
+    "project_id": "gen-project-019",
+    "value": 116482,
+    "status": "draft",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
+  },
+  {
+    "id": "gen-contract-020",
+    "name": "Contract 20",
+    "vendor_id": "gen-vendor-010",
+    "project_id": "gen-project-020",
+    "value": 411964,
+    "status": "draft",
+    "start_date": "2025-11-16",
+    "end_date": "2027-02-14"
   }
 ]

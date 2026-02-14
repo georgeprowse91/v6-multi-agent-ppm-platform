@@ -38,5 +38,305 @@
     "created_at": "2025-01-08T13:00:00Z",
     "program_id": "pg-data-002",
     "cost_rate": 1150
+  },
+  {
+    "id": "gen-resource-001",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-001",
+    "name": "Quinn Garcia",
+    "role": "Product Manager",
+    "cost_rate": 173,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-002",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-002",
+    "name": "Riley Singh",
+    "role": "Architect",
+    "cost_rate": 102,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-003",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-003",
+    "name": "Riley Johnson",
+    "role": "Architect",
+    "cost_rate": 88,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-004",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-004",
+    "name": "Quinn Singh",
+    "role": "Analyst",
+    "cost_rate": 112,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-005",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-005",
+    "name": "Morgan Patel",
+    "role": "Analyst",
+    "cost_rate": 124,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-006",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-006",
+    "name": "Morgan Nguyen",
+    "role": "Architect",
+    "cost_rate": 222,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-007",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-007",
+    "name": "Quinn Singh",
+    "role": "Analyst",
+    "cost_rate": 196,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-008",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-008",
+    "name": "Quinn Johnson",
+    "role": "Architect",
+    "cost_rate": 167,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-009",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-009",
+    "name": "Quinn Nguyen",
+    "role": "Product Manager",
+    "cost_rate": 156,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-010",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-010",
+    "name": "Morgan Nguyen",
+    "role": "Analyst",
+    "cost_rate": 182,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-011",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-001",
+    "name": "Taylor Parker",
+    "role": "Analyst",
+    "cost_rate": 168,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-012",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-002",
+    "name": "Jordan Singh",
+    "role": "Engineer",
+    "cost_rate": 175,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-013",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-003",
+    "name": "Quinn Patel",
+    "role": "Architect",
+    "cost_rate": 156,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-014",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-004",
+    "name": "Riley Johnson",
+    "role": "Architect",
+    "cost_rate": 87,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-015",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-005",
+    "name": "Riley Nguyen",
+    "role": "Product Manager",
+    "cost_rate": 146,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-016",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-006",
+    "name": "Casey Singh",
+    "role": "Analyst",
+    "cost_rate": 146,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-017",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-007",
+    "name": "Casey Singh",
+    "role": "Analyst",
+    "cost_rate": 199,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-018",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-008",
+    "name": "Quinn Parker",
+    "role": "Product Manager",
+    "cost_rate": 160,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-019",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-009",
+    "name": "Jordan Singh",
+    "role": "Engineer",
+    "cost_rate": 163,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-020",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-010",
+    "name": "Casey Garcia",
+    "role": "Architect",
+    "cost_rate": 206,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-021",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-001",
+    "name": "Riley Garcia",
+    "role": "Architect",
+    "cost_rate": 193,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-022",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-002",
+    "name": "Casey Garcia",
+    "role": "Architect",
+    "cost_rate": 175,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-023",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-003",
+    "name": "Casey Singh",
+    "role": "Architect",
+    "cost_rate": 163,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-024",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-004",
+    "name": "Taylor Nguyen",
+    "role": "Product Manager",
+    "cost_rate": 134,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-025",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-005",
+    "name": "Taylor Parker",
+    "role": "Engineer",
+    "cost_rate": 134,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-026",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-006",
+    "name": "Jordan Johnson",
+    "role": "Analyst",
+    "cost_rate": 155,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-027",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-007",
+    "name": "Casey Garcia",
+    "role": "Architect",
+    "cost_rate": 110,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-028",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-008",
+    "name": "Quinn Nguyen",
+    "role": "Architect",
+    "cost_rate": 143,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-029",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-009",
+    "name": "Taylor Nguyen",
+    "role": "Architect",
+    "cost_rate": 88,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-resource-030",
+    "tenant_id": "tenant-demo",
+    "program_id": "gen-program-010",
+    "name": "Casey Garcia",
+    "role": "Engineer",
+    "cost_rate": 155,
+    "status": "active",
+    "created_at": "2026-02-14T06:43:13+00:00"
   }
 ]
