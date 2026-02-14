@@ -1,40 +1,101 @@
-# Demo environment provisioning and deployment
+# Demo environment setup and usage
 
-This guide describes how to provision a low-cost demo environment and deploy the PPM platform with demo-specific Helm values.
+This guide explains how to provision, deploy, operate, and reset the platform demo environment.
+
+> The demo environment is designed to **replicate full product functionality with realistic data sets and interactive tasks** so teams can run credible stakeholder walkthroughs, sales demos, onboarding sessions, and UAT rehearsals.
+
+## Why use the demo environment
+
+Use demo mode when you need a safe, reproducible environment that:
+
+- Mirrors core end-to-end platform flows (API gateway, workflow orchestration, agent execution, UI dashboards).
+- Starts quickly with deterministic sample payloads from `examples/demo-scenarios/`.
+- Supports scripted walkthroughs without requiring production dependencies.
+- Lets teams rehearse portfolio planning, approvals, lifecycle tracking, and cross-agent interactions with realistic project artifacts.
 
 ## Prerequisites
 
-- Terraform `>= 1.5`
-- Helm `>= 3.12`
-- Azure CLI authenticated to the target subscription
-- `kubectl` configured with cluster access
+### Required tools
 
-## 1) Prepare demo environment variables
+- Docker Engine + Docker Compose plugin
+- Python `3.11+`
+- `make`
+- `kubectl` and `helm` (for Kubernetes deployment)
+- Terraform `>= 1.5` and Azure CLI (for cloud demo infrastructure provisioning)
 
-```bash
-cp .env.demo .env
-source .env
-```
-
-> `.env.demo` contains stub secrets only. Replace them before provisioning shared infrastructure.
-
-## 2) Provision infrastructure with Terraform
+### Required repository setup
 
 ```bash
-cd infra/terraform/envs/demo
-cp terraform.tfvars.example terraform.tfvars
-terraform init
-terraform plan -var-file=terraform.tfvars
-terraform apply -var-file=terraform.tfvars
+git clone <repo-url>
+cd multi-agent-ppm-platform
+cp .env.example .env
 ```
 
-The demo stack intentionally uses cost-effective defaults:
+Then set demo mode:
 
-- Single-node AKS (`Standard_B2s`, `sku_tier=Free`)
-- PostgreSQL burstable SKU (`B_Standard_B1ms`) with no HA
-- LRS storage account for artifacts and logs
+```bash
+# set in .env
+DEMO_MODE=true
+```
 
-## 3) Deploy the platform with Helm
+## Local demo quick start
+
+The fastest local path is to start the development stack with `DEMO_MODE=true`.
+
+```bash
+make dev-up
+```
+
+Or run Docker Compose directly:
+
+```bash
+docker compose up --build
+```
+
+### Verify the stack
+
+- API: <http://localhost:8000>
+- API docs: <http://localhost:8000/v1/docs>
+- Web console: <http://localhost:8501>
+
+Run:
+
+```bash
+docker compose ps
+```
+
+## Provision the cloud demo environment (Azure + AKS)
+
+Use this when you need a shared hosted environment for customers or internal enablement.
+
+1. Authenticate and choose subscription:
+
+   ```bash
+   az login
+   az account set --subscription "<subscription-id>"
+   ```
+
+2. Prepare Terraform variables:
+
+   ```bash
+   cd infra/terraform/envs/demo
+   cp terraform.tfvars.example terraform.tfvars
+   # edit terraform.tfvars values
+   ```
+
+3. Provision infrastructure:
+
+   ```bash
+   terraform init
+   terraform plan -var-file=terraform.tfvars
+   terraform apply -var-file=terraform.tfvars
+   ```
+
+The demo Terraform stack is tuned for cost control (single-node AKS, burstable Postgres, and LRS storage defaults).
+
+## Deploy the demo to Kubernetes
+
+After infrastructure exists and `kubectl` context is configured for the demo cluster:
 
 ```bash
 helm upgrade --install ppm-platform-demo \
@@ -44,40 +105,114 @@ helm upgrade --install ppm-platform-demo \
   -f infra/kubernetes/helm-charts/ppm-platform/demo-values.yaml
 ```
 
-The demo values file enables demo mode, points connector services to internal mock connector URLs, and reduces service replica counts for lower cost.
-
-## 4) Verify deployment
+Verify deployment health:
 
 ```bash
 kubectl get pods -n ppm-demo
 kubectl get svc -n ppm-demo
 ```
 
-## 5) Enable global demo mode for all services
+## Load dummy data and demo assets
 
-The platform now supports a single global `DEMO_MODE` toggle.
+The repository ships curated demo payloads in `examples/demo-scenarios/`.
 
-- Default value lives in `config/common.yaml`.
-- Environment variable `DEMO_MODE` overrides the file value at runtime.
-- Services that consume this setting include the web UI, API gateway, workflow engine, orchestration workflows, agent runtime, and connector/data-sync integrations.
+### Option A: UI/API demo mode
 
-### Local Docker Compose
+Set `DEMO_MODE=true` and start the stack. In demo mode, dashboard and scenario views consume static example payloads (for example portfolio health and lifecycle metrics) so the experience is immediately usable.
 
-Set `DEMO_MODE=true` in your `.env` file before starting compose:
+### Option B: Run scripted payload flows
+
+Use the smoke script to execute deterministic demo interactions against workflow + API applications:
 
 ```bash
-cp .env.example .env
-# then set DEMO_MODE=true
+python ops/scripts/quickstart_smoke.py
+```
 
+This script uses `examples/demo-scenarios/quickstart-*.json` payloads and mock LLM responses for repeatable runs.
+
+## Run scripted scenarios
+
+Use scenario artifacts for walkthroughs, regression demos, and training:
+
+1. Inspect available scenario files:
+
+   ```bash
+   ls examples/demo-scenarios
+   ```
+
+2. Start demo stack (`DEMO_MODE=true`) and execute script-driven flow:
+
+   ```bash
+   python ops/scripts/quickstart_smoke.py
+   ```
+
+3. Drive UI walkthroughs using the demo dashboard route:
+
+   ```text
+   /workspace?project_id=demo-1
+   ```
+
+Recommended scripted flow order:
+
+1. Intake/query submission
+2. Workflow initiation and monitoring
+3. Approvals and stage-gate progression
+4. Portfolio health and lifecycle review
+
+## Reset the demo environment
+
+### Reset local containers and volumes
+
+```bash
+docker compose down -v
 docker compose up --build
 ```
 
-Compose startup wiring propagates `DEMO_MODE` to `api`, `workflow-engine`, and `web` containers.
+Or with Make targets:
 
-### Kubernetes / Helm
+```bash
+make dev-down
+make dev-up
+```
 
-Set `env.DEMO_MODE` in service Helm values (for example `services/data-sync-service/helm/values.yaml`).
+### Reset database state
 
-### Agent participation list
+```bash
+make db-reset
+```
 
-Optional per-agent participation can be configured in `config/agents/demo-participants.yaml` via `demoEnabled: true` flags.
+> `db-reset` destroys local DB state and recreates migrations; use only for disposable demo data.
+
+### Reset cloud demo deployment
+
+- Reapply Helm release to restore desired state:
+
+  ```bash
+  helm upgrade --install ppm-platform-demo \
+    infra/kubernetes/helm-charts/ppm-platform \
+    --namespace ppm-demo \
+    -f infra/kubernetes/helm-charts/ppm-platform/demo-values.yaml
+  ```
+
+- If full rebuild is required, destroy and reprovision with Terraform in `infra/terraform/envs/demo`.
+
+## Demo mode vs production mode
+
+### Purpose of demo mode
+
+Demo mode exists to provide a stable, low-risk environment that showcases the platform's end-to-end capabilities with realistic data and interactive workflows, while minimizing setup complexity and operating cost.
+
+### Demo mode characteristics
+
+- Deterministic sample data and mockable upstream dependencies.
+- Faster startup and lower infrastructure sizing.
+- Reduced operational overhead for rehearsals and enablement.
+
+### Limitations compared with production
+
+- Not a substitute for production-grade security hardening, secrets management, and compliance controls.
+- May use static JSON and mocked responses instead of live enterprise systems.
+- Performance, scale, and HA settings are intentionally reduced.
+- Operational telemetry and SLO behavior can differ from production traffic patterns.
+
+For production deployments, use environment-specific secrets, full observability baselines, hardened networking policies, and real connector integrations.

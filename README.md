@@ -65,6 +65,24 @@ make run-api
 make run-web
 ```
 
+## Demo environment quick start
+
+For a realistic, full-functionality demonstration environment with interactive scenarios, use demo mode:
+
+```bash
+cp .env.example .env
+# set DEMO_MODE=true in .env
+make dev-up
+```
+
+Equivalent Docker Compose command:
+
+```bash
+DEMO_MODE=true docker compose up --build
+```
+
+Full setup, provisioning, reset, and scripted-scenario instructions: [docs/demo-environment.md](./docs/demo-environment.md)
+
 ## Service catalog & endpoints
 
 The platform ships with dedicated backend services. Use the table below to understand responsibilities and
