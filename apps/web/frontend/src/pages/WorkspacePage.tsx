@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { KpiWidget } from '@/components/dashboard/KpiWidget';
 import { StatusIndicator } from '@/components/dashboard/StatusIndicator';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore, type EntitySelection } from '@/store';
 import styles from './WorkspacePage.module.css';
 
@@ -543,8 +544,20 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
               View full dashboard
             </button>
           </div>
-          <div className={styles.summaryGrid}>
-            {dashboardData.kpis.length > 0 ? (
+          <div
+            className={styles.summaryGrid}
+            aria-busy={isLoading}
+            aria-live={isLoading ? 'off' : 'polite'}
+          >
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={`kpi-skeleton-${index}`} className={styles.kpiSkeletonCard}>
+                  <Skeleton variant="text" width="45%" />
+                  <Skeleton variant="text" width="75%" height="1.8rem" />
+                  <Skeleton variant="text" width="35%" />
+                </div>
+              ))
+            ) : dashboardData.kpis.length > 0 ? (
               dashboardData.kpis.map((kpi) => (
                 <KpiWidget
                   key={kpi.label}
@@ -563,7 +576,7 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
               Current activity: <strong>{currentActivity.name}</strong>
             </p>
           )}
-          {isLoading && <p className={styles.statusNote}>Loading latest metrics…</p>}
+          {!isLoading && <p className={styles.statusNote} aria-live="polite">Latest metrics loaded.</p>}
           {errorMessage && <p className={styles.errorNote}>{errorMessage}</p>}
         </section>
 
@@ -655,7 +668,25 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                 ))}
               </select>
             </div>
-            {pipelineLoading && <p className={styles.statusNote}>Loading pipeline view…</p>}
+            {pipelineLoading && (
+              <div
+                className={styles.pipelineSkeletonBoard}
+                aria-busy="true"
+                aria-live="off"
+              >
+                {Array.from({ length: 4 }).map((_, columnIndex) => (
+                  <div key={`pipeline-skeleton-${columnIndex}`} className={styles.pipelineSkeletonColumn}>
+                    <div className={styles.pipelineSkeletonHeader}>
+                      <Skeleton variant="text" width="55%" />
+                      <Skeleton variant="circle" width="1.8rem" height="1.8rem" />
+                    </div>
+                    <Skeleton variant="card" className={styles.pipelineSkeletonCard} />
+                    <Skeleton variant="card" className={styles.pipelineSkeletonCard} />
+                  </div>
+                ))}
+              </div>
+            )}
+            {!pipelineLoading && <p className={styles.statusNote} aria-live="polite">Pipeline view loaded.</p>}
             {pipelineError && <p className={styles.errorNote}>{pipelineError}</p>}
             {pipelineBoard ? (
               <div className={styles.pipelineBoard}>

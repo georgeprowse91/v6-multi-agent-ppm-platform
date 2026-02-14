@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { getErrorMessage, requestJson } from '@/services/apiClient';
 import type { AgentConfig, AgentParameter } from '@/store/agentConfig/types';
 import type { ConfigField, Connector } from '@/store/connectors/types';
@@ -345,8 +346,19 @@ export function ConfigPage({ type }: ConfigPageProps) {
         <p className={styles.tabDescription}>{configTabs[activeTab].description}</p>
 
         {activeTab === 'agents' && (
-          <div className={styles.section}>
-            {agentsLoading && <div className={styles.state}>Loading agents…</div>}
+          <div className={styles.section} aria-live={agentsLoading ? 'off' : 'polite'}>
+            {agentsLoading && (
+              <div className={styles.cardGrid} aria-busy="true" aria-live="off">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={`agent-skeleton-${index}`} className={styles.loadingCard}>
+                    <Skeleton variant="text" width="55%" />
+                    <Skeleton variant="text" width="85%" />
+                    <Skeleton variant="card" className={styles.loadingCardMeta} />
+                    <Skeleton variant="text" width="40%" />
+                  </div>
+                ))}
+              </div>
+            )}
             {agentsError && (
               <div className={styles.errorState}>
                 <span>{agentsError}</span>
@@ -501,8 +513,19 @@ export function ConfigPage({ type }: ConfigPageProps) {
         )}
 
         {activeTab === 'connectors' && (
-          <div className={styles.section}>
-            {connectorsLoading && <div className={styles.state}>Loading connectors…</div>}
+          <div className={styles.section} aria-live={connectorsLoading ? 'off' : 'polite'}>
+            {connectorsLoading && (
+              <div className={styles.cardGrid} aria-busy="true" aria-live="off">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={`connector-skeleton-${index}`} className={styles.loadingCard}>
+                    <Skeleton variant="text" width="50%" />
+                    <Skeleton variant="text" width="78%" />
+                    <Skeleton variant="card" className={styles.loadingCardMeta} />
+                    <Skeleton variant="text" width="46%" />
+                  </div>
+                ))}
+              </div>
+            )}
             {connectorsError && (
               <div className={styles.errorState}>
                 <span>{connectorsError}</span>
@@ -579,8 +602,19 @@ export function ConfigPage({ type }: ConfigPageProps) {
         )}
 
         {activeTab === 'workflows' && (
-          <div className={styles.section}>
-            {workflowsLoading && <div className={styles.state}>Loading workflows…</div>}
+          <div className={styles.section} aria-live={workflowsLoading ? 'off' : 'polite'}>
+            {workflowsLoading && (
+              <div className={styles.cardGrid} aria-busy="true" aria-live="off">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={`workflow-skeleton-${index}`} className={styles.loadingCard}>
+                    <Skeleton variant="text" width="58%" />
+                    <Skeleton variant="text" width="88%" />
+                    <Skeleton variant="card" className={styles.loadingCardMeta} />
+                    <Skeleton variant="text" width="44%" />
+                  </div>
+                ))}
+              </div>
+            )}
             {workflowsError && (
               <div className={styles.errorState}>
                 <span>{workflowsError}</span>

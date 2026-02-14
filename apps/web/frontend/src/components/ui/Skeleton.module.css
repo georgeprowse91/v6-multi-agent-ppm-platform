@@ -1,0 +1,41 @@
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface-subtle);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: shimmer var(--transition-normal) linear infinite;
+}
+
+.text {
+  height: 0.9rem;
+  border-radius: var(--radius-pill);
+}
+
+.card {
+  min-height: 160px;
+  border-radius: var(--radius-lg);
+}
+
+.circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+
+.chart {
+  min-height: 180px;
+  border-radius: var(--radius-md);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

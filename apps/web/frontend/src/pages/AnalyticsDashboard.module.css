@@ -176,3 +176,7 @@
   background: #f6f8fb;
   color: #4a4e57;
 }
+
+.analyticsChartSkeleton {
+  min-height: 160px;
+}

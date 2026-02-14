@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { hasPermission } from '@/auth/permissions';
 import { useAppStore } from '@/store';
 import { parseJsonResponse } from '@/utils/apiValidation';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { s } from '@/utils/schema';
 import styles from './AnalyticsDashboard.module.css';
 
@@ -251,7 +252,7 @@ export function AnalyticsDashboard() {
             onClick={loadTrends}
             disabled={loading || !canViewAnalytics}
           >
-            {loading ? 'Loading…' : 'Refresh'}
+            Refresh
           </button>
         </div>
       </header>
@@ -276,8 +277,24 @@ export function AnalyticsDashboard() {
         </div>
       ) : null}
 
+      {canViewAnalytics && loading ? (
+        <div className={styles.grid} aria-busy="true" aria-live="off">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={`analytics-skeleton-${index}`} className={styles.card}>
+              <Skeleton variant="text" width="38%" />
+              <div className={styles.metricMeta}>
+                <Skeleton variant="text" width="28%" />
+                <Skeleton variant="text" width="32%" />
+                <Skeleton variant="text" width="30%" />
+              </div>
+              <Skeleton variant="chart" className={styles.analyticsChartSkeleton} />
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {canViewAnalytics && !loading && data?.series?.length ? (
-        <div className={styles.grid}>
+        <div className={styles.grid} aria-live="polite">
           {data.series.map((series) => {
             const alert = alertsByMetric.get(series.metric);
             return (

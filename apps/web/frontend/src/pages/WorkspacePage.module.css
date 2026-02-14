@@ -706,3 +706,38 @@
     text-align: center;
   }
 }
+
+.kpiSkeletonCard {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pipelineSkeletonBoard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.pipelineSkeletonColumn {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-50);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pipelineSkeletonHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pipelineSkeletonCard {
+  min-height: 120px;
+}
