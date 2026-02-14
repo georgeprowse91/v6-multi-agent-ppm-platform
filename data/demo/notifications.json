@@ -591,5 +591,29 @@
     "message": "Regression scope expanded while QA headcount is unchanged, resulting in forecasted 110% utilization.",
     "read": false,
     "created_at": "2026-02-14T09:50:00+00:00"
+  },
+  {
+    "id": "ntf-risk-raised-001",
+    "tenant_id": "tenant-demo",
+    "type": "risk",
+    "title": "Risk raised: Vendor readiness confidence dropped",
+    "message": "A new high-impact delivery risk was raised for Project Wave 12 after integration rehearsal findings.",
+    "severity": "high",
+    "channel": "notification-centre",
+    "created_at": "2025-06-24T09:40:00Z",
+    "read": false,
+    "workflow_id": "risk-register"
+  },
+  {
+    "id": "ntf-issue-escalated-001",
+    "tenant_id": "tenant-demo",
+    "type": "issue",
+    "title": "Issue escalated: Critical defect breached SLA",
+    "message": "A high-severity production issue has been escalated to the enterprise incident board for immediate action.",
+    "severity": "critical",
+    "channel": "teams",
+    "created_at": "2025-06-24T10:05:00Z",
+    "read": false,
+    "workflow_id": "issue-management"
   }
 ]
