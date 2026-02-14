@@ -1,0 +1,60 @@
+name: PR Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    name: Apply pull request labels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine changed files
+        id: filter
+        uses: dorny/paths-filter@3adf5d3f6f6f8d346f22eb2c5f8f6f1d3ce7dc8a
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - '**/*.md'
+            workflow:
+              - '.github/workflows/**'
+            infrastructure:
+              - 'infra/**'
+            backend:
+              - 'agents/**'
+              - 'apps/**'
+              - 'packages/**'
+              - 'services/**'
+            all_non_docs:
+              - '**'
+              - '!docs/**'
+              - '!**/*.md'
+
+      - name: Label documentation-only changes
+        if: steps.filter.outputs.docs == 'true' && steps.filter.outputs.all_non_docs == 'false'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: documentation
+
+      - name: Label workflow changes
+        if: steps.filter.outputs.workflow == 'true'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: github-actions
+
+      - name: Label infrastructure changes
+        if: steps.filter.outputs.infrastructure == 'true'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: infrastructure
+
+      - name: Label backend changes
+        if: steps.filter.outputs.backend == 'true'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: backend
