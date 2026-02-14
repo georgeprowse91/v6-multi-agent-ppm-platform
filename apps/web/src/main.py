@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid4, uuid5
 from urllib.parse import urlencode
 
 import httpx
@@ -89,6 +89,7 @@ from oidc_client import OIDCClient  # noqa: E402
 from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from agents.runtime.src.orchestrator import Orchestrator  # noqa: E402
 from security.config import load_yaml as load_yaml_config  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
@@ -517,7 +518,12 @@ class MethodologyNodeActionResponse(BaseModel):
     workspace_id: str
     lifecycle_event: str
     resolution_contract: dict[str, Any]
-    assistant_output: dict[str, Any]
+    assistant_response: dict[str, Any]
+    artifacts_created: list[dict[str, Any]] = Field(default_factory=list)
+    artifacts_updated: list[dict[str, Any]] = Field(default_factory=list)
+    connector_operations: list[dict[str, Any]] = Field(default_factory=list)
+    workflow_trace: dict[str, Any] = Field(default_factory=dict)
+    human_review: dict[str, Any] = Field(default_factory=dict)
     status: str
 
 
@@ -2483,7 +2489,7 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
     )
 
 
-def run_methodology_node_action(
+async def run_methodology_node_action(
     workspace_id: str,
     methodology_id: str,
     stage_id: str,
@@ -2499,25 +2505,150 @@ def run_methodology_node_action(
         task_id,
         lifecycle_event,
     )
-    workflow = resolution_contract["agent_workflow"]
-    if workflow.get("human_review_required") and lifecycle_event in {"approve", "publish"}:
-        if not user_input.get("human_review_approved"):
-            raise HTTPException(
-                status_code=422,
-                detail="Human review is required before approve/publish actions.",
+    correlation_basis = "::".join(
+        [
+            workspace_id,
+            methodology_id,
+            stage_id,
+            activity_id or "-",
+            task_id or "-",
+            lifecycle_event,
+            ",".join(resolution_contract.get("template_ids", [])),
+            str(user_input.get("request_id") or datetime.now(tz=timezone.utc).isoformat()),
+        ]
+    )
+    correlation_id = str(uuid5(NAMESPACE_URL, correlation_basis))
+
+    workspace_state = workspace_state_store.get_or_create("default", workspace_id)
+    context_refs: dict[str, Any] = {
+        "workspace_id": workspace_id,
+        "project_id": workspace_id,
+        "methodology_id": methodology_id,
+        "stage_id": stage_id,
+        "activity_id": activity_id,
+        "task_id": task_id,
+        "lifecycle_event": lifecycle_event,
+        "connector_bindings": resolution_contract.get("connectors", {}),
+        "selected_canvas": resolution_contract.get("canvas", {}),
+        "workspace_context": workspace_state.model_dump(mode="json"),
+        "user_input": user_input,
+        "correlation_id": correlation_id,
+    }
+
+    escalation_rules = resolution_contract.get("assistant", {}).get("response_contract", {}).get(
+        "escalation_rules", []
+    )
+    needs_human_review = (
+        resolution_contract.get("agent_workflow", {}).get("human_review_required", False)
+        or lifecycle_event in {"approve", "publish"}
+        or any(
+            "publish_external" in str(rule).lower() and "approve" in str(rule).lower()
+            for rule in escalation_rules
+        )
+    )
+    if needs_human_review and not user_input.get("human_review_approved"):
+        return {
+            "workspace_id": workspace_id,
+            "lifecycle_event": lifecycle_event,
+            "resolution_contract": resolution_contract,
+            "assistant_response": {
+                "intent_id": resolution_contract["assistant"]["intent_id"],
+                "output_format": resolution_contract["assistant"]["response_contract"]["output_format"],
+                "validation_checklist": resolution_contract["assistant"]["response_contract"][
+                    "validation_checklist"
+                ],
+                "content": "Human review is required before this lifecycle action can proceed.",
+            },
+            "artifacts_created": [],
+            "artifacts_updated": [],
+            "connector_operations": [],
+            "workflow_trace": {
+                "correlation_id": correlation_id,
+                "agent_ids_executed": [],
+                "started_at": datetime.now(tz=timezone.utc).isoformat(),
+                "completed_at": datetime.now(tz=timezone.utc).isoformat(),
+            },
+            "human_review": {
+                "status": "pending",
+                "required": True,
+                "next_step": "Resubmit with user_input.human_review_approved=true after approval decision.",
+            },
+            "status": "review_required",
+        }
+
+    orchestrator = Orchestrator()
+    started_at = datetime.now(tz=timezone.utc).isoformat()
+    orchestration_result = await orchestrator.run_methodology_node_action(
+        methodology_id=methodology_id,
+        stage_id=stage_id,
+        activity_id=activity_id,
+        task_id=task_id,
+        lifecycle_event=lifecycle_event,
+        template_ids=resolution_contract.get("template_ids", []),
+        context_refs=context_refs,
+    )
+    completed_at = datetime.now(tz=timezone.utc).isoformat()
+
+    artifact_ops: list[dict[str, Any]] = []
+    connector_operations: list[dict[str, Any]] = []
+    agent_ids_executed: list[str] = []
+    for task_payload in orchestration_result.results.values():
+        metadata = task_payload.get("metadata", {})
+        if metadata.get("template_id"):
+            artifact_ops.append(
+                {
+                    "template_id": metadata.get("template_id"),
+                    "lifecycle_event": metadata.get("workflow_event", lifecycle_event),
+                }
             )
+        connector_operations.append(
+            {
+                "connector_binding": task_payload.get("input", {}).get("connector_binding"),
+                "side_effects": task_payload.get("input", {}).get("side_effects", []),
+            }
+        )
+        agent_id = task_payload.get("agent_id")
+        if agent_id:
+            agent_ids_executed.append(agent_id)
+
+    output_format = resolution_contract["assistant"]["response_contract"]["output_format"]
+    assistant_content: Any
+    if output_format == "json":
+        assistant_content = {
+            "templates": resolution_contract.get("template_ids", []),
+            "results": orchestration_result.results,
+        }
+    else:
+        assistant_content = (
+            f"Executed methodology action `{lifecycle_event}` for "
+            f"{methodology_id}/{stage_id}/{activity_id or '-'} with templates "
+            f"{', '.join(resolution_contract.get('template_ids', [])) or 'none'}."
+        )
 
     return {
         "workspace_id": workspace_id,
         "lifecycle_event": lifecycle_event,
         "resolution_contract": resolution_contract,
-        "assistant_output": {
+        "assistant_response": {
             "intent_id": resolution_contract["assistant"]["intent_id"],
-            "output_format": resolution_contract["assistant"]["response_contract"]["output_format"],
+            "output_format": output_format,
             "validation_checklist": resolution_contract["assistant"]["response_contract"][
                 "validation_checklist"
             ],
-            "content": "Methodology-node action executed using canonical runtime contract.",
+            "content": assistant_content,
+        },
+        "artifacts_created": artifact_ops if lifecycle_event == "generate" else [],
+        "artifacts_updated": artifact_ops if lifecycle_event in {"update", "review", "approve", "publish"} else [],
+        "connector_operations": connector_operations,
+        "workflow_trace": {
+            "correlation_id": correlation_id,
+            "agent_ids_executed": agent_ids_executed,
+            "started_at": started_at,
+            "completed_at": completed_at,
+        },
+        "human_review": {
+            "status": "approved" if user_input.get("human_review_approved") else "not_required",
+            "required": needs_human_review,
         },
         "status": "completed",
     }
@@ -3323,6 +3454,27 @@ async def get_methodology_runtime_resolve(
     return MethodologyRuntimeResolveResponse(resolution_contract=resolution_contract)
 
 
+
+
+@api_router.post(
+    "/api/methodology/runtime/action",
+    response_model=MethodologyNodeActionResponse,
+)
+async def run_methodology_runtime_action(
+    payload: MethodologyNodeActionRequest,
+) -> MethodologyNodeActionResponse:
+    result = await run_methodology_node_action(
+        payload.user_input.get("workspace_id", "default"),
+        payload.methodology_id,
+        payload.stage_id,
+        payload.activity_id,
+        payload.task_id,
+        payload.lifecycle_event,
+        payload.user_input,
+    )
+    return MethodologyNodeActionResponse.model_validate(result)
+
+
 @api_router.post(
     "/api/workspace/{workspace_id}/methodology-node-actions",
     response_model=MethodologyNodeActionResponse,
@@ -3331,7 +3483,7 @@ async def run_workspace_methodology_node_action(
     workspace_id: str,
     payload: MethodologyNodeActionRequest,
 ) -> MethodologyNodeActionResponse:
-    result = run_methodology_node_action(
+    result = await run_methodology_node_action(
         workspace_id,
         payload.methodology_id,
         payload.stage_id,

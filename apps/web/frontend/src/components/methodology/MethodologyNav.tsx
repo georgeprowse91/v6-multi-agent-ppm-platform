@@ -62,6 +62,9 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     expandedStageIds,
     templatesAvailableHere,
     runtimeDefaultViewContract,
+    runtimeActionsAvailable,
+    backendReachable,
+    executeNodeAction,
     setCurrentActivity,
     resolveNodeRuntime,
     toggleStageExpanded,
@@ -176,6 +179,9 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
       methodology.id,
       getStageForActivity,
       runtimeDefaultViewContract,
+    runtimeActionsAvailable,
+    backendReachable,
+    executeNodeAction,
       stageNameLookup,
     ]
   );
@@ -199,24 +205,19 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     return groups;
   }, [templatesAvailableHere, currentActivityId]);
 
-  const openTemplateCanvas = useCallback((templateId: string) => {
-    const mapping = templatesAvailableHere.find((item) => item.template_id === templateId);
-    if (!mapping) return;
-    const canvasMap: Record<string, CanvasType> = {
-      document: 'document',
-      spreadsheet: 'spreadsheet',
-      timeline: 'timeline',
-      dashboard: 'dashboard',
-      kanban: 'tree',
-      risk_log: 'spreadsheet',
-      decision_log: 'document',
-      form: 'document',
-      whiteboard: 'dependency-map',
-    };
-    const canvasType = canvasMap[mapping.canvas_binding.canvas_type] ?? 'document';
-    const artifact = createArtifact(canvasType, mapping.name, projectMethodology.projectId, createEmptyContent(canvasType));
-    openArtifact(artifact);
-  }, [templatesAvailableHere, projectMethodology.projectId, openArtifact]);
+  const executeTemplateLifecycle = useCallback(async (templateId: string, lifecycleEvent: 'generate' | 'update' | 'review' | 'approve' | 'publish') => {
+    if (!backendReachable) return;
+    const selectedStage = currentActivityId ? getStageForActivity(currentActivityId) : undefined;
+    if (!selectedStage) return;
+    await executeNodeAction({
+      workspaceId: projectMethodology.projectId,
+      methodologyId: methodology.id,
+      stageId: selectedStage.id,
+      activityId: currentActivityId,
+      lifecycleEvent,
+      userInput: { template_id: templateId },
+    });
+  }, [backendReachable, currentActivityId, executeNodeAction, getStageForActivity, methodology.id, projectMethodology.projectId]);
 
   const handleStageHeaderClick = useCallback(
     (stageId: string) => {
@@ -259,7 +260,8 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
                     <button
                       key={`${event}-${template.template_id}`}
                       className={styles.templateEntry}
-                      onClick={() => openTemplateCanvas(template.template_id)}
+                      onClick={() => void executeTemplateLifecycle(template.template_id, event)}
+                      disabled={!backendReachable || !runtimeActionsAvailable.includes(event)}
                     >
                       {template.name}
                     </button>

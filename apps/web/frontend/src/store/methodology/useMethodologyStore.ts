@@ -20,6 +20,7 @@ import {
 import { projectApolloMethodology, methodologyTemplates } from './demoData';
 import type { CanvasType } from '@ppm/canvas-engine';
 import { requestJson } from '@/services/apiClient';
+import { useAssistantStore } from '@/store/assistant';
 
 interface TemplateCanvasBinding {
   canvas_type: string;
@@ -95,6 +96,20 @@ interface RuntimeActionsResponse {
 
 interface RuntimeResolveResponse {
   resolution_contract: RuntimeResolutionContract;
+}
+
+interface RuntimeActionResponse {
+  workspace_id: string;
+  lifecycle_event: string;
+  assistant_response: {
+    content: string | Record<string, unknown>;
+    output_format: string;
+  };
+  status: string;
+  human_review?: {
+    status?: string;
+    required?: boolean;
+  };
 }
 
 interface RuntimeResolutionContract {
@@ -263,6 +278,7 @@ interface MethodologyStoreState {
   templatesInReview: TemplateMapping[];
   runtimeActionsAvailable: string[];
   runtimeDefaultViewContract: RuntimeResolutionContract | null;
+  backendReachable: boolean;
 
   // Current project methodology
   projectMethodology: ProjectMethodology;
@@ -296,6 +312,15 @@ interface MethodologyStoreState {
     taskId?: string | null;
     event: 'view' | 'generate' | 'update' | 'review' | 'approve' | 'publish';
   }) => Promise<RuntimeResolutionContract | null>;
+  executeNodeAction: (params: {
+    workspaceId: string;
+    methodologyId: string;
+    stageId: string;
+    activityId?: string | null;
+    taskId?: string | null;
+    lifecycleEvent: 'view' | 'generate' | 'update' | 'review' | 'approve' | 'publish';
+    userInput?: Record<string, unknown>;
+  }) => Promise<RuntimeActionResponse>;
 
   // Selectors
   getStage: (stageId: string) => MethodologyStage | undefined;
@@ -318,6 +343,7 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   templatesInReview: [],
   runtimeActionsAvailable: [],
   runtimeDefaultViewContract: null,
+  backendReachable: true,
   currentActivityId: projectApolloMethodology.currentActivityId,
   expandedStageIds: projectApolloMethodology.expandedStageIds,
 
@@ -497,6 +523,7 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         templatesInReview: payload.templates_in_review ?? [],
         runtimeActionsAvailable: payload.runtime_actions_available ?? [],
         runtimeDefaultViewContract: payload.runtime_default_view_contract ?? null,
+        backendReachable: true,
         isHydrating: false,
       });
     } catch (error) {
@@ -521,31 +548,65 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         templatesInReview: [],
         runtimeActionsAvailable: [],
         runtimeDefaultViewContract: null,
+        backendReachable: false,
         isHydrating: false,
       }));
+      useAssistantStore.getState().addAssistantMessage(
+        'Backend is unreachable. Runtime actions are disabled until the API is available.',
+        [],
+        true
+      );
     }
   },
 
   resolveNodeRuntime: async ({ methodologyId, stageId, activityId, taskId, event }) => {
-    const query = new URLSearchParams({ methodology_id: methodologyId, stage_id: stageId });
-    if (activityId) query.set('activity_id', activityId);
-    if (taskId) query.set('task_id', taskId);
+    try {
+      const query = new URLSearchParams({ methodology_id: methodologyId, stage_id: stageId });
+      if (activityId) query.set('activity_id', activityId);
+      if (taskId) query.set('task_id', taskId);
 
-    const actionsPayload = await requestJson<RuntimeActionsResponse>(
-      `/api/methodology/runtime/actions?${query.toString()}`
-    );
+      const actionsPayload = await requestJson<RuntimeActionsResponse>(
+        `/api/methodology/runtime/actions?${query.toString()}`
+      );
 
-    const resolveQuery = new URLSearchParams({ ...Object.fromEntries(query.entries()), event });
-    const resolvedPayload = await requestJson<RuntimeResolveResponse>(
-      `/api/methodology/runtime/resolve?${resolveQuery.toString()}`
-    );
+      const resolveQuery = new URLSearchParams({ ...Object.fromEntries(query.entries()), event });
+      const resolvedPayload = await requestJson<RuntimeResolveResponse>(
+        `/api/methodology/runtime/resolve?${resolveQuery.toString()}`
+      );
 
-    set({
-      runtimeActionsAvailable: actionsPayload.actions,
-      runtimeDefaultViewContract: event === 'view' ? resolvedPayload.resolution_contract : get().runtimeDefaultViewContract,
+      set({
+        runtimeActionsAvailable: actionsPayload.actions,
+        runtimeDefaultViewContract: event === 'view' ? resolvedPayload.resolution_contract : get().runtimeDefaultViewContract,
+        backendReachable: true,
+      });
+
+      return resolvedPayload.resolution_contract;
+    } catch (error) {
+      set({ runtimeActionsAvailable: [], backendReachable: false });
+      useAssistantStore.getState().addAssistantMessage(
+        'Unable to resolve runtime contract because the backend is unreachable. Actions are disabled.',
+        [],
+        true
+      );
+      return null;
+    }
+  },
+
+  executeNodeAction: async ({ workspaceId, methodologyId, stageId, activityId, taskId, lifecycleEvent, userInput }) => {
+    const payload = await requestJson<RuntimeActionResponse>('/api/methodology/runtime/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        methodology_id: methodologyId,
+        stage_id: stageId,
+        activity_id: activityId ?? null,
+        task_id: taskId ?? null,
+        lifecycle_event: lifecycleEvent,
+        user_input: { ...(userInput ?? {}), workspace_id: workspaceId },
+      }),
     });
-
-    return resolvedPayload.resolution_contract;
+    set({ backendReachable: true });
+    return payload;
   },
 
   // Selectors

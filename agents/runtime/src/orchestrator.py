@@ -269,6 +269,83 @@ class Orchestrator:
         ]
         return await self.run(tasks, context=context_refs)
 
+    async def run_methodology_node_action(
+        self,
+        *,
+        methodology_id: str,
+        stage_id: str,
+        activity_id: str | None,
+        task_id: str | None,
+        lifecycle_event: str,
+        template_ids: list[str],
+        context_refs: dict[str, Any],
+    ) -> OrchestrationResult:
+        if not template_ids:
+            return OrchestrationResult(results={}, context=context_refs, metrics={"skipped": True})
+
+        completed_templates = dict(context_refs.get("completed_templates", {}))
+        combined_results: dict[str, dict[str, Any]] = {}
+        template_runs: list[dict[str, Any]] = []
+        combined_context = dict(context_refs)
+        combined_metrics: dict[str, Any] = {"templates_executed": 0}
+
+        for template_id in template_ids:
+            mapping = get_template_mapping(template_id)
+            if mapping is None:
+                raise ValueError(f"Unknown template mapping for `{template_id}`")
+
+            missing_dependencies = [
+                dependency
+                for dependency in mapping.agent_bindings.orchestration.depends_on_templates
+                if not completed_templates.get(dependency, False)
+            ]
+            if missing_dependencies:
+                raise ValueError(
+                    "Template workflow prerequisites not satisfied for "
+                    f"`{template_id}`: {', '.join(missing_dependencies)}"
+                )
+
+            requires_review = (
+                lifecycle_event in {"review", "approve", "publish"}
+                or "publish_external" in mapping.agent_bindings.orchestration.side_effects
+            )
+            template_context = {
+                **combined_context,
+                "methodology_id": methodology_id,
+                "stage_id": stage_id,
+                "activity_id": activity_id,
+                "task_id": task_id,
+                "completed_templates": completed_templates,
+                "human_review_required": combined_context.get("human_review_required", False)
+                or requires_review,
+            }
+
+            run_result = await self.run_template_workflow(
+                template_id=template_id,
+                lifecycle_event=lifecycle_event,
+                context_refs=template_context,
+            )
+
+            combined_results.update(run_result.results)
+            template_runs.append(
+                {
+                    "template_id": template_id,
+                    "result_task_ids": list(run_result.results.keys()),
+                    "metrics": run_result.metrics,
+                }
+            )
+            completed_templates[template_id] = True
+            combined_context.update(run_result.context)
+            combined_context["completed_templates"] = completed_templates
+            combined_metrics["templates_executed"] += 1
+
+        combined_context["template_runs"] = template_runs
+        return OrchestrationResult(
+            results=combined_results,
+            context=combined_context,
+            metrics=combined_metrics,
+        )
+
     async def _run_task(
         self,
         task: AgentTask,

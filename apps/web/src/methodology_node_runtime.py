@@ -189,19 +189,29 @@ def _validate_registry(registry: RuntimeRegistry) -> RuntimeRegistry:
                     f"Unknown connector_type `{endpoint.connector_type}` in mapping {key_tuple}"
                 )
 
+    missing_view_errors: list[str] = []
     for methodology_id, (stages, activities, tasks) in collected_nodes.items():
         for stage_id in stages:
             node_key = (methodology_id, stage_id, None, None)
             if node_key not in views_found:
-                raise ValueError(f"Missing required view mapping for stage node {node_key}")
+                missing_view_errors.append(
+                    f"methodology_id={methodology_id}, stage_id={stage_id}, activity_id=None, task_id=None, missing_lifecycle_events=view"
+                )
         for stage_id, activity_id in activities:
             node_key = (methodology_id, stage_id, activity_id, None)
             if node_key not in views_found:
-                raise ValueError(f"Missing required view mapping for activity node {node_key}")
+                missing_view_errors.append(
+                    f"methodology_id={methodology_id}, stage_id={stage_id}, activity_id={activity_id}, task_id=None, missing_lifecycle_events=view"
+                )
         for stage_id, activity_id, task_id in tasks:
             node_key = (methodology_id, stage_id, activity_id, task_id)
             if node_key not in views_found:
-                continue
+                missing_view_errors.append(
+                    f"methodology_id={methodology_id}, stage_id={stage_id}, activity_id={activity_id}, task_id={task_id}, missing_lifecycle_events=view"
+                )
+
+    if missing_view_errors:
+        raise ValueError("Missing required runtime mappings:\n" + "\n".join(sorted(missing_view_errors)))
 
     return registry
 

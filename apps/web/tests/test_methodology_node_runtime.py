@@ -8,8 +8,10 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from methodology_node_runtime import (  # noqa: E402
+    RuntimeRegistry,
     load_methodology_node_runtime_registry,
     resolve_runtime,
+    _validate_registry,
 )
 
 
@@ -70,3 +72,21 @@ def test_missing_runtime_mapping_fails_with_clear_error() -> None:
             None,
             "archive",
         )
+
+
+def test_validation_fails_when_task_view_mapping_missing(monkeypatch) -> None:
+    registry = load_methodology_node_runtime_registry()
+    task_view_mapping = next(
+        mapping
+        for mapping in registry.mappings
+        if mapping.key.task_id is not None and mapping.key.lifecycle_event == "view"
+    )
+    missing_task_view = [
+        mapping.model_dump(mode="json")
+        for mapping in registry.mappings
+        if mapping != task_view_mapping
+    ]
+    candidate = RuntimeRegistry.model_validate({"mappings": missing_task_view})
+
+    with pytest.raises(ValueError, match="missing_lifecycle_events=view"):
+        _validate_registry(candidate)
