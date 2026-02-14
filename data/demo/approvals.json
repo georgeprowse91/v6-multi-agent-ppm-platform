@@ -218,5 +218,35 @@
     "status": "rejected",
     "requested_at": "2026-02-14T06:43:13+00:00",
     "decision_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "gen-approval-023",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-021",
+    "requester": "Avery Chen",
+    "approver": "Jordan Johnson",
+    "status": "rejected",
+    "requested_at": "2026-03-05T09:00:00+00:00",
+    "decision_at": "2026-05-18T16:45:00+00:00"
+  },
+  {
+    "id": "gen-approval-024",
+    "entity_type": "budget",
+    "entity_id": "gen-budget-021",
+    "requester": "Avery Chen",
+    "approver": "Jordan Johnson",
+    "status": "pending",
+    "requested_at": "2026-05-25T10:15:00+00:00",
+    "decision_at": "2026-05-25T10:15:00+00:00"
+  },
+  {
+    "id": "gen-approval-025",
+    "entity_type": "contract",
+    "entity_id": "gen-contract-004",
+    "requester": "Taylor Parker",
+    "approver": "Morgan Patel",
+    "status": "approved_with_conditions",
+    "requested_at": "2026-04-10T08:30:00+00:00",
+    "decision_at": "2026-04-22T15:00:00+00:00"
   }
 ]

@@ -4,39 +4,39 @@
     "tenant_id": "tenant-demo",
     "program_id": "pg-cx-001",
     "name": "Mobile App Modernization",
-    "status": "in_progress",
+    "status": "monitoring",
     "start_date": "2025-02-01",
     "end_date": "2025-10-30",
     "owner": "u_project_demo",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-01-25T08:30:00Z",
-    "health": "Green"
+    "regulatory_category": "low"
   },
   {
     "id": "prj-portal-002",
     "tenant_id": "tenant-demo",
     "program_id": "pg-cx-001",
     "name": "Self-Service Portal Upgrade",
-    "status": "in_progress",
+    "status": "monitoring",
     "start_date": "2025-02-15",
     "end_date": "2025-11-15",
     "owner": "u_project_demo",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-01-26T08:30:00Z",
-    "health": "Amber"
+    "regulatory_category": "medium"
   },
   {
     "id": "prj-observability-003",
     "tenant_id": "tenant-demo",
     "program_id": "pg-data-002",
     "name": "Enterprise Observability Rollout",
-    "status": "in_progress",
+    "status": "monitoring",
     "start_date": "2025-03-01",
     "end_date": "2025-09-30",
     "owner": "u_project_demo",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-01-28T08:30:00Z",
-    "health": "Green"
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-001",
@@ -44,12 +44,12 @@
     "program_id": "gen-program-001",
     "name": "Project 1",
     "status": "closed",
-    "health": "red",
     "owner": "Jordan Garcia",
     "start_date": "2026-01-14",
     "end_date": "2026-06-15",
     "classification": "internal",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-002",
@@ -57,12 +57,12 @@
     "program_id": "gen-program-002",
     "name": "Project 2",
     "status": "planning",
-    "health": "amber",
     "owner": "Morgan Patel",
     "start_date": "2026-01-13",
     "end_date": "2026-06-16",
     "classification": "internal",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "medium"
   },
   {
     "id": "gen-project-003",
@@ -70,12 +70,12 @@
     "program_id": "gen-program-003",
     "name": "Project 3",
     "status": "execution",
-    "health": "green",
     "owner": "Jordan Kim",
     "start_date": "2026-01-12",
     "end_date": "2026-06-17",
     "classification": "public",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-004",
@@ -83,12 +83,12 @@
     "program_id": "gen-program-004",
     "name": "Project 4",
     "status": "execution",
-    "health": "amber",
     "owner": "Taylor Parker",
     "start_date": "2026-01-11",
     "end_date": "2026-06-18",
     "classification": "internal",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "medium"
   },
   {
     "id": "gen-project-005",
@@ -96,12 +96,12 @@
     "program_id": "gen-program-005",
     "name": "Project 5",
     "status": "closed",
-    "health": "red",
     "owner": "Taylor Nguyen",
     "start_date": "2026-01-10",
     "end_date": "2026-06-19",
     "classification": "restricted",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-006",
@@ -109,12 +109,12 @@
     "program_id": "gen-program-006",
     "name": "Project 6",
     "status": "monitoring",
-    "health": "red",
     "owner": "Morgan Nguyen",
     "start_date": "2026-01-09",
     "end_date": "2026-06-20",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-007",
@@ -122,12 +122,12 @@
     "program_id": "gen-program-007",
     "name": "Project 7",
     "status": "planning",
-    "health": "green",
     "owner": "Casey Garcia",
     "start_date": "2026-01-08",
     "end_date": "2026-06-21",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-008",
@@ -135,12 +135,12 @@
     "program_id": "gen-program-008",
     "name": "Project 8",
     "status": "closed",
-    "health": "amber",
     "owner": "Riley Singh",
     "start_date": "2026-01-07",
     "end_date": "2026-06-22",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "medium"
   },
   {
     "id": "gen-project-009",
@@ -148,12 +148,12 @@
     "program_id": "gen-program-009",
     "name": "Project 9",
     "status": "planning",
-    "health": "green",
     "owner": "Riley Singh",
     "start_date": "2026-01-06",
     "end_date": "2026-06-23",
     "classification": "public",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-010",
@@ -161,12 +161,12 @@
     "program_id": "gen-program-010",
     "name": "Project 10",
     "status": "initiated",
-    "health": "green",
     "owner": "Jordan Johnson",
     "start_date": "2026-01-05",
     "end_date": "2026-06-24",
     "classification": "internal",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-011",
@@ -174,12 +174,12 @@
     "program_id": "gen-program-001",
     "name": "Project 11",
     "status": "monitoring",
-    "health": "red",
     "owner": "Alex Singh",
     "start_date": "2026-01-04",
     "end_date": "2026-06-25",
     "classification": "restricted",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-012",
@@ -187,12 +187,12 @@
     "program_id": "gen-program-002",
     "name": "Project 12",
     "status": "closed",
-    "health": "amber",
     "owner": "Riley Patel",
     "start_date": "2026-01-03",
     "end_date": "2026-06-26",
     "classification": "public",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "medium"
   },
   {
     "id": "gen-project-013",
@@ -200,12 +200,12 @@
     "program_id": "gen-program-003",
     "name": "Project 13",
     "status": "initiated",
-    "health": "red",
     "owner": "Riley Kim",
     "start_date": "2026-01-02",
     "end_date": "2026-06-27",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-014",
@@ -213,12 +213,12 @@
     "program_id": "gen-program-004",
     "name": "Project 14",
     "status": "execution",
-    "health": "green",
     "owner": "Taylor Singh",
     "start_date": "2026-01-01",
     "end_date": "2026-06-28",
     "classification": "internal",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-015",
@@ -226,12 +226,12 @@
     "program_id": "gen-program-005",
     "name": "Project 15",
     "status": "monitoring",
-    "health": "green",
     "owner": "Casey Johnson",
     "start_date": "2025-12-31",
     "end_date": "2026-06-29",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-016",
@@ -239,12 +239,12 @@
     "program_id": "gen-program-006",
     "name": "Project 16",
     "status": "closed",
-    "health": "green",
     "owner": "Riley Parker",
     "start_date": "2025-12-30",
     "end_date": "2026-06-30",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "low"
   },
   {
     "id": "gen-project-017",
@@ -252,12 +252,12 @@
     "program_id": "gen-program-007",
     "name": "Project 17",
     "status": "closed",
-    "health": "red",
     "owner": "Jordan Nguyen",
     "start_date": "2025-12-29",
     "end_date": "2026-07-01",
     "classification": "confidential",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-018",
@@ -265,12 +265,12 @@
     "program_id": "gen-program-008",
     "name": "Project 18",
     "status": "planning",
-    "health": "red",
     "owner": "Quinn Garcia",
     "start_date": "2025-12-28",
     "end_date": "2026-07-02",
     "classification": "public",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "high"
   },
   {
     "id": "gen-project-019",
@@ -278,12 +278,12 @@
     "program_id": "gen-program-009",
     "name": "Project 19",
     "status": "closed",
-    "health": "amber",
     "owner": "Morgan Parker",
     "start_date": "2025-12-27",
     "end_date": "2026-07-03",
     "classification": "public",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "medium"
   },
   {
     "id": "gen-project-020",
@@ -291,11 +291,11 @@
     "program_id": "gen-program-010",
     "name": "Project 20",
     "status": "execution",
-    "health": "amber",
     "owner": "Jordan Parker",
     "start_date": "2025-12-26",
     "end_date": "2026-07-04",
     "classification": "internal",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "regulatory_category": "medium"
   }
 ]
