@@ -1,0 +1,16 @@
+id: workday_mock
+version: 1.0.0
+name: Workday (Mock)
+description: Mock Workday connector for demo mode.
+owner: integration-team
+category: mock
+auth:
+  type: none
+supported_objects:
+- projects
+- resources
+- programs
+sync:
+  modes:
+  - read
+  - write

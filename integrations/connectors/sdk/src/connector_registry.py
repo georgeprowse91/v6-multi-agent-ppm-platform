@@ -7,9 +7,14 @@ Connector implementations are available for the listed integrations.
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+
+import yaml
 
 from base_connector import ConnectorCategory, SyncDirection
 
@@ -1013,21 +1018,61 @@ for connector in ALL_CONNECTORS:
     CONNECTORS_BY_CATEGORY[connector.category].append(connector)
 
 
+DEMO_CONNECTOR_CONFIG_ROOT = Path(__file__).resolve().parents[4] / "config" / "connectors" / "mock"
+
+
+def _load_demo_overrides() -> dict[str, dict[str, Any]]:
+    overrides: dict[str, dict[str, Any]] = {}
+    if not DEMO_CONNECTOR_CONFIG_ROOT.exists():
+        return overrides
+
+    for config_file in DEMO_CONNECTOR_CONFIG_ROOT.glob("*.yaml"):
+        payload = yaml.safe_load(config_file.read_text()) or {}
+        connector_id = payload.get("connector_id")
+        if not connector_id:
+            continue
+        normalized_connector_id = "servicenow_grc" if connector_id == "servicenow" else connector_id
+        connector = CONNECTORS_BY_ID.get(normalized_connector_id)
+        if connector is None:
+            continue
+        overrides[normalized_connector_id] = {
+            "auth_type": payload.get("auth_type", "none"),
+            "status": ConnectorStatus.AVAILABLE,
+            "description": f"{connector.description} (mock demo mode)",
+        }
+    return overrides
+
+
+def _apply_demo_overrides() -> None:
+    if os.getenv("DEMO_MODE", "").lower() not in {"1", "true", "yes", "on"}:
+        return
+    for connector_id, overrides in _load_demo_overrides().items():
+        connector = CONNECTORS_BY_ID.get(connector_id)
+        if connector is None:
+            continue
+        for field_name, value in overrides.items():
+            setattr(connector, field_name, value)
+
+
 def get_connector_definition(connector_id: str) -> ConnectorDefinition | None:
     """Get a connector definition by ID."""
+    _apply_demo_overrides()
     return CONNECTORS_BY_ID.get(connector_id)
 
 
 def get_connectors_by_category(category: ConnectorCategory) -> list[ConnectorDefinition]:
     """Get all connectors in a category."""
+    _apply_demo_overrides()
     return CONNECTORS_BY_CATEGORY.get(category, [])
 
 
 def get_all_connectors() -> list[ConnectorDefinition]:
     """Get all connector definitions."""
+    _apply_demo_overrides()
     return ALL_CONNECTORS
 
 
 def get_available_connectors() -> list[ConnectorDefinition]:
     """Get all fully implemented connectors."""
+    _apply_demo_overrides()
     return [c for c in ALL_CONNECTORS if c.status == ConnectorStatus.AVAILABLE]

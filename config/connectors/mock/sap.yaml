@@ -1,0 +1,13 @@
+connector_id: sap
+mock_connector_id: sap_mock
+enabled_when: DEMO_MODE=true
+auth_type: none
+manifest_path: integrations/connectors/mock/sap/manifest.yaml
+supported_objects:
+- projects
+- budgets
+- vendors
+- contracts
+supported_sync_directions:
+- read
+- write

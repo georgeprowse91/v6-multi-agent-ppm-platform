@@ -1,0 +1,13 @@
+connector_id: clarity
+mock_connector_id: clarity_mock
+enabled_when: DEMO_MODE=true
+auth_type: none
+manifest_path: integrations/connectors/mock/clarity/manifest.yaml
+supported_objects:
+- portfolios
+- programs
+- projects
+supported_sync_directions:
+- read
+- write
+- bi-directional

@@ -1,0 +1,14 @@
+connector_id: azure_devops
+mock_connector_id: azure_devops_mock
+enabled_when: DEMO_MODE=true
+auth_type: demo
+manifest_path: integrations/connectors/mock/azure_devops/manifest.yaml
+supported_objects:
+- projects
+- epics
+- sprints
+- tasks
+supported_sync_directions:
+- read
+- write
+- bi-directional

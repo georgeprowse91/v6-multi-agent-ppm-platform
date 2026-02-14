@@ -1,0 +1,17 @@
+id: sap_mock
+version: 1.0.0
+name: SAP (Mock)
+description: Mock SAP connector for demo mode.
+owner: integration-team
+category: mock
+auth:
+  type: none
+supported_objects:
+- projects
+- budgets
+- vendors
+- contracts
+sync:
+  modes:
+  - read
+  - write
