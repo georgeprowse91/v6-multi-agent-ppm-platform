@@ -68,6 +68,31 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
             </div>
           );
         })}
+        {!collapsed && projectMethodology.methodology.monitoring.length > 0 && (
+          <div className={styles.stageItem}>
+            <button type="button" className={styles.stageHeader}>
+              <span className={styles.stageExpandIcon}>•</span>
+              <StatusIcon status="in_progress" />
+              <span className={styles.stageName}>Monitoring &amp; Controlling</span>
+            </button>
+            <ul className={styles.activityList}>
+              {projectMethodology.methodology.monitoring.map((activity) => (
+                <li key={activity.id} className={styles.activityItem}>
+                  <button
+                    type="button"
+                    className={`${styles.activityButton} ${currentActivityId === activity.id ? styles.selected : ''}`}
+                    onClick={() => { void onSelect(activity, 'monitoring'); }}
+                  >
+                    <StatusIcon status={activity.status} small />
+                    <span className={styles.activityName}>{activity.name}</span>
+                    <Icon semantic="artifact.dashboard" decorative className={styles.canvasTypeIcon} size="sm" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
       </nav>
     </div>
   );

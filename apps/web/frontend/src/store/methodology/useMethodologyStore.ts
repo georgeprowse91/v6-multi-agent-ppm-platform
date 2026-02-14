@@ -60,6 +60,7 @@ interface WorkspaceActivitySummary {
     allowed: boolean;
   };
   completed: boolean;
+  children?: WorkspaceActivitySummary[];
 }
 
 interface WorkspaceStageSummary {
@@ -153,25 +154,35 @@ function summarizeActivityStatus(activity: WorkspaceActivitySummary): Methodolog
   return 'not_started';
 }
 
+function mapWorkspaceActivity(activity: WorkspaceActivitySummary, order: number, stageId?: string): MethodologyActivity {
+  return {
+    id: activity.id,
+    name: activity.name,
+    description: activity.description,
+    status: summarizeActivityStatus(activity),
+    canvasType: activity.recommended_canvas_tab,
+    prerequisites: activity.prerequisites,
+    order,
+    metadata: {
+      category: activity.category,
+      assistant_suggested_actions: activity.assistant_prompts,
+      template_id: activity.template_id ?? undefined,
+      agent_id: activity.agent_id ?? undefined,
+      connector_id: activity.connector_id ?? undefined,
+      ...(stageId ? { stage_id: stageId } : {}),
+    },
+    children: (activity.children ?? []).map((child, childIndex) =>
+      mapWorkspaceActivity(child, childIndex + 1, stageId)
+    ),
+  };
+}
+
 function mapWorkspaceResponseToProjectMethodology(payload: WorkspaceStateResponse): ProjectMethodology {
   const methodologySummary = payload.methodology_map_summary;
   const stages: MethodologyStage[] = methodologySummary.stages.map((stage, stageIndex) => {
-    const activities: MethodologyActivity[] = stage.activities.map((activity, activityIndex) => ({
-      id: activity.id,
-      name: activity.name,
-      description: activity.description,
-      status: summarizeActivityStatus(activity),
-      canvasType: activity.recommended_canvas_tab,
-      prerequisites: activity.prerequisites,
-      order: activityIndex + 1,
-      metadata: {
-        category: activity.category,
-        assistant_suggested_actions: activity.assistant_prompts,
-        template_id: activity.template_id ?? undefined,
-        agent_id: activity.agent_id ?? undefined,
-        connector_id: activity.connector_id ?? undefined,
-      },
-    }));
+    const activities: MethodologyActivity[] = stage.activities.map((activity, activityIndex) =>
+      mapWorkspaceActivity(activity, activityIndex + 1, stage.id)
+    );
 
     return {
       id: stage.id,
@@ -186,22 +197,8 @@ function mapWorkspaceResponseToProjectMethodology(payload: WorkspaceStateRespons
 
 
   const monitoring = (methodologySummary.monitoring ?? []).map((activity, activityIndex) => ({
-    id: activity.id,
-    name: activity.name,
-    description: activity.description,
-    status: summarizeActivityStatus(activity),
-    canvasType: activity.recommended_canvas_tab,
-    prerequisites: activity.prerequisites,
+    ...mapWorkspaceActivity(activity, activityIndex + 1, 'monitoring'),
     alwaysAccessible: true,
-    order: activityIndex + 1,
-    metadata: {
-      category: activity.category,
-      assistant_suggested_actions: activity.assistant_prompts,
-      template_id: activity.template_id ?? undefined,
-      agent_id: activity.agent_id ?? undefined,
-      connector_id: activity.connector_id ?? undefined,
-      stage_id: 'monitoring',
-    },
   }));
 
   const methodologyType = methodologySummary.id === 'predictive'

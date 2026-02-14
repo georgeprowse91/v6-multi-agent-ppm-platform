@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMethodologyStore } from '@/store/methodology';
 import { MethodologyNav } from './MethodologyNav';
 
@@ -9,10 +9,47 @@ vi.mock('@/components/icon/Icon', () => ({
 }));
 
 describe('MethodologyNav', () => {
+  beforeEach(() => {
+    useMethodologyStore.setState((state) => ({
+      ...state,
+      currentActivityId: null,
+      expandedStageIds: ['stage-1'],
+      projectMethodology: {
+        projectId: 'demo-project',
+        projectName: 'Demo Project',
+        currentActivityId: null,
+        expandedStageIds: ['stage-1'],
+        methodology: {
+          id: 'predictive',
+          name: 'Predictive',
+          description: 'Test methodology',
+          type: 'predictive',
+          version: 'test',
+          stages: [
+            {
+              id: 'stage-1',
+              name: 'Stage 1',
+              status: 'not_started',
+              prerequisites: [],
+              order: 1,
+              activities: [
+                { id: 'activity-1', name: 'Activity 1', status: 'not_started', canvasType: 'document', prerequisites: [], order: 1 },
+              ],
+            },
+          ],
+          monitoring: [
+            { id: 'monitor-1', name: 'Project Performance & Insights Dashboard', status: 'not_started', canvasType: 'dashboard', prerequisites: [], order: 1, alwaysAccessible: true },
+          ],
+        },
+      },
+    }));
+  });
+
   it('renders compact stage/activity navigation', () => {
     render(<MemoryRouter><MethodologyNav /></MemoryRouter>);
     expect(screen.getAllByRole('button').length).toBeGreaterThan(0);
     expect(screen.queryByText('Template Runtime Mapping')).not.toBeInTheDocument();
+    expect(screen.getByText(/Monitoring & Controlling/i)).toBeInTheDocument();
   });
 
   it('selects activity and resolves runtime view without opening artifact', async () => {
@@ -21,24 +58,24 @@ describe('MethodologyNav', () => {
       if (url.includes('/api/workspace/') && url.includes('/select')) {
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       }
-      if (url.includes('/api/methodology/runtime/actions')) {
-        return new Response(JSON.stringify({ actions: ['view'] }), { status: 200 });
-      }
       if (url.includes('/api/methodology/runtime/resolve')) {
         return new Response(JSON.stringify({ resolution_contract: { canvas: { canvas_type: 'document', renderer_component: 'DocumentCanvas', default_view: 'edit' } } }), { status: 200 });
+      }
+      if (url.includes('/api/methodology/runtime/actions')) {
+        return new Response(JSON.stringify({ actions: ['view'] }), { status: 200 });
       }
       return new Response(JSON.stringify({}), { status: 200 });
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const stage = useMethodologyStore.getState().projectMethodology.methodology.stages[0];
     useMethodologyStore.setState((state) => ({
-      expandedStageIds: [stage.id],
+      ...state,
+      expandedStageIds: ['stage-1'],
       projectMethodology: {
         ...state.projectMethodology,
         methodology: {
           ...state.projectMethodology.methodology,
-          stages: [{ ...stage, activities: [{ id: 'activity-runtime-test', name: 'Runtime Test Activity', status: 'not_started', canvasType: 'document', prerequisites: [], order: 1 }] }, ...state.projectMethodology.methodology.stages.slice(1)],
+          stages: [{ ...state.projectMethodology.methodology.stages[0], activities: [{ id: 'activity-runtime-test', name: 'Runtime Test Activity', status: 'not_started', canvasType: 'document', prerequisites: [], order: 1 }] }],
         },
       },
     }));

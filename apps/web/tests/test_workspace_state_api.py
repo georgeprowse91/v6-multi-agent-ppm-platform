@@ -381,3 +381,34 @@ def test_sor_publish_endpoint_writes_outbox_and_audit_event(client, monkeypatch,
 
     audit_events = main.get_audit_log_store().list_events("default", limit=50, offset=0)
     assert any(event["action"] == "demo.sor.publish.stubbed" for event in audit_events)
+
+
+@pytest.mark.parametrize("project_id,methodology_id", [
+    ("demo-predictive", "predictive"),
+    ("demo-adaptive", "adaptive"),
+    ("demo-hybrid", "hybrid"),
+])
+def test_workspace_methodology_payloads_are_fully_populated(client, monkeypatch, project_id, methodology_id):
+    _set_tenant(monkeypatch, "tenant-a")
+    response = client.get(f"/api/workspace/{project_id}?methodology={methodology_id}")
+    assert response.status_code == 200
+    payload = response.json()
+    summary = payload["methodology_map_summary"]
+
+    assert summary["stages"], f"Expected stages for {methodology_id}"
+    assert summary["monitoring"], f"Expected monitoring activities for {methodology_id}"
+    assert len(summary["monitoring"]) >= 3
+
+    assert all(stage["activities"] for stage in summary["stages"]), "No stage-only stubs allowed"
+
+    def _has_nested(items):
+        for item in items:
+            children = item.get("children", [])
+            if children:
+                return True
+            if _has_nested(children):
+                return True
+        return False
+
+    nested_present = any(_has_nested(stage["activities"]) for stage in summary["stages"])
+    assert nested_present, f"Expected nested activities for {methodology_id}"

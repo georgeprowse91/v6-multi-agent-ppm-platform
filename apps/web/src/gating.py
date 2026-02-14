@@ -14,10 +14,16 @@ def _resolve_methodology_map(
     return methodology_map
 
 
+def _iter_activity_tree(activities: list[dict[str, Any]], stage: dict[str, Any] | None):
+    for activity in activities:
+        yield activity, stage
+        children = activity.get("children", []) or []
+        yield from _iter_activity_tree(children, stage)
+
+
 def _iter_methodology_activities(methodology_map: dict[str, Any]):
     for stage in methodology_map.get("stages", []):
-        for activity in stage.get("activities", []):
-            yield activity, stage
+        yield from _iter_activity_tree(stage.get("activities", []) or [], stage)
 
 
 def _iter_all_activities(methodology_map: dict[str, Any]):
@@ -120,7 +126,7 @@ def stage_progress(
     if not stage:
         return {"complete_count": 0, "total_count": 0, "percent": 0.0}
 
-    activities = stage.get("activities", [])
+    activities = [activity for activity, _stage in _iter_activity_tree(stage.get("activities", []) or [], stage)]
     total_count = len(activities)
     complete_count = sum(
         1 for activity in activities if state.activity_completion.get(activity["id"], False)

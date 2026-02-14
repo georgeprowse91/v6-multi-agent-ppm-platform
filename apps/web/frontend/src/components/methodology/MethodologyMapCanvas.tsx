@@ -24,7 +24,7 @@ function countTemplates(items: TemplateBinding[], activityId: string): number {
 }
 
 function flattenCards(activities: MethodologyActivity[]): MethodologyActivity[] {
-  return activities.flatMap((activity) => [activity, ...(activity.children ?? [])]);
+  return activities.flatMap((activity) => [activity, ...flattenCards(activity.children ?? [])]);
 }
 
 export function MethodologyMapCanvas({

@@ -220,6 +220,97 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
     },
 }
 
+DEFAULT_MONITORING_RELATIONSHIPS: dict[str, dict[str, Any]] = {
+    "adaptive": {
+        "template_id": "status-report-template",
+        "agent_id": "project-lifecycle-governance",
+        "connector_id": "power-bi",
+        "canvas_ui": "dashboard",
+        "assistant_suggested_actions": [
+            "Review iteration throughput and quality trends",
+            "Highlight interventions for the next sprint cycle",
+        ],
+    },
+    "predictive": {
+        "template_id": "status-report-template",
+        "agent_id": "project-lifecycle-governance",
+        "connector_id": "power-bi",
+        "canvas_ui": "dashboard",
+        "assistant_suggested_actions": [
+            "Assess stage-gate readiness from control tower metrics",
+            "Escalate baseline variances and corrective actions",
+        ],
+    },
+    "hybrid": {
+        "template_id": "status-report-template",
+        "agent_id": "workflow-process-engine",
+        "connector_id": "power-bi",
+        "canvas_ui": "dashboard",
+        "assistant_suggested_actions": [
+            "Balance predictive controls with adaptive outcomes",
+            "Prioritise cross-team actions from live delivery signals",
+        ],
+    },
+}
+
+
+def _build_monitoring_activities(methodology_id: str) -> list[dict[str, Any]]:
+    relationships = DEFAULT_MONITORING_RELATIONSHIPS.get(methodology_id, {})
+    monitoring_nodes = [
+        {
+            "id": "monitoring-project-performance-insights",
+            "name": "Project Performance & Insights Dashboard",
+            "description": "Control tower dashboard for cross-lifecycle project performance.",
+            "category": "monitoring",
+            "recommended_canvas_tab": "dashboard",
+            "assistant_prompts": relationships.get("assistant_suggested_actions", []),
+            "prerequisites": [],
+            "metadata": {
+                "template_id": relationships.get("template_id"),
+                "agent_id": relationships.get("agent_id"),
+                "connector_id": relationships.get("connector_id"),
+                "relationships": relationships,
+            },
+        },
+        {
+            "id": "monitoring-cross-cutting-risk-control",
+            "name": "Cross-cutting Risk & Issue Control",
+            "description": "Track and govern risk, issue, and dependency posture across all stages.",
+            "category": "monitoring",
+            "recommended_canvas_tab": "spreadsheet",
+            "assistant_prompts": [
+                "Review top risks and unresolved blockers",
+                "Generate mitigation and escalation actions",
+            ],
+            "prerequisites": [],
+            "metadata": {
+                "template_id": "risk_register_template",
+                "agent_id": "risk-issue-management",
+                "connector_id": "servicenow",
+            },
+        },
+        {
+            "id": "monitoring-benefits-value-realisation",
+            "name": "Benefits & Value Realisation Tracking",
+            "description": "Monitor benefits attainment, KPI drift, and corrective governance actions.",
+            "category": "monitoring",
+            "recommended_canvas_tab": "document",
+            "assistant_prompts": [
+                "Compare realised outcomes versus expected benefits",
+                "Prepare value-realisation commentary for governance",
+            ],
+            "prerequisites": [],
+            "metadata": {
+                "template_id": "benefits-realisation-plan",
+                "agent_id": "analytics-insights",
+                "connector_id": "power-bi",
+            },
+        },
+    ]
+    for index, node in enumerate(monitoring_nodes, start=1):
+        node["order"] = index
+    return monitoring_nodes
+
 
 def _resolve_relationships(
     methodology_id: str,
@@ -364,7 +455,7 @@ def _normalize_methodology_from_nodes(payload: dict[str, Any], methodology_id: s
         "type": payload.get("type", "custom"),
         "version": str(payload.get("version", "1.0")),
         "stages": stages,
-        "monitoring": [],
+        "monitoring": _build_monitoring_activities(methodology_id),
         "navigation_nodes": nodes,
         "gates": _load_yaml(METHODOLOGY_DOCS_ROOT / methodology_id / "gates.yaml").get("gates", []),
     }

@@ -426,6 +426,7 @@ class ActivitySummary(BaseModel):
     connector_id: str | None = None
     access: ActivityAccessSummary
     completed: bool
+    children: list["ActivitySummary"] = Field(default_factory=list)
 
 
 class StageProgressSummary(BaseModel):
@@ -2424,6 +2425,43 @@ def _load_projects() -> list[ProjectRecord]:
     return [ProjectRecord.model_validate(item) for item in payload.get("projects", [])]
 
 
+def _build_activity_summary(
+    methodology_map: dict[str, Any],
+    state: WorkspaceState,
+    activity: dict[str, Any],
+) -> ActivitySummary:
+    access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
+    activity_metadata = activity.get("metadata", {})
+    return ActivitySummary(
+        id=activity["id"],
+        name=activity["name"],
+        description=activity["description"],
+        prerequisites=activity.get("prerequisites", []),
+        category=activity["category"],
+        recommended_canvas_tab=activity["recommended_canvas_tab"],
+        assistant_prompts=activity.get("assistant_prompts", []),
+        template_id=activity_metadata.get("template_id"),
+        agent_id=activity_metadata.get("agent_id"),
+        connector_id=activity_metadata.get("connector_id"),
+        access=ActivityAccessSummary(**access_payload),
+        completed=state.activity_completion.get(activity["id"], False),
+        children=[
+            _build_activity_summary(methodology_map, state, child)
+            for child in activity.get("children", []) or []
+        ],
+    )
+
+
+def _find_activity_by_id(activities: list[dict[str, Any]], activity_id: str) -> dict[str, Any] | None:
+    for activity in activities:
+        if activity.get("id") == activity_id:
+            return activity
+        match = _find_activity_by_id(activity.get("children", []) or [], activity_id)
+        if match:
+            return match
+    return None
+
+
 def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
     methodology_map = get_methodology_map(state.methodology)
 
@@ -2466,26 +2504,10 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
 
     stage_summaries: list[StageSummary] = []
     for stage in methodology_map.get("stages", []):
-        activities: list[ActivitySummary] = []
-        for activity in stage.get("activities", []):
-            access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
-            activity_metadata = activity.get("metadata", {})
-            activities.append(
-                ActivitySummary(
-                    id=activity["id"],
-                    name=activity["name"],
-                    description=activity["description"],
-                    prerequisites=activity.get("prerequisites", []),
-                    category=activity["category"],
-                    recommended_canvas_tab=activity["recommended_canvas_tab"],
-                    assistant_prompts=activity.get("assistant_prompts", []),
-                    template_id=activity_metadata.get("template_id"),
-                    agent_id=activity_metadata.get("agent_id"),
-                    connector_id=activity_metadata.get("connector_id"),
-                    access=ActivityAccessSummary(**access_payload),
-                    completed=state.activity_completion.get(activity["id"], False),
-                )
-            )
+        activities: list[ActivitySummary] = [
+            _build_activity_summary(methodology_map, state, activity)
+            for activity in stage.get("activities", [])
+        ]
         stage_summaries.append(
             StageSummary(
                 id=stage["id"],
@@ -2497,38 +2519,18 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
             )
         )
 
-    monitoring_summaries: list[ActivitySummary] = []
-    for activity in methodology_map.get("monitoring", []):
-        access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
-        activity_metadata = activity.get("metadata", {})
-        monitoring_summaries.append(
-            ActivitySummary(
-                id=activity["id"],
-                name=activity["name"],
-                description=activity["description"],
-                prerequisites=activity.get("prerequisites", []),
-                category=activity["category"],
-                recommended_canvas_tab=activity["recommended_canvas_tab"],
-                assistant_prompts=activity.get("assistant_prompts", []),
-                template_id=activity_metadata.get("template_id"),
-                agent_id=activity_metadata.get("agent_id"),
-                connector_id=activity_metadata.get("connector_id"),
-                access=ActivityAccessSummary(**access_payload),
-                completed=state.activity_completion.get(activity["id"], False),
-            )
-        )
+    monitoring_summaries: list[ActivitySummary] = [
+        _build_activity_summary(methodology_map, state, activity)
+        for activity in methodology_map.get("monitoring", [])
+    ]
 
     selected_activity_payload: SelectedActivitySummary | None = None
     if state.current_activity_id:
         activity_lookup = None
         for stage in methodology_map.get("stages", []):
-            activity_lookup = next(
-                (
-                    activity
-                    for activity in stage.get("activities", [])
-                    if activity["id"] == state.current_activity_id
-                ),
-                None,
+            activity_lookup = _find_activity_by_id(
+                stage.get("activities", []),
+                state.current_activity_id,
             )
             if activity_lookup:
                 break
