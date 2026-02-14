@@ -1,0 +1,28 @@
+[
+  {
+    "id": "risk-001",
+    "tenant_id": "tenant-demo",
+    "title": "Identity provider integration delay",
+    "impact": "high",
+    "likelihood": "medium",
+    "status": "open",
+    "owner": "u_project_demo",
+    "classification": "Internal",
+    "created_at": "2025-03-10T11:00:00Z",
+    "project_id": "prj-mobile-001",
+    "mitigation": "Parallelize test environment setup with contract finalization."
+  },
+  {
+    "id": "risk-002",
+    "tenant_id": "tenant-demo",
+    "title": "Cloud logging cost overrun",
+    "impact": "medium",
+    "likelihood": "medium",
+    "status": "monitoring",
+    "owner": "u_finance_demo",
+    "classification": "Internal",
+    "created_at": "2025-03-12T11:00:00Z",
+    "project_id": "prj-observability-003",
+    "mitigation": "Enable sampling and archive infrequent traces."
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "pf-dt-001",
+    "tenant_id": "tenant-demo",
+    "name": "Digital Experience Transformation",
+    "status": "active",
+    "owner": "u_portfolio_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-10T09:00:00Z",
+    "strategic_theme": "Customer growth",
+    "target_npv": 12800000,
+    "kpi_delivery_on_time_target_pct": 88
+  },
+  {
+    "id": "pf-op-002",
+    "tenant_id": "tenant-demo",
+    "name": "Operational Resilience",
+    "status": "active",
+    "owner": "u_portfolio_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-15T09:00:00Z",
+    "strategic_theme": "Risk reduction",
+    "target_npv": 6400000,
+    "kpi_delivery_on_time_target_pct": 85
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "epic-cx-001",
+    "project_id": "prj-mobile-001",
+    "title": "Seamless Sign-In",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-cx-002",
+    "project_id": "prj-portal-002",
+    "title": "AI Support Assistant",
+    "status": "planned",
+    "target_release": "2025-Q4"
+  },
+  {
+    "id": "epic-ops-003",
+    "project_id": "prj-observability-003",
+    "title": "Golden Signals Monitoring",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "res-eng-001",
+    "tenant_id": "tenant-demo",
+    "name": "Ava Patel",
+    "role": "Senior Engineer",
+    "status": "allocated",
+    "created_at": "2025-01-05T12:00:00Z",
+    "program_id": "pg-cx-001",
+    "cost_rate": 1050
+  },
+  {
+    "id": "res-eng-002",
+    "tenant_id": "tenant-demo",
+    "name": "Noah Chen",
+    "role": "Platform Engineer",
+    "status": "allocated",
+    "created_at": "2025-01-05T12:30:00Z",
+    "program_id": "pg-cx-001",
+    "cost_rate": 980
+  },
+  {
+    "id": "res-ba-003",
+    "tenant_id": "tenant-demo",
+    "name": "Mia Johnson",
+    "role": "Business Analyst",
+    "status": "allocated",
+    "created_at": "2025-01-07T13:00:00Z",
+    "program_id": "pg-cx-001",
+    "cost_rate": 900
+  },
+  {
+    "id": "res-ops-004",
+    "tenant_id": "tenant-demo",
+    "name": "Liam Smith",
+    "role": "SRE Lead",
+    "status": "allocated",
+    "created_at": "2025-01-08T13:00:00Z",
+    "program_id": "pg-data-002",
+    "cost_rate": 1150
+  }
+]

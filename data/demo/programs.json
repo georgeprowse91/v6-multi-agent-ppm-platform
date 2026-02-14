@@ -1,0 +1,22 @@
+[
+  {
+    "id": "pg-cx-001",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "pf-dt-001",
+    "name": "Omnichannel Customer Program",
+    "status": "active",
+    "owner": "u_program_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-20T10:00:00Z"
+  },
+  {
+    "id": "pg-data-002",
+    "tenant_id": "tenant-demo",
+    "portfolio_id": "pf-op-002",
+    "name": "Data Platform Reliability Program",
+    "status": "active",
+    "owner": "u_program_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-22T11:00:00Z"
+  }
+]

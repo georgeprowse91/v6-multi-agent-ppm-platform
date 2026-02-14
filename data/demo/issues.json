@@ -1,0 +1,24 @@
+[
+  {
+    "id": "iss-001",
+    "tenant_id": "tenant-demo",
+    "title": "Mobile crash on Android 14",
+    "severity": "high",
+    "status": "in_progress",
+    "project_id": "prj-mobile-001",
+    "owner": "res-eng-001",
+    "classification": "Internal",
+    "created_at": "2025-04-04T15:00:00Z"
+  },
+  {
+    "id": "iss-002",
+    "tenant_id": "tenant-demo",
+    "title": "Portal SSO token timeout",
+    "severity": "medium",
+    "status": "open",
+    "project_id": "prj-portal-002",
+    "owner": "res-eng-002",
+    "classification": "Internal",
+    "created_at": "2025-04-08T16:30:00Z"
+  }
+]

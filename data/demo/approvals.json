@@ -1,0 +1,22 @@
+[
+  {
+    "id": "apr-001",
+    "entity_type": "budget",
+    "entity_id": "bud-2025-dt",
+    "requester": "u_finance_demo",
+    "approver": "u_exec_demo",
+    "status": "approved",
+    "requested_at": "2025-01-29T09:00:00Z",
+    "decision_at": "2025-01-30T14:00:00Z"
+  },
+  {
+    "id": "apr-002",
+    "entity_type": "contract",
+    "entity_id": "ctr-001",
+    "requester": "u_vendor_demo",
+    "approver": "u_compliance_demo",
+    "status": "approved_with_conditions",
+    "requested_at": "2025-02-02T09:00:00Z",
+    "decision_at": "2025-02-04T14:30:00Z"
+  }
+]
