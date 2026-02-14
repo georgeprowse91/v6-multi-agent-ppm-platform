@@ -271,6 +271,8 @@ For a complete site failure, follow this order:
 ### Data Layer
 - [ ] PostgreSQL connections successful from all services
 - [ ] Database migrations are current (`alembic current`)
+- [ ] Project records can read/write the `benefits_realisation_plan` field
+- [ ] Project records can read/write the `regulatory_category` field (`low|medium|high`)
 - [ ] Redis connectivity verified
 - [ ] Data sync queues are draining
 
