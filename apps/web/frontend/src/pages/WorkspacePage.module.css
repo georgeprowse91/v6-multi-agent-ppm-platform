@@ -784,3 +784,22 @@
 .pipelineSkeletonCard {
   min-height: 120px;
 }
+
+.pipelineItemMoved {
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pipelineItemMoved {
+    animation: pipelineDropConfirm 200ms ease-out;
+  }
+
+  @keyframes pipelineDropConfirm {
+    from {
+      transform: scale(1.05);
+    }
+
+    to {
+      transform: scale(1);
+    }
+  }
+}

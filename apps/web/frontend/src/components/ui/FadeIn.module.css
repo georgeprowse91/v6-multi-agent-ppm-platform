@@ -1,0 +1,24 @@
+.fadeIn {
+  --fade-in-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fadeIn {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeInUp var(--transition-normal) ease-out forwards;
+    animation-delay: var(--fade-in-delay);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

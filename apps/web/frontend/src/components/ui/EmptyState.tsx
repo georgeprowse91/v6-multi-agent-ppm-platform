@@ -1,5 +1,6 @@
 import { Icon } from '@/components/icon/Icon';
 import type { IconSemantic } from '@/components/icon/iconMap';
+import { FadeIn } from './FadeIn';
 import styles from './EmptyState.module.css';
 
 type EmptyStateIcon =
@@ -39,22 +40,24 @@ export function EmptyState({ icon, title, description, action, className }: Empt
   const rootClassName = [styles.emptyState, className].filter(Boolean).join(' ');
 
   return (
-    <div className={rootClassName}>
-      <div className={styles.iconWrap}>
-        <Icon semantic={iconSemanticMap[icon]} decorative size="xl" />
+    <FadeIn>
+      <div className={rootClassName}>
+        <div className={styles.iconWrap}>
+          <Icon semantic={iconSemanticMap[icon]} decorative size="xl" />
+        </div>
+        <h3 className={styles.title}>{title}</h3>
+        <p className={styles.description}>{description}</p>
+        {action &&
+          (action.href ? (
+            <a href={action.href} className={styles.actionButton}>
+              {action.label}
+            </a>
+          ) : (
+            <button type="button" className={styles.actionButton} onClick={action.onClick}>
+              {action.label}
+            </button>
+          ))}
       </div>
-      <h3 className={styles.title}>{title}</h3>
-      <p className={styles.description}>{description}</p>
-      {action &&
-        (action.href ? (
-          <a href={action.href} className={styles.actionButton}>
-            {action.label}
-          </a>
-        ) : (
-          <button type="button" className={styles.actionButton} onClick={action.onClick}>
-            {action.label}
-          </button>
-        ))}
-    </div>
+    </FadeIn>
   );
 }

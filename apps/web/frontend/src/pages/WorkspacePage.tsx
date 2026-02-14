@@ -176,6 +176,7 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
   const [grabbedItemId, setGrabbedItemId] = useState<string | null>(null);
   const [grabbedCurrentStage, setGrabbedCurrentStage] = useState<string | null>(null);
   const [pipelineLiveMessage, setPipelineLiveMessage] = useState('');
+  const [recentlyMovedPipelineItemId, setRecentlyMovedPipelineItemId] = useState<string | null>(null);
   const [relatedFilter, setRelatedFilter] = useState('');
   const [relatedPage, setRelatedPage] = useState(1);
   const [relatedPageSize, setRelatedPageSize] = useState(RELATED_PAGE_SIZES[0]);
@@ -470,6 +471,7 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
     );
     setPipelineBoard({ ...board, items: optimisticItems });
     setPipelineError(null);
+    setRecentlyMovedPipelineItemId(itemId);
 
     try {
       const response = await fetch(
@@ -485,10 +487,14 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
       if (!response.ok) {
         throw new Error('Unable to update pipeline stage.');
       }
+      window.setTimeout(() => {
+        setRecentlyMovedPipelineItemId((current) => (current === itemId ? null : current));
+      }, 200);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to update pipeline stage.';
       setPipelineError(message);
       setPipelineBoard(board);
+      setRecentlyMovedPipelineItemId(null);
     }
   };
 
@@ -565,7 +571,9 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
   const renderPipelineItem = (item: PipelineItem) => (
     <div
       key={item.item_id}
-      className={`${styles.pipelineItem} ${grabbedItemId === item.item_id ? styles.pipelineItemGrabbed : ''}`}
+      className={`${styles.pipelineItem} ${grabbedItemId === item.item_id ? styles.pipelineItemGrabbed : ''} ${
+        recentlyMovedPipelineItemId === item.item_id ? styles.pipelineItemMoved : ''
+      }`}
       draggable
       tabIndex={0}
       role="listitem"

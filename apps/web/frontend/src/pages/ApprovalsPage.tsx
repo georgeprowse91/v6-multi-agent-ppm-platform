@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useRequestState } from '@/hooks/useRequestState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { FadeIn } from '@/components/ui/FadeIn';
 import { getErrorMessage, requestJson } from '@/services/apiClient';
 import { useRealtimeStore } from '@/store/realtime/useRealtimeStore';
 import styles from './ApprovalsPage.module.css';
@@ -151,11 +152,17 @@ export function ApprovalsPage() {
         </p>
       </header>
 
-      {bannerMessage && <div className={styles.infoBanner}>{bannerMessage}</div>}
+      {bannerMessage && (
+        <FadeIn>
+          <div className={styles.infoBanner}>{bannerMessage}</div>
+        </FadeIn>
+      )}
       {realtimeApprovals.length > 0 && (
-        <div className={styles.infoBanner}>
-          Live updates: {realtimeApprovals.length} approval event(s) received.
-        </div>
+        <FadeIn>
+          <div className={styles.infoBanner}>
+            Live updates: {realtimeApprovals.length} approval event(s) received.
+          </div>
+        </FadeIn>
       )}
 
       <div className={styles.layout}>
@@ -169,10 +176,12 @@ export function ApprovalsPage() {
 
           {listRequest.isLoading && <div className={styles.emptyState}>Loading...</div>}
           {listRequest.isError && (
-            <div className={styles.errorState}>
+            <FadeIn>
+              <div className={styles.errorState}>
               <span>{listRequest.error}</span>
               <button onClick={fetchApprovals}>Retry</button>
-            </div>
+              </div>
+            </FadeIn>
           )}
           {!listRequest.isLoading && !listRequest.isError && approvals.length === 0 && (
             <EmptyState
@@ -185,6 +194,7 @@ export function ApprovalsPage() {
             <ul className={styles.cardList}>
               {approvals.map((approval) => (
                 <li key={approval.approval_id} className={styles.card}>
+                  <FadeIn>
                   <div className={styles.cardHeader}>
                     <div>
                       <h3>
@@ -252,6 +262,7 @@ export function ApprovalsPage() {
                       </button>
                     </div>
                   </div>
+                  </FadeIn>
                 </li>
               ))}
             </ul>
@@ -261,14 +272,16 @@ export function ApprovalsPage() {
         <aside className={styles.detailSection}>
           <h2>Approval details</h2>
           {detailRequest.isError && (
-            <div className={styles.errorState}>
+            <FadeIn>
+              <div className={styles.errorState}>
               <span>{detailRequest.error}</span>
               {selectedApproval && (
                 <button onClick={() => fetchApprovalDetail(selectedApproval.approval_id)}>
                   Retry
                 </button>
               )}
-            </div>
+              </div>
+            </FadeIn>
           )}
           {!selectedApproval && !detailRequest.isLoading && (
             <div className={styles.emptyState}>Select an approval to see the audit trail.</div>
