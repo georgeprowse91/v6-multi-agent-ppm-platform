@@ -52,3 +52,32 @@ The demo values file enables demo mode, points connector services to internal mo
 kubectl get pods -n ppm-demo
 kubectl get svc -n ppm-demo
 ```
+
+## 5) Enable global demo mode for all services
+
+The platform now supports a single global `DEMO_MODE` toggle.
+
+- Default value lives in `config/common.yaml`.
+- Environment variable `DEMO_MODE` overrides the file value at runtime.
+- Services that consume this setting include the web UI, API gateway, workflow engine, orchestration workflows, agent runtime, and connector/data-sync integrations.
+
+### Local Docker Compose
+
+Set `DEMO_MODE=true` in your `.env` file before starting compose:
+
+```bash
+cp .env.example .env
+# then set DEMO_MODE=true
+
+docker compose up --build
+```
+
+Compose startup wiring propagates `DEMO_MODE` to `api`, `workflow-engine`, and `web` containers.
+
+### Kubernetes / Helm
+
+Set `env.DEMO_MODE` in service Helm values (for example `services/data-sync-service/helm/values.yaml`).
+
+### Agent participation list
+
+Optional per-agent participation can be configured in `config/agents/demo-participants.yaml` via `demoEnabled: true` flags.

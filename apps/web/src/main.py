@@ -40,6 +40,7 @@ for root in (REPO_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT, LLM_ROOT, FEATURE_FLA
         sys.path.insert(0, str(root))
 
 from packages.version import API_VERSION  # noqa: E402
+from runtime_flags import demo_mode_enabled  # noqa: E402
 from config import validate_startup_config  # noqa: E402
 from agent_registry import load_agent_registry  # noqa: E402
 from agent_settings_models import (  # noqa: E402
@@ -825,7 +826,7 @@ def _require_duplicate_resolution() -> None:
 
 
 def _demo_mode_enabled() -> bool:
-    return os.getenv("DEMO_MODE", "").lower() in {"1", "true", "yes", "on"}
+    return demo_mode_enabled()
 
 
 def _load_demo_dashboard_payload(filename: str) -> dict[str, Any] | None:

@@ -24,6 +24,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: DEMO_MODE
+              value: {{ .Values.env.DEMO_MODE | quote }}
             - name: API_GATEWAY_URL
               value: {{ .Values.env.API_GATEWAY_URL | quote }}
             - name: IDENTITY_ACCESS_URL

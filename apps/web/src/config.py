@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     identity_access_url: str = Field(..., env="IDENTITY_ACCESS_URL")
     workflow_engine_url: str = Field(..., env="WORKFLOW_ENGINE_URL")
     llm_provider: str = Field("mock", env="LLM_PROVIDER")
+    demo_mode: bool = Field(False, env="DEMO_MODE")
     llm_mock_response_path: str = Field(
         "/app/examples/demo-scenarios/quickstart-llm-response.json", env="LLM_MOCK_RESPONSE_PATH"
     )

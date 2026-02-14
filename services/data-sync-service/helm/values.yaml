@@ -11,6 +11,7 @@ service:
 
 env:
   LOG_LEVEL: info
+  DEMO_MODE: "false"
   SERVICE_BUS_QUEUE: "data-sync"
   SERVICE_BUS_CONNECTION_STRING: ""
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"

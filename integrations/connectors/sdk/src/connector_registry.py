@@ -8,6 +8,7 @@ Connector implementations are available for the listed integrations.
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 from dataclasses import dataclass, field
@@ -16,7 +17,12 @@ from typing import Any
 
 import yaml
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from base_connector import ConnectorCategory, SyncDirection
+from runtime_flags import demo_mode_enabled
 
 
 class ConnectorStatus(str, Enum):
@@ -1044,7 +1050,7 @@ def _load_demo_overrides() -> dict[str, dict[str, Any]]:
 
 
 def _apply_demo_overrides() -> None:
-    if os.getenv("DEMO_MODE", "").lower() not in {"1", "true", "yes", "on"}:
+    if not demo_mode_enabled():
         return
     for connector_id, overrides in _load_demo_overrides().items():
         connector = CONNECTORS_BY_ID.get(connector_id)

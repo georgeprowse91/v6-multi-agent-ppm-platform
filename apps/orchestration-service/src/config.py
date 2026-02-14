@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         "INFO", env="LOG_LEVEL"
     )
+    demo_mode: bool = Field(False, env="DEMO_MODE")
     orchestration_state_backend: Literal["db", "memory"] = Field(
         "db", env="ORCHESTRATION_STATE_BACKEND"
     )

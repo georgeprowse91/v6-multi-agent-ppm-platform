@@ -11,6 +11,7 @@ service:
 
 env:
   LOG_LEVEL: info
+  DEMO_MODE: "false"
   API_GATEWAY_URL: "http://api-gateway:8000"
   IDENTITY_ACCESS_URL: "http://identity-access:8080"
   WORKFLOW_ENGINE_URL: "http://workflow-engine:8080"

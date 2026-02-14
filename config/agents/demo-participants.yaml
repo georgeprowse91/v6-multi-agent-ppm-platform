@@ -1,0 +1,15 @@
+# Optional per-agent demo participation toggles.
+# Agents not listed default to demoEnabled: false.
+agents:
+  - agentId: intent-router
+    demoEnabled: true
+  - agentId: response-orchestration
+    demoEnabled: true
+  - agentId: demand-intake
+    demoEnabled: true
+  - agentId: program-management
+    demoEnabled: true
+  - agentId: project-lifecycle-governance
+    demoEnabled: true
+  - agentId: agent_023
+    demoEnabled: true

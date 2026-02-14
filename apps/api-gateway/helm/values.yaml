@@ -11,6 +11,7 @@ service:
 
 env:
   LOG_LEVEL: info
+  DEMO_MODE: "false"
   ENVIRONMENT: "development"
   ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8501,http://localhost:8000"
   IDENTITY_ACCESS_URL: "http://identity-access:8080"

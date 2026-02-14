@@ -1,0 +1,3 @@
+# Shared platform configuration defaults.
+# Environment variables always take precedence.
+DEMO_MODE: false

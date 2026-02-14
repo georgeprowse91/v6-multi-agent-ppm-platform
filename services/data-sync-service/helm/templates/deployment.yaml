@@ -24,6 +24,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: DEMO_MODE
+              value: {{ .Values.env.DEMO_MODE | quote }}
             - name: SERVICE_BUS_QUEUE
               value: {{ .Values.env.SERVICE_BUS_QUEUE | quote }}
             - name: SERVICE_BUS_CONNECTION_STRING

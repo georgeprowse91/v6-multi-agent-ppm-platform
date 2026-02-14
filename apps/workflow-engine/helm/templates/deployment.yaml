@@ -24,6 +24,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: DEMO_MODE
+              value: {{ .Values.env.DEMO_MODE | quote }}
             - name: AUDIT_LOG_URL
               value: {{ .Values.env.AUDIT_LOG_URL | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT

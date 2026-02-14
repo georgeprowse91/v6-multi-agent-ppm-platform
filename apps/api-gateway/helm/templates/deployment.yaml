@@ -28,6 +28,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: DEMO_MODE
+              value: {{ .Values.env.DEMO_MODE | quote }}
             - name: ENVIRONMENT
               value: {{ .Values.env.ENVIRONMENT | quote }}
             - name: ALLOWED_ORIGINS

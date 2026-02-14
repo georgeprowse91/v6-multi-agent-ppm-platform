@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         "INFO", env="LOG_LEVEL"
     )
+    demo_mode: bool = Field(False, env="DEMO_MODE")
     api_gateway_url: str = Field(..., env="API_GATEWAY_URL")
 
     model_config = SettingsConfigDict(

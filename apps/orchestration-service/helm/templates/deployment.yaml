@@ -27,6 +27,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: DEMO_MODE
+              value: {{ .Values.env.DEMO_MODE | quote }}
             - name: PORT
               value: {{ .Values.env.PORT | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT

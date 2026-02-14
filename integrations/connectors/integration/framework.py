@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
+from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Type
@@ -11,6 +13,12 @@ from typing import Any, Callable, Dict, Optional, Type
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from runtime_flags import demo_mode_enabled
 
 
 class IntegrationAuthType(str, Enum):
@@ -255,7 +263,7 @@ def default_registry() -> ConnectorRegistry:
     registry.register(TeamsMcpConnector.system_name, TeamsMcpConnector, variant="mcp")
     registry.register(AsanaMcpConnector.system_name, AsanaMcpConnector, variant="mcp")
 
-    if os.getenv("DEMO_MODE", "").lower() in {"1", "true", "yes", "on"}:
+    if demo_mode_enabled():
         for system in ("jira", "workday", "teams", "sap", "servicenow", "azure_devops", "planview", "clarity"):
             registry.register(system, MockIntegrationConnector, variant="rest")
 

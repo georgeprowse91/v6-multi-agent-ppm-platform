@@ -22,6 +22,7 @@ for path in [
     PACKAGES_ROOT / "security" / "src",
     PACKAGES_ROOT / "llm" / "src",
     PACKAGES_ROOT / "event_bus" / "src",
+    PACKAGES_ROOT / "feature-flags" / "src",
     REPO_ROOT / "services" / "data-sync-service" / "src",
     REPO_ROOT / "ops",
 ]:
@@ -35,6 +36,7 @@ from agents.runtime import (  # noqa: E402
     get_event_bus,
 )
 from agents.runtime.src.agent_catalog import get_catalog_entry  # noqa: E402
+from runtime_flags import demo_mode_enabled  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -126,7 +128,7 @@ class AgentRuntime:
         self._connector_registry = ConnectorRegistry()
         self._connector_client = ConnectorActionClient(self._connector_registry)
         self._agent_registry: dict[str, BaseAgent] = {}
-        self._demo_mode = os.getenv("DEMO_MODE", "false").lower() == "true"
+        self._demo_mode = demo_mode_enabled()
         self._demo_fixtures: dict[str, dict[str, Any]] = {}
         self._orchestration_config: dict[str, Any] = {
             "default_routing": [],
