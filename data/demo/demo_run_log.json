@@ -1,0 +1,108 @@
+{
+  "run_id": "demo-full-platform-run-001",
+  "timestamp": "2026-01-01T00:00:00+00:00",
+  "total_agents": 25,
+  "agents": [
+    {
+      "agent_id": "agent-01-intent-router",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-02-response-orchestration",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-03-approval-workflow",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-04-demand-intake",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-05-business-case-investment",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-06-portfolio-strategy-optimisation",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-07-program-management",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-08-project-definition-scope",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-09-lifecycle-governance",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-10-schedule-planning",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-11-resource-capacity",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-12-financial-management",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-13-vendor-procurement",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-14-quality-management",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-15-risk-issue-management",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-16-compliance-regulatory",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-17-change-configuration",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-18-release-deployment",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-19-knowledge-document-management",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-20-continuous-improvement-process-mining",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-21-stakeholder-comms",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-22-analytics-insights",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-23-data-synchronisation-quality",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-24-workflow-process-engine",
+      "status": "completed"
+    },
+    {
+      "agent_id": "agent-25-system-health-monitoring",
+      "status": "completed"
+    }
+  ],
+  "correlation_id": "full-platform-demo-001"
+}
