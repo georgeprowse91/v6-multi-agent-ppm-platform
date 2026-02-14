@@ -5,6 +5,7 @@ import { App } from '@/App';
 import { useAppStore } from '@/store';
 import { I18nProvider } from '@/i18n';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { allPermissionIds } from '@/auth/permissions';
 
 const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
   const url = String(input);
@@ -24,7 +25,7 @@ const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
   }
 
   if (url.includes('/v1/api/roles')) {
-    return { ok: true, json: async () => [] } as Response;
+    return { ok: false, status: 500, json: async () => ({}) } as Response;
   }
 
   if (url.includes('/v1/workflows/approvals')) {
@@ -64,7 +65,10 @@ describe('Critical user journeys (route e2e)', () => {
 
   it('loads dashboard/home route', async () => {
     renderAt('/');
-    await waitFor(() => expect(screen.getByText(/Welcome to PPM Platform/i)).toBeInTheDocument());
+    expect(await screen.findByRole('heading', { name: /welcome to the ppm platform/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(useAppStore.getState().session.user?.permissions).toEqual(allPermissionIds());
+    });
   });
 
   it('loads approvals route', async () => {

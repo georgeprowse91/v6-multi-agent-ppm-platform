@@ -52,6 +52,10 @@ export const permissionOptions = [
   },
 ];
 
+export function allPermissionIds(): string[] {
+  return permissionOptions.map((permission) => permission.id);
+}
+
 export function normalizeRoleIds(roles: string[] | undefined | null): string[] {
   if (!roles) return [];
   return roles.map((role) => roleAliases[role] ?? role);

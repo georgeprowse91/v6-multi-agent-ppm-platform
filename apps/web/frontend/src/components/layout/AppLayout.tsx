@@ -5,7 +5,7 @@ import { MainCanvas } from './MainCanvas';
 import { AssistantPanel } from '@/components/assistant';
 import { TourProvider } from '@/components/tours';
 import { useAppStore } from '@/store';
-import { resolvePermissions, type Role } from '@/auth/permissions';
+import { allPermissionIds, resolvePermissions, type Role } from '@/auth/permissions';
 import { useRealtimeConsole } from '@/hooks/useRealtimeConsole';
 import styles from './AppLayout.module.css';
 
@@ -32,7 +32,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             email: '',
             tenantId: data.tenant_id ?? 'default',
             roles,
-            permissions: [],
+            permissions: allPermissionIds(),
           };
           setSession({
             authenticated: true,
@@ -54,12 +54,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             setSession({
               user: {
                 ...user,
-                permissions,
+                permissions: permissions.length > 0 ? permissions : allPermissionIds(),
               },
             });
           } catch {
             if (!mounted) return;
-            setSession({ user: { ...user, permissions: [] } });
+            setSession({ user: { ...user, permissions: allPermissionIds() } });
           }
         } else {
           setSession({ authenticated: false, loading: false, user: null });
