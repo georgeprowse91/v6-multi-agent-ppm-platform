@@ -61,7 +61,9 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     currentActivityId,
     expandedStageIds,
     templatesAvailableHere,
+    runtimeDefaultViewContract,
     setCurrentActivity,
+    resolveNodeRuntime,
     toggleStageExpanded,
     isStageLockedComputed,
     isActivityLockedComputed,
@@ -108,6 +110,16 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     (activity: MethodologyActivity, stageLocked: boolean) => {
       // Always allow setting current activity (for viewing)
       setCurrentActivity(activity.id);
+      const selectedStage = getStageForActivity(activity.id);
+
+      const runtimeContractPromise = selectedStage
+        ? resolveNodeRuntime({
+            methodologyId: methodology.id,
+            stageId: selectedStage.id,
+            activityId: activity.id,
+            event: 'view',
+          }).catch(() => null)
+        : Promise.resolve(null);
 
       // If stage or activity is locked, user can view but not create artifacts
       const activityLocked = isActivityLockedComputed(activity.id);
@@ -122,28 +134,49 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
         return;
       }
 
-      // Open the associated artifact if it exists, or create a new one
+      // Open the associated artifact if it exists, or create a new one.
       if (activity.artifactId && artifacts[activity.artifactId]) {
         openArtifact(artifacts[activity.artifactId]);
       } else {
-        // Create a new artifact for this activity
-        const newArtifact = createArtifact(
-          activity.canvasType,
-          activity.name,
-          projectMethodology.projectId,
-          createEmptyContent(activity.canvasType)
-        );
-        openArtifact(newArtifact);
+        void runtimeContractPromise.then((runtimeContract) => {
+          const canvasMap: Record<string, CanvasType> = {
+            document: 'document',
+            spreadsheet: 'spreadsheet',
+            timeline: 'timeline',
+            dashboard: 'dashboard',
+            kanban: 'tree',
+            risk_log: 'spreadsheet',
+            decision_log: 'document',
+            form: 'document',
+            whiteboard: 'dependency-map',
+          };
+          const runtimeCanvasType = runtimeContract?.canvas?.canvas_type
+            ?? runtimeDefaultViewContract?.canvas?.canvas_type
+            ?? activity.canvasType;
+          const canvasType = (canvasMap[runtimeCanvasType] ?? activity.canvasType) as CanvasType;
+          const newArtifact = createArtifact(
+            canvasType,
+            activity.name,
+            projectMethodology.projectId,
+            createEmptyContent(canvasType)
+          );
+          openArtifact(newArtifact);
+        });
       }
     },
     [
       setCurrentActivity,
+      resolveNodeRuntime,
       isActivityLockedComputed,
       openArtifact,
       artifacts,
       projectMethodology.projectId,
       getIncompletePrerequisites,
       showGatingWarning,
+      methodology.id,
+      getStageForActivity,
+      runtimeDefaultViewContract,
+      stageNameLookup,
     ]
   );
 

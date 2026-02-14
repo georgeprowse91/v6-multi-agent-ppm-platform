@@ -139,3 +139,43 @@ def test_get_workspace_rejects_unknown_methodology_query(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
     response = client.get('/api/workspace/demo-1?methodology=unknown')
     assert response.status_code == 422
+
+
+def test_runtime_resolution_endpoints_and_workspace_enrichment(client, monkeypatch):
+    _set_tenant(monkeypatch, "tenant-a")
+    response = client.post(
+        "/api/workspace/demo-1/select",
+        json={
+            "current_stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "current_activity_id": "0.5.1-sprint-iteration-planning",
+            "current_canvas_tab": "document",
+            "methodology": "adaptive",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert "view" in payload["runtime_actions_available"]
+    assert payload["runtime_default_view_contract"]["canvas"]["renderer_component"]
+
+    actions = client.get(
+        "/api/methodology/runtime/actions",
+        params={
+            "methodology_id": "adaptive",
+            "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "activity_id": "0.5.1-sprint-iteration-planning",
+        },
+    )
+    assert actions.status_code == 200
+    assert "generate" in actions.json()["actions"]
+
+    resolved = client.get(
+        "/api/methodology/runtime/resolve",
+        params={
+            "methodology_id": "adaptive",
+            "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "activity_id": "0.5.1-sprint-iteration-planning",
+            "event": "view",
+        },
+    )
+    assert resolved.status_code == 200
+    assert resolved.json()["resolution_contract"]["assistant"]["response_contract"]["output_format"]

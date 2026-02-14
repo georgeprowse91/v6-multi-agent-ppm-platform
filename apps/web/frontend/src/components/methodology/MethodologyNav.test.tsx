@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useMethodologyStore } from '@/store/methodology';
@@ -70,5 +70,70 @@ describe('MethodologyNav', () => {
     );
 
     expect(screen.queryByText(/MCP Standalone/i)).not.toBeInTheDocument();
+  });
+
+  it('resolves node runtime on activity click and uses resolved renderer contract path', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/methodology/runtime/actions')) {
+        return new Response(JSON.stringify({ actions: ['view', 'generate'] }), { status: 200 });
+      }
+      if (url.includes('/api/methodology/runtime/resolve')) {
+        return new Response(
+          JSON.stringify({
+            resolution_contract: {
+              canvas: {
+                canvas_type: 'document',
+                renderer_component: 'DocumentCanvas',
+                default_view: 'preview',
+              },
+            },
+          }),
+          { status: 200 }
+        );
+      }
+      return new Response(JSON.stringify({}), { status: 200 });
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+    useMethodologyStore.setState((state) => ({
+      projectMethodology: {
+        ...state.projectMethodology,
+        methodology: {
+          ...state.projectMethodology.methodology,
+          stages: state.projectMethodology.methodology.stages.map((stage, index) => (
+            index === 0
+              ? {
+                  ...stage,
+                  activities: [
+                    {
+                      id: 'activity-runtime-test',
+                      name: 'Runtime Test Activity',
+                      description: 'Activity for runtime resolution testing',
+                      status: 'not_started',
+                      canvasType: 'document',
+                      prerequisites: [],
+                      order: 1,
+                    },
+                  ],
+                }
+              : stage
+          )),
+        },
+      },
+    }));
+
+    render(
+      <MemoryRouter>
+        <MethodologyNav />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Runtime Test Activity/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/api/methodology/runtime/actions'), undefined);
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/api/methodology/runtime/resolve'), undefined);
+    });
   });
 });

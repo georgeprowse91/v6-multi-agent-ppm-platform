@@ -131,6 +131,11 @@ from template_mappings import (  # noqa: E402
     list_templates_for_methodology_node,
     load_template_mappings,
 )
+from methodology_node_runtime import (  # noqa: E402
+    list_runtime_actions_for_node,
+    load_methodology_node_runtime_registry,
+    resolve_runtime,
+)
 from canonical_template_registry import (  # noqa: E402
     get_catalog_template,
     list_catalog_templates,
@@ -491,6 +496,29 @@ class WorkspaceStateResponse(BaseModel):
     templates_available_here: list[TemplateMapping] = Field(default_factory=list)
     templates_required_here: list[TemplateMapping] = Field(default_factory=list)
     templates_in_review: list[TemplateMapping] = Field(default_factory=list)
+    runtime_actions_available: list[str] = Field(default_factory=list)
+    runtime_default_view_contract: dict[str, Any] | None = None
+
+
+class MethodologyRuntimeResolveResponse(BaseModel):
+    resolution_contract: dict[str, Any]
+
+
+class MethodologyNodeActionRequest(BaseModel):
+    methodology_id: str
+    stage_id: str
+    activity_id: str | None = None
+    task_id: str | None = None
+    lifecycle_event: Literal["view", "generate", "update", "review", "approve", "publish"]
+    user_input: dict[str, Any] = Field(default_factory=dict)
+
+
+class MethodologyNodeActionResponse(BaseModel):
+    workspace_id: str
+    lifecycle_event: str
+    resolution_contract: dict[str, Any]
+    assistant_output: dict[str, Any]
+    status: str
 
 
 class TemplateAgentConfig(BaseModel):
@@ -745,6 +773,7 @@ async def startup() -> None:
     global knowledge_store
     knowledge_store = KnowledgeStore(KNOWLEDGE_DB_PATH)
     load_template_mappings()
+    load_methodology_node_runtime_registry()
 
 
 def _get_knowledge_store() -> KnowledgeStore:
@@ -2402,6 +2431,23 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
         if state.current_activity_id
         else {"allowed": True, "reasons": [], "missing_prereqs": []}
     )
+    runtime_actions_available: list[str] = []
+    runtime_default_view_contract: dict[str, Any] | None = None
+    if selected_stage_id:
+        runtime_actions_available = list_runtime_actions_for_node(
+            methodology_id,
+            selected_stage_id,
+            selected_activity_id,
+            task_id=None,
+        )
+        if "view" in runtime_actions_available:
+            runtime_default_view_contract = resolve_runtime(
+                methodology_id,
+                selected_stage_id,
+                selected_activity_id,
+                task_id=None,
+                lifecycle_event="view",
+            )
 
     return WorkspaceStateResponse(
         version=state.version,
@@ -2432,7 +2478,49 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
         templates_available_here=available_here,
         templates_required_here=required_here,
         templates_in_review=review_here,
+        runtime_actions_available=runtime_actions_available,
+        runtime_default_view_contract=runtime_default_view_contract,
     )
+
+
+def run_methodology_node_action(
+    workspace_id: str,
+    methodology_id: str,
+    stage_id: str,
+    activity_id: str | None,
+    task_id: str | None,
+    lifecycle_event: str,
+    user_input: dict[str, Any],
+) -> dict[str, Any]:
+    resolution_contract = resolve_runtime(
+        methodology_id,
+        stage_id,
+        activity_id,
+        task_id,
+        lifecycle_event,
+    )
+    workflow = resolution_contract["agent_workflow"]
+    if workflow.get("human_review_required") and lifecycle_event in {"approve", "publish"}:
+        if not user_input.get("human_review_approved"):
+            raise HTTPException(
+                status_code=422,
+                detail="Human review is required before approve/publish actions.",
+            )
+
+    return {
+        "workspace_id": workspace_id,
+        "lifecycle_event": lifecycle_event,
+        "resolution_contract": resolution_contract,
+        "assistant_output": {
+            "intent_id": resolution_contract["assistant"]["intent_id"],
+            "output_format": resolution_contract["assistant"]["response_contract"]["output_format"],
+            "validation_checklist": resolution_contract["assistant"]["response_contract"][
+                "validation_checklist"
+            ],
+            "content": "Methodology-node action executed using canonical runtime contract.",
+        },
+        "status": "completed",
+    }
 
 
 def _persist_projects(projects: list[ProjectRecord]) -> None:
@@ -3191,6 +3279,68 @@ async def update_methodology_editor(
     }
     _write_json(METHODOLOGY_STORAGE_PATH, storage)
     return _build_methodology_editor_payload(payload.methodology_id)
+
+
+@api_router.get("/api/methodology/runtime/actions")
+async def get_methodology_runtime_actions(
+    methodology_id: str,
+    stage_id: str,
+    activity_id: str | None = None,
+    task_id: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "methodology_id": methodology_id,
+        "stage_id": stage_id,
+        "activity_id": activity_id,
+        "task_id": task_id,
+        "actions": list_runtime_actions_for_node(
+            methodology_id,
+            stage_id,
+            activity_id,
+            task_id,
+        ),
+    }
+
+
+@api_router.get("/api/methodology/runtime/resolve", response_model=MethodologyRuntimeResolveResponse)
+async def get_methodology_runtime_resolve(
+    methodology_id: str,
+    stage_id: str,
+    activity_id: str | None = None,
+    task_id: str | None = None,
+    event: Literal["view", "generate", "update", "review", "approve", "publish"] = "view",
+) -> MethodologyRuntimeResolveResponse:
+    try:
+        resolution_contract = resolve_runtime(
+            methodology_id,
+            stage_id,
+            activity_id,
+            task_id,
+            event,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return MethodologyRuntimeResolveResponse(resolution_contract=resolution_contract)
+
+
+@api_router.post(
+    "/api/workspace/{workspace_id}/methodology-node-actions",
+    response_model=MethodologyNodeActionResponse,
+)
+async def run_workspace_methodology_node_action(
+    workspace_id: str,
+    payload: MethodologyNodeActionRequest,
+) -> MethodologyNodeActionResponse:
+    result = run_methodology_node_action(
+        workspace_id,
+        payload.methodology_id,
+        payload.stage_id,
+        payload.activity_id,
+        payload.task_id,
+        payload.lifecycle_event,
+        payload.user_input,
+    )
+    return MethodologyNodeActionResponse.model_validate(result)
 
 
 @api_router.post("/api/intake/uploads")

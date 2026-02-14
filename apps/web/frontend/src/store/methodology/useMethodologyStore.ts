@@ -19,6 +19,7 @@ import {
 } from './types';
 import { projectApolloMethodology, methodologyTemplates } from './demoData';
 import type { CanvasType } from '@ppm/canvas-engine';
+import { requestJson } from '@/services/apiClient';
 
 interface TemplateCanvasBinding {
   canvas_type: string;
@@ -84,6 +85,28 @@ interface WorkspaceStateResponse {
   templates_available_here?: TemplateMapping[];
   templates_required_here?: TemplateMapping[];
   templates_in_review?: TemplateMapping[];
+  runtime_actions_available?: string[];
+  runtime_default_view_contract?: RuntimeResolutionContract | null;
+}
+
+interface RuntimeActionsResponse {
+  actions: string[];
+}
+
+interface RuntimeResolveResponse {
+  resolution_contract: RuntimeResolutionContract;
+}
+
+interface RuntimeResolutionContract {
+  canvas: {
+    canvas_type: string;
+    renderer_component: string;
+    default_view: string;
+    focus?: {
+      template_id?: string;
+      section?: string;
+    };
+  };
 }
 
 const WORKSPACE_API_BASE = '/api/workspace';
@@ -238,6 +261,8 @@ interface MethodologyStoreState {
   templatesAvailableHere: TemplateMapping[];
   templatesRequiredHere: TemplateMapping[];
   templatesInReview: TemplateMapping[];
+  runtimeActionsAvailable: string[];
+  runtimeDefaultViewContract: RuntimeResolutionContract | null;
 
   // Current project methodology
   projectMethodology: ProjectMethodology;
@@ -264,6 +289,13 @@ interface MethodologyStoreState {
   loadProjectMethodology: (methodology: ProjectMethodology) => void;
   createFromTemplate: (templateId: string, projectId: string, projectName: string) => void;
   hydrateFromWorkspace: (projectId: string, methodology?: string) => Promise<void>;
+  resolveNodeRuntime: (params: {
+    methodologyId: string;
+    stageId: string;
+    activityId?: string | null;
+    taskId?: string | null;
+    event: 'view' | 'generate' | 'update' | 'review' | 'approve' | 'publish';
+  }) => Promise<RuntimeResolutionContract | null>;
 
   // Selectors
   getStage: (stageId: string) => MethodologyStage | undefined;
@@ -284,6 +316,8 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   templatesAvailableHere: [],
   templatesRequiredHere: [],
   templatesInReview: [],
+  runtimeActionsAvailable: [],
+  runtimeDefaultViewContract: null,
   currentActivityId: projectApolloMethodology.currentActivityId,
   expandedStageIds: projectApolloMethodology.expandedStageIds,
 
@@ -461,6 +495,8 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         templatesAvailableHere: payload.templates_available_here ?? [],
         templatesRequiredHere: payload.templates_required_here ?? [],
         templatesInReview: payload.templates_in_review ?? [],
+        runtimeActionsAvailable: payload.runtime_actions_available ?? [],
+        runtimeDefaultViewContract: payload.runtime_default_view_contract ?? null,
         isHydrating: false,
       });
     } catch (error) {
@@ -483,9 +519,33 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         templatesAvailableHere: [],
         templatesRequiredHere: [],
         templatesInReview: [],
+        runtimeActionsAvailable: [],
+        runtimeDefaultViewContract: null,
         isHydrating: false,
       }));
     }
+  },
+
+  resolveNodeRuntime: async ({ methodologyId, stageId, activityId, taskId, event }) => {
+    const query = new URLSearchParams({ methodology_id: methodologyId, stage_id: stageId });
+    if (activityId) query.set('activity_id', activityId);
+    if (taskId) query.set('task_id', taskId);
+
+    const actionsPayload = await requestJson<RuntimeActionsResponse>(
+      `/api/methodology/runtime/actions?${query.toString()}`
+    );
+
+    const resolveQuery = new URLSearchParams({ ...Object.fromEntries(query.entries()), event });
+    const resolvedPayload = await requestJson<RuntimeResolveResponse>(
+      `/api/methodology/runtime/resolve?${resolveQuery.toString()}`
+    );
+
+    set({
+      runtimeActionsAvailable: actionsPayload.actions,
+      runtimeDefaultViewContract: event === 'view' ? resolvedPayload.resolution_contract : get().runtimeDefaultViewContract,
+    });
+
+    return resolvedPayload.resolution_contract;
   },
 
   // Selectors
