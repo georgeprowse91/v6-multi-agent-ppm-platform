@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { KpiWidget } from '@/components/dashboard/KpiWidget';
 import { StatusIndicator } from '@/components/dashboard/StatusIndicator';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore, type EntitySelection } from '@/store';
 import styles from './WorkspacePage.module.css';
@@ -568,7 +569,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                 />
               ))
             ) : (
-              <p className={styles.emptyState}>No KPI data available yet.</p>
+              <EmptyState
+                icon="dashboard"
+                title="No metrics yet"
+                description="KPI data will appear once your project has active deliverables."
+                action={{ label: 'Configure data sources', href: '/config' }}
+              />
             )}
           </div>
           {currentActivity && (
@@ -719,9 +725,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                             {intakeItems.length > 0 ? (
                               intakeItems.map(renderPipelineItem)
                             ) : (
-                              <p className={styles.emptyState}>
-                                No intake requests in this stage.
-                              </p>
+                              <EmptyState
+                                icon="timeline"
+                                title="Pipeline is empty"
+                                description="Add items to your pipeline to track delivery stages."
+                                action={{ label: 'Add pipeline item', href: '/intake' }}
+                              />
                             )}
                           </div>
                         </div>
@@ -733,9 +742,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                             {projectItems.length > 0 ? (
                               projectItems.map(renderPipelineItem)
                             ) : (
-                              <p className={styles.emptyState}>
-                                No active projects in this stage.
-                              </p>
+                              <EmptyState
+                                icon="timeline"
+                                title="Pipeline is empty"
+                                description="Add items to your pipeline to track delivery stages."
+                                action={{ label: 'Add pipeline item', href: '/intake' }}
+                              />
                             )}
                           </div>
                         </div>
@@ -746,7 +758,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
               </div>
             ) : (
               !pipelineLoading && (
-                <p className={styles.emptyState}>Pipeline stages will appear here once loaded.</p>
+                <EmptyState
+                  icon="timeline"
+                  title="Pipeline is empty"
+                  description="Add items to your pipeline to track delivery stages."
+                  action={{ label: 'Add pipeline item', href: '/intake' }}
+                />
               )
             )}
           </section>
@@ -829,7 +846,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                 );
               })
             ) : (
-              <p className={styles.emptyState}>No pipeline data available yet.</p>
+              <EmptyState
+                icon="timeline"
+                title="Pipeline is empty"
+                description="Add items to your pipeline to track delivery stages."
+                action={{ label: 'Add pipeline item', href: '/intake' }}
+              />
             )}
           </div>
         </section>
@@ -1015,10 +1037,21 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                   </li>
                 ))
               ) : (
-                <li className={styles.emptyState}>
-                  {dashboardData.relatedItems.length === 0
-                    ? `No ${relatedLabel.toLowerCase()} available.`
-                    : 'No matches for the current filter.'}
+                <li>
+                  {dashboardData.relatedItems.length === 0 ? (
+                    <EmptyState
+                      icon="search"
+                      title={`No ${relatedLabel.toLowerCase()}`}
+                      description={`Items appear here when ${relatedLabel.toLowerCase()} are available.`}
+                    />
+                  ) : (
+                    <EmptyState
+                      icon="search"
+                      title="No matches"
+                      description="Try adjusting your filter criteria."
+                      action={{ label: 'Clear filter', onClick: () => setRelatedFilter('') }}
+                    />
+                  )}
                 </li>
               )}
             </ul>

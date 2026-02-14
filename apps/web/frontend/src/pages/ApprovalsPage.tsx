@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useRequestState } from '@/hooks/useRequestState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { getErrorMessage, requestJson } from '@/services/apiClient';
 import { useRealtimeStore } from '@/store/realtime/useRealtimeStore';
 import styles from './ApprovalsPage.module.css';
@@ -169,7 +170,11 @@ export function ApprovalsPage() {
             </div>
           )}
           {!listRequest.isLoading && !listRequest.isError && approvals.length === 0 && (
-            <div className={styles.emptyState}>No approvals awaiting your decision.</div>
+            <EmptyState
+              icon="confirm"
+              title="All caught up"
+              description="No approvals need your attention right now."
+            />
           )}
           {!listRequest.isLoading && !listRequest.isError && approvals.length > 0 && (
             <ul className={styles.cardList}>

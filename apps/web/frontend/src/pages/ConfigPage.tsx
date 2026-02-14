@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getErrorMessage, requestJson } from '@/services/apiClient';
 import type { AgentConfig, AgentParameter } from '@/store/agentConfig/types';
@@ -368,7 +369,12 @@ export function ConfigPage({ type }: ConfigPageProps) {
               </div>
             )}
             {!agentsLoading && !agentsError && agents.length === 0 && (
-              <div className={styles.state}>No agent configurations available.</div>
+              <EmptyState
+                icon="agents"
+                title="No agent configurations"
+                description="Agent configurations appear here after agents are provisioned for this workspace."
+                action={{ label: 'Refresh agents', onClick: fetchAgents }}
+              />
             )}
             {!agentsLoading && !agentsError && agents.length > 0 && (
               <div className={styles.cardGrid}>
@@ -535,7 +541,12 @@ export function ConfigPage({ type }: ConfigPageProps) {
               </div>
             )}
             {!connectorsLoading && !connectorsError && connectors.length === 0 && (
-              <div className={styles.state}>No connector configurations available.</div>
+              <EmptyState
+                icon="connectors"
+                title="No connector configurations"
+                description="Connector settings appear here after integrations are connected."
+                action={{ label: 'Refresh connectors', onClick: fetchConnectors }}
+              />
             )}
             {!connectorsLoading && !connectorsError && connectors.length > 0 && (
               <div className={styles.forms}>
@@ -647,7 +658,12 @@ export function ConfigPage({ type }: ConfigPageProps) {
               </div>
             )}
             {!workflowsLoading && !workflowsError && routingEntries.length === 0 && (
-              <div className={styles.state}>No workflow routing entries defined.</div>
+              <EmptyState
+                icon="workflow"
+                title="No workflow routing entries"
+                description="Routing entries appear here after workflow paths are configured."
+                action={{ label: 'Add routing entry', onClick: handleAddRoutingEntry }}
+              />
             )}
             {!workflowsLoading && !workflowsError && routingEntries.length > 0 && (
               <div className={styles.cardGrid}>
