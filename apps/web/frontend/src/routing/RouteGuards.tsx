@@ -1,8 +1,88 @@
+import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { allPermissionIds, resolvePermissions, type Role } from '@/auth/permissions';
 import { useAppStore } from '@/store';
 
 export function RequireAuth() {
-  const { session } = useAppStore();
+  const { session, setSession, setTenantContext } = useAppStore();
+
+  useEffect(() => {
+    if (!session.loading) {
+      return;
+    }
+
+    let active = true;
+
+    const bootstrapSession = async () => {
+      try {
+        const response = await fetch('/v1/session');
+        const data = await response.json();
+
+        if (!active) {
+          return;
+        }
+
+        if (!data.authenticated) {
+          setSession({ authenticated: false, loading: false, user: null });
+          setTenantContext({ tenantId: null, tenantName: null });
+          return;
+        }
+
+        const roles = data.roles ?? [];
+        const user = {
+          id: data.subject ?? 'user',
+          name: data.subject ?? 'User',
+          email: '',
+          tenantId: data.tenant_id ?? 'default',
+          roles,
+          permissions: allPermissionIds(),
+        };
+
+        setSession({ authenticated: true, loading: false, user });
+        setTenantContext({
+          tenantId: data.tenant_id ?? 'default',
+          tenantName: data.tenant_id ?? 'Default Tenant',
+        });
+
+        try {
+          const roleResponse = await fetch('/v1/api/roles');
+          if (!roleResponse.ok) {
+            throw new Error('Unable to load roles');
+          }
+          const roleCatalog = (await roleResponse.json()) as Role[];
+
+          if (!active) {
+            return;
+          }
+
+          const permissions = resolvePermissions(roles, roleCatalog);
+          setSession({
+            user: {
+              ...user,
+              permissions: permissions.length > 0 ? permissions : allPermissionIds(),
+            },
+          });
+        } catch {
+          if (!active) {
+            return;
+          }
+          setSession({ user: { ...user, permissions: allPermissionIds() } });
+        }
+      } catch {
+        if (!active) {
+          return;
+        }
+        setSession({ authenticated: false, loading: false, user: null });
+        setTenantContext({ tenantId: null, tenantName: null });
+      }
+    };
+
+    bootstrapSession();
+
+    return () => {
+      active = false;
+    };
+  }, [session.loading, setSession, setTenantContext]);
 
   if (session.loading) {
     return <div aria-live="polite">Loading session…</div>;

@@ -5,7 +5,6 @@ import { MainCanvas } from './MainCanvas';
 import { AssistantPanel } from '@/components/assistant';
 import { TourProvider } from '@/components/tours';
 import { useAppStore } from '@/store';
-import { allPermissionIds, resolvePermissions, type Role } from '@/auth/permissions';
 import { useRealtimeConsole } from '@/hooks/useRealtimeConsole';
 import styles from './AppLayout.module.css';
 
@@ -14,68 +13,8 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { setSession, setFeatureFlags, setTenantContext } = useAppStore();
+  const { setFeatureFlags } = useAppStore();
   useRealtimeConsole();
-
-  useEffect(() => {
-    let mounted = true;
-    const loadSession = async () => {
-      try {
-        const response = await fetch('/v1/session');
-        const data = await response.json();
-        if (!mounted) return;
-        if (data.authenticated) {
-          const roles = data.roles ?? [];
-          const user = {
-            id: data.subject ?? 'user',
-            name: data.subject ?? 'User',
-            email: '',
-            tenantId: data.tenant_id ?? 'default',
-            roles,
-            permissions: allPermissionIds(),
-          };
-          setSession({
-            authenticated: true,
-            loading: false,
-            user,
-          });
-          setTenantContext({
-            tenantId: data.tenant_id ?? 'default',
-            tenantName: data.tenant_id ?? 'Default Tenant',
-          });
-          try {
-            const roleResponse = await fetch('/v1/api/roles');
-            if (!roleResponse.ok) {
-              throw new Error('Unable to load roles');
-            }
-            const roleCatalog = (await roleResponse.json()) as Role[];
-            if (!mounted) return;
-            const permissions = resolvePermissions(roles, roleCatalog);
-            setSession({
-              user: {
-                ...user,
-                permissions: permissions.length > 0 ? permissions : allPermissionIds(),
-              },
-            });
-          } catch {
-            if (!mounted) return;
-            setSession({ user: { ...user, permissions: allPermissionIds() } });
-          }
-        } else {
-          setSession({ authenticated: false, loading: false, user: null });
-          setTenantContext({ tenantId: null, tenantName: null });
-        }
-      } catch {
-        if (!mounted) return;
-        setSession({ authenticated: false, loading: false, user: null });
-        setTenantContext({ tenantId: null, tenantName: null });
-      }
-    };
-    loadSession();
-    return () => {
-      mounted = false;
-    };
-  }, [setSession, setTenantContext]);
 
   useEffect(() => {
     let mounted = true;
