@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store';
 import styles from './IntakeFormPage.module.css';
 
@@ -48,6 +48,7 @@ const initialFormState: IntakeFormState = {
 
 export function IntakeFormPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { featureFlags } = useAppStore();
   const [stepIndex, setStepIndex] = useState(0);
   const [formState, setFormState] = useState<IntakeFormState>(initialFormState);
@@ -58,6 +59,18 @@ export function IntakeFormPage() {
   const [uploadClassification, setUploadClassification] = useState('internal');
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStepIndex(0);
+    setFormState(initialFormState);
+    setErrors({});
+    setSubmitting(false);
+    setSubmitError(null);
+    setUploadFile(null);
+    setUploadClassification('internal');
+    setExtracting(false);
+    setExtractError(null);
+  }, [location.key, location.state]);
 
   const currentStep = steps[stepIndex];
   const multimodalEnabled = featureFlags.multimodal_intake === true;
