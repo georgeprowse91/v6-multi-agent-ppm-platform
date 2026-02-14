@@ -248,5 +248,35 @@
     "status": "approved_with_conditions",
     "requested_at": "2026-04-10T08:30:00+00:00",
     "decision_at": "2026-04-22T15:00:00+00:00"
+  },
+  {
+    "id": "gen-approval-026",
+    "entity_type": "contract",
+    "entity_id": "ctr-004",
+    "requester": "Priya Desai",
+    "approver": "Jordan Johnson",
+    "status": "pending",
+    "requested_at": "2026-05-28T11:20:00+00:00",
+    "decision_at": "2026-05-28T11:20:00+00:00"
+  },
+  {
+    "id": "gen-approval-027",
+    "entity_type": "contract",
+    "entity_id": "ctr-006",
+    "requester": "Marco Alvarez",
+    "approver": "Taylor Parker",
+    "status": "pending",
+    "requested_at": "2026-05-30T09:05:00+00:00",
+    "decision_at": "2026-05-30T09:05:00+00:00"
+  },
+  {
+    "id": "gen-approval-028",
+    "entity_type": "contract",
+    "entity_id": "ctr-005",
+    "requester": "Leslie Romero",
+    "approver": "Morgan Patel",
+    "status": "rejected",
+    "requested_at": "2026-04-14T13:40:00+00:00",
+    "decision_at": "2026-04-19T17:10:00+00:00"
   }
 ]
