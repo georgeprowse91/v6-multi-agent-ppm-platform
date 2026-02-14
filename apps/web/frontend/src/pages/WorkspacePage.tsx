@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useState, type DragEvent, type KeyboardEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { KpiWidget } from '@/components/dashboard/KpiWidget';
 import { StatusIndicator } from '@/components/dashboard/StatusIndicator';
@@ -172,6 +172,10 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
   const [pipelineSearch, setPipelineSearch] = useState('');
   const [pipelineSponsorFilter, setPipelineSponsorFilter] = useState('all');
   const [pipelinePriorityFilter, setPipelinePriorityFilter] = useState('all');
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [grabbedItemId, setGrabbedItemId] = useState<string | null>(null);
+  const [grabbedCurrentStage, setGrabbedCurrentStage] = useState<string | null>(null);
+  const [pipelineLiveMessage, setPipelineLiveMessage] = useState('');
   const [relatedFilter, setRelatedFilter] = useState('');
   const [relatedPage, setRelatedPage] = useState(1);
   const [relatedPageSize, setRelatedPageSize] = useState(RELATED_PAGE_SIZES[0]);
@@ -453,17 +457,18 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
     return grouped;
   }, [filteredPipelineItems, pipelineBoard]);
 
-  const handlePipelineDrop = async (event: DragEvent<HTMLDivElement>, stage: string) => {
-    event.preventDefault();
-    const itemId = event.dataTransfer.getData('text/plain');
-    if (!pipelineBoard || !itemId) return;
-    const currentItem = pipelineBoard.items.find((item) => item.item_id === itemId);
+  const movePipelineItemToStage = async (
+    board: PipelineBoard,
+    itemId: string,
+    stage: string
+  ) => {
+    const currentItem = board.items.find((item) => item.item_id === itemId);
     if (!currentItem || currentItem.status === stage) return;
 
-    const optimisticItems = pipelineBoard.items.map((item) =>
+    const optimisticItems = board.items.map((item) =>
       item.item_id === itemId ? { ...item, status: stage } : item
     );
-    setPipelineBoard({ ...pipelineBoard, items: optimisticItems });
+    setPipelineBoard({ ...board, items: optimisticItems });
     setPipelineError(null);
 
     try {
@@ -483,21 +488,91 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to update pipeline stage.';
       setPipelineError(message);
-      setPipelineBoard(pipelineBoard);
+      setPipelineBoard(board);
     }
+  };
+
+  const handlePipelineDrop = async (event: DragEvent<HTMLDivElement>, stage: string) => {
+    event.preventDefault();
+    const itemId = event.dataTransfer.getData('text/plain');
+    if (!pipelineBoard || !itemId) return;
+    await movePipelineItemToStage(pipelineBoard, itemId, stage);
+    setDraggedItemId(null);
   };
 
   const handlePipelineDragStart = (event: DragEvent<HTMLDivElement>, itemId: string) => {
     event.dataTransfer.setData('text/plain', itemId);
     event.dataTransfer.effectAllowed = 'move';
+    setDraggedItemId(itemId);
+  };
+
+  const handlePipelineDragEnd = () => {
+    setDraggedItemId(null);
+  };
+
+  const handlePipelineItemKeyDown = async (
+    event: KeyboardEvent<HTMLDivElement>,
+    item: PipelineItem
+  ) => {
+    if (!pipelineBoard) return;
+    const isGrabbed = grabbedItemId === item.item_id;
+
+    if (!isGrabbed && (event.key === ' ' || event.key === 'Enter')) {
+      event.preventDefault();
+      setGrabbedItemId(item.item_id);
+      setGrabbedCurrentStage(item.status);
+      setPipelineLiveMessage(
+        `Item ${item.title} grabbed. Use arrow keys to move between stages.`
+      );
+      return;
+    }
+
+    if (!isGrabbed) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setGrabbedItemId(null);
+      setGrabbedCurrentStage(null);
+      setPipelineLiveMessage(`Move canceled for ${item.title}.`);
+      return;
+    }
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      const currentStage = grabbedCurrentStage ?? item.status;
+      const stageIndex = pipelineBoard.stages.indexOf(currentStage);
+      if (stageIndex < 0) return;
+      const nextIndex = event.key === 'ArrowLeft' ? stageIndex - 1 : stageIndex + 1;
+      const nextStage = pipelineBoard.stages[nextIndex];
+      if (!nextStage) return;
+      setGrabbedCurrentStage(nextStage);
+      setPipelineLiveMessage(
+        `Item ${item.title} moved to ${nextStage}. Press Space to drop or Escape to cancel.`
+      );
+      return;
+    }
+
+    if (event.key === ' ') {
+      event.preventDefault();
+      const targetStage = grabbedCurrentStage ?? item.status;
+      await movePipelineItemToStage(pipelineBoard, item.item_id, targetStage);
+      setGrabbedItemId(null);
+      setGrabbedCurrentStage(null);
+      setPipelineLiveMessage(`Item ${item.title} dropped in ${targetStage}.`);
+    }
   };
 
   const renderPipelineItem = (item: PipelineItem) => (
     <div
       key={item.item_id}
-      className={styles.pipelineItem}
+      className={`${styles.pipelineItem} ${grabbedItemId === item.item_id ? styles.pipelineItemGrabbed : ''}`}
       draggable
+      tabIndex={0}
+      role="listitem"
+      aria-grabbed={grabbedItemId === item.item_id}
       onDragStart={(event) => handlePipelineDragStart(event, item.item_id)}
+      onDragEnd={handlePipelineDragEnd}
+      onKeyDown={(event) => void handlePipelineItemKeyDown(event, item)}
     >
       <div className={styles.pipelineItemHeader}>
         <span className={styles.pipelineItemType}>
@@ -510,6 +585,24 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
       <div className={styles.pipelineItemTitle}>{item.title}</div>
       <p className={styles.pipelineItemSummary}>{item.summary}</p>
       <div className={styles.pipelineItemMeta}>Sponsor: {item.sponsor}</div>
+      <label className={styles.pipelineMoveLabel}>
+        Move to...
+        <select
+          className={styles.pipelineMoveSelect}
+          aria-label={`Move ${item.title} to stage`}
+          value={item.status}
+          onChange={(event) => {
+            if (!pipelineBoard) return;
+            void movePipelineItemToStage(pipelineBoard, item.item_id, event.target.value);
+          }}
+        >
+          {pipelineBoard?.stages.map((stage) => (
+            <option key={`${item.item_id}-${stage}`} value={stage}>
+              {stage}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 
@@ -693,6 +786,9 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
               </div>
             )}
             {!pipelineLoading && <p className={styles.statusNote} aria-live="polite">Pipeline view loaded.</p>}
+            <p className={styles.srOnly} aria-live="assertive" aria-atomic="true">
+              {pipelineLiveMessage}
+            </p>
             {pipelineError && <p className={styles.errorNote}>{pipelineError}</p>}
             {pipelineBoard ? (
               <div className={styles.pipelineBoard}>
@@ -703,7 +799,10 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                   return (
                     <div
                       key={stage}
-                      className={styles.pipelineColumn}
+                      className={`${styles.pipelineColumn} ${grabbedCurrentStage === stage ? styles.pipelineColumnTarget : ''}`}
+                      role="list"
+                      aria-label={`${stage} stage`}
+                      aria-dropeffect={draggedItemId || grabbedItemId ? 'move' : undefined}
                       onDragOver={(event) => event.preventDefault()}
                       onDrop={(event) => handlePipelineDrop(event, stage)}
                     >
