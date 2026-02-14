@@ -1,233 +1,324 @@
 [
   {
-    "id": "epic-cx-001",
+    "id": "epic-001",
     "project_id": "prj-mobile-001",
-    "title": "Seamless Sign-In",
+    "title": "Execution Foundation (prj-mobile-001)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-002",
+    "project_id": "prj-mobile-001",
+    "title": "Delivery Throughput (prj-mobile-001)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-003",
+    "project_id": "prj-portal-002",
+    "title": "Delivery Throughput (prj-portal-002)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-004",
+    "project_id": "prj-portal-002",
+    "title": "Quality Stabilization (prj-portal-002)",
     "status": "in_progress",
     "target_release": "2025-Q3"
   },
   {
-    "id": "epic-cx-002",
-    "project_id": "prj-portal-002",
-    "title": "AI Support Assistant",
-    "status": "planned",
+    "id": "epic-005",
+    "project_id": "prj-observability-003",
+    "title": "Quality Stabilization (prj-observability-003)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-006",
+    "project_id": "prj-observability-003",
+    "title": "Dependency Burn-down (prj-observability-003)",
+    "status": "done",
     "target_release": "2025-Q4"
   },
   {
-    "id": "epic-ops-003",
-    "project_id": "prj-observability-003",
-    "title": "Golden Signals Monitoring",
+    "id": "epic-007",
+    "project_id": "gen-project-001",
+    "title": "Dependency Burn-down (gen-project-001)",
+    "status": "done",
+    "target_release": "2025-Q4"
+  },
+  {
+    "id": "epic-008",
+    "project_id": "gen-project-001",
+    "title": "Execution Foundation (gen-project-001)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-009",
+    "project_id": "gen-project-002",
+    "title": "Execution Foundation (gen-project-002)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-010",
+    "project_id": "gen-project-002",
+    "title": "Delivery Throughput (gen-project-002)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-011",
+    "project_id": "gen-project-003",
+    "title": "Delivery Throughput (gen-project-003)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-012",
+    "project_id": "gen-project-003",
+    "title": "Quality Stabilization (gen-project-003)",
     "status": "in_progress",
     "target_release": "2025-Q3"
   },
   {
-    "id": "gen-epic-001",
-    "project_id": "gen-project-001",
-    "title": "Epic 1",
-    "status": "done",
-    "target_release": "R2"
-  },
-  {
-    "id": "gen-epic-002",
-    "project_id": "gen-project-002",
-    "title": "Epic 2",
-    "status": "done",
-    "target_release": "R3"
-  },
-  {
-    "id": "gen-epic-003",
-    "project_id": "gen-project-003",
-    "title": "Epic 3",
-    "status": "proposed",
-    "target_release": "R4"
-  },
-  {
-    "id": "gen-epic-004",
+    "id": "epic-013",
     "project_id": "gen-project-004",
-    "title": "Epic 4",
-    "status": "proposed",
-    "target_release": "R1"
+    "title": "Quality Stabilization (gen-project-004)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
   },
   {
-    "id": "gen-epic-005",
+    "id": "epic-014",
+    "project_id": "gen-project-004",
+    "title": "Dependency Burn-down (gen-project-004)",
+    "status": "done",
+    "target_release": "2025-Q4"
+  },
+  {
+    "id": "epic-015",
     "project_id": "gen-project-005",
-    "title": "Epic 5",
+    "title": "Dependency Burn-down (gen-project-005)",
     "status": "done",
-    "target_release": "R2"
+    "target_release": "2025-Q4"
   },
   {
-    "id": "gen-epic-006",
+    "id": "epic-016",
+    "project_id": "gen-project-005",
+    "title": "Execution Foundation (gen-project-005)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-017",
     "project_id": "gen-project-006",
-    "title": "Epic 6",
+    "title": "Execution Foundation (gen-project-006)",
     "status": "proposed",
-    "target_release": "R3"
+    "target_release": "2025-Q1"
   },
   {
-    "id": "gen-epic-007",
+    "id": "epic-018",
+    "project_id": "gen-project-006",
+    "title": "Delivery Throughput (gen-project-006)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-019",
     "project_id": "gen-project-007",
-    "title": "Epic 7",
-    "status": "active",
-    "target_release": "R4"
+    "title": "Delivery Throughput (gen-project-007)",
+    "status": "planned",
+    "target_release": "2025-Q2"
   },
   {
-    "id": "gen-epic-008",
+    "id": "epic-020",
+    "project_id": "gen-project-007",
+    "title": "Quality Stabilization (gen-project-007)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-021",
     "project_id": "gen-project-008",
-    "title": "Epic 8",
+    "title": "Quality Stabilization (gen-project-008)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-022",
+    "project_id": "gen-project-008",
+    "title": "Dependency Burn-down (gen-project-008)",
     "status": "done",
-    "target_release": "R1"
+    "target_release": "2025-Q4"
   },
   {
-    "id": "gen-epic-009",
+    "id": "epic-023",
     "project_id": "gen-project-009",
-    "title": "Epic 9",
-    "status": "proposed",
-    "target_release": "R2"
+    "title": "Dependency Burn-down (gen-project-009)",
+    "status": "done",
+    "target_release": "2025-Q4"
   },
   {
-    "id": "gen-epic-010",
+    "id": "epic-024",
+    "project_id": "gen-project-009",
+    "title": "Execution Foundation (gen-project-009)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-025",
     "project_id": "gen-project-010",
-    "title": "Epic 10",
+    "title": "Execution Foundation (gen-project-010)",
     "status": "proposed",
-    "target_release": "R3"
+    "target_release": "2025-Q1"
   },
   {
-    "id": "gen-epic-011",
+    "id": "epic-026",
+    "project_id": "gen-project-010",
+    "title": "Delivery Throughput (gen-project-010)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-027",
     "project_id": "gen-project-011",
-    "title": "Epic 11",
-    "status": "proposed",
-    "target_release": "R4"
+    "title": "Delivery Throughput (gen-project-011)",
+    "status": "planned",
+    "target_release": "2025-Q2"
   },
   {
-    "id": "gen-epic-012",
+    "id": "epic-028",
+    "project_id": "gen-project-011",
+    "title": "Quality Stabilization (gen-project-011)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-029",
     "project_id": "gen-project-012",
-    "title": "Epic 12",
-    "status": "proposed",
-    "target_release": "R1"
+    "title": "Quality Stabilization (gen-project-012)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
   },
   {
-    "id": "gen-epic-013",
+    "id": "epic-030",
+    "project_id": "gen-project-012",
+    "title": "Dependency Burn-down (gen-project-012)",
+    "status": "done",
+    "target_release": "2025-Q4"
+  },
+  {
+    "id": "epic-031",
     "project_id": "gen-project-013",
-    "title": "Epic 13",
+    "title": "Dependency Burn-down (gen-project-013)",
     "status": "done",
-    "target_release": "R2"
+    "target_release": "2025-Q4"
   },
   {
-    "id": "gen-epic-014",
+    "id": "epic-032",
+    "project_id": "gen-project-013",
+    "title": "Execution Foundation (gen-project-013)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-033",
     "project_id": "gen-project-014",
-    "title": "Epic 14",
+    "title": "Execution Foundation (gen-project-014)",
     "status": "proposed",
-    "target_release": "R3"
+    "target_release": "2025-Q1"
   },
   {
-    "id": "gen-epic-015",
+    "id": "epic-034",
+    "project_id": "gen-project-014",
+    "title": "Delivery Throughput (gen-project-014)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-035",
     "project_id": "gen-project-015",
-    "title": "Epic 15",
-    "status": "proposed",
-    "target_release": "R4"
+    "title": "Delivery Throughput (gen-project-015)",
+    "status": "planned",
+    "target_release": "2025-Q2"
   },
   {
-    "id": "gen-epic-016",
+    "id": "epic-036",
+    "project_id": "gen-project-015",
+    "title": "Quality Stabilization (gen-project-015)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-037",
     "project_id": "gen-project-016",
-    "title": "Epic 16",
-    "status": "proposed",
-    "target_release": "R1"
+    "title": "Quality Stabilization (gen-project-016)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
   },
   {
-    "id": "gen-epic-017",
+    "id": "epic-038",
+    "project_id": "gen-project-016",
+    "title": "Dependency Burn-down (gen-project-016)",
+    "status": "done",
+    "target_release": "2025-Q4"
+  },
+  {
+    "id": "epic-039",
     "project_id": "gen-project-017",
-    "title": "Epic 17",
-    "status": "active",
-    "target_release": "R2"
+    "title": "Dependency Burn-down (gen-project-017)",
+    "status": "done",
+    "target_release": "2025-Q4"
   },
   {
-    "id": "gen-epic-018",
+    "id": "epic-040",
+    "project_id": "gen-project-017",
+    "title": "Execution Foundation (gen-project-017)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
+  },
+  {
+    "id": "epic-041",
     "project_id": "gen-project-018",
-    "title": "Epic 18",
-    "status": "active",
-    "target_release": "R3"
+    "title": "Execution Foundation (gen-project-018)",
+    "status": "proposed",
+    "target_release": "2025-Q1"
   },
   {
-    "id": "gen-epic-019",
+    "id": "epic-042",
+    "project_id": "gen-project-018",
+    "title": "Delivery Throughput (gen-project-018)",
+    "status": "planned",
+    "target_release": "2025-Q2"
+  },
+  {
+    "id": "epic-043",
     "project_id": "gen-project-019",
-    "title": "Epic 19",
-    "status": "done",
-    "target_release": "R4"
+    "title": "Delivery Throughput (gen-project-019)",
+    "status": "planned",
+    "target_release": "2025-Q2"
   },
   {
-    "id": "gen-epic-020",
+    "id": "epic-044",
+    "project_id": "gen-project-019",
+    "title": "Quality Stabilization (gen-project-019)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-045",
     "project_id": "gen-project-020",
-    "title": "Epic 20",
+    "title": "Quality Stabilization (gen-project-020)",
+    "status": "in_progress",
+    "target_release": "2025-Q3"
+  },
+  {
+    "id": "epic-046",
+    "project_id": "gen-project-020",
+    "title": "Dependency Burn-down (gen-project-020)",
     "status": "done",
-    "target_release": "R1"
-  },
-  {
-    "id": "gen-epic-021",
-    "project_id": "gen-project-001",
-    "title": "Epic 21",
-    "status": "active",
-    "target_release": "R2"
-  },
-  {
-    "id": "gen-epic-022",
-    "project_id": "gen-project-002",
-    "title": "Epic 22",
-    "status": "active",
-    "target_release": "R3"
-  },
-  {
-    "id": "gen-epic-023",
-    "project_id": "gen-project-003",
-    "title": "Epic 23",
-    "status": "proposed",
-    "target_release": "R4"
-  },
-  {
-    "id": "gen-epic-024",
-    "project_id": "gen-project-004",
-    "title": "Epic 24",
-    "status": "proposed",
-    "target_release": "R1"
-  },
-  {
-    "id": "gen-epic-025",
-    "project_id": "gen-project-005",
-    "title": "Epic 25",
-    "status": "active",
-    "target_release": "R2"
-  },
-  {
-    "id": "gen-epic-026",
-    "project_id": "gen-project-006",
-    "title": "Epic 26",
-    "status": "done",
-    "target_release": "R3"
-  },
-  {
-    "id": "gen-epic-027",
-    "project_id": "gen-project-007",
-    "title": "Epic 27",
-    "status": "active",
-    "target_release": "R4"
-  },
-  {
-    "id": "gen-epic-028",
-    "project_id": "gen-project-008",
-    "title": "Epic 28",
-    "status": "done",
-    "target_release": "R1"
-  },
-  {
-    "id": "gen-epic-029",
-    "project_id": "gen-project-009",
-    "title": "Epic 29",
-    "status": "active",
-    "target_release": "R2"
-  },
-  {
-    "id": "gen-epic-030",
-    "project_id": "gen-project-010",
-    "title": "Epic 30",
-    "status": "proposed",
-    "target_release": "R3"
+    "target_release": "2025-Q4"
   }
 ]
