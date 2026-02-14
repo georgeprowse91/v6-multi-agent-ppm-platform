@@ -10,7 +10,7 @@
  * - Integration with Assistant for context-aware suggestions
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMethodologyStore } from '@/store/methodology';
 import { useCanvasStore } from '@/store/useCanvasStore';
@@ -60,6 +60,7 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     projectMethodology,
     currentActivityId,
     expandedStageIds,
+    templatesAvailableHere,
     setCurrentActivity,
     toggleStageExpanded,
     isStageLockedComputed,
@@ -146,6 +147,44 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
     ]
   );
 
+  const lifecycleGroups = useMemo(() => {
+    const groups: Record<string, typeof templatesAvailableHere> = {
+      generate: [],
+      update: [],
+      review: [],
+      approve: [],
+      publish: [],
+    };
+    for (const template of templatesAvailableHere) {
+      const binding = template.methodology_bindings.find(
+        (item) => item.activity_id === currentActivityId
+      ) ?? template.methodology_bindings[0];
+      for (const event of binding?.lifecycle_events ?? []) {
+        if (groups[event]) groups[event].push(template);
+      }
+    }
+    return groups;
+  }, [templatesAvailableHere, currentActivityId]);
+
+  const openTemplateCanvas = useCallback((templateId: string) => {
+    const mapping = templatesAvailableHere.find((item) => item.template_id === templateId);
+    if (!mapping) return;
+    const canvasMap: Record<string, CanvasType> = {
+      document: 'document',
+      spreadsheet: 'spreadsheet',
+      timeline: 'timeline',
+      dashboard: 'dashboard',
+      kanban: 'tree',
+      risk_log: 'spreadsheet',
+      decision_log: 'document',
+      form: 'document',
+      whiteboard: 'dependency-map',
+    };
+    const canvasType = canvasMap[mapping.canvas_binding.canvas_type] ?? 'document';
+    const artifact = createArtifact(canvasType, mapping.name, projectMethodology.projectId, createEmptyContent(canvasType));
+    openArtifact(artifact);
+  }, [templatesAvailableHere, projectMethodology.projectId, openArtifact]);
+
   const handleStageHeaderClick = useCallback(
     (stageId: string) => {
       toggleStageExpanded(stageId);
@@ -176,6 +215,27 @@ export function MethodologyNav({ collapsed = false }: MethodologyNavProps) {
       )}
 
       <nav className={styles.stageList} role="navigation" aria-label="Methodology navigation">
+        {!collapsed && templatesAvailableHere.length > 0 && (
+          <div className={styles.templateRuntimePanel}>
+            <strong>Template Runtime Mapping</strong>
+            {(['generate', 'update', 'review', 'approve', 'publish'] as const).map((event) => (
+              lifecycleGroups[event].length > 0 ? (
+                <div key={event}>
+                  <div className={styles.templateLifecycleHeader}>{event.toUpperCase()}</div>
+                  {lifecycleGroups[event].map((template) => (
+                    <button
+                      key={`${event}-${template.template_id}`}
+                      className={styles.templateEntry}
+                      onClick={() => openTemplateCanvas(template.template_id)}
+                    >
+                      {template.name}
+                    </button>
+                  ))}
+                </div>
+              ) : null
+            ))}
+          </div>
+        )}
         {methodology.stages.map((stage) => (
           <StageItem
             key={stage.id}

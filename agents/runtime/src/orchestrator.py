@@ -26,6 +26,12 @@ from services.memory_service.memory_service import MemoryService
 from agents.runtime.src.notification_service import NotificationServiceClient
 from observability.metrics import build_agent_execution_metrics
 
+WEB_SRC_ROOT = Path(__file__).resolve().parents[3] / "apps" / "web" / "src"
+if str(WEB_SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(WEB_SRC_ROOT))
+
+from template_mappings import get_template_mapping  # noqa: E402
+
 FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[3] / "packages" / "feature-flags" / "src"
 if str(FEATURE_FLAGS_ROOT) not in sys.path:
     sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
@@ -91,6 +97,22 @@ class HumanReviewRequest:
     relevant_data: dict[str, Any]
     rule_name: str
 
+
+
+
+class _TemplateWorkflowAgent(BaseAgent):
+    def __init__(self, agent_id: str) -> None:
+        super().__init__(agent_id=agent_id)
+
+    async def execute(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "success": True,
+            "metadata": {
+                "workflow_event": input_data.get("lifecycle_event"),
+                "template_id": input_data.get("template_id"),
+            },
+            "actions": [],
+        }
 
 class Orchestrator:
     """Async orchestration engine for running agent DAGs."""
@@ -196,6 +218,56 @@ class Orchestrator:
             "cost_summary": cost_summary,
         }
         return OrchestrationResult(results=results, context=shared_context, metrics=metrics)
+
+
+    async def run_template_workflow(
+        self,
+        *,
+        template_id: str,
+        lifecycle_event: str,
+        context_refs: dict[str, Any],
+    ) -> OrchestrationResult:
+        mapping = get_template_mapping(template_id)
+        if mapping is None:
+            raise ValueError(f"Unknown template mapping for `{template_id}`")
+
+        if lifecycle_event not in {"generate", "update", "review", "approve", "publish"}:
+            raise ValueError(f"Unsupported lifecycle_event `{lifecycle_event}`")
+
+        selected_agents = getattr(mapping.agent_bindings, lifecycle_event)
+        if not selected_agents:
+            return OrchestrationResult(results={}, context=context_refs, metrics={"skipped": True})
+
+        dependency_status: dict[str, bool] = context_refs.get("completed_templates", {})
+        missing_dependencies = [
+            template
+            for template in mapping.agent_bindings.orchestration.depends_on_templates
+            if not dependency_status.get(template, False)
+        ]
+        if missing_dependencies:
+            raise ValueError(
+                f"Template workflow prerequisites not satisfied: {', '.join(missing_dependencies)}"
+            )
+
+        if lifecycle_event in {"review", "approve"} or "publish_external" in mapping.agent_bindings.orchestration.side_effects:
+            context_refs = {**context_refs, "human_review_required": True}
+
+        tasks = [
+            AgentTask(
+                task_id=f"template-{template_id}-{lifecycle_event}-{index}",
+                agent=_TemplateWorkflowAgent(agent_id),
+                input_data={
+                    "template_id": template_id,
+                    "lifecycle_event": lifecycle_event,
+                    "connector_binding": mapping.connector_binding.model_dump(),
+                    "side_effects": mapping.agent_bindings.orchestration.side_effects,
+                    "context_refs": context_refs,
+                },
+                depends_on=[] if index == 0 else [f"template-{template_id}-{lifecycle_event}-{index - 1}"],
+            )
+            for index, agent_id in enumerate(selected_agents)
+        ]
+        return await self.run(tasks, context=context_refs)
 
     async def _run_task(
         self,

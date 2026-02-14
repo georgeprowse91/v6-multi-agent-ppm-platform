@@ -125,6 +125,12 @@ from template_models import (
 from template_registry import (  # noqa: E402
     get_template as get_deliverable_template,
 )
+from template_mappings import (  # noqa: E402
+    TemplateMapping,
+    get_template_mapping,
+    list_templates_for_methodology_node,
+    load_template_mappings,
+)
 from canonical_template_registry import (  # noqa: E402
     get_catalog_template,
     list_catalog_templates,
@@ -482,6 +488,9 @@ class WorkspaceStateResponse(BaseModel):
     methodology_map_summary: MethodologyMapSummary
     gating: GatingSummary
     selected_activity: SelectedActivitySummary | None = None
+    templates_available_here: list[TemplateMapping] = Field(default_factory=list)
+    templates_required_here: list[TemplateMapping] = Field(default_factory=list)
+    templates_in_review: list[TemplateMapping] = Field(default_factory=list)
 
 
 class TemplateAgentConfig(BaseModel):
@@ -561,6 +570,9 @@ class TemplateApplyRequest(BaseModel):
 class TemplateApplyResponse(BaseModel):
     project: ProjectRecord
     template: TemplateDefinition
+    methodology: dict[str, Any]
+    template_mapping: TemplateMapping | None = None
+    related_templates: list[TemplateMapping] = Field(default_factory=list)
 
 
 def _autonomous_deliverables_enabled() -> bool:
@@ -732,6 +744,7 @@ class AssistantSuggestionResponse(BaseModel):
 async def startup() -> None:
     global knowledge_store
     knowledge_store = KnowledgeStore(KNOWLEDGE_DB_PATH)
+    load_template_mappings()
 
 
 def _get_knowledge_store() -> KnowledgeStore:
@@ -2256,6 +2269,43 @@ def _load_projects() -> list[ProjectRecord]:
 def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
     methodology_map = get_methodology_map(state.methodology)
 
+    selected_stage_id = state.current_stage_id
+    selected_activity_id = state.current_activity_id
+    methodology_id = str(methodology_map.get("id", state.methodology or ""))
+    available_here = (
+        list_templates_for_methodology_node(
+            methodology_id,
+            selected_stage_id,
+            selected_activity_id,
+            task_id=None,
+            lifecycle_event=None,
+        )
+        if selected_stage_id and selected_activity_id
+        else []
+    )
+    required_here = [
+        mapping
+        for mapping in available_here
+        if any(
+            binding.required
+            for binding in mapping.methodology_bindings
+            if binding.methodology_id == methodology_id
+            and binding.stage_id == selected_stage_id
+            and binding.activity_id == selected_activity_id
+        )
+    ]
+    review_here = (
+        list_templates_for_methodology_node(
+            methodology_id,
+            selected_stage_id,
+            selected_activity_id,
+            task_id=None,
+            lifecycle_event="review",
+        )
+        if selected_stage_id and selected_activity_id
+        else []
+    )
+
     stage_summaries: list[StageSummary] = []
     for stage in methodology_map.get("stages", []):
         activities: list[ActivitySummary] = []
@@ -2379,6 +2429,9 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
             next_required_activity_id=next_required_activity(methodology_map, state),
         ),
         selected_activity=selected_activity_payload,
+        templates_available_here=available_here,
+        templates_required_here=required_here,
+        templates_in_review=review_here,
     )
 
 
@@ -4509,6 +4562,7 @@ async def apply_template(
 
     methodology_id = _resolve_template_methodology_id(template)
     methodology_map = get_methodology_map(methodology_id)
+    template_mapping = get_template_mapping(template.id)
 
     project = ProjectRecord(
         id=project_id,
@@ -4543,7 +4597,30 @@ async def apply_template(
     response_template = template.model_copy(
         update={"version": selected_version, "methodology": methodology_map}
     )
-    return TemplateApplyResponse(project=project, template=response_template)
+    related_templates = []
+    stage_id = None
+    activity_id = None
+    if methodology_map.get("stages"):
+        first_stage = methodology_map["stages"][0]
+        stage_id = first_stage.get("id")
+        first_activity = (first_stage.get("activities") or [{}])[0]
+        activity_id = first_activity.get("id")
+    if stage_id and activity_id:
+        related_templates = list_templates_for_methodology_node(
+            methodology_id,
+            stage_id,
+            activity_id,
+            task_id=None,
+            lifecycle_event=None,
+        )
+
+    return TemplateApplyResponse(
+        project=project,
+        template=response_template,
+        methodology=methodology_map,
+        template_mapping=template_mapping,
+        related_templates=related_templates,
+    )
 
 
 @api_router.post("/api/knowledge/documents", response_model=DocumentVersionResponse)

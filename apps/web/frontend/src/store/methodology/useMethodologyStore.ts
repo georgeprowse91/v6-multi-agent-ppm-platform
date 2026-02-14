@@ -20,6 +20,30 @@ import {
 import { projectApolloMethodology, methodologyTemplates } from './demoData';
 import type { CanvasType } from '@ppm/canvas-engine';
 
+interface TemplateCanvasBinding {
+  canvas_type: string;
+  renderer_component: string;
+  default_view: string;
+}
+
+interface TemplateMethodologyBinding {
+  methodology_id: string;
+  stage_id: string;
+  activity_id: string;
+  task_id: string | null;
+  lifecycle_events: string[];
+  required: boolean;
+  gate_refs: string[];
+}
+
+interface TemplateMapping {
+  template_id: string;
+  name: string;
+  version: number;
+  methodology_bindings: TemplateMethodologyBinding[];
+  canvas_binding: TemplateCanvasBinding;
+}
+
 interface WorkspaceActivitySummary {
   id: string;
   name: string;
@@ -53,9 +77,13 @@ interface WorkspaceMethodologySummary {
 interface WorkspaceStateResponse {
   project_id: string;
   methodology: string | null;
+  current_stage_id?: string | null;
   current_activity_id: string | null;
   available_methodologies: string[];
   methodology_map_summary: WorkspaceMethodologySummary;
+  templates_available_here?: TemplateMapping[];
+  templates_required_here?: TemplateMapping[];
+  templates_in_review?: TemplateMapping[];
 }
 
 const WORKSPACE_API_BASE = '/api/workspace';
@@ -207,6 +235,10 @@ function updateActivityStatusInTree(
 }
 
 interface MethodologyStoreState {
+  templatesAvailableHere: TemplateMapping[];
+  templatesRequiredHere: TemplateMapping[];
+  templatesInReview: TemplateMapping[];
+
   // Current project methodology
   projectMethodology: ProjectMethodology;
   availableMethodologies: string[];
@@ -249,6 +281,9 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   projectMethodology: projectApolloMethodology,
   availableMethodologies: ['predictive', 'adaptive', 'hybrid'],
   isHydrating: false,
+  templatesAvailableHere: [],
+  templatesRequiredHere: [],
+  templatesInReview: [],
   currentActivityId: projectApolloMethodology.currentActivityId,
   expandedStageIds: projectApolloMethodology.expandedStageIds,
 
@@ -423,6 +458,9 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         currentActivityId: mapped.currentActivityId,
         expandedStageIds: mapped.expandedStageIds,
         availableMethodologies: payload.available_methodologies,
+        templatesAvailableHere: payload.templates_available_here ?? [],
+        templatesRequiredHere: payload.templates_required_here ?? [],
+        templatesInReview: payload.templates_in_review ?? [],
         isHydrating: false,
       });
     } catch (error) {
@@ -442,6 +480,9 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         currentActivityId: null,
         expandedStageIds: fallbackMap.stages.slice(0, 1).map((stage) => stage.id),
         availableMethodologies: ['predictive', 'adaptive', 'hybrid'],
+        templatesAvailableHere: [],
+        templatesRequiredHere: [],
+        templatesInReview: [],
         isHydrating: false,
       }));
     }

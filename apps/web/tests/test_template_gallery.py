@@ -142,6 +142,7 @@ def test_apply_template_with_version(client, monkeypatch):
     payload = response.json()
     assert payload["project"]["template_version"] == "1.0"
     assert payload["template"]["version"] == "1.0"
+    assert payload["template_mapping"]["template_id"] == "adaptive-software-dev"
 
 
 @pytest.mark.parametrize(
