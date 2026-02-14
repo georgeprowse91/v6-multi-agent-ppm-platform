@@ -1,0 +1,13 @@
+connector_id: planview
+mock_connector_id: planview_mock
+enabled_when: DEMO_MODE=true
+auth_type: none
+manifest_path: integrations/connectors/mock/planview/manifest.yaml
+supported_objects:
+- portfolios
+- programs
+- projects
+supported_sync_directions:
+- read
+- write
+- bi-directional

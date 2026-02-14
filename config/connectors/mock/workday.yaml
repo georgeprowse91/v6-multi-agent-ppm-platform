@@ -1,0 +1,12 @@
+connector_id: workday
+mock_connector_id: workday_mock
+enabled_when: DEMO_MODE=true
+auth_type: none
+manifest_path: integrations/connectors/mock/workday/manifest.yaml
+supported_objects:
+- projects
+- resources
+- programs
+supported_sync_directions:
+- read
+- write

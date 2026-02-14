@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Type
@@ -207,6 +208,28 @@ class AzureCommunicationConnector(BaseIntegrationConnector):
     system_name = "azure_communication"
 
 
+class MockIntegrationConnector(BaseIntegrationConnector):
+    """Simple mock connector that returns deterministic demo responses."""
+
+    system_name = "mock"
+
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        return [
+            {
+                "id": "demo-project-1",
+                "name": "Demo Project",
+                "system": self.config.system,
+                "filters": filters or {},
+            }
+        ]
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return {"success": True, "system": self.config.system, "payload": payload, "persisted": False}
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return {"success": True, "system": self.config.system, "payload": payload, "persisted": False}
+
+
 def default_registry() -> ConnectorRegistry:
     registry = ConnectorRegistry()
     from integrations.connectors.integration.mcp_connectors import (
@@ -231,6 +254,11 @@ def default_registry() -> ConnectorRegistry:
     registry.register(SlackMcpConnector.system_name, SlackMcpConnector, variant="mcp")
     registry.register(TeamsMcpConnector.system_name, TeamsMcpConnector, variant="mcp")
     registry.register(AsanaMcpConnector.system_name, AsanaMcpConnector, variant="mcp")
+
+    if os.getenv("DEMO_MODE", "").lower() in {"1", "true", "yes", "on"}:
+        for system in ("jira", "workday", "teams", "sap", "servicenow", "azure_devops", "planview", "clarity"):
+            registry.register(system, MockIntegrationConnector, variant="rest")
+
     return registry
 
 
@@ -249,5 +277,6 @@ __all__ = [
     "GoogleCalendarConnector",
     "ServiceNowConnector",
     "AzureCommunicationConnector",
+    "MockIntegrationConnector",
     "default_registry",
 ]
