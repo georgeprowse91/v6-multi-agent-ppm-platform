@@ -84,3 +84,21 @@ def test_schema_enum_consistency() -> None:
         schema = json.loads((schema_dir / schema_name).read_text())
         properties = schema["properties"]
         assert properties["status"]["enum"] == expected_status
+
+
+def test_project_schema_new_optional_fields() -> None:
+    schema_dir = REPO_ROOT / "data" / "schemas"
+    schema = json.loads((schema_dir / "project.schema.json").read_text())
+    properties = schema["properties"]
+
+    assert "benefits_realisation_plan" in properties
+    assert properties["benefits_realisation_plan"]["type"] == "string"
+
+    assert "regulatory_category" in properties
+    assert properties["regulatory_category"]["type"] == "string"
+    assert properties["regulatory_category"]["enum"] == ["low", "medium", "high"]
+
+    # Optional fields should not be required
+    assert "benefits_realisation_plan" not in schema["required"]
+    assert "regulatory_category" not in schema["required"]
+

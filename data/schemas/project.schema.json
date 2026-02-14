@@ -37,6 +37,17 @@
     "owner": {
       "type": "string"
     },
+    "benefits_realisation_plan": {
+      "type": "string"
+    },
+    "regulatory_category": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
     "classification": {
       "type": "string",
       "enum": [
@@ -68,7 +79,7 @@
   ],
   "x-schema-metadata": {
     "name": "project",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "compatibility_mode": "full"
   }
 }
