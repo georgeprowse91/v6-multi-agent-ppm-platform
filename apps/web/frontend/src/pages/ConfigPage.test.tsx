@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfigPage } from './ConfigPage';
 
@@ -104,6 +104,7 @@ describe('ConfigPage', () => {
     );
     expect(screen.getByRole('tab', { name: 'Connectors' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Workflows' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Configure' }));
     expect(screen.getByLabelText(/Threshold/)).toBeInTheDocument();
   });
 });

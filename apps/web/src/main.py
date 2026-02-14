@@ -559,6 +559,45 @@ class MethodologyNodeActionResponse(BaseModel):
     status: str
 
 
+class AgentProfileTemplateMapping(BaseModel):
+    template_id: str
+    template_name: str
+    lifecycle_events: list[str] = Field(default_factory=list)
+    methodology_nodes: list[dict[str, Any]] = Field(default_factory=list)
+    run_modes: list[str] = Field(default_factory=list)
+
+
+class AgentProfileResponse(BaseModel):
+    agent_id: str
+    name: str
+    purpose: str
+    capabilities: list[str] = Field(default_factory=list)
+    inputs: list[str] = Field(default_factory=list)
+    outputs: list[str] = Field(default_factory=list)
+    templates_touched: list[AgentProfileTemplateMapping] = Field(default_factory=list)
+    connectors_used: list[dict[str, Any]] = Field(default_factory=list)
+    methodology_nodes_supported: list[dict[str, Any]] = Field(default_factory=list)
+    run_modes: list[str] = Field(default_factory=list)
+
+
+class AgentPreviewRunRequest(BaseModel):
+    methodology_id: str | None = None
+    stage_id: str | None = None
+    activity_id: str | None = None
+    task_id: str | None = None
+    lifecycle_event: Literal["generate", "update", "review", "approve", "publish"] = "generate"
+    user_input: dict[str, Any] = Field(default_factory=dict)
+
+
+class AgentPreviewRunResponse(BaseModel):
+    agent_id: str
+    demo_safe: bool
+    run_trace: dict[str, Any] = Field(default_factory=dict)
+    artifacts: list[dict[str, Any]] = Field(default_factory=list)
+    connector_operations: list[dict[str, Any]] = Field(default_factory=list)
+    status: str
+
+
 class TemplateAgentConfig(BaseModel):
     enabled: list[str]
     disabled: list[str]
@@ -4150,6 +4189,158 @@ async def list_agent_registry(request: Request) -> JSONResponse:
         extra={"tenant_id": tenant_id, "project_id": None, "agent_id": None},
     )
     return JSONResponse(status_code=200, content=[entry.model_dump() for entry in registry])
+
+
+
+
+@api_router.get("/api/agent-gallery/agents/{agent_id}", response_model=AgentProfileResponse)
+async def get_agent_profile(agent_id: str, request: Request) -> AgentProfileResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    registry = load_agent_registry()
+    entry = next((candidate for candidate in registry if candidate.agent_id == agent_id), None)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    mappings = load_template_mappings().templates
+    runtime_registry = load_methodology_node_runtime_registry()
+
+    template_rows: dict[str, AgentProfileTemplateMapping] = {}
+    connector_rows: dict[tuple[str, str], dict[str, Any]] = {}
+    methodology_nodes: set[tuple[str, str, str | None, str | None, str]] = set()
+    run_modes: set[str] = set()
+
+    for mapping in mappings:
+        binding = mapping.agent_bindings
+        lifecycle_events = [
+            event
+            for event in ("generate", "update", "review", "approve", "publish")
+            if agent_id in getattr(binding, event)
+        ]
+        if not lifecycle_events and agent_id not in binding.orchestration.produces_artifacts:
+            continue
+
+        template_rows[mapping.template_id] = AgentProfileTemplateMapping(
+            template_id=mapping.template_id,
+            template_name=mapping.name,
+            lifecycle_events=lifecycle_events,
+            run_modes=["dag", "demo-safe"],
+            methodology_nodes=[
+                {
+                    "methodology_id": node.methodology_id,
+                    "stage_id": node.stage_id,
+                    "activity_id": node.activity_id,
+                    "task_id": node.task_id,
+                }
+                for node in mapping.methodology_bindings
+            ],
+        )
+
+        for endpoint in [*mapping.connector_binding.sources, *mapping.connector_binding.destinations]:
+            key = (endpoint.connector_type, endpoint.system)
+            connector_rows[key] = {
+                "connector_type": endpoint.connector_type,
+                "system": endpoint.system,
+                "objects": endpoint.objects,
+                "category": mapping.connector_binding.category,
+            }
+
+    for runtime_mapping in runtime_registry.mappings:
+        workflow = runtime_mapping.resolution.agent_workflow
+        if agent_id not in workflow.agent_ids:
+            continue
+        methodology_nodes.add(
+            (
+                runtime_mapping.key.methodology_id,
+                runtime_mapping.key.stage_id,
+                runtime_mapping.key.activity_id,
+                runtime_mapping.key.task_id,
+                runtime_mapping.key.lifecycle_event,
+            )
+        )
+        run_modes.add(workflow.mode)
+
+    run_modes.add("demo-safe")
+    logger.info(
+        "agent_gallery.profile.get",
+        extra={"tenant_id": tenant_id, "project_id": None, "agent_id": agent_id},
+    )
+    return AgentProfileResponse(
+        agent_id=entry.agent_id,
+        name=entry.name,
+        purpose=entry.description,
+        capabilities=[f"{entry.name} capability"],
+        inputs=["workspace_context", "template_context", "user_input"],
+        outputs=entry.outputs,
+        templates_touched=list(template_rows.values()),
+        connectors_used=sorted(connector_rows.values(), key=lambda item: f"{item['connector_type']}::{item['system']}"),
+        methodology_nodes_supported=[
+            {
+                "methodology_id": methodology_id,
+                "stage_id": stage_id,
+                "activity_id": activity_id,
+                "task_id": task_id,
+                "lifecycle_event": lifecycle_event,
+            }
+            for methodology_id, stage_id, activity_id, task_id, lifecycle_event in sorted(methodology_nodes)
+        ],
+        run_modes=sorted(run_modes),
+    )
+
+
+@api_router.post("/api/agent-gallery/agents/{agent_id}/run-preview", response_model=AgentPreviewRunResponse)
+async def run_agent_preview(agent_id: str, payload: AgentPreviewRunRequest, request: Request) -> AgentPreviewRunResponse:
+    session = _require_session(request)
+    tenant_id = _tenant_id_from_request(request, session)
+    registry = load_agent_registry()
+    if not any(entry.agent_id == agent_id for entry in registry):
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    runtime_registry = load_methodology_node_runtime_registry()
+    matching_runtime = next(
+        (
+            mapping
+            for mapping in runtime_registry.mappings
+            if agent_id in mapping.resolution.agent_workflow.agent_ids
+            and mapping.key.lifecycle_event in {"generate", "update", "review", "approve", "publish"}
+        ),
+        None,
+    )
+    if not matching_runtime:
+        raise HTTPException(status_code=422, detail="No runtime mapping found for agent")
+
+    methodology_id = payload.methodology_id or matching_runtime.key.methodology_id
+    stage_id = payload.stage_id or matching_runtime.key.stage_id
+    activity_id = payload.activity_id if payload.activity_id is not None else matching_runtime.key.activity_id
+    task_id = payload.task_id if payload.task_id is not None else matching_runtime.key.task_id
+
+    user_input = dict(payload.user_input)
+    user_input["demo_safe"] = True
+    user_input["preview_only"] = True
+    user_input.setdefault("human_review_approved", True)
+
+    result = await run_methodology_node_action(
+        workspace_id=f"demo-preview-{agent_id}",
+        methodology_id=methodology_id,
+        stage_id=stage_id,
+        activity_id=activity_id,
+        task_id=task_id,
+        lifecycle_event=payload.lifecycle_event,
+        user_input=user_input,
+    )
+
+    logger.info(
+        "agent_gallery.preview.run",
+        extra={"tenant_id": tenant_id, "project_id": None, "agent_id": agent_id},
+    )
+    return AgentPreviewRunResponse(
+        agent_id=agent_id,
+        demo_safe=True,
+        run_trace=result.get("workflow_trace", {}),
+        artifacts=[*result.get("artifacts_created", []), *result.get("artifacts_updated", [])],
+        connector_operations=result.get("connector_operations", []),
+        status=result.get("status", "completed"),
+    )
 
 
 @api_router.get("/api/agent-gallery/{project_id}")

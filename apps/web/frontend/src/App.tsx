@@ -30,6 +30,7 @@ const RoleManager = React.lazy(() => import('./pages/RoleManager'));
 const ProjectConfigPage = React.lazy(() => import('./pages/ProjectConfigPage'));
 const NotificationCenterPage = React.lazy(() => import('./pages/NotificationCenterPage'));
 const DemoRunPage = React.lazy(() => import('./pages/DemoRunPage'));
+const AgentProfilePage = React.lazy(() => import('./pages/AgentProfilePage'));
 const AppLayout = React.lazy(() => import('./components/layout/AppLayout').then((module) => ({ default: module.AppLayout })));
 
 
@@ -87,6 +88,7 @@ function AppRoutes() {
             <Route path="/projects/:projectId/config" element={<ProjectConfigPage />} />
             <Route path="/projects/:projectId/config/:tab" element={<ProjectConfigPage />} />
             <Route path="/config/agents" element={<ConfigPage type="agents" />} />
+            <Route path="/config/agents/:agent_id" element={<AgentProfilePage />} />
             <Route path="/config/connectors" element={<ConfigPage type="connectors" />} />
             <Route path="/config/workflows" element={<ConfigPage type="workflows" />} />
             <Route path="/config/prompts" element={<PromptManager />} />
