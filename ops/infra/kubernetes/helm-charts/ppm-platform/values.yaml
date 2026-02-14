@@ -1,19 +1,20 @@
 global:
   image:
-    pullPolicy: IfNotPresent
+    pullPolicy: ${IMAGE_PULL_POLICY}
   env:
-    LOG_LEVEL: "INFO"
-    OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
+    LOG_LEVEL: "${LOG_LEVEL}"
+    OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT}"
+    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}"
 
 workflowEngine:
-  rateLimit: "100/minute"
+  rateLimit: "${WORKFLOW_ENGINE_RATE_LIMIT}"
 
 notificationService:
-  rateLimit: "100/minute"
+  rateLimit: "${NOTIFICATION_SERVICE_RATE_LIMIT}"
 
 audit-log:
   keyVault:
-    name: "ppm-kv"
-    tenantId: "00000000-0000-0000-0000-000000000000"
-    clientId: "00000000-0000-0000-0000-000000000000"
+    url: "${KEYVAULT_URL}"
+    name: "${KEYVAULT_NAME}"
+    tenantId: "${KEYVAULT_TENANT_ID}"
+    clientId: "${KEYVAULT_CLIENT_ID}"

@@ -3,8 +3,8 @@ intent_router:
   agent_id: "intent-router"
   enabled: true
   model:
-    provider: "azure_openai"
-    deployment: "gpt-4"
+    provider: "${INTENT_ROUTER_MODEL_PROVIDER}"
+    deployment: "${INTENT_ROUTER_MODEL_DEPLOYMENT}"
     temperature: 0.3
     max_tokens: 500
   intents:
@@ -44,6 +44,6 @@ response_orchestration:
     min_confidence: 0.65
     block_on_agent_failure: false
   aggregation:
-    provider: "azure_openai"
-    deployment: "gpt-4"
+    provider: "${RESPONSE_ORCHESTRATION_MODEL_PROVIDER}"
+    deployment: "${RESPONSE_ORCHESTRATION_MODEL_DEPLOYMENT}"
     max_tokens: 1000

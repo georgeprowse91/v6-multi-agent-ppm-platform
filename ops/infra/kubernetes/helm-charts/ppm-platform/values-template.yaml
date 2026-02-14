@@ -1,0 +1,20 @@
+global:
+  image:
+    pullPolicy: ${IMAGE_PULL_POLICY}
+  env:
+    LOG_LEVEL: ${LOG_LEVEL}
+    OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}
+
+workflowEngine:
+  rateLimit: ${WORKFLOW_ENGINE_RATE_LIMIT}
+
+notificationService:
+  rateLimit: ${NOTIFICATION_SERVICE_RATE_LIMIT}
+
+audit-log:
+  keyVault:
+    url: ${KEYVAULT_URL}
+    name: ${KEYVAULT_NAME}
+    tenantId: ${KEYVAULT_TENANT_ID}
+    clientId: ${KEYVAULT_CLIENT_ID}

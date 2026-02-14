@@ -1,13 +1,13 @@
 agent_id: intent-router
-model: gpt-4o-mini
+model: ${INTENT_ROUTER_MODEL}
 allow_injection: false
 prompt_fields:
   - prompt
   - user_prompt
   - query
-classifier_model_name: distilbert-base-uncased
-classifier_model_path: agents/core-orchestration/agent-01-intent-router/models/intent_classifier/
-spacy_model_name: en_core_web_sm
+classifier_model_name: ${INTENT_ROUTER_CLASSIFIER_MODEL_NAME}
+classifier_model_path: ${INTENT_ROUTER_CLASSIFIER_MODEL_PATH}
+spacy_model_name: ${INTENT_ROUTER_SPACY_MODEL_NAME}
 top_k_intents: 2
 confidence_thresholds:
   financial_query: 0.85
