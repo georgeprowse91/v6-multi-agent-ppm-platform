@@ -12,6 +12,12 @@ Describe the methodology documentation set and link the narrative to the repo as
 - `docs/methodology/overview.md`: Markdown documentation for this area.
 - `docs/templates`: Centralized template library referenced by the methodology maps and gates.
 
+
+## Consolidation note
+
+- Legacy `agile` content is now part of `docs/methodology/adaptive`.
+- Legacy `waterfall` content is now part of `docs/methodology/predictive`.
+
 ## How it's used
 
 These documents are referenced by the root README and provide the canonical explanations for the platform architecture, data model, and operating procedures.

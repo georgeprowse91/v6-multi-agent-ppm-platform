@@ -10,6 +10,8 @@ Methodologies are first-class, data-driven configs under `docs/methodology/<id>/
 
 ## Files per methodology
 
+Legacy folders `agile` and `waterfall` were consolidated into `adaptive` and `predictive` respectively; use those canonical IDs going forward.
+
 - `map.yaml`: WBS-driven navigation tree. Each node includes deterministic `id`, `wbs`, `title`, `type`, and `order`.
 - `gates.yaml` (optional): stage-gate definitions with entry/exit criteria, required artifacts, and approvers.
 - `README.md`: short methodology description.
