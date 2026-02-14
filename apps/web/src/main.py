@@ -2224,6 +2224,23 @@ def _select_project_template(
     return None
 
 
+_METHODOLOGY_ALIASES = {
+    "agile": "adaptive",
+    "waterfall": "predictive",
+    "methodology-agile": "adaptive",
+    "methodology-waterfall": "predictive",
+}
+
+
+def _resolve_template_methodology_id(template: TemplateDefinition) -> str:
+    raw_id = str(template.methodology.get("id") or "").strip().lower()
+    raw_type = str(template.methodology.get("type") or "").strip().lower()
+    candidate = raw_id or raw_type
+    normalized = _METHODOLOGY_ALIASES.get(candidate, candidate)
+    methodology_map = get_methodology_map(normalized)
+    return str(methodology_map.get("id", normalized))
+
+
 def _load_projects() -> list[ProjectRecord]:
     payload = _load_json(PROJECTS_PATH, {"projects": []})
     return [ProjectRecord.model_validate(item) for item in payload.get("projects", [])]
@@ -4469,13 +4486,16 @@ async def apply_template(
     base_slug = _slugify(payload.project_name) or "project"
     project_id = _unique_project_id(base_slug, existing_ids)
 
+    methodology_id = _resolve_template_methodology_id(template)
+    methodology_map = get_methodology_map(methodology_id)
+
     project = ProjectRecord(
         id=project_id,
         name=payload.project_name,
         template_id=template.id,
         template_version=selected_version,
         created_at=datetime.now(timezone.utc).isoformat() + "Z",
-        methodology=template.methodology,
+        methodology=methodology_map,
         agent_config=template.agent_config,
         connector_config=template.connector_config,
         initial_tabs=template.initial_tabs,
@@ -4499,7 +4519,9 @@ async def apply_template(
         )
     )
 
-    response_template = template.model_copy(update={"version": selected_version})
+    response_template = template.model_copy(
+        update={"version": selected_version, "methodology": methodology_map}
+    )
     return TemplateApplyResponse(project=project, template=response_template)
 
 

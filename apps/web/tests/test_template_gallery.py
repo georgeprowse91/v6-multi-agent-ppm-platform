@@ -142,3 +142,36 @@ def test_apply_template_with_version(client, monkeypatch):
     payload = response.json()
     assert payload["project"]["template_version"] == "1.0"
     assert payload["template"]["version"] == "1.0"
+
+
+@pytest.mark.parametrize(
+    ("template_id", "expected_methodology_id"),
+    [
+        ("agile-software-dev", "adaptive"),
+        ("waterfall-infrastructure", "predictive"),
+        ("hybrid-transformation", "hybrid"),
+    ],
+)
+def test_apply_template_returns_yaml_methodology_map(
+    client, monkeypatch, template_id: str, expected_methodology_id: str
+):
+    _set_tenant(monkeypatch, "tenant-a")
+    response = client.post(
+        f"/api/templates/{template_id}/apply",
+        json={"project_name": f"{template_id}-project", "version": "1.0"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    methodology = payload["template"]["methodology"]
+    assert methodology["id"] == expected_methodology_id
+    assert methodology["navigation_nodes"]
+
+    stage_activities = [
+        activity
+        for stage in methodology["stages"]
+        for activity in stage.get("activities", [])
+    ]
+    assert stage_activities
+
+    assert payload["project"]["methodology"]["id"] == expected_methodology_id
