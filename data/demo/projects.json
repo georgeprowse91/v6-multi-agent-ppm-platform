@@ -1,0 +1,41 @@
+[
+  {
+    "id": "prj-mobile-001",
+    "tenant_id": "tenant-demo",
+    "program_id": "pg-cx-001",
+    "name": "Mobile App Modernization",
+    "status": "in_progress",
+    "start_date": "2025-02-01",
+    "end_date": "2025-10-30",
+    "owner": "u_project_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-25T08:30:00Z",
+    "health": "Green"
+  },
+  {
+    "id": "prj-portal-002",
+    "tenant_id": "tenant-demo",
+    "program_id": "pg-cx-001",
+    "name": "Self-Service Portal Upgrade",
+    "status": "in_progress",
+    "start_date": "2025-02-15",
+    "end_date": "2025-11-15",
+    "owner": "u_project_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-26T08:30:00Z",
+    "health": "Amber"
+  },
+  {
+    "id": "prj-observability-003",
+    "tenant_id": "tenant-demo",
+    "program_id": "pg-data-002",
+    "name": "Enterprise Observability Rollout",
+    "status": "in_progress",
+    "start_date": "2025-03-01",
+    "end_date": "2025-09-30",
+    "owner": "u_project_demo",
+    "classification": "Internal",
+    "created_at": "2025-01-28T08:30:00Z",
+    "health": "Green"
+  }
+]

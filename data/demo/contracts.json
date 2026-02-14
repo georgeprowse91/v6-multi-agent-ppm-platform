@@ -1,0 +1,22 @@
+[
+  {
+    "id": "ctr-001",
+    "vendor_id": "ven-001",
+    "project_id": "prj-observability-003",
+    "name": "Observability Platform Enterprise Agreement",
+    "start_date": "2025-02-01",
+    "end_date": "2026-01-31",
+    "value": 920000,
+    "status": "active"
+  },
+  {
+    "id": "ctr-002",
+    "vendor_id": "ven-002",
+    "project_id": "prj-portal-002",
+    "name": "Portal Usage Analytics Subscription",
+    "start_date": "2025-03-01",
+    "end_date": "2026-02-28",
+    "value": 310000,
+    "status": "active"
+  }
+]
