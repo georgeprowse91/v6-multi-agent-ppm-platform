@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
+import { Icon } from '@/components/icon/Icon';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getErrorMessage, requestJson } from '@/services/apiClient';
@@ -467,11 +469,13 @@ export function ConfigPage({ type }: ConfigPageProps) {
                         </button>
                       </div>
                       {selectedAgent?.catalog_id === agent.catalog_id && (
-                        <div
+                        <FocusTrap
                           className={styles.modalOverlay}
                           role="dialog"
                           aria-modal="true"
+                          aria-labelledby={`agent-modal-title-${agent.catalog_id}`}
                           onClick={handleCloseModal}
+                          onClose={handleCloseModal}
                         >
                           <div
                             className={styles.modal}
@@ -479,7 +483,10 @@ export function ConfigPage({ type }: ConfigPageProps) {
                           >
                             <div className={styles.modalHeader}>
                               <div>
-                                <h2 className={styles.modalTitle}>
+                                <h2
+                                  className={styles.modalTitle}
+                                  id={`agent-modal-title-${agent.catalog_id}`}
+                                >
                                   Configure {agent.display_name}
                                 </h2>
                                 <p className={styles.modalDescription}>
@@ -491,7 +498,8 @@ export function ConfigPage({ type }: ConfigPageProps) {
                                 className={styles.modalClose}
                                 onClick={handleCloseModal}
                               >
-                                ×
+                                <span className="sr-only">Close</span>
+                                <Icon semantic="actions.cancelDismiss" decorative={true} />
                               </button>
                             </div>
                             <div className={styles.modalBody}>
@@ -508,7 +516,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                               />
                             </div>
                           </div>
-                        </div>
+                        </FocusTrap>
                       )}
                     </div>
                   );
@@ -748,11 +756,13 @@ export function ConfigPage({ type }: ConfigPageProps) {
                   );
                 })}
                 {selectedWorkflow && selectedWorkflowIndex !== null && (
-                  <div
+                  <FocusTrap
                     className={styles.modalOverlay}
                     role="dialog"
                     aria-modal="true"
+                    aria-labelledby={`workflow-modal-title-${selectedWorkflowIndex}`}
                     onClick={handleCloseModal}
+                    onClose={handleCloseModal}
                   >
                     <div
                       className={styles.modal}
@@ -760,7 +770,10 @@ export function ConfigPage({ type }: ConfigPageProps) {
                     >
                       <div className={styles.modalHeader}>
                         <div>
-                          <h2 className={styles.modalTitle}>
+                          <h2
+                            className={styles.modalTitle}
+                            id={`workflow-modal-title-${selectedWorkflowIndex}`}
+                          >
                             Configure workflow routing
                           </h2>
                           <p className={styles.modalDescription}>
@@ -772,7 +785,8 @@ export function ConfigPage({ type }: ConfigPageProps) {
                           className={styles.modalClose}
                           onClick={handleCloseModal}
                         >
-                          ×
+                          <span className="sr-only">Close</span>
+                          <Icon semantic="actions.cancelDismiss" decorative={true} />
                         </button>
                       </div>
                       <div className={styles.modalBody}>
@@ -832,7 +846,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                         />
                       </div>
                     </div>
-                  </div>
+                  </FocusTrap>
                 )}
               </div>
             )}

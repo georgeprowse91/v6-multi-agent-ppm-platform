@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store';
 import { useTour } from '@/components/tours';
 import { Icon } from '@/components/icon/Icon';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import styles from './Header.module.css';
@@ -73,17 +74,9 @@ export function Header() {
         setMenuOpen(false);
       }
     };
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
     document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKey);
     return () => {
       document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKey);
     };
   }, [menuOpen]);
 
@@ -215,13 +208,14 @@ export function Header() {
             </span>
           </button>
           {menuOpen && (
-            <div
+            <FocusTrap
               className={styles.userMenuPanel}
               id={menuId}
               role="dialog"
-              aria-modal="false"
+              aria-modal="true"
               aria-label={t('header.userMenu')}
               ref={menuRef}
+              onClose={() => setMenuOpen(false)}
             >
               <div className={styles.menuSection} role="none">
                 <label className={styles.menuLabel} htmlFor="theme-select">
@@ -238,7 +232,7 @@ export function Header() {
                   <option value="high-contrast">{t('header.themeHighContrast')}</option>
                 </select>
               </div>
-            </div>
+            </FocusTrap>
           )}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react';
 import { Icon } from '@/components/icon/Icon';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import { usePromptStore } from '@/store/prompts';
 import { PromptPicker } from './PromptPicker';
 import styles from './ChatInput.module.css';
@@ -167,7 +168,12 @@ export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResear
       )}
 
       {slashOpen && (
-        <div className={styles.slashPopover} role="listbox" aria-label="Slash commands">
+        <FocusTrap
+          className={styles.slashPopover}
+          role="listbox"
+          aria-label="Slash commands"
+          onClose={() => setValue('')}
+        >
           {slashOptions.map((option, index) => (
             <button
               type="button"
@@ -182,7 +188,7 @@ export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResear
               <span className={styles.optionDescription}>{option.description}</span>
             </button>
           ))}
-        </div>
+        </FocusTrap>
       )}
 
       {promptPickerOpen && (
