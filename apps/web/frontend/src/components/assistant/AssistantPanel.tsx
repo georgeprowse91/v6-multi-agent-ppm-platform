@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import { Icon } from '@/components/icon/Icon';
 import { useAppStore } from '@/store/useAppStore';
@@ -14,12 +14,14 @@ import {
 import { useAssistantChat } from './hooks/useAssistantChat';
 import { useContextSync } from './hooks/useContextSync';
 import { useSuggestionEngine } from './hooks/useSuggestionEngine';
+import { useIntakeAssistantAdapter } from './hooks/useIntakeAssistantAdapter';
 import { AssistantHeader } from './AssistantHeader';
 import { ContextBar } from './ContextBar';
 import { MessageList } from './MessageList';
 import { QuickActions } from './QuickActions';
 import { ChatInput } from './ChatInput';
 import type { WorkspaceType } from './entryQuickActions';
+import { useIntakeAssistantStore } from '@/store/assistant/useIntakeAssistantStore';
 import styles from './AssistantPanel.module.css';
 
 interface DemoScriptMessage {
@@ -43,6 +45,7 @@ function isDemoModeEnabled(): boolean {
 
 export function AssistantPanel() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { rightPanelCollapsed, toggleRightPanel } = useAppStore();
   const { projectMethodology, currentActivityId, getActivity, getStageForActivity, isActivityLockedComputed, getAllActivities } = useMethodologyStore();
   const { artifacts, openArtifact } = useCanvasStore();
@@ -67,6 +70,9 @@ export function AssistantPanel() {
   const [demoStepIndex, setDemoStepIndex] = useState(0);
   const [demoLoading, setDemoLoading] = useState(false);
   const [pendingWorkspaceType, setPendingWorkspaceType] = useState<WorkspaceType | null>(null);
+  const intakeActive = location.pathname === '/intake/new';
+  const enqueuePatch = useIntakeAssistantStore((state) => state.enqueuePatch);
+  const { sendIntakeMessage } = useIntakeAssistantAdapter(intakeActive);
 
   const onFallbackResponse = useCallback((text: string) => addAssistantMessage(`I heard: "${text}". Ask me to open an activity, dashboard, or /research.`), [addAssistantMessage]);
   const { sendMessage, error: assistantError } = useAssistantChat({ projectId: context?.projectId, onFallbackResponse });
@@ -207,6 +213,17 @@ export function AssistantPanel() {
           return;
         }
         if (chip.payload.actionKey === 'ask_question') return inputRef.current?.focus();
+        if (chip.payload.actionKey === 'intake_apply_field') {
+          const field = typeof chip.payload.data?.field === 'string' ? chip.payload.data.field : '';
+          const value = typeof chip.payload.data?.value === 'string' ? chip.payload.data.value : '';
+          if (!field) {
+            addAssistantMessage('Unable to apply this proposal because the target field is missing.');
+            return;
+          }
+          enqueuePatch(field, value);
+          addAssistantMessage(`Queued update for ${field}. Review the form confirmation prompt to apply it.`);
+          return;
+        }
         const data = (chip.payload.data ?? {}) as Partial<ConversationalCommandMessageData>;
         return addAssistantMessage('Review and confirm inline updates below.', undefined, false, {
           messageType: 'conversational_command',
@@ -215,7 +232,7 @@ export function AssistantPanel() {
       }
       default: return addAssistantMessage('Action executed.');
     }
-  }, [addAssistantMessage, currentActivityId, getActivity, navigate, openForActivity, sendMessage]);
+  }, [addAssistantMessage, currentActivityId, enqueuePatch, getActivity, navigate, openForActivity, sendMessage]);
 
   const demoBranchReply = useCallback((input: string) => {
     const normalized = input.toLowerCase();
@@ -242,6 +259,11 @@ export function AssistantPanel() {
       setPendingWorkspaceType(null);
       navigate(`/${pendingWorkspaceType}/${encodeURIComponent(trimmed)}`);
       addAssistantMessage(`Opening ${pendingWorkspaceType} workspace ${trimmed}.`);
+      return;
+    }
+
+    if (intakeActive) {
+      await sendIntakeMessage(text);
       return;
     }
 
@@ -285,7 +307,7 @@ export function AssistantPanel() {
       idx += 1;
     }
     setDemoStepIndex(idx);
-  }, [addAssistantMessage, addUserMessage, demoBranchReply, demoMode, demoScript, demoStepIndex, navigate, pendingWorkspaceType, sendMessage]);
+  }, [addAssistantMessage, addUserMessage, demoBranchReply, demoMode, demoScript, demoStepIndex, intakeActive, navigate, pendingWorkspaceType, sendIntakeMessage, sendMessage]);
 
   if (rightPanelCollapsed) return <aside className={`${styles.panel} ${styles.collapsed}`} data-tour="assistant-panel"><button className={styles.expandButton} onClick={toggleRightPanel} title="Open Assistant"><Icon semantic="communication.message" label="Open Assistant" /></button></aside>;
 

@@ -193,6 +193,12 @@ METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
 PROMPT_ROOT = REPO_ROOT / "agents" / "runtime" / "prompts"
 DEMAND_PROMPT_PATH = PROMPT_ROOT / "demand-intake-extraction.prompt.yaml"
 PROJECT_PROMPT_PATH = PROMPT_ROOT / "project-intake-extraction.prompt.yaml"
+INTAKE_ASSISTANT_PROMPTS = {
+    "sponsor": PROMPT_ROOT / "intake-assistant-sponsor.prompt.yaml",
+    "business": PROMPT_ROOT / "intake-assistant-business.prompt.yaml",
+    "success": PROMPT_ROOT / "intake-assistant-success.prompt.yaml",
+    "attachments": PROMPT_ROOT / "intake-assistant-attachments.prompt.yaml",
+}
 
 SESSION_COOKIE = "ppm_session"
 STATE_COOKIE = "ppm_oidc_state"
@@ -259,6 +265,22 @@ class IntakeExtractionResponse(BaseModel):
     project: dict[str, Any] | None = None
     entities: dict[str, IntakeExtractionEntity] = Field(default_factory=dict)
 
+
+
+
+class IntakeAssistantRequest(BaseModel):
+    step_id: Literal["sponsor", "business", "success", "attachments"]
+    step_index: int = Field(ge=0, le=3)
+    form_state: dict[str, str] = Field(default_factory=dict)
+    validation_errors: dict[str, str] = Field(default_factory=dict)
+    user_answer: str | None = None
+
+
+class IntakeAssistantResponse(BaseModel):
+    step_id: Literal["sponsor", "business", "success", "attachments"]
+    questions: list[str] = Field(default_factory=list)
+    proposals: dict[str, str] = Field(default_factory=dict)
+    apply_hints: list[str] = Field(default_factory=list)
 
 class RoleDefinition(BaseModel):
     id: str
@@ -3609,6 +3631,93 @@ async def extract_intake_document(
     response.entities = entities
     return response
 
+
+
+
+def _load_intake_assistant_prompt(step_id: str) -> dict[str, Any]:
+    prompt_path = INTAKE_ASSISTANT_PROMPTS.get(step_id)
+    if not prompt_path or not prompt_path.exists():
+        return {}
+    try:
+        raw = yaml.safe_load(prompt_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError:
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def _non_empty(value: str | None) -> bool:
+    return bool(value and value.strip())
+
+
+def _build_intake_assistant_response(payload: IntakeAssistantRequest) -> IntakeAssistantResponse:
+    form_state = payload.form_state
+    errors = payload.validation_errors
+    proposals: dict[str, str] = {}
+    questions: list[str] = []
+    apply_hints: list[str] = []
+
+    _load_intake_assistant_prompt(payload.step_id)
+
+    if payload.step_id == "sponsor":
+        if not _non_empty(form_state.get("sponsorName")):
+            questions.append("Who is the executive sponsor and what is their role?")
+        if not _non_empty(form_state.get("sponsorEmail")):
+            questions.append("What is the sponsor's best contact email?")
+        if not _non_empty(form_state.get("sponsorDepartment")):
+            questions.append("Which business unit is accountable for this request?")
+
+    if payload.step_id == "business":
+        if not _non_empty(form_state.get("businessSummary")) and _non_empty(payload.user_answer):
+            proposals["businessSummary"] = payload.user_answer.strip()
+        if not _non_empty(form_state.get("businessJustification")):
+            proposals["businessJustification"] = (
+                "This initiative addresses a validated business need and aligns to current portfolio priorities."
+            )
+        if not _non_empty(form_state.get("expectedBenefits")):
+            proposals["expectedBenefits"] = (
+                "Reduce manual effort by 20% within two quarters and improve stakeholder response time by 30%."
+            )
+        if not _non_empty(form_state.get("businessSummary")):
+            questions.append("What business problem should this intake solve in one sentence?")
+
+    if payload.step_id == "success":
+        if not _non_empty(form_state.get("successMetrics")):
+            proposals["successMetrics"] = (
+                "Achieve a 25% reduction in cycle time by Q4, maintain >=95% SLA adherence, and report monthly adoption above 80%."
+            )
+            questions.append("Which baseline metric should we compare against to prove value?")
+        if not _non_empty(form_state.get("riskNotes")):
+            proposals["riskNotes"] = (
+                "Dependency on data quality improvements and availability of SME reviewers during pilot phase."
+            )
+
+    if payload.step_id == "attachments":
+        if not _non_empty(form_state.get("attachmentSummary")):
+            questions.append("Which supporting documents should reviewers inspect first?")
+            proposals["attachmentSummary"] = (
+                "Includes current-state process notes, stakeholder feedback summary, and budget assumptions worksheet."
+            )
+
+    for field in proposals:
+        if _non_empty(form_state.get(field)):
+            apply_hints.append(f"{field}: confirmation required because the field already contains a value.")
+        else:
+            apply_hints.append(f"{field}: safe to apply directly (field is empty).")
+
+    for field_name, message in errors.items():
+        questions.append(f"Validation issue on {field_name}: {message}")
+
+    return IntakeAssistantResponse(
+        step_id=payload.step_id,
+        questions=questions,
+        proposals=proposals,
+        apply_hints=apply_hints,
+    )
+
+
+@api_router.post("/api/intake/assistant", response_model=IntakeAssistantResponse)
+def intake_assistant(payload: IntakeAssistantRequest) -> IntakeAssistantResponse:
+    return _build_intake_assistant_response(payload)
 
 @api_router.get("/api/intake", response_model=list[IntakeRequest])
 def list_intake_requests(status: str | None = None) -> list[IntakeRequest]:

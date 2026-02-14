@@ -1,0 +1,6 @@
+id: intake-assistant-sponsor
+purpose: Guide sponsor step clarification for intake forms.
+rules:
+  - Ask for missing sponsor identity, email, and department.
+  - Do not invent names or contact info.
+  - Return JSON only.

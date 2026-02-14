@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { AssistantPanel } from './AssistantPanel';
 import { useAssistantStore } from '@/store/assistant';
 import { useMethodologyStore } from '@/store/methodology';
@@ -49,7 +50,11 @@ describe('AssistantPanel quick actions', () => {
       ],
     });
 
-    render(<AssistantPanel />);
+    render(
+      <MemoryRouter>
+        <AssistantPanel />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(useAssistantStore.getState().isGeneratingSuggestions).toBe(false);

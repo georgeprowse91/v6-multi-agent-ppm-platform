@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useIntakeAssistantStore } from '@/store/assistant/useIntakeAssistantStore';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store';
 import styles from './IntakeFormPage.module.css';
@@ -49,7 +50,8 @@ const initialFormState: IntakeFormState = {
 export function IntakeFormPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { featureFlags } = useAppStore();
+  const { featureFlags, rightPanelCollapsed, toggleRightPanel } = useAppStore();
+  const { setContext: setIntakeAssistantContext, clearContext, pendingPatches, consumePatch } = useIntakeAssistantStore();
   const [stepIndex, setStepIndex] = useState(0);
   const [formState, setFormState] = useState<IntakeFormState>(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -75,6 +77,75 @@ export function IntakeFormPage() {
   const currentStep = steps[stepIndex];
   const multimodalEnabled = featureFlags.multimodal_intake === true;
 
+
+
+  useEffect(() => {
+    if (rightPanelCollapsed) {
+      toggleRightPanel();
+    }
+  }, [rightPanelCollapsed, toggleRightPanel]);
+
+  useEffect(() => {
+    setIntakeAssistantContext({
+      stepId: currentStep.id,
+      stepIndex,
+      formState,
+      errors,
+    });
+  }, [currentStep.id, errors, formState, setIntakeAssistantContext, stepIndex]);
+
+  useEffect(() => () => {
+    clearContext();
+  }, [clearContext]);
+
+  useEffect(() => {
+    if (pendingPatches.length === 0) {
+      return;
+    }
+
+    const allowedFields: Record<string, keyof IntakeFormState> = {
+      sponsorName: 'sponsorName',
+      sponsorEmail: 'sponsorEmail',
+      sponsorDepartment: 'sponsorDepartment',
+      sponsorTitle: 'sponsorTitle',
+      reviewers: 'reviewers',
+      businessSummary: 'businessSummary',
+      businessJustification: 'businessJustification',
+      expectedBenefits: 'expectedBenefits',
+      estimatedBudget: 'estimatedBudget',
+      successMetrics: 'successMetrics',
+      targetDate: 'targetDate',
+      riskNotes: 'riskNotes',
+      attachmentSummary: 'attachmentSummary',
+      attachmentLinks: 'attachmentLinks',
+    };
+
+    pendingPatches.forEach((patch) => {
+      const targetField = allowedFields[patch.field];
+      if (!targetField) {
+        consumePatch(patch.id);
+        return;
+      }
+
+      setFormState((prev) => {
+        const currentValue = prev[targetField].trim();
+        if (currentValue.length > 0) {
+          const confirmed = window.confirm(
+            `${targetField} already contains a value. Replace it with the assistant proposal?`
+          );
+          if (!confirmed) {
+            return prev;
+          }
+        }
+
+        return {
+          ...prev,
+          [targetField]: patch.value,
+        };
+      });
+      consumePatch(patch.id);
+    });
+  }, [consumePatch, pendingPatches]);
   const reviewersList = useMemo(
     () =>
       formState.reviewers
