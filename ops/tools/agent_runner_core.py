@@ -10,12 +10,14 @@ import inspect
 import json
 import os
 from pathlib import Path
+from types import ModuleType
 from typing import Any, cast
 
 from agents.runtime import BaseAgent
 
 
-def _load_module_from_path(path: Path):
+def _load_module_from_path(path: Path) -> ModuleType:
+    """Load a Python module from a filesystem path."""
     spec = importlib.util.spec_from_file_location("agent_module", path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Unable to load agent module from {path}")
@@ -24,7 +26,8 @@ def _load_module_from_path(path: Path):
     return module
 
 
-def _resolve_agent_class(module, class_name: str | None) -> type[BaseAgent]:
+def _resolve_agent_class(module: ModuleType, class_name: str | None) -> type[BaseAgent]:
+    """Resolve the concrete agent class from a module."""
     candidates = [
         obj
         for obj in module.__dict__.values()
@@ -59,6 +62,7 @@ async def _run_agent(agent: BaseAgent, input_payload: dict[str, Any] | None) -> 
 
 
 def _parse_args() -> argparse.Namespace:
+    """Parse CLI arguments for local agent execution."""
     parser = argparse.ArgumentParser(description="Run a single PPM agent for local validation.")
     parser.add_argument("--agent-path", help="Path to the agent Python file.")
     parser.add_argument("--agent-module", help="Import path to the agent module.")
@@ -69,10 +73,29 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _load_config() -> dict[str, Any]:
-    raw = os.getenv("AGENT_CONFIG_JSON", "").strip()
-    if not raw:
-        return {}
-    return cast(dict[str, Any], json.loads(raw))
+    """Load AGENT_CONFIG_JSON from the environment."""
+
+    return (
+        _parse_json_payload(os.getenv("AGENT_CONFIG_JSON", "").strip() or None, "AGENT_CONFIG_JSON")
+        or {}
+    )
+
+
+def _parse_json_payload(raw_payload: str | None, context: str) -> dict[str, Any] | None:
+    """Parse JSON payload text and raise a user-friendly CLI error on failure."""
+
+    if not raw_payload:
+        return None
+
+    try:
+        parsed = json.loads(raw_payload)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid JSON for {context}: {exc.msg}") from exc
+
+    if not isinstance(parsed, dict):
+        raise SystemExit(f"{context} must be a JSON object.")
+
+    return cast(dict[str, Any], parsed)
 
 
 def main() -> None:
@@ -96,8 +119,7 @@ def main() -> None:
     config = _load_config()
     agent = agent_cls(agent_id=agent_id or agent_cls.__name__.lower(), config=config)
 
-    input_payload = args.input or os.getenv("AGENT_INPUT")
-    payload = json.loads(input_payload) if input_payload else None
+    payload = _parse_json_payload(args.input or os.getenv("AGENT_INPUT"), "AGENT_INPUT/--input")
     asyncio.run(_run_agent(agent, payload))
 
 

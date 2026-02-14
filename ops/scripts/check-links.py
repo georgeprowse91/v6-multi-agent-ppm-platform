@@ -5,8 +5,9 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections.abc import Iterable
+from functools import lru_cache
 from pathlib import Path
-from typing import Iterable
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,6 +59,8 @@ def iter_markdown_files(root: Path) -> Iterable[Path]:
 
 
 def parse_link_destination(raw: str) -> str:
+    """Extract URL/path portion from markdown link destination token."""
+
     dest = raw.strip()
     if " " in dest:
         dest = dest.split(" ", 1)[0]
@@ -65,10 +68,13 @@ def parse_link_destination(raw: str) -> str:
 
 
 def is_external_link(dest: str) -> bool:
+    """Return whether the destination is handled externally."""
+
     return dest.startswith(("http://", "https://", "mailto:", "tel:"))
 
 
 def slugify_heading(text: str, existing: dict[str, int]) -> str:
+    """Convert heading text to GitHub-style anchor slug."""
     heading = text.strip().lower()
     heading = re.sub(r"[`~!@#$%^&*()+=\[\]{}\\|;:\"',.<>/?]", "", heading)
     heading = re.sub(r"\s+", "-", heading)
@@ -79,7 +85,9 @@ def slugify_heading(text: str, existing: dict[str, int]) -> str:
     return heading
 
 
+@lru_cache(maxsize=4096)
 def extract_anchors(path: Path) -> set[str]:
+    """Return all heading anchors in a markdown file (cached by path)."""
     anchors: set[str] = set()
     counts: dict[str, int] = {}
     try:
@@ -99,14 +107,35 @@ def extract_anchors(path: Path) -> set[str]:
 
 
 def resolve_target(source: Path, path_part: str) -> Path:
+    """Resolve a markdown destination path relative to the source file."""
     if path_part.startswith("/"):
         return ROOT / path_part.lstrip("/")
     return (source.parent / path_part).resolve()
 
 
+def _record_broken_link(
+    broken: list[dict[str, str]],
+    source: Path,
+    link: str,
+    destination: str,
+    reason: str,
+) -> None:
+    """Append a normalized broken-link report entry."""
+
+    broken.append(
+        {
+            "source": str(source.relative_to(ROOT)),
+            "link": link,
+            "destination": destination,
+            "reason": reason,
+        }
+    )
+
+
 def check_links() -> list[dict[str, str]]:
+    """Scan markdown files for broken local links and anchors."""
+
     broken: list[dict[str, str]] = []
-    anchor_cache: dict[Path, set[str]] = {}
 
     for md_file in iter_markdown_files(ROOT):
         text = strip_code_blocks(md_file.read_text(encoding="utf-8", errors="ignore"))
@@ -117,16 +146,9 @@ def check_links() -> list[dict[str, str]]:
                 continue
             if dest.startswith("#"):
                 anchor = dest[1:]
-                anchors = anchor_cache.setdefault(md_file, extract_anchors(md_file))
+                anchors = extract_anchors(md_file)
                 if anchor and anchor not in anchors:
-                    broken.append(
-                        {
-                            "source": str(md_file.relative_to(ROOT)),
-                            "link": match.group(1),
-                            "destination": dest,
-                            "reason": "missing anchor",
-                        }
-                    )
+                    _record_broken_link(broken, md_file, match.group(1), dest, "missing anchor")
                 continue
             dest = unquote(dest)
             if "#" in dest:
@@ -137,26 +159,12 @@ def check_links() -> list[dict[str, str]]:
                 continue
             target = resolve_target(md_file, path_part)
             if not target.exists():
-                broken.append(
-                    {
-                        "source": str(md_file.relative_to(ROOT)),
-                        "link": match.group(1),
-                        "destination": dest,
-                        "reason": "missing file",
-                    }
-                )
+                _record_broken_link(broken, md_file, match.group(1), dest, "missing file")
                 continue
             if anchor:
-                anchors = anchor_cache.setdefault(target, extract_anchors(target))
+                anchors = extract_anchors(target)
                 if anchor not in anchors:
-                    broken.append(
-                        {
-                            "source": str(md_file.relative_to(ROOT)),
-                            "link": match.group(1),
-                            "destination": dest,
-                            "reason": "missing anchor",
-                        }
-                    )
+                    _record_broken_link(broken, md_file, match.group(1), dest, "missing anchor")
     return broken
 
 
