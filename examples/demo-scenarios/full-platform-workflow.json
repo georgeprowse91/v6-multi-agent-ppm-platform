@@ -1,0 +1,26 @@
+{
+  "workflow_id": "full-platform-demo-run",
+  "tenant_id": "demo-tenant-full-platform",
+  "classification": "internal",
+  "payload": {
+    "scenario": "full-platform-demo",
+    "project": {
+      "project_id": "DEMO-PLATFORM-001",
+      "name": "Full Platform Demo Project"
+    },
+    "requirements": [
+      "create_project",
+      "generate_governance_artifacts",
+      "show_portfolio_program_project_views",
+      "run_all_agents",
+      "produce_execution_report"
+    ]
+  },
+  "actor": {
+    "id": "demo-orchestrator",
+    "type": "system",
+    "roles": [
+      "tenant_owner"
+    ]
+  }
+}

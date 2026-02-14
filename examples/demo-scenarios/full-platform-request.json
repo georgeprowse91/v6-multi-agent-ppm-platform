@@ -1,0 +1,7 @@
+{
+  "query": "Run the full platform demo: create a new project, generate governance artifacts, show portfolio/program/project views, run all agents, and produce an execution report.",
+  "context": {
+    "tenant_id": "demo-tenant-full-platform",
+    "correlation_id": "full-platform-demo-001"
+  }
+}

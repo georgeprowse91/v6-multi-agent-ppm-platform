@@ -1,0 +1,13 @@
+{
+  "intents": [
+    {
+      "intent": "full_platform_demo_run",
+      "confidence": 1.0
+    }
+  ],
+  "parameters": {
+    "scenario": "full-platform-demo",
+    "run_mode": "deterministic",
+    "include_agents": "all"
+  }
+}

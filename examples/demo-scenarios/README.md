@@ -10,6 +10,10 @@ Provide demo scenarios examples that demonstrate how to use the platform assets.
 - `quickstart-expected-output.json`: Snapshot of the expected response shape.
 - `quickstart-llm-response.json`: Deterministic intent-router response for mock LLM routing.
 - `quickstart-workflow.json`: Workflow engine start payload for the quickstart.
+- `full-platform-request.json`: Canonical request payload for the deterministic full-platform demo run.
+- `full-platform-expected-output.json`: Expected output snapshot asserting successful execution across all 25 agents.
+- `full-platform-llm-response.json`: Deterministic intent-router mock that routes to the full platform demo run intent.
+- `full-platform-workflow.json`: Workflow engine start payload for the full-platform demo run.
 - `approvals.json`: Demo approval inbox data for the governance workspace.
 - `workflow-monitoring.json`: Demo workflow monitoring telemetry and alert data.
 - `wbs.json`: Demo WBS hierarchy for the workspace shell.
