@@ -19,7 +19,7 @@ export const tokens = {
     },
     text: {
       primary: '#000000',
-      secondary: '#A1A8B3',
+      secondary: '#6B7280',
       inverse: '#FFFFFF',
       link: '#FD5108',
     },
@@ -41,7 +41,7 @@ export const tokens = {
         bg: '#DCFCE7',
       },
       warning: {
-        fg: '#EAB308',
+        fg: '#92600C',
         bg: '#FEF3C7',
       },
       error: {
@@ -65,7 +65,7 @@ export const tokens = {
       surfaceCard: '#242424',
       textPrimary: '#FFFFFF',
       textSecondary: '#B5BCC4',
-      border: '#333333',
+      border: '#444444',
       inputBg: '#333333',
     },
     highContrastMode: {
@@ -152,8 +152,8 @@ export const tokens = {
   accessibility: {
     minContrastRatio: 4.5,
     primaryButtonRule: {
-      backgroundMustBe: '#FFAA72',
-      textMustBe: '#000000',
+      backgroundMustBe: '#E8550F',
+      textMustBe: '#FFFFFF',
       neverUseOrange500AsButtonBgWithText: true,
     },
     focus: {
@@ -161,7 +161,7 @@ export const tokens = {
       ring: {
         style: 'solid',
         widthPx: 2,
-        color: '#FD5108',
+        color: '#001A66',
         offsetPx: 2,
       },
     },
@@ -174,7 +174,7 @@ export const tokens = {
       max: 20,
     },
     color: {
-      secondary: '#A1A8B3',
+      secondary: '#6B7280',
       accent: '#FD5108',
       primaryText: '#000000',
     },

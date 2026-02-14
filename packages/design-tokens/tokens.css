@@ -10,7 +10,7 @@
   /* Neutral colors */
   --color-neutral-black: #000000;
   --color-neutral-white: #FFFFFF;
-  --color-neutral-grey-500: #A1A8B3;
+  --color-neutral-grey-500: #6B7280;
   --color-neutral-grey-400: #B5BCC4;
   --color-neutral-grey-300: #CBD1D6;
   --color-neutral-grey-200: #DFE3E6;
@@ -18,7 +18,7 @@
 
   /* Text colors */
   --color-text-primary: #000000;
-  --color-text-secondary: #A1A8B3;
+  --color-text-secondary: #6B7280;
   --color-text-inverse: #FFFFFF;
   --color-text-link: #FD5108;
 
@@ -37,7 +37,7 @@
   /* State colors */
   --color-state-success-fg: #22C55E;
   --color-state-success-bg: #DCFCE7;
-  --color-state-warning-fg: #EAB308;
+  --color-state-warning-fg: #92600C;
   --color-state-warning-bg: #FEF3C7;
   --color-state-error-fg: #EF4444;
   --color-state-error-bg: #FEE2E2;
@@ -119,7 +119,7 @@
   --z-tooltip: 400;
 
   /* Accessibility */
-  --focus-ring-color: #FD5108;
+  --focus-ring-color: #001A66;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
@@ -194,10 +194,10 @@
   --ai-assistant-gradient: var(--color-brand-gradient-primary);
 
   /* Button tokens (accessibility rule enforced) */
-  --color-button-primary-bg: #FFAA72;
-  --color-button-primary-text: #000000;
+  --color-button-primary-bg: #E8550F;
+  --color-button-primary-text: #FFFFFF;
   --color-button-primary-hover: #FFE8D4;
-  --color-button-primary-border: #FFAA72;
+  --color-button-primary-border: #E8550F;
   --color-button-primary-disabled: #B5BCC4;
 
   /* Legacy aliases for existing UI */
@@ -305,8 +305,8 @@
   --color-surface-card: #242424;
   --color-surface-subtle: #242424;
   --color-surface-input: #333333;
-  --color-border-default: #333333;
-  --color-border-subtle: #333333;
+  --color-border-default: #444444;
+  --color-border-subtle: #444444;
   --color-border-strong: #FFFFFF;
   --color-border-disabled: #B5BCC4;
   --color-neutral-400: #B5BCC4;
