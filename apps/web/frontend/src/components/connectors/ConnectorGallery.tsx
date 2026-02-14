@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   useConnectorStore,
   CATEGORY_INFO,
@@ -337,6 +338,7 @@ export function ConnectorGallery({ projectId }: ConnectorGalleryProps) {
               onOpenCertification={handleOpenCertification}
               canManage={canManage}
               certifications={certifications}
+              projectId={projectId}
             />
           ))
         )}
@@ -385,6 +387,7 @@ export function ConnectorGallery({ projectId }: ConnectorGalleryProps) {
 interface CategorySectionProps {
   category: ConnectorCategory;
   connectors: Connector[];
+  projectId?: string;
   onToggleEnabled: (connector: Connector) => void;
   onOpenConfig: (connector: Connector) => void;
   onOpenCertification: (connector: Connector) => void;
@@ -400,6 +403,7 @@ function CategorySection({
   onOpenCertification,
   canManage,
   certifications,
+  projectId,
 }: CategorySectionProps) {
   const info = CATEGORY_INFO[category];
   const enabledConnector = connectors.find((c) => c.enabled);
@@ -431,6 +435,7 @@ function CategorySection({
             onOpenCertification={() => onOpenCertification(connector)}
             canManage={canManage}
             certification={certifications[connector.connector_id]}
+            projectId={projectId}
           />
         ))}
       </div>
@@ -443,6 +448,7 @@ function CategorySection({
  */
 interface ConnectorCardProps {
   connector: Connector;
+  projectId?: string;
   onToggleEnabled: () => void;
   onOpenConfig: () => void;
   onOpenCertification: () => void;
@@ -457,6 +463,7 @@ function ConnectorCard({
   onOpenCertification,
   canManage,
   certification,
+  projectId,
 }: ConnectorCardProps) {
   const statusLabel = STATUS_LABELS[connector.status];
   const statusClassName = STATUS_BADGE_CLASSES[connector.status];
@@ -511,6 +518,7 @@ function ConnectorCard({
       <p className={styles.connectorDescription}>{connector.description}</p>
 
       <div className={styles.connectorMeta}>
+        <span className={styles.syncDirection}>{projectId ? `Scope: Project (${projectId})` : "Scope: Global / all projects"}</span>
         <span className={styles.syncDirection}>
           {connector.sync_direction === 'inbound' && 'Read'}
           {connector.sync_direction === 'outbound' && 'Write'}
@@ -540,6 +548,7 @@ function ConnectorCard({
         >
           Configure
         </button>
+        <Link className={styles.certButton} to={`/app/config/connectors/${connector.connector_id}`}>Details</Link>
         <button
           className={styles.certButton}
           onClick={onOpenCertification}

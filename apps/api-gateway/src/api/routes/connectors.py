@@ -685,6 +685,9 @@ class ConnectorListItemResponse(BaseModel):
     config_fields: list[dict[str, Any]]
     config_schema: list[dict[str, Any]]
     env_vars: list[str]
+    supported_objects: list[str] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+    auth_requirements: list[str] = Field(default_factory=list)
 
     # Config fields (if configured)
     enabled: bool = False
@@ -893,6 +896,11 @@ async def list_categories(
             "icon": "shield-check",
             "description": "Specialised regulatory compliance integrations",
         },
+        ConnectorCategory.IOT: {
+            "label": "IoT",
+            "icon": "cpu-chip",
+            "description": "Industrial and telemetry data integrations",
+        },
     }
 
     store = get_config_store(http_request)
@@ -1008,6 +1016,9 @@ async def list_connectors(
             config_fields=definition.config_fields,
             config_schema=definition.config_schema or definition.config_fields,
             env_vars=definition.env_vars,
+            supported_objects=getattr(definition, "supported_objects", []),
+            limitations=getattr(definition, "limitations", []),
+            auth_requirements=getattr(definition, "auth_requirements", []),
             enabled=config.enabled if config else False,
             configured=config is not None,
             instance_url=config.instance_url if config else "",
@@ -1096,6 +1107,9 @@ async def list_project_connectors(
                 config_fields=definition.config_fields,
                 config_schema=definition.config_schema or definition.config_fields,
                 env_vars=definition.env_vars,
+                supported_objects=getattr(definition, "supported_objects", []),
+                limitations=getattr(definition, "limitations", []),
+                auth_requirements=getattr(definition, "auth_requirements", []),
                 enabled=project_config.enabled if project_config else False,
                 configured=project_config is not None,
                 instance_url=project_config.instance_url if project_config else "",
@@ -1197,6 +1211,9 @@ async def get_connector(connector_id: str) -> ConnectorListItemResponse:
         config_fields=definition.config_fields,
         config_schema=definition.config_schema or definition.config_fields,
         env_vars=definition.env_vars,
+        supported_objects=getattr(definition, "supported_objects", []),
+        limitations=getattr(definition, "limitations", []),
+        auth_requirements=getattr(definition, "auth_requirements", []),
         enabled=config.enabled if config else False,
         configured=config is not None,
         instance_url=config.instance_url if config else "",

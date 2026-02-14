@@ -1,0 +1,18 @@
+{
+  "records": [
+    {
+      "connector_type": "jira",
+      "object": "issue",
+      "id": "JIRA-321",
+      "summary": "Modernize intake workflow",
+      "status": "In Progress"
+    },
+    {
+      "connector_type": "planview",
+      "object": "project",
+      "id": "PV-9001",
+      "summary": "Portfolio refresh FY27",
+      "status": "Approved"
+    }
+  ]
+}

@@ -56,6 +56,9 @@ class ConnectorDefinition:
     config_fields: list[dict[str, Any]] = field(default_factory=list)
     config_schema: list[dict[str, Any]] | None = None
     env_vars: list[str] = field(default_factory=list)  # Required environment variables
+    supported_objects: list[str] = field(default_factory=list)
+    limitations: list[str] = field(default_factory=list)
+    auth_requirements: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.system:
@@ -82,6 +85,9 @@ class ConnectorDefinition:
             "config_fields": self.config_fields,
             "config_schema": self.config_schema or self.config_fields,
             "env_vars": self.env_vars,
+            "supported_objects": self.supported_objects,
+            "limitations": self.limitations,
+            "auth_requirements": self.auth_requirements,
         }
 
 

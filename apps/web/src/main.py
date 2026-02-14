@@ -194,6 +194,7 @@ INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
 WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 DEMO_OUTBOX_PATH = STORAGE_DIR / "demo_outbox.json"
+SOR_FIXTURES_PATH = DATA_DIR / "demo" / "sor_fixtures.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
 MERGE_REVIEW_PATH = STORAGE_DIR / "merge_review_cases.json"
 MERGE_REVIEW_SEED_PATH = WEB_ROOT / "data" / "merge_review_seed.json"
@@ -557,6 +558,31 @@ class MethodologyNodeActionResponse(BaseModel):
     workflow_trace: dict[str, Any] = Field(default_factory=dict)
     human_review: dict[str, Any] = Field(default_factory=dict)
     status: str
+
+
+
+
+class SorPreviewRequest(BaseModel):
+    methodology_id: str
+    stage_id: str
+    activity_id: str | None = None
+    task_id: str | None = None
+    lifecycle_event: Literal["generate", "update", "review", "approve", "publish"] = "generate"
+
+
+class SorPreviewResponse(BaseModel):
+    sources: list[dict[str, Any]] = Field(default_factory=list)
+    preview_rows: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class SorPublishRequest(SorPreviewRequest):
+    workspace_id: str = "default"
+    changes: dict[str, Any] = Field(default_factory=dict)
+
+
+class SorPublishResponse(BaseModel):
+    outbox_entry: dict[str, Any]
+    applied_change: dict[str, Any]
 
 
 class AgentProfileTemplateMapping(BaseModel):
@@ -2728,6 +2754,20 @@ async def run_methodology_node_action(
                             "correlation_id": correlation_id,
                         },
                     )
+                    demo_outbox.append(
+                        "applied_changes",
+                        {
+                            "workspace_id": workspace_id,
+                            "methodology_id": methodology_id,
+                            "stage_id": stage_id,
+                            "activity_id": activity_id,
+                            "lifecycle_event": lifecycle_event,
+                            "side_effect": side_effect,
+                            "connector_binding": operation.get("connector_binding"),
+                            "status": "applied_in_demo",
+                            "correlation_id": correlation_id,
+                        },
+                    )
 
         get_audit_log_store().record_event(
             build_event(
@@ -2759,6 +2799,8 @@ async def run_methodology_node_action(
             f"{', '.join(resolution_contract.get('template_ids', [])) or 'none'}."
         )
 
+    sor_sources = _collect_sor_sources(resolution_contract)
+    sor_preview = _build_sor_preview_rows(sor_sources)
     return {
         "workspace_id": workspace_id,
         "lifecycle_event": lifecycle_event,
@@ -2774,6 +2816,7 @@ async def run_methodology_node_action(
         "artifacts_created": artifact_ops if lifecycle_event == "generate" else [],
         "artifacts_updated": artifact_ops if lifecycle_event in {"update", "review", "approve", "publish"} else [],
         "connector_operations": connector_operations,
+        "sor_preview": {"sources": sor_sources, "preview_rows": sor_preview},
         "workflow_trace": {
             "correlation_id": correlation_id,
             "agent_ids_executed": agent_ids_executed,
@@ -3546,6 +3589,31 @@ async def update_methodology_editor(
     return _build_methodology_editor_payload(payload.methodology_id)
 
 
+
+
+def _load_sor_fixtures() -> dict[str, Any]:
+    if SOR_FIXTURES_PATH.exists():
+        return json.loads(SOR_FIXTURES_PATH.read_text(encoding="utf-8"))
+    return {"records": []}
+
+
+def _collect_sor_sources(resolution_contract: dict[str, Any]) -> list[dict[str, Any]]:
+    return list(resolution_contract.get("connectors", {}).get("sources", []))
+
+
+def _collect_sor_destinations(resolution_contract: dict[str, Any]) -> list[dict[str, Any]]:
+    return list(resolution_contract.get("connectors", {}).get("destinations", []))
+
+
+def _build_sor_preview_rows(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    fixtures = _load_sor_fixtures()
+    records = fixtures.get("records", [])
+    if not sources:
+        return []
+    source_types = {src.get("connector_type") for src in sources}
+    return [item for item in records if item.get("connector_type") in source_types][:20]
+
+
 @api_router.get("/api/methodology/runtime/actions")
 async def get_methodology_runtime_actions(
     methodology_id: str,
@@ -3588,6 +3656,71 @@ async def get_methodology_runtime_resolve(
     return MethodologyRuntimeResolveResponse(resolution_contract=resolution_contract)
 
 
+
+
+
+
+@api_router.post("/api/methodology/runtime/sor/read", response_model=SorPreviewResponse)
+async def read_from_sor(payload: SorPreviewRequest) -> SorPreviewResponse:
+    resolution_contract = resolve_runtime(
+        payload.methodology_id,
+        payload.stage_id,
+        payload.activity_id,
+        payload.task_id,
+        payload.lifecycle_event,
+    )
+    sources = _collect_sor_sources(resolution_contract)
+    return SorPreviewResponse(sources=sources, preview_rows=_build_sor_preview_rows(sources))
+
+
+@api_router.post("/api/methodology/runtime/sor/publish", response_model=SorPublishResponse)
+async def push_to_sor(payload: SorPublishRequest) -> SorPublishResponse:
+    resolution_contract = resolve_runtime(
+        payload.methodology_id,
+        payload.stage_id,
+        payload.activity_id,
+        payload.task_id,
+        payload.lifecycle_event,
+    )
+    destinations = _collect_sor_destinations(resolution_contract)
+    entry = {
+        "workspace_id": payload.workspace_id,
+        "lifecycle_event": payload.lifecycle_event,
+        "destinations": destinations,
+        "changes": payload.changes,
+        "status": "captured_in_demo_outbox",
+        "captured_at": datetime.now(tz=timezone.utc).isoformat(),
+    }
+    demo_outbox.append("external_side_effects", entry)
+    applied = {
+        "workspace_id": payload.workspace_id,
+        "destinations": destinations,
+        "changes": payload.changes,
+        "applied_at": datetime.now(tz=timezone.utc).isoformat(),
+    }
+    demo_outbox.append("applied_changes", applied)
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id="default",
+            actor_id="demo-sor",
+            actor_type="service",
+            roles=["automation"],
+            action="demo.sor.publish.stubbed",
+            resource_type="workspace",
+            resource_id=payload.workspace_id,
+            outcome="success",
+            metadata={"destinations": destinations},
+        )
+    )
+    return SorPublishResponse(outbox_entry=entry, applied_change=applied)
+
+
+@api_router.get("/api/demo/sor")
+async def get_demo_sor_state() -> dict[str, Any]:
+    return {
+        "outbox": demo_outbox.read("external_side_effects"),
+        "applied_changes": demo_outbox.read("applied_changes"),
+    }
 
 
 @api_router.post(

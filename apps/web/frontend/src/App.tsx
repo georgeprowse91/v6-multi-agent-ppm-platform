@@ -17,6 +17,7 @@ const LessonsLearnedPage = React.lazy(() => import('./pages/LessonsLearnedPage')
 const GlobalSearchPage = React.lazy(() => import('./pages/GlobalSearch'));
 const AuditLogPage = React.lazy(() => import('./pages/AuditLogPage'));
 const ConnectorMarketplacePage = React.lazy(() => import('./pages/ConnectorMarketplacePage'));
+const ConnectorDetailPage = React.lazy(() => import('./pages/ConnectorDetailPage'));
 const IntakeFormPage = React.lazy(() => import('./pages/IntakeFormPage'));
 const IntakeStatusPage = React.lazy(() => import('./pages/IntakeStatusPage'));
 const IntakeApprovalsPage = React.lazy(() => import('./pages/IntakeApprovalsPage'));
@@ -90,6 +91,8 @@ function AppRoutes() {
             <Route path="/config/agents" element={<ConfigPage type="agents" />} />
             <Route path="/config/agents/:agent_id" element={<AgentProfilePage />} />
             <Route path="/config/connectors" element={<ConfigPage type="connectors" />} />
+            <Route path="/config/connectors/:connector_type_id" element={<ConnectorDetailPage />} />
+            <Route path="/app/config/connectors/:connector_type_id" element={<ConnectorDetailPage />} />
             <Route path="/config/workflows" element={<ConfigPage type="workflows" />} />
             <Route path="/config/prompts" element={<PromptManager />} />
             <Route path="/approvals" element={<ApprovalsPage />} />

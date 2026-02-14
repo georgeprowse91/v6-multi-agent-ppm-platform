@@ -15,6 +15,12 @@ type DemoRunLog = {
   agents: AgentExecution[];
 };
 
+
+type SorState = {
+  outbox: Array<Record<string, unknown>>;
+  applied_changes: Array<Record<string, unknown>>;
+};
+
 const DEMO_LOG_PATHS = [
   '/data/demo/demo_run_log.json',
   '/demo/demo_run_log.json',
@@ -25,6 +31,7 @@ export function DemoRunPage() {
   const [demoRunLog, setDemoRunLog] = useState<DemoRunLog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sorState, setSorState] = useState<SorState>({ outbox: [], applied_changes: [] });
 
   useEffect(() => {
     let mounted = true;
@@ -42,6 +49,11 @@ export function DemoRunPage() {
 
         if (!loaded) {
           throw new Error('Unable to load demo run log data.');
+        }
+
+        const sorResponse = await fetch("/v1/api/demo/sor");
+        if (sorResponse.ok) {
+          setSorState((await sorResponse.json()) as SorState);
         }
 
         if (mounted) {
@@ -118,6 +130,12 @@ export function DemoRunPage() {
             ))}
           </tbody>
         </table>
+      </section>
+
+      <section className={styles.card}>
+        <h2>SoR outbox</h2>
+        <p>Outbox entries: {sorState.outbox.length}</p>
+        <p>Applied changes: {sorState.applied_changes.length}</p>
       </section>
 
       <section className={styles.card}>

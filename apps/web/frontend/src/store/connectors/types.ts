@@ -100,6 +100,9 @@ export interface ConnectorDefinition {
   auth_type: string;
   config_fields: ConfigField[];
   env_vars: string[];
+  supported_objects: string[];
+  limitations: string[];
+  auth_requirements: string[];
 }
 
 /**

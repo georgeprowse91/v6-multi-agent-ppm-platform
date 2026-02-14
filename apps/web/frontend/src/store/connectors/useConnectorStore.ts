@@ -883,7 +883,7 @@ const disableRestDuplicates = (connectors: Connector[], source: Connector): Conn
     return c;
   });
 
-const mapConnectorResponses = (connectors: Connector[]): Connector[] =>
+const mapConnectorResponses = (connectors: Array<Partial<Connector> & Record<string, unknown>>): Connector[] =>
   normalizeMcpDuplicates(
     connectors.map((connector) => ({
       ...connector,
@@ -891,6 +891,9 @@ const mapConnectorResponses = (connectors: Connector[]): Connector[] =>
         connector.mcp_feature_enabled ?? true
           ? connector.connector_type ?? (connector.mcp_preferred ? 'mcp' : 'rest')
           : 'rest',
+      supported_objects: Array.isArray(connector.supported_objects) ? connector.supported_objects : [],
+      limitations: Array.isArray(connector.limitations) ? connector.limitations : [],
+      auth_requirements: Array.isArray(connector.auth_requirements) ? connector.auth_requirements : [],
       certification_status: normalizeCertificationStatus(
         (connector as { certification_status?: string; certification?: string }).certification_status ??
           (connector as { certification?: string }).certification ??
@@ -948,7 +951,7 @@ const matchesCertificationFilter = (
 /**
  * Mock connectors for development when API is not available
  */
-function getMockConnectors(): Connector[] {
+function getMockConnectors(): Array<Partial<Connector> & Record<string, unknown>> {
   return [
     // PM Tools
     {

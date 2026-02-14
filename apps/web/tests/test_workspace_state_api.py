@@ -323,3 +323,61 @@ def test_runtime_action_demo_mode_captures_external_side_effects_locally(client,
     outbox = main.demo_outbox.read("external_side_effects")
     side_effects = {item["side_effect"] for item in outbox}
     assert {"write_connector", "publish_external", "notify"}.issubset(side_effects)
+
+
+def test_connector_configure_and_connection_health_in_demo_mode(client, monkeypatch, tmp_path):
+    _set_tenant(monkeypatch, "tenant-a")
+    monkeypatch.setenv("DEMO_MODE", "true")
+    from demo_integrations import DemoOutbox  # noqa: E402
+
+    main.demo_outbox = DemoOutbox(tmp_path / "demo_outbox_connectors.json")
+
+    create_response = client.post(
+        "/api/connector-gallery/instances",
+        json={"connector_type_id": "jira", "version": "1.0.0", "enabled": True, "metadata": {"scope": "project"}},
+    )
+    assert create_response.status_code == 201
+    connector_id = create_response.json()["connector_id"]
+
+    update_response = client.patch(
+        f"/api/connector-gallery/instances/{connector_id}",
+        json={"enabled": False, "health_status": "healthy"},
+    )
+    assert update_response.status_code == 200
+    assert update_response.json()["enabled"] is False
+
+    health_response = client.get(f"/api/connector-gallery/instances/{connector_id}/health")
+    assert health_response.status_code == 200
+    assert health_response.json()["healthy"] is True
+
+
+def test_sor_publish_endpoint_writes_outbox_and_audit_event(client, monkeypatch, tmp_path):
+    _set_tenant(monkeypatch, "demo-tenant")
+    monkeypatch.setenv("DEMO_MODE", "true")
+    from demo_integrations import DemoOutbox  # noqa: E402
+
+    main.demo_outbox = DemoOutbox(tmp_path / "demo_outbox_sor_publish.json")
+
+    response = client.post(
+        "/api/methodology/runtime/sor/publish",
+        json={
+            "methodology_id": "adaptive",
+            "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "activity_id": "0.5.1-sprint-iteration-planning",
+            "lifecycle_event": "publish",
+            "workspace_id": "demo-1",
+            "changes": {"field": "value"},
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["outbox_entry"]["status"] == "captured_in_demo_outbox"
+
+    outbox = main.demo_outbox.read("external_side_effects")
+    assert outbox
+    applied = main.demo_outbox.read("applied_changes")
+    assert applied
+
+    audit_events = main.get_audit_log_store().list_events("default", limit=50, offset=0)
+    assert any(event["action"] == "demo.sor.publish.stubbed" for event in audit_events)
