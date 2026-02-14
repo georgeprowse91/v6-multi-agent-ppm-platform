@@ -159,6 +159,17 @@ Recommended scripted flow order:
 3. Approvals and stage-gate progression
 4. Portfolio health and lifecycle review
 
+
+## Before every client demo
+
+Use this quick checklist right before each customer-facing session:
+
+1. Reset the environment state and clear caches.
+2. Regenerate demo data (`./scripts/reset_demo_data.sh --regenerate --size <N> --seed <S>`).
+3. Load regenerated data into configured stores.
+4. Run a smoke check (`python ops/scripts/quickstart_smoke.py`).
+5. Open key demo URLs (API docs, web console, and scenario route) to verify readiness.
+
 ## Reset the demo environment
 
 ### Reset local containers and volumes

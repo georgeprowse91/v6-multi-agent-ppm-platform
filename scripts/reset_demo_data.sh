@@ -12,6 +12,18 @@ APP_SERVICES=("api" "workflow-engine" "web")
 REGENERATE=0
 GENERATOR_ARGS=()
 
+print_demo_counts() {
+  python3 - <<'PY'
+import json
+from pathlib import Path
+
+base = Path("data/demo")
+for path in sorted(base.glob("*.json")):
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    print(f"  - {path.stem}: {len(rows)}")
+PY
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --regenerate)
@@ -19,6 +31,10 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --size|--seed|--output-dir|--manifest-path)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for $1" >&2
+        exit 1
+      fi
       GENERATOR_ARGS+=("$1" "$2")
       shift 2
       ;;
@@ -82,4 +98,19 @@ python3 scripts/load_demo_data.py
 echo "Restarting app services..."
 $COMPOSE_CMD up -d "${APP_SERVICES[@]}"
 
-echo "Demo data reset complete."
+echo
+echo "Demo data reset complete. Summary:"
+echo "Entity counts from data/demo/*.json:"
+print_demo_counts
+echo "Load targets (from env vars):"
+if [[ -n "${POSTGRES_DSN:-}" ]]; then
+  echo "  - PostgreSQL: loaded (POSTGRES_DSN is set)"
+else
+  echo "  - PostgreSQL: skipped (POSTGRES_DSN is not set)"
+fi
+
+if [[ -n "${COSMOS_DB_CONNECTION_STRING:-}" ]]; then
+  echo "  - Cosmos DB: loaded (COSMOS_DB_CONNECTION_STRING is set)"
+else
+  echo "  - Cosmos DB: skipped (COSMOS_DB_CONNECTION_STRING is not set)"
+fi
