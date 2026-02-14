@@ -48,7 +48,7 @@ Top-level domain directories are allowed for monorepo organization:
 ## Change process for root additions
 
 1. Prefer placing new files in an existing domain folder.
-2. If a new root file is required, document rationale in `docs/repo-structure.md`.
+2. If a new root file is required, document rationale in this policy file as part of the same change.
 3. Update `ops/tools/check_root_layout.py` allowlist in the same PR.
 4. Ensure `make check-root-layout` passes.
 
