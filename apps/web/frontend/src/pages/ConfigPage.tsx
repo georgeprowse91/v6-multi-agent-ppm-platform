@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
 import { Icon } from '@/components/icon/Icon';
 import { FocusTrap } from '@/components/ui/FocusTrap';
@@ -477,9 +476,15 @@ export function ConfigPage({ type }: ConfigPageProps) {
                         </div>
                       </div>
                       <div className={styles.cardActions}>
+                        <a
+                          href={`/app/config/agents/${agent.agent_id}`}
+                          className={styles.primaryButton}
+                        >
+                          View profile
+                        </a>
                         <button
                           type="button"
-                          className={styles.primaryButton}
+                          className={styles.secondaryButton}
                           onClick={() => setSelectedAgent(agent)}
                         >
                           Configure
