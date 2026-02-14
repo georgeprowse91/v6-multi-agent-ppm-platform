@@ -375,6 +375,10 @@ class ActivitySummary(BaseModel):
     prerequisites: list[str]
     category: str
     recommended_canvas_tab: CanvasTab
+    assistant_prompts: list[str] = Field(default_factory=list)
+    template_id: str | None = None
+    agent_id: str | None = None
+    connector_id: str | None = None
     access: ActivityAccessSummary
     completed: bool
 
@@ -456,6 +460,9 @@ class SelectedActivitySummary(BaseModel):
     assistant_prompts: list[str]
     recommended_canvas_tab: CanvasTab
     category: str
+    template_id: str | None = None
+    agent_id: str | None = None
+    connector_id: str | None = None
 
 
 class WorkspaceStateResponse(BaseModel):
@@ -2254,6 +2261,7 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
         activities: list[ActivitySummary] = []
         for activity in stage.get("activities", []):
             access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
+            activity_metadata = activity.get("metadata", {})
             activities.append(
                 ActivitySummary(
                     id=activity["id"],
@@ -2262,6 +2270,10 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
                     prerequisites=activity.get("prerequisites", []),
                     category=activity["category"],
                     recommended_canvas_tab=activity["recommended_canvas_tab"],
+                    assistant_prompts=activity.get("assistant_prompts", []),
+                    template_id=activity_metadata.get("template_id"),
+                    agent_id=activity_metadata.get("agent_id"),
+                    connector_id=activity_metadata.get("connector_id"),
                     access=ActivityAccessSummary(**access_payload),
                     completed=state.activity_completion.get(activity["id"], False),
                 )
@@ -2280,6 +2292,7 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
     monitoring_summaries: list[ActivitySummary] = []
     for activity in methodology_map.get("monitoring", []):
         access_payload = evaluate_activity_access(methodology_map, state, activity["id"])
+        activity_metadata = activity.get("metadata", {})
         monitoring_summaries.append(
             ActivitySummary(
                 id=activity["id"],
@@ -2288,6 +2301,10 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
                 prerequisites=activity.get("prerequisites", []),
                 category=activity["category"],
                 recommended_canvas_tab=activity["recommended_canvas_tab"],
+                assistant_prompts=activity.get("assistant_prompts", []),
+                template_id=activity_metadata.get("template_id"),
+                agent_id=activity_metadata.get("agent_id"),
+                connector_id=activity_metadata.get("connector_id"),
                 access=ActivityAccessSummary(**access_payload),
                 completed=state.activity_completion.get(activity["id"], False),
             )
@@ -2317,6 +2334,7 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
                 None,
             )
         if activity_lookup:
+            selected_metadata = activity_lookup.get("metadata", {})
             selected_activity_payload = SelectedActivitySummary(
                 id=activity_lookup["id"],
                 name=activity_lookup["name"],
@@ -2324,6 +2342,9 @@ def _build_workspace_response(state: WorkspaceState) -> WorkspaceStateResponse:
                 assistant_prompts=activity_lookup.get("assistant_prompts", []),
                 recommended_canvas_tab=activity_lookup["recommended_canvas_tab"],
                 category=activity_lookup["category"],
+                template_id=selected_metadata.get("template_id"),
+                agent_id=selected_metadata.get("agent_id"),
+                connector_id=selected_metadata.get("connector_id"),
             )
 
     current_access = (

@@ -27,6 +27,10 @@ interface WorkspaceActivitySummary {
   prerequisites: string[];
   category: string;
   recommended_canvas_tab: CanvasType;
+  assistant_prompts: string[];
+  template_id?: string | null;
+  agent_id?: string | null;
+  connector_id?: string | null;
   access: {
     allowed: boolean;
   };
@@ -114,6 +118,10 @@ function mapWorkspaceResponseToProjectMethodology(payload: WorkspaceStateRespons
       order: activityIndex + 1,
       metadata: {
         category: activity.category,
+        assistant_suggested_actions: activity.assistant_prompts,
+        template_id: activity.template_id ?? undefined,
+        agent_id: activity.agent_id ?? undefined,
+        connector_id: activity.connector_id ?? undefined,
       },
     }));
 
