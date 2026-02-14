@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-20-continuous-improvement-process-mining",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-20-continuous-improvement-process-mining",
     "data": {
-      "agent": "agent-20-continuous-improvement-process-mining",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-20-continuous-improvement-process-mining",
+      "summary": "Demo fixture for continuous improvement process mining was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "agent-20-continuous-improvement-process-mining-artifact-001",
+          "title": "Continuous Improvement Process Mining Demo Artifact"
+        }
+      ]
     }
   }
 }

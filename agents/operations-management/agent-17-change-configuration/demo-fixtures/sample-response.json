@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-17-change-configuration",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-17-change-configuration",
     "data": {
-      "agent": "agent-17-change-configuration",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-17-change-configuration",
+      "summary": "Demo fixture for change configuration was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "policy",
+          "id": "agent-17-change-configuration-artifact-001",
+          "title": "Change Configuration Demo Artifact"
+        }
+      ]
     }
   }
 }

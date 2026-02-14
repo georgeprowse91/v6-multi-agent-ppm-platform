@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-05-business-case-investment",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-05-business-case-investment",
     "data": {
-      "agent": "agent-05-business-case-investment",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-05-business-case-investment",
+      "summary": "Demo fixture for business case investment was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "agent-05-business-case-investment-artifact-001",
+          "title": "Business Case Investment Demo Artifact"
+        }
+      ]
     }
   }
 }

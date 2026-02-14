@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-22-analytics-insights",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-22-analytics-insights",
     "data": {
-      "agent": "agent-22-analytics-insights",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-22-analytics-insights",
+      "summary": "Demo fixture for analytics insights was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "agent-22-analytics-insights-artifact-001",
+          "title": "Analytics Insights Demo Artifact"
+        }
+      ]
     }
   }
 }

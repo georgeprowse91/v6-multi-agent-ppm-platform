@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-24-workflow-process-engine",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-24-workflow-process-engine",
     "data": {
-      "agent": "agent-24-workflow-process-engine",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-24-workflow-process-engine",
+      "summary": "Demo fixture for workflow process engine was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "policy",
+          "id": "agent-24-workflow-process-engine-artifact-001",
+          "title": "Workflow Process Engine Demo Artifact"
+        }
+      ]
     }
   }
 }

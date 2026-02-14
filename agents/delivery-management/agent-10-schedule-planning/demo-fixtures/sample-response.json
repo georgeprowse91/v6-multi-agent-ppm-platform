@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-10-schedule-planning",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-10-schedule-planning",
     "data": {
-      "agent": "agent-10-schedule-planning",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-10-schedule-planning",
+      "summary": "Demo fixture for schedule planning was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "policy",
+          "id": "agent-10-schedule-planning-artifact-001",
+          "title": "Schedule Planning Demo Artifact"
+        }
+      ]
     }
   }
 }

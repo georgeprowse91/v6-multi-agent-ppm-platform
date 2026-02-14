@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-16-compliance-regulatory",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-16-compliance-regulatory",
     "data": {
-      "agent": "agent-16-compliance-regulatory",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-16-compliance-regulatory",
+      "summary": "Demo fixture for compliance regulatory was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "approval",
+          "id": "agent-16-compliance-regulatory-artifact-001",
+          "title": "Compliance Regulatory Demo Artifact"
+        }
+      ]
     }
   }
 }

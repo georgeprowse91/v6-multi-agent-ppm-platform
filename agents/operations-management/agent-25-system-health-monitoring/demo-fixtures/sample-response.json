@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-25-system-health-monitoring",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-25-system-health-monitoring",
     "data": {
-      "agent": "agent-25-system-health-monitoring",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-25-system-health-monitoring",
+      "summary": "Demo fixture for system health monitoring was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "notification",
+          "id": "agent-25-system-health-monitoring-artifact-001",
+          "title": "System Health Monitoring Demo Artifact"
+        }
+      ]
     }
   }
 }

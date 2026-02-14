@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-02-response-orchestration",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-02-response-orchestration",
     "data": {
-      "agent": "agent-02-response-orchestration",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-02-response-orchestration",
+      "summary": "Demo fixture for response orchestration was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "agent-02-response-orchestration-artifact-001",
+          "title": "Response Orchestration Demo Artifact"
+        }
+      ]
     }
   }
 }

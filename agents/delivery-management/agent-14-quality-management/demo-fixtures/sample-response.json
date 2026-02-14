@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-14-quality-management",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-14-quality-management",
     "data": {
-      "agent": "agent-14-quality-management",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-14-quality-management",
+      "summary": "Demo fixture for quality management was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "schedule",
+          "id": "agent-14-quality-management-artifact-001",
+          "title": "Quality Management Demo Artifact"
+        }
+      ]
     }
   }
 }

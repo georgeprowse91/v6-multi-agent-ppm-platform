@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-13-vendor-procurement",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-13-vendor-procurement",
     "data": {
-      "agent": "agent-13-vendor-procurement",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-13-vendor-procurement",
+      "summary": "Demo fixture for vendor procurement was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "agent-13-vendor-procurement-artifact-001",
+          "title": "Vendor Procurement Demo Artifact"
+        }
+      ]
     }
   }
 }

@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-06-portfolio-strategy-optimisation",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-06-portfolio-strategy-optimisation",
     "data": {
-      "agent": "agent-06-portfolio-strategy-optimisation",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-06-portfolio-strategy-optimisation",
+      "summary": "Demo fixture for portfolio strategy optimisation was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "schedule",
+          "id": "agent-06-portfolio-strategy-optimisation-artifact-001",
+          "title": "Portfolio Strategy Optimisation Demo Artifact"
+        }
+      ]
     }
   }
 }

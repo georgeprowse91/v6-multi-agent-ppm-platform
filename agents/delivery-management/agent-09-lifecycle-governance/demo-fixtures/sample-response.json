@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-09-lifecycle-governance",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-09-lifecycle-governance",
     "data": {
-      "agent": "agent-09-lifecycle-governance",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-09-lifecycle-governance",
+      "summary": "Demo fixture for lifecycle governance was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "approval",
+          "id": "agent-09-lifecycle-governance-artifact-001",
+          "title": "Lifecycle Governance Demo Artifact"
+        }
+      ]
     }
   }
 }

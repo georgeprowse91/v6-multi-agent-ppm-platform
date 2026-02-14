@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-21-stakeholder-comms",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-21-stakeholder-comms",
     "data": {
-      "agent": "agent-21-stakeholder-comms",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-21-stakeholder-comms",
+      "summary": "Demo fixture for stakeholder comms was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "schedule",
+          "id": "agent-21-stakeholder-comms-artifact-001",
+          "title": "Stakeholder Comms Demo Artifact"
+        }
+      ]
     }
   }
 }

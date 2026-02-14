@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-04-demand-intake",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-04-demand-intake",
     "data": {
-      "agent": "agent-04-demand-intake",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-04-demand-intake",
+      "summary": "Demo fixture for demand intake was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "document",
+          "id": "agent-04-demand-intake-artifact-001",
+          "title": "Demand Intake Demo Artifact"
+        }
+      ]
     }
   }
 }

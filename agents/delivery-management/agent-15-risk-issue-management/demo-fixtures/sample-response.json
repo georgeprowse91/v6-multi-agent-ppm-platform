@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-15-risk-issue-management",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-15-risk-issue-management",
     "data": {
-      "agent": "agent-15-risk-issue-management",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-15-risk-issue-management",
+      "summary": "Demo fixture for risk issue management was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "agent-15-risk-issue-management-artifact-001",
+          "title": "Risk Issue Management Demo Artifact"
+        }
+      ]
     }
   }
 }

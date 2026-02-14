@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-23-data-synchronisation-quality",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-23-data-synchronisation-quality",
     "data": {
-      "agent": "agent-23-data-synchronisation-quality",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-23-data-synchronisation-quality",
+      "summary": "Demo fixture for data synchronisation quality was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "approval",
+          "id": "agent-23-data-synchronisation-quality-artifact-001",
+          "title": "Data Synchronisation Quality Demo Artifact"
+        }
+      ]
     }
   }
 }

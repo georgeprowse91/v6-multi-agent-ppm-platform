@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-08-project-definition-scope",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-08-project-definition-scope",
     "data": {
-      "agent": "agent-08-project-definition-scope",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-08-project-definition-scope",
+      "summary": "Demo fixture for project definition scope was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "agent-08-project-definition-scope-artifact-001",
+          "title": "Project Definition Scope Demo Artifact"
+        }
+      ]
     }
   }
 }

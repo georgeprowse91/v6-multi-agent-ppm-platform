@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-18-release-deployment",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-18-release-deployment",
     "data": {
-      "agent": "agent-18-release-deployment",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-18-release-deployment",
+      "summary": "Demo fixture for release deployment was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "notification",
+          "id": "agent-18-release-deployment-artifact-001",
+          "title": "Release Deployment Demo Artifact"
+        }
+      ]
     }
   }
 }

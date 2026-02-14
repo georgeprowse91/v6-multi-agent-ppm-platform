@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-07-program-management",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-07-program-management",
     "data": {
-      "agent": "agent-07-program-management",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-07-program-management",
+      "summary": "Demo fixture for program management was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "agent-07-program-management-artifact-001",
+          "title": "Program Management Demo Artifact"
+        }
+      ]
     }
   }
 }

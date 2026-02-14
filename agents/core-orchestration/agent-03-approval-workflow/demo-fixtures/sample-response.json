@@ -1,16 +1,17 @@
 {
-  "sample_input": {
-    "action": "demo",
-    "agent": "agent-03-approval-workflow",
-    "context": "demo-mode"
-  },
   "scripted_response": {
     "success": true,
-    "message": "Demo response from agent-03-approval-workflow",
     "data": {
-      "agent": "agent-03-approval-workflow",
-      "mode": "demo",
-      "fixture": "sample-response"
+      "demo": true,
+      "agent_id": "agent-03-approval-workflow",
+      "summary": "Demo fixture for approval workflow was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "schedule",
+          "id": "agent-03-approval-workflow-artifact-001",
+          "title": "Approval Workflow Demo Artifact"
+        }
+      ]
     }
   }
 }
