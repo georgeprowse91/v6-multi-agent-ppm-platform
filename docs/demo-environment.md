@@ -64,6 +64,25 @@ Run:
 docker compose ps
 ```
 
+## Full platform demo (25 agents)
+
+Use this flow when you want the full presenter-ready run across all 25 agents.
+
+```bash
+DEMO_MODE=true make dev-up
+python ops/scripts/full_platform_demo_run.py
+```
+
+Expected output from `full_platform_demo_run.py`:
+
+- A successful completion message indicating the full-platform demo run finished.
+- Run metadata (for example run ID/status) that can be used to validate the execution in the UI.
+
+After the script finishes, open the demo run view in the web UI:
+
+- `http://localhost:8501/demo-run`
+- Route path: `/demo-run`
+
 ## Provision the cloud demo environment (Azure + AKS)
 
 Use this when you need a shared hosted environment for customers or internal enablement.

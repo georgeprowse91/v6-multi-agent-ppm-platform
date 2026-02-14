@@ -81,6 +81,17 @@ Equivalent Docker Compose command:
 DEMO_MODE=true docker compose up --build
 ```
 
+### Full platform client demo (25 agents)
+
+Keep the quickstart flow above for fast smoke validation. For a full presenter walkthrough across all agents, run:
+
+```bash
+DEMO_MODE=true make dev-up
+python ops/scripts/full_platform_demo_run.py
+```
+
+Then open the demo run UI at `http://localhost:8501/demo-run`.
+
 Full setup, provisioning, reset, and scripted-scenario instructions: [docs/demo-environment.md](./docs/demo-environment.md)
 
 ## Service catalog & endpoints
