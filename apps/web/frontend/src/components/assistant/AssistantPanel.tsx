@@ -20,7 +20,9 @@ import { ContextBar } from './ContextBar';
 import { MessageList } from './MessageList';
 import { QuickActions } from './QuickActions';
 import { ChatInput } from './ChatInput';
+import { ENTRY_ASSISTANT_CHIPS } from './entryQuickActions';
 import type { WorkspaceType } from './entryQuickActions';
+import { resolveAssistantMode } from './assistantMode';
 import { useIntakeAssistantStore } from '@/store/assistant/useIntakeAssistantStore';
 import styles from './AssistantPanel.module.css';
 
@@ -53,6 +55,7 @@ export function AssistantPanel() {
     messages,
     actionChips,
     context,
+    mode,
     aiState,
     typingStatus,
     addUserMessage,
@@ -61,6 +64,8 @@ export function AssistantPanel() {
     showGatingWarning,
     updateContext,
     clearMessages,
+    setActionChips,
+    setMode,
   } = useAssistantStore();
   const { generateSuggestions, clearActionChips } = useSuggestionEngine();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -70,7 +75,7 @@ export function AssistantPanel() {
   const [demoStepIndex, setDemoStepIndex] = useState(0);
   const [demoLoading, setDemoLoading] = useState(false);
   const [pendingWorkspaceType, setPendingWorkspaceType] = useState<WorkspaceType | null>(null);
-  const intakeActive = location.pathname === '/intake/new';
+  const intakeActive = mode === 'intake';
   const enqueuePatch = useIntakeAssistantStore((state) => state.enqueuePatch);
   const { sendIntakeMessage } = useIntakeAssistantAdapter(intakeActive);
 
@@ -109,6 +114,20 @@ export function AssistantPanel() {
     clearActionChips,
     generateSuggestions,
   });
+
+  useEffect(() => {
+    const nextMode = resolveAssistantMode(location.pathname);
+    if (nextMode !== mode) {
+      setMode(nextMode);
+    }
+
+    if (nextMode === 'entry') {
+      setActionChips(ENTRY_ASSISTANT_CHIPS);
+      return;
+    }
+
+    clearActionChips();
+  }, [clearActionChips, location.pathname, mode, setActionChips, setMode]);
 
   const restartDemoScenario = useCallback((script: DemoScriptMessage[]) => {
     clearActionChips();

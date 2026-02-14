@@ -71,6 +71,8 @@ export type AIState =
   | 'error'
   | 'refusal';
 
+export type AssistantMode = 'entry' | 'intake' | 'workspace';
+
 export interface TypingStatus {
   toolName?: string;
   detail?: string;

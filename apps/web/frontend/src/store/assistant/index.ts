@@ -11,6 +11,7 @@ export type {
   ActionType,
   AssistantContext,
   AssistantMessage,
+  AssistantMode,
   AIState,
   CompleteActivityPayload,
   CustomActionPayload,

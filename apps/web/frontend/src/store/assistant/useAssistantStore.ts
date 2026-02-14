@@ -14,6 +14,7 @@ import type {
   AssistantContext,
   AssistantMessage,
   AIState,
+  AssistantMode,
   PrerequisiteInfo,
   TypingStatus,
 } from './types';
@@ -34,6 +35,9 @@ interface AssistantStoreState {
 
   // Current AI state
   aiState: AIState;
+
+  // Current assistant mode driven by routing context
+  mode: AssistantMode;
 
   // Current detailed typing status
   typingStatus: TypingStatus | null;
@@ -68,6 +72,7 @@ interface AssistantStoreState {
   // Actions - AI state
   setAiState: (state: AIState) => void;
   setTypingStatus: (status: TypingStatus | null) => void;
+  setMode: (mode: AssistantMode) => void;
 }
 
 export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
@@ -77,6 +82,7 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   actionChips: [],
   isGeneratingSuggestions: false,
   aiState: 'idle',
+  mode: 'entry',
   typingStatus: null,
 
   // Message actions
@@ -217,6 +223,10 @@ export const useAssistantStore = create<AssistantStoreState>((set, get) => ({
 
   setTypingStatus: (status) => {
     set({ typingStatus: status });
+  },
+
+  setMode: (mode) => {
+    set({ mode });
   },
 }));
 
