@@ -1,136 +1,38 @@
 methodology: hybrid
-version: "1.0"
+version: "2.0"
 gates:
-  - id: gate-initiation
-    name: Hybrid Initiation Gate
-    stage: initiation
-    required_artefacts:
-      - name: Hybrid charter
-        template: docs/templates/governance/charter-template-hybrid.md
-        evidence: Signed charter.
-      - name: Governance pack
-        template: docs/templates/governance/governance-pack-template-hybrid.md
-        evidence: Gate checklist completed.
-    criteria:
-      - id: init-1
-        description: Governance cadence and decision forum are confirmed.
-        evidence: Governance pack includes decision log and cadence.
-        check: "PMO lead confirms governance setup."
-      - id: init-2
-        description: Investment case is approved.
-        evidence: Approved business case.
-        check: "Sponsor sign-off recorded."
-    approvals:
-      - role: Program Sponsor
-        approver: Agent 03 Approval Workflow
-        required: true
-    decision:
-      approve: Proceed to planning.
-      reject: Update charter or governance pack.
-  - id: gate-planning
-    name: Planning Gate
-    stage: planning
-    required_artefacts:
-      - name: Milestone plan
-        template: docs/templates/schedule/milestone-plan-hybrid.xlsx
-        evidence: Milestones reviewed.
-      - name: Integrated risk register
-        template: docs/templates/risk/integrated-risk-register-hybrid.xlsx
-        evidence: Risks assessed with owners.
-      - name: Communications plan
-        template: docs/templates/communications/communications-plan-template-cross.md
-        evidence: Communications cadence agreed.
-    criteria:
-      - id: plan-1
-        description: Milestones align to stage gates and sprint cadence.
-        evidence: Milestone plan includes sprint ranges.
-        check: "Program manager validates cadence."
-      - id: plan-2
-        description: Risk ownership and mitigation plans are assigned.
-        evidence: Risk register mitigation owners.
-        check: "Risk manager confirms review."
-    approvals:
-      - role: PMO Lead
-        approver: Agent 03 Approval Workflow
-        required: true
-    decision:
-      approve: Start iterative delivery.
-      reject: Re-plan milestones or risks.
-  - id: gate-delivery
-    name: Increment Acceptance Gate
-    stage: delivery
-    required_artefacts:
-      - name: Sprint plan
-        template: docs/templates/product/sprint-plan-template-agile.md
-        evidence: Signed sprint commitments.
-      - name: Change log
-        template: docs/templates/change/change-log-template-cross.md
-        evidence: Change log updated.
-    criteria:
-      - id: delivery-1
-        description: Sprint scope and capacity confirmed.
-        evidence: Sprint plan capacity section.
-        check: "Scrum master confirms sprint readiness."
-      - id: delivery-2
-        description: Changes assessed for impact on milestones.
-        evidence: Change impact assessment completed.
-        check: "Change manager logs decision."
-    approvals:
-      - role: Delivery Lead
-        approver: Agent 03 Approval Workflow
-        required: true
-    decision:
-      approve: Proceed with sprint execution.
-      reject: Re-plan sprint or adjust changes.
-  - id: gate-integration
-    name: Release Readiness Gate
-    stage: integration
-    required_artefacts:
-      - name: Release plan
-        template: docs/templates/schedule/release-plan-template-agile.md
-        evidence: Readiness checklist completed.
-      - name: Variance report
-        template: docs/templates/finance/variance-report-template-cross.md
-        evidence: Performance review completed.
-    criteria:
-      - id: integration-1
-        description: Integrated solution meets acceptance criteria.
-        evidence: QA sign-off recorded.
-        check: "QA lead confirms readiness."
-      - id: integration-2
-        description: Go-live risks reviewed and mitigations in place.
-        evidence: Risk register updates.
-        check: "Release manager confirms risk review."
-    approvals:
-      - role: Release Manager
-        approver: Agent 03 Approval Workflow
-        required: true
-    decision:
-      approve: Proceed to transition.
-      reject: Resolve readiness gaps.
-  - id: gate-closure
-    name: Closure Gate
-    stage: closure
-    required_artefacts:
-      - name: Closure report
-        template: docs/templates/governance/closure-report-template-waterfall.md
-        evidence: Signed closure report.
-      - name: DPIA report
-        template: docs/compliance/privacy-dpia-template.md
-        evidence: Completed DPIA.
-    criteria:
-      - id: close-1
-        description: Handover and support plan are complete.
-        evidence: Operations acceptance documented.
-        check: "Operations lead confirms handover."
-      - id: close-2
-        description: Benefits tracking and lessons learned documented.
-        evidence: Closure report includes benefits plan.
-        check: "Sponsor confirms benefits ownership."
-    approvals:
-      - role: Program Sponsor
-        approver: Agent 03 Approval Workflow
-        required: true
-    decision:
-      approve: Archive and transition.
-      reject: Complete outstanding closure activities.
+  - id: gate-0
+    name: Gate 0
+    associated_wbs: "0.3"
+    entry_criteria: ["Portfolio approval recorded"]
+    exit_criteria: ["Mobilisation complete", "Governance forums established"]
+    required_artifacts: ["project charter", "governance cadence", "initial RAID"]
+    approvers: ["Executive Sponsor", "PMO Lead"]
+  - id: gate-1
+    name: Gate 1
+    associated_wbs: "0.4"
+    entry_criteria: ["Gate 0 passed"]
+    exit_criteria: ["High-level baselines approved"]
+    required_artifacts: ["integrated plan", "requirements baseline", "architecture baseline"]
+    approvers: ["Steering Committee", "Architecture Authority"]
+  - id: gate-2
+    name: Gate 2
+    associated_wbs: "0.8"
+    entry_criteria: ["Release readiness confirmed"]
+    exit_criteria: ["UAT completion", "Operational readiness approved"]
+    required_artifacts: ["test plan", "UAT sign-off", "operational readiness checklist"]
+    approvers: ["Business Owner", "Operations Lead"]
+  - id: gate-3
+    name: Gate 3
+    associated_wbs: "0.8"
+    entry_criteria: ["Gate 2 passed"]
+    exit_criteria: ["Production deployment validated"]
+    required_artifacts: ["release notes", "deployment report", "hypercare plan"]
+    approvers: ["Release Manager", "Service Owner"]
+  - id: gate-4
+    name: Gate 4
+    associated_wbs: "0.8"
+    entry_criteria: ["Hypercare complete"]
+    exit_criteria: ["Closure authorised"]
+    required_artifacts: ["release sign-off", "closure checklist", "benefits tracking plan"]
+    approvers: ["Executive Sponsor", "PMO Lead"]

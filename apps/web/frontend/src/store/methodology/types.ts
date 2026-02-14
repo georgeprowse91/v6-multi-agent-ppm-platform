@@ -23,6 +23,30 @@ export type MethodologyStatus =
  */
 export type MethodologyType = 'waterfall' | 'agile' | 'hybrid' | 'custom';
 
+
+export type MethodologyNodeType = 'phase' | 'activity' | 'subactivity' | 'cycle' | 'governance';
+
+export interface MethodologyGate {
+  id: string;
+  name: string;
+  associated_wbs: string;
+  entry_criteria: string[];
+  exit_criteria: string[];
+  required_artifacts: string[];
+  approvers: string[];
+}
+
+export interface NavigationNode {
+  id: string;
+  wbs: string;
+  title: string;
+  type: MethodologyNodeType;
+  order: number;
+  parallel?: boolean;
+  repeatable?: boolean;
+  children?: NavigationNode[];
+}
+
 /**
  * An activity within a stage
  */
@@ -129,6 +153,9 @@ export interface MethodologyMap {
 
   /** Version for template updates */
   version: string;
+
+  navigation_nodes?: NavigationNode[];
+  gates?: MethodologyGate[];
 }
 
 /**

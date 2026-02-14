@@ -1,0 +1,31 @@
+methodology: predictive
+version: "2.0"
+gates:
+  - id: gate-0
+    name: Gate 0
+    associated_wbs: "0.3"
+    entry_criteria: ["Portfolio decision approved", "Sponsor assigned"]
+    exit_criteria: ["Business case approved", "Project charter approved"]
+    required_artifacts: ["business case", "project charter"]
+    approvers: ["Executive Sponsor", "PMO Lead"]
+  - id: gate-1
+    name: Gate 1
+    associated_wbs: "0.4"
+    entry_criteria: ["Initiation complete"]
+    exit_criteria: ["Integrated plan baselined", "RAID register approved"]
+    required_artifacts: ["integrated project management plan", "RAID log", "requirements baseline"]
+    approvers: ["Steering Committee", "Delivery Lead"]
+  - id: gate-2
+    name: Gate 2
+    associated_wbs: "0.5"
+    entry_criteria: ["Plan baselines approved"]
+    exit_criteria: ["Delivery acceptance achieved", "Test exit criteria met"]
+    required_artifacts: ["test plan", "acceptance sign-off", "release checklist"]
+    approvers: ["Business Owner", "QA Lead"]
+  - id: gate-3
+    name: Gate 3
+    associated_wbs: "0.7"
+    entry_criteria: ["Deployment complete"]
+    exit_criteria: ["Closure accepted", "Benefits tracking handed over"]
+    required_artifacts: ["release sign-off", "closure report", "benefits realisation plan"]
+    approvers: ["Executive Sponsor", "Operations Lead"]

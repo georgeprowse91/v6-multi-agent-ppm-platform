@@ -1,0 +1,677 @@
+id: predictive
+name: Predictive
+type: waterfall
+description: Predictive stage-gated delivery lifecycle.
+version: '2.0'
+nodes:
+- id: 0.1-demand-intake-triage
+  wbs: '0.1'
+  title: Demand Intake & Triage
+  type: phase
+  order: 1
+  children:
+  - id: 0.1.1-capture-demand-request-idea-initiative-submission
+    wbs: 0.1.1
+    title: Capture demand request (idea / initiative submission)
+    type: activity
+    order: 1001
+  - id: 0.1.2-record-requester-details-and-sponsorship-candidate
+    wbs: 0.1.2
+    title: Record requester details and sponsorship candidate
+    type: activity
+    order: 1002
+  - id: 0.1.3-define-initial-problem-statement-and-objectives
+    wbs: 0.1.3
+    title: Define initial problem statement and objectives
+    type: activity
+    order: 1003
+  - id: 0.1.4-identify-affected-business-areas-and-stakeholders
+    wbs: 0.1.4
+    title: Identify affected business areas and stakeholders
+    type: activity
+    order: 1004
+  - id: 0.1.5-capture-high-level-requirements-and-constraints
+    wbs: 0.1.5
+    title: Capture high-level requirements and constraints
+    type: activity
+    order: 1005
+  - id: 0.1.6-capture-high-level-costs-benefits-and-timeframe-estimate
+    wbs: 0.1.6
+    title: Capture high-level costs, benefits, and timeframe estimate
+    type: activity
+    order: 1006
+  - id: 0.1.7-identify-key-risks-assumptions-and-dependencies
+    wbs: 0.1.7
+    title: Identify key risks, assumptions, and dependencies
+    type: activity
+    order: 1007
+  - id: 0.1.8-categorise-demand-run-grow-transform-regulatory-bau
+    wbs: 0.1.8
+    title: Categorise demand (run/grow/transform; regulatory; BAU)
+    type: activity
+    order: 1008
+  - id: 0.1.9-validate-completeness-and-perform-initial-quality-check
+    wbs: 0.1.9
+    title: Validate completeness and perform initial quality check
+    type: activity
+    order: 1009
+  - id: 0.1.10-decide-triage-outcome-reject-hold-proceed-to-assessment
+    wbs: 0.1.10
+    title: Decide triage outcome (reject / hold / proceed to assessment)
+    type: activity
+    order: 1010
+- id: 0.2-portfolio-assessment-prioritisation
+  wbs: '0.2'
+  title: Portfolio Assessment & Prioritisation
+  type: phase
+  order: 2
+  children:
+  - id: 0.2.1-align-demand-to-strategy-and-portfolio-themes
+    wbs: 0.2.1
+    title: Align demand to strategy and portfolio themes
+    type: activity
+    order: 2001
+  - id: 0.2.2-confirm-regulatory-compliance-drivers-if-applicable
+    wbs: 0.2.2
+    title: Confirm regulatory / compliance drivers (if applicable)
+    type: activity
+    order: 2002
+  - id: 0.2.3-assess-value-financial-non-financial-benefits
+    wbs: 0.2.3
+    title: Assess value (financial + non-financial benefits)
+    type: activity
+    order: 2003
+  - id: 0.2.4-assess-effort-complexity-and-delivery-feasibility
+    wbs: 0.2.4
+    title: Assess effort, complexity, and delivery feasibility
+    type: activity
+    order: 2004
+  - id: 0.2.5-assess-risk-profile-and-delivery-constraints
+    wbs: 0.2.5
+    title: Assess risk profile and delivery constraints
+    type: activity
+    order: 2005
+  - id: 0.2.6-identify-resource-impacts-and-capacity-fit
+    wbs: 0.2.6
+    title: Identify resource impacts and capacity fit
+    type: activity
+    order: 2006
+  - id: 0.2.7-identify-initiative-dependencies-and-sequencing-needs
+    wbs: 0.2.7
+    title: Identify initiative dependencies and sequencing needs
+    type: activity
+    order: 2007
+  - id: 0.2.8-score-demand-using-agreed-prioritisation-framework
+    wbs: 0.2.8
+    title: Score demand using agreed prioritisation framework
+    type: activity
+    order: 2008
+  - id: 0.2.9-compare-against-competing-initiatives-and-available-funding
+    wbs: 0.2.9
+    title: Compare against competing initiatives and available funding
+    type: activity
+    order: 2009
+  - id: 0.2.10-recommend-priority-timing-and-delivery-approach
+    wbs: 0.2.10
+    title: Recommend priority, timing, and delivery approach
+    type: activity
+    order: 2010
+  - id: 0.2.11-obtain-portfolio-decision-approve-defer-reject
+    wbs: 0.2.11
+    title: Obtain portfolio decision (approve / defer / reject)
+    type: activity
+    order: 2011
+  - id: 0.2.12-assign-programme-project-placeholder-and-owner
+    wbs: 0.2.12
+    title: Assign programme/project placeholder and owner
+    type: activity
+    order: 2012
+- id: 0.3-initiation
+  wbs: '0.3'
+  title: Initiation
+  type: phase
+  order: 3
+  children:
+  - id: 0.3.1-confirm-sponsor-and-governance-pathway
+    wbs: 0.3.1
+    title: Confirm sponsor and governance pathway
+    type: activity
+    order: 3001
+  - id: 0.3.2-appoint-project-manager
+    wbs: 0.3.2
+    title: Appoint project manager
+    type: activity
+    order: 3002
+  - id: 0.3.3-identify-key-stakeholders-and-build-stakeholder-register
+    wbs: 0.3.3
+    title: Identify key stakeholders and build stakeholder register
+    type: activity
+    order: 3003
+  - id: 0.3.4-define-high-level-scope-and-intended-outcomes
+    wbs: 0.3.4
+    title: Define high-level scope and intended outcomes
+    type: activity
+    order: 3004
+  - id: 0.3.5-define-success-criteria-and-benefits-hypothesis
+    wbs: 0.3.5
+    title: Define success criteria and benefits hypothesis
+    type: activity
+    order: 3005
+  - id: 0.3.6-conduct-feasibility-assessment-technical-financial-operational
+    wbs: 0.3.6
+    title: Conduct feasibility assessment (technical / financial / operational)
+    type: activity
+    order: 3006
+  - id: 0.3.7-develop-business-case
+    wbs: 0.3.7
+    title: Develop business case
+    type: activity
+    order: 3007
+  - id: 0.3.8-develop-project-charter
+    wbs: 0.3.8
+    title: Develop project charter
+    type: activity
+    order: 3008
+  - id: 0.3.9-establish-governance-structure-and-cadence
+    wbs: 0.3.9
+    title: Establish governance structure and cadence
+    type: activity
+    order: 3009
+  - id: 0.3.10-secure-funding-and-formal-approval-to-proceed
+    wbs: 0.3.10
+    title: Secure funding and formal approval to proceed
+    type: activity
+    order: 3010
+- id: 0.4-planning
+  wbs: '0.4'
+  title: Planning
+  type: phase
+  order: 4
+  children:
+  - id: 0.4.1-scope-requirements-planning
+    wbs: 0.4.1
+    title: Scope & Requirements Planning
+    type: activity
+    order: 4001
+    children:
+    - id: 0.4.1.1-elicit-detailed-requirements
+      wbs: 0.4.1.1
+      title: Elicit detailed requirements
+      type: subactivity
+      order: 4001001
+    - id: 0.4.1.2-validate-requirements-with-stakeholders
+      wbs: 0.4.1.2
+      title: Validate requirements with stakeholders
+      type: subactivity
+      order: 4001002
+    - id: 0.4.1.3-develop-requirements-traceability-matrix
+      wbs: 0.4.1.3
+      title: Develop requirements traceability matrix
+      type: subactivity
+      order: 4001003
+    - id: 0.4.1.4-define-scope-statement-and-exclusions
+      wbs: 0.4.1.4
+      title: Define scope statement and exclusions
+      type: subactivity
+      order: 4001004
+    - id: 0.4.1.5-develop-wbs-and-work-package-definitions
+      wbs: 0.4.1.5
+      title: Develop WBS and work package definitions
+      type: subactivity
+      order: 4001005
+    - id: 0.4.1.6-baseline-scope
+      wbs: 0.4.1.6
+      title: Baseline scope
+      type: subactivity
+      order: 4001006
+  - id: 0.4.2-schedule-planning
+    wbs: 0.4.2
+    title: Schedule Planning
+    type: activity
+    order: 4002
+    children:
+    - id: 0.4.2.1-define-activities-from-wbs
+      wbs: 0.4.2.1
+      title: Define activities from WBS
+      type: subactivity
+      order: 4002001
+    - id: 0.4.2.2-sequence-activities-and-dependencies
+      wbs: 0.4.2.2
+      title: Sequence activities and dependencies
+      type: subactivity
+      order: 4002002
+    - id: 0.4.2.3-estimate-durations
+      wbs: 0.4.2.3
+      title: Estimate durations
+      type: subactivity
+      order: 4002003
+    - id: 0.4.2.4-develop-schedule-model-and-critical-path
+      wbs: 0.4.2.4
+      title: Develop schedule model and critical path
+      type: subactivity
+      order: 4002004
+    - id: 0.4.2.5-baseline-schedule
+      wbs: 0.4.2.5
+      title: Baseline schedule
+      type: subactivity
+      order: 4002005
+  - id: 0.4.3-cost-funding-planning
+    wbs: 0.4.3
+    title: Cost & Funding Planning
+    type: activity
+    order: 4003
+    children:
+    - id: 0.4.3.1-estimate-costs-resources-vendors-capex-opex
+      wbs: 0.4.3.1
+      title: Estimate costs (resources, vendors, capex/opex)
+      type: subactivity
+      order: 4003001
+    - id: 0.4.3.2-develop-cost-baseline
+      wbs: 0.4.3.2
+      title: Develop cost baseline
+      type: subactivity
+      order: 4003002
+    - id: 0.4.3.3-confirm-funding-profile-and-approvals
+      wbs: 0.4.3.3
+      title: Confirm funding profile and approvals
+      type: subactivity
+      order: 4003003
+    - id: 0.4.3.4-establish-cost-control-approach
+      wbs: 0.4.3.4
+      title: Establish cost control approach
+      type: subactivity
+      order: 4003004
+  - id: 0.4.4-resource-organisation-planning
+    wbs: 0.4.4
+    title: Resource & Organisation Planning
+    type: activity
+    order: 4004
+    children:
+    - id: 0.4.4.1-define-project-organisation-structure
+      wbs: 0.4.4.1
+      title: Define project organisation structure
+      type: subactivity
+      order: 4004001
+    - id: 0.4.4.2-define-roles-and-responsibilities-raci
+      wbs: 0.4.4.2
+      title: Define roles and responsibilities (RACI)
+      type: subactivity
+      order: 4004002
+    - id: 0.4.4.3-develop-staffing-plan
+      wbs: 0.4.4.3
+      title: Develop staffing plan
+      type: subactivity
+      order: 4004003
+    - id: 0.4.4.4-secure-resource-commitments
+      wbs: 0.4.4.4
+      title: Secure resource commitments
+      type: subactivity
+      order: 4004004
+  - id: 0.4.5-risk-planning
+    wbs: 0.4.5
+    title: Risk Planning
+    type: activity
+    order: 4005
+    children:
+    - id: 0.4.5.1-identify-risks
+      wbs: 0.4.5.1
+      title: Identify risks
+      type: subactivity
+      order: 4005001
+    - id: 0.4.5.2-perform-qualitative-analysis
+      wbs: 0.4.5.2
+      title: Perform qualitative analysis
+      type: subactivity
+      order: 4005002
+    - id: 0.4.5.3-perform-quantitative-analysis-if-required
+      wbs: 0.4.5.3
+      title: Perform quantitative analysis (if required)
+      type: subactivity
+      order: 4005003
+    - id: 0.4.5.4-define-responses-and-assign-owners
+      wbs: 0.4.5.4
+      title: Define responses and assign owners
+      type: subactivity
+      order: 4005004
+    - id: 0.4.5.5-baseline-risk-register
+      wbs: 0.4.5.5
+      title: Baseline risk register
+      type: subactivity
+      order: 4005005
+  - id: 0.4.6-quality-planning
+    wbs: 0.4.6
+    title: Quality Planning
+    type: activity
+    order: 4006
+    children:
+    - id: 0.4.6.1-define-quality-objectives-and-standards
+      wbs: 0.4.6.1
+      title: Define quality objectives and standards
+      type: subactivity
+      order: 4006001
+    - id: 0.4.6.2-define-acceptance-criteria
+      wbs: 0.4.6.2
+      title: Define acceptance criteria
+      type: subactivity
+      order: 4006002
+    - id: 0.4.6.3-define-qa-qc-approach
+      wbs: 0.4.6.3
+      title: Define QA/QC approach
+      type: subactivity
+      order: 4006003
+    - id: 0.4.6.4-baseline-quality-management-plan
+      wbs: 0.4.6.4
+      title: Baseline quality management plan
+      type: subactivity
+      order: 4006004
+  - id: 0.4.7-procurement-planning-if-applicable
+    wbs: 0.4.7
+    title: Procurement Planning (if applicable)
+    type: activity
+    order: 4007
+    children:
+    - id: 0.4.7.1-identify-procurement-needs
+      wbs: 0.4.7.1
+      title: Identify procurement needs
+      type: subactivity
+      order: 4007001
+    - id: 0.4.7.2-develop-procurement-strategy
+      wbs: 0.4.7.2
+      title: Develop procurement strategy
+      type: subactivity
+      order: 4007002
+    - id: 0.4.7.3-prepare-rfx-documentation
+      wbs: 0.4.7.3
+      title: Prepare RFx documentation
+      type: subactivity
+      order: 4007003
+    - id: 0.4.7.4-evaluate-suppliers-and-select-vendor
+      wbs: 0.4.7.4
+      title: Evaluate suppliers and select vendor
+      type: subactivity
+      order: 4007004
+    - id: 0.4.7.5-negotiate-and-execute-contracts
+      wbs: 0.4.7.5
+      title: Negotiate and execute contracts
+      type: subactivity
+      order: 4007005
+  - id: 0.4.8-communications-stakeholder-planning
+    wbs: 0.4.8
+    title: Communications & Stakeholder Planning
+    type: activity
+    order: 4008
+    children:
+    - id: 0.4.8.1-analyse-stakeholders-interest-influence-needs
+      wbs: 0.4.8.1
+      title: Analyse stakeholders (interest/influence/needs)
+      type: subactivity
+      order: 4008001
+    - id: 0.4.8.2-develop-communications-plan
+      wbs: 0.4.8.2
+      title: Develop communications plan
+      type: subactivity
+      order: 4008002
+    - id: 0.4.8.3-define-reporting-cadence-and-templates
+      wbs: 0.4.8.3
+      title: Define reporting cadence and templates
+      type: subactivity
+      order: 4008003
+    - id: 0.4.8.4-define-escalation-paths
+      wbs: 0.4.8.4
+      title: Define escalation paths
+      type: subactivity
+      order: 4008004
+  - id: 0.4.9-change-governance-planning
+    wbs: 0.4.9
+    title: Change & Governance Planning
+    type: activity
+    order: 4009
+    children:
+    - id: 0.4.9.1-define-change-control-process-and-ccb
+      wbs: 0.4.9.1
+      title: Define change control process and CCB
+      type: subactivity
+      order: 4009001
+    - id: 0.4.9.2-define-issue-management-process
+      wbs: 0.4.9.2
+      title: Define issue management process
+      type: subactivity
+      order: 4009002
+    - id: 0.4.9.3-define-stage-gates-and-approval-checkpoints
+      wbs: 0.4.9.3
+      title: Define stage gates and approval checkpoints
+      type: subactivity
+      order: 4009003
+    - id: 0.4.9.4-baseline-integrated-project-management-plan
+      wbs: 0.4.9.4
+      title: Baseline integrated project management plan
+      type: subactivity
+      order: 4009004
+- id: 0.5-execution
+  wbs: '0.5'
+  title: Execution
+  type: phase
+  order: 5
+  children:
+  - id: 0.5.1-mobilise-delivery
+    wbs: 0.5.1
+    title: Mobilise Delivery
+    type: activity
+    order: 5001
+    children:
+    - id: 0.5.1.1-conduct-kickoff
+      wbs: 0.5.1.1
+      title: Conduct kickoff
+      type: subactivity
+      order: 5001001
+    - id: 0.5.1.2-onboard-team-and-vendors
+      wbs: 0.5.1.2
+      title: Onboard team and vendors
+      type: subactivity
+      order: 5001002
+    - id: 0.5.1.3-stand-up-delivery-environments-tools
+      wbs: 0.5.1.3
+      title: Stand up delivery environments/tools
+      type: subactivity
+      order: 5001003
+  - id: 0.5.2-design-build-deliverables
+    wbs: 0.5.2
+    title: Design & Build Deliverables
+    type: activity
+    order: 5002
+    children:
+    - id: 0.5.2.1-perform-detailed-design
+      wbs: 0.5.2.1
+      title: Perform detailed design
+      type: subactivity
+      order: 5002001
+    - id: 0.5.2.2-build-configure-solution-components
+      wbs: 0.5.2.2
+      title: Build/configure solution components
+      type: subactivity
+      order: 5002002
+    - id: 0.5.2.3-develop-documentation-and-artefacts
+      wbs: 0.5.2.3
+      title: Develop documentation and artefacts
+      type: subactivity
+      order: 5002003
+    - id: 0.5.2.4-conduct-unit-testing
+      wbs: 0.5.2.4
+      title: Conduct unit testing
+      type: subactivity
+      order: 5002004
+    - id: 0.5.2.5-conduct-integration-activities
+      wbs: 0.5.2.5
+      title: Conduct integration activities
+      type: subactivity
+      order: 5002005
+  - id: 0.5.3-testing-acceptance
+    wbs: 0.5.3
+    title: Testing & Acceptance
+    type: activity
+    order: 5003
+    children:
+    - id: 0.5.3.1-plan-test-cycles
+      wbs: 0.5.3.1
+      title: Plan test cycles
+      type: subactivity
+      order: 5003001
+    - id: 0.5.3.2-execute-system-integration-testing
+      wbs: 0.5.3.2
+      title: Execute system/integration testing
+      type: subactivity
+      order: 5003002
+    - id: 0.5.3.3-manage-defects-and-re-test
+      wbs: 0.5.3.3
+      title: Manage defects and re-test
+      type: subactivity
+      order: 5003003
+    - id: 0.5.3.4-execute-uat
+      wbs: 0.5.3.4
+      title: Execute UAT
+      type: subactivity
+      order: 5003004
+    - id: 0.5.3.5-obtain-acceptance-sign-off
+      wbs: 0.5.3.5
+      title: Obtain acceptance sign-off
+      type: subactivity
+      order: 5003005
+  - id: 0.5.4-change-management-readiness
+    wbs: 0.5.4
+    title: Change Management & Readiness
+    type: activity
+    order: 5004
+    children:
+    - id: 0.5.4.1-develop-training-materials
+      wbs: 0.5.4.1
+      title: Develop training materials
+      type: subactivity
+      order: 5004001
+    - id: 0.5.4.2-deliver-training
+      wbs: 0.5.4.2
+      title: Deliver training
+      type: subactivity
+      order: 5004002
+    - id: 0.5.4.3-execute-comms-and-stakeholder-engagement
+      wbs: 0.5.4.3
+      title: Execute comms and stakeholder engagement
+      type: subactivity
+      order: 5004003
+    - id: 0.5.4.4-operational-readiness-planning
+      wbs: 0.5.4.4
+      title: Operational readiness planning
+      type: subactivity
+      order: 5004004
+  - id: 0.5.5-procurement-vendor-management-if-applicable
+    wbs: 0.5.5
+    title: Procurement & Vendor Management (if applicable)
+    type: activity
+    order: 5005
+    children:
+    - id: 0.5.5.1-manage-vendor-performance
+      wbs: 0.5.5.1
+      title: Manage vendor performance
+      type: subactivity
+      order: 5005001
+    - id: 0.5.5.2-review-accept-vendor-deliverables
+      wbs: 0.5.5.2
+      title: Review/accept vendor deliverables
+      type: subactivity
+      order: 5005002
+    - id: 0.5.5.3-manage-invoices-and-milestones
+      wbs: 0.5.5.3
+      title: Manage invoices and milestones
+      type: subactivity
+      order: 5005003
+- id: 0.6-monitoring-controlling-throughout-delivery
+  wbs: '0.6'
+  title: Monitoring & Controlling (throughout delivery)
+  type: phase
+  order: 6
+  children:
+  - id: 0.6.1-track-progress-vs-schedule-baseline
+    wbs: 0.6.1
+    title: Track progress vs schedule baseline
+    type: activity
+    order: 6001
+  - id: 0.6.2-track-cost-vs-cost-baseline
+    wbs: 0.6.2
+    title: Track cost vs cost baseline
+    type: activity
+    order: 6002
+  - id: 0.6.3-manage-scope-and-requirements-traceability
+    wbs: 0.6.3
+    title: Manage scope and requirements traceability
+    type: activity
+    order: 6003
+  - id: 0.6.4-manage-raid-logs-risks-assumptions-issues-dependencies
+    wbs: 0.6.4
+    title: Manage RAID logs (risks, assumptions, issues, dependencies)
+    type: activity
+    order: 6004
+  - id: 0.6.5-execute-change-control-assess-approve-update-baselines
+    wbs: 0.6.5
+    title: Execute change control (assess/approve/update baselines)
+    type: activity
+    order: 6005
+  - id: 0.6.6-perform-quality-control-inspections-audits
+    wbs: 0.6.6
+    title: Perform quality control (inspections, audits)
+    type: activity
+    order: 6006
+  - id: 0.6.7-performance-reporting-status-steering-dashboards
+    wbs: 0.6.7
+    title: Performance reporting (status, steering, dashboards)
+    type: activity
+    order: 6007
+  - id: 0.6.8-forecasting-and-re-planning-as-required
+    wbs: 0.6.8
+    title: Forecasting and re-planning as required
+    type: activity
+    order: 6008
+- id: 0.7-closure
+  wbs: '0.7'
+  title: Closure
+  type: phase
+  order: 7
+  children:
+  - id: 0.7.1-confirm-completion-of-deliverables
+    wbs: 0.7.1
+    title: Confirm completion of deliverables
+    type: activity
+    order: 7001
+  - id: 0.7.2-obtain-sponsor-customer-formal-acceptance
+    wbs: 0.7.2
+    title: Obtain sponsor/customer formal acceptance
+    type: activity
+    order: 7002
+  - id: 0.7.3-transition-to-operations-support-handover
+    wbs: 0.7.3
+    title: Transition to operations/support (handover)
+    type: activity
+    order: 7003
+  - id: 0.7.4-close-contracts-and-finalise-financials
+    wbs: 0.7.4
+    title: Close contracts and finalise financials
+    type: activity
+    order: 7004
+  - id: 0.7.5-release-resources
+    wbs: 0.7.5
+    title: Release resources
+    type: activity
+    order: 7005
+  - id: 0.7.6-archive-documentation
+    wbs: 0.7.6
+    title: Archive documentation
+    type: activity
+    order: 7006
+  - id: 0.7.7-capture-lessons-learned
+    wbs: 0.7.7
+    title: Capture lessons learned
+    type: activity
+    order: 7007
+  - id: 0.7.8-conduct-post-implementation-review-and-benefits-plan-update
+    wbs: 0.7.8
+    title: Conduct post-implementation review and benefits plan update
+    type: activity
+    order: 7008
