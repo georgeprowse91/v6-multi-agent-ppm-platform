@@ -1,4 +1,5 @@
 import importlib
+import json
 import sys
 from pathlib import Path
 
@@ -69,6 +70,33 @@ def test_demo_startup_seeds_workspace_projects(client):
         assert payload["methodology_map_summary"]["monitoring"]
         assert payload["activity_completion"]
         assert payload["methodology_map_summary"]["stages"][0]["activities"]
+
+
+def test_demo_startup_seeds_all_methodologies_with_deep_stage_activity_payload(client):
+    for project_id, methodology in [
+        ("demo-predictive", "predictive"),
+        ("demo-adaptive", "adaptive"),
+        ("demo-hybrid", "hybrid"),
+    ]:
+        response = client.get(f"/api/workspace/{project_id}?methodology={methodology}")
+        assert response.status_code == 200
+        payload = response.json()
+        stages = payload["methodology_map_summary"]["stages"]
+        assert stages
+        assert all(stage["activities"] for stage in stages)
+        assert payload["runtime_actions_available"]
+
+
+def test_demo_startup_seeds_entities_and_artifacts(client):
+    projects_path = Path(__file__).resolve().parents[1] / "data" / "projects.json"
+    projects = json.loads(projects_path.read_text(encoding="utf-8"))["projects"]
+    project_ids = {project["id"] for project in projects}
+    assert {"demo-predictive", "demo-adaptive", "demo-hybrid"}.issubset(project_ids)
+
+    tree = client.get("/api/tree/demo-predictive")
+    assert tree.status_code == 200
+    node_types = {node["type"] for node in tree.json()["nodes"]}
+    assert {"document", "sheet", "milestone", "dashboard"}.issubset(node_types)
 
 
 def test_workspace_response_is_yaml_backed_in_demo(client):
