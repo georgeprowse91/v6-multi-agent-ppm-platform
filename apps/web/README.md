@@ -167,6 +167,16 @@ Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid`
 
 > **Limitations:** The connector gallery only manages instance lifecycle and health status in this PR. Credentials are not stored or submitted through the UI, sync jobs are not executed, and webhook configuration is not included.
 
+### Workspace methodology smoke check
+
+Run a single local smoke check for workspace methodology wiring (YAML map loading, backend workspace payload validation for predictive/adaptive/hybrid, gate presence checks, and frontend hydration wiring assertions):
+
+```bash
+make smoke-workspace-wiring
+# or
+cd apps/web/frontend && npm run smoke:workspace-wiring
+```
+
 ### Full Stack Development
 
 For full-stack development, run both servers:

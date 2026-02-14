@@ -171,6 +171,15 @@ make check-placeholders
 python ops/tools/config_validator.py
 ```
 
+Workspace methodology wiring smoke check:
+
+```bash
+make smoke-workspace-wiring
+```
+
+This command validates local methodology YAML loading, workspace endpoint responses for `predictive`/`adaptive`/`hybrid`, stage/activity population, predictive+hybrid gate presence, and the React methodology store hydration path that prefers backend payloads when available.
+
+
 ## Deployment (high level)
 
 - **Terraform**: infrastructure definitions live under [ops/infra/terraform/](./ops/infra/terraform/).

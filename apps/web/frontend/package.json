@@ -20,7 +20,8 @@
     "css-modules:check": "npm run css-modules:types && tsc -p tsconfig.css-modules.json",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test-storybook": "test-storybook --storybook-build-dir storybook-static --failOnConsole"
+    "test-storybook": "test-storybook --storybook-build-dir storybook-static --failOnConsole",
+    "smoke:workspace-wiring": "python ../../ops/smoke_workspace_wiring.py"
   },
   "dependencies": {
     "@ppm/canvas-engine": "workspace:*",
