@@ -1,0 +1,14 @@
+region              = "eastus2"
+resource_group_name = "rg-ppm-demo"
+name_prefix         = "ppm-demo"
+
+# Override defaults only when needed.
+aks_node_count      = 1
+postgres_sku_name   = "B_Standard_B1ms"
+postgres_storage_mb = 32768
+
+# Optional
+# tags = {
+#   owner       = "platform-team"
+#   cost-center = "demo"
+# }

@@ -153,6 +153,8 @@ python ops/tools/config_validator.py
 - **Kubernetes manifests**: see [ops/infra/kubernetes/manifests/](./ops/infra/kubernetes/manifests/).
 - **Helm charts**: each app/service has a `helm/` folder for packaging.
 
+For a dedicated low-cost demonstration stack, follow the demo guide at [docs/demo-environment.md](./docs/demo-environment.md).
+
 ### Deploy the observability Helm chart
 
 Use the dedicated observability chart to deploy an OpenTelemetry collector and collector configuration map:

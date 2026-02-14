@@ -1,0 +1,28 @@
+global:
+  env:
+    DEMO_MODE: "true"
+    MOCK_CONNECTORS: "jira,workday,teams,sap"
+    JIRA_CONNECTOR_BASE_URL: "http://mock-connectors.mock.svc.cluster.local:8080/jira"
+    WORKDAY_CONNECTOR_BASE_URL: "http://mock-connectors.mock.svc.cluster.local:8080/workday"
+    TEAMS_CONNECTOR_BASE_URL: "http://mock-connectors.mock.svc.cluster.local:8080/teams"
+    SAP_CONNECTOR_BASE_URL: "http://mock-connectors.mock.svc.cluster.local:8080/sap"
+
+apiGateway:
+  replicaCount: 1
+
+workflowEngine:
+  replicaCount: 1
+
+orchestrationService:
+  replicaCount: 1
+
+dataSyncService:
+  replicaCount: 1
+
+notificationService:
+  replicaCount: 1
+
+observability:
+  enabled: true
+  openTelemetrySidecar:
+    enabled: false
