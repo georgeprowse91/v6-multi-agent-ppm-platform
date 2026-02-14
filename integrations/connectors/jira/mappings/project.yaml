@@ -1,22 +1,16 @@
 source: project
 schema: project
-target: project
+target: jira_project
 fields:
   - source: id
-    target: id
-  - source: program_id
-    target: program_id
+    target: key
   - source: name
     target: name
   - source: status
     target: status
-  - source: start_date
-    target: start_date
-  - source: end_date
-    target: end_date
   - source: owner
-    target: owner
-  - source: classification
-    target: classification
-  - source: created_at
-    target: created_at
+    target: lead.displayName
+  - source: benefits_realisation_plan
+    target: customfield_benefits_realisation_plan
+  - source: regulatory_category
+    target: customfield_regulatory_category
