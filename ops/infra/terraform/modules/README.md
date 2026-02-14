@@ -7,6 +7,7 @@ Document infrastructure resources under infra/terraform/modules.
 ## What's inside
 
 - `infra/terraform/modules/aks`: Subdirectory containing aks assets for this area.
+- `infra/terraform/modules/cost-analysis`: Subdirectory containing Azure Cost Management export assets for this area.
 - `infra/terraform/modules/keyvault`: Subdirectory containing keyvault assets for this area.
 - `infra/terraform/modules/monitoring`: Subdirectory containing monitoring assets for this area.
 - `infra/terraform/modules/networking`: Subdirectory containing networking assets for this area.
