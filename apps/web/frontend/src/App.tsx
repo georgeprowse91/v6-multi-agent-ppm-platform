@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import React, { Suspense, useEffect, useState } from 'react';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store';
 import { RequireAdminRole, RequireAuth, RequireTenantContext } from '@/routing/RouteGuards';
@@ -69,111 +69,92 @@ function EntityCollectionRedirect({ type }: EntityCollectionRedirectProps) {
   return <Navigate replace to={fallbackPath} />;
 }
 
-export function App() {
+function AppRoutes() {
   const { featureFlags } = useAppStore();
   const showMergeReview = featureFlags.duplicate_resolution === true;
   const notificationsEnabled = featureFlags.agent_async_notifications === true;
 
   return (
-    <Suspense fallback={<PageSkeleton />}>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route element={<RequireAuth />}>
-          <Route element={<RequireTenantContext />}>
-            <Route
-              element={(
-                <AppLayout>
-                  <Outlet />
-                </AppLayout>
-              )}
-            >
-              {/* Home */}
-              <Route path="/" element={<HomePage />} />
-
-              {/* Entity workspaces */}
-              <Route
-                path="/portfolio/:portfolioId"
-                element={<WorkspacePage type="portfolio" />}
-              />
-              <Route
-                path="/portfolios/:portfolioId"
-                element={<WorkspacePage type="portfolio" />}
-              />
-              <Route path="/portfolios" element={<EntityCollectionRedirect type="portfolio" />} />
-              <Route
-                path="/program/:programId"
-                element={<WorkspacePage type="program" />}
-              />
-              <Route
-                path="/programs/:programId"
-                element={<WorkspacePage type="program" />}
-              />
-              <Route path="/programs" element={<EntityCollectionRedirect type="program" />} />
-              <Route
-                path="/project/:projectId"
-                element={<WorkspacePage type="project" />}
-              />
-              <Route
-                path="/projects/:projectId"
-                element={<WorkspacePage type="project" />}
-              />
-              <Route path="/projects" element={<EntityCollectionRedirect type="project" />} />
-              <Route
-                path="/projects/:projectId/config"
-                element={<ProjectConfigPage />}
-              />
-              <Route
-                path="/projects/:projectId/config/:tab"
-                element={<ProjectConfigPage />}
-              />
-
-              {/* Configuration pages */}
-              <Route
-                path="/config/agents"
-                element={<ConfigPage type="agents" />}
-              />
-              <Route
-                path="/config/connectors"
-                element={<ConfigPage type="connectors" />}
-              />
-              <Route
-                path="/config/workflows"
-                element={<ConfigPage type="workflows" />}
-              />
-              <Route path="/config/prompts" element={<PromptManager />} />
-
-              {/* Workflow pages */}
-              <Route path="/approvals" element={<ApprovalsPage />} />
-              <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
-              <Route path="/workflows/designer" element={<WorkflowDesigner />} />
-              <Route path="/marketplace/connectors" element={<ConnectorMarketplacePage />} />
-              <Route path="/intake/new" element={<IntakeFormPage />} />
-              <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
-              <Route path="/intake/approvals" element={<IntakeApprovalsPage />} />
-              {showMergeReview && <Route path="/intake/merge-review" element={<MergeReviewPage />} />}
-              {notificationsEnabled && (
-                <Route path="/notifications" element={<NotificationCenterPage />} />
-              )}
-
-              {/* Knowledge pages */}
-              <Route path="/knowledge/documents" element={<DocumentSearchPage />} />
-              <Route path="/knowledge/lessons" element={<LessonsLearnedPage />} />
-              <Route path="/search" element={<GlobalSearchPage />} />
-
-              {/* Admin pages */}
-              <Route element={<RequireAdminRole />}>
-                <Route path="/admin/audit" element={<AuditLogPage />} />
-                <Route path="/admin/agent-runs" element={<AgentRunsPage />} />
-                <Route path="/admin/methodology" element={<MethodologyEditor />} />
-                <Route path="/admin/roles" element={<RoleManager />} />
-              </Route>
-
-              {/* Analytics */}
-              <Route path="/analytics/dashboard" element={<AnalyticsDashboard />} />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<RequireTenantContext />}>
+          <Route
+            element={(
+              <AppLayout>
+                <Outlet />
+              </AppLayout>
+            )}
+          >
+            <Route path="/" element={<HomePage />} />
+            <Route path="/portfolio/:portfolioId" element={<WorkspacePage type="portfolio" />} />
+            <Route path="/portfolios/:portfolioId" element={<WorkspacePage type="portfolio" />} />
+            <Route path="/portfolios" element={<EntityCollectionRedirect type="portfolio" />} />
+            <Route path="/program/:programId" element={<WorkspacePage type="program" />} />
+            <Route path="/programs/:programId" element={<WorkspacePage type="program" />} />
+            <Route path="/programs" element={<EntityCollectionRedirect type="program" />} />
+            <Route path="/project/:projectId" element={<WorkspacePage type="project" />} />
+            <Route path="/projects/:projectId" element={<WorkspacePage type="project" />} />
+            <Route path="/projects" element={<EntityCollectionRedirect type="project" />} />
+            <Route path="/projects/:projectId/config" element={<ProjectConfigPage />} />
+            <Route path="/projects/:projectId/config/:tab" element={<ProjectConfigPage />} />
+            <Route path="/config/agents" element={<ConfigPage type="agents" />} />
+            <Route path="/config/connectors" element={<ConfigPage type="connectors" />} />
+            <Route path="/config/workflows" element={<ConfigPage type="workflows" />} />
+            <Route path="/config/prompts" element={<PromptManager />} />
+            <Route path="/approvals" element={<ApprovalsPage />} />
+            <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
+            <Route path="/workflows/designer" element={<WorkflowDesigner />} />
+            <Route path="/marketplace/connectors" element={<ConnectorMarketplacePage />} />
+            <Route path="/intake/new" element={<IntakeFormPage />} />
+            <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
+            <Route path="/intake/approvals" element={<IntakeApprovalsPage />} />
+            {showMergeReview && <Route path="/intake/merge-review" element={<MergeReviewPage />} />}
+            {notificationsEnabled && <Route path="/notifications" element={<NotificationCenterPage />} />}
+            <Route path="/knowledge/documents" element={<DocumentSearchPage />} />
+            <Route path="/knowledge/lessons" element={<LessonsLearnedPage />} />
+            <Route path="/search" element={<GlobalSearchPage />} />
+            <Route element={<RequireAdminRole />}>
+              <Route path="/admin/audit" element={<AuditLogPage />} />
+              <Route path="/admin/agent-runs" element={<AgentRunsPage />} />
+              <Route path="/admin/methodology" element={<MethodologyEditor />} />
+              <Route path="/admin/roles" element={<RoleManager />} />
             </Route>
+            <Route path="/analytics/dashboard" element={<AnalyticsDashboard />} />
           </Route>
         </Route>
-      </Routes>
+      </Route>
+    </Routes>
+  );
+}
+
+function TransitionedRouter() {
+  const location = useLocation();
+  const [transitionKey, setTransitionKey] = useState(location.pathname + location.search);
+
+  useEffect(() => {
+    const nextKey = location.pathname + location.search;
+    const transition = (document as Document & { startViewTransition?: (cb: () => void) => void }).startViewTransition;
+    if (typeof transition === 'function') {
+      transition(() => {
+        setTransitionKey(nextKey);
+      });
+      return;
+    }
+    setTransitionKey(nextKey);
+  }, [location.pathname, location.search]);
+
+  return (
+    <div key={transitionKey} className={styles.routeTransition}>
+      <AppRoutes />
+    </div>
+  );
+}
+
+export function App() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <TransitionedRouter />
     </Suspense>
   );
 }

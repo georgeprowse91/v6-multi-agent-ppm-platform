@@ -6,6 +6,7 @@ import { FocusTrap } from '@/components/ui/FocusTrap';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { FadeIn } from '@/components/ui/FadeIn';
 import { getErrorMessage, requestJson } from '@/services/apiClient';
 import type { AgentConfig, AgentParameter } from '@/store/agentConfig/types';
 import type { ConfigField, Connector } from '@/store/connectors/types';
@@ -355,7 +356,11 @@ export function ConfigPage({ type }: ConfigPageProps) {
         ))}
       </div>
 
-      {actionMessage && <div className={styles.state}>{actionMessage}</div>}
+      {actionMessage && (
+        <FadeIn>
+          <div className={styles.state}>{actionMessage}</div>
+        </FadeIn>
+      )}
 
       <section
         id={`tab-panel-${activeTab}`}
@@ -380,12 +385,14 @@ export function ConfigPage({ type }: ConfigPageProps) {
               </div>
             )}
             {agentsError && (
-              <div className={styles.errorState}>
-                <span>{agentsError}</span>
-                <button type="button" onClick={fetchAgents}>
-                  Retry
-                </button>
-              </div>
+              <FadeIn>
+                <div className={styles.errorState}>
+                  <span>{agentsError}</span>
+                  <button type="button" onClick={fetchAgents}>
+                    Retry
+                  </button>
+                </div>
+              </FadeIn>
             )}
             {!agentsLoading && !agentsError && agents.length === 0 && (
               <EmptyState
@@ -434,7 +441,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                   );
 
                   return (
-                    <div key={agent.catalog_id} className={styles.card}>
+                    <FadeIn key={agent.catalog_id} className={styles.card}>
                       <div className={styles.cardHeader}>
                         <div>
                           <h3 className={styles.cardTitle}>{agent.display_name}</h3>
@@ -534,7 +541,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                           </div>
                         </FocusTrap>
                       )}
-                    </div>
+                    </FadeIn>
                   );
                 })}
               </div>
@@ -557,12 +564,14 @@ export function ConfigPage({ type }: ConfigPageProps) {
               </div>
             )}
             {connectorsError && (
-              <div className={styles.errorState}>
-                <span>{connectorsError}</span>
-                <button type="button" onClick={fetchConnectors}>
-                  Retry
-                </button>
-              </div>
+              <FadeIn>
+                <div className={styles.errorState}>
+                  <span>{connectorsError}</span>
+                  <button type="button" onClick={fetchConnectors}>
+                    Retry
+                  </button>
+                </div>
+              </FadeIn>
             )}
             {!connectorsLoading && !connectorsError && connectors.length === 0 && (
               <EmptyState
@@ -620,7 +629,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                   };
 
                   return (
-                    <div key={connector.connector_id} className={styles.card}>
+                    <FadeIn key={connector.connector_id} className={styles.card}>
                       <ConfigForm
                         title={connector.name}
                         description={connector.description}
@@ -638,7 +647,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                           Run manual sync
                         </button>
                       </div>
-                    </div>
+                    </FadeIn>
                   );
                 })}
               </div>
@@ -661,12 +670,14 @@ export function ConfigPage({ type }: ConfigPageProps) {
               </div>
             )}
             {workflowsError && (
-              <div className={styles.errorState}>
-                <span>{workflowsError}</span>
-                <button type="button" onClick={fetchWorkflows}>
-                  Retry
-                </button>
-              </div>
+              <FadeIn>
+                <div className={styles.errorState}>
+                  <span>{workflowsError}</span>
+                  <button type="button" onClick={fetchWorkflows}>
+                    Retry
+                  </button>
+                </div>
+              </FadeIn>
             )}
             {!workflowsLoading && !workflowsError && (
               <div className={styles.workflowHeader}>
@@ -724,7 +735,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                     : 'Assign an agent to activate this workflow route.';
 
                   return (
-                    <div
+                    <FadeIn
                       key={`${entry.agent_id || 'entry'}-${index}`}
                       className={styles.card}
                     >
@@ -778,7 +789,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                           Test
                         </button>
                       </div>
-                    </div>
+                    </FadeIn>
                   );
                 })}
                 {selectedWorkflow && selectedWorkflowIndex !== null && (

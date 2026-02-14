@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   type AIState,
   type ActionChip,
@@ -8,6 +8,7 @@ import {
   type ScopeResearchMessageData,
   type ConversationalCommandMessageData,
 } from '@/store/assistant';
+import { FadeIn } from '@/components/ui/FadeIn';
 import styles from './MessageList.module.css';
 import bubbleStyles from './MessageBubble.module.css';
 import { ActionChipButton } from './ActionChipButton';
@@ -43,6 +44,10 @@ export function MessageList({
   onCancelConversationalCommand,
 }: MessageListProps) {
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const typingExitTimeoutRef = useRef<number | null>(null);
+  const [typingVisible, setTypingVisible] = useState(false);
+  const [typingExiting, setTypingExiting] = useState(false);
+  const [typingLabel, setTypingLabel] = useState<string>(typingStateLabels.thinking);
 
   useEffect(() => {
     scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -139,31 +144,76 @@ export function MessageList({
   const showTypingIndicator =
     aiState === 'thinking' || aiState === 'streaming' || aiState === 'tool_use';
 
+  useEffect(() => {
+    const nextLabel = typingStateLabels[aiState as keyof typeof typingStateLabels];
+    if (nextLabel) {
+      setTypingLabel(nextLabel);
+    }
+
+    if (showTypingIndicator) {
+      if (typingExitTimeoutRef.current) {
+        window.clearTimeout(typingExitTimeoutRef.current);
+      }
+      setTypingExiting(false);
+      setTypingVisible(true);
+      return;
+    }
+
+    if (typingVisible) {
+      setTypingExiting(true);
+      typingExitTimeoutRef.current = window.setTimeout(() => {
+        setTypingVisible(false);
+        setTypingExiting(false);
+      }, 150);
+    }
+
+    return () => {
+      if (typingExitTimeoutRef.current) {
+        window.clearTimeout(typingExitTimeoutRef.current);
+      }
+    };
+  }, [aiState, showTypingIndicator, typingVisible]);
+
   const renderWelcomeCard = (key = 'welcome-empty') => (
     <div key={key} className={styles.empty}>
-      <div className={styles.welcomeCard}>
+      <FadeIn className={styles.welcomeCard}>
         <h3 className={styles.welcomeTitle}>Welcome to your project assistant.</h3>
         <p className={styles.welcomeText}>
           I can help you navigate your project methodology, suggest next actions,
           generate templates, and answer questions about your project.
         </p>
         <div className={styles.quickStartList}>
-          {quickStartChips.map((chip) =>
+          {quickStartChips.map((chip, index) =>
             renderActionChip ? (
-              <span key={chip.id} className={styles.quickStartItem}>
+              <span
+                key={chip.id}
+                className={styles.quickStartItem}
+                style={{ '--chip-stagger-delay': `${index * 50}ms` } as CSSProperties}
+              >
                 {renderActionChip(chip)}
               </span>
             ) : (
-              <ActionChipButton key={chip.id} chip={chip} onClick={() => onChipClick(chip)} />
+              <span
+                key={chip.id}
+                className={styles.quickStartItem}
+                style={{ '--chip-stagger-delay': `${index * 50}ms` } as CSSProperties}
+              >
+                <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} />
+              </span>
             )
           )}
         </div>
-      </div>
+      </FadeIn>
     </div>
   );
 
-  const renderTypingBubble = (key: string, label: string) => (
-    <div key={key} className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble}`}>
+  const renderTypingBubble = (key: string, label: string, exiting = false) => (
+    <div
+      key={key}
+      className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble} ${
+        exiting ? styles.typingBubbleExit : styles.typingBubbleEnter
+      }`}
+    >
       <div className={styles.typingDots} aria-hidden="true">
         <span />
         <span />
@@ -191,7 +241,7 @@ export function MessageList({
 
             if (messageType === 'scope_research') {
               return (
-                <div key={message.id}>
+                <FadeIn key={message.id}>
                   {message.content ? (
                     <MessageBubble
                       message={message}
@@ -212,13 +262,13 @@ export function MessageList({
                       }
                     />
                   ) : null}
-                </div>
+                </FadeIn>
               );
             }
 
             if (messageType === 'conversational_command') {
               return (
-                <div key={message.id}>
+                <FadeIn key={message.id}>
                   {message.content ? (
                     <MessageBubble
                       message={message}
@@ -238,27 +288,27 @@ export function MessageList({
                       onApply={(data) => onApplyConversationalCommand?.(data)}
                     />
                   ) : null}
-                </div>
+                </FadeIn>
               );
             }
 
             return (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                renderActionChip={(chip, options) =>
-                  renderActionChip ? (
-                    renderActionChip(chip, options)
-                  ) : (
-                    <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
-                  )
-                }
-              />
+              <FadeIn key={message.id}>
+                <MessageBubble
+                  message={message}
+                  renderActionChip={(chip, options) =>
+                    renderActionChip ? (
+                      renderActionChip(chip, options)
+                    ) : (
+                      <ActionChipButton chip={chip} onClick={() => onChipClick(chip)} small={options?.small} />
+                    )
+                  }
+                />
+              </FadeIn>
             );
           })}
 
-      {showTypingIndicator &&
-        renderTypingBubble(`assistant-state-${aiState}`, typingStateLabels[aiState as keyof typeof typingStateLabels])}
+      {typingVisible && renderTypingBubble(`assistant-state-${aiState}`, typingLabel, typingExiting)}
 
       <div ref={scrollAnchorRef} />
     </div>

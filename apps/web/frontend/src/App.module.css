@@ -65,3 +65,23 @@
 .mainChart {
   width: 100%;
 }
+
+.routeTransition {
+  min-height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .routeTransition {
+    animation: routeCrossfade 150ms ease-in-out;
+  }
+
+  @keyframes routeCrossfade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
