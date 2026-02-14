@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssistantPanel } from './AssistantPanel';
 import { useAssistantStore } from '@/store/assistant';
@@ -46,7 +47,11 @@ describe('AssistantPanel demo mode', () => {
   });
 
   it('shows scripted demo controls and advances through scripted steps', async () => {
-    render(<AssistantPanel />);
+    render(
+      <MemoryRouter>
+        <AssistantPanel />
+      </MemoryRouter>
+    );
 
     await screen.findByText(/scripted demo mode/i);
     await screen.findByText(/welcome to the project intake demo/i);
@@ -64,7 +69,11 @@ describe('AssistantPanel demo mode', () => {
   });
 
   it('restarts the current scenario', async () => {
-    render(<AssistantPanel />);
+    render(
+      <MemoryRouter>
+        <AssistantPanel />
+      </MemoryRouter>
+    );
     await screen.findByText(/welcome to the project intake demo/i);
 
     const input = screen.getByLabelText(/ai assistant chat input/i);

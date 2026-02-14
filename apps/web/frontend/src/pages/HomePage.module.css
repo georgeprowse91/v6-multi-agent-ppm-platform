@@ -1,172 +1,42 @@
 .page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header {
-  margin-bottom: var(--space-8);
-}
-
-.title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-neutral-900);
-  margin-bottom: var(--space-2);
-}
-
-.subtitle {
-  font-size: var(--font-size-lg);
-  color: var(--color-neutral-500);
-}
-
-.section {
-  margin-bottom: var(--space-8);
-}
-
-.sectionTitle {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-900);
-  margin-bottom: var(--space-2);
-}
-
-.sectionDescription {
-  font-size: var(--font-size-sm);
-  color: var(--color-neutral-500);
-  margin-bottom: var(--space-4);
-}
-
-/* Canvas buttons */
-.canvasButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.canvasButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-700);
-  background-color: white;
-  border: 1px solid var(--color-neutral-300);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.canvasButton:hover {
-  background-color: var(--color-primary-50);
-  border-color: var(--color-primary-300);
-  color: var(--color-primary-700);
-}
-
-.canvasButton:focus {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
-
-.canvasButton:active {
-  background-color: var(--color-primary-100);
-}
-
-.canvasIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-primary-500);
-}
-
-.cardGrid {
+  min-height: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  place-items: center;
+  padding: var(--space-8);
+}
+
+.entryCard {
+  width: min(560px, 100%);
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-8);
+  text-align: center;
+  display: grid;
   gap: var(--space-4);
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-5);
-  background-color: white;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-lg);
-  text-decoration: none;
-  transition: border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.card:hover {
-  text-decoration: none;
-  border-color: var(--color-primary-300);
-  box-shadow: var(--shadow-md);
-}
-
-.cardIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-lg);
-  background-color: var(--color-primary-50);
-  color: var(--color-primary-600);
-  margin-bottom: var(--space-4);
-}
-
-.cardTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+.entryCard h1 {
+  font-size: var(--font-size-2xl);
   color: var(--color-neutral-900);
-  margin-bottom: var(--space-1);
 }
 
-.cardDescription {
-  font-size: var(--font-size-sm);
-  color: var(--color-neutral-500);
-  line-height: var(--line-height-relaxed);
+.entryCard p {
+  color: var(--color-neutral-600);
 }
 
-.linkList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.linkItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4);
-  background-color: white;
-  border: 1px solid var(--color-neutral-200);
+.primaryButton {
+  justify-self: center;
+  background: var(--color-primary-600);
+  color: var(--color-neutral-0);
+  border: none;
   border-radius: var(--radius-md);
-  text-decoration: none;
-  transition: border-color var(--transition-fast),
-    background-color var(--transition-fast);
+  padding: var(--space-3) var(--space-5);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
 }
 
-.linkItem:hover {
-  text-decoration: none;
-  border-color: var(--color-primary-300);
-  background-color: var(--color-neutral-50);
-}
-
-.linkItem svg {
-  color: var(--color-neutral-400);
-  flex-shrink: 0;
-}
-
-.linkTitle {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-900);
-  margin-bottom: var(--space-1);
-}
-
-.linkDescription {
-  font-size: var(--font-size-sm);
-  color: var(--color-neutral-500);
+.primaryButton:hover {
+  background: var(--color-primary-700);
 }

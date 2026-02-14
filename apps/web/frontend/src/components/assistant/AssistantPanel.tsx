@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import { Icon } from '@/components/icon/Icon';
 import { useAppStore } from '@/store/useAppStore';
@@ -18,6 +19,7 @@ import { ContextBar } from './ContextBar';
 import { MessageList } from './MessageList';
 import { QuickActions } from './QuickActions';
 import { ChatInput } from './ChatInput';
+import type { WorkspaceType } from './entryQuickActions';
 import styles from './AssistantPanel.module.css';
 
 interface DemoScriptMessage {
@@ -40,6 +42,7 @@ function isDemoModeEnabled(): boolean {
 }
 
 export function AssistantPanel() {
+  const navigate = useNavigate();
   const { rightPanelCollapsed, toggleRightPanel } = useAppStore();
   const { projectMethodology, currentActivityId, getActivity, getStageForActivity, isActivityLockedComputed, getAllActivities } = useMethodologyStore();
   const { artifacts, openArtifact } = useCanvasStore();
@@ -63,6 +66,7 @@ export function AssistantPanel() {
   const [demoScript, setDemoScript] = useState<DemoScriptMessage[]>([]);
   const [demoStepIndex, setDemoStepIndex] = useState(0);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [pendingWorkspaceType, setPendingWorkspaceType] = useState<WorkspaceType | null>(null);
 
   const onFallbackResponse = useCallback((text: string) => addAssistantMessage(`I heard: "${text}". Ask me to open an activity, dashboard, or /research.`), [addAssistantMessage]);
   const { sendMessage, error: assistantError } = useAssistantChat({ projectId: context?.projectId, onFallbackResponse });
@@ -176,6 +180,32 @@ export function AssistantPanel() {
       case 'complete_activity': useMethodologyStore.getState().updateActivityStatus(chip.payload.activityId, 'complete'); return addAssistantMessage(`Marked "${getActivity(chip.payload.activityId)?.name}" complete.`);
       case 'scope_research': return void sendMessage(chip.payload.objective ? `/research ${chip.payload.objective}` : '/research');
       case 'custom': {
+        if (chip.payload.actionKey === 'navigate_intake') {
+          setPendingWorkspaceType(null);
+          navigate('/intake/new', { state: { resetAt: Date.now() } });
+          return;
+        }
+        if (chip.payload.actionKey === 'open_workspace') {
+          const rawWorkspaceType = chip.payload.data?.workspaceType;
+          const workspaceType = rawWorkspaceType === 'portfolio' || rawWorkspaceType === 'program' || rawWorkspaceType === 'project'
+            ? rawWorkspaceType
+            : null;
+          if (!workspaceType) {
+            addAssistantMessage('I could not determine which workspace type to open.');
+            return;
+          }
+
+          const providedId = typeof chip.payload.data?.workspaceId === 'string' ? chip.payload.data.workspaceId.trim() : '';
+          if (providedId) {
+            setPendingWorkspaceType(null);
+            navigate(`/${workspaceType}/${encodeURIComponent(providedId)}`);
+            return;
+          }
+
+          setPendingWorkspaceType(workspaceType);
+          addAssistantMessage(`Please share the ${workspaceType} ID to open.`);
+          return;
+        }
         if (chip.payload.actionKey === 'ask_question') return inputRef.current?.focus();
         const data = (chip.payload.data ?? {}) as Partial<ConversationalCommandMessageData>;
         return addAssistantMessage('Review and confirm inline updates below.', undefined, false, {
@@ -185,7 +215,7 @@ export function AssistantPanel() {
       }
       default: return addAssistantMessage('Action executed.');
     }
-  }, [addAssistantMessage, currentActivityId, getActivity, openForActivity, sendMessage]);
+  }, [addAssistantMessage, currentActivityId, getActivity, navigate, openForActivity, sendMessage]);
 
   const demoBranchReply = useCallback((input: string) => {
     const normalized = input.toLowerCase();
@@ -202,12 +232,24 @@ export function AssistantPanel() {
   }, [demoScenario, demoStepIndex]);
 
   const handleSubmitMessage = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (pendingWorkspaceType) {
+      if (!trimmed) {
+        addAssistantMessage(`Enter a ${pendingWorkspaceType} ID and I will open that workspace.`);
+        return;
+      }
+      addUserMessage(trimmed);
+      setPendingWorkspaceType(null);
+      navigate(`/${pendingWorkspaceType}/${encodeURIComponent(trimmed)}`);
+      addAssistantMessage(`Opening ${pendingWorkspaceType} workspace ${trimmed}.`);
+      return;
+    }
+
     if (!demoMode) {
       await sendMessage(text);
       return;
     }
 
-    const trimmed = text.trim();
     if (!trimmed) return;
     addUserMessage(trimmed);
 
@@ -243,7 +285,7 @@ export function AssistantPanel() {
       idx += 1;
     }
     setDemoStepIndex(idx);
-  }, [addAssistantMessage, addUserMessage, demoBranchReply, demoMode, demoScript, demoStepIndex, sendMessage]);
+  }, [addAssistantMessage, addUserMessage, demoBranchReply, demoMode, demoScript, demoStepIndex, navigate, pendingWorkspaceType, sendMessage]);
 
   if (rightPanelCollapsed) return <aside className={`${styles.panel} ${styles.collapsed}`} data-tour="assistant-panel"><button className={styles.expandButton} onClick={toggleRightPanel} title="Open Assistant"><Icon semantic="communication.message" label="Open Assistant" /></button></aside>;
 
