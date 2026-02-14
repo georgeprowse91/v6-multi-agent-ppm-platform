@@ -136,9 +136,11 @@ function TransitionedRouter() {
 
   useEffect(() => {
     const nextKey = location.pathname + location.search;
-    const transition = (document as Document & { startViewTransition?: (cb: () => void) => void }).startViewTransition;
-    if (typeof transition === 'function') {
-      transition(() => {
+    const startViewTransition = (
+      document as Document & { startViewTransition?: (cb: () => void) => void }
+    ).startViewTransition;
+    if (typeof startViewTransition === 'function') {
+      startViewTransition.call(document, () => {
         setTransitionKey(nextKey);
       });
       return;
