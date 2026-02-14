@@ -20,6 +20,46 @@
     "status": "active"
   },
   {
+    "id": "ctr-003",
+    "vendor_id": "gen-vendor-005",
+    "project_id": "prj-mobile-001",
+    "name": "Mobile CI/CD Toolchain License",
+    "start_date": "2025-01-20",
+    "end_date": "2026-01-19",
+    "value": 265000,
+    "status": "active"
+  },
+  {
+    "id": "ctr-004",
+    "vendor_id": "gen-vendor-003",
+    "project_id": "prj-mobile-001",
+    "name": "Mobile QA Automation Services SOW",
+    "start_date": "2025-02-05",
+    "end_date": "2025-11-30",
+    "value": 180000,
+    "status": "draft"
+  },
+  {
+    "id": "ctr-005",
+    "vendor_id": "gen-vendor-008",
+    "project_id": "prj-portal-002",
+    "name": "Portal Accessibility Remediation Advisory",
+    "start_date": "2024-06-01",
+    "end_date": "2025-05-31",
+    "value": 125000,
+    "status": "expired"
+  },
+  {
+    "id": "ctr-006",
+    "vendor_id": "gen-vendor-010",
+    "project_id": "prj-observability-003",
+    "name": "Telemetry Collector Hardware Refresh",
+    "start_date": "2025-04-01",
+    "end_date": "2026-03-31",
+    "value": 410000,
+    "status": "active"
+  },
+  {
     "id": "gen-contract-001",
     "name": "Contract 1",
     "vendor_id": "gen-vendor-001",
