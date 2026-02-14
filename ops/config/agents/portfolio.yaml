@@ -10,11 +10,11 @@ demand_intake:
   auto_categorization:
     enabled: true
     model:
-      provider: "azure_openai"
-      deployment: "gpt-4"
+      provider: "${DEMAND_INTAKE_MODEL_PROVIDER}"
+      deployment: "${DEMAND_INTAKE_MODEL_DEPLOYMENT}"
   duplicate_detection:
     enabled: true
-    search_provider: "azure_cognitive_search"
+    search_provider: "${DEMAND_INTAKE_SEARCH_PROVIDER}"
     min_similarity: 0.85
   notification:
     enabled: true

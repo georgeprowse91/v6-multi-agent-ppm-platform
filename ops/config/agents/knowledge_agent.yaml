@@ -6,10 +6,10 @@ search:
   similarity_threshold: 0.75
 
 embeddings:
-  model: all-MiniLM-L6-v2
+  model: ${KNOWLEDGE_AGENT_EMBEDDING_MODEL}
   dimensions: 384
-  vector_store_backend: faiss
-  vector_store_config_path: ops/config/vector_store.yaml
+  vector_store_backend: ${KNOWLEDGE_AGENT_VECTOR_STORE_BACKEND}
+  vector_store_config_path: ${KNOWLEDGE_AGENT_VECTOR_STORE_CONFIG_PATH}
 
 summarization:
   summary_token_limit: 120

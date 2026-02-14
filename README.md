@@ -153,6 +153,50 @@ python ops/tools/config_validator.py
 - **Kubernetes manifests**: see [ops/infra/kubernetes/manifests/](./ops/infra/kubernetes/manifests/).
 - **Helm charts**: each app/service has a `helm/` folder for packaging.
 
+### Environment parameterization (dev, staging, production)
+
+Configuration templates under [`ops/config/agents/`](./ops/config/agents/) and
+[`ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml`](./ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml)
+now use environment placeholders instead of hard-coded endpoints or credentials.
+
+Set the following variables per environment (for example in CI/CD variable groups,
+Kubernetes `Secret` objects, or Azure Key Vault-backed secret injection):
+
+| Variable | Purpose |
+| --- | --- |
+| `IMAGE_PULL_POLICY` | Helm global image pull policy. |
+| `LOG_LEVEL` | Runtime logging level. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Traces OTLP endpoint URL. |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics OTLP endpoint URL. |
+| `WORKFLOW_ENGINE_RATE_LIMIT` | Workflow engine request throttling. |
+| `NOTIFICATION_SERVICE_RATE_LIMIT` | Notification service throttling. |
+| `KEYVAULT_URL` | Azure Key Vault URL (e.g., `https://<vault>.vault.azure.net`). |
+| `KEYVAULT_NAME` | Azure Key Vault resource name. |
+| `KEYVAULT_TENANT_ID` | Azure tenant ID for Key Vault access. |
+| `KEYVAULT_CLIENT_ID` | Azure client ID used by workload identity/SP. |
+| `INTENT_ROUTER_MODEL` | LLM model name for the intent router agent. |
+| `INTENT_ROUTER_CLASSIFIER_MODEL_NAME` | Intent router classifier model identifier. |
+| `INTENT_ROUTER_CLASSIFIER_MODEL_PATH` | Intent router classifier model path. |
+| `INTENT_ROUTER_SPACY_MODEL_NAME` | spaCy model used by the intent router. |
+| `INTENT_ROUTER_MODEL_PROVIDER` | Provider for intent router LLM calls. |
+| `INTENT_ROUTER_MODEL_DEPLOYMENT` | Deployment name for intent router LLM calls. |
+| `RESPONSE_ORCHESTRATION_MODEL_PROVIDER` | Provider for response aggregation LLM calls. |
+| `RESPONSE_ORCHESTRATION_MODEL_DEPLOYMENT` | Deployment for response aggregation LLM calls. |
+| `DEMAND_INTAKE_MODEL_PROVIDER` | Provider for demand intake auto-categorization. |
+| `DEMAND_INTAKE_MODEL_DEPLOYMENT` | Deployment for demand intake auto-categorization. |
+| `DEMAND_INTAKE_SEARCH_PROVIDER` | Search provider for duplicate detection. |
+| `KNOWLEDGE_AGENT_EMBEDDING_MODEL` | Embedding model for knowledge search. |
+| `KNOWLEDGE_AGENT_VECTOR_STORE_BACKEND` | Vector store backend for the knowledge agent. |
+| `KNOWLEDGE_AGENT_VECTOR_STORE_CONFIG_PATH` | Vector store config file location. |
+
+Recommended environment setup:
+
+- **Development**: define variables in a local `.env` or developer shell profile (non-production values only).
+- **Staging**: define variables in CI/CD environment configuration and source secret values from Azure Key Vault.
+- **Production**: inject all secrets from Azure Key Vault and keep only non-secret toggles/rate limits in deployment variables.
+
+> Do not commit real credentials, API keys, or environment-specific URLs into repository configuration files.
+
 For deeper operational guidance, start with [ops/infra/README.md](./ops/infra/README.md) and [docs/architecture/](./docs/architecture/).
 
 ## Security & compliance
