@@ -11,10 +11,10 @@
       "summary": "Iterative delivery template for software product teams.",
       "description": "Bootstraps an agile workspace with product vision, backlog planning, sprint execution, and metrics dashboards.",
       "methodology": {
-        "id": "methodology-agile",
-        "name": "Agile Scrum",
+        "id": "adaptive",
+        "name": "Adaptive",
         "description": "Iterative agile approach with sprints",
-        "type": "agile",
+        "type": "adaptive",
         "version": "1.0",
         "stages": [
           {
@@ -205,10 +205,10 @@
       "summary": "Stage-gated infrastructure delivery template.",
       "description": "Creates a sequential, governance-heavy project workspace for infrastructure rollouts with planning baselines and controls.",
       "methodology": {
-        "id": "methodology-waterfall",
-        "name": "Waterfall",
+        "id": "predictive",
+        "name": "Predictive",
         "description": "Traditional sequential project management approach",
-        "type": "waterfall",
+        "type": "predictive",
         "version": "1.0",
         "stages": [
           {
@@ -448,6 +448,269 @@
           "activity_id": "act-wbs",
           "type": "tree",
           "title": "Work Breakdown Structure"
+        }
+      ],
+      "dashboards": [
+        {
+          "activity_id": "act-dashboard",
+          "type": "dashboard",
+          "title": "Infrastructure Delivery Dashboard"
+        }
+      ]
+    },
+    {
+      "id": "hybrid-transformation",
+      "name": "Hybrid Transformation",
+      "version": "1.0",
+      "available_versions": [
+        "1.0"
+      ],
+      "summary": "Hybrid delivery template balancing governance and iterative execution.",
+      "description": "Bootstraps a hybrid workspace with predictive governance and adaptive execution cycles.",
+      "methodology": {
+        "id": "hybrid",
+        "name": "Hybrid",
+        "description": "Traditional sequential project management approach",
+        "type": "hybrid",
+        "version": "1.0",
+        "stages": [
+          {
+            "id": "stage-initiation",
+            "name": "Initiation",
+            "description": "Define project scope, objectives, and stakeholders",
+            "status": "not_started",
+            "prerequisites": [],
+            "order": 1,
+            "activities": [
+              {
+                "id": "act-charter",
+                "name": "Project Charter",
+                "description": "Create the project charter document",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-stakeholders",
+                "name": "Stakeholder Register",
+                "description": "Identify and document project stakeholders",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [
+                  "act-charter"
+                ],
+                "order": 2
+              }
+            ]
+          },
+          {
+            "id": "stage-planning",
+            "name": "Planning",
+            "description": "Develop project management plan and baselines",
+            "status": "not_started",
+            "prerequisites": [
+              "stage-initiation"
+            ],
+            "order": 2,
+            "activities": [
+              {
+                "id": "act-wbs",
+                "name": "Work Breakdown Structure",
+                "description": "Decompose project scope into manageable work packages",
+                "status": "not_started",
+                "canvasType": "tree",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-schedule",
+                "name": "Project Schedule",
+                "description": "Develop the project timeline and milestones",
+                "status": "not_started",
+                "canvasType": "timeline",
+                "prerequisites": [
+                  "act-wbs"
+                ],
+                "order": 2
+              },
+              {
+                "id": "act-budget",
+                "name": "Budget Plan",
+                "description": "Estimate costs and create the project budget",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [
+                  "act-wbs"
+                ],
+                "order": 3
+              },
+              {
+                "id": "act-comms-plan",
+                "name": "Communications Plan",
+                "description": "Define project communication approach",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 4
+              }
+            ]
+          },
+          {
+            "id": "stage-execution",
+            "name": "Execution",
+            "description": "Execute project work and produce deliverables",
+            "status": "not_started",
+            "prerequisites": [
+              "stage-planning"
+            ],
+            "order": 3,
+            "activities": [
+              {
+                "id": "act-deliverables",
+                "name": "Deliverables Tracker",
+                "description": "Track project deliverables and their status",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-team-assignments",
+                "name": "Team Assignments",
+                "description": "Resource assignments and workload tracking",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 2
+              }
+            ]
+          },
+          {
+            "id": "stage-monitoring",
+            "name": "Monitoring & Controlling",
+            "description": "Monitor and control project performance",
+            "status": "not_started",
+            "prerequisites": [],
+            "alwaysAccessible": true,
+            "order": 4,
+            "activities": [
+              {
+                "id": "act-dashboard",
+                "name": "Project Dashboard",
+                "description": "Real-time project status and KPIs",
+                "status": "not_started",
+                "canvasType": "dashboard",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 1
+              },
+              {
+                "id": "act-quality-dashboard",
+                "name": "Quality Dashboard",
+                "description": "Quality health, coverage, and defect trends",
+                "status": "not_started",
+                "canvasType": "dashboard",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 2
+              },
+              {
+                "id": "act-risks",
+                "name": "Risk Register",
+                "description": "Track and manage project risks",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 3,
+                "alwaysAccessible": true
+              },
+              {
+                "id": "act-issues",
+                "name": "Issue Log",
+                "description": "Track and resolve project issues",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "order": 4,
+                "alwaysAccessible": true
+              },
+              {
+                "id": "act-change-log",
+                "name": "Change Log",
+                "description": "Track project change requests",
+                "status": "not_started",
+                "canvasType": "spreadsheet",
+                "prerequisites": [],
+                "alwaysAccessible": true,
+                "order": 5
+              }
+            ]
+          },
+          {
+            "id": "stage-closure",
+            "name": "Closure",
+            "description": "Formally close the project",
+            "status": "not_started",
+            "prerequisites": [
+              "stage-execution"
+            ],
+            "order": 5,
+            "activities": [
+              {
+                "id": "act-lessons",
+                "name": "Lessons Learned",
+                "description": "Document lessons learned for future projects",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [],
+                "order": 1
+              },
+              {
+                "id": "act-closeout",
+                "name": "Project Closeout Report",
+                "description": "Final project report and closure documentation",
+                "status": "not_started",
+                "canvasType": "document",
+                "prerequisites": [
+                  "act-lessons"
+                ],
+                "order": 2
+              }
+            ]
+          }
+        ]
+      },
+      "agent_config": {
+        "enabled": [
+          "intent-router",
+          "schedule-planning",
+          "financial-management",
+          "agent_015"
+        ],
+        "disabled": []
+      },
+      "connector_config": {
+        "enabled": [
+          "planview",
+          "sharepoint",
+          "sap"
+        ],
+        "disabled": [
+          "jira",
+          "slack"
+        ]
+      },
+      "initial_tabs": [
+        {
+          "activity_id": "act-charter",
+          "type": "document",
+          "title": "Hybrid Project Charter"
+        },
+        {
+          "activity_id": "act-wbs",
+          "type": "tree",
+          "title": "Hybrid Work Breakdown Structure"
         }
       ],
       "dashboards": [
