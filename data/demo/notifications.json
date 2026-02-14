@@ -526,5 +526,70 @@
     "message": "Automated notification 40 generated for demo workflow activity.",
     "read": false,
     "created_at": "2026-02-14T06:43:13+00:00"
+  },
+  {
+    "id": "notif-capacity-001",
+    "tenant_id": "tenant-demo",
+    "project_id": "prj-mobile-001",
+    "resource_id": "res-eng-001",
+    "type": "capacity_conflict",
+    "channel": "teams",
+    "severity": "critical",
+    "title": "Critical over-allocation: Ava Patel",
+    "message": "Resource is assigned to overlapping sprint commitments at 118% allocation across mobile and platform work.",
+    "read": false,
+    "created_at": "2026-02-14T09:10:00+00:00"
+  },
+  {
+    "id": "notif-capacity-002",
+    "tenant_id": "tenant-demo",
+    "project_id": "prj-data-002",
+    "resource_id": "res-ops-004",
+    "type": "capacity_conflict",
+    "channel": "email",
+    "severity": "warning",
+    "title": "SRE contention on release window",
+    "message": "Primary SRE is booked above sustainable load for release hardening and incident readiness in the same week.",
+    "read": false,
+    "created_at": "2026-02-14T09:20:00+00:00"
+  },
+  {
+    "id": "notif-capacity-003",
+    "tenant_id": "tenant-demo",
+    "project_id": "gen-project-006",
+    "resource_id": "gen-resource-014",
+    "type": "capacity_conflict",
+    "channel": "slack",
+    "severity": "warning",
+    "title": "Architect double-booked across dependency design",
+    "message": "Architecture workshops overlap with solution review tasks, pushing utilization beyond planned baseline.",
+    "read": false,
+    "created_at": "2026-02-14T09:30:00+00:00"
+  },
+  {
+    "id": "notif-capacity-004",
+    "tenant_id": "tenant-demo",
+    "project_id": "gen-project-011",
+    "resource_id": "gen-resource-023",
+    "type": "capacity_conflict",
+    "channel": "teams",
+    "severity": "critical",
+    "title": "Finance review bottleneck",
+    "message": "Finance analyst is the sole approver on three concurrent investment gates with no backup assigned.",
+    "read": false,
+    "created_at": "2026-02-14T09:40:00+00:00"
+  },
+  {
+    "id": "notif-capacity-005",
+    "tenant_id": "tenant-demo",
+    "project_id": "gen-project-018",
+    "resource_id": "gen-resource-028",
+    "type": "capacity_conflict",
+    "channel": "email",
+    "severity": "warning",
+    "title": "QA workload exceeds test cycle capacity",
+    "message": "Regression scope expanded while QA headcount is unchanged, resulting in forecasted 110% utilization.",
+    "read": false,
+    "created_at": "2026-02-14T09:50:00+00:00"
   }
 ]

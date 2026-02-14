@@ -3,51 +3,111 @@
     "id": "res-eng-001",
     "tenant_id": "tenant-demo",
     "name": "Ava Patel",
-    "role": "Senior Engineer",
+    "role": "PM",
     "status": "allocated",
     "created_at": "2025-01-05T12:00:00Z",
     "program_id": "pg-cx-001",
-    "cost_rate": 1050
+    "cost_rate": 1050,
+    "skills": [
+      "roadmap",
+      "stakeholder-mgmt",
+      "delivery"
+    ],
+    "tags": [
+      "leadership",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 85,
+    "availability_pct": 90
   },
   {
     "id": "res-eng-002",
     "tenant_id": "tenant-demo",
     "name": "Noah Chen",
-    "role": "Platform Engineer",
+    "role": "Engineer",
     "status": "allocated",
     "created_at": "2025-01-05T12:30:00Z",
     "program_id": "pg-cx-001",
-    "cost_rate": 980
+    "cost_rate": 980,
+    "skills": [
+      "backend",
+      "api",
+      "integration"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 88,
+    "availability_pct": 87
   },
   {
     "id": "res-ba-003",
     "tenant_id": "tenant-demo",
     "name": "Mia Johnson",
-    "role": "Business Analyst",
+    "role": "Engineer",
     "status": "allocated",
     "created_at": "2025-01-07T13:00:00Z",
     "program_id": "pg-cx-001",
-    "cost_rate": 900
+    "cost_rate": 900,
+    "skills": [
+      "frontend",
+      "mobile",
+      "ux"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 91,
+    "availability_pct": 84
   },
   {
     "id": "res-ops-004",
     "tenant_id": "tenant-demo",
     "name": "Liam Smith",
-    "role": "SRE Lead",
+    "role": "SRE",
     "status": "allocated",
     "created_at": "2025-01-08T13:00:00Z",
     "program_id": "pg-data-002",
-    "cost_rate": 1150
+    "cost_rate": 1150,
+    "skills": [
+      "observability",
+      "incident-response",
+      "kubernetes"
+    ],
+    "tags": [
+      "operations",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 94,
+    "availability_pct": 81
   },
   {
     "id": "gen-resource-001",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-001",
     "name": "Quinn Garcia",
-    "role": "Product Manager",
+    "role": "BA",
     "cost_rate": 173,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "requirements",
+      "process-mapping",
+      "story-writing"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 97,
+    "availability_pct": 78
   },
   {
     "id": "gen-resource-002",
@@ -56,58 +116,130 @@
     "name": "Riley Singh",
     "role": "Architect",
     "cost_rate": 102,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "solution-design",
+      "security-architecture",
+      "cloud"
+    ],
+    "tags": [
+      "architecture",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 100,
+    "availability_pct": 75
   },
   {
     "id": "gen-resource-003",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-003",
     "name": "Riley Johnson",
-    "role": "Architect",
+    "role": "QA",
     "cost_rate": 88,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "test-automation",
+      "regression",
+      "quality-gates"
+    ],
+    "tags": [
+      "quality",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 103,
+    "availability_pct": 72
   },
   {
     "id": "gen-resource-004",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-004",
     "name": "Quinn Singh",
-    "role": "Analyst",
+    "role": "Finance Analyst",
     "cost_rate": 112,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "forecasting",
+      "variance-analysis",
+      "capex-opex"
+    ],
+    "tags": [
+      "finance",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 106,
+    "availability_pct": 69
   },
   {
     "id": "gen-resource-005",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-005",
     "name": "Morgan Patel",
-    "role": "Analyst",
+    "role": "Engineer",
     "cost_rate": 124,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "data-pipelines",
+      "etl",
+      "python"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 109,
+    "availability_pct": 66
   },
   {
     "id": "gen-resource-006",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-006",
     "name": "Morgan Nguyen",
-    "role": "Architect",
+    "role": "PM",
     "cost_rate": 222,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "vendor-mgmt",
+      "portfolio-reporting",
+      "dependency-mgmt"
+    ],
+    "tags": [
+      "leadership",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 112,
+    "availability_pct": 63
   },
   {
     "id": "gen-resource-007",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-007",
     "name": "Quinn Singh",
-    "role": "Analyst",
+    "role": "BA",
     "cost_rate": 196,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "acceptance-criteria",
+      "workshop-facilitation",
+      "discovery"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 115,
+    "availability_pct": 60
   },
   {
     "id": "gen-resource-008",
@@ -117,37 +249,85 @@
     "role": "Architect",
     "cost_rate": 167,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "platform-design",
+      "integration-patterns",
+      "governance"
+    ],
+    "tags": [
+      "architecture",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 87,
+    "availability_pct": 88
   },
   {
     "id": "gen-resource-009",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-009",
     "name": "Quinn Nguyen",
-    "role": "Product Manager",
+    "role": "QA",
     "cost_rate": 156,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "performance-testing",
+      "uat",
+      "defect-triage"
+    ],
+    "tags": [
+      "quality",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 90,
+    "availability_pct": 85
   },
   {
     "id": "gen-resource-010",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-010",
     "name": "Morgan Nguyen",
-    "role": "Analyst",
+    "role": "SRE",
     "cost_rate": 182,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "slo-sla",
+      "infra-automation",
+      "capacity-planning"
+    ],
+    "tags": [
+      "operations",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 93,
+    "availability_pct": 82
   },
   {
     "id": "gen-resource-011",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-001",
     "name": "Taylor Parker",
-    "role": "Analyst",
+    "role": "Finance Analyst",
     "cost_rate": 168,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "benefits-tracking",
+      "cost-control",
+      "scenario-modeling"
+    ],
+    "tags": [
+      "finance",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 96,
+    "availability_pct": 79
   },
   {
     "id": "gen-resource-012",
@@ -157,97 +337,217 @@
     "role": "Engineer",
     "cost_rate": 175,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "devops",
+      "ci-cd",
+      "automation"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 99,
+    "availability_pct": 76
   },
   {
     "id": "gen-resource-013",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-003",
     "name": "Quinn Patel",
-    "role": "Architect",
+    "role": "PM",
     "cost_rate": 156,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "release-planning",
+      "risk-mgmt",
+      "executive-comms"
+    ],
+    "tags": [
+      "leadership",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 102,
+    "availability_pct": 73
   },
   {
     "id": "gen-resource-014",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-004",
     "name": "Riley Johnson",
-    "role": "Architect",
+    "role": "BA",
     "cost_rate": 87,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "value-stream-mapping",
+      "backlog-refinement",
+      "process-improvement"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 105,
+    "availability_pct": 70
   },
   {
     "id": "gen-resource-015",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-005",
     "name": "Riley Nguyen",
-    "role": "Product Manager",
+    "role": "Architect",
     "cost_rate": 146,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "enterprise-architecture",
+      "domain-modeling",
+      "api-standards"
+    ],
+    "tags": [
+      "architecture",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 108,
+    "availability_pct": 67
   },
   {
     "id": "gen-resource-016",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-006",
     "name": "Casey Singh",
-    "role": "Analyst",
+    "role": "QA",
     "cost_rate": 146,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "api-testing",
+      "security-testing",
+      "quality-metrics"
+    ],
+    "tags": [
+      "quality",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 111,
+    "availability_pct": 64
   },
   {
     "id": "gen-resource-017",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-007",
     "name": "Casey Singh",
-    "role": "Analyst",
+    "role": "Engineer",
     "cost_rate": 199,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "microservices",
+      "event-driven",
+      "sql"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 114,
+    "availability_pct": 61
   },
   {
     "id": "gen-resource-018",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-008",
     "name": "Quinn Parker",
-    "role": "Product Manager",
+    "role": "SRE",
     "cost_rate": 160,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "reliability-engineering",
+      "monitoring",
+      "alert-tuning"
+    ],
+    "tags": [
+      "operations",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 86,
+    "availability_pct": 89
   },
   {
     "id": "gen-resource-019",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-009",
     "name": "Jordan Singh",
-    "role": "Engineer",
+    "role": "Finance Analyst",
     "cost_rate": 163,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "budget-planning",
+      "kpi-modeling",
+      "benefits-realization"
+    ],
+    "tags": [
+      "finance",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 89,
+    "availability_pct": 86
   },
   {
     "id": "gen-resource-020",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-010",
     "name": "Casey Garcia",
-    "role": "Architect",
+    "role": "PM",
     "cost_rate": 206,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "change-mgmt",
+      "governance",
+      "delivery-assurance"
+    ],
+    "tags": [
+      "leadership",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 92,
+    "availability_pct": 83
   },
   {
     "id": "gen-resource-021",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-001",
     "name": "Riley Garcia",
-    "role": "Architect",
+    "role": "BA",
     "cost_rate": 193,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "business-cases",
+      "stakeholder-analysis",
+      "reporting"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 95,
+    "availability_pct": 80
   },
   {
     "id": "gen-resource-022",
@@ -257,86 +557,194 @@
     "role": "Architect",
     "cost_rate": 175,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "data-architecture",
+      "resilience",
+      "compliance"
+    ],
+    "tags": [
+      "architecture",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 98,
+    "availability_pct": 77
   },
   {
     "id": "gen-resource-023",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-003",
     "name": "Casey Singh",
-    "role": "Architect",
+    "role": "QA",
     "cost_rate": 163,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "test-strategy",
+      "automation-frameworks",
+      "qa-coaching"
+    ],
+    "tags": [
+      "quality",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 101,
+    "availability_pct": 74
   },
   {
     "id": "gen-resource-024",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-004",
     "name": "Taylor Nguyen",
-    "role": "Product Manager",
+    "role": "Engineer",
     "cost_rate": 134,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "cloud-native",
+      "scalability",
+      "refactoring"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 104,
+    "availability_pct": 71
   },
   {
     "id": "gen-resource-025",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-005",
     "name": "Taylor Parker",
-    "role": "Engineer",
+    "role": "SRE",
     "cost_rate": 134,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "oncall",
+      "capacity-modeling",
+      "chaos-testing"
+    ],
+    "tags": [
+      "operations",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 107,
+    "availability_pct": 68
   },
   {
     "id": "gen-resource-026",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-006",
     "name": "Jordan Johnson",
-    "role": "Analyst",
+    "role": "Finance Analyst",
     "cost_rate": 155,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "financial-risk",
+      "cost-optimization",
+      "procurement-support"
+    ],
+    "tags": [
+      "finance",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 110,
+    "availability_pct": 65
   },
   {
     "id": "gen-resource-027",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-007",
     "name": "Casey Garcia",
-    "role": "Architect",
+    "role": "PM",
     "cost_rate": 110,
-    "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "status": "allocated",
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "portfolio-prioritization",
+      "resource-planning",
+      "steering-committee"
+    ],
+    "tags": [
+      "leadership",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 113,
+    "availability_pct": 62
   },
   {
     "id": "gen-resource-028",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-008",
     "name": "Quinn Nguyen",
-    "role": "Architect",
+    "role": "BA",
     "cost_rate": 143,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "requirements-traceability",
+      "benefits-mapping",
+      "operating-model"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 85,
+    "availability_pct": 90
   },
   {
     "id": "gen-resource-029",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-009",
     "name": "Taylor Nguyen",
-    "role": "Architect",
+    "role": "Engineer",
     "cost_rate": 88,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "full-stack",
+      "typescript",
+      "graphql"
+    ],
+    "tags": [
+      "delivery",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 88,
+    "availability_pct": 87
   },
   {
     "id": "gen-resource-030",
     "tenant_id": "tenant-demo",
     "program_id": "gen-program-010",
     "name": "Casey Garcia",
-    "role": "Engineer",
+    "role": "QA",
     "cost_rate": 155,
     "status": "active",
-    "created_at": "2026-02-14T06:43:13+00:00"
+    "created_at": "2026-02-14T06:43:13+00:00",
+    "skills": [
+      "release-readiness",
+      "quality-audits",
+      "test-data-mgmt"
+    ],
+    "tags": [
+      "quality",
+      "capacity-watch"
+    ],
+    "capacity_hours_per_week": 40,
+    "allocation_pct": 91,
+    "availability_pct": 84
   }
 ]
