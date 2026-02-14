@@ -71,6 +71,13 @@ export type AIState =
   | 'error'
   | 'refusal';
 
+export interface TypingStatus {
+  toolName?: string;
+  detail?: string;
+  step?: number;
+  totalSteps?: number;
+}
+
 /**
  * Categories for action chips
  */

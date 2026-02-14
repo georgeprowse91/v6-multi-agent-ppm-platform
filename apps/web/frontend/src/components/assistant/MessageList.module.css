@@ -68,6 +68,10 @@
   color: var(--color-text-secondary);
 }
 
+.typingPulse {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand-orange-500) 25%, transparent);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .quickStartItem {
     opacity: 0;
@@ -94,6 +98,10 @@
 
   .typingBubbleEnter {
     animation: typingFadeIn 150ms ease-out forwards;
+  }
+
+  .typingPulse {
+    animation: typingPulse 1.5s ease-in-out infinite;
   }
 
   .typingBubbleExit {
@@ -147,6 +155,17 @@
     to {
       opacity: 0;
       transform: translateY(-2px);
+    }
+  }
+
+  @keyframes typingPulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand-orange-500) 0%, transparent);
+    }
+
+    50% {
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-brand-orange-500) 20%, transparent);
     }
   }
 }

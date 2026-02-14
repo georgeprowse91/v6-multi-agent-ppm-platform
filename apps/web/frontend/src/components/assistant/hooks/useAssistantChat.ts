@@ -11,7 +11,7 @@ export function useAssistantChat({
   projectId,
   onFallbackResponse,
 }: UseAssistantChatOptions) {
-  const { addUserMessage, addAssistantMessage, setAiState } = useAssistantStore();
+  const { addUserMessage, addAssistantMessage, setAiState, setTypingStatus } = useAssistantStore();
   const { aiState } = useAssistantStore();
   const [error, setError] = useState<string | null>(null);
   const inFlightControllerRef = useRef<AbortController | null>(null);
@@ -30,10 +30,14 @@ export function useAssistantChat({
 
     addUserMessage(messageText);
     setAiState('thinking');
+    setTypingStatus({ detail: 'Reviewing your request…', step: 1, totalSteps: 3 });
     setError(null);
 
     if (projectId) {
       try {
+        setAiState('tool_use');
+        setTypingStatus({ detail: 'Querying assistant service…', toolName: 'assistant api', step: 2, totalSteps: 3 });
+
         const response = await fetch('/api/assistant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -50,8 +54,11 @@ export function useAssistantChat({
         }
 
         const data = await response.json();
+        setAiState('streaming');
+        setTypingStatus({ detail: 'Aggregating results…', step: 3, totalSteps: 3 });
         addAssistantMessage(formatAssistantResponse(data));
         setAiState('completed');
+        setTypingStatus(null);
         return;
       } catch (fetchError) {
         if (controller.signal.aborted) {
@@ -67,13 +74,15 @@ export function useAssistantChat({
         );
         onFallbackResponse(messageText);
         setAiState('error');
+        setTypingStatus(null);
         return;
       }
     }
 
     onFallbackResponse(messageText);
     setAiState('completed');
-  }, [addAssistantMessage, addUserMessage, onFallbackResponse, projectId, setAiState]);
+    setTypingStatus(null);
+  }, [addAssistantMessage, addUserMessage, onFallbackResponse, projectId, setAiState, setTypingStatus]);
 
   return {
     sendMessage,

@@ -29,6 +29,7 @@ export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResear
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const [promptPickerOpen, setPromptPickerOpen] = useState(false);
   const [researchConfirmOpen, setResearchConfirmOpen] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
   const internalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const prompts = usePromptStore((state) => state.prompts);
@@ -45,6 +46,7 @@ export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResear
     [slashQuery]
   );
   const slashOpen = slashQuery.length > 0 && !promptPickerOpen && slashOptions.length > 0;
+  const showCommandHint = inputFocused && value.trim().length === 0 && !slashOpen;
 
   const resizeTextarea = useCallback(() => {
     if (!textareaRef.current) {
@@ -229,12 +231,14 @@ export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResear
         <textarea
           rows={2}
           className={styles.textarea}
-          placeholder="Ask about your project…"
+          placeholder="Type a message or / for commands"
           value={value}
           onChange={handleChange}
           onKeyDown={(event) => {
             void handleKeyDown(event);
           }}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
           ref={textareaRef}
           id="assistant-chat-input"
         />
@@ -262,6 +266,16 @@ export function ChatInput({ error, inputRef, onSubmitMessage, onStartScopeResear
           />
         </button>
       </div>
+
+      {showCommandHint && (
+        <div className={styles.commandHintRow} aria-live="polite">
+          {SLASH_COMMANDS.map((option) => (
+            <span key={option.command} className={styles.commandHintItem}>
+              <strong>{option.command}</strong> {option.description}
+            </span>
+          ))}
+        </div>
+      )}
     </form>
   );
 }

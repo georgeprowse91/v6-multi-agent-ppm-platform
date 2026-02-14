@@ -7,6 +7,7 @@ import {
   type ScopeResearchItem,
   type ScopeResearchMessageData,
   type ConversationalCommandMessageData,
+  type TypingStatus,
 } from '@/store/assistant';
 import { FadeIn } from '@/components/ui/FadeIn';
 import styles from './MessageList.module.css';
@@ -19,6 +20,7 @@ import { ConversationalCommandCard } from './ConversationalCommandCard';
 interface MessageListProps {
   messages: AssistantMessage[];
   aiState: AIState;
+  typingStatus?: TypingStatus | null;
   context: AssistantContext | null;
   onChipClick: (chip: ActionChip) => void;
   renderActionChip?: (chip: ActionChip, options?: { small?: boolean }) => ReactNode;
@@ -28,14 +30,34 @@ interface MessageListProps {
 }
 
 const typingStateLabels: Record<'thinking' | 'tool_use' | 'streaming', string> = {
-  thinking: 'Thinking…',
-  tool_use: 'Working…',
-  streaming: 'Responding…',
+  thinking: 'Planning response…',
+  tool_use: 'Using connected tool…',
+  streaming: 'Drafting response…',
 };
+
+function toTitleCase(value: string): string {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function buildToolUseLabel(status?: TypingStatus | null) {
+  if (!status) return typingStateLabels.tool_use;
+  const stepPrefix =
+    typeof status.step === 'number' && typeof status.totalSteps === 'number'
+      ? `Step ${status.step} of ${status.totalSteps}: `
+      : '';
+  if (status.detail) return status.detail;
+  if (status.toolName) return `${stepPrefix}${toTitleCase(status.toolName)}…`;
+  return typingStateLabels.tool_use;
+}
 
 export function MessageList({
   messages,
   aiState,
+  typingStatus,
   context,
   onChipClick,
   renderActionChip,
@@ -145,7 +167,11 @@ export function MessageList({
     aiState === 'thinking' || aiState === 'streaming' || aiState === 'tool_use';
 
   useEffect(() => {
-    const nextLabel = typingStateLabels[aiState as keyof typeof typingStateLabels];
+    const nextLabel =
+      aiState === 'tool_use'
+        ? buildToolUseLabel(typingStatus)
+        : typingStateLabels[aiState as keyof typeof typingStateLabels];
+
     if (nextLabel) {
       setTypingLabel(nextLabel);
     }
@@ -172,7 +198,7 @@ export function MessageList({
         window.clearTimeout(typingExitTimeoutRef.current);
       }
     };
-  }, [aiState, showTypingIndicator, typingVisible]);
+  }, [aiState, showTypingIndicator, typingVisible, typingStatus]);
 
   const renderWelcomeCard = (key = 'welcome-empty') => (
     <div key={key} className={styles.empty}>
@@ -210,7 +236,7 @@ export function MessageList({
   const renderTypingBubble = (key: string, label: string, exiting = false) => (
     <div
       key={key}
-      className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble} ${
+      className={`${bubbleStyles.message} ${bubbleStyles.assistant} ${styles.typingBubble} ${styles.typingPulse} ${
         exiting ? styles.typingBubbleExit : styles.typingBubbleEnter
       }`}
     >

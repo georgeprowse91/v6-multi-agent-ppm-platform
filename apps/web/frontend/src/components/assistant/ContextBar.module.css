@@ -9,6 +9,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  flex-wrap: wrap;
   width: 100%;
   min-height: 32px;
   padding: var(--space-2) var(--space-4);
@@ -28,6 +29,25 @@
   min-width: 0;
   text-align: left;
   flex: 1;
+}
+
+
+.contextChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-50, var(--color-brand-orange-100));
+  color: var(--color-text-primary);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contextChipPulse {
+  animation: contextPulse 800ms ease-out;
 }
 
 .progressBadge {
@@ -71,4 +91,12 @@
 
 .lockedValue {
   color: var(--color-state-warning-fg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes contextPulse {
+    0% { transform: scale(0.98); filter: brightness(1.02); }
+    50% { transform: scale(1.03); filter: brightness(1.12); }
+    100% { transform: scale(1); filter: brightness(1); }
+  }
 }

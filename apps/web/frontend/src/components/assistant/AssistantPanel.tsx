@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { createArtifact, createEmptyContent } from '@ppm/canvas-engine';
 import { Icon } from '@/components/icon/Icon';
 import { useAppStore } from '@/store/useAppStore';
@@ -23,7 +23,7 @@ export function AssistantPanel() {
   const { rightPanelCollapsed, toggleRightPanel } = useAppStore();
   const { projectMethodology, currentActivityId, getActivity, getStageForActivity, isActivityLockedComputed, getAllActivities } = useMethodologyStore();
   const { artifacts, openArtifact } = useCanvasStore();
-  const { messages, actionChips, context, aiState, addAssistantMessage, showGatingWarning, updateContext } = useAssistantStore();
+  const { messages, actionChips, context, aiState, typingStatus, addAssistantMessage, addSystemMessage, showGatingWarning, updateContext } = useAssistantStore();
   const { generateSuggestions, clearActionChips } = useSuggestionEngine();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,6 +63,18 @@ export function AssistantPanel() {
     generateSuggestions,
   });
 
+
+  const previousContextEntityRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!context) return;
+    const entity = context.currentActivityName ?? context.currentStageName ?? context.projectName;
+    if (previousContextEntityRef.current && previousContextEntityRef.current !== entity) {
+      addSystemMessage(`Context switched to ${entity}.`);
+    }
+    previousContextEntityRef.current = entity;
+  }, [addSystemMessage, context]);
+
   const openForActivity = useCallback((activityId: string, stageId?: string) => {
     const activity = getActivity(activityId); if (!activity) return;
     if (isActivityLockedComputed(activityId)) return showGatingWarning(activity, getIncompletePrerequisites(activity.prerequisites, getAllActivities()));
@@ -100,8 +112,8 @@ export function AssistantPanel() {
   return (
     <aside className={styles.panel} data-tour="assistant-panel">
       <AssistantHeader title="Assistant" aiState={aiState} toggleRightPanel={toggleRightPanel} />
-      {context && <ContextBar context={context} />}
-      <MessageList messages={messages} aiState={aiState} context={context} onChipClick={handleChipClick} />
+      {context && <ContextBar context={context} contextSyncLabel={context.currentActivityName ?? context.currentStageName ?? context.projectName} />}
+      <MessageList messages={messages} aiState={aiState} typingStatus={typingStatus} context={context} onChipClick={handleChipClick} />
       <QuickActions chips={actionChips} onChipClick={handleChipClick} />
       <ChatInput error={assistantError} inputRef={inputRef} onSubmitMessage={sendMessage} onStartScopeResearch={() => void sendMessage('/research')} />
     </aside>
