@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { allPermissionIds, resolvePermissions, type Role } from '@/auth/permissions';
+import { allPermissionIds, hasPermission, resolvePermissions, type Role } from '@/auth/permissions';
 import { useAppStore } from '@/store';
+import { ForbiddenPage } from '@/pages/ForbiddenPage';
 
 export function RequireAuth() {
   const { session, setSession, setTenantContext } = useAppStore();
@@ -111,6 +112,21 @@ export function RequireAdminRole() {
 
   if (!isAdmin) {
     return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+interface RequirePermissionProps {
+  permission: string;
+}
+
+export function RequirePermission({ permission }: RequirePermissionProps) {
+  const { session } = useAppStore();
+  const allowed = hasPermission(session.user?.permissions, permission);
+
+  if (!allowed) {
+    return <ForbiddenPage />;
   }
 
   return <Outlet />;

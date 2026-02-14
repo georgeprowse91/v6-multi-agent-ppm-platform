@@ -80,6 +80,7 @@ export function AuditLogPage() {
   const [loading, setLoading] = useState(true);
   const [focusedEvent, setFocusedEvent] = useState<AuditEvent | null>(null);
   const [focusedLoading, setFocusedLoading] = useState(false);
+  const [exportingEvidence, setExportingEvidence] = useState(false);
 
   const allowed = canViewAuditLogs(session.user?.permissions);
 
@@ -142,11 +143,37 @@ export function AuditLogPage() {
     };
   }, [allowed, eventId]);
 
+  const handleExportEvidence = async () => {
+    setExportingEvidence(true);
+    try {
+      const response = await fetch('/v1/api/audit/evidence/export');
+      if (!response.ok) {
+        throw new Error('Failed to export audit evidence');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'audit-evidence.zip';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } finally {
+      setExportingEvidence(false);
+    }
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <h1>{t('audit.title')}</h1>
         <p>{t('audit.description')}</p>
+        {allowed && (
+          <button type="button" onClick={() => void handleExportEvidence()} disabled={exportingEvidence}>
+            {exportingEvidence ? 'Exporting evidence…' : 'Export evidence pack'}
+          </button>
+        )}
       </header>
 
       {!allowed && (

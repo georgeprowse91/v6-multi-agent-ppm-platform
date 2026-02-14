@@ -254,6 +254,7 @@ export function LeftPanel() {
     prompts: t('nav.promptLibrary'),
     'analytics-dashboard': t('nav.analyticsDashboard'),
     'role-manager': 'Role Management',
+    'role-assignments': 'Role Assignments',
     'agent-runs': 'Agent Runs',
     'merge-review': 'Merge Review',
     notifications: 'Notification Center',
@@ -305,7 +306,13 @@ export function LeftPanel() {
           {
             id: 'role-manager',
             label: 'Role Management',
-            path: '/admin/roles',
+            path: '/app/admin/roles',
+            icon: 'actions.edit' as IconSemantic,
+          },
+          {
+            id: 'role-assignments',
+            label: 'Role Assignments',
+            path: '/app/admin/roles/assignments',
             icon: 'actions.edit' as IconSemantic,
           },
         ]
@@ -315,7 +322,7 @@ export function LeftPanel() {
           {
             id: 'audit-logs',
             label: t('nav.auditLogs'),
-            path: '/admin/audit',
+            path: '/app/admin/audit',
             icon: 'provenance.auditLog' as IconSemantic,
           },
         ]

@@ -42,12 +42,12 @@ describe('LeftPanel', () => {
     const adminToggle = screen.getByRole('button', { name: /Hub Admin/i });
     expect(adminToggle).toHaveAttribute('aria-controls', 'hub-admin-nav-list');
     expect(adminToggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('link', { name: /Agents/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('Agents')).not.toBeInTheDocument();
 
     fireEvent.click(adminToggle);
 
     expect(adminToggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('link', { name: /Agents/i })).toBeInTheDocument();
+    expect(screen.getByText('Agents')).toBeInTheDocument();
   });
 
   it('applies permission and flag gated admin items and omits MCP standalone section', () => {
@@ -75,6 +75,7 @@ describe('LeftPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /Hub Admin/i }));
 
     expect(screen.getByRole('link', { name: /Role Management/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Role Assignments/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Audit Logs/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Agent Runs/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Merge Review/i })).toBeInTheDocument();
@@ -90,7 +91,7 @@ describe('LeftPanel', () => {
     homeLink.focus();
 
     fireEvent.keyDown(homeLink, { key: 'ArrowDown' });
-    expect(screen.getByRole('link', { name: /My Portfolios/i })).toHaveFocus();
+    expect(screen.getByRole('link', { name: /Demo Run/i })).toHaveFocus();
 
     fireEvent.keyDown(screen.getByRole('link', { name: /My Portfolios/i }), { key: 'End' });
     expect(screen.getByRole('link', { name: /Methodology Editor/i })).toHaveFocus();

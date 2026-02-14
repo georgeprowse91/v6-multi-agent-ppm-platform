@@ -2,7 +2,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store';
-import { RequireAdminRole, RequireAuth, RequireTenantContext } from '@/routing/RouteGuards';
+import { RequireAdminRole, RequireAuth, RequirePermission, RequireTenantContext } from '@/routing/RouteGuards';
 import styles from './App.module.css';
 
 const HomePage = React.lazy(() => import('./pages/HomePage'));
@@ -28,6 +28,7 @@ const PromptManager = React.lazy(() => import('./pages/PromptManager'));
 const AnalyticsDashboard = React.lazy(() => import('./pages/AnalyticsDashboard'));
 const MethodologyEditor = React.lazy(() => import('./pages/MethodologyEditor'));
 const RoleManager = React.lazy(() => import('./pages/RoleManager'));
+const ForbiddenPage = React.lazy(() => import('./pages/ForbiddenPage'));
 const ProjectConfigPage = React.lazy(() => import('./pages/ProjectConfigPage'));
 const NotificationCenterPage = React.lazy(() => import('./pages/NotificationCenterPage'));
 const DemoRunPage = React.lazy(() => import('./pages/DemoRunPage'));
@@ -107,14 +108,23 @@ function AppRoutes() {
             <Route path="/knowledge/documents" element={<DocumentSearchPage />} />
             <Route path="/knowledge/lessons" element={<LessonsLearnedPage />} />
             <Route path="/search" element={<GlobalSearchPage />} />
-            <Route element={<RequireAdminRole />}>
+            <Route element={<RequirePermission permission="audit.view" />}>
               <Route path="/admin/audit" element={<AuditLogPage />} />
+              <Route path="/app/admin/audit" element={<AuditLogPage />} />
+            </Route>
+            <Route element={<RequireAdminRole />}>
               <Route path="/admin/agent-runs" element={<AgentRunsPage />} />
               <Route path="/admin/methodology" element={<MethodologyEditor />} />
-              <Route path="/admin/roles" element={<RoleManager />} />
+            </Route>
+            <Route element={<RequirePermission permission="roles.manage" />}>
+              <Route path="/admin/roles" element={<RoleManager view="roles" />} />
+              <Route path="/app/admin/roles" element={<RoleManager view="roles" />} />
+              <Route path="/admin/roles/assignments" element={<RoleManager view="assignments" />} />
+              <Route path="/app/admin/roles/assignments" element={<RoleManager view="assignments" />} />
             </Route>
             <Route path="/analytics/dashboard" element={<AnalyticsDashboard />} />
             <Route path="/demo-run" element={<DemoRunPage />} />
+            <Route path="/403" element={<ForbiddenPage />} />
           </Route>
         </Route>
       </Route>

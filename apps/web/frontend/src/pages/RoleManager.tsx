@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { hasPermission, permissionOptions, type Role } from '@/auth/permissions';
 import { useAppStore } from '@/store';
 import styles from './RoleManager.module.css';
@@ -17,7 +18,13 @@ const emptyRole: Role = {
   description: '',
 };
 
-export function RoleManager() {
+export type RoleManagerView = 'roles' | 'assignments' | 'all';
+
+interface RoleManagerProps {
+  view?: RoleManagerView;
+}
+
+export function RoleManager({ view = 'all' }: RoleManagerProps) {
   const { session } = useAppStore();
   const canManage = hasPermission(session.user?.permissions, 'roles.manage');
   const [roles, setRoles] = useState<Role[]>([]);
@@ -194,7 +201,12 @@ export function RoleManager() {
 
       {canManage && (
         <>
-          <section className={styles.section}>
+          <nav className={styles.actions} aria-label="Role admin navigation">
+            <Link to="/app/admin/roles" className={styles.buttonPrimary}>Role catalog</Link>
+            <Link to="/app/admin/roles/assignments" className={styles.buttonPrimary}>Role assignments</Link>
+          </nav>
+
+          {(view === 'all' || view === 'roles') && <section className={styles.section}>
             <h2>Create role</h2>
             <div className={styles.card}>
               <label className={styles.field}>
@@ -256,9 +268,9 @@ export function RoleManager() {
                 </button>
               </div>
             </div>
-          </section>
+          </section>}
 
-          <section className={styles.section}>
+          {(view === 'all' || view === 'roles') && <section className={styles.section}>
             <h2>Existing roles</h2>
             {loading && <div className={styles.emptyState}>Loading roles…</div>}
             {!loading && roles.length === 0 && (
@@ -349,9 +361,9 @@ export function RoleManager() {
                 </div>
               ))}
             </div>
-          </section>
+          </section>}
 
-          <section className={styles.section}>
+          {(view === 'all' || view === 'assignments') && <section className={styles.section}>
             <h2>Assign users</h2>
             <div className={styles.card}>
               <label className={styles.field}>
@@ -405,7 +417,7 @@ export function RoleManager() {
                 </div>
               ))}
             </div>
-          </section>
+          </section>}
         </>
       )}
     </div>

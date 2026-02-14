@@ -1,0 +1,14 @@
+.page {
+  margin: 3rem auto;
+  max-width: 42rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.homeLink {
+  display: inline-block;
+  margin-top: 1rem;
+  font-weight: 600;
+}

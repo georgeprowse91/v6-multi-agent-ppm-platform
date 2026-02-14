@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RequireAuth } from './RouteGuards';
+import { RequireAuth, RequirePermission } from './RouteGuards';
 import { useAppStore } from '@/store';
 
 const resetStore = () => {
@@ -102,5 +102,41 @@ describe('RequireAuth', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
     expect(fetchSpy.mock.calls[0]?.[0]).toBe('/v1/session');
+  });
+});
+
+describe('RequirePermission', () => {
+  afterEach(() => {
+    resetStore();
+  });
+
+  it('renders 403 content when permission is missing', async () => {
+    useAppStore.setState({
+      session: {
+        authenticated: true,
+        loading: false,
+        user: {
+          id: 'u1',
+          name: 'User',
+          email: 'user@example.com',
+          tenantId: 'tenant-1',
+          roles: ['TEAM_MEMBER'],
+          permissions: ['portfolio.view'],
+        },
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/roles']}>
+        <Routes>
+          <Route element={<RequirePermission permission="roles.manage" />}>
+            <Route path="/admin/roles" element={<div>Role admin</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText(/403 · Access denied/i)).toBeInTheDocument();
+    expect(screen.queryByText('Role admin')).not.toBeInTheDocument();
   });
 });
