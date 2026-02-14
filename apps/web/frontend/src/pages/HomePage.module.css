@@ -1,33 +1,43 @@
 .page {
   min-height: 100%;
   display: grid;
-  place-items: center;
+  place-items: start center;
   padding: var(--space-8);
 }
 
 .entryCard {
-  width: min(560px, 100%);
+  width: min(760px, 100%);
   background: var(--color-neutral-0);
   border: 1px solid var(--color-neutral-200);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-8);
-  text-align: center;
   display: grid;
   gap: var(--space-4);
 }
 
-.entryCard h1 {
-  font-size: var(--font-size-2xl);
-  color: var(--color-neutral-900);
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.entryCard p {
-  color: var(--color-neutral-600);
+.chip {
+  border: 1px solid var(--color-primary-300);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-primary-50);
+  color: var(--color-primary-800);
+  font-size: var(--font-size-sm);
+}
+
+.buttonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
 .primaryButton {
-  justify-self: center;
   background: var(--color-primary-600);
   color: var(--color-neutral-0);
   border: none;
@@ -35,8 +45,4 @@
   padding: var(--space-3) var(--space-5);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-}
-
-.primaryButton:hover {
-  background: var(--color-primary-700);
 }

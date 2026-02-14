@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
+import { ENTRY_ASSISTANT_CHIPS } from '@/components/assistant/entryQuickActions';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import styles from './HomePage.module.css';
 
-const DEMO_PROJECTS = [
-  { id: 'demo-predictive', label: 'Demo Predictive project' },
-  { id: 'demo-adaptive', label: 'Demo Adaptive project' },
-  { id: 'demo-hybrid', label: 'Demo Hybrid project' },
-];
+const routeByChipId: Record<string, string> = {
+  'entry-log-intake': '/intake/new',
+  'entry-open-portfolio': '/portfolios',
+  'entry-open-program': '/programs',
+  'entry-open-project': '/projects',
+};
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -16,29 +18,21 @@ export function HomePage() {
       <OnboardingTour />
       <section className={styles.entryCard}>
         <h1>Welcome to the PPM Platform</h1>
-        <p>
-          Start from assistant quick actions, or launch a fresh intake flow.
-        </p>
-        <button
-          type="button"
-          className={styles.primaryButton}
-          onClick={() => navigate('/intake/new', { state: { resetAt: Date.now() } })}
-        >
-          Log new intake
-        </button>
-      </section>
-      <section className={styles.entryCard}>
-        <h2>Demo Projects</h2>
-        <p>Launch seeded demo projects powered by the same backend workspace APIs.</p>
-        <div>
-          {DEMO_PROJECTS.map((project) => (
+        <p>Choose where to start. The assistant panel is already loaded and offers matching quick-action chips.</p>
+        <div className={styles.chipRow} aria-label="Assistant chips">
+          {ENTRY_ASSISTANT_CHIPS.map((chip) => (
+            <span key={chip.id} className={styles.chip}>{chip.label}</span>
+          ))}
+        </div>
+        <div className={styles.buttonGrid}>
+          {ENTRY_ASSISTANT_CHIPS.map((chip) => (
             <button
-              key={project.id}
+              key={`button-${chip.id}`}
               type="button"
               className={styles.primaryButton}
-              onClick={() => navigate(`/projects/${project.id}`)}
+              onClick={() => navigate(routeByChipId[chip.id])}
             >
-              {project.label}
+              {chip.label}
             </button>
           ))}
         </div>

@@ -220,15 +220,9 @@ export function AssistantPanel() {
             return;
           }
 
-          const providedId = typeof chip.payload.data?.workspaceId === 'string' ? chip.payload.data.workspaceId.trim() : '';
-          if (providedId) {
-            setPendingWorkspaceType(null);
-            navigate(`/${workspaceType}/${encodeURIComponent(providedId)}`);
-            return;
-          }
-
-          setPendingWorkspaceType(workspaceType);
-          addAssistantMessage(`Please share the ${workspaceType} ID to open.`);
+          setPendingWorkspaceType(null);
+          navigate(`/${workspaceType}s`);
+          addAssistantMessage(`Opening the ${workspaceType} workspace directory.`);
           return;
         }
         if (chip.payload.actionKey === 'methodology_runtime_action') {

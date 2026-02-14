@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type DragEvent, type KeyboardEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { KpiWidget } from '@/components/dashboard/KpiWidget';
 import { StatusIndicator } from '@/components/dashboard/StatusIndicator';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -158,6 +158,7 @@ const endpointMap: Record<EntityType, string> = {
 
 export function WorkspacePage({ type }: WorkspacePageProps) {
   const { portfolioId, programId, projectId } = useParams();
+  const navigate = useNavigate();
   const { setCurrentSelection, currentActivity, addTab, openTabs, featureFlags } =
     useAppStore();
 
@@ -686,6 +687,53 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
           {!isLoading && <p className={styles.statusNote} aria-live="polite">Latest metrics loaded.</p>}
           {errorMessage && <p className={styles.errorNote}>{errorMessage}</p>}
         </section>
+
+
+
+        {type === 'portfolio' && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={styles.sectionTitle}>Methodology map</h2>
+                <p className={styles.sectionSubtitle}>Portfolio governance map across intake, delivery, and value realization stages.</p>
+              </div>
+              <button type="button" className={styles.secondaryAction} onClick={() => navigate('/analytics/dashboard')}>
+                Open portfolio dashboard
+              </button>
+            </div>
+            <p className={styles.statusNote}>Map includes stage-gate checkpoints and portfolio-level approval controls.</p>
+          </section>
+        )}
+
+        {type === 'program' && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={styles.sectionTitle}>Roadmap and dependency map</h2>
+                <p className={styles.sectionSubtitle}>Program milestone sequencing with dependency and cross-team constraint visibility.</p>
+              </div>
+              <button type="button" className={styles.secondaryAction} onClick={() => navigate('/workflows/monitoring')}>
+                Open dependency monitor
+              </button>
+            </div>
+            <p className={styles.statusNote}>Dependency hotspots are highlighted based on recent pipeline moves and issue status.</p>
+          </section>
+        )}
+
+        {type === 'project' && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={styles.sectionTitle}>Project artifacts</h2>
+                <p className={styles.sectionSubtitle}>Open methodology activities to generate and review project artifacts.</p>
+              </div>
+              <button type="button" className={styles.secondaryAction} onClick={() => navigate(`/projects/${encodeURIComponent(entityId)}/config`)}>
+                Open project configuration
+              </button>
+            </div>
+            <p className={styles.statusNote}>Use methodology navigation to open canvases for scope, plan, risks, and approvals.</p>
+          </section>
+        )}
 
         {scenarioModelingEnabled && (
           <section className={styles.section}>

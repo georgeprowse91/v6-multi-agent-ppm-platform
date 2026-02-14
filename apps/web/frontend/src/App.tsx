@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store';
 import { RequireAdminRole, RequireAuth, RequireTenantContext } from '@/routing/RouteGuards';
@@ -7,6 +7,7 @@ import styles from './App.module.css';
 
 const HomePage = React.lazy(() => import('./pages/HomePage'));
 const WorkspacePage = React.lazy(() => import('./pages/WorkspacePage'));
+const WorkspaceDirectoryPage = React.lazy(() => import('./pages/WorkspaceDirectoryPage'));
 const ConfigPage = React.lazy(() => import('./pages/ConfigPage'));
 const ApprovalsPage = React.lazy(() => import('./pages/ApprovalsPage'));
 const WorkflowMonitoringPage = React.lazy(() => import('./pages/WorkflowMonitoringPage'));
@@ -31,9 +32,6 @@ const NotificationCenterPage = React.lazy(() => import('./pages/NotificationCent
 const DemoRunPage = React.lazy(() => import('./pages/DemoRunPage'));
 const AppLayout = React.lazy(() => import('./components/layout/AppLayout').then((module) => ({ default: module.AppLayout })));
 
-interface EntityCollectionRedirectProps {
-  type: 'portfolio' | 'program' | 'project';
-}
 
 function PageSkeleton() {
   return (
@@ -59,17 +57,6 @@ function PageSkeleton() {
   );
 }
 
-function EntityCollectionRedirect({ type }: EntityCollectionRedirectProps) {
-  const { currentSelection } = useAppStore();
-  const fallbackPath = `/${type}/demo`;
-
-  if (currentSelection?.type === type && currentSelection.id) {
-    return <Navigate replace to={`/${type}/${currentSelection.id}`} />;
-  }
-
-  return <Navigate replace to={fallbackPath} />;
-}
-
 function AppRoutes() {
   const { featureFlags } = useAppStore();
   const showMergeReview = featureFlags.duplicate_resolution === true;
@@ -90,13 +77,13 @@ function AppRoutes() {
             <Route path="/" element={<HomePage />} />
             <Route path="/portfolio/:portfolioId" element={<WorkspacePage type="portfolio" />} />
             <Route path="/portfolios/:portfolioId" element={<WorkspacePage type="portfolio" />} />
-            <Route path="/portfolios" element={<EntityCollectionRedirect type="portfolio" />} />
+            <Route path="/portfolios" element={<WorkspaceDirectoryPage type="portfolio" />} />
             <Route path="/program/:programId" element={<WorkspacePage type="program" />} />
             <Route path="/programs/:programId" element={<WorkspacePage type="program" />} />
-            <Route path="/programs" element={<EntityCollectionRedirect type="program" />} />
+            <Route path="/programs" element={<WorkspaceDirectoryPage type="program" />} />
             <Route path="/project/:projectId" element={<WorkspacePage type="project" />} />
             <Route path="/projects/:projectId" element={<WorkspacePage type="project" />} />
-            <Route path="/projects" element={<EntityCollectionRedirect type="project" />} />
+            <Route path="/projects" element={<WorkspaceDirectoryPage type="project" />} />
             <Route path="/projects/:projectId/config" element={<ProjectConfigPage />} />
             <Route path="/projects/:projectId/config/:tab" element={<ProjectConfigPage />} />
             <Route path="/config/agents" element={<ConfigPage type="agents" />} />
