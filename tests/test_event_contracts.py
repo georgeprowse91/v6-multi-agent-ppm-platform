@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from events import (
+from packages.contracts.src.events import (
     ApprovalCreatedEvent,
     ApprovalDecisionEvent,
     AuditEvent,

@@ -21,7 +21,10 @@ if str(SDK_PATH) not in sys.path:
 from base_connector import ConnectorCategory, ConnectorConfig
 from rest_connector import OAuth2RestConnector
 from mcp_client import MCPClient, MCPClientError
-from .mappers import map_from_mcp_response, map_to_mcp_params
+try:
+    from .mappers import map_from_mcp_response, map_to_mcp_params
+except ImportError:
+    from mappers import map_from_mcp_response, map_to_mcp_params
 
 DEFAULT_TOKEN_URL = "https://wd3-impl-services1.workday.com/ccx/oauth2/token"
 

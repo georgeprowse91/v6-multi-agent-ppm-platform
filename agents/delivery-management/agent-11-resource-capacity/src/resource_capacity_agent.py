@@ -23,7 +23,10 @@ from typing import Any, cast
 import yaml
 
 from data_quality.rules import evaluate_quality_rules
-from events import ResourceAllocationCreatedEvent
+try:
+    from events import ResourceAllocationCreatedEvent
+except Exception:
+    from packages.contracts.src.events import ResourceAllocationCreatedEvent
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import CalendarIntegrationService, DatabaseStorageService

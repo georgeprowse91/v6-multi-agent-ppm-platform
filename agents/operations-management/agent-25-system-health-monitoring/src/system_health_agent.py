@@ -28,9 +28,16 @@ from integrations.services.integration.analytics import AnalyticsClient
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 
-_HAS_AZURE = importlib.util.find_spec("azure") is not None
+
+def _safe_find_spec(module_name: str) -> bool:
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except (ModuleNotFoundError, ValueError):
+        return False
+
+_HAS_AZURE = _safe_find_spec("azure")
 _HAS_AZURE_MONITOR_OPENTELEMETRY = _HAS_AZURE and (
-    importlib.util.find_spec("azure.monitor.opentelemetry") is not None
+    _safe_find_spec("azure.monitor.opentelemetry")
 )
 if _HAS_AZURE_MONITOR_OPENTELEMETRY:
     from azure.monitor.opentelemetry import configure_azure_monitor as _configure_azure_monitor
@@ -38,7 +45,7 @@ else:
     _configure_azure_monitor = None
 
 _HAS_OTEL_AZURE_EXPORTER = (
-    importlib.util.find_spec("opentelemetry.exporter.azuremonitor") is not None
+    _safe_find_spec("opentelemetry.exporter.azuremonitor")
 )
 if _HAS_OTEL_AZURE_EXPORTER:
     from opentelemetry.exporter.azuremonitor import (
@@ -52,7 +59,7 @@ else:
     AzureMonitorTraceExporter = None
 
 _HAS_AZURE_MONITOR_QUERY = _HAS_AZURE and (
-    importlib.util.find_spec("azure.monitor.query") is not None
+    _safe_find_spec("azure.monitor.query")
 )
 if _HAS_AZURE_MONITOR_QUERY:
     from azure.monitor.query import LogsQueryClient, LogsQueryStatus, MetricsQueryClient
@@ -62,7 +69,7 @@ else:
     MetricsQueryClient = None
 
 _HAS_ANOMALY_DETECTOR = _HAS_AZURE and (
-    importlib.util.find_spec("azure.ai.anomalydetector") is not None
+    _safe_find_spec("azure.ai.anomalydetector")
 )
 if _HAS_ANOMALY_DETECTOR:
     from azure.ai.anomalydetector import AnomalyDetectorClient
@@ -73,14 +80,14 @@ else:
     TimeSeriesPoint = None
     AzureKeyCredential = None
 
-_HAS_AZURE_EVENTHUB = _HAS_AZURE and importlib.util.find_spec("azure.eventhub") is not None
+_HAS_AZURE_EVENTHUB = _HAS_AZURE and _safe_find_spec("azure.eventhub")
 if _HAS_AZURE_EVENTHUB:
     from azure.eventhub import EventData, EventHubProducerClient
 else:
     EventData = None
     EventHubProducerClient = None
 
-_HAS_AZURE_AUTOMATION = _HAS_AZURE and importlib.util.find_spec("azure.mgmt.automation") is not None
+_HAS_AZURE_AUTOMATION = _HAS_AZURE and _safe_find_spec("azure.mgmt.automation")
 if _HAS_AZURE_AUTOMATION:
     from azure.identity import DefaultAzureCredential
     from azure.mgmt.automation import AutomationClient
@@ -90,7 +97,7 @@ else:
     JobCreateParameters = None
     RunbookAssociationProperty = None
 
-_HAS_PROMETHEUS = importlib.util.find_spec("prometheus_client") is not None
+_HAS_PROMETHEUS = _safe_find_spec("prometheus_client")
 if _HAS_PROMETHEUS:
     from prometheus_client import CollectorRegistry, Counter, Gauge, start_http_server
 else:
@@ -349,8 +356,15 @@ class SystemHealthAgent(BaseAgent):
         self.logger.info("Initializing System Health & Monitoring Agent...")
 
         configure_tracing(self.agent_id)
-        configure_metrics(self.agent_id)
-        self._kpi_handles = build_kpi_handles(self.agent_id)
+        try:
+            configure_metrics(self.agent_id)
+        except ValueError:
+            # Metrics may already be registered when tests import the module repeatedly.
+            pass
+        try:
+            self._kpi_handles = build_kpi_handles(self.agent_id)
+        except ValueError:
+            self._kpi_handles = {}
         await self._initialize_azure_monitoring()
         await self._configure_opentelemetry_exporters()
         await self._initialize_event_hub()

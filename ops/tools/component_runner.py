@@ -13,15 +13,27 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from tools.runtime_paths import (
-    agents_dir,
-    apps_dir,
-    connectors_dir,
-    integrations_apps_dir,
-    integrations_services_dir,
-    repo_root,
-    services_dir,
-)
+from tools import runtime_paths as _runtime_paths
+
+
+def _path_fn(name: str):
+    fn = getattr(_runtime_paths, name, None)
+    if fn is not None:
+        return fn
+
+    root = Path(__file__).resolve().parents[2]
+    fallbacks = {
+        "repo_root": lambda: root,
+        "apps_dir": lambda: root / "apps",
+        "services_dir": lambda: root / "services",
+        "agents_dir": lambda: root / "agents",
+        "connectors_dir": lambda: root / "integrations" / "connectors",
+        "integrations_apps_dir": lambda: root / "integrations" / "apps",
+        "integrations_services_dir": lambda: root / "integrations" / "services",
+    }
+    if name not in fallbacks:
+        raise AttributeError(f"Unknown runtime path function: {name}")
+    return fallbacks[name]
 
 
 @dataclass(frozen=True)
@@ -40,9 +52,9 @@ def _iter_dirs(base: Path) -> Iterable[Path]:
 def discover_apps() -> list[Component]:
     """Discover application components under apps/."""
 
-    app_roots = [apps_dir()]
+    app_roots = [_path_fn("apps_dir")()]
     try:
-        app_roots.append(integrations_apps_dir())
+        app_roots.append(_path_fn("integrations_apps_dir")())
     except FileNotFoundError:
         pass
     return [
@@ -55,9 +67,9 @@ def discover_apps() -> list[Component]:
 def discover_services() -> list[Component]:
     """Discover service components under services/."""
 
-    service_roots = [services_dir()]
+    service_roots = [_path_fn("services_dir")()]
     try:
-        service_roots.append(integrations_services_dir())
+        service_roots.append(_path_fn("integrations_services_dir")())
     except FileNotFoundError:
         pass
     return [
@@ -70,7 +82,7 @@ def discover_services() -> list[Component]:
 def discover_agents() -> list[Component]:
     """Discover agent components under agents/**/agent-*/."""
 
-    agent_paths = sorted(agents_dir().glob("**/agent-*"))
+    agent_paths = sorted(_path_fn("agents_dir")().glob("**/agent-*"))
     return [Component(path.name, "agent", path) for path in agent_paths if path.is_dir()]
 
 
@@ -78,7 +90,7 @@ def discover_connectors() -> list[Component]:
     """Discover connector components with a manifest.yaml."""
 
     connectors = []
-    for path in _iter_dirs(connectors_dir()):
+    for path in _iter_dirs(_path_fn("connectors_dir")()):
         manifest = path / "manifest.yaml"
         if manifest.exists():
             connectors.append(Component(path.name, "connector", path))
@@ -215,7 +227,7 @@ def _run_component(component: Component, use_docker: bool, dry_run: bool) -> Non
         command = ["python", "-m", "tools.agent_runner", "run-agent", "--name", component.name]
         if use_docker:
             command.append("--docker")
-        _execute(command, repo_root(), dry_run)
+        _execute(command, _path_fn("repo_root")(), dry_run)
         return
 
     if component.component_type == "connector":
@@ -229,7 +241,7 @@ def _run_component(component: Component, use_docker: bool, dry_run: bool) -> Non
         ]
         if dry_run:
             command.append("--dry-run")
-        _execute(command, repo_root(), dry_run)
+        _execute(command, _path_fn("repo_root")(), dry_run)
         return
 
     if use_docker:

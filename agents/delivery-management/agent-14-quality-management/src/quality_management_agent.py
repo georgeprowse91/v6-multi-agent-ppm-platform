@@ -17,7 +17,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from events import EventEnvelope
+try:
+    from events import EventEnvelope
+except Exception:
+    from packages.contracts.src.events import EventEnvelope
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import (

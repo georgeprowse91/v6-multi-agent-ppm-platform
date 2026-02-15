@@ -18,7 +18,10 @@ from typing import Any
 import yaml
 
 from change_configuration_agent import ChangeConfigurationAgent
-from events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
+try:
+    from events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
+except Exception:
+    from packages.contracts.src.events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
 from observability.tracing import get_trace_id
 from sqlalchemy.orm import Session
 

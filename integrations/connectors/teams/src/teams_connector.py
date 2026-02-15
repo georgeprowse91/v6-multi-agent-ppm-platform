@@ -24,7 +24,10 @@ from base_connector import ConnectorCategory, ConnectorConfig
 from mcp_client import MCPClient, MCPClientError
 from rest_connector import OAuth2RestConnector
 from secrets import fetch_keyvault_secret, resolve_secret
-from .mappers import map_from_mcp_response, map_to_mcp_params
+try:
+    from .mappers import map_from_mcp_response, map_to_mcp_params
+except ImportError:
+    from mappers import map_from_mcp_response, map_to_mcp_params
 
 DEFAULT_TEAMS_URL = "https://graph.microsoft.com/v1.0"
 

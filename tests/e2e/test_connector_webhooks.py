@@ -40,7 +40,7 @@ def _client() -> TestClient:
         sys.modules["security"] = security_module
         sys.modules["security.audit_log"] = audit_module
 
-    from api.routes import integrations.connectors as connectors_route
+    from api.routes.integrations import connectors as connectors_route
 
     app = FastAPI()
     app.include_router(connectors_route.router, prefix="/v1")
@@ -51,7 +51,7 @@ def test_webhook_payload_persisted(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("CONNECTOR_JIRA_WEBHOOK_SECRET", "secret-123")
     client = _client()
 
-    from api.routes import integrations.connectors as connectors_route
+    from api.routes.integrations import connectors as connectors_route
     from api.webhook_storage import WebhookEventStore
     from base_connector import ConnectorConfigStore
 
@@ -84,7 +84,7 @@ def test_webhook_rejects_invalid_secret(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("CONNECTOR_JIRA_WEBHOOK_SECRET", "secret-123")
     client = _client()
 
-    from api.routes import integrations.connectors as connectors_route
+    from api.routes.integrations import connectors as connectors_route
     from api.webhook_storage import WebhookEventStore
     from base_connector import ConnectorConfigStore
 
