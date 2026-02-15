@@ -73,6 +73,7 @@ Use this mode to run a fully local Streamlit demo with bundled dummy data only (
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements-demo.txt
+python apps/demo_streamlit/validate_demo.py
 streamlit run apps/demo_streamlit/app.py
 ```
 

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import ast
-import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_DIR = Path(__file__).resolve().parent
-ASSISTANT_PANEL = REPO_ROOT / "apps/web/frontend/src/components/assistant/AssistantPanel.tsx"
+APP_FILE = DEMO_DIR / "app.py"
 
 BANNED_IMPORT_SNIPPETS = (
     "fastapi",
@@ -34,10 +33,7 @@ REQUIRED_DEMO_FILES = [
     "apps/web/storage/scenarios.json",
     "apps/web/storage/notifications.json",
     "apps/demo_streamlit/data/feature_flags_demo.json",
-    "apps/demo_streamlit/data/assistant_outcome_variants.json",
 ]
-
-EXPECTED_SCENARIOS = ["project_intake", "resource_request", "vendor_procurement"]
 
 
 def parse_imports(file_path: Path) -> set[str]:
@@ -51,15 +47,6 @@ def parse_imports(file_path: Path) -> set[str]:
     return imports
 
 
-def validate_react_scenarios() -> list[str]:
-    source = ASSISTANT_PANEL.read_text(encoding="utf-8")
-    found = re.findall(r"id:\s*'([a-z_]+)'", source)
-    assistant_scenarios = sorted({value for value in found if value in EXPECTED_SCENARIOS})
-    if assistant_scenarios != sorted(EXPECTED_SCENARIOS):
-        return [f"React DEMO_SCENARIOS mismatch. Expected {EXPECTED_SCENARIOS}, found {assistant_scenarios}"]
-    return []
-
-
 def validate_demo() -> list[str]:
     errors: list[str] = []
 
@@ -67,8 +54,7 @@ def validate_demo() -> list[str]:
         if not (REPO_ROOT / rel).exists():
             errors.append(f"Missing required demo file: {rel}")
 
-    python_files = list(DEMO_DIR.glob("*.py"))
-    for file_path in python_files:
+    for file_path in DEMO_DIR.glob("*.py"):
         imports = parse_imports(file_path)
         for banned in BANNED_IMPORT_SNIPPETS:
             if any(banned in name for name in imports):
@@ -78,7 +64,13 @@ def validate_demo() -> list[str]:
         if any(f"{scheme}://" in source_lower for scheme in ("http", "https")):
             errors.append(f"Potential external URL literal found in {file_path.name}")
 
-    errors.extend(validate_react_scenarios())
+    app_source = APP_FILE.read_text(encoding="utf-8")
+    if "Define scope" in app_source or "Review dependencies" in app_source or "Publish artifact" in app_source:
+        errors.append("app.py still appears to contain the old hard-coded activity list")
+    if "scenarios.json" not in app_source:
+        errors.append("app.py must reference scenarios.json as the stages/activities source")
+    if '"responses"' not in app_source or '"match"' not in app_source:
+        errors.append("app.py must reference assistant response matching using responses/match keys")
 
     return errors
 

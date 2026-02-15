@@ -11,6 +11,8 @@ import streamlit as st
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_ROOT = Path(__file__).resolve().parent
+CONVERSATIONS_DIR = REPO_ROOT / "apps/web/data/demo_conversations"
+OUTBOX_PATH = DEMO_ROOT / "storage/demo_outbox.json"
 
 
 @dataclass(frozen=True)
@@ -19,11 +21,31 @@ class Scenario:
     label: str
 
 
-DEMO_SCENARIOS: list[Scenario] = [
-    Scenario(id="project_intake", label="Project Intake"),
-    Scenario(id="resource_request", label="Resource Request"),
-    Scenario(id="vendor_procurement", label="Vendor Procurement"),
-]
+@dataclass(frozen=True)
+class DemoActivity:
+    id: str
+    name: str
+
+
+@dataclass(frozen=True)
+class DemoStage:
+    id: str
+    name: str
+    activities: list[DemoActivity]
+
+
+@dataclass(frozen=True)
+class DemoMethodology:
+    id: str
+    name: str
+    stages: list[DemoStage]
+
+
+@dataclass(frozen=True)
+class Chip:
+    label: str
+    action: str
+    payload: dict[str, Any] | None = None
 
 
 DATASET_FILES: dict[str, Path] = {
@@ -35,16 +57,64 @@ DATASET_FILES: dict[str, Path] = {
     "workflow_monitoring": REPO_ROOT / "examples/demo-scenarios/workflow-monitoring.json",
     "approvals": REPO_ROOT / "examples/demo-scenarios/approvals.json",
     "assistant_responses": REPO_ROOT / "examples/demo-scenarios/assistant-responses.json",
-    "project_intake": REPO_ROOT / "apps/web/data/demo_conversations/project_intake.json",
-    "resource_request": REPO_ROOT / "apps/web/data/demo_conversations/resource_request.json",
-    "vendor_procurement": REPO_ROOT / "apps/web/data/demo_conversations/vendor_procurement.json",
     "feature_flags": DEMO_ROOT / "data/feature_flags_demo.json",
-    "assistant_outcome_variants": DEMO_ROOT / "data/assistant_outcome_variants.json",
     "storage_notifications": REPO_ROOT / "apps/web/storage/notifications.json",
     "storage_scenarios": REPO_ROOT / "apps/web/storage/scenarios.json",
 }
 
-OUTBOX_PATH = DEMO_ROOT / "storage/demo_outbox.json"
+
+def slugify(value: str) -> str:
+    return "-".join("".join(ch.lower() if ch.isalnum() else " " for ch in value).split()) or "unknown"
+
+
+def friendly_label(value: str) -> str:
+    return value.replace("_", " ").replace("-", " ").title()
+
+
+def normalize_methodologies(payload: dict[str, Any]) -> list[DemoMethodology]:
+    entries: list[tuple[str, dict[str, Any]]] = []
+    if isinstance(payload.get("methodologies"), list):
+        for idx, item in enumerate(payload["methodologies"]):
+            if isinstance(item, dict):
+                entries.append((str(item.get("id") or f"methodology-{idx}"), item))
+    elif isinstance(payload.get("scenarios"), list):
+        for idx, item in enumerate(payload["scenarios"]):
+            if isinstance(item, dict):
+                entries.append((str(item.get("id") or f"methodology-{idx}"), item))
+    else:
+        for key, item in payload.items():
+            if key == "published_decisions" or not isinstance(item, dict):
+                continue
+            entries.append((key, item))
+
+    methodologies: list[DemoMethodology] = []
+    for fallback_id, method in entries:
+        method_id = slugify(str(method.get("id") or fallback_id))
+        method_name = str(method.get("name") or method.get("title") or friendly_label(method_id))
+        stages: list[DemoStage] = []
+        for stage_idx, stage in enumerate(method.get("stages") or method.get("phases") or []):
+            if not isinstance(stage, dict):
+                continue
+            stage_name = str(stage.get("name") or stage.get("stage_name") or stage.get("title") or f"Stage {stage_idx + 1}")
+            stage_id = slugify(str(stage.get("id") or stage.get("stage_id") or stage_name))
+            activities: list[DemoActivity] = []
+            for activity_idx, activity in enumerate(stage.get("activities") or stage.get("tasks") or []):
+                if isinstance(activity, str):
+                    activity_name = activity
+                    activity_id = slugify(f"{stage_id}-{activity_name}")
+                elif isinstance(activity, dict):
+                    activity_name = str(activity.get("name") or activity.get("activity_name") or activity.get("title") or f"Activity {activity_idx + 1}")
+                    activity_id = slugify(str(activity.get("id") or activity.get("activity_id") or f"{stage_id}-{activity_name}"))
+                else:
+                    continue
+                activities.append(DemoActivity(id=activity_id, name=activity_name))
+            stages.append(DemoStage(id=stage_id, name=stage_name, activities=activities))
+        methodologies.append(DemoMethodology(id=method_id, name=method_name, stages=stages))
+    return methodologies
+
+
+def load_conversation_scenarios() -> list[Scenario]:
+    return [Scenario(id=path.stem, label=friendly_label(path.stem)) for path in sorted(CONVERSATIONS_DIR.glob("*.json"))]
 
 
 class DemoOutbox:
@@ -76,14 +146,17 @@ class DemoDataHub:
 
     def load(self, key: str) -> Any:
         if key not in self._payloads:
-            self._payloads[key] = json.loads(DATASET_FILES[key].read_text(encoding="utf-8"))
+            if key in DATASET_FILES:
+                self._payloads[key] = json.loads(DATASET_FILES[key].read_text(encoding="utf-8"))
+            else:
+                self._payloads[key] = json.loads((CONVERSATIONS_DIR / f"{key}.json").read_text(encoding="utf-8"))
         return self._payloads[key]
 
     def _record(self, view: str, dataset_keys: list[str]) -> None:
         self.provenance[view] = dataset_keys
 
     def normalized_projects(self) -> list[dict[str, Any]]:
-        self._record("Workspace", ["projects", "demo_seed", "portfolio_health"])
+        self._record("Workspace", ["projects", "demo_seed", "storage_scenarios"])
         projects = self.load("projects").get("projects", [])
         seed = self.load("demo_seed")
         rows: list[dict[str, Any]] = []
@@ -155,12 +228,20 @@ class DemoDataHub:
     def feature_flags(self) -> dict[str, bool]:
         return self.load("feature_flags")
 
+    def methodologies(self) -> list[DemoMethodology]:
+        return normalize_methodologies(self.load("storage_scenarios"))
+
     def assistant_script(self, scenario_id: str) -> list[dict[str, str]]:
         self._record("Assistant", [scenario_id])
-        return self.load(scenario_id)
+        script_blob = self.load(scenario_id)
+        if isinstance(script_blob, list):
+            return script_blob
+        if isinstance(script_blob, dict) and isinstance(script_blob.get("messages"), list):
+            return script_blob["messages"]
+        return []
 
-    def assistant_variants(self) -> dict[str, Any]:
-        return self.load("assistant_outcome_variants")
+    def assistant_responses(self) -> dict[str, Any]:
+        return self.load("assistant_responses")
 
 
 class DemoRunEngine:
@@ -170,9 +251,7 @@ class DemoRunEngine:
 
     def progress(self, step: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         agents = self.run_log.get("agents", [])
-        completed = agents[:step]
-        queued = agents[step:]
-        return completed, queued
+        return agents[:step], agents[step:]
 
     def play_step(self, step: int) -> int:
         agents = self.run_log.get("agents", [])
@@ -206,137 +285,247 @@ def get_data_hub() -> DemoDataHub:
     return DemoDataHub()
 
 
-def init_state() -> None:
+def find_methodology(methodologies: list[DemoMethodology], method_id: str) -> DemoMethodology | None:
+    return next((m for m in methodologies if m.id == method_id), None)
+
+
+def find_stage(method: DemoMethodology | None, stage_id: str) -> DemoStage | None:
+    if method is None:
+        return None
+    return next((s for s in method.stages if s.id == stage_id), None)
+
+
+def sync_methodology_state(hub: DemoDataHub) -> None:
+    methodologies = hub.methodologies()
+    if not methodologies:
+        return
+    method_ids = [m.id for m in methodologies]
+    if st.session_state.get("selected_methodology_id") not in method_ids:
+        st.session_state["selected_methodology_id"] = method_ids[0]
+
+    method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
+    if method is None:
+        return
+    stage_ids = [s.id for s in method.stages]
+    if stage_ids and st.session_state.get("selected_stage_id") not in stage_ids:
+        st.session_state["selected_stage_id"] = stage_ids[0]
+
+    stage = find_stage(method, st.session_state.get("selected_stage_id", ""))
+    activity_ids = [a.id for a in stage.activities] if stage else []
+    if activity_ids and st.session_state.get("selected_activity_id") not in activity_ids:
+        st.session_state["selected_activity_id"] = activity_ids[0]
+
+    st.session_state["selected_methodology_name"] = method.name
+    st.session_state["selected_stage_name"] = stage.name if stage else ""
+    st.session_state["selected_activity_name"] = next((a.name for a in stage.activities if a.id == st.session_state.get("selected_activity_id")), "") if stage else ""
+
+
+def scenario_restart(script: list[dict[str, str]]) -> None:
+    st.session_state["assistant_messages"] = []
+    st.session_state["assistant_step"] = 0
+    if script and script[0].get("role") == "assistant":
+        st.session_state["assistant_messages"].append(script[0])
+        st.session_state["assistant_step"] = 1
+
+
+def init_state(hub: DemoDataHub) -> None:
+    scenarios = load_conversation_scenarios()
+    default_scenario = scenarios[0].id if scenarios else ""
     defaults: dict[str, Any] = {
         "selected_page": "Home",
+        "active_page": "Home",
         "selected_project": None,
-        "selected_stage": None,
-        "selected_activity": None,
+        "selected_methodology_id": None,
+        "selected_methodology_name": "",
+        "selected_stage_id": None,
+        "selected_stage_name": "",
+        "selected_activity_id": None,
+        "selected_activity_name": "",
         "selected_status": "on_track",
-        "selected_lifecycle_event": "generate",
-        "selected_scenario": "project_intake",
+        "selected_outcome": "on_track",
+        "selected_scenario": default_scenario,
         "assistant_messages": [],
         "assistant_step": 0,
+        "assistant_prompt": "",
+        "assistant_last_artifact": None,
+        "completed_activity_ids": set(),
         "demo_run_step": 0,
-        "feature_flags": get_data_hub().feature_flags(),
+        "feature_flags": hub.feature_flags(),
     }
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+    sync_methodology_state(hub)
 
 
-def lifecycle_actions(outbox: DemoOutbox) -> None:
-    cols = st.columns(3)
-    for event, col in zip(["generate", "review", "publish"], cols, strict=True):
-        if col.button(event.capitalize(), use_container_width=True, key=f"lifecycle-{event}"):
-            st.session_state["selected_lifecycle_event"] = event
-            outbox.append(
-                "assistant_actions",
-                {
-                    "event_id": f"assist-{uuid4().hex[:10]}",
-                    "timestamp": datetime.now(tz=UTC).isoformat(),
-                    "event": event,
-                    "project": st.session_state.get("selected_project"),
-                    "stage": st.session_state.get("selected_stage"),
-                    "activity": st.session_state.get("selected_activity"),
-                },
-            )
-            st.success(f"Lifecycle action simulated: {event}")
+def append_outbox_event(outbox: DemoOutbox, event_type: str, payload: dict[str, Any]) -> None:
+    outbox.append(
+        "assistant_actions",
+        {
+            "type": event_type,
+            "ts": datetime.now(tz=UTC).isoformat(),
+            **payload,
+        },
+    )
 
 
-def scenario_branch_reply(scenario: str, step: int, user_text: str) -> str | None:
-    normalized = user_text.lower()
-    if scenario == "project_intake" and step == 3 and "onboarding" in normalized:
-        return "Great choice. I captured the objective as cutting onboarding cycle time by 30% in two quarters. Do you want me to draft an intake summary now?"
-    if scenario == "resource_request" and step == 3 and "backfill" in normalized:
-        return "Understood. I can prepare a hiring backfill brief with lead-time assumptions and milestone risk impact. Should I proceed?"
-    if scenario == "vendor_procurement" and step == 3 and "fast" in normalized:
-        return "Got it. I will optimize for fast go-live and streamline legal review checkpoints. Do you want a draft evaluation scorecard?"
-    return None
+def generate_artifact_content(artifact_type: str) -> str:
+    return (
+        f"# {artifact_type.replace('_', ' ').title()}\n\n"
+        f"Project: {st.session_state.get('selected_project') or 'N/A'}\n"
+        f"Methodology: {st.session_state.get('selected_methodology_name') or 'N/A'}\n"
+        f"Stage: {st.session_state.get('selected_stage_name') or 'N/A'}\n"
+        f"Activity: {st.session_state.get('selected_activity_name') or 'N/A'}\n"
+        f"Outcome: {st.session_state.get('selected_outcome')}\n"
+        f"Generated: {datetime.now(tz=UTC).isoformat()}\n"
+    )
 
 
-def get_action_chips(flags: dict[str, bool]) -> list[str]:
-    chips = ["Open dashboard", "Suggest next activity", "Generate summary"]
-    if flags.get("multi_agent_collab"):
-        chips.append("Shared insights")
-    if flags.get("predictive_alerts"):
-        chips.append("Predictive alerts")
-    if flags.get("multimodal_intake"):
-        chips.append("Process intake attachments")
-    return chips
+def handle_chip(chip: Chip, outbox: DemoOutbox) -> None:
+    payload = chip.payload or {}
+    if chip.action == "NAVIGATE":
+        page = payload.get("page")
+        if isinstance(page, str):
+            st.session_state["active_page"] = page
+            st.session_state["selected_page"] = page
+    elif chip.action == "OPEN_ACTIVITY":
+        stage_id = payload.get("stage_id")
+        activity_id = payload.get("activity_id")
+        if isinstance(stage_id, str) and isinstance(activity_id, str):
+            st.session_state["selected_stage_id"] = stage_id
+            st.session_state["selected_activity_id"] = activity_id
+    elif chip.action == "COMPLETE_ACTIVITY":
+        stage_id = str(payload.get("stage_id") or st.session_state.get("selected_stage_id") or "")
+        activity_id = str(payload.get("activity_id") or st.session_state.get("selected_activity_id") or "")
+        if activity_id:
+            st.session_state["completed_activity_ids"].add(activity_id)
+            append_outbox_event(outbox, "activity.completed", {"stage_id": stage_id, "activity_id": activity_id})
+    elif chip.action == "GENERATE_ARTIFACT":
+        artifact_type = str(payload.get("artifact_type") or "status_report")
+        content = generate_artifact_content(artifact_type)
+        st.session_state["assistant_last_artifact"] = {
+            "artifact_type": artifact_type,
+            "content": content,
+            "file_name": f"{artifact_type}_{slugify(st.session_state.get('selected_activity_name') or 'artifact')}.md",
+        }
+        append_outbox_event(
+            outbox,
+            "artifact.generated",
+            {
+                "artifact_type": artifact_type,
+                "stage_id": st.session_state.get("selected_stage_id"),
+                "activity_id": st.session_state.get("selected_activity_id"),
+            },
+        )
 
 
-def add_assistant_variant_response(hub: DemoDataHub) -> None:
-    variants = hub.assistant_variants().get("variants", {})
-    scenario = st.session_state["selected_scenario"]
-    status = st.session_state["selected_status"]
-    event = st.session_state["selected_lifecycle_event"]
-    activity = st.session_state.get("selected_activity") or "default"
-    scenario_data = variants.get(scenario, {})
-    activity_data = scenario_data.get(activity, scenario_data.get("default", {}))
-    status_data = activity_data.get(status, activity_data.get("on_track", {}))
-    message = status_data.get(event, status_data.get("generate", "Local demo response unavailable."))
-    st.session_state["assistant_messages"].append({"role": "assistant", "content": message})
+def get_action_chips() -> list[Chip]:
+    return [
+        Chip(label="Go to Dashboard", action="NAVIGATE", payload={"page": "Dashboard"}),
+        Chip(
+            label="Open selected activity",
+            action="OPEN_ACTIVITY",
+            payload={"stage_id": st.session_state.get("selected_stage_id"), "activity_id": st.session_state.get("selected_activity_id")},
+        ),
+        Chip(
+            label="Complete current activity",
+            action="COMPLETE_ACTIVITY",
+            payload={"stage_id": st.session_state.get("selected_stage_id"), "activity_id": st.session_state.get("selected_activity_id")},
+        ),
+        Chip(label="Generate status report", action="GENERATE_ARTIFACT", payload={"artifact_type": "status_report"}),
+    ]
+
+
+def choose_assistant_response(hub: DemoDataHub, prompt: str) -> tuple[str, str]:
+    response_payload = hub.assistant_responses()
+    lowered = " ".join(
+        [
+            st.session_state.get("selected_activity_name", ""),
+            st.session_state.get("selected_stage_name", ""),
+            st.session_state.get("selected_outcome", ""),
+            prompt,
+        ]
+    ).lower()
+    for entry in response_payload.get("responses", []):
+        match_terms = [str(term).lower() for term in entry.get("match", [])]
+        if any(term in lowered for term in match_terms):
+            summary = str(entry.get("summary", ""))
+            items = entry.get("items", [])
+            bullet_block = "\n".join(f"- {item}" for item in items)
+            return f"{summary}\n{bullet_block}".strip(), "responses.match"
+
+    default = response_payload.get("default", {})
+    summary = str(default.get("summary", "Local demo response unavailable."))
+    items = default.get("items", [])
+    bullet_block = "\n".join(f"- {item}" for item in items)
+    return f"{summary}\n{bullet_block}".strip(), "responses.default"
 
 
 def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.subheader("Assistant")
     context_cols = st.columns(2)
     context_cols[0].markdown(f"**Project:** {st.session_state.get('selected_project') or 'Not selected'}")
-    context_cols[0].markdown(f"**Stage:** {st.session_state.get('selected_stage') or 'Not selected'}")
-    context_cols[1].markdown(f"**Activity:** {st.session_state.get('selected_activity') or 'Not selected'}")
-    context_cols[1].markdown(f"**Status:** {st.session_state.get('selected_status')}")
+    context_cols[0].markdown(f"**Stage:** {st.session_state.get('selected_stage_name') or 'Not selected'}")
+    context_cols[1].markdown(f"**Activity:** {st.session_state.get('selected_activity_name') or 'Not selected'}")
+    context_cols[1].markdown(f"**Status:** {st.session_state.get('selected_outcome')}")
 
     st.caption("Action chips")
     chip_cols = st.columns(2)
-    chips = get_action_chips(st.session_state["feature_flags"])
-    for idx, chip in enumerate(chips):
-        if chip_cols[idx % 2].button(chip, key=f"chip-{idx}"):
-            st.session_state["assistant_messages"].append({"role": "assistant", "content": f"Executed quick action: {chip}."})
+    for idx, chip in enumerate(get_action_chips()):
+        if chip_cols[idx % 2].button(chip.label, key=f"chip-{idx}"):
+            handle_chip(chip, outbox)
+            sync_methodology_state(hub)
 
-    lifecycle_actions(outbox)
+    st.session_state["selected_outcome"] = st.selectbox("Scenario outcome", ["on_track", "at_risk", "off_track"], index=["on_track", "at_risk", "off_track"].index(st.session_state["selected_outcome"]))
 
-    scenario_options = [scenario.id for scenario in DEMO_SCENARIOS]
-    st.session_state["selected_scenario"] = st.selectbox(
-        "Assistant demo scenario",
-        scenario_options,
-        index=scenario_options.index(st.session_state["selected_scenario"]),
-        format_func=lambda value: next(s.label for s in DEMO_SCENARIOS if s.id == value),
-    )
-    script = hub.assistant_script(st.session_state["selected_scenario"])
+    scenarios = load_conversation_scenarios()
+    scenario_ids = [s.id for s in scenarios]
+    if scenario_ids:
+        if st.session_state["selected_scenario"] not in scenario_ids:
+            st.session_state["selected_scenario"] = scenario_ids[0]
+        selected = st.selectbox(
+            "Assistant demo scenario",
+            scenario_ids,
+            index=scenario_ids.index(st.session_state["selected_scenario"]),
+            format_func=lambda value: next((s.label for s in scenarios if s.id == value), value),
+        )
+        changed = selected != st.session_state["selected_scenario"]
+        st.session_state["selected_scenario"] = selected
+        script = hub.assistant_script(selected)
+        if changed:
+            scenario_restart(script)
 
-    if st.button("Restart scenario", use_container_width=True):
-        st.session_state["assistant_messages"] = []
-        st.session_state["assistant_step"] = 0
+        if st.button("Restart scenario", use_container_width=True):
+            scenario_restart(script)
 
-    if st.button("Play next step", use_container_width=True):
-        step = st.session_state["assistant_step"]
-        if step < len(script):
-            st.session_state["assistant_messages"].append(script[step])
-            st.session_state["assistant_step"] = step + 1
-        else:
-            st.info("Scenario complete.")
-
-    with st.expander("Type expected response (React parity mode)"):
-        user_msg = st.text_input("Send scripted message", key="assistant_user_input")
-        if st.button("Send", key="assistant-send"):
+        if st.button("Play next step", use_container_width=True):
             step = st.session_state["assistant_step"]
-            branch = scenario_branch_reply(st.session_state["selected_scenario"], step, user_msg)
-            st.session_state["assistant_messages"].append({"role": "user", "content": user_msg})
-            if branch:
-                st.session_state["assistant_messages"].append({"role": "assistant", "content": branch})
-                st.session_state["assistant_step"] = min(step + 2, len(script))
-            elif step < len(script):
-                expected = script[step]
-                if expected.get("role") == "user" and user_msg.lower() in expected.get("content", "").lower():
-                    st.session_state["assistant_step"] = step + 1
-                else:
-                    st.session_state["assistant_messages"].append({"role": "assistant", "content": "For this demo script, use the suggested response path or branch alternative."})
-            add_assistant_variant_response(hub)
+            if step < len(script):
+                st.session_state["assistant_messages"].append(script[step])
+                st.session_state["assistant_step"] = step + 1
+            else:
+                st.info("Scenario complete.")
+
+    prompt = st.text_area("Prompt", key="assistant_prompt")
+    if st.button("Generate", use_container_width=True):
+        response, provenance = choose_assistant_response(hub, prompt)
+        st.session_state["assistant_messages"].append({"role": "user", "content": prompt})
+        st.session_state["assistant_messages"].append({"role": "assistant", "content": response, "provenance": provenance})
+
+    artifact = st.session_state.get("assistant_last_artifact")
+    if artifact:
+        st.download_button(
+            label=f"Download {artifact['artifact_type']}",
+            data=artifact["content"],
+            file_name=artifact["file_name"],
+            mime="text/markdown",
+            use_container_width=True,
+        )
 
     st.caption("Transcript")
     for msg in st.session_state["assistant_messages"]:
-        st.markdown(f"**{msg.get('role', 'assistant').capitalize()}:** {msg.get('content', '')}")
+        provenance = f" _(source: {msg.get('provenance')})_" if msg.get("provenance") else ""
+        st.markdown(f"**{msg.get('role', 'assistant').capitalize()}:** {msg.get('content', '')}{provenance}")
 
 
 def render_feature_flags_panel() -> None:
@@ -355,10 +544,7 @@ def render_feature_flags_panel() -> None:
 def render_provenance(hub: DemoDataHub, view_name: str) -> None:
     st.subheader("Data provenance")
     keys = hub.provenance.get(view_name, [])
-    rows = []
-    for key in keys:
-        path = DATASET_FILES[key]
-        rows.append({"dataset": key, "file": str(path.relative_to(REPO_ROOT if path.is_relative_to(REPO_ROOT) else DEMO_ROOT.parent))})
+    rows = [{"dataset": key, "file": str(DATASET_FILES[key].relative_to(REPO_ROOT))} for key in keys if key in DATASET_FILES]
     st.dataframe(rows, hide_index=True, use_container_width=True)
 
 
@@ -375,22 +561,63 @@ def render_workspace(hub: DemoDataHub) -> None:
     st.header("Workspace")
     projects = hub.normalized_projects()
     project_ids = [row["id"] for row in projects]
-    if not st.session_state["selected_project"]:
-        st.session_state["selected_project"] = project_ids[0]
-    st.session_state["selected_project"] = st.selectbox("Project", project_ids, index=project_ids.index(st.session_state["selected_project"]))
+    if project_ids:
+        if not st.session_state["selected_project"]:
+            st.session_state["selected_project"] = project_ids[0]
+        st.session_state["selected_project"] = st.selectbox("Project", project_ids, index=project_ids.index(st.session_state["selected_project"]))
 
-    lifecycle = hub.normalized_dashboard()["lifecycle"]
-    stages = lifecycle.get("stage_gates", [])
-    stage_ids = [stage.get("stage_name", "Unknown") for stage in stages]
-    st.session_state["selected_stage"] = st.selectbox("Stage", stage_ids, index=0 if st.session_state["selected_stage"] not in stage_ids else stage_ids.index(st.session_state["selected_stage"]))
+    methodologies = hub.methodologies()
+    if not methodologies:
+        st.warning("No methodologies found in scenarios.json")
+        return
 
-    activity_options = ["Define scope", "Review dependencies", "Prepare approval packet", "Publish artifact"]
-    st.session_state["selected_activity"] = st.selectbox("Activity", activity_options, index=0 if st.session_state["selected_activity"] not in activity_options else activity_options.index(st.session_state["selected_activity"]))
-    st.session_state["selected_status"] = st.selectbox("Scenario outcome", ["on_track", "at_risk", "off_track"], index=["on_track", "at_risk", "off_track"].index(st.session_state["selected_status"]))
+    method_ids = [m.id for m in methodologies]
+    st.session_state["selected_methodology_id"] = st.selectbox(
+        "Methodology",
+        method_ids,
+        index=method_ids.index(st.session_state["selected_methodology_id"]) if st.session_state["selected_methodology_id"] in method_ids else 0,
+        format_func=lambda m_id: next((m.name for m in methodologies if m.id == m_id), m_id),
+    )
+    sync_methodology_state(hub)
 
-    st.dataframe(stages, hide_index=True, use_container_width=True)
-    if st.session_state["feature_flags"].get("multi_agent_collab"):
-        st.info("Shared insights are enabled for workspace collaboration.")
+    selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
+    stage_ids = [s.id for s in selected_method.stages] if selected_method else []
+    if stage_ids:
+        st.session_state["selected_stage_id"] = st.selectbox(
+            "Stage",
+            stage_ids,
+            index=stage_ids.index(st.session_state["selected_stage_id"]) if st.session_state["selected_stage_id"] in stage_ids else 0,
+            format_func=lambda s_id: next((s.name for s in selected_method.stages if s.id == s_id), s_id),
+        )
+
+    sync_methodology_state(hub)
+    selected_stage = find_stage(selected_method, st.session_state["selected_stage_id"])
+    activity_ids = [a.id for a in selected_stage.activities] if selected_stage else []
+    if activity_ids:
+        st.session_state["selected_activity_id"] = st.selectbox(
+            "Activity",
+            activity_ids,
+            index=activity_ids.index(st.session_state["selected_activity_id"]) if st.session_state["selected_activity_id"] in activity_ids else 0,
+            format_func=lambda a_id: next((a.name for a in selected_stage.activities if a.id == a_id), a_id),
+        )
+
+    sync_methodology_state(hub)
+    st.dataframe(
+        [
+            {
+                "stage_id": stage.id,
+                "stage_name": stage.name,
+                "activities": ", ".join(activity.name for activity in stage.activities),
+            }
+            for stage in selected_method.stages
+        ],
+        hide_index=True,
+        use_container_width=True,
+    )
+
+    completed = st.session_state.get("completed_activity_ids", set())
+    if completed:
+        st.success(f"Completed activities: {len(completed)}")
     render_provenance(hub, "Workspace")
 
 
@@ -408,8 +635,6 @@ def render_dashboard(hub: DemoDataHub) -> None:
 def render_approvals(hub: DemoDataHub) -> None:
     st.header("Approvals")
     st.dataframe(hub.normalized_approvals(), hide_index=True, use_container_width=True)
-    if st.session_state["feature_flags"].get("duplicate_resolution"):
-        st.info("Duplicate resolution route is demo-enabled.")
     render_provenance(hub, "Approvals")
 
 
@@ -466,8 +691,8 @@ def main() -> None:
     st.title("Standalone PPM Demo Mode")
     st.caption("Local-only mirror of web console demo mode (no backend services, no external calls).")
 
-    init_state()
     hub = get_data_hub()
+    init_state(hub)
     outbox = DemoOutbox(OUTBOX_PATH)
     engine = DemoRunEngine(hub.normalized_demo_run(), outbox)
 
@@ -479,7 +704,10 @@ def main() -> None:
     if st.session_state["feature_flags"].get("agent_run_ui"):
         nav_pages.append("Agent Runs")
 
+    if st.session_state.get("active_page") in nav_pages:
+        st.session_state["selected_page"] = st.session_state["active_page"]
     st.session_state["selected_page"] = st.sidebar.radio("Navigation", nav_pages, index=nav_pages.index(st.session_state["selected_page"]) if st.session_state["selected_page"] in nav_pages else 0)
+    st.session_state["active_page"] = st.session_state["selected_page"]
 
     left, right = st.columns([3, 2], gap="large")
     with left:
