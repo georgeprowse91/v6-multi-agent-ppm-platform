@@ -1,0 +1,68 @@
+{
+  "variants": {
+    "project_intake": {
+      "Define scope": {
+        "on_track": {
+          "generate": "Generated intake scope brief with milestone assumptions and target outcomes.",
+          "review": "Review package assembled with benefits, risks, and dependencies.",
+          "publish": "Intake summary published to the demo outbox and audit trail."
+        },
+        "at_risk": {
+          "generate": "Generated intake scope with flagged dependency risks for onboarding systems.",
+          "review": "Review highlights unresolved dependencies and proposes mitigations.",
+          "publish": "Published an at-risk intake package with escalation notes."
+        },
+        "off_track": {
+          "generate": "Generated intake draft with major delivery risk warnings.",
+          "review": "Review indicates replanning required before gate approval.",
+          "publish": "Published exception report instead of standard intake package."
+        }
+      },
+      "default": {
+        "on_track": {
+          "generate": "Generated project intake content for the selected activity.",
+          "review": "Prepared review checklist for this intake activity.",
+          "publish": "Published intake artifact snapshot to demo outbox."
+        }
+      }
+    },
+    "resource_request": {
+      "default": {
+        "on_track": {
+          "generate": "Generated resource request plan with baseline staffing assumptions.",
+          "review": "Review includes timeline impact and skills coverage.",
+          "publish": "Published resource request package for approval routing."
+        },
+        "at_risk": {
+          "generate": "Generated resource request with contingency staffing options.",
+          "review": "Review highlights schedule risk from unresolved hiring gap.",
+          "publish": "Published at-risk resource request with mitigation plan."
+        },
+        "off_track": {
+          "generate": "Generated emergency staffing request due to critical capacity shortfall.",
+          "review": "Review indicates delivery milestones likely to slip.",
+          "publish": "Published executive escalation for resource shortfall."
+        }
+      }
+    },
+    "vendor_procurement": {
+      "default": {
+        "on_track": {
+          "generate": "Generated vendor scorecard balancing compliance and delivery speed.",
+          "review": "Review package includes legal, risk, and security evidence.",
+          "publish": "Published procurement recommendation to demo outbox."
+        },
+        "at_risk": {
+          "generate": "Generated vendor assessment with compliance gap flags.",
+          "review": "Review recommends extra due diligence before selection.",
+          "publish": "Published risk-adjusted vendor recommendation."
+        },
+        "off_track": {
+          "generate": "Generated procurement exception report due to failed controls.",
+          "review": "Review requests contract pause and executive intervention.",
+          "publish": "Published procurement hold notice."
+        }
+      }
+    }
+  }
+}
