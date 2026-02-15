@@ -1,7 +1,11 @@
 {
-  "name": "multi-agent-ppm",
-  "dockerFile": "Dockerfile",
-  "workspaceFolder": "/workspace",
-  "runArgs": ["--env-file", ".devcontainer/dev.env"],
-  "postCreateCommand": "make dev-up && make migrate"
+ "name": "multi-agent-ppm",
+ "image": "mcr.microsoft.com/devcontainers/python:3.11",
+ "features": {
+   "ghcr.io/devcontainers/features/node:1": {
+     "version": "20"
+   },
+   "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+ },
+ "postCreateCommand": "echo Devcontainer ready"
 }
