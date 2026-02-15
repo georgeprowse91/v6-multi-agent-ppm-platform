@@ -96,7 +96,7 @@ def test_demo_startup_seeds_entities_and_artifacts(client):
     tree = client.get("/api/tree/demo-predictive")
     assert tree.status_code == 200
     node_types = {node["type"] for node in tree.json()["nodes"]}
-    assert {"document", "sheet", "milestone", "dashboard"}.issubset(node_types)
+    assert {"document", "sheet", "milestone", "note"}.issubset(node_types)
 
 
 def test_workspace_response_is_yaml_backed_in_demo(client):

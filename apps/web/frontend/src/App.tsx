@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAppStore } from '@/store';
 import { RequireAdminRole, RequireAuth, RequirePermission, RequireTenantContext } from '@/routing/RouteGuards';
@@ -37,6 +37,22 @@ const EnterpriseUpliftPage = React.lazy(() => import('./pages/EnterpriseUpliftPa
 const AgentProfilePage = React.lazy(() => import('./pages/AgentProfilePage'));
 const AppLayout = React.lazy(() => import('./components/layout/AppLayout').then((module) => ({ default: module.AppLayout })));
 
+function isDemoModeEnabled(): boolean {
+  const env = import.meta.env as Record<string, unknown>;
+  const value = env.DEMO_MODE ?? env.VITE_DEMO_MODE;
+  return ['1', 'true', 'yes', 'on'].includes(String(value ?? '').toLowerCase());
+}
+
+
+export function DemoHomeRedirect() {
+  const { session } = useAppStore();
+
+  if (isDemoModeEnabled() && session.authenticated) {
+    return <Navigate to="/?project_id=demo-predictive" replace />;
+  }
+
+  return <HomePage />;
+}
 
 function PageSkeleton() {
   return (
@@ -79,7 +95,7 @@ function AppRoutes() {
               </AppLayout>
             )}
           >
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<DemoHomeRedirect />} />
             <Route path="/portfolio/:portfolioId" element={<WorkspacePage type="portfolio" />} />
             <Route path="/portfolios/:portfolioId" element={<WorkspacePage type="portfolio" />} />
             <Route path="/portfolios" element={<WorkspaceDirectoryPage type="portfolio" />} />

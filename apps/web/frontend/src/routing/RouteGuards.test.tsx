@@ -19,6 +19,7 @@ describe('RequireAuth', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
     resetStore();
   });
 
@@ -76,6 +77,28 @@ describe('RequireAuth', () => {
       expect(state.session.user?.roles).toEqual(['portfolio_admin']);
       expect(state.tenantContext).toEqual({ tenantId: 'demo-tenant', tenantName: 'demo-tenant' });
     });
+  });
+
+
+  it('does not redirect to login while demo mode is bootstrapping auto-session', async () => {
+    vi.stubEnv('VITE_DEMO_MODE', 'true');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ authenticated: false }), { status: 200 })
+    );
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<RequireAuth />}>
+            <Route path="/" element={<div>Protected home</div>} />
+          </Route>
+          <Route path="/login" element={<div>Login page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Bootstrapping demo session…')).toBeInTheDocument();
+    expect(screen.queryByText('Login page')).not.toBeInTheDocument();
+    expect(fetchSpy).toHaveBeenCalledWith('/v1/session');
   });
 
   it('resolves loading and redirects to login when bootstrap returns unauthenticated', async () => {

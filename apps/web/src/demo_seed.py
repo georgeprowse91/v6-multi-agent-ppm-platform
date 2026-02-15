@@ -168,10 +168,10 @@ def _seed_tree_artifacts(tree_store: TreeStore, project_id: str, sheet_id: str, 
         DEMO_TENANT_ID,
         project_id,
         TreeNodeCreate(
-            type=NodeType.dashboard,
+            type=NodeType.note,
             parent_id=root.node_id,
             title="Portfolio Snapshot",
-            ref=TreeNodeRef(dashboard_id="executive-portfolio"),
+            ref=TreeNodeRef(text="Open the executive portfolio dashboard from Analytics."),
         ),
     )
 

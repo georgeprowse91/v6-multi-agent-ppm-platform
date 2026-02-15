@@ -59,7 +59,10 @@ from demo_integrations import (  # noqa: E402
     DemoDocumentServiceClient,
     DemoOutbox,
 )
-from demo_seed import seed_demo_data  # noqa: E402
+from demo_seed import (  # noqa: E402
+    DEMO_TENANT_ID,
+    seed_demo_data,
+)
 from data_service_proxy import DataServiceClient  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
@@ -278,6 +281,7 @@ class SessionInfo(BaseModel):
     subject: str | None = None
     tenant_id: str | None = None
     roles: list[str] | None = None
+    permissions: list[str] | None = None
 
 
 class IntakeExtractionEntity(BaseModel):
@@ -1738,6 +1742,23 @@ def _session_from_request(request: Request) -> dict[str, Any] | None:
     return _dev_session()
 
 
+def _all_permission_ids() -> list[str]:
+    permission_ids: set[str] = set()
+    for role in _list_roles():
+        permission_ids.update(role.permissions)
+    return sorted(permission_ids)
+
+
+def _demo_session_payload() -> dict[str, Any]:
+    return {
+        "subject": "demo-user",
+        "tenant_id": DEMO_TENANT_ID,
+        "roles": ["PMO_ADMIN"],
+        "permissions": _all_permission_ids(),
+        "access_token": "demo-token",
+    }
+
+
 def _require_session(request: Request) -> dict[str, Any]:
     session = _session_from_request(request)
     if not session:
@@ -2186,6 +2207,11 @@ def _role_ids_for_user(user_id: str) -> set[str]:
 
 
 def _permissions_for_user(request: Request, session: dict[str, Any]) -> set[str]:
+    explicit_permissions = session.get("permissions") or []
+    if isinstance(explicit_permissions, str):
+        explicit_permissions = [explicit_permissions]
+    seeded_permissions = {permission for permission in explicit_permissions if permission}
+
     role_ids = set(_roles_from_request(request, session))
     subject = session.get("subject")
     if subject:
@@ -2197,7 +2223,7 @@ def _permissions_for_user(request: Request, session: dict[str, Any]) -> set[str]
         role = roles.get(role_id)
         if role:
             permissions.update(role.permissions)
-    return permissions
+    return permissions.union(seeded_permissions)
 
 
 def permission_required(*permissions: str):
@@ -2225,6 +2251,31 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(PermissionMiddleware)
+
+
+class DemoAutoSessionMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if not _demo_mode_enabled():
+            return await call_next(request)
+
+        if request.url.path not in {"/", "/app"}:
+            return await call_next(request)
+
+        if _session_from_request(request):
+            return await call_next(request)
+
+        response = RedirectResponse(url="/app?project_id=demo-predictive", status_code=307)
+        response.set_cookie(
+            SESSION_COOKIE,
+            _encode_cookie(_demo_session_payload(), 8 * 60 * 60),
+            httponly=True,
+            secure=_cookie_secure(),
+            samesite="lax",
+        )
+        return response
+
+
+app.add_middleware(DemoAutoSessionMiddleware)
 
 
 def _detect_workflow_cycles(nodes: list[str], edges: list[tuple[str, str]]) -> bool:
@@ -3048,6 +3099,7 @@ async def session_info(request: Request) -> SessionInfo:
         subject=session.get("subject"),
         tenant_id=session.get("tenant_id"),
         roles=session.get("roles"),
+        permissions=session.get("permissions"),
     )
 
 

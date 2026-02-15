@@ -4,6 +4,12 @@ import { hasPermission, resolvePermissions, type Role } from '@/auth/permissions
 import { useAppStore } from '@/store';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 
+function isDemoModeEnabled(): boolean {
+  const env = import.meta.env as Record<string, unknown>;
+  const value = env.DEMO_MODE ?? env.VITE_DEMO_MODE;
+  return ['1', 'true', 'yes', 'on'].includes(String(value ?? '').toLowerCase());
+}
+
 export function RequireAuth() {
   const { session, setSession, setTenantContext } = useAppStore();
 
@@ -86,6 +92,12 @@ export function RequireAuth() {
   }
 
   if (!session.authenticated) {
+    if (isDemoModeEnabled()) {
+      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+        window.location.assign('/');
+      }
+      return <div aria-live="polite">Bootstrapping demo session…</div>;
+    }
     return <Navigate to="/login" replace />;
   }
 
