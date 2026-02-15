@@ -33,6 +33,7 @@ const ForbiddenPage = React.lazy(() => import('./pages/ForbiddenPage'));
 const ProjectConfigPage = React.lazy(() => import('./pages/ProjectConfigPage'));
 const NotificationCenterPage = React.lazy(() => import('./pages/NotificationCenterPage'));
 const DemoRunPage = React.lazy(() => import('./pages/DemoRunPage'));
+const EnterpriseUpliftPage = React.lazy(() => import('./pages/EnterpriseUpliftPage'));
 const AgentProfilePage = React.lazy(() => import('./pages/AgentProfilePage'));
 const AppLayout = React.lazy(() => import('./components/layout/AppLayout').then((module) => ({ default: module.AppLayout })));
 
@@ -126,6 +127,7 @@ function AppRoutes() {
             <Route path="/analytics/dashboard" element={<AnalyticsDashboard />} />
             <Route path="/projects/:projectId/performance-dashboard" element={<PerformanceDashboardPage />} />
             <Route path="/demo-run" element={<DemoRunPage />} />
+            <Route path="/enterprise-uplift" element={<EnterpriseUpliftPage />} />
             <Route path="/403" element={<ForbiddenPage />} />
           </Route>
         </Route>
