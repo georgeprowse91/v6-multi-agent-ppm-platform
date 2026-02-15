@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- [integrations/apps/connector-hub/helm/templates](/integrations/apps/connector-hub/helm/templates): Templates used by the component (deployment or message content).
-- [integrations/apps/connector-hub/helm/Chart.yaml](/integrations/apps/connector-hub/helm/Chart.yaml): Helm chart metadata and versioning.
-- [integrations/apps/connector-hub/helm/values.yaml](/integrations/apps/connector-hub/helm/values.yaml): Helm values for environment-specific overrides.
+- [templates](/integrations/apps/connector-hub/helm/templates): Templates used by the component (deployment or message content).
+- [Chart.yaml](/integrations/apps/connector-hub/helm/Chart.yaml): Helm chart metadata and versioning.
+- [values.yaml](/integrations/apps/connector-hub/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

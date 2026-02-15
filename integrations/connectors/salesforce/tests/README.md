@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Salesforce integrati
 
 ## What's inside
 
-- [integrations/connectors/salesforce/tests/fixtures](/integrations/connectors/salesforce/tests/fixtures): Subdirectory containing fixtures assets for this area.
+- [fixtures](/integrations/connectors/salesforce/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

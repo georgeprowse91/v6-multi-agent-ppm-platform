@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 17: Cha
 
 ## What's inside
 
-- [agents/operations-management/agent-17-change-configuration/src](/agents/operations-management/agent-17-change-configuration/src): Implementation source for this component.
-- [agents/operations-management/agent-17-change-configuration/tests](/agents/operations-management/agent-17-change-configuration/tests): Test suites and fixtures.
-- [agents/operations-management/agent-17-change-configuration/Dockerfile](/agents/operations-management/agent-17-change-configuration/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/operations-management/agent-17-change-configuration/src): Implementation source for this component.
+- [tests](/agents/operations-management/agent-17-change-configuration/tests): Test suites and fixtures.
+- [Dockerfile](/agents/operations-management/agent-17-change-configuration/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

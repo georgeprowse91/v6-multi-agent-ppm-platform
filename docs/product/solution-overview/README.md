@@ -10,12 +10,12 @@ The files in this folder are go-to-market narratives. The repository already inc
 
 ## What's inside
 
-- [docs/product/solution-overview/change-management-training.md](/docs/product/solution-overview/change-management-training.md): Markdown documentation for this area.
-- [docs/product/solution-overview/competitive-battlecards.md](/docs/product/solution-overview/competitive-battlecards.md): Markdown documentation for this area.
-- [docs/product/solution-overview/go-to-market-strategy.md](/docs/product/solution-overview/go-to-market-strategy.md): Markdown documentation for this area.
-- [docs/product/solution-overview/market-analysis.md](/docs/product/solution-overview/market-analysis.md): Markdown documentation for this area.
-- [docs/product/solution-overview/marketing-sales-collateral.md](/docs/product/solution-overview/marketing-sales-collateral.md): Markdown documentation for this area.
-- [docs/product/solution-overview/platform-overview.md](/docs/product/solution-overview/platform-overview.md): Markdown documentation for this area.
+- [change-management-training.md](/docs/product/solution-overview/change-management-training.md): Markdown documentation for this area.
+- [competitive-battlecards.md](/docs/product/solution-overview/competitive-battlecards.md): Markdown documentation for this area.
+- [go-to-market-strategy.md](/docs/product/solution-overview/go-to-market-strategy.md): Markdown documentation for this area.
+- [market-analysis.md](/docs/product/solution-overview/market-analysis.md): Markdown documentation for this area.
+- [marketing-sales-collateral.md](/docs/product/solution-overview/marketing-sales-collateral.md): Markdown documentation for this area.
+- [platform-overview.md](/docs/product/solution-overview/platform-overview.md): Markdown documentation for this area.
 
 ## How it's used
 

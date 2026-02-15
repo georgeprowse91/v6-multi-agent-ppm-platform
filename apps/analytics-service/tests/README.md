@@ -6,7 +6,7 @@ Document the tests assets for the Analytics Service application.
 
 ## What's inside
 
-- [apps/analytics-service/tests/test_scheduler.py](/apps/analytics-service/tests/test_scheduler.py): Python module used by this component.
+- [test_scheduler.py](/apps/analytics-service/tests/test_scheduler.py): Python module used by this component.
 
 ## How it's used
 

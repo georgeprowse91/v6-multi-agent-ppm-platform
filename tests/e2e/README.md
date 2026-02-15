@@ -6,9 +6,9 @@ Document the e2e test scope and how these checks validate the platform.
 
 ## What's inside
 
-- [tests/e2e/test_acceptance_scenarios.py](/tests/e2e/test_acceptance_scenarios.py): Python module used by this component.
-- [tests/e2e/test_user_journey.py](/tests/e2e/test_user_journey.py): Python module used by this component.
-- [tests/e2e/test_web_login.py](/tests/e2e/test_web_login.py): Python module used by this component.
+- [test_acceptance_scenarios.py](/tests/e2e/test_acceptance_scenarios.py): Python module used by this component.
+- [test_user_journey.py](/tests/e2e/test_user_journey.py): Python module used by this component.
+- [test_web_login.py](/tests/e2e/test_web_login.py): Python module used by this component.
 
 ## How it's used
 

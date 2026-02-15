@@ -76,9 +76,9 @@ Provide a program handoff payload containing:
 
 ## What's inside
 
-- [agents/portfolio-management/agent-07-program-management/src](/agents/portfolio-management/agent-07-program-management/src): Implementation source for this component.
-- [agents/portfolio-management/agent-07-program-management/tests](/agents/portfolio-management/agent-07-program-management/tests): Test suites and fixtures.
-- [agents/portfolio-management/agent-07-program-management/Dockerfile](/agents/portfolio-management/agent-07-program-management/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/portfolio-management/agent-07-program-management/src): Implementation source for this component.
+- [tests](/agents/portfolio-management/agent-07-program-management/tests): Test suites and fixtures.
+- [Dockerfile](/agents/portfolio-management/agent-07-program-management/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

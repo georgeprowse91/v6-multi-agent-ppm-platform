@@ -6,9 +6,9 @@ Document the sandbox assets for the Connector Hub application.
 
 ## What's inside
 
-- [integrations/apps/connector-hub/sandbox/examples](/integrations/apps/connector-hub/sandbox/examples): Example configurations and demo scenarios.
-- [integrations/apps/connector-hub/sandbox/fixtures](/integrations/apps/connector-hub/sandbox/fixtures): Subdirectory containing fixtures assets for this area.
-- [integrations/apps/connector-hub/sandbox/schema](/integrations/apps/connector-hub/sandbox/schema): Schemas or validation rules for component assets.
+- [examples](/integrations/apps/connector-hub/sandbox/examples): Example configurations and demo scenarios.
+- [fixtures](/integrations/apps/connector-hub/sandbox/fixtures): Subdirectory containing fixtures assets for this area.
+- [schema](/integrations/apps/connector-hub/sandbox/schema): Schemas or validation rules for component assets.
 
 ## How it's used
 

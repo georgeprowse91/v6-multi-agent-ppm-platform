@@ -6,7 +6,7 @@ Define how Jira payloads map into the platform's canonical schemas under `data/s
 
 ## What's inside
 
-- [integrations/connectors/jira/mappings/project.yaml](/integrations/connectors/jira/mappings/project.yaml): Project mapping definition for connector data.
+- [project.yaml](/integrations/connectors/jira/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

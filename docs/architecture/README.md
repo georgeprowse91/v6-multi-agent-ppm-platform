@@ -6,15 +6,15 @@ Describe the architecture documentation set and link the narrative to the repo a
 
 ## What's inside
 
-- [docs/architecture/adr](/docs/architecture/adr): Subdirectory containing adr assets for this area.
-- [docs/architecture/diagrams](/docs/architecture/diagrams): Subdirectory containing diagrams assets for this area.
-- [docs/architecture/agent-orchestration.md](/docs/architecture/agent-orchestration.md): Markdown documentation for this area.
-- [docs/architecture/ai-architecture.md](/docs/architecture/ai-architecture.md): Markdown documentation for this area.
-- [docs/architecture/connector-architecture.md](/docs/architecture/connector-architecture.md): Markdown documentation for this area.
-- [docs/architecture/data-architecture.md](/docs/architecture/data-architecture.md): Markdown documentation for this area.
-- [docs/architecture/deployment-architecture.md](/docs/architecture/deployment-architecture.md): Deployment topology and infrastructure concerns.
-- [docs/architecture/logical-architecture.md](/docs/architecture/logical-architecture.md): Logical component layout and service topology.
-- [docs/architecture/security-architecture.md](/docs/architecture/security-architecture.md): Security controls and compliance design.
+- [adr](/docs/architecture/adr): Subdirectory containing adr assets for this area.
+- [diagrams](/docs/architecture/diagrams): Subdirectory containing diagrams assets for this area.
+- [agent-orchestration.md](/docs/architecture/agent-orchestration.md): Markdown documentation for this area.
+- [ai-architecture.md](/docs/architecture/ai-architecture.md): Markdown documentation for this area.
+- [connector-architecture.md](/docs/architecture/connector-architecture.md): Markdown documentation for this area.
+- [data-architecture.md](/docs/architecture/data-architecture.md): Markdown documentation for this area.
+- [deployment-architecture.md](/docs/architecture/deployment-architecture.md): Deployment topology and infrastructure concerns.
+- [logical-architecture.md](/docs/architecture/logical-architecture.md): Logical component layout and service topology.
+- [security-architecture.md](/docs/architecture/security-architecture.md): Security controls and compliance design.
 
 ## How it's used
 

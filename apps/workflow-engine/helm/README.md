@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- [apps/workflow-engine/helm/templates](/apps/workflow-engine/helm/templates): Templates used by the component (deployment or message content).
-- [apps/workflow-engine/helm/Chart.yaml](/apps/workflow-engine/helm/Chart.yaml): Helm chart metadata and versioning.
-- [apps/workflow-engine/helm/values.yaml](/apps/workflow-engine/helm/values.yaml): Helm values for environment-specific overrides.
+- [templates](/apps/workflow-engine/helm/templates): Templates used by the component (deployment or message content).
+- [Chart.yaml](/apps/workflow-engine/helm/Chart.yaml): Helm chart metadata and versioning.
+- [values.yaml](/apps/workflow-engine/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

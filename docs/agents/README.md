@@ -6,7 +6,7 @@ Describe the agents documentation set and link the narrative to the repo assets 
 
 ## What's inside
 
-- [docs/agents/agent-catalog.md](/docs/agents/agent-catalog.md): Canonical inventory of platform agents and their responsibilities.
+- [agent-catalog.md](/docs/agents/agent-catalog.md): Canonical inventory of platform agents and their responsibilities.
 
 ## How it's used
 

@@ -67,9 +67,9 @@ Workflow orchestration boundaries are validated and ready for execution once eve
 
 ## What's inside
 
-- [agents/operations-management/agent-24-workflow-process-engine/src](/agents/operations-management/agent-24-workflow-process-engine/src): Implementation source for this component.
-- [agents/operations-management/agent-24-workflow-process-engine/tests](/agents/operations-management/agent-24-workflow-process-engine/tests): Test suites and fixtures.
-- [agents/operations-management/agent-24-workflow-process-engine/Dockerfile](/agents/operations-management/agent-24-workflow-process-engine/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/operations-management/agent-24-workflow-process-engine/src): Implementation source for this component.
+- [tests](/agents/operations-management/agent-24-workflow-process-engine/tests): Test suites and fixtures.
+- [Dockerfile](/agents/operations-management/agent-24-workflow-process-engine/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

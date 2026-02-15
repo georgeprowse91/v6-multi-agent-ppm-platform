@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 03: App
 
 ## What's inside
 
-- [agents/core-orchestration/agent-03-approval-workflow/src](/agents/core-orchestration/agent-03-approval-workflow/src): Implementation source for this component.
-- [agents/core-orchestration/agent-03-approval-workflow/tests](/agents/core-orchestration/agent-03-approval-workflow/tests): Test suites and fixtures.
-- [agents/core-orchestration/agent-03-approval-workflow/Dockerfile](/agents/core-orchestration/agent-03-approval-workflow/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/core-orchestration/agent-03-approval-workflow/src): Implementation source for this component.
+- [tests](/agents/core-orchestration/agent-03-approval-workflow/tests): Test suites and fixtures.
+- [Dockerfile](/agents/core-orchestration/agent-03-approval-workflow/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

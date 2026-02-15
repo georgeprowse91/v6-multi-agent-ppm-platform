@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- [apps/analytics-service/helm/templates](/apps/analytics-service/helm/templates): Templates used by the component (deployment or message content).
-- [apps/analytics-service/helm/Chart.yaml](/apps/analytics-service/helm/Chart.yaml): Helm chart metadata and versioning.
-- [apps/analytics-service/helm/values.yaml](/apps/analytics-service/helm/values.yaml): Helm values for environment-specific overrides.
+- [templates](/apps/analytics-service/helm/templates): Templates used by the component (deployment or message content).
+- [Chart.yaml](/apps/analytics-service/helm/Chart.yaml): Helm chart metadata and versioning.
+- [values.yaml](/apps/analytics-service/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

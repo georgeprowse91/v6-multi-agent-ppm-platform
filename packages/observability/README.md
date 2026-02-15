@@ -6,7 +6,7 @@ Describe the Observability shared package and how it supports platform services.
 
 ## What's inside
 
-- [packages/observability/src](/packages/observability/src): Implementation source for this component.
+- [src](/packages/observability/src): Implementation source for this component.
 
 ## How it's used
 

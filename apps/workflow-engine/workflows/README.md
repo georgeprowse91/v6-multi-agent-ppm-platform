@@ -6,8 +6,8 @@ Document the workflows assets for the Workflow Engine application.
 
 ## What's inside
 
-- [apps/workflow-engine/workflows/definitions](/apps/workflow-engine/workflows/definitions): Subdirectory containing definitions assets for this area.
-- [apps/workflow-engine/workflows/schema](/apps/workflow-engine/workflows/schema): Schemas or validation rules for component assets.
+- [definitions](/apps/workflow-engine/workflows/definitions): Subdirectory containing definitions assets for this area.
+- [schema](/apps/workflow-engine/workflows/schema): Schemas or validation rules for component assets.
 
 Sample workflow templates included:
 - `change-request`

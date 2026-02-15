@@ -6,10 +6,10 @@ Document the integration test scope and how these checks validate the platform.
 
 ## What's inside
 
-- [tests/integration/connectors](/tests/integration/connectors): Connector documentation and integration guidance.
-- [tests/integration/test_orchestrator_persistence.py](/tests/integration/test_orchestrator_persistence.py): Python module used by this component.
-- [tests/integration/test_workflow_engine_runtime.py](/tests/integration/test_workflow_engine_runtime.py): Python module used by this component.
-- [tests/integration/test_multi_agent_flows.py](/tests/integration/test_multi_agent_flows.py): End-to-end multi-agent orchestration flows using async mocks.
+- [connectors](/tests/integration/connectors): Connector documentation and integration guidance.
+- [test_orchestrator_persistence.py](/tests/integration/test_orchestrator_persistence.py): Python module used by this component.
+- [test_workflow_engine_runtime.py](/tests/integration/test_workflow_engine_runtime.py): Python module used by this component.
+- [test_multi_agent_flows.py](/tests/integration/test_multi_agent_flows.py): End-to-end multi-agent orchestration flows using async mocks.
 
 ## How it's used
 

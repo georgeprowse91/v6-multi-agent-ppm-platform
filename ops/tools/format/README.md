@@ -6,9 +6,9 @@ Document the format tooling used to automate development and CI workflows.
 
 ## What's inside
 
-- [tools/format/__init__.py](/tools/format/__init__.py): Python module used by this component.
-- [tools/format/format_config.yaml](/tools/format/format_config.yaml): YAML definition or configuration used by this component.
-- [tools/format/run.py](/tools/format/run.py): Python module used by this component.
+- [__init__.py](/tools/format/__init__.py): Python module used by this component.
+- [format_config.yaml](/tools/format/format_config.yaml): YAML definition or configuration used by this component.
+- [run.py](/tools/format/run.py): Python module used by this component.
 
 ## How it's used
 

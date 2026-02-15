@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 11: Res
 
 ## What's inside
 
-- [agents/delivery-management/agent-11-resource-capacity/src](/agents/delivery-management/agent-11-resource-capacity/src): Implementation source for this component.
-- [agents/delivery-management/agent-11-resource-capacity/tests](/agents/delivery-management/agent-11-resource-capacity/tests): Test suites and fixtures.
-- [agents/delivery-management/agent-11-resource-capacity/Dockerfile](/agents/delivery-management/agent-11-resource-capacity/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/delivery-management/agent-11-resource-capacity/src): Implementation source for this component.
+- [tests](/agents/delivery-management/agent-11-resource-capacity/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/agent-11-resource-capacity/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

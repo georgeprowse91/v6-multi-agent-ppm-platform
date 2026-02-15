@@ -6,9 +6,9 @@ Describe the migrations assets that support the canonical data model.
 
 ## What's inside
 
-- [data/migrations/versions](/data/migrations/versions): Subdirectory containing versions assets for this area.
-- [data/migrations/env.py](/data/migrations/env.py): Python module used by this component.
-- [data/migrations/models.py](/data/migrations/models.py): Python module used by this component.
+- [versions](/data/migrations/versions): Subdirectory containing versions assets for this area.
+- [env.py](/data/migrations/env.py): Python module used by this component.
+- [models.py](/data/migrations/models.py): Python module used by this component.
 
 ## How it's used
 

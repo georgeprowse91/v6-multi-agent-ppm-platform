@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 12: Fin
 
 ## What's inside
 
-- [agents/delivery-management/agent-12-financial-management/src](/agents/delivery-management/agent-12-financial-management/src): Implementation source for this component.
-- [agents/delivery-management/agent-12-financial-management/tests](/agents/delivery-management/agent-12-financial-management/tests): Test suites and fixtures.
-- [agents/delivery-management/agent-12-financial-management/Dockerfile](/agents/delivery-management/agent-12-financial-management/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/delivery-management/agent-12-financial-management/src): Implementation source for this component.
+- [tests](/agents/delivery-management/agent-12-financial-management/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/agent-12-financial-management/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

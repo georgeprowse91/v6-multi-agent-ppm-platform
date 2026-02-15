@@ -6,7 +6,7 @@ Describe the Llm shared package and how it supports platform services.
 
 ## What's inside
 
-- [packages/llm/src](/packages/llm/src): Implementation source for this component.
+- [src](/packages/llm/src): Implementation source for this component.
 
 ## How it's used
 

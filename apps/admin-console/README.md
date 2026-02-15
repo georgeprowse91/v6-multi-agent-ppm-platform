@@ -6,9 +6,9 @@ Describe the Admin Console application and its role in the platform experience l
 
 ## What's inside
 
-- [apps/admin-console/helm](/apps/admin-console/helm): Helm chart packaging for Kubernetes deployments.
-- [apps/admin-console/tests](/apps/admin-console/tests): Test suites and fixtures.
-- [apps/admin-console/Dockerfile](/apps/admin-console/Dockerfile): Container build recipe for local or CI use.
+- [helm](/apps/admin-console/helm): Helm chart packaging for Kubernetes deployments.
+- [tests](/apps/admin-console/tests): Test suites and fixtures.
+- [Dockerfile](/apps/admin-console/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

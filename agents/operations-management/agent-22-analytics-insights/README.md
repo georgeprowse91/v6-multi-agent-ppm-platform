@@ -92,9 +92,9 @@ The analytics output contract is ready for execution when:
 
 ## What's inside
 
-- [agents/operations-management/agent-22-analytics-insights/src](/agents/operations-management/agent-22-analytics-insights/src): Implementation source for this component.
-- [agents/operations-management/agent-22-analytics-insights/tests](/agents/operations-management/agent-22-analytics-insights/tests): Test suites and fixtures.
-- [agents/operations-management/agent-22-analytics-insights/Dockerfile](/agents/operations-management/agent-22-analytics-insights/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/operations-management/agent-22-analytics-insights/src): Implementation source for this component.
+- [tests](/agents/operations-management/agent-22-analytics-insights/tests): Test suites and fixtures.
+- [Dockerfile](/agents/operations-management/agent-22-analytics-insights/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

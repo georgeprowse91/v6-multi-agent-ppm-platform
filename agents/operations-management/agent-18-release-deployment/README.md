@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 18: Rel
 
 ## What's inside
 
-- [agents/operations-management/agent-18-release-deployment/src](/agents/operations-management/agent-18-release-deployment/src): Implementation source for this component.
-- [agents/operations-management/agent-18-release-deployment/tests](/agents/operations-management/agent-18-release-deployment/tests): Test suites and fixtures.
-- [agents/operations-management/agent-18-release-deployment/Dockerfile](/agents/operations-management/agent-18-release-deployment/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/operations-management/agent-18-release-deployment/src): Implementation source for this component.
+- [tests](/agents/operations-management/agent-18-release-deployment/tests): Test suites and fixtures.
+- [Dockerfile](/agents/operations-management/agent-18-release-deployment/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

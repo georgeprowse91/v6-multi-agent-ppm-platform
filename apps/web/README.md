@@ -21,18 +21,18 @@ The web application consists of:
 
 ## What's inside
 
-- [apps/web/data](/apps/web/data): Data assets and fixtures for this component
-- [apps/web/e2e](/apps/web/e2e): End-to-end test specs or tooling
-- [apps/web/frontend](/apps/web/frontend): React + TypeScript frontend application
-  - [frontend/src/components](/frontend/src/components): Reusable UI components
-  - [frontend/src/pages](/frontend/src/pages): Route-level page components
-  - [frontend/src/store](/frontend/src/store): Zustand state management
-  - [frontend/src/styles](/frontend/src/styles): CSS tokens and global styles
-- [apps/web/helm](/apps/web/helm): Helm chart packaging for Kubernetes deployments
-- [apps/web/public](/apps/web/public): Static assets served by the app
-- [apps/web/scripts](/apps/web/scripts): Scripts that support this component or workflow
-- [apps/web/src](/apps/web/src): Python backend source
-- [apps/web/static](/apps/web/static): Built frontend assets (production)
+- [data](/apps/web/data): Data assets and fixtures for this component
+- [e2e](/apps/web/e2e): End-to-end test specs or tooling
+- [frontend](/apps/web/frontend): React + TypeScript frontend application
+  - [components](/frontend/src/components): Reusable UI components
+  - [pages](/frontend/src/pages): Route-level page components
+  - [store](/frontend/src/store): Zustand state management
+  - [styles](/frontend/src/styles): CSS tokens and global styles
+- [helm](/apps/web/helm): Helm chart packaging for Kubernetes deployments
+- [public](/apps/web/public): Static assets served by the app
+- [scripts](/apps/web/scripts): Scripts that support this component or workflow
+- [src](/apps/web/src): Python backend source
+- [static](/apps/web/static): Built frontend assets (production)
 
 ## UI screenshots
 

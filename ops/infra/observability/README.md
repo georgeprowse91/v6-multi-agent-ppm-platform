@@ -6,10 +6,10 @@ Document infrastructure resources under infra/observability.
 
 ## What's inside
 
-- [infra/observability/alerts](/infra/observability/alerts): Alert definitions and thresholds.
-- [infra/observability/dashboards](/infra/observability/dashboards): Dashboard definitions for monitoring.
-- [infra/observability/otel](/infra/observability/otel): OpenTelemetry collector configs and docs.
-- [infra/observability/slo](/infra/observability/slo): Subdirectory containing slo assets for this area.
+- [alerts](/infra/observability/alerts): Alert definitions and thresholds.
+- [dashboards](/infra/observability/dashboards): Dashboard definitions for monitoring.
+- [otel](/infra/observability/otel): OpenTelemetry collector configs and docs.
+- [slo](/infra/observability/slo): Subdirectory containing slo assets for this area.
 
 ## How it's used
 

@@ -6,12 +6,12 @@ Describe the Analytics Service application and its role in the platform experien
 
 ## What's inside
 
-- [apps/analytics-service/helm](/apps/analytics-service/helm): Helm chart packaging for Kubernetes deployments.
-- [apps/analytics-service/jobs](/apps/analytics-service/jobs): Job manifests and schedules.
-- [apps/analytics-service/models](/apps/analytics-service/models): Data model definitions used by this component.
-- [apps/analytics-service/src](/apps/analytics-service/src): Implementation source for this component.
-- [apps/analytics-service/tests](/apps/analytics-service/tests): Test suites and fixtures.
-- [apps/analytics-service/Dockerfile](/apps/analytics-service/Dockerfile): Container build recipe for local or CI use.
+- [helm](/apps/analytics-service/helm): Helm chart packaging for Kubernetes deployments.
+- [jobs](/apps/analytics-service/jobs): Job manifests and schedules.
+- [models](/apps/analytics-service/models): Data model definitions used by this component.
+- [src](/apps/analytics-service/src): Implementation source for this component.
+- [tests](/apps/analytics-service/tests): Test suites and fixtures.
+- [Dockerfile](/apps/analytics-service/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

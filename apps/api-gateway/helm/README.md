@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- [apps/api-gateway/helm/templates](/apps/api-gateway/helm/templates): Templates used by the component (deployment or message content).
-- [apps/api-gateway/helm/Chart.yaml](/apps/api-gateway/helm/Chart.yaml): Helm chart metadata and versioning.
-- [apps/api-gateway/helm/values.yaml](/apps/api-gateway/helm/values.yaml): Helm values for environment-specific overrides.
+- [templates](/apps/api-gateway/helm/templates): Templates used by the component (deployment or message content).
+- [Chart.yaml](/apps/api-gateway/helm/Chart.yaml): Helm chart metadata and versioning.
+- [values.yaml](/apps/api-gateway/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 
