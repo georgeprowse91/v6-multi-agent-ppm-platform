@@ -99,6 +99,18 @@ interface RuntimeResolveResponse {
   resolution_contract: RuntimeResolutionContract;
 }
 
+interface RuntimeApprovalItem {
+  approval_id: string;
+  workspace_id: string;
+  methodology_id: string;
+  stage_id: string;
+  activity_id?: string;
+  requested_event: string;
+  status: string;
+  requested_at: string;
+  notes?: string;
+}
+
 interface RuntimeActionResponse {
   workspace_id: string;
   lifecycle_event: string;
@@ -106,10 +118,13 @@ interface RuntimeActionResponse {
     content: string | Record<string, unknown>;
     output_format: string;
   };
+  artifacts_created?: Array<Record<string, unknown>>;
+  artifacts_updated?: Array<Record<string, unknown>>;
   status: string;
   human_review?: {
     status?: string;
     required?: boolean;
+    approval_id?: string;
   };
 }
 
@@ -312,6 +327,10 @@ interface MethodologyStoreState {
     taskId?: string | null;
     event: 'view' | 'generate' | 'update' | 'review' | 'approve' | 'publish';
   }) => Promise<RuntimeResolutionContract | null>;
+  reviewQueue: RuntimeApprovalItem[];
+  loadReviewQueue: (workspaceId: string) => Promise<void>;
+  decideReview: (params: { workspaceId: string; approvalId: string; decision: "approve" | "reject" | "modify"; notes?: string }) => Promise<void>;
+
   executeNodeAction: (params: {
     workspaceId: string;
     methodologyId: string;
@@ -344,6 +363,7 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
   runtimeActionsAvailable: [],
   runtimeDefaultViewContract: null,
   backendReachable: true,
+  reviewQueue: [],
   currentActivityId: emergencyFallbackMethodology.currentActivityId,
   expandedStageIds: emergencyFallbackMethodology.expandedStageIds,
 
@@ -509,6 +529,7 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         runtimeActionsAvailable: payload.runtime_actions_available ?? [],
         runtimeDefaultViewContract: payload.runtime_default_view_contract ?? null,
         backendReachable: true,
+  reviewQueue: [],
         isHydrating: false,
       });
     } catch (error) {
@@ -554,6 +575,7 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
         runtimeActionsAvailable: actionsPayload.actions,
         runtimeDefaultViewContract: event === 'view' ? resolvedPayload.resolution_contract : get().runtimeDefaultViewContract,
         backendReachable: true,
+  reviewQueue: [],
       });
 
       return resolvedPayload.resolution_contract;
@@ -566,6 +588,22 @@ export const useMethodologyStore = create<MethodologyStoreState>((set, get) => (
       );
       return null;
     }
+  },
+
+
+  loadReviewQueue: async (workspaceId) => {
+    const payload = await requestJson<{ items: RuntimeApprovalItem[] }>(`/api/methodology/runtime/approvals?workspace_id=${encodeURIComponent(workspaceId)}`);
+    set({ reviewQueue: payload.items ?? [] });
+  },
+
+  decideReview: async ({ workspaceId, approvalId, decision, notes }) => {
+    await requestJson(`/api/methodology/runtime/approvals/${encodeURIComponent(approvalId)}/decision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workspace_id: workspaceId, decision, notes }),
+    });
+    const payload = await requestJson<{ items: RuntimeApprovalItem[] }>(`/api/methodology/runtime/approvals?workspace_id=${encodeURIComponent(workspaceId)}`);
+    set({ reviewQueue: payload.items ?? [] });
   },
 
   executeNodeAction: async ({ workspaceId, methodologyId, stageId, activityId, taskId, lifecycleEvent, userInput }) => {

@@ -412,3 +412,69 @@ def test_workspace_methodology_payloads_are_fully_populated(client, monkeypatch,
 
     nested_present = any(_has_nested(stage["activities"]) for stage in summary["stages"])
     assert nested_present, f"Expected nested activities for {methodology_id}"
+
+def test_runtime_review_queue_and_decision_flow(client, monkeypatch):
+    _set_tenant(monkeypatch, "tenant-a")
+
+    async def fake_run_methodology_node_action(self, **kwargs):
+        return OrchestrationResult(
+            results={"task-1": {"agent_id": "agent-10", "metadata": {"template_id": "adaptive-software-dev"}, "input": {}}},
+            context={"correlation_id": "corr-test"},
+            metrics={"templates_executed": 1},
+        )
+
+    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+
+    review = client.post(
+        "/api/methodology/runtime/action",
+        json={
+            "methodology_id": "adaptive",
+            "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "activity_id": "0.5.1-sprint-iteration-planning",
+            "lifecycle_event": "review",
+            "user_input": {"workspace_id": "demo-1"},
+        },
+    )
+    assert review.status_code == 200
+    payload = review.json()
+    assert payload["status"] == "review_required"
+    approval_id = payload["human_review"]["approval_id"]
+
+    queue = client.get("/api/methodology/runtime/approvals", params={"workspace_id": "demo-1", "status": "pending"})
+    assert queue.status_code == 200
+    assert any(item["approval_id"] == approval_id for item in queue.json()["items"])
+
+    decision = client.post(
+        f"/api/methodology/runtime/approvals/{approval_id}/decision",
+        json={"workspace_id": "demo-1", "decision": "approve", "notes": "LGTM"},
+    )
+    assert decision.status_code == 200
+    assert decision.json()["status"] == "approved"
+
+
+def test_runtime_action_persists_artifact_metadata(client, monkeypatch):
+    _set_tenant(monkeypatch, "tenant-a")
+
+    async def fake_run_methodology_node_action(self, **kwargs):
+        return OrchestrationResult(
+            results={"task-1": {"agent_id": "agent-10", "metadata": {"template_id": "adaptive-software-dev"}, "input": {}}},
+            context={"correlation_id": "corr-test"},
+            metrics={"templates_executed": 1},
+        )
+
+    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+
+    response = client.post(
+        "/api/methodology/runtime/action",
+        json={
+            "methodology_id": "adaptive",
+            "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
+            "activity_id": "0.5.1-sprint-iteration-planning",
+            "lifecycle_event": "generate",
+            "user_input": {"workspace_id": "demo-1", "human_review_approved": True},
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["artifacts_created"]
+    assert payload["artifacts_created"][0]["status"] == "draft"

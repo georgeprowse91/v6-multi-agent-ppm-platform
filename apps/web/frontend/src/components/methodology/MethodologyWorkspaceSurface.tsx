@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createArtifact, createEmptyContent, type CanvasType } from '@ppm/canvas-engine';
 import { requestJson } from '@/services/apiClient';
@@ -29,6 +29,9 @@ export function MethodologyWorkspaceSurface() {
     templatesRequiredHere,
     templatesInReview,
     backendReachable,
+    reviewQueue,
+    loadReviewQueue,
+    decideReview,
   } = useMethodologyStore();
   const { openArtifact } = useCanvasStore();
   const navigate = useNavigate();
@@ -36,6 +39,10 @@ export function MethodologyWorkspaceSurface() {
 
   const selectedActivity = currentActivityId ? getActivity(currentActivityId) ?? null : null;
   const selectedStage = currentActivityId ? getStageForActivity(currentActivityId) : undefined;
+
+  useEffect(() => {
+    void loadReviewQueue(projectMethodology.projectId);
+  }, [loadReviewQueue, projectMethodology.projectId]);
 
   const prerequisiteNames = useMemo(() => {
     if (!selectedActivity) return [];
@@ -67,7 +74,7 @@ export function MethodologyWorkspaceSurface() {
     setCurrentActivity(activityId);
     await requestJson(`/api/workspace/${encodeURIComponent(projectMethodology.projectId)}/select`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ current_stage_id: stageId === 'monitoring' ? null : stageId, current_activity_id: activityId }),
+      body: JSON.stringify({ current_stage_id: stageId === 'monitoring' ? null : stageId, current_activity_id: activityId, current_canvas_tab: 'document' }),
     });
     await resolveNodeRuntime({ methodologyId: projectMethodology.methodology.id, stageId, activityId, event: 'view' });
     publishAssistantContext(activityId, stageId);
@@ -80,7 +87,7 @@ export function MethodologyWorkspaceSurface() {
     }
   }, [getActivity, navigate, projectMethodology.methodology.id, projectMethodology.projectId, publishAssistantContext, resolveNodeRuntime, setCurrentActivity]);
 
-  const runLifecycleAction = useCallback(async (event: 'generate' | 'update' | 'review' | 'approve' | 'publish') => {
+  const runLifecycleAction = useCallback(async (event: 'generate' | 'update' | 'review' | 'approve' | 'publish', approved = false) => {
     if (!selectedActivity) return;
     if (!backendReachable) {
       addAssistantMessage('Backend unavailable. Runtime actions are disabled until connectivity is restored.');
@@ -93,18 +100,42 @@ export function MethodologyWorkspaceSurface() {
       stageId,
       activityId: selectedActivity.id,
       lifecycleEvent: event,
+      userInput: approved ? { human_review_approved: true } : undefined,
     });
 
-    if (response.human_review?.required) {
-      addAssistantMessage('Action submitted and pending human review.');
+    if (response.human_review?.required && response.status === 'review_required') {
+      addAssistantMessage('Action submitted and pending human review. Check approvals inbox below.');
+      await loadReviewQueue(projectMethodology.projectId);
       return;
     }
 
     const contract = await resolveNodeRuntime({ methodologyId: projectMethodology.methodology.id, stageId, activityId: selectedActivity.id, event: 'view' });
     const runtimeCanvasType = contract?.canvas?.canvas_type ?? runtimeDefaultViewContract?.canvas?.canvas_type ?? selectedActivity.canvasType;
     const canvasType = (canvasMap[runtimeCanvasType] ?? selectedActivity.canvasType) as CanvasType;
-    openArtifact(createArtifact(canvasType, selectedActivity.name, projectMethodology.projectId, createEmptyContent(canvasType)));
-  }, [addAssistantMessage, backendReachable, executeNodeAction, openArtifact, projectMethodology.methodology.id, projectMethodology.projectId, resolveNodeRuntime, runtimeDefaultViewContract?.canvas?.canvas_type, selectedActivity, selectedStage?.id]);
+    const ref = ((response.artifacts_updated?.[0] ?? response.artifacts_created?.[0]) ?? {}) as Record<string, unknown>;
+    const artifactId = typeof ref.artifact_id === 'string' ? ref.artifact_id : `artifact-${selectedActivity.id}`;
+    const title = typeof ref.title === 'string' ? ref.title : selectedActivity.name;
+    const opened = createArtifact(canvasType, title, projectMethodology.projectId, createEmptyContent(canvasType));
+    openArtifact({ ...opened, id: artifactId, status: event === 'publish' ? 'published' : 'draft', metadata: { ...opened.metadata, runtime: ref.metadata } });
+    await requestJson(`/api/workspace/${encodeURIComponent(projectMethodology.projectId)}/select`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        current_stage_id: stageId === 'monitoring' ? null : stageId,
+        current_activity_id: selectedActivity.id,
+        current_canvas_tab: canvasType,
+      }),
+    });
+  }, [addAssistantMessage, backendReachable, executeNodeAction, loadReviewQueue, openArtifact, projectMethodology.methodology.id, projectMethodology.projectId, resolveNodeRuntime, runtimeDefaultViewContract?.canvas?.canvas_type, selectedActivity, selectedStage?.id]);
+
+  const onReviewDecision = useCallback(async (approvalId: string, decision: 'approve' | 'reject' | 'modify', notes?: string) => {
+    await decideReview({ workspaceId: projectMethodology.projectId, approvalId, decision, notes });
+    if (decision === 'approve') {
+      await runLifecycleAction('publish', true);
+    }
+    if (decision === 'modify') {
+      await runLifecycleAction('update', true);
+    }
+  }, [decideReview, projectMethodology.projectId, runLifecycleAction]);
 
   if (!selectedActivity) {
     return (
@@ -137,7 +168,9 @@ export function MethodologyWorkspaceSurface() {
       isLocked={isActivityLockedComputed(selectedActivity.id)}
       missingPrerequisites={prerequisiteNames}
       runtimeActionsAvailable={runtimeActionsAvailable}
+      reviewQueue={reviewQueue.filter((item) => item.activity_id === selectedActivity.id || item.stage_id === (selectedStage?.id ?? 'monitoring'))}
       onLifecycleAction={(event) => { void runLifecycleAction(event); }}
+      onReviewDecision={(approvalId, decision, notes) => { void onReviewDecision(approvalId, decision, notes); }}
       actionsDisabled={!backendReachable}
     />
     </>

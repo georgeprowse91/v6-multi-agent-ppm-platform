@@ -12,7 +12,9 @@ describe('ActivityDetailPanel', () => {
         isLocked={false}
         missingPrerequisites={[]}
         runtimeActionsAvailable={['generate', 'review']}
+        reviewQueue={[]}
         onLifecycleAction={onLifecycleAction}
+        onReviewDecision={vi.fn()}
       />
     );
 

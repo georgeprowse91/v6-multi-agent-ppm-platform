@@ -176,6 +176,7 @@ from workspace_state import (  # noqa: E402
     WorkspaceState,
 )
 from workspace_state_store import WorkspaceStateStore  # noqa: E402
+from runtime_lifecycle_store import RuntimeLifecycleStore  # noqa: E402
 
 WEB_ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = WEB_ROOT / "static"
@@ -195,6 +196,7 @@ INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
 WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 DEMO_OUTBOX_PATH = STORAGE_DIR / "demo_outbox.json"
+RUNTIME_LIFECYCLE_PATH = STORAGE_DIR / "runtime_lifecycle.json"
 DEMO_DOWNLOADS_DIR = STORAGE_DIR / "downloads"
 SOR_FIXTURES_PATH = DATA_DIR / "demo" / "sor_fixtures.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
@@ -240,6 +242,7 @@ merge_review_store = MergeReviewStore(MERGE_REVIEW_PATH, MERGE_REVIEW_SEED_PATH)
 pipeline_store = PipelineStore(PIPELINE_STATE_PATH)
 workflow_definition_store = WorkflowDefinitionStore(WORKFLOW_DEFINITIONS_PATH)
 demo_outbox = DemoOutbox(DEMO_OUTBOX_PATH)
+runtime_lifecycle_store = RuntimeLifecycleStore(RUNTIME_LIFECYCLE_PATH)
 logger = logging.getLogger("web-ui")
 
 validate_startup_config()
@@ -562,6 +565,11 @@ class MethodologyNodeActionResponse(BaseModel):
     human_review: dict[str, Any] = Field(default_factory=dict)
     status: str
 
+
+class RuntimeApprovalDecisionRequest(BaseModel):
+    workspace_id: str
+    decision: Literal["approve", "reject", "modify"]
+    notes: str | None = None
 
 
 
@@ -2668,6 +2676,94 @@ async def run_methodology_node_action(
     correlation_id = str(uuid5(NAMESPACE_URL, correlation_basis))
 
     workspace_state = workspace_state_store.get_or_create("default", workspace_id)
+    actor_id = str(user_input.get("actor_id") or "ui-user")
+
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=workspace_state.tenant_id,
+            actor_id=actor_id,
+            actor_type="user",
+            roles=["project_member"],
+            action=f"methodology.lifecycle.{lifecycle_event}.requested",
+            resource_type="workspace",
+            resource_id=workspace_id,
+            outcome="success",
+            metadata={"stage_id": stage_id, "activity_id": activity_id, "correlation_id": correlation_id},
+        )
+    )
+
+    escalation_rules = resolution_contract.get("assistant", {}).get("response_contract", {}).get(
+        "escalation_rules", []
+    )
+    needs_human_review = (
+        resolution_contract.get("agent_workflow", {}).get("human_review_required", False)
+        or lifecycle_event in {"review", "approve", "publish"}
+        or any(
+            "publish_external" in str(rule).lower() and "approve" in str(rule).lower()
+            for rule in escalation_rules
+        )
+    )
+
+    if needs_human_review and not user_input.get("human_review_approved"):
+        approval_id = f"apr-{uuid4().hex[:10]}"
+        runtime_lifecycle_store.create_approval(
+            tenant_id=workspace_state.tenant_id,
+            workspace_id=workspace_id,
+            approval={
+                "approval_id": approval_id,
+                "workspace_id": workspace_id,
+                "methodology_id": methodology_id,
+                "stage_id": stage_id,
+                "activity_id": activity_id,
+                "requested_event": lifecycle_event,
+                "status": "pending",
+                "requested_at": datetime.now(tz=timezone.utc).isoformat(),
+                "requested_by": actor_id,
+                "notes": user_input.get("notes"),
+                "history": [{"action": "requested", "actor": actor_id, "timestamp": datetime.now(tz=timezone.utc).isoformat()}],
+            },
+        )
+        get_audit_log_store().record_event(
+            build_event(
+                tenant_id=workspace_state.tenant_id,
+                actor_id=actor_id,
+                actor_type="user",
+                roles=["project_member"],
+                action="methodology.lifecycle.review.queued",
+                resource_type="approval",
+                resource_id=approval_id,
+                outcome="success",
+                metadata={"requested_event": lifecycle_event, "correlation_id": correlation_id},
+            )
+        )
+        return {
+            "workspace_id": workspace_id,
+            "lifecycle_event": lifecycle_event,
+            "resolution_contract": resolution_contract,
+            "assistant_response": {
+                "intent_id": resolution_contract["assistant"]["intent_id"],
+                "output_format": resolution_contract["assistant"]["response_contract"]["output_format"],
+                "validation_checklist": resolution_contract["assistant"]["response_contract"]["validation_checklist"],
+                "content": "Human review is required before this lifecycle action can proceed.",
+            },
+            "artifacts_created": [],
+            "artifacts_updated": [],
+            "connector_operations": [],
+            "workflow_trace": {
+                "correlation_id": correlation_id,
+                "agent_ids_executed": [],
+                "started_at": datetime.now(tz=timezone.utc).isoformat(),
+                "completed_at": datetime.now(tz=timezone.utc).isoformat(),
+            },
+            "human_review": {
+                "status": "pending",
+                "required": True,
+                "approval_id": approval_id,
+                "next_step": "Resolve in approval inbox then rerun with human_review_approved=true.",
+            },
+            "status": "review_required",
+        }
+
     context_refs: dict[str, Any] = {
         "workspace_id": workspace_id,
         "project_id": workspace_id,
@@ -2683,47 +2779,6 @@ async def run_methodology_node_action(
         "correlation_id": correlation_id,
     }
 
-    escalation_rules = resolution_contract.get("assistant", {}).get("response_contract", {}).get(
-        "escalation_rules", []
-    )
-    needs_human_review = (
-        resolution_contract.get("agent_workflow", {}).get("human_review_required", False)
-        or lifecycle_event in {"approve", "publish"}
-        or any(
-            "publish_external" in str(rule).lower() and "approve" in str(rule).lower()
-            for rule in escalation_rules
-        )
-    )
-    if needs_human_review and not user_input.get("human_review_approved"):
-        return {
-            "workspace_id": workspace_id,
-            "lifecycle_event": lifecycle_event,
-            "resolution_contract": resolution_contract,
-            "assistant_response": {
-                "intent_id": resolution_contract["assistant"]["intent_id"],
-                "output_format": resolution_contract["assistant"]["response_contract"]["output_format"],
-                "validation_checklist": resolution_contract["assistant"]["response_contract"][
-                    "validation_checklist"
-                ],
-                "content": "Human review is required before this lifecycle action can proceed.",
-            },
-            "artifacts_created": [],
-            "artifacts_updated": [],
-            "connector_operations": [],
-            "workflow_trace": {
-                "correlation_id": correlation_id,
-                "agent_ids_executed": [],
-                "started_at": datetime.now(tz=timezone.utc).isoformat(),
-                "completed_at": datetime.now(tz=timezone.utc).isoformat(),
-            },
-            "human_review": {
-                "status": "pending",
-                "required": True,
-                "next_step": "Resubmit with user_input.human_review_approved=true after approval decision.",
-            },
-            "status": "review_required",
-        }
-
     orchestrator = Orchestrator()
     started_at = datetime.now(tz=timezone.utc).isoformat()
     orchestration_result = await orchestrator.run_methodology_node_action(
@@ -2737,18 +2792,9 @@ async def run_methodology_node_action(
     )
     completed_at = datetime.now(tz=timezone.utc).isoformat()
 
-    artifact_ops: list[dict[str, Any]] = []
     connector_operations: list[dict[str, Any]] = []
     agent_ids_executed: list[str] = []
     for task_payload in orchestration_result.results.values():
-        metadata = task_payload.get("metadata", {})
-        if metadata.get("template_id"):
-            artifact_ops.append(
-                {
-                    "template_id": metadata.get("template_id"),
-                    "lifecycle_event": metadata.get("workflow_event", lifecycle_event),
-                }
-            )
         connector_operations.append(
             {
                 "connector_binding": task_payload.get("input", {}).get("connector_binding"),
@@ -2759,70 +2805,77 @@ async def run_methodology_node_action(
         if agent_id:
             agent_ids_executed.append(agent_id)
 
-    output_format = resolution_contract["assistant"]["response_contract"]["output_format"]
+    canvas_type = resolution_contract.get("canvas", {}).get("canvas_type", "document")
+    artifact_id = f"artifact::{workspace_id}::{methodology_id}::{stage_id}::{activity_id or 'activity'}::{canvas_type}"
+    lifecycle_state = "published" if lifecycle_event == "publish" else "draft"
+    artifact_ref = runtime_lifecycle_store.upsert_artifact(
+        tenant_id=workspace_state.tenant_id,
+        workspace_id=workspace_id,
+        artifact_id=artifact_id,
+        artifact={
+            "workspace_id": workspace_id,
+            "methodology_id": methodology_id,
+            "stage_id": stage_id,
+            "activity_id": activity_id,
+            "canvas_type": canvas_type,
+            "status": lifecycle_state,
+            "title": (activity_id or stage_id).replace("-", " ").title(),
+            "metadata": {
+                "correlation_id": correlation_id,
+                "lifecycle_event": lifecycle_event,
+                "connector_operations": connector_operations,
+            },
+        },
+    )
 
-    if _demo_mode_enabled() and connector_operations:
-        for operation in connector_operations:
-            for side_effect in operation.get("side_effects", []):
-                if side_effect in {"write_connector", "publish_external", "notify"}:
-                    demo_outbox.append(
-                        "external_side_effects",
-                        {
-                            "workspace_id": workspace_id,
-                            "methodology_id": methodology_id,
-                            "stage_id": stage_id,
-                            "activity_id": activity_id,
-                            "lifecycle_event": lifecycle_event,
-                            "side_effect": side_effect,
-                            "connector_binding": operation.get("connector_binding"),
-                            "status": "captured_in_demo_outbox",
-                            "correlation_id": correlation_id,
-                        },
-                    )
-                    demo_outbox.append(
-                        "applied_changes",
-                        {
-                            "workspace_id": workspace_id,
-                            "methodology_id": methodology_id,
-                            "stage_id": stage_id,
-                            "activity_id": activity_id,
-                            "lifecycle_event": lifecycle_event,
-                            "side_effect": side_effect,
-                            "connector_binding": operation.get("connector_binding"),
-                            "status": "applied_in_demo",
-                            "correlation_id": correlation_id,
-                        },
-                    )
-
-        get_audit_log_store().record_event(
-            build_event(
-                tenant_id=workspace_state.tenant_id,
-                actor_id="demo-orchestrator",
-                actor_type="service",
-                roles=["automation"],
-                action="demo.external_side_effect.stubbed",
-                resource_type="workspace",
-                resource_id=workspace_id,
-                outcome="success",
-                metadata={
-                    "correlation_id": correlation_id,
-                    "connector_operations": connector_operations,
+    if lifecycle_event == "publish":
+        destinations = _collect_sor_destinations(resolution_contract)
+        change_payload = {
+            "artifact_id": artifact_id,
+            "status": lifecycle_state,
+            "metadata": artifact_ref.get("metadata", {}),
+        }
+        if _demo_mode_enabled():
+            demo_outbox.append(
+                "external_side_effects",
+                {
+                    "workspace_id": workspace_id,
+                    "lifecycle_event": lifecycle_event,
+                    "destinations": destinations,
+                    "changes": change_payload,
+                    "status": "captured_in_demo_outbox",
+                    "captured_at": completed_at,
                 },
             )
-        )
+        else:
+            connector_operations.append(
+                {"connector_binding": {"destinations": destinations}, "side_effects": ["publish_external"], "status": "submitted_to_sor"}
+            )
 
+    output_format = resolution_contract["assistant"]["response_contract"]["output_format"]
     assistant_content: Any
     if output_format == "json":
         assistant_content = {
             "templates": resolution_contract.get("template_ids", []),
             "results": orchestration_result.results,
+            "artifact_reference": artifact_ref,
         }
     else:
-        assistant_content = (
-            f"Executed methodology action `{lifecycle_event}` for "
-            f"{methodology_id}/{stage_id}/{activity_id or '-'} with templates "
-            f"{', '.join(resolution_contract.get('template_ids', [])) or 'none'}."
+        assistant_content = f"Executed {lifecycle_event} and persisted artifact {artifact_id}."
+
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=workspace_state.tenant_id,
+            actor_id=actor_id,
+            actor_type="user",
+            roles=["project_member"],
+            action=f"methodology.lifecycle.{lifecycle_event}.completed",
+            resource_type="artifact",
+            resource_id=artifact_id,
+            outcome="success",
+            metadata={"correlation_id": correlation_id, "state": lifecycle_state},
         )
+    )
 
     sor_sources = _collect_sor_sources(resolution_contract)
     sor_preview = _build_sor_preview_rows(sor_sources)
@@ -2833,13 +2886,11 @@ async def run_methodology_node_action(
         "assistant_response": {
             "intent_id": resolution_contract["assistant"]["intent_id"],
             "output_format": output_format,
-            "validation_checklist": resolution_contract["assistant"]["response_contract"][
-                "validation_checklist"
-            ],
+            "validation_checklist": resolution_contract["assistant"]["response_contract"]["validation_checklist"],
             "content": assistant_content,
         },
-        "artifacts_created": artifact_ops if lifecycle_event == "generate" else [],
-        "artifacts_updated": artifact_ops if lifecycle_event in {"update", "review", "approve", "publish"} else [],
+        "artifacts_created": [artifact_ref] if lifecycle_event == "generate" else [],
+        "artifacts_updated": [artifact_ref] if lifecycle_event in {"update", "review", "approve", "publish"} else [],
         "connector_operations": connector_operations,
         "sor_preview": {"sources": sor_sources, "preview_rows": sor_preview},
         "workflow_trace": {
@@ -3307,6 +3358,62 @@ async def approvals_feed() -> dict[str, Any]:
     return _approval_payload()
 
 
+@api_router.get("/api/methodology/runtime/approvals")
+async def get_runtime_approvals(workspace_id: str, request: Request, status: str = "pending") -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    items = runtime_lifecycle_store.list_approvals(tenant_id=tenant_id, workspace_id=workspace_id, status=status)
+    if _demo_mode_enabled() and not items and status == "pending":
+        items = [
+            {
+                "approval_id": "demo-approval-1",
+                "workspace_id": workspace_id,
+                "methodology_id": "adaptive",
+                "stage_id": "demo-stage",
+                "activity_id": "demo-activity",
+                "requested_event": "publish",
+                "status": "pending",
+                "requested_at": datetime.now(tz=timezone.utc).isoformat(),
+                "requested_by": "demo-user",
+                "notes": "Seeded approval for demo lifecycle walkthrough.",
+                "history": [],
+            }
+        ]
+    return {"items": items}
+
+
+@api_router.post("/api/methodology/runtime/approvals/{approval_id}/decision")
+async def decide_runtime_approval(approval_id: str, payload: RuntimeApprovalDecisionRequest, request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    actor_id = session.get("subject") or "ui-user"
+    decision = runtime_lifecycle_store.decide_approval(
+        tenant_id=tenant_id,
+        workspace_id=payload.workspace_id,
+        approval_id=approval_id,
+        decision=payload.decision,
+        actor=actor_id,
+        notes=payload.notes,
+    )
+    if not decision:
+        raise HTTPException(status_code=404, detail="Approval not found")
+
+    get_audit_log_store().record_event(
+        build_event(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            actor_type="user",
+            roles=["approver"],
+            action=f"methodology.lifecycle.approval.{payload.decision}",
+            resource_type="approval",
+            resource_id=approval_id,
+            outcome="success",
+            metadata={"workspace_id": payload.workspace_id, "notes": payload.notes},
+        )
+    )
+    return decision
+
+
 @api_router.get("/api/workflow-monitoring")
 async def workflow_monitoring_feed() -> dict[str, Any]:
     return {
@@ -3713,17 +3820,19 @@ async def push_to_sor(payload: SorPublishRequest) -> SorPublishResponse:
         "lifecycle_event": payload.lifecycle_event,
         "destinations": destinations,
         "changes": payload.changes,
-        "status": "captured_in_demo_outbox",
+        "status": "captured_in_demo_outbox" if _demo_mode_enabled() else "submitted_to_sor",
         "captured_at": datetime.now(tz=timezone.utc).isoformat(),
     }
-    demo_outbox.append("external_side_effects", entry)
+    if _demo_mode_enabled():
+        demo_outbox.append("external_side_effects", entry)
     applied = {
         "workspace_id": payload.workspace_id,
         "destinations": destinations,
         "changes": payload.changes,
         "applied_at": datetime.now(tz=timezone.utc).isoformat(),
     }
-    demo_outbox.append("applied_changes", applied)
+    if _demo_mode_enabled():
+        demo_outbox.append("applied_changes", applied)
     get_audit_log_store().record_event(
         build_event(
             tenant_id="default",
