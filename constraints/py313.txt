@@ -1,0 +1,9 @@
+# Python 3.13 compatibility constraints
+# Use with: pip install -c constraints/py313.txt -e ".[dev,test]"
+
+# Prefer wheel-backed runtime packages on Python 3.13.
+spacy==3.8.3
+
+# asyncpg can require local build toolchains on Windows/Python 3.13.
+# We use psycopg[binary] for py313 instead (see requirements markers).
+psycopg[binary]==3.2.3

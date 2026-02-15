@@ -356,6 +356,58 @@ jobs:
           flags: unittests
           name: codecov-umbrella
 
+
+  py313-cross-platform:
+    name: Python 3.13 Compatibility (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -c constraints/py313.txt -r requirements-dev.txt
+          pip install -c constraints/py313.txt -e ".[dev,test]"
+          pip install slowapi
+
+      - name: Import smoke test
+        run: python -m compileall agents apps packages tests tools scripts
+
+      - name: Run unit tests (if present)
+        run: |
+          python - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+
+          if pathlib.Path("tests").exists():
+              subprocess.check_call(
+                  [
+                      sys.executable,
+                      "-m",
+                      "pytest",
+                      "tests/tools/test_runtime_paths.py",
+                      "tests/ops/tools/test_check_root_layout.py",
+                      "-q",
+                      "-ra",
+                      "--durations=10",
+                  ]
+              )
+          else:
+              print("No tests directory found; skipping unit test step.")
+          PY
+
   mcp-tests:
     name: MCP Client & Routing Tests
     runs-on: ubuntu-latest

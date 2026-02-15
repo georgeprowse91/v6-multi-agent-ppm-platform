@@ -22,9 +22,10 @@ cryptography>=42.0.0
 
 sqlalchemy>=2.0.0
 alembic>=1.13.0
-asyncpg>=0.29.0
+asyncpg>=0.29.0; python_version < '3.13'
 aiosqlite>=0.20.0
 psycopg2-binary>=2.9.9
+psycopg[binary]>=3.2.3; python_version >= '3.13'
 redis>=5.0.0
 celery>=5.4.0
 
@@ -32,9 +33,9 @@ openai>=1.10.0
 langchain>=0.1.0
 tiktoken>=0.5.2
 numpy>=1.26.0
-faiss-cpu>=1.8.0
+faiss-cpu>=1.8.0; platform_system != 'Windows'
 transformers>=4.48.0
-spacy>=3.7.5
+spacy>=3.8.3
 sentence-transformers>=3.0.0
 
 python-dotenv>=1.0.0
