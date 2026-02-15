@@ -10,16 +10,28 @@
           "stage_id": "0.5-iteration-sprint-delivery-repeating-cycle",
           "activity_id": "0.5.1-sprint-iteration-planning",
           "task_id": null,
-          "lifecycle_events": ["generate", "update", "review", "approve", "publish"],
+          "lifecycle_events": [
+            "generate",
+            "update",
+            "review",
+            "approve",
+            "publish"
+          ],
           "required": true,
-          "gate_refs": ["Gate 2", "delivery-readiness"]
+          "gate_refs": [
+            "Gate 2",
+            "delivery-readiness"
+          ]
         },
         {
           "methodology_id": "predictive",
           "stage_id": "0.5-execution",
           "activity_id": "0.5.2-design-build-deliverables",
           "task_id": null,
-          "lifecycle_events": ["update", "review"],
+          "lifecycle_events": [
+            "update",
+            "review"
+          ],
           "required": false,
           "gate_refs": []
         },
@@ -28,22 +40,44 @@
           "stage_id": "0.6-iterative-build-test-sprints-within-a-stage-release",
           "activity_id": "0.6.1-sprint-planning",
           "task_id": null,
-          "lifecycle_events": ["generate", "update", "review"],
+          "lifecycle_events": [
+            "generate",
+            "update",
+            "review"
+          ],
           "required": false,
           "gate_refs": []
         }
       ],
       "agent_bindings": {
-        "generate": ["intent-router", "project-definition"],
-        "update": ["schedule-planning", "program-management"],
-        "review": ["project-lifecycle-governance"],
-        "approve": ["agent_003_approval_workflow"],
-        "publish": ["response-orchestration"],
+        "generate": [
+          "intent-router",
+          "project-definition"
+        ],
+        "update": [
+          "schedule-planning",
+          "program-management"
+        ],
+        "review": [
+          "project-lifecycle-governance"
+        ],
+        "approve": [
+          "agent_003_approval_workflow"
+        ],
+        "publish": [
+          "response-orchestration"
+        ],
         "orchestration": {
           "dag_name": "adaptive_delivery_workflow",
           "depends_on_templates": [],
-          "produces_artifacts": ["adaptive.backlog", "adaptive.sprint-plan"],
-          "side_effects": ["write_connector", "notify"]
+          "produces_artifacts": [
+            "adaptive.backlog",
+            "adaptive.sprint-plan"
+          ],
+          "side_effects": [
+            "write_connector",
+            "notify"
+          ]
         }
       },
       "connector_binding": {
@@ -52,32 +86,55 @@
           {
             "connector_type": "jira",
             "system": "Jira Cloud",
-            "objects": ["epic", "story", "sprint"]
+            "objects": [
+              "epic",
+              "story",
+              "sprint"
+            ]
           }
         ],
         "destinations": [
           {
             "connector_type": "confluence",
             "system": "Confluence",
-            "objects": ["page", "space"]
+            "objects": [
+              "page",
+              "space"
+            ]
           }
         ]
       },
       "canvas_binding": {
-        "canvas_type": "kanban",
+        "canvas_type": "board",
         "renderer_component": "KanbanCanvas",
         "default_view": "edit"
       },
       "assistant_binding": {
         "intents": [
-          {"intent_id": "adaptive.plan.generate", "lifecycle_event": "generate", "system_prompt_key": "adaptive_generate"},
-          {"intent_id": "adaptive.plan.review", "lifecycle_event": "review", "system_prompt_key": "adaptive_review"}
+          {
+            "intent_id": "adaptive.plan.generate",
+            "lifecycle_event": "generate",
+            "system_prompt_key": "adaptive_generate"
+          },
+          {
+            "intent_id": "adaptive.plan.review",
+            "lifecycle_event": "review",
+            "system_prompt_key": "adaptive_review"
+          }
         ],
         "response_contract": {
-          "input_requirements": ["project_scope", "current_backlog", "team_capacity"],
+          "input_requirements": [
+            "project_scope",
+            "current_backlog",
+            "team_capacity"
+          ],
           "output_format": "markdown",
           "tone": "delivery",
-          "review_checklist": ["Dependencies captured", "Sprint goal is measurable", "Risks captured"]
+          "review_checklist": [
+            "Dependencies captured",
+            "Sprint goal is measurable",
+            "Risks captured"
+          ]
         }
       }
     },
@@ -91,16 +148,28 @@
           "stage_id": "0.4-planning",
           "activity_id": "0.4.2-schedule-planning",
           "task_id": null,
-          "lifecycle_events": ["generate", "update", "review", "approve", "publish"],
+          "lifecycle_events": [
+            "generate",
+            "update",
+            "review",
+            "approve",
+            "publish"
+          ],
           "required": true,
-          "gate_refs": ["Gate 1", "baseline-approved"]
+          "gate_refs": [
+            "Gate 1",
+            "baseline-approved"
+          ]
         },
         {
           "methodology_id": "adaptive",
           "stage_id": "0.8-governance-monitoring-controls-throughout",
           "activity_id": "0.8.8-steering-portfolio-reporting-and-checkpoints",
           "task_id": null,
-          "lifecycle_events": ["review", "approve"],
+          "lifecycle_events": [
+            "review",
+            "approve"
+          ],
           "required": false,
           "gate_refs": []
         },
@@ -109,22 +178,46 @@
           "stage_id": "0.7-stage-gate-assurance-control-runs-parallel",
           "activity_id": "0.7.3-schedule-cost-tracking-at-milestone-level",
           "task_id": null,
-          "lifecycle_events": ["generate", "update", "review", "approve"],
+          "lifecycle_events": [
+            "generate",
+            "update",
+            "review",
+            "approve"
+          ],
           "required": true,
-          "gate_refs": ["Gate 2"]
+          "gate_refs": [
+            "Gate 2"
+          ]
         }
       ],
       "agent_bindings": {
-        "generate": ["business-case-investment", "schedule-planning"],
-        "update": ["financial-management", "program-management"],
-        "review": ["project-lifecycle-governance"],
-        "approve": ["agent_003_approval_workflow"],
-        "publish": ["response-orchestration"],
+        "generate": [
+          "business-case-investment",
+          "schedule-planning"
+        ],
+        "update": [
+          "financial-management",
+          "program-management"
+        ],
+        "review": [
+          "project-lifecycle-governance"
+        ],
+        "approve": [
+          "agent_003_approval_workflow"
+        ],
+        "publish": [
+          "response-orchestration"
+        ],
         "orchestration": {
           "dag_name": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
-          "produces_artifacts": ["predictive.schedule-baseline", "predictive.cost-plan"],
-          "side_effects": ["write_connector"]
+          "produces_artifacts": [
+            "predictive.schedule-baseline",
+            "predictive.cost-plan"
+          ],
+          "side_effects": [
+            "write_connector"
+          ]
         }
       },
       "connector_binding": {
@@ -133,14 +226,21 @@
           {
             "connector_type": "ms_project_server",
             "system": "Microsoft Project",
-            "objects": ["task", "milestone", "baseline"]
+            "objects": [
+              "task",
+              "milestone",
+              "baseline"
+            ]
           }
         ],
         "destinations": [
           {
             "connector_type": "sharepoint",
             "system": "SharePoint",
-            "objects": ["document", "list"]
+            "objects": [
+              "document",
+              "list"
+            ]
           }
         ]
       },
@@ -151,14 +251,30 @@
       },
       "assistant_binding": {
         "intents": [
-          {"intent_id": "predictive.plan.generate", "lifecycle_event": "generate", "system_prompt_key": "predictive_generate"},
-          {"intent_id": "predictive.plan.approve", "lifecycle_event": "approve", "system_prompt_key": "predictive_approve"}
+          {
+            "intent_id": "predictive.plan.generate",
+            "lifecycle_event": "generate",
+            "system_prompt_key": "predictive_generate"
+          },
+          {
+            "intent_id": "predictive.plan.approve",
+            "lifecycle_event": "approve",
+            "system_prompt_key": "predictive_approve"
+          }
         ],
         "response_contract": {
-          "input_requirements": ["wbs", "cost_estimates", "resource_plan"],
+          "input_requirements": [
+            "wbs",
+            "cost_estimates",
+            "resource_plan"
+          ],
           "output_format": "table",
           "tone": "executive",
-          "review_checklist": ["Baseline variance explained", "Critical path validated", "Funding source confirmed"]
+          "review_checklist": [
+            "Baseline variance explained",
+            "Critical path validated",
+            "Funding source confirmed"
+          ]
         }
       }
     },
@@ -172,40 +288,79 @@
           "stage_id": "0.8-release-readiness-deployment-transition-gate-2-3-4-depending-on-model",
           "activity_id": "0.8.8-release-sign-off-and-gate-approval-to-proceed-close",
           "task_id": null,
-          "lifecycle_events": ["generate", "update", "review", "approve", "publish"],
+          "lifecycle_events": [
+            "generate",
+            "update",
+            "review",
+            "approve",
+            "publish"
+          ],
           "required": true,
-          "gate_refs": ["Gate 3", "release-signoff"]
+          "gate_refs": [
+            "Gate 3",
+            "release-signoff"
+          ]
         },
         {
           "methodology_id": "predictive",
           "stage_id": "0.7-closure",
           "activity_id": "0.7.2-obtain-sponsor-customer-formal-acceptance",
           "task_id": null,
-          "lifecycle_events": ["review", "approve", "publish"],
+          "lifecycle_events": [
+            "review",
+            "approve",
+            "publish"
+          ],
           "required": true,
-          "gate_refs": ["Gate 4"]
+          "gate_refs": [
+            "Gate 4"
+          ]
         },
         {
           "methodology_id": "adaptive",
           "stage_id": "0.6-release-planning-deployment-continuous-or-cadenced",
           "activity_id": "0.6.3-conduct-release-readiness-checks",
           "task_id": null,
-          "lifecycle_events": ["update", "review", "publish"],
+          "lifecycle_events": [
+            "update",
+            "review",
+            "publish"
+          ],
           "required": false,
           "gate_refs": []
         }
       ],
       "agent_bindings": {
-        "generate": ["project-definition", "program-management"],
-        "update": ["project-lifecycle-governance"],
-        "review": ["project-lifecycle-governance", "agent_003_approval_workflow"],
-        "approve": ["agent_003_approval_workflow"],
-        "publish": ["response-orchestration"],
+        "generate": [
+          "project-definition",
+          "program-management"
+        ],
+        "update": [
+          "project-lifecycle-governance"
+        ],
+        "review": [
+          "project-lifecycle-governance",
+          "agent_003_approval_workflow"
+        ],
+        "approve": [
+          "agent_003_approval_workflow"
+        ],
+        "publish": [
+          "response-orchestration"
+        ],
         "orchestration": {
           "dag_name": "hybrid_transformation_workflow",
-          "depends_on_templates": ["predictive-infrastructure"],
-          "produces_artifacts": ["hybrid.release-signoff", "hybrid.transition-plan"],
-          "side_effects": ["publish_external", "notify"]
+          "depends_on_templates": [
+            "predictive-infrastructure"
+          ],
+          "produces_artifacts": [
+            "hybrid.release-signoff",
+            "hybrid.transition-plan"
+          ],
+          "side_effects": [
+            "publish_external",
+            "notify"
+          ]
         }
       },
       "connector_binding": {
@@ -214,14 +369,20 @@
           {
             "connector_type": "azure_devops",
             "system": "Azure DevOps",
-            "objects": ["work_item", "release"]
+            "objects": [
+              "work_item",
+              "release"
+            ]
           }
         ],
         "destinations": [
           {
             "connector_type": "servicenow",
             "system": "ServiceNow",
-            "objects": ["change_request", "release_record"]
+            "objects": [
+              "change_request",
+              "release_record"
+            ]
           }
         ]
       },
@@ -232,14 +393,30 @@
       },
       "assistant_binding": {
         "intents": [
-          {"intent_id": "hybrid.release.review", "lifecycle_event": "review", "system_prompt_key": "hybrid_review"},
-          {"intent_id": "hybrid.release.publish", "lifecycle_event": "publish", "system_prompt_key": "hybrid_publish"}
+          {
+            "intent_id": "hybrid.release.review",
+            "lifecycle_event": "review",
+            "system_prompt_key": "hybrid_review"
+          },
+          {
+            "intent_id": "hybrid.release.publish",
+            "lifecycle_event": "publish",
+            "system_prompt_key": "hybrid_publish"
+          }
         ],
         "response_contract": {
-          "input_requirements": ["release_notes", "test_evidence", "operational_readiness"],
+          "input_requirements": [
+            "release_notes",
+            "test_evidence",
+            "operational_readiness"
+          ],
           "output_format": "diff",
           "tone": "assurance",
-          "review_checklist": ["Acceptance criteria met", "Support handover complete", "External publication approved"]
+          "review_checklist": [
+            "Acceptance criteria met",
+            "Support handover complete",
+            "External publication approved"
+          ]
         }
       }
     }

@@ -41,7 +41,7 @@ type MethodologyEditorPayload = {
   gates: MethodologyGate[];
 };
 
-const canvasTabs = ['document', 'tree', 'timeline', 'spreadsheet', 'dashboard'];
+const canvasTabs = ['document', 'tree', 'timeline', 'spreadsheet', 'dashboard', 'board', 'backlog', 'gantt', 'grid', 'financial', 'dependency_map', 'roadmap', 'approval'];
 
 const createActivity = (): MethodologyActivity => ({
   id: '',

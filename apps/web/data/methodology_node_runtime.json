@@ -268,7 +268,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -366,7 +366,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -709,7 +709,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -807,7 +807,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -905,7 +905,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -1150,7 +1150,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "roadmap",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -1493,7 +1493,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -1542,7 +1542,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2228,7 +2228,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2277,7 +2277,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2326,7 +2326,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2375,7 +2375,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2424,7 +2424,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2473,7 +2473,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2522,7 +2522,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2571,7 +2571,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2620,7 +2620,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2669,7 +2669,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2718,7 +2718,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2767,7 +2767,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -2816,7 +2816,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -4727,7 +4727,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -5021,7 +5021,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -5070,7 +5070,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -5119,7 +5119,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -5903,7 +5903,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -6001,7 +6001,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -6344,7 +6344,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -6442,7 +6442,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -6540,7 +6540,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -6736,7 +6736,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "roadmap",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -7128,7 +7128,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -8549,7 +8549,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -8598,7 +8598,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -8647,7 +8647,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -8696,7 +8696,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -8745,7 +8745,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -8794,7 +8794,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -10264,7 +10264,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "backlog",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -10313,7 +10313,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -10362,7 +10362,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -10460,7 +10460,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -10558,7 +10558,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -10999,7 +10999,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -11195,7 +11195,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -11783,7 +11783,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -11832,7 +11832,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -12175,7 +12175,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -12273,7 +12273,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -12371,7 +12371,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -12567,7 +12567,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -12959,7 +12959,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13155,7 +13155,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13596,7 +13596,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13645,7 +13645,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13694,7 +13694,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13743,7 +13743,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13792,7 +13792,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13841,7 +13841,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13890,7 +13890,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13939,7 +13939,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -13988,7 +13988,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14037,7 +14037,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14086,7 +14086,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14380,7 +14380,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14429,7 +14429,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14478,7 +14478,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14527,7 +14527,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14576,7 +14576,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -14625,7 +14625,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "grid",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -17026,7 +17026,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "gantt",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -17075,7 +17075,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -17173,7 +17173,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "dependency_map",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -17369,7 +17369,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -17614,7 +17614,7 @@
           "destinations": []
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "financial",
           "renderer_component": "DocumentCanvas",
           "default_view": "preview",
           "focus": {}
@@ -17885,7 +17885,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -17964,7 +17964,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18042,7 +18042,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18120,7 +18120,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18198,7 +18198,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18277,7 +18277,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18355,7 +18355,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18434,7 +18434,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18513,7 +18513,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18591,7 +18591,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "kanban",
+          "canvas_type": "board",
           "renderer_component": "KanbanCanvas",
           "default_view": "edit",
           "focus": {
@@ -18670,7 +18670,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "gantt",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -18749,7 +18749,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "gantt",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -18827,7 +18827,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "gantt",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -18905,7 +18905,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "gantt",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -18983,7 +18983,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "gantt",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -19218,7 +19218,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "financial",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -19297,7 +19297,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "financial",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -19375,7 +19375,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "financial",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -19453,7 +19453,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "timeline",
+          "canvas_type": "financial",
           "renderer_component": "TimelineCanvas",
           "default_view": "edit",
           "focus": {
@@ -19533,7 +19533,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "review",
           "focus": {
@@ -19614,7 +19614,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "review",
           "focus": {
@@ -19696,7 +19696,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "review",
           "focus": {
@@ -19777,7 +19777,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "review",
           "focus": {
@@ -19858,7 +19858,7 @@
           ]
         },
         "canvas": {
-          "canvas_type": "document",
+          "canvas_type": "approval",
           "renderer_component": "DocumentCanvas",
           "default_view": "review",
           "focus": {

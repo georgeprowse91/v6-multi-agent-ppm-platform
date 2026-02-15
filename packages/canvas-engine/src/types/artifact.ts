@@ -11,7 +11,15 @@ export type CanvasType =
   | 'tree'
   | 'timeline'
   | 'spreadsheet'
-  | 'dashboard';
+  | 'dashboard'
+  | 'board'
+  | 'backlog'
+  | 'gantt'
+  | 'grid'
+  | 'financial'
+  | 'dependency_map'
+  | 'roadmap'
+  | 'approval';
 
 /** Publication status of an artifact */
 export type ArtifactStatus = 'draft' | 'published';
@@ -100,13 +108,117 @@ export interface DashboardContent {
   gridRows?: number;
 }
 
+export interface BoardCard {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface BoardColumn {
+  id: string;
+  title: string;
+  cards: BoardCard[];
+}
+
+export interface BoardContent { columns: BoardColumn[] }
+
+export interface BacklogItem {
+  id: string;
+  title: string;
+  parentId: string | null;
+  rank: number;
+  estimate: number;
+}
+
+export interface BacklogContent { items: BacklogItem[] }
+
+export interface GanttTask {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  baselineStart?: string;
+  baselineEnd?: string;
+  dependencies: string[];
+}
+
+export interface GanttContent { tasks: GanttTask[] }
+
+export interface GridColumn {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'select';
+  required?: boolean;
+  options?: string[];
+}
+
+export interface GridContent {
+  columns: GridColumn[];
+  rows: Record<string, string | number>[];
+}
+
+export interface FinancialLineItem {
+  id: string;
+  category: string;
+  budget: number;
+  actual: number;
+  forecast: number;
+}
+
+export interface FinancialContent {
+  version: string;
+  lineItems: FinancialLineItem[];
+}
+
+export interface DependencyNode { id: string; label: string }
+export interface DependencyLink { source: string; target: string }
+export interface DependencyMapContent {
+  nodes: DependencyNode[];
+  links: DependencyLink[];
+}
+
+export interface RoadmapMilestone {
+  id: string;
+  title: string;
+  lane: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface RoadmapContent {
+  lanes: string[];
+  milestones: RoadmapMilestone[];
+}
+
+export interface ApprovalHistoryEntry {
+  id: string;
+  action: 'submit' | 'approve' | 'reject' | 'request_changes';
+  actor: string;
+  timestamp: string;
+  note?: string;
+}
+
+export interface ApprovalContent {
+  status: 'pending' | 'approved' | 'rejected';
+  evidence: string[];
+  history: ApprovalHistoryEntry[];
+}
+
 /** Union type for all content types */
 export type ArtifactContent =
   | DocumentContent
   | TreeContent
   | TimelineContent
   | SpreadsheetContent
-  | DashboardContent;
+  | DashboardContent
+  | BoardContent
+  | BacklogContent
+  | GanttContent
+  | GridContent
+  | FinancialContent
+  | DependencyMapContent
+  | RoadmapContent
+  | ApprovalContent;
 
 /** Metadata associated with an artifact */
 export interface ArtifactMetadata {
@@ -168,6 +280,14 @@ export type TreeArtifact = CanvasArtifact<TreeContent>;
 export type TimelineArtifact = CanvasArtifact<TimelineContent>;
 export type SpreadsheetArtifact = CanvasArtifact<SpreadsheetContent>;
 export type DashboardArtifact = CanvasArtifact<DashboardContent>;
+export type BoardArtifact = CanvasArtifact<BoardContent>;
+export type BacklogArtifact = CanvasArtifact<BacklogContent>;
+export type GanttArtifact = CanvasArtifact<GanttContent>;
+export type GridArtifact = CanvasArtifact<GridContent>;
+export type FinancialArtifact = CanvasArtifact<FinancialContent>;
+export type DependencyMapArtifact = CanvasArtifact<DependencyMapContent>;
+export type RoadmapArtifact = CanvasArtifact<RoadmapContent>;
+export type ApprovalArtifact = CanvasArtifact<ApprovalContent>;
 
 /** Helper to create a new artifact with defaults */
 export function createArtifact<T extends ArtifactContent>(
@@ -215,5 +335,33 @@ export function createEmptyContent(type: CanvasType): ArtifactContent {
       } as SpreadsheetContent;
     case 'dashboard':
       return { widgets: [], gridColumns: 12, gridRows: 8 } as DashboardContent;
+    case 'board':
+      return {
+        columns: [
+          { id: 'col-todo', title: 'To Do', cards: [] },
+          { id: 'col-progress', title: 'In Progress', cards: [] },
+          { id: 'col-done', title: 'Done', cards: [] },
+        ],
+      } as BoardContent;
+    case 'backlog':
+      return { items: [] } as BacklogContent;
+    case 'gantt':
+      return { tasks: [] } as GanttContent;
+    case 'grid':
+      return {
+        columns: [
+          { key: 'name', label: 'Name', type: 'text', required: true },
+          { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Closed'] },
+        ],
+        rows: [],
+      } as GridContent;
+    case 'financial':
+      return { version: 'v1', lineItems: [] } as FinancialContent;
+    case 'dependency_map':
+      return { nodes: [], links: [] } as DependencyMapContent;
+    case 'roadmap':
+      return { lanes: ['Now', 'Next', 'Later'], milestones: [] } as RoadmapContent;
+    case 'approval':
+      return { status: 'pending', evidence: [], history: [] } as ApprovalContent;
   }
 }

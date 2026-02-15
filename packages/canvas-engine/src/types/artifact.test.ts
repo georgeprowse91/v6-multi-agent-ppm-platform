@@ -12,6 +12,14 @@ import {
   type TimelineContent,
   type SpreadsheetContent,
   type DashboardContent,
+  type BoardContent,
+  type BacklogContent,
+  type GanttContent,
+  type GridContent,
+  type FinancialContent,
+  type DependencyMapContent,
+  type RoadmapContent,
+  type ApprovalContent,
 } from './artifact';
 
 describe('createArtifact', () => {
@@ -94,8 +102,51 @@ describe('createEmptyContent', () => {
     expect(content.gridRows).toBe(8);
   });
 
+
+  it('should create empty board content', () => {
+    const content = createEmptyContent('board') as BoardContent;
+    expect(content.columns).toHaveLength(3);
+  });
+
+  it('should create empty backlog content', () => {
+    const content = createEmptyContent('backlog') as BacklogContent;
+    expect(content.items).toEqual([]);
+  });
+
+  it('should create empty gantt content', () => {
+    const content = createEmptyContent('gantt') as GanttContent;
+    expect(content.tasks).toEqual([]);
+  });
+
+  it('should create empty grid content', () => {
+    const content = createEmptyContent('grid') as GridContent;
+    expect(content.columns.length).toBeGreaterThan(0);
+    expect(content.rows).toEqual([]);
+  });
+
+  it('should create empty financial content', () => {
+    const content = createEmptyContent('financial') as FinancialContent;
+    expect(content.version).toBe('v1');
+  });
+
+  it('should create empty dependency map content', () => {
+    const content = createEmptyContent('dependency_map') as DependencyMapContent;
+    expect(content.nodes).toEqual([]);
+    expect(content.links).toEqual([]);
+  });
+
+  it('should create empty roadmap content', () => {
+    const content = createEmptyContent('roadmap') as RoadmapContent;
+    expect(content.lanes).toContain('Now');
+  });
+
+  it('should create empty approval content', () => {
+    const content = createEmptyContent('approval') as ApprovalContent;
+    expect(content.status).toBe('pending');
+  });
+
   it('should handle all canvas types', () => {
-    const canvasTypes: CanvasType[] = ['document', 'tree', 'timeline', 'spreadsheet', 'dashboard'];
+    const canvasTypes: CanvasType[] = ['document', 'tree', 'timeline', 'spreadsheet', 'dashboard', 'board', 'backlog', 'gantt', 'grid', 'financial', 'dependency_map', 'roadmap', 'approval'];
 
     canvasTypes.forEach((type) => {
       const content = createEmptyContent(type);

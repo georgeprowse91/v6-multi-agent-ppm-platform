@@ -29,6 +29,14 @@ CANVAS_TYPES = (
     "dashboard",
     "form",
     "whiteboard",
+    "board",
+    "backlog",
+    "gantt",
+    "grid",
+    "financial",
+    "dependency_map",
+    "roadmap",
+    "approval",
 )
 CONNECTOR_CATEGORIES = (
     "portfolio",
@@ -105,6 +113,14 @@ class CanvasBinding(BaseModel):
         "dashboard",
         "form",
         "whiteboard",
+        "board",
+        "backlog",
+        "gantt",
+        "grid",
+        "financial",
+        "dependency_map",
+        "roadmap",
+        "approval",
     ]
     renderer_component: str
     default_view: str

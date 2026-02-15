@@ -478,3 +478,19 @@ def test_runtime_action_persists_artifact_metadata(client, monkeypatch):
     payload = response.json()
     assert payload["artifacts_created"]
     assert payload["artifacts_created"][0]["status"] == "draft"
+
+
+def test_workspace_select_accepts_new_canvas_tabs(client, monkeypatch):
+    _set_tenant(monkeypatch, "tenant-a")
+    for tab in ["board", "backlog", "gantt", "grid", "financial", "dependency_map", "roadmap", "approval"]:
+      response = client.post(
+          "/api/workspace/demo-1/select",
+          json={
+              "current_stage_id": None,
+              "current_activity_id": None,
+              "current_canvas_tab": tab,
+              "methodology": "adaptive",
+          },
+      )
+      assert response.status_code == 200
+      assert response.json()["current_canvas_tab"] == tab

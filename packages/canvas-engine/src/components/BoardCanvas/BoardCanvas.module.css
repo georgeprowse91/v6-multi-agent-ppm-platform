@@ -1,0 +1,6 @@
+.board { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 12px; }
+.column { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; background: #f9fafb; }
+.header { font-weight: 600; margin-bottom: 8px; }
+.cards { display: grid; gap: 8px; min-height: 80px; }
+.card { background: white; border-radius: 6px; padding: 8px; border: 1px solid #e5e7eb; }
+.card input { width: 100%; border: 0; background: transparent; }

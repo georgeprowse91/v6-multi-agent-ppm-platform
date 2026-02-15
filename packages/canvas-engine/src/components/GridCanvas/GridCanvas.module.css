@@ -1,0 +1,3 @@
+.wrap { display: grid; gap: 8px; }
+.table { border-collapse: collapse; width: 100%; }
+.table th, .table td { border: 1px solid #ddd; padding: 6px; }

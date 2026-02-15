@@ -250,6 +250,14 @@ describe('CANVAS_TYPE_CONFIGS', () => {
     expect(CANVAS_TYPE_CONFIGS.timeline).toBeDefined();
     expect(CANVAS_TYPE_CONFIGS.spreadsheet).toBeDefined();
     expect(CANVAS_TYPE_CONFIGS.dashboard).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.board).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.backlog).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.gantt).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.grid).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.financial).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.dependency_map).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.roadmap).toBeDefined();
+    expect(CANVAS_TYPE_CONFIGS.approval).toBeDefined();
   });
 
   it('should have required properties in each config', () => {
@@ -261,6 +269,19 @@ describe('CANVAS_TYPE_CONFIGS', () => {
       expect(config.defaultTitle).toBeDefined();
       expect(typeof config.supportsExport).toBe('boolean');
     });
+  });
+
+
+
+  it('should include required export format sets for new canvas types', () => {
+    expect(CANVAS_TYPE_CONFIGS.board.exportFormats).toEqual(['json', 'csv', 'png']);
+    expect(CANVAS_TYPE_CONFIGS.backlog.exportFormats).toEqual(['json', 'csv']);
+    expect(CANVAS_TYPE_CONFIGS.gantt.exportFormats).toEqual(['json', 'csv', 'pdf', 'png']);
+    expect(CANVAS_TYPE_CONFIGS.grid.exportFormats).toEqual(['json', 'csv', 'xlsx']);
+    expect(CANVAS_TYPE_CONFIGS.financial.exportFormats).toEqual(['json', 'csv', 'xlsx', 'pdf']);
+    expect(CANVAS_TYPE_CONFIGS.dependency_map.exportFormats).toEqual(['json', 'png']);
+    expect(CANVAS_TYPE_CONFIGS.roadmap.exportFormats).toEqual(['json', 'png', 'pdf']);
+    expect(CANVAS_TYPE_CONFIGS.approval.exportFormats).toEqual(['json', 'pdf']);
   });
 
   it('should have export formats when export is supported', () => {

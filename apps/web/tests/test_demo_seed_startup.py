@@ -92,6 +92,9 @@ def test_demo_startup_seeds_entities_and_artifacts(client):
     projects = json.loads(projects_path.read_text(encoding="utf-8"))["projects"]
     project_ids = {project["id"] for project in projects}
     assert {"demo-predictive", "demo-adaptive", "demo-hybrid"}.issubset(project_ids)
+    predictive = next(project for project in projects if project["id"] == "demo-predictive")
+    tab_types = {tab["type"] for tab in predictive.get("initial_tabs", [])}
+    assert {"board", "backlog", "gantt", "grid", "financial", "dependency_map", "roadmap", "approval"}.issubset(tab_types)
 
     tree = client.get("/api/tree/demo-predictive")
     assert tree.status_code == 200

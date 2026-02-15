@@ -220,7 +220,17 @@ def _seed_demo_entities(demo_outbox: "DemoOutbox | None" = None) -> None:
             },
             "agent_config": {"enabled": ["agent-01", "agent-10"], "disabled": []},
             "connector_config": {"enabled": ["jira", "sap"], "disabled": []},
-            "initial_tabs": [{"type": "document", "title": "Project Charter", "activity_id": None}],
+            "initial_tabs": [
+                {"type": "document", "title": "Project Charter", "activity_id": None},
+                {"type": "board", "title": "Demand Pipeline", "activity_id": None},
+                {"type": "backlog", "title": "Backlog Hierarchy", "activity_id": None},
+                {"type": "gantt", "title": "Project Schedule", "activity_id": None},
+                {"type": "grid", "title": "Risk Register", "activity_id": None},
+                {"type": "financial", "title": "Budget Forecast", "activity_id": None},
+                {"type": "dependency_map", "title": "Dependency Map", "activity_id": None},
+                {"type": "roadmap", "title": "Transformation Roadmap", "activity_id": None},
+                {"type": "approval", "title": "Approvals Inbox", "activity_id": None}
+            ],
             "dashboards": [{"type": "dashboard", "title": "Portfolio Snapshot", "activity_id": None}],
         }
 

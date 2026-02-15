@@ -13,6 +13,14 @@ import {
   TimelineCanvas,
   SpreadsheetCanvas,
   DashboardCanvas,
+  BoardCanvas,
+  BacklogCanvas,
+  GanttCanvas,
+  GridCanvas,
+  FinancialCanvas,
+  DependencyMapCanvas,
+  RoadmapCanvas,
+  ApprovalCanvas,
   type CanvasArtifact,
   type CanvasType,
   type ArtifactContent,
@@ -21,6 +29,14 @@ import {
   type TimelineContent,
   type SpreadsheetContent,
   type DashboardContent,
+  type BoardContent,
+  type BacklogContent,
+  type GanttContent,
+  type GridContent,
+  type FinancialContent,
+  type DependencyMapContent,
+  type RoadmapContent,
+  type ApprovalContent,
 } from '@ppm/canvas-engine';
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { useAppStore } from '@/store/useAppStore';
@@ -66,9 +82,17 @@ export function CanvasWorkspace() {
 
   const handleExport = useCallback(
     (artifact: CanvasArtifact, format: string) => {
-      // In a real app, this would trigger an export
-      console.log(`Exporting ${artifact.title} as ${format}`);
-      alert(`Export to ${format.toUpperCase()} would be triggered here.\n\nArtifact: ${artifact.title}`);
+      const payload = format === 'json'
+        ? JSON.stringify(artifact.content, null, 2)
+        : format === 'csv'
+          ? 'id,title\n' + (Array.isArray((artifact.content as unknown as { items?: unknown }).items)
+              ? ((artifact.content as { items: Array<{ id?: string; title?: string }> }).items
+                  .map((item) => `${item.id ?? ''},${item.title ?? ''}`)
+                  .join('\n'))
+              : '')
+          : `Export(${format}) for ${artifact.title}`;
+      console.log(`Exporting ${artifact.title} as ${format}`, payload);
+      alert(`Prepared ${format.toUpperCase()} export for ${artifact.title}.`);
     },
     []
   );
@@ -119,6 +143,23 @@ export function CanvasWorkspace() {
               unifiedDashboardsEnabled={unifiedDashboardsEnabled}
             />
           );
+
+        case 'board':
+          return <BoardCanvas artifact={artifact as CanvasArtifact<BoardContent>} onChange={onChange as (content: BoardContent) => void} />;
+        case 'backlog':
+          return <BacklogCanvas artifact={artifact as CanvasArtifact<BacklogContent>} onChange={onChange as (content: BacklogContent) => void} />;
+        case 'gantt':
+          return <GanttCanvas artifact={artifact as CanvasArtifact<GanttContent>} onChange={onChange as (content: GanttContent) => void} />;
+        case 'grid':
+          return <GridCanvas artifact={artifact as CanvasArtifact<GridContent>} onChange={onChange as (content: GridContent) => void} />;
+        case 'financial':
+          return <FinancialCanvas artifact={artifact as CanvasArtifact<FinancialContent>} onChange={onChange as (content: FinancialContent) => void} />;
+        case 'dependency_map':
+          return <DependencyMapCanvas artifact={artifact as CanvasArtifact<DependencyMapContent>} onChange={onChange as (content: DependencyMapContent) => void} />;
+        case 'roadmap':
+          return <RoadmapCanvas artifact={artifact as CanvasArtifact<RoadmapContent>} onChange={onChange as (content: RoadmapContent) => void} />;
+        case 'approval':
+          return <ApprovalCanvas artifact={artifact as CanvasArtifact<ApprovalContent>} onChange={onChange as (content: ApprovalContent) => void} />;
         default:
           return <div>Unknown canvas type: {type}</div>;
       }
@@ -190,6 +231,14 @@ function CanvasEmptyState() {
                       timeline: 'artifact.timeline',
                       spreadsheet: 'artifact.spreadsheet',
                       dashboard: 'artifact.dashboard',
+                      board: 'artifact.tree',
+                      backlog: 'artifact.spreadsheet',
+                      gantt: 'artifact.timeline',
+                      grid: 'artifact.spreadsheet',
+                      financial: 'artifact.dashboard',
+                      dependency_map: 'artifact.tree',
+                      roadmap: 'artifact.timeline',
+                      approval: 'artifact.document',
                     } as Record<string, IconSemantic>)[artifact.type]
                   }
                   decorative

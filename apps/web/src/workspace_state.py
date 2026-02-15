@@ -10,10 +10,16 @@ CanvasTab = Literal[
     "document",
     "tree",
     "timeline",
-    "dependency-map",
-    "program-roadmap",
     "spreadsheet",
     "dashboard",
+    "board",
+    "backlog",
+    "gantt",
+    "grid",
+    "financial",
+    "dependency_map",
+    "roadmap",
+    "approval",
 ]
 
 

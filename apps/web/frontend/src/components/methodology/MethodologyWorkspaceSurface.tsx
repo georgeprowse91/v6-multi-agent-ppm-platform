@@ -8,9 +8,31 @@ import { useMethodologyStore } from '@/store/methodology';
 import { MethodologyMapCanvas } from './MethodologyMapCanvas';
 import { ActivityDetailPanel } from './ActivityDetailPanel';
 
-const canvasMap: Record<string, CanvasType> = {
-  document: 'document', spreadsheet: 'spreadsheet', timeline: 'timeline', dashboard: 'dashboard', kanban: 'tree', risk_log: 'spreadsheet', decision_log: 'document', form: 'document', whiteboard: 'document',
+export const canvasMap: Record<string, CanvasType> = {
+  document: 'document',
+  tree: 'tree',
+  timeline: 'timeline',
+  spreadsheet: 'spreadsheet',
+  dashboard: 'dashboard',
+  board: 'board',
+  backlog: 'backlog',
+  gantt: 'gantt',
+  grid: 'grid',
+  financial: 'financial',
+  dependency_map: 'dependency_map',
+  roadmap: 'roadmap',
+  approval: 'approval',
+  kanban: 'board',
+  risk_log: 'grid',
+  decision_log: 'approval',
+  form: 'grid',
+  whiteboard: 'document',
 };
+
+export function resolveRuntimeCanvasType(runtimeCanvasType: string | undefined, fallback: CanvasType): CanvasType {
+  if (!runtimeCanvasType) return fallback;
+  return canvasMap[runtimeCanvasType] ?? fallback;
+}
 
 export function MethodologyWorkspaceSurface() {
   const {
@@ -111,7 +133,7 @@ export function MethodologyWorkspaceSurface() {
 
     const contract = await resolveNodeRuntime({ methodologyId: projectMethodology.methodology.id, stageId, activityId: selectedActivity.id, event: 'view' });
     const runtimeCanvasType = contract?.canvas?.canvas_type ?? runtimeDefaultViewContract?.canvas?.canvas_type ?? selectedActivity.canvasType;
-    const canvasType = (canvasMap[runtimeCanvasType] ?? selectedActivity.canvasType) as CanvasType;
+    const canvasType = resolveRuntimeCanvasType(runtimeCanvasType, selectedActivity.canvasType);
     const ref = ((response.artifacts_updated?.[0] ?? response.artifacts_created?.[0]) ?? {}) as Record<string, unknown>;
     const artifactId = typeof ref.artifact_id === 'string' ? ref.artifact_id : `artifact-${selectedActivity.id}`;
     const title = typeof ref.title === 'string' ? ref.title : selectedActivity.name;
