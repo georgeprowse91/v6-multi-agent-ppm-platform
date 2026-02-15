@@ -643,7 +643,12 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                 {typeLabels[type].toLowerCase()}.
               </p>
             </div>
-            <button type="button" className={styles.primaryAction}>
+            <button
+              type="button"
+              className={styles.primaryAction}
+              onClick={() => navigate(`/projects/${encodeURIComponent(entityId)}/performance-dashboard`)}
+              disabled={type !== 'project'}
+            >
               View full dashboard
             </button>
           </div>

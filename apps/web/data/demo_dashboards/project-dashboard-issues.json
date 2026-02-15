@@ -1,0 +1,7 @@
+{
+  "project_id": "project-alpha",
+  "items": [
+    {"id": "I-22", "title": "Security scan false positives", "status": "Open", "owner": "Security"},
+    {"id": "I-29", "title": "Contract redline pending", "status": "Mitigating", "owner": "Legal"}
+  ]
+}

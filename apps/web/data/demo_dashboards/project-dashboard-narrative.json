@@ -1,0 +1,20 @@
+{
+  "project_id": "project-alpha",
+  "summary": "Delivery performance is stable with improving quality and schedule confidence.",
+  "highlights": [
+    "Quality score increased for three consecutive periods.",
+    "Approval turn-around improved by 18% since previous checkpoint."
+  ],
+  "risks": [
+    "Vendor procurement remains on the critical path for deployment.",
+    "Cross-team testing bandwidth is constrained for upcoming release."
+  ],
+  "opportunities": [
+    "Shift two integration stories left to reduce schedule pressure.",
+    "Use standby approvers to prevent bottlenecks during peak reviews."
+  ],
+  "data_quality_notes": [
+    "One stale risk review record older than 14 days."
+  ],
+  "computed_at": "2026-02-01T10:00:00Z"
+}

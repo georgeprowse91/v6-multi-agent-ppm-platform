@@ -1,0 +1,11 @@
+{
+  "project_id": "project-alpha",
+  "metrics": [
+    {"name": "schedule_variance", "value": 0.03, "normalized": 0.88},
+    {"name": "cost_variance", "value": 0.01, "normalized": 0.92},
+    {"name": "risk_score", "value": 0.42, "normalized": 0.78},
+    {"name": "quality_score", "value": 0.95, "normalized": 0.95},
+    {"name": "resource_utilization", "value": 0.86, "normalized": 0.9}
+  ],
+  "computed_at": "2026-02-01T10:00:00Z"
+}

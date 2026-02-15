@@ -1,0 +1,17 @@
+{
+  "project_id": "project-alpha",
+  "computed_at": "2026-02-01T10:00:00Z",
+  "artifacts": [
+    {
+      "artifact_type": "risk",
+      "label": "Risks",
+      "total": 12,
+      "last_updated": "2026-02-01T09:32:00Z",
+      "owners": ["Procurement", "Platform Ops"],
+      "status_breakdown": {"open": 8, "mitigating": 4},
+      "route": "/projects/project-alpha/performance-dashboard",
+      "sample_ids": ["R-102", "R-117"]
+    }
+  ],
+  "warnings": []
+}

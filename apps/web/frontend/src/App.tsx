@@ -26,6 +26,7 @@ const AgentRunsPage = React.lazy(() => import('./pages/AgentRunsPage'));
 const LoginPage = React.lazy(() => import('./pages/LoginPage'));
 const PromptManager = React.lazy(() => import('./pages/PromptManager'));
 const AnalyticsDashboard = React.lazy(() => import('./pages/AnalyticsDashboard'));
+const PerformanceDashboardPage = React.lazy(() => import('./pages/PerformanceDashboardPage'));
 const MethodologyEditor = React.lazy(() => import('./pages/MethodologyEditor'));
 const RoleManager = React.lazy(() => import('./pages/RoleManager'));
 const ForbiddenPage = React.lazy(() => import('./pages/ForbiddenPage'));
@@ -123,6 +124,7 @@ function AppRoutes() {
               <Route path="/app/admin/roles/assignments" element={<RoleManager view="assignments" />} />
             </Route>
             <Route path="/analytics/dashboard" element={<AnalyticsDashboard />} />
+            <Route path="/projects/:projectId/performance-dashboard" element={<PerformanceDashboardPage />} />
             <Route path="/demo-run" element={<DemoRunPage />} />
             <Route path="/403" element={<ForbiddenPage />} />
           </Route>

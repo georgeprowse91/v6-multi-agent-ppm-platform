@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import os
@@ -194,6 +195,7 @@ INTAKE_REQUESTS_PATH = STORAGE_DIR / "intake_requests.json"
 PIPELINE_STATE_PATH = STORAGE_DIR / "pipeline_state.json"
 WORKFLOW_DEFINITIONS_PATH = STORAGE_DIR / "workflow_definitions.json"
 DEMO_OUTBOX_PATH = STORAGE_DIR / "demo_outbox.json"
+DEMO_DOWNLOADS_DIR = STORAGE_DIR / "downloads"
 SOR_FIXTURES_PATH = DATA_DIR / "demo" / "sor_fixtures.json"
 ROLES_PATH = STORAGE_DIR / "roles.json"
 MERGE_REVIEW_PATH = STORAGE_DIR / "merge_review_cases.json"
@@ -835,6 +837,13 @@ class DashboardWhatIfRequest(BaseModel):
     adjustments: dict[str, Any] = {}
 
 
+class DashboardExportResponse(BaseModel):
+    project_id: str
+    file_name: str
+    download_path: str
+    generated_at: str
+
+
 class AssistantPrerequisite(BaseModel):
     activity_id: str
     activity_name: str
@@ -1015,6 +1024,20 @@ def _load_demo_dashboard_payload(filename: str) -> dict[str, Any] | None:
         if isinstance(payload, dict):
             return payload
     return None
+
+
+
+
+def _dashboard_demo_payload_or_default(filename: str, default_payload: dict[str, Any]) -> dict[str, Any]:
+    payload = _load_demo_dashboard_payload(filename)
+    if isinstance(payload, dict):
+        return payload
+    return default_payload
+
+
+def _slugify_filename(value: str) -> str:
+    sanitized = re.sub(r"[^a-zA-Z0-9_-]", "-", value).strip("-").lower()
+    return sanitized or "project"
 
 
 def _load_demo_search_payload(filename: str) -> dict[str, Any] | None:
@@ -5872,6 +5895,13 @@ async def get_lifecycle_metrics(
 @api_router.get("/api/dashboard/{project_id}/health")
 @permission_required("analytics.view")
 async def get_dashboard_health(project_id: str, request: Request) -> Response:
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-health.json",
+                {"project_id": project_id, "status": "green", "composite_score": 0.91},
+            )
+        )
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _analytics_client()
@@ -5888,6 +5918,13 @@ async def get_dashboard_health(project_id: str, request: Request) -> Response:
 @api_router.get("/api/dashboard/{project_id}/trends")
 @permission_required("analytics.view")
 async def get_dashboard_trends(project_id: str, request: Request) -> Response:
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-trends.json",
+                {"project_id": project_id, "points": []},
+            )
+        )
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _analytics_client()
@@ -5904,6 +5941,13 @@ async def get_dashboard_trends(project_id: str, request: Request) -> Response:
 @api_router.get("/api/dashboard/{project_id}/quality")
 @permission_required("analytics.view")
 async def get_dashboard_quality(project_id: str, request: Request) -> Response:
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-quality.json",
+                {"total_rules": 0, "pass_rate": 1.0, "violations": []},
+            )
+        )
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _lineage_client()
@@ -5922,6 +5966,49 @@ async def get_dashboard_quality(project_id: str, request: Request) -> Response:
 async def create_dashboard_what_if(
     project_id: str, payload: DashboardWhatIfRequest, request: Request
 ) -> Response:
+    if _demo_mode_enabled():
+        scenario_hash = hashlib.sha1(
+            f"{project_id}:{payload.scenario}:{json.dumps(payload.adjustments, sort_keys=True)}".encode("utf-8")
+        ).hexdigest()[:10]
+        baseline_payload = _dashboard_demo_payload_or_default(
+            "project-dashboard-kpis.json",
+            {
+                "project_id": project_id,
+                "metrics": [],
+                "computed_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+        adjusted_metrics: list[dict[str, Any]] = []
+        for metric in baseline_payload.get("metrics", []):
+            name = str(metric.get("name", ""))
+            normalized = float(metric.get("normalized", 0.0))
+            boost = float(payload.adjustments.get(name, 0.0)) if isinstance(payload.adjustments, dict) else 0.0
+            adjusted_metrics.append({**metric, "normalized": max(0.0, min(1.0, round(normalized + boost, 3)))})
+        return JSONResponse(
+            content={
+                "project_id": project_id,
+                "scenario_id": f"demo-{scenario_hash}",
+                "status": "completed",
+                "baseline": baseline_payload,
+                "adjusted": {
+                    **baseline_payload,
+                    "metrics": adjusted_metrics or baseline_payload.get("metrics", []),
+                    "computed_at": datetime.now(timezone.utc).isoformat(),
+                },
+                "narrative": _dashboard_demo_payload_or_default(
+                    "project-dashboard-narrative.json",
+                    {
+                        "project_id": project_id,
+                        "summary": "Demo what-if narrative.",
+                        "highlights": [],
+                        "risks": [],
+                        "opportunities": [],
+                        "data_quality_notes": [],
+                        "computed_at": datetime.now(timezone.utc).isoformat(),
+                    },
+                ),
+            }
+        )
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _analytics_client()
@@ -5938,6 +6025,17 @@ async def create_dashboard_what_if(
 @api_router.get("/api/dashboard/{project_id}/kpis")
 @permission_required("analytics.view")
 async def get_dashboard_kpis(project_id: str, request: Request) -> Response:
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-kpis.json",
+                {
+                    "project_id": project_id,
+                    "metrics": [],
+                    "computed_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+        )
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _analytics_client()
@@ -5954,6 +6052,21 @@ async def get_dashboard_kpis(project_id: str, request: Request) -> Response:
 @api_router.get("/api/dashboard/{project_id}/narrative")
 @permission_required("analytics.view")
 async def get_dashboard_narrative(project_id: str, request: Request) -> Response:
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-narrative.json",
+                {
+                    "project_id": project_id,
+                    "summary": "Demo narrative.",
+                    "highlights": [],
+                    "risks": [],
+                    "opportunities": [],
+                    "data_quality_notes": [],
+                    "computed_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+        )
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _analytics_client()
@@ -5967,9 +6080,61 @@ async def get_dashboard_narrative(project_id: str, request: Request) -> Response
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
+
+
+@api_router.get("/api/dashboard/{project_id}/risks")
+@permission_required("analytics.view")
+async def get_dashboard_risks(project_id: str, request: Request) -> Response:
+    _require_session(request)
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-risks.json",
+                {"project_id": project_id, "items": []},
+            )
+        )
+    return JSONResponse(
+        content={
+            "project_id": project_id,
+            "items": [
+                {"id": "risk-1", "title": "Scope volatility", "severity": "High", "owner": "PMO"},
+                {"id": "risk-2", "title": "Vendor lead-time", "severity": "Medium", "owner": "Procurement"},
+            ],
+        }
+    )
+
+
+@api_router.get("/api/dashboard/{project_id}/issues")
+@permission_required("analytics.view")
+async def get_dashboard_issues(project_id: str, request: Request) -> Response:
+    _require_session(request)
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-issues.json",
+                {"project_id": project_id, "items": []},
+            )
+        )
+    return JSONResponse(
+        content={
+            "project_id": project_id,
+            "items": [
+                {"id": "issue-1", "title": "Approval queue delay", "status": "Open", "owner": "Governance"},
+                {"id": "issue-2", "title": "Test environment outage", "status": "Mitigating", "owner": "Platform"},
+            ],
+        }
+    )
+
 @api_router.get("/api/dashboard/{project_id}/aggregations")
 @permission_required("analytics.view")
 async def get_dashboard_aggregations(project_id: str, request: Request) -> Response:
+    if _demo_mode_enabled():
+        return JSONResponse(
+            content=_dashboard_demo_payload_or_default(
+                "project-dashboard-aggregations.json",
+                {"project_id": project_id, "computed_at": datetime.now(timezone.utc).isoformat(), "artifacts": [], "warnings": []},
+            )
+        )
     if not _unified_dashboards_enabled():
         raise HTTPException(status_code=404, detail="Unified dashboards are not enabled")
     session = _require_session(request)
@@ -5983,6 +6148,32 @@ async def get_dashboard_aggregations(project_id: str, request: Request) -> Respo
     if response.status_code >= 400:
         return _passthrough_response(response)
     return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@api_router.post("/api/dashboard/{project_id}/export-pack", response_model=DashboardExportResponse)
+@permission_required("analytics.view")
+async def export_dashboard_pack(project_id: str, request: Request) -> DashboardExportResponse:
+    _require_session(request)
+    generated_at = datetime.now(timezone.utc).isoformat()
+    payload = {
+        "project_id": project_id,
+        "generated_at": generated_at,
+        "health": _dashboard_demo_payload_or_default("project-dashboard-health.json", {}),
+        "trends": _dashboard_demo_payload_or_default("project-dashboard-trends.json", {}),
+        "quality": _dashboard_demo_payload_or_default("project-dashboard-quality.json", {}),
+        "kpis": _dashboard_demo_payload_or_default("project-dashboard-kpis.json", {}),
+        "narrative": _dashboard_demo_payload_or_default("project-dashboard-narrative.json", {}),
+    }
+    file_name = f"dashboard-pack-{_slugify_filename(project_id)}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.json"
+    output_path = DEMO_DOWNLOADS_DIR / file_name
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return DashboardExportResponse(
+        project_id=project_id,
+        file_name=file_name,
+        download_path=f"/storage/downloads/{file_name}",
+        generated_at=generated_at,
+    )
 
 
 @api_router.get("/api/analytics/powerbi/{report_type}")

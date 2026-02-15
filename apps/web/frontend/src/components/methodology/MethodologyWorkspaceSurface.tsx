@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createArtifact, createEmptyContent, type CanvasType } from '@ppm/canvas-engine';
 import { requestJson } from '@/services/apiClient';
 import { useAssistantStore } from '@/store/assistant';
@@ -30,6 +31,7 @@ export function MethodologyWorkspaceSurface() {
     backendReachable,
   } = useMethodologyStore();
   const { openArtifact } = useCanvasStore();
+  const navigate = useNavigate();
   const { setActionChips, addAssistantMessage } = useAssistantStore();
 
   const selectedActivity = currentActivityId ? getActivity(currentActivityId) ?? null : null;
@@ -69,7 +71,14 @@ export function MethodologyWorkspaceSurface() {
     });
     await resolveNodeRuntime({ methodologyId: projectMethodology.methodology.id, stageId, activityId, event: 'view' });
     publishAssistantContext(activityId, stageId);
-  }, [projectMethodology.methodology.id, projectMethodology.projectId, publishAssistantContext, resolveNodeRuntime, setCurrentActivity]);
+    const selected = getActivity(activityId);
+    const isMonitoringDashboard =
+      stageId === 'monitoring' &&
+      ((selected?.name ?? '').toLowerCase().includes('dashboard') || (selected?.name ?? '').toLowerCase().includes('performance'));
+    if (isMonitoringDashboard) {
+      navigate(`/projects/${encodeURIComponent(projectMethodology.projectId)}/performance-dashboard`);
+    }
+  }, [getActivity, navigate, projectMethodology.methodology.id, projectMethodology.projectId, publishAssistantContext, resolveNodeRuntime, setCurrentActivity]);
 
   const runLifecycleAction = useCallback(async (event: 'generate' | 'update' | 'review' | 'approve' | 'publish') => {
     if (!selectedActivity) return;
