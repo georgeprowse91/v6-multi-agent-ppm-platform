@@ -71,45 +71,25 @@ def friendly_label(value: str) -> str:
     return value.replace("_", " ").replace("-", " ").title()
 
 
-def normalize_methodologies(payload: dict[str, Any]) -> list[DemoMethodology]:
-    entries: list[tuple[str, dict[str, Any]]] = []
-    if isinstance(payload.get("methodologies"), list):
-        for idx, item in enumerate(payload["methodologies"]):
-            if isinstance(item, dict):
-                entries.append((str(item.get("id") or f"methodology-{idx}"), item))
-    elif isinstance(payload.get("scenarios"), list):
-        for idx, item in enumerate(payload["scenarios"]):
-            if isinstance(item, dict):
-                entries.append((str(item.get("id") or f"methodology-{idx}"), item))
-    else:
-        for key, item in payload.items():
-            if key == "published_decisions" or not isinstance(item, dict):
-                continue
-            entries.append((key, item))
+def load_methodologies() -> list[dict[str, Any]]:
+    payload = json.loads(DATASET_FILES["storage_scenarios"].read_text(encoding="utf-8"))
+    methodologies = payload.get("methodologies")
+    if not isinstance(methodologies, list) or not methodologies:
+        raise ValueError("scenarios.json must include a non-empty top-level methodologies array.")
+    return methodologies
 
+
+def parse_methodologies(raw_methodologies: list[dict[str, Any]]) -> list[DemoMethodology]:
     methodologies: list[DemoMethodology] = []
-    for fallback_id, method in entries:
-        method_id = slugify(str(method.get("id") or fallback_id))
-        method_name = str(method.get("name") or method.get("title") or friendly_label(method_id))
+    for method in raw_methodologies:
         stages: list[DemoStage] = []
-        for stage_idx, stage in enumerate(method.get("stages") or method.get("phases") or []):
-            if not isinstance(stage, dict):
-                continue
-            stage_name = str(stage.get("name") or stage.get("stage_name") or stage.get("title") or f"Stage {stage_idx + 1}")
-            stage_id = slugify(str(stage.get("id") or stage.get("stage_id") or stage_name))
-            activities: list[DemoActivity] = []
-            for activity_idx, activity in enumerate(stage.get("activities") or stage.get("tasks") or []):
-                if isinstance(activity, str):
-                    activity_name = activity
-                    activity_id = slugify(f"{stage_id}-{activity_name}")
-                elif isinstance(activity, dict):
-                    activity_name = str(activity.get("name") or activity.get("activity_name") or activity.get("title") or f"Activity {activity_idx + 1}")
-                    activity_id = slugify(str(activity.get("id") or activity.get("activity_id") or f"{stage_id}-{activity_name}"))
-                else:
-                    continue
-                activities.append(DemoActivity(id=activity_id, name=activity_name))
-            stages.append(DemoStage(id=stage_id, name=stage_name, activities=activities))
-        methodologies.append(DemoMethodology(id=method_id, name=method_name, stages=stages))
+        for stage in method.get("stages", []):
+            stage_activities = [
+                DemoActivity(id=str(activity["activity_id"]), name=str(activity["activity_name"]))
+                for activity in stage.get("activities", [])
+            ]
+            stages.append(DemoStage(id=str(stage["id"]), name=str(stage["name"]), activities=stage_activities))
+        methodologies.append(DemoMethodology(id=str(method["id"]), name=str(method["name"]), stages=stages))
     return methodologies
 
 
@@ -229,7 +209,8 @@ class DemoDataHub:
         return self.load("feature_flags")
 
     def methodologies(self) -> list[DemoMethodology]:
-        return normalize_methodologies(self.load("storage_scenarios"))
+        self._record("Workspace", ["storage_scenarios"])
+        return parse_methodologies(load_methodologies())
 
     def assistant_script(self, scenario_id: str) -> list[dict[str, str]]:
         self._record("Assistant", [scenario_id])
@@ -296,29 +277,83 @@ def find_stage(method: DemoMethodology | None, stage_id: str) -> DemoStage | Non
 
 
 def sync_methodology_state(hub: DemoDataHub) -> None:
-    methodologies = hub.methodologies()
+    try:
+        methodologies = hub.methodologies()
+    except ValueError as exc:
+        st.error(str(exc))
+        st.stop()
     if not methodologies:
-        return
+        st.error("scenarios.json is missing a non-empty methodologies array.")
+        st.stop()
+
     method_ids = [m.id for m in methodologies]
     if st.session_state.get("selected_methodology_id") not in method_ids:
         st.session_state["selected_methodology_id"] = method_ids[0]
 
     method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
-    if method is None:
-        return
+    if method is None or not method.stages:
+        st.error("Selected methodology must include at least one stage.")
+        st.stop()
+
     stage_ids = [s.id for s in method.stages]
-    if stage_ids and st.session_state.get("selected_stage_id") not in stage_ids:
+    if st.session_state.get("selected_stage_id") not in stage_ids:
         st.session_state["selected_stage_id"] = stage_ids[0]
 
     stage = find_stage(method, st.session_state.get("selected_stage_id", ""))
-    activity_ids = [a.id for a in stage.activities] if stage else []
-    if activity_ids and st.session_state.get("selected_activity_id") not in activity_ids:
+    if stage is None or not stage.activities:
+        st.error("Selected stage has no activities in scenarios.json.")
+        st.stop()
+
+    activity_ids = [a.id for a in stage.activities]
+    if st.session_state.get("selected_activity_id") not in activity_ids:
         st.session_state["selected_activity_id"] = activity_ids[0]
 
-    st.session_state["selected_methodology_name"] = method.name
-    st.session_state["selected_stage_name"] = stage.name if stage else ""
-    st.session_state["selected_activity_name"] = next((a.name for a in stage.activities if a.id == st.session_state.get("selected_activity_id")), "") if stage else ""
+    activity = next((a for a in stage.activities if a.id == st.session_state["selected_activity_id"]), None)
+    if activity is None:
+        st.error("Selected activity is invalid for the selected stage.")
+        st.stop()
 
+    st.session_state["selected_methodology_name"] = method.name
+    st.session_state["selected_stage_name"] = stage.name
+    st.session_state["selected_activity_name"] = activity.name
+
+
+
+
+def render_scenario_selectors_sidebar(hub: DemoDataHub) -> None:
+    try:
+        methodologies = hub.methodologies()
+    except ValueError as exc:
+        st.error(str(exc))
+        st.stop()
+    method_ids = [m.id for m in methodologies]
+    st.session_state["selected_methodology_id"] = st.sidebar.selectbox(
+        "Methodology",
+        method_ids,
+        index=method_ids.index(st.session_state["selected_methodology_id"]),
+        format_func=lambda method_id: next((m.name for m in methodologies if m.id == method_id), method_id),
+    )
+    sync_methodology_state(hub)
+
+    selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
+    stage_ids = [s.id for s in selected_method.stages]
+    st.session_state["selected_stage_id"] = st.sidebar.selectbox(
+        "Stage",
+        stage_ids,
+        index=stage_ids.index(st.session_state["selected_stage_id"]),
+        format_func=lambda stage_id: next((s.name for s in selected_method.stages if s.id == stage_id), stage_id),
+    )
+    sync_methodology_state(hub)
+
+    selected_stage = find_stage(selected_method, st.session_state["selected_stage_id"])
+    activity_ids = [a.id for a in selected_stage.activities]
+    st.session_state["selected_activity_id"] = st.sidebar.selectbox(
+        "Activity",
+        activity_ids,
+        index=activity_ids.index(st.session_state["selected_activity_id"]),
+        format_func=lambda activity_id: next((a.name for a in selected_stage.activities if a.id == activity_id), activity_id),
+    )
+    sync_methodology_state(hub)
 
 def scenario_restart(script: list[dict[str, str]]) -> None:
     st.session_state["assistant_messages"] = []
@@ -369,16 +404,42 @@ def append_outbox_event(outbox: DemoOutbox, event_type: str, payload: dict[str, 
     )
 
 
-def generate_artifact_content(artifact_type: str) -> str:
-    return (
+def generate_artifact_content(artifact_type: str, artifact_format: str) -> tuple[str, str]:
+    project_id = st.session_state.get("selected_project") or "N/A"
+    method_name = st.session_state.get("selected_methodology_name") or "N/A"
+    stage_name = st.session_state.get("selected_stage_name") or "N/A"
+    activity_name = st.session_state.get("selected_activity_name") or "N/A"
+    outcome = st.session_state.get("selected_outcome") or "on_track"
+    timestamp = datetime.now(tz=UTC).isoformat()
+
+    if artifact_format == "csv":
+        content = (
+            "artifact_type,project_id,methodology,stage,activity,outcome,generated_at\n"
+            f"{artifact_type},{project_id},{method_name},{stage_name},{activity_name},{outcome},{timestamp}\n"
+        )
+        return content, "text/csv"
+    if artifact_format == "txt":
+        content = (
+            f"Artifact Type: {artifact_type}\n"
+            f"Project: {project_id}\n"
+            f"Methodology: {method_name}\n"
+            f"Stage: {stage_name}\n"
+            f"Activity: {activity_name}\n"
+            f"Outcome: {outcome}\n"
+            f"Generated: {timestamp}\n"
+        )
+        return content, "text/plain"
+
+    content = (
         f"# {artifact_type.replace('_', ' ').title()}\n\n"
-        f"Project: {st.session_state.get('selected_project') or 'N/A'}\n"
-        f"Methodology: {st.session_state.get('selected_methodology_name') or 'N/A'}\n"
-        f"Stage: {st.session_state.get('selected_stage_name') or 'N/A'}\n"
-        f"Activity: {st.session_state.get('selected_activity_name') or 'N/A'}\n"
-        f"Outcome: {st.session_state.get('selected_outcome')}\n"
-        f"Generated: {datetime.now(tz=UTC).isoformat()}\n"
+        f"Project: {project_id}\n"
+        f"Methodology: {method_name}\n"
+        f"Stage: {stage_name}\n"
+        f"Activity: {activity_name}\n"
+        f"Outcome: {outcome}\n"
+        f"Generated: {timestamp}\n"
     )
+    return content, "text/markdown"
 
 
 def handle_chip(chip: Chip, outbox: DemoOutbox) -> None:
@@ -402,19 +463,25 @@ def handle_chip(chip: Chip, outbox: DemoOutbox) -> None:
             append_outbox_event(outbox, "activity.completed", {"stage_id": stage_id, "activity_id": activity_id})
     elif chip.action == "GENERATE_ARTIFACT":
         artifact_type = str(payload.get("artifact_type") or "status_report")
-        content = generate_artifact_content(artifact_type)
+        artifact_format = str(payload.get("artifact_format") or "md")
+        content, mime_type = generate_artifact_content(artifact_type, artifact_format)
+        file_name = f"{artifact_type}_{slugify(st.session_state.get('selected_activity_name') or 'artifact')}.{artifact_format}"
         st.session_state["assistant_last_artifact"] = {
             "artifact_type": artifact_type,
             "content": content,
-            "file_name": f"{artifact_type}_{slugify(st.session_state.get('selected_activity_name') or 'artifact')}.md",
+            "file_name": file_name,
+            "mime_type": mime_type,
         }
         append_outbox_event(
             outbox,
             "artifact.generated",
             {
                 "artifact_type": artifact_type,
+                "artifact_format": artifact_format,
+                "file_name": file_name,
                 "stage_id": st.session_state.get("selected_stage_id"),
                 "activity_id": st.session_state.get("selected_activity_id"),
+                "project_id": st.session_state.get("selected_project"),
             },
         )
 
@@ -432,19 +499,17 @@ def get_action_chips() -> list[Chip]:
             action="COMPLETE_ACTIVITY",
             payload={"stage_id": st.session_state.get("selected_stage_id"), "activity_id": st.session_state.get("selected_activity_id")},
         ),
-        Chip(label="Generate status report", action="GENERATE_ARTIFACT", payload={"artifact_type": "status_report"}),
+        Chip(label="Generate status report", action="GENERATE_ARTIFACT", payload={"artifact_type": "status_report", "artifact_format": "md"}),
     ]
 
 
 def choose_assistant_response(hub: DemoDataHub, prompt: str) -> tuple[str, str]:
     response_payload = hub.assistant_responses()
-    lowered = " ".join(
-        [
-            st.session_state.get("selected_activity_name", ""),
-            st.session_state.get("selected_stage_name", ""),
-            st.session_state.get("selected_outcome", ""),
-            prompt,
-        ]
+    lowered = (
+        f"{prompt} "
+        f"{st.session_state.get('selected_activity_name', '')} "
+        f"{st.session_state.get('selected_stage_name', '')} "
+        f"{st.session_state.get('selected_outcome', '')}"
     ).lower()
     for entry in response_payload.get("responses", []):
         match_terms = [str(term).lower() for term in entry.get("match", [])]
@@ -518,7 +583,7 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             label=f"Download {artifact['artifact_type']}",
             data=artifact["content"],
             file_name=artifact["file_name"],
-            mime="text/markdown",
+            mime=artifact["mime_type"],
             use_container_width=True,
         )
 
@@ -567,41 +632,15 @@ def render_workspace(hub: DemoDataHub) -> None:
         st.session_state["selected_project"] = st.selectbox("Project", project_ids, index=project_ids.index(st.session_state["selected_project"]))
 
     methodologies = hub.methodologies()
-    if not methodologies:
-        st.warning("No methodologies found in scenarios.json")
-        return
-
-    method_ids = [m.id for m in methodologies]
-    st.session_state["selected_methodology_id"] = st.selectbox(
-        "Methodology",
-        method_ids,
-        index=method_ids.index(st.session_state["selected_methodology_id"]) if st.session_state["selected_methodology_id"] in method_ids else 0,
-        format_func=lambda m_id: next((m.name for m in methodologies if m.id == m_id), m_id),
-    )
-    sync_methodology_state(hub)
-
     selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
-    stage_ids = [s.id for s in selected_method.stages] if selected_method else []
-    if stage_ids:
-        st.session_state["selected_stage_id"] = st.selectbox(
-            "Stage",
-            stage_ids,
-            index=stage_ids.index(st.session_state["selected_stage_id"]) if st.session_state["selected_stage_id"] in stage_ids else 0,
-            format_func=lambda s_id: next((s.name for s in selected_method.stages if s.id == s_id), s_id),
-        )
+    _selected_stage = find_stage(selected_method, st.session_state["selected_stage_id"])
 
-    sync_methodology_state(hub)
-    selected_stage = find_stage(selected_method, st.session_state["selected_stage_id"])
-    activity_ids = [a.id for a in selected_stage.activities] if selected_stage else []
-    if activity_ids:
-        st.session_state["selected_activity_id"] = st.selectbox(
-            "Activity",
-            activity_ids,
-            index=activity_ids.index(st.session_state["selected_activity_id"]) if st.session_state["selected_activity_id"] in activity_ids else 0,
-            format_func=lambda a_id: next((a.name for a in selected_stage.activities if a.id == a_id), a_id),
-        )
+    st.write(
+        f"Methodology: **{st.session_state['selected_methodology_name']}** | "
+        f"Stage: **{st.session_state['selected_stage_name']}** | "
+        f"Activity: **{st.session_state['selected_activity_name']}**"
+    )
 
-    sync_methodology_state(hub)
     st.dataframe(
         [
             {
@@ -696,6 +735,7 @@ def main() -> None:
     outbox = DemoOutbox(OUTBOX_PATH)
     engine = DemoRunEngine(hub.normalized_demo_run(), outbox)
 
+    render_scenario_selectors_sidebar(hub)
     render_feature_flags_panel()
 
     nav_pages = ["Home", "Workspace", "Dashboard", "Approvals", "Connectors", "Audit", "Demo Run"]

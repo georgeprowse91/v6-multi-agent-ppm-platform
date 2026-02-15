@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import ast
+import json
+import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_DIR = Path(__file__).resolve().parent
 APP_FILE = DEMO_DIR / "app.py"
+SCENARIOS_FILE = REPO_ROOT / "apps/web/storage/scenarios.json"
 
 BANNED_IMPORT_SNIPPETS = (
     "fastapi",
@@ -16,6 +19,12 @@ BANNED_IMPORT_SNIPPETS = (
     "integrations",
     "services",
     "orchestration-service",
+)
+
+BANNED_ACTIVITY_LABELS = (
+    "Define scope",
+    "Review dependencies",
+    "Publish artifact",
 )
 
 REQUIRED_DEMO_FILES = [
@@ -61,16 +70,31 @@ def validate_demo() -> list[str]:
                 errors.append(f"Banned import detected in {file_path.name}: {banned}")
 
         source_lower = file_path.read_text(encoding="utf-8").lower()
-        if any(f"{scheme}://" in source_lower for scheme in ("http", "https")):
+        if ("http" + "://") in source_lower or ("https" + "://") in source_lower:
             errors.append(f"Potential external URL literal found in {file_path.name}")
 
     app_source = APP_FILE.read_text(encoding="utf-8")
-    if "Define scope" in app_source or "Review dependencies" in app_source or "Publish artifact" in app_source:
-        errors.append("app.py still appears to contain the old hard-coded activity list")
-    if "scenarios.json" not in app_source:
-        errors.append("app.py must reference scenarios.json as the stages/activities source")
-    if '"responses"' not in app_source or '"match"' not in app_source:
-        errors.append("app.py must reference assistant response matching using responses/match keys")
+    for label in BANNED_ACTIVITY_LABELS:
+        if label in app_source:
+            errors.append(f"app.py still contains prior hard-coded activity label: {label}")
+    if re.search(r"(^|\n)\s*activities\s*=\s*\[", app_source):
+        errors.append("app.py contains a literal fallback activity list assignment")
+    if "Executed quick action" in app_source:
+        errors.append("app.py still contains legacy quick action executed text")
+    if "def scenario_restart" not in app_source or "assistant_step" not in app_source:
+        errors.append("app.py appears to be missing restart parity logic")
+
+    scenarios = json.loads(SCENARIOS_FILE.read_text(encoding="utf-8"))
+    methodologies = scenarios.get("methodologies")
+    if not isinstance(methodologies, list) or len(methodologies) == 0:
+        errors.append("scenarios.json must contain at least one methodology")
+    else:
+        total_activities = 0
+        for methodology in methodologies:
+            for stage in methodology.get("stages", []):
+                total_activities += len(stage.get("activities", []))
+        if total_activities == 0:
+            errors.append("scenarios.json must contain at least one activity")
 
     return errors
 
