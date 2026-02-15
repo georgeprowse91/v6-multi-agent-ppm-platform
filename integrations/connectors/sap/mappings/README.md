@@ -6,7 +6,7 @@ Define how Sap payloads map into the platform's canonical schemas under `data/sc
 
 ## What's inside
 
-- `integrations/connectors/sap/mappings/project.yaml`: Project mapping definition for connector data.
+- [integrations/connectors/sap/mappings/project.yaml](/integrations/connectors/sap/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

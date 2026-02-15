@@ -6,7 +6,7 @@ Define how Teams payloads map into the platform's canonical schemas under `data/
 
 ## What's inside
 
-- `integrations/connectors/teams/mappings/project.yaml`: Project mapping definition for connector data.
+- [integrations/connectors/teams/mappings/project.yaml](/integrations/connectors/teams/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

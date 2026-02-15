@@ -6,10 +6,10 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- `services/telemetry-service/helm/files`: Subdirectory containing files assets for this area.
-- `services/telemetry-service/helm/templates`: Templates used by the component (deployment or message content).
-- `services/telemetry-service/helm/Chart.yaml`: Helm chart metadata and versioning.
-- `services/telemetry-service/helm/values.yaml`: Helm values for environment-specific overrides.
+- [services/telemetry-service/helm/files](/services/telemetry-service/helm/files): Subdirectory containing files assets for this area.
+- [services/telemetry-service/helm/templates](/services/telemetry-service/helm/templates): Templates used by the component (deployment or message content).
+- [services/telemetry-service/helm/Chart.yaml](/services/telemetry-service/helm/Chart.yaml): Helm chart metadata and versioning.
+- [services/telemetry-service/helm/values.yaml](/services/telemetry-service/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

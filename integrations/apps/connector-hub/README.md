@@ -6,12 +6,12 @@ Describe the Connector Hub application and its role in the platform experience l
 
 ## What's inside
 
-- `integrations/apps/connector-hub/helm`: Helm chart packaging for Kubernetes deployments.
-- `integrations/apps/connector-hub/registry`: Registry assets and indexes.
-- `integrations/apps/connector-hub/sandbox`: Sandbox assets for local or demo use.
-- `integrations/apps/connector-hub/src`: Implementation source for this component.
-- `integrations/apps/connector-hub/tests`: Test suites and fixtures.
-- `integrations/apps/connector-hub/Dockerfile`: Container build recipe for local or CI use.
+- [integrations/apps/connector-hub/helm](/integrations/apps/connector-hub/helm): Helm chart packaging for Kubernetes deployments.
+- [integrations/apps/connector-hub/registry](/integrations/apps/connector-hub/registry): Registry assets and indexes.
+- [integrations/apps/connector-hub/sandbox](/integrations/apps/connector-hub/sandbox): Sandbox assets for local or demo use.
+- [integrations/apps/connector-hub/src](/integrations/apps/connector-hub/src): Implementation source for this component.
+- [integrations/apps/connector-hub/tests](/integrations/apps/connector-hub/tests): Test suites and fixtures.
+- [integrations/apps/connector-hub/Dockerfile](/integrations/apps/connector-hub/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

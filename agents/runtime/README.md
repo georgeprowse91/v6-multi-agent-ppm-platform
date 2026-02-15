@@ -12,9 +12,9 @@ The orchestrator enforces per-task execution timeouts using `asyncio.wait_for`. 
 
 | Name | Description | Link |
 |------|-------------|------|
-| `eval` | Evaluation framework for testing and benchmarking agent behaviour. | [./eval/](./eval/) |
-| `prompts` | Prompt templates, a prompt registry, example prompts, and schema definitions. | [./prompts/](./prompts/) |
-| `src` | Core runtime implementation including the orchestrator, base agent, state store, and event bus. | [./src/](./src/) |
+| `eval` | Evaluation framework for testing and benchmarking agent behaviour. | [./eval/](/./eval/) |
+| `prompts` | Prompt templates, a prompt registry, example prompts, and schema definitions. | [./prompts/](/./prompts/) |
+| `src` | Core runtime implementation including the orchestrator, base agent, state store, and event bus. | [./src/](/./src/) |
 
 ## Key files
 

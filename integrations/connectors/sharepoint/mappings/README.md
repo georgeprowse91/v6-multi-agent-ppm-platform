@@ -6,7 +6,7 @@ Define how Sharepoint payloads map into the platform's canonical schemas under `
 
 ## What's inside
 
-- `integrations/connectors/sharepoint/mappings/project.yaml`: Project mapping definition for connector data.
+- [integrations/connectors/sharepoint/mappings/project.yaml](/integrations/connectors/sharepoint/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

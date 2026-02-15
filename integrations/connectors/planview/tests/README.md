@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Planview integration
 
 ## What's inside
 
-- `integrations/connectors/planview/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/planview/tests/fixtures](/integrations/connectors/planview/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

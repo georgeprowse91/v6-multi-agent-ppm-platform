@@ -75,9 +75,9 @@ Must not:
 
 ## What's inside
 
-- `agents/core-orchestration/agent-02-response-orchestration/src`: Implementation source for this component.
-- `agents/core-orchestration/agent-02-response-orchestration/tests`: Test suites and fixtures.
-- `agents/core-orchestration/agent-02-response-orchestration/Dockerfile`: Container build recipe for local or CI use.
+- [agents/core-orchestration/agent-02-response-orchestration/src](/agents/core-orchestration/agent-02-response-orchestration/src): Implementation source for this component.
+- [agents/core-orchestration/agent-02-response-orchestration/tests](/agents/core-orchestration/agent-02-response-orchestration/tests): Test suites and fixtures.
+- [agents/core-orchestration/agent-02-response-orchestration/Dockerfile](/agents/core-orchestration/agent-02-response-orchestration/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

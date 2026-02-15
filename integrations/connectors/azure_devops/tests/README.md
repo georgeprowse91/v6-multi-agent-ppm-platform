@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Azure Devops integra
 
 ## What's inside
 
-- `integrations/connectors/azure_devops/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/azure_devops/tests/fixtures](/integrations/connectors/azure_devops/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

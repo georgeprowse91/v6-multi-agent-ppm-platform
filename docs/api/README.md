@@ -6,12 +6,12 @@ Describe the api documentation set and link the narrative to the repo assets tha
 
 ## What's inside
 
-- `docs/api/analytics-openapi.yaml`: YAML definition or configuration used by this component.
-- `docs/api/auth.md`: Markdown documentation for this area.
-- `docs/api/connector-hub-openapi.yaml`: YAML definition or configuration used by this component.
-- `docs/api/document-openapi.yaml`: YAML definition or configuration used by this component.
-- `docs/api/event-contracts.md`: Markdown documentation for this area.
-- `docs/api/graphql-schema.graphql`: File asset used by this component.
+- [docs/api/analytics-openapi.yaml](/docs/api/analytics-openapi.yaml): YAML definition or configuration used by this component.
+- [docs/api/auth.md](/docs/api/auth.md): Markdown documentation for this area.
+- [docs/api/connector-hub-openapi.yaml](/docs/api/connector-hub-openapi.yaml): YAML definition or configuration used by this component.
+- [docs/api/document-openapi.yaml](/docs/api/document-openapi.yaml): YAML definition or configuration used by this component.
+- [docs/api/event-contracts.md](/docs/api/event-contracts.md): Markdown documentation for this area.
+- [docs/api/graphql-schema.graphql](/docs/api/graphql-schema.graphql): File asset used by this component.
 
 ## How it's used
 

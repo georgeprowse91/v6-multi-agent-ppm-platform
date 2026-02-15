@@ -6,7 +6,7 @@ Define how Azure Devops payloads map into the platform's canonical schemas under
 
 ## What's inside
 
-- `integrations/connectors/azure_devops/mappings/project.yaml`: Project mapping definition for connector data.
+- [integrations/connectors/azure_devops/mappings/project.yaml](/integrations/connectors/azure_devops/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

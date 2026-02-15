@@ -6,8 +6,8 @@ Document infrastructure resources under infra/terraform/envs/prod.
 
 ## What's inside
 
-- `infra/terraform/envs/prod/backend.tfvars`: File asset used by this component.
-- `infra/terraform/envs/prod/terraform.tfvars`: File asset used by this component.
+- [infra/terraform/envs/prod/backend.tfvars](/infra/terraform/envs/prod/backend.tfvars): File asset used by this component.
+- [infra/terraform/envs/prod/terraform.tfvars](/infra/terraform/envs/prod/terraform.tfvars): File asset used by this component.
 
 ## How it's used
 

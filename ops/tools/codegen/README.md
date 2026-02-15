@@ -6,9 +6,9 @@ Document the codegen tooling used to automate development and CI workflows.
 
 ## What's inside
 
-- `tools/codegen/__init__.py`: Python module used by this component.
-- `tools/codegen/codegen_config.yaml`: YAML definition or configuration used by this component.
-- `tools/codegen/run.py`: Python module used by this component.
+- [tools/codegen/__init__.py](/tools/codegen/__init__.py): Python module used by this component.
+- [tools/codegen/codegen_config.yaml](/tools/codegen/codegen_config.yaml): YAML definition or configuration used by this component.
+- [tools/codegen/run.py](/tools/codegen/run.py): Python module used by this component.
 
 ## How it's used
 

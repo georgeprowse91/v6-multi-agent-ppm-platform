@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Slack integration.
 
 ## What's inside
 
-- `integrations/connectors/slack/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/slack/tests/fixtures](/integrations/connectors/slack/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

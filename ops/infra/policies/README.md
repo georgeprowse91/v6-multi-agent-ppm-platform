@@ -6,10 +6,10 @@ Document infrastructure resources under infra/policies.
 
 ## What's inside
 
-- `infra/policies/dlp`: Subdirectory containing dlp assets for this area.
-- `infra/policies/network`: Subdirectory containing network assets for this area.
-- `infra/policies/schema`: Schemas or validation rules for component assets.
-- `infra/policies/security`: Subdirectory containing security assets for this area.
+- [infra/policies/dlp](/infra/policies/dlp): Subdirectory containing dlp assets for this area.
+- [infra/policies/network](/infra/policies/network): Subdirectory containing network assets for this area.
+- [infra/policies/schema](/infra/policies/schema): Schemas or validation rules for component assets.
+- [infra/policies/security](/infra/policies/security): Subdirectory containing security assets for this area.
 
 ## How it's used
 

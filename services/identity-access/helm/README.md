@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- `services/identity-access/helm/templates`: Templates used by the component (deployment or message content).
-- `services/identity-access/helm/Chart.yaml`: Helm chart metadata and versioning.
-- `services/identity-access/helm/values.yaml`: Helm values for environment-specific overrides.
+- [services/identity-access/helm/templates](/services/identity-access/helm/templates): Templates used by the component (deployment or message content).
+- [services/identity-access/helm/Chart.yaml](/services/identity-access/helm/Chart.yaml): Helm chart metadata and versioning.
+- [services/identity-access/helm/values.yaml](/services/identity-access/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

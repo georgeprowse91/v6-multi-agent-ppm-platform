@@ -6,7 +6,7 @@ Define how Planview payloads map into the platform's canonical schemas under `da
 
 ## What's inside
 
-- `integrations/connectors/planview/mappings/project.yaml`: Project mapping definition for connector data.
+- [integrations/connectors/planview/mappings/project.yaml](/integrations/connectors/planview/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

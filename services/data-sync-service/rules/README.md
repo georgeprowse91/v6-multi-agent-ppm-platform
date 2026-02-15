@@ -6,7 +6,7 @@ Document the rules assets owned by the Data Sync Service service.
 
 ## What's inside
 
-- `services/data-sync-service/rules/default-sync.yaml`: YAML definition or configuration used by this component.
+- [services/data-sync-service/rules/default-sync.yaml](/services/data-sync-service/rules/default-sync.yaml): YAML definition or configuration used by this component.
 
 ## How it's used
 

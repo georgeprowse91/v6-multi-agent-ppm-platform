@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Teams integration.
 
 ## What's inside
 
-- `integrations/connectors/teams/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/teams/tests/fixtures](/integrations/connectors/teams/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

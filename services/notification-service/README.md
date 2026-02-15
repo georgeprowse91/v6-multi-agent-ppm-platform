@@ -6,19 +6,19 @@ Define the Notification Service service responsibilities and how it integrates w
 
 ## Key endpoints
 
-- `GET /healthz`: Service health check.
-- `POST /v1/notifications/send`: Send a notification payload.
+- [GET /healthz](/GET /healthz): Service health check.
+- [POST /v1/notifications/send](/POST /v1/notifications/send): Send a notification payload.
 
 **Default port:** `8080`
 
 ## What's inside
 
-- `services/notification-service/contracts`: Service contracts and schema artifacts.
-- `services/notification-service/helm`: Helm chart packaging for Kubernetes deployments.
-- `services/notification-service/src`: Implementation source for this component.
-- `services/notification-service/templates`: Templates used by the component (deployment or message content).
-- `services/notification-service/tests`: Test suites and fixtures.
-- `services/notification-service/Dockerfile`: Container build recipe for local or CI use.
+- [services/notification-service/contracts](/services/notification-service/contracts): Service contracts and schema artifacts.
+- [services/notification-service/helm](/services/notification-service/helm): Helm chart packaging for Kubernetes deployments.
+- [services/notification-service/src](/services/notification-service/src): Implementation source for this component.
+- [services/notification-service/templates](/services/notification-service/templates): Templates used by the component (deployment or message content).
+- [services/notification-service/tests](/services/notification-service/tests): Test suites and fixtures.
+- [services/notification-service/Dockerfile](/services/notification-service/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

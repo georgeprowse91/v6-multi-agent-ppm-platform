@@ -6,7 +6,7 @@ Describe the Contracts shared package and how it supports platform services.
 
 ## What's inside
 
-- `packages/contracts/src`: Implementation source for this component.
+- [packages/contracts/src](/packages/contracts/src): Implementation source for this component.
 
 ## How it's used
 

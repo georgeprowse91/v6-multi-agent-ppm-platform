@@ -6,9 +6,9 @@ Describe the data documentation set and link the narrative to the repo assets th
 
 ## What's inside
 
-- `docs/data/data-model.md`: Markdown documentation for this area.
-- `docs/data/data-quality.md`: Markdown documentation for this area.
-- `docs/data/lineage.md`: Markdown documentation for this area.
+- [docs/data/data-model.md](/docs/data/data-model.md): Markdown documentation for this area.
+- [docs/data/data-quality.md](/docs/data/data-quality.md): Markdown documentation for this area.
+- [docs/data/lineage.md](/docs/data/lineage.md): Markdown documentation for this area.
 
 ## How it's used
 
