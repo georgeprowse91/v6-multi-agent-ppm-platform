@@ -14,11 +14,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from events import (
-    ProjectHealthReportGeneratedEvent,
-    ProjectHealthUpdatedEvent,
-    ProjectTransitionedEvent,
-)
+try:
+    from events import (
+        ProjectHealthReportGeneratedEvent,
+        ProjectHealthUpdatedEvent,
+        ProjectTransitionedEvent,
+    )
+except Exception:
+    from packages.contracts.src.events import (
+        ProjectHealthReportGeneratedEvent,
+        ProjectHealthUpdatedEvent,
+        ProjectTransitionedEvent,
+    )
 from observability.tracing import get_trace_id
 
 from agents.common.health_recommendations import generate_recommendations, identify_health_concerns

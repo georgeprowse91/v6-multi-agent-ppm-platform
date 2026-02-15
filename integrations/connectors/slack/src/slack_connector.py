@@ -25,7 +25,10 @@ from http_client import HttpClient, RetryConfig
 from mcp_client import MCPClient, MCPClientError
 from rest_connector import RestConnector
 from secrets import resolve_secret
-from .mappers import map_from_mcp_response, map_to_mcp_params
+try:
+    from .mappers import map_from_mcp_response, map_to_mcp_params
+except ImportError:
+    from mappers import map_from_mcp_response, map_to_mcp_params
 
 DEFAULT_SLACK_URL = "https://slack.com/api"
 

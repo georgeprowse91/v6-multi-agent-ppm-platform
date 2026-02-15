@@ -24,35 +24,43 @@ from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
 from integrations.connectors.sdk.src.secrets import fetch_keyvault_secret, resolve_secret
 
-if importlib.util.find_spec("slack_sdk"):
+
+def _safe_find_spec(module_name: str) -> bool:
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except (ModuleNotFoundError, ValueError):
+        return False
+
+
+if _safe_find_spec("slack_sdk"):
     from slack_sdk import WebClient
 else:
     WebClient = None
 
-if importlib.util.find_spec("twilio.rest"):
+if _safe_find_spec("twilio.rest"):
     from twilio.rest import Client as TwilioClient
 else:
     TwilioClient = None
 
-if importlib.util.find_spec("azure.communication.email"):
+if _safe_find_spec("azure.communication.email"):
     from azure.communication.email import EmailClient
 else:
     EmailClient = None
 
-if importlib.util.find_spec("azure.ai.textanalytics"):
+if _safe_find_spec("azure.ai.textanalytics"):
     from azure.ai.textanalytics import TextAnalyticsClient
     from azure.core.credentials import AzureKeyCredential
 else:
-    TextAnalyticsClient = None
-    AzureKeyCredential = None
+    TextAnalyticsClient = Any
+    AzureKeyCredential = Any
 
-if importlib.util.find_spec("azure.servicebus"):
+if _safe_find_spec("azure.servicebus"):
     from azure.servicebus import ServiceBusClient, ServiceBusMessage
 else:
-    ServiceBusClient = None
-    ServiceBusMessage = None
+    ServiceBusClient = Any
+    ServiceBusMessage = Any
 
-if importlib.util.find_spec("sqlalchemy"):
+if _safe_find_spec("sqlalchemy"):
     from sqlalchemy import JSON, Column, DateTime, MetaData, String, Table, Text, create_engine
 else:
     create_engine = None
@@ -64,7 +72,7 @@ else:
     MetaData = None
     JSON = None
 
-if importlib.util.find_spec("integrations.connectors.salesforce.src.main"):
+if _safe_find_spec("integrations.connectors.salesforce.src.main"):
     from integrations.connectors.salesforce.src.main import (
         SalesforceConfig,
         _build_client,

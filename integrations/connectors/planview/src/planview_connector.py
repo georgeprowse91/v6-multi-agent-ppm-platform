@@ -34,15 +34,29 @@ from base_connector import (
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
-from mcp_client.client import MCPClient
-from mcp_client.errors import (
-    MCPAuthenticationError,
-    MCPResponseError,
-    MCPServerError,
-    MCPToolNotFoundError,
-    MCPTransportError,
-)
-from .mappers import map_from_mcp_response, map_to_mcp_params
+try:
+    from mcp_client.client import MCPClient
+    from mcp_client.errors import (
+        MCPAuthenticationError,
+        MCPResponseError,
+        MCPServerError,
+        MCPToolNotFoundError,
+        MCPTransportError,
+    )
+except ImportError:
+    from mcp_client import (
+        MCPClient,
+        MCPClientError,
+        MCPResponseError,
+        MCPServerError,
+        MCPToolNotFoundError,
+        MCPTransportError,
+    )
+    MCPAuthenticationError = MCPClientError
+try:
+    from .mappers import map_from_mcp_response, map_to_mcp_params
+except ImportError:
+    from mappers import map_from_mcp_response, map_to_mcp_params
 from secrets import fetch_keyvault_secret, resolve_secret
 
 DEFAULT_TOKEN_URL = "https://api.planview.com/oauth2/token"

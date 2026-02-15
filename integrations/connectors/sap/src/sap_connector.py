@@ -24,7 +24,10 @@ from http_client import HttpClient, RetryConfig
 from rest_connector import BasicAuthRestConnector
 from secrets import resolve_secret
 from mcp_client import MCPClient, MCPClientError
-from .mappers import map_from_mcp_response, map_to_mcp_params
+try:
+    from .mappers import map_from_mcp_response, map_to_mcp_params
+except ImportError:
+    from mappers import map_from_mcp_response, map_to_mcp_params
 
 logger = logging.getLogger(__name__)
 

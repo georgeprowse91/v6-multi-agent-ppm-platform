@@ -33,7 +33,10 @@ from base_connector import (
 from http_client import HttpClient, HttpClientError, RetryConfig
 from mcp_client import MCPClient, MCPClientError
 from secrets import fetch_keyvault_secret, resolve_secret
-from .mappers import map_from_mcp_response, map_to_mcp_params
+try:
+    from .mappers import map_from_mcp_response, map_to_mcp_params
+except ImportError:
+    from mappers import map_from_mcp_response, map_to_mcp_params
 
 DEFAULT_TOKEN_URL = "https://clarity.example.com/oauth/token"
 
