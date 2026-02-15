@@ -9,8 +9,8 @@ describe('AgentProfilePage', () => {
   });
 
   it('renders profile mappings and run preview result', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input: RequestInfo, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.url;
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input: string | URL | Request, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       if (url.endsWith('/agents/config')) {
         return Promise.resolve(new Response(JSON.stringify([
           {

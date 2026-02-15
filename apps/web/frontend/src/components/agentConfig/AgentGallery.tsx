@@ -205,7 +205,7 @@ export function AgentGallery({ projectId = 'project-apollo' }: AgentGalleryProps
       </div>
 
       {/* Agent List by Category */}
-      <div className={styles.agentList}>
+      <div className={styles.agentGrid}>
         {activeCategories.length === 0 ? (
           <div className={styles.empty}>
             <p>No agents match your filters.</p>

@@ -749,7 +749,7 @@ export const useConnectorStore = create<ConnectorStoreState>((set, get) => ({
       const enabledSet = new Set(config.enabled);
       const disabledSet = new Set(config.disabled);
       const baseConnectors =
-        state.connectors.length > 0 ? state.connectors : getMockConnectors();
+        state.connectors.length > 0 ? state.connectors : mapConnectorResponses(getMockConnectors());
 
       const updated = baseConnectors.map((connector) => {
         if (enabledSet.has(connector.connector_id)) {
@@ -886,19 +886,53 @@ const disableRestDuplicates = (connectors: Connector[], source: Connector): Conn
 const mapConnectorResponses = (connectors: Array<Partial<Connector> & Record<string, unknown>>): Connector[] =>
   normalizeMcpDuplicates(
     connectors.map((connector) => ({
-      ...connector,
+      connector_id: String(connector.connector_id ?? ''),
+      name: String(connector.name ?? ''),
+      description: String(connector.description ?? ''),
+      category: (connector.category as Connector['category']) ?? 'pm',
+      system: String(connector.system ?? connector.name ?? ''),
       connector_type:
-        connector.mcp_feature_enabled ?? true
-          ? connector.connector_type ?? (connector.mcp_preferred ? 'mcp' : 'rest')
+        (connector.mcp_feature_enabled ?? true)
+          ? ((connector.connector_type as Connector['connector_type'] | undefined) ?? (connector.mcp_preferred ? 'mcp' : 'rest'))
           : 'rest',
+      mcp_server_id: String(connector.mcp_server_id ?? ''),
+      supported_operations: Array.isArray(connector.supported_operations) ? connector.supported_operations.map(String) : [],
+      mcp_preferred: Boolean(connector.mcp_preferred),
+      status: (connector.status as Connector['status']) ?? 'beta',
+      icon: String(connector.icon ?? ''),
+      supported_sync_directions: (connector.supported_sync_directions as Connector['supported_sync_directions']) ?? ['inbound'],
+      auth_type: String(connector.auth_type ?? 'api_key'),
+      config_fields: (connector.config_fields as Connector['config_fields']) ?? [],
+      env_vars: (connector.env_vars as Connector['env_vars']) ?? [],
       supported_objects: Array.isArray(connector.supported_objects) ? connector.supported_objects : [],
       limitations: Array.isArray(connector.limitations) ? connector.limitations : [],
       auth_requirements: Array.isArray(connector.auth_requirements) ? connector.auth_requirements : [],
+      enabled: Boolean(connector.enabled),
+      configured: Boolean(connector.configured),
+      instance_url: String(connector.instance_url ?? ''),
+      project_key: String(connector.project_key ?? ''),
+      sync_direction: (connector.sync_direction as Connector['sync_direction']) ?? 'inbound',
+      sync_frequency: (connector.sync_frequency as Connector['sync_frequency']) ?? 'daily',
+      health_status: (connector.health_status as Connector['health_status']) ?? 'unknown',
+      last_sync_at: (connector.last_sync_at as Connector['last_sync_at']) ?? null,
       certification_status: normalizeCertificationStatus(
         (connector as { certification_status?: string; certification?: string }).certification_status ??
           (connector as { certification?: string }).certification ??
-          connector.certification_status
+          (connector.certification_status as string | undefined)
       ),
+      custom_fields: (connector.custom_fields as Connector['custom_fields']) ?? undefined,
+      mcp_server_url: connector.mcp_server_url as string | undefined,
+      mcp_tools: connector.mcp_tools as string[] | undefined,
+      mcp_tool_map: connector.mcp_tool_map as Record<string, unknown> | undefined,
+      mcp_scopes: connector.mcp_scopes as string[] | undefined,
+      mcp_enabled: connector.mcp_enabled as boolean | undefined,
+      mcp_feature_enabled: connector.mcp_feature_enabled as boolean | undefined,
+      mcp_enabled_operations: connector.mcp_enabled_operations as string[] | undefined,
+      mcp_disabled_operations: connector.mcp_disabled_operations as string[] | undefined,
+      client_id: connector.client_id as string | undefined,
+      client_secret: connector.client_secret as string | undefined,
+      scope: connector.scope as string | undefined,
+      prefer_mcp: connector.prefer_mcp as boolean | undefined,
     }))
   );
 

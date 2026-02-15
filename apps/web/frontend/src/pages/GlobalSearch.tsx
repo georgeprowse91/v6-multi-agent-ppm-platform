@@ -164,7 +164,7 @@ export function GlobalSearchPage() {
   const hasMore = results.length < total;
 
   const renderDocumentCard = (result: SearchResult) => {
-    const payload = result.payload as DocumentSummary;
+    const payload = result.payload as unknown as DocumentSummary;
     return (
       <li key={result.id} className={styles.resultCard}>
         <div className={styles.cardHeader}>
@@ -191,7 +191,7 @@ export function GlobalSearchPage() {
   };
 
   const renderKnowledgeCard = (result: SearchResult) => {
-    const payload = result.payload as LessonRecord;
+    const payload = result.payload as unknown as LessonRecord;
     return (
       <li key={result.id} className={styles.resultCard}>
         <div className={styles.cardHeader}>

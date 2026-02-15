@@ -9,16 +9,16 @@ import styles from './AnalyticsDashboard.module.css';
 
 interface TrendPoint {
   timestamp: string;
-  value: number | null;
+  value: number | null | undefined;
 }
 
 interface TrendSeries {
   metric: string;
   points: TrendPoint[];
-  slope: number | null;
-  forecast: number | null;
-  forecast_method: string | null;
-  recent_change: number | null;
+  slope: number | null | undefined;
+  forecast: number | null | undefined;
+  forecast_method: string | null | undefined;
+  recent_change: number | null | undefined;
 }
 
 interface TrendWarning {
@@ -339,7 +339,7 @@ export function AnalyticsDashboard() {
                 <div className={styles.chart}>
                   <svg viewBox="0 0 320 160" role="img" aria-label={`${series.metric} trend`}>
                     <path
-                      d={buildChartPath(series.points.map((point) => point.value))}
+                      d={buildChartPath(series.points.map((point) => point.value ?? null))}
                       fill="none"
                       stroke="#2563eb"
                       strokeWidth="3"

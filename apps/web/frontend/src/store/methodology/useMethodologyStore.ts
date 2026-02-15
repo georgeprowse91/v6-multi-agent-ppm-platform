@@ -5,7 +5,6 @@
 import { create } from 'zustand';
 import type {
   MethodologyActivity,
-  MethodologyMap,
   MethodologyStage,
   MethodologyStatus,
   ProjectMethodology,

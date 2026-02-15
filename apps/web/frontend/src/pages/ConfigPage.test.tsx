@@ -32,6 +32,11 @@ const mockConnectors = [
     name: 'Jira',
     description: 'Jira connector',
     category: 'pm',
+    system: 'Jira',
+    connector_type: 'rest',
+    mcp_server_id: '',
+    supported_operations: ['issues.read'],
+    mcp_preferred: false,
     status: 'available',
     icon: 'jira',
     supported_sync_directions: ['inbound'],
@@ -45,6 +50,9 @@ const mockConnectors = [
       },
     ],
     env_vars: [],
+    supported_objects: ['issues'],
+    limitations: [],
+    auth_requirements: ['api_key'],
     enabled: true,
     configured: true,
     instance_url: 'https://jira.example.com',
@@ -75,8 +83,8 @@ describe('ConfigPage', () => {
   });
 
   it('renders configuration tabs and agent forms', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input: RequestInfo) => {
-      const url = typeof input === 'string' ? input : input.url;
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       if (url.endsWith('/agents/config')) {
         return Promise.resolve(
           new Response(JSON.stringify(mockAgents), { status: 200 })

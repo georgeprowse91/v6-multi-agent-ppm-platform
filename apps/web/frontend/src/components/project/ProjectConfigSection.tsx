@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AgentGallery } from './AgentGallery';
 import { ConnectorGallery } from '../connectors/ConnectorGallery';
 import styles from './ProjectConfigSection.module.css';

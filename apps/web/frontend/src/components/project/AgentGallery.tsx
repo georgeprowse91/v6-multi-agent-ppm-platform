@@ -81,7 +81,7 @@ export function AgentGallery({ projectId }: AgentGalleryProps) {
         {agents.map((agent) => (
           <div key={agent.agent_id} className={styles.card}>
             <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>{agent.name}</h3>
+              <h3 className={styles.cardTitle}>{agent.display_name}</h3>
               <span className={`${styles.badge} ${agent.enabled ? styles.enabled : styles.disabled}`}>
                 {agent.enabled ? 'Enabled' : 'Disabled'}
               </span>

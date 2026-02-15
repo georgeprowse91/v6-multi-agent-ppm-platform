@@ -50,7 +50,7 @@ describe('Intake assistant regression coverage', () => {
       messages: [],
       actionChips: [],
       context: null,
-      mode: 'activity',
+      mode: 'entry',
       aiState: 'idle',
       typingStatus: null,
       isGeneratingSuggestions: false,

@@ -1123,7 +1123,15 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
                       <div className={styles.listTitle}>{risk.title}</div>
                       <div className={styles.listMeta}>Owner: {risk.owner}</div>
                     </div>
-                    <span className={`${styles.badge} ${styles[`badge${risk.severity}`]}`}>
+                    <span
+                      className={`${styles.badge} ${
+                        risk.severity === 'High'
+                          ? styles.badgeHigh
+                          : risk.severity === 'Medium'
+                          ? styles.badgeMedium
+                          : styles.badgeLow
+                      }`}
+                    >
                       {risk.severity}
                     </span>
                   </li>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ConfigForm } from '@/components/config';
 import { Icon } from '@/components/icon/Icon';
 import { FocusTrap } from '@/components/ui/FocusTrap';
@@ -428,7 +429,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                       min: parameter.min_value,
                       max: parameter.max_value,
                     })),
-                  ];
+                  ] as import('@/components/config/ConfigForm').ConfigFieldDefinition[];
 
                   const initialValues = agent.parameters.reduce<Record<string, unknown>>(
                     (acc, parameter) => {
@@ -623,7 +624,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                       required: field.required,
                       options: field.options,
                     })),
-                  ];
+                  ] as import('@/components/config/ConfigForm').ConfigFieldDefinition[];
 
                   const initialValues: Record<string, unknown> = {
                     instance_url: connector.instance_url,

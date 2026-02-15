@@ -89,7 +89,7 @@ export function IntakeFormPage() {
     setIntakeAssistantContext({
       stepId: currentStep.id,
       stepIndex,
-      formState,
+      formState: formState as unknown as Record<string, unknown>,
       errors,
     });
   }, [currentStep.id, errors, formState, setIntakeAssistantContext, stepIndex]);

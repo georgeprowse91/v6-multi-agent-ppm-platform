@@ -7,7 +7,7 @@
 
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import type { CanvasComponentProps } from '../../types/canvas';
-import type { TimelineContent, TimelineItem, TreeContent, TreeNode } from '../../types/artifact';
+import type { TimelineContent, TimelineItem, TreeNode } from '../../types/artifact';
 import styles from './TimelineCanvas.module.css';
 
 export interface TimelineCanvasProps extends CanvasComponentProps<TimelineContent> {}
@@ -157,13 +157,14 @@ export function TimelineCanvas({
 
   const scheduleItems = useMemo(() => {
     const now = new Date();
-    return derivedItems.map(item => {
+    return derivedItems.map((item): TimelineItem => {
       if (!item.isMilestone) return item;
       const endDate = new Date(item.endDate);
       const isDelayed = endDate < now;
+      const gateStatus: TimelineItem['gateStatus'] = isDelayed ? 'delayed' : 'on-track';
       return {
         ...item,
-        gateStatus: isDelayed ? 'delayed' : 'on-track',
+        gateStatus,
       };
     });
   }, [derivedItems]);

@@ -10,14 +10,24 @@ import ReactFlow, {
   useEdgesState,
   useNodesState,
 } from 'reactflow';
-import type { AgentConfig } from '@/store/agentConfig/types';
-import type { Connector } from '@/store/connectors/types';
 import { parseJsonResponse, parseWithSchema } from '@/utils/apiValidation';
 import { s } from '@/utils/schema';
 import styles from './WorkflowDesigner.module.css';
 import 'reactflow/dist/style.css';
 
 const API_BASE = '/v1';
+
+
+interface WorkflowAgent {
+  agent_id: string;
+  display_name: string;
+  capabilities?: string[];
+}
+
+interface WorkflowConnector {
+  connector_id: string;
+  name: string;
+}
 
 const conditionOperators = [
   'equals',
@@ -65,6 +75,7 @@ interface WorkflowDefinitionSummary {
 
 const agentConfigSchema = s.object({
   agent_id: s.string(),
+  display_name: s.string().optional(),
   name: s.string().optional(),
   status: s.string().optional(),
   role: s.string().optional(),
@@ -77,7 +88,7 @@ const agentConfigSchema = s.object({
 });
 
 const connectorSchema = s.object({
-  id: s.string(),
+  connector_id: s.string(),
   name: s.string(),
   category: s.string(),
   enabled: s.boolean(),
@@ -161,29 +172,6 @@ const workflowDefinitionRecordSchema = s.object({
   edges: s.array(workflowEdgeSchema).default([]),
   definition: s.record(s.unknown()).default({}),
 });
-
-type WorkflowDefinitionGraph = {
-  steps: WorkflowStepDefinition[];
-};
-
-interface WorkflowStepDefinition {
-  id: string;
-  type?: StepType;
-  next?: string;
-  default_next?: string;
-  branches?: Array<{
-    name?: string;
-    condition?: WorkflowCondition;
-    next?: string;
-  }>;
-  condition?: WorkflowCondition;
-  config?: {
-    trigger?: string;
-    agent?: string;
-    action?: string;
-    connector_id?: string;
-  };
-}
 
 const buildInitialNodes = (): Array<Node<WorkflowNodeData>> => [
   {
@@ -326,7 +314,7 @@ const detectCycles = (nodeIds: string[], edges: Edge[]) => {
 };
 
 const buildGraphFromDefinition = (definition: Record<string, unknown>) => {
-  const { steps } = parseWithSchema<WorkflowDefinitionGraph>(
+  const { steps } = parseWithSchema(
     workflowDefinitionGraphSchema,
     definition,
     'workflow definition graph'
@@ -391,8 +379,8 @@ export function WorkflowDesigner() {
   const [nodes, setNodes, onNodesChange] = useNodesState(buildInitialNodes());
   const [edges, setEdges, onEdgesChange] = useEdgesState(buildInitialEdges());
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [agents, setAgents] = useState<AgentConfig[]>([]);
-  const [connectors, setConnectors] = useState<Connector[]>([]);
+  const [agents, setAgents] = useState<WorkflowAgent[]>([]);
+  const [connectors, setConnectors] = useState<WorkflowConnector[]>([]);
   const [workflowList, setWorkflowList] = useState<WorkflowDefinitionSummary[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -418,7 +406,11 @@ export function WorkflowDesigner() {
         fetch(`${API_BASE}/api/workflows`),
       ]);
       if (agentsResponse.ok) {
-        setAgents(await parseJsonResponse(agentsResponse, s.array(agentConfigSchema), 'workflow designer agents'));
+        setAgents((await parseJsonResponse(agentsResponse, s.array(agentConfigSchema), 'workflow designer agents')).map((agent) => ({
+          agent_id: agent.agent_id,
+          display_name: agent.display_name ?? agent.name ?? agent.agent_id,
+          capabilities: agent.capabilities ?? [],
+        })));
       }
       if (connectorsResponse.ok) {
         setConnectors(await parseJsonResponse(connectorsResponse, s.array(connectorSchema), 'workflow designer connectors'));
@@ -533,7 +525,7 @@ export function WorkflowDesigner() {
 
   const handleConditionChange = (updates: Partial<WorkflowCondition>) => {
     const currentCondition = selectedNode?.data.condition;
-    const updated = { field: '', operator: 'equals', value: '', ...currentCondition, ...updates };
+    const updated: WorkflowCondition = { field: '', operator: 'equals', value: '', ...currentCondition, ...updates };
     updateSelectedNode({ condition: updated });
   };
 

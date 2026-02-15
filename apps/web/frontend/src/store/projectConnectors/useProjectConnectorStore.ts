@@ -481,15 +481,57 @@ export const useProjectConnectorStore = create<ProjectConnectorStoreState>((set,
   },
 }));
 
-const mapConnectorResponses = (connectors: Connector[]): Connector[] =>
-  connectors.map((connector) => ({
-    ...connector,
-    certification_status: normalizeCertificationStatus(
-      (connector as { certification_status?: string; certification?: string }).certification_status ??
-        (connector as { certification?: string }).certification ??
-        connector.certification_status
-    ),
-  }));
+const mapConnectorResponses = (connectors: Array<Partial<Connector>>): Connector[] =>
+  connectors.map((connector) => {
+    const normalized = {
+      connector_id: String(connector.connector_id ?? ''),
+      name: String(connector.name ?? ''),
+      description: String(connector.description ?? ''),
+      category: (connector.category as Connector['category']) ?? 'pm',
+      system: String(connector.system ?? connector.name ?? ''),
+      connector_type: (connector.connector_type as Connector['connector_type']) ?? 'rest',
+      mcp_server_id: String(connector.mcp_server_id ?? ''),
+      supported_operations: Array.isArray(connector.supported_operations) ? connector.supported_operations.map(String) : [],
+      mcp_preferred: Boolean(connector.mcp_preferred),
+      status: (connector.status as Connector['status']) ?? 'beta',
+      icon: String(connector.icon ?? ''),
+      supported_sync_directions: (connector.supported_sync_directions as Connector['supported_sync_directions']) ?? ['inbound'],
+      auth_type: String(connector.auth_type ?? 'api_key'),
+      config_fields: (connector.config_fields as Connector['config_fields']) ?? [],
+      env_vars: (connector.env_vars as Connector['env_vars']) ?? [],
+      supported_objects: (connector.supported_objects as Connector['supported_objects']) ?? [],
+      limitations: (connector.limitations as Connector['limitations']) ?? [],
+      auth_requirements: (connector.auth_requirements as Connector['auth_requirements']) ?? [],
+      enabled: Boolean(connector.enabled),
+      configured: Boolean(connector.configured),
+      instance_url: String(connector.instance_url ?? ''),
+      project_key: String(connector.project_key ?? ''),
+      sync_direction: (connector.sync_direction as Connector['sync_direction']) ?? 'inbound',
+      sync_frequency: (connector.sync_frequency as Connector['sync_frequency']) ?? 'daily',
+      health_status: (connector.health_status as Connector['health_status']) ?? 'unknown',
+      last_sync_at: (connector.last_sync_at as Connector['last_sync_at']) ?? null,
+      certification_status: normalizeCertificationStatus(
+        (connector as { certification_status?: string; certification?: string }).certification_status ??
+          (connector as { certification?: string }).certification ??
+          (connector.certification_status as string | undefined)
+      ),
+      custom_fields: (connector.custom_fields as Connector['custom_fields']) ?? undefined,
+      mcp_server_url: connector.mcp_server_url as string | undefined,
+      mcp_tools: connector.mcp_tools as string[] | undefined,
+      mcp_tool_map: connector.mcp_tool_map as Record<string, unknown> | undefined,
+      mcp_scopes: connector.mcp_scopes as string[] | undefined,
+      mcp_enabled: connector.mcp_enabled as boolean | undefined,
+      mcp_feature_enabled: connector.mcp_feature_enabled as boolean | undefined,
+      mcp_enabled_operations: connector.mcp_enabled_operations as string[] | undefined,
+      mcp_disabled_operations: connector.mcp_disabled_operations as string[] | undefined,
+      client_id: connector.client_id as string | undefined,
+      client_secret: connector.client_secret as string | undefined,
+      scope: connector.scope as string | undefined,
+      prefer_mcp: connector.prefer_mcp as boolean | undefined,
+    } satisfies Connector;
+
+    return normalized;
+  });
 
 const normalizeCertificationStatus = (status?: string | null): CertificationStatus => {
   if (!status) return 'not_started';
@@ -523,7 +565,7 @@ const matchesCertificationFilter = (
  * Mock connectors for development when API is not available
  */
 function getMockConnectors(): Connector[] {
-  return [
+  const connectors = [
     // PM Tools
     {
       connector_id: 'jira',
@@ -895,6 +937,8 @@ function getMockConnectors(): Connector[] {
       },
     },
   ];
+
+  return mapConnectorResponses(connectors as Array<Partial<Connector>>);
 }
 
 /**
@@ -912,6 +956,7 @@ function getDefaultCategories(): CategoryInfo[] {
     { value: 'compliance', label: 'Compliance', icon: 'domain.governance', description: 'Specialised regulatory compliance platforms', connector_count: 1, enabled_connector: null },
     { value: 'iot', label: 'IoT Integrations', icon: 'connectors.cpuChip', description: 'Custom hardware and sensor integrations', connector_count: 1, enabled_connector: null },
   ];
+
 }
 
 export default useProjectConnectorStore;

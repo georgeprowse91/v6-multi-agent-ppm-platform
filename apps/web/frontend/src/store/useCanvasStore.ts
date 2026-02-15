@@ -607,6 +607,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!artifact) return;
 
     if (artifact.type === 'document') {
+      const documentContent = artifact.content as DocumentContent;
       try {
         const now = new Date().toISOString();
         const response = await createDocumentVersion({
@@ -616,7 +617,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           docType: artifact.type,
           classification: 'internal',
           status: 'draft',
-          content: artifact.content.html ?? artifact.content.plainText ?? '',
+          content: documentContent.html ?? documentContent.plainText ?? '',
           metadata: {
             ...artifact.metadata,
             savedAt: now,
@@ -668,6 +669,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!artifact) return;
 
     if (artifact.type === 'document') {
+      const documentContent = artifact.content as DocumentContent;
       try {
         const now = new Date().toISOString();
         const response = await createDocumentVersion({
@@ -677,7 +679,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           docType: artifact.type,
           classification: 'internal',
           status: 'published',
-          content: artifact.content.html ?? artifact.content.plainText ?? '',
+          content: documentContent.html ?? documentContent.plainText ?? '',
           metadata: {
             ...artifact.metadata,
             publishedAt: now,

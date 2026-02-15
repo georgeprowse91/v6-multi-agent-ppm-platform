@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export interface IntakeAssistantContext {
   stepId: string;
   stepIndex: number;
-  formState: Record<string, string>;
+  formState: Record<string, unknown>;
   errors: Record<string, string>;
 }
 

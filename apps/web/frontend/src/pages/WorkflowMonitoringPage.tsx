@@ -209,7 +209,7 @@ export function WorkflowMonitoringPage() {
         <section className={styles.listSection}>
           <div className={styles.sectionHeader}>
             <h2>Instances</h2>
-            <button onClick={fetchInstances} className={styles.secondaryButton}>
+            <button onClick={() => { void fetchInstances(); }} className={styles.secondaryButton}>
               Refresh
             </button>
           </div>

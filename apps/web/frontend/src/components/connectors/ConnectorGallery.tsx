@@ -1192,7 +1192,7 @@ function ConnectorConfigModal({
             </button>
 
             {testResult && (
-              <div className={`${styles.testResult} ${styles[testResult.status]}`}>
+              <div className={`${styles.testResult} ${styles[testResult.status as 'connected' | 'failed' | 'unauthorized' | 'timeout' | 'invalid_config']}`}>
                 <span className={styles.testResultIcon}>
                   <Icon
                     semantic={testResult.status === 'connected' ? 'status.success' : 'status.error'}
@@ -1205,9 +1205,9 @@ function ConnectorConfigModal({
                   <p>{testResult.message}</p>
                   {testResult.details && testResult.status === 'connected' && (
                     <ul className={styles.testDetails}>
-                      {testResult.details.user && <li>User: {String(testResult.details.user)}</li>}
-                      {testResult.details.email && <li>Email: {String(testResult.details.email)}</li>}
-                      {testResult.details.project && <li>Project: {String(testResult.details.project)}</li>}
+                      {typeof testResult.details?.user !== 'undefined' && <li>User: {String(testResult.details.user)}</li>}
+                      {typeof testResult.details?.email !== 'undefined' && <li>Email: {String(testResult.details.email)}</li>}
+                      {typeof testResult.details?.project !== 'undefined' && <li>Project: {String(testResult.details.project)}</li>}
                     </ul>
                   )}
                 </div>

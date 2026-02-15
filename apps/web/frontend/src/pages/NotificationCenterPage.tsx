@@ -48,7 +48,17 @@ export function NotificationCenterPage() {
   );
   const realtimeNotifications = useRealtimeStore((state) => state.notifications);
   const [notifications] = useState(seedNotifications);
-  const combinedNotifications = [...realtimeNotifications, ...notifications];
+  const combinedNotifications: NotificationItem[] = [
+    ...realtimeNotifications.map((item) => ({
+      id: item.id,
+      title: item.title,
+      message: item.message,
+      status: (item as { status?: NotificationItem['status'] }).status ?? 'info',
+      timestamp: item.timestamp,
+      source: item.source,
+    })),
+    ...notifications,
+  ];
 
   return (
     <section className={styles.page}>
@@ -82,10 +92,13 @@ export function NotificationCenterPage() {
                   </p>
                 </div>
                 <span
-                  className={`${styles.badge} ${styles[`badge${
-                    notification.status.charAt(0).toUpperCase() +
-                    notification.status.slice(1)
-                  }`]}`}
+                  className={`${styles.badge} ${
+                    notification.status === 'success'
+                      ? styles.badgeSuccess
+                      : notification.status === 'failed'
+                      ? styles.badgeFailed
+                      : styles.badgeInfo
+                  }`}
                 >
                   {notification.status}
                 </span>

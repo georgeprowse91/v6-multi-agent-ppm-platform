@@ -4,18 +4,26 @@ import { ConnectorGallery } from './ConnectorGallery';
 import { useConnectorStore } from '@/store/connectors';
 import { useAppStore } from '@/store';
 
-const mockConnectors = [
+const mockConnectors: import('@/store/connectors/types').Connector[] = [
   {
     connector_id: 'jira',
     name: 'Jira',
     description: 'Atlassian Jira connector',
     category: 'pm',
+    system: 'Jira',
+    connector_type: 'rest',
+    mcp_server_id: '',
+    supported_operations: ['issues.read'],
+    mcp_preferred: false,
     status: 'production',
     icon: 'jira',
     supported_sync_directions: ['inbound'],
     auth_type: 'api_key',
     config_fields: [],
     env_vars: [],
+    supported_objects: ['issues'],
+    limitations: [],
+    auth_requirements: ['api_key'],
     enabled: false,
     configured: true,
     instance_url: 'https://jira.example.com',
@@ -88,8 +96,8 @@ describe('ConnectorGallery', () => {
       },
     });
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input: RequestInfo) => {
-      const url = typeof input === 'string' ? input : input.url;
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       if (url.endsWith('/connectors')) {
         return Promise.resolve(new Response(JSON.stringify(mockConnectors), { status: 200 }));
       }
@@ -109,13 +117,13 @@ describe('ConnectorGallery', () => {
 
   it('enables MCP tool mapping and reflects MCP state in the summary', async () => {
     const updateConnectorConfig = vi.fn().mockResolvedValue(undefined);
-    const mockConnector = {
+    const mockConnector: import('@/store/connectors/types').Connector = {
       ...mockConnectors[0],
       supported_operations: ['projects.read', 'projects.write'],
       connector_type: 'rest',
-      mcp_server_id: null,
-      mcp_server_url: null,
-      mcp_tool_map: null,
+      mcp_server_id: '',
+      mcp_server_url: '',
+      mcp_tool_map: {},
       mcp_scopes: [],
     };
 
@@ -206,7 +214,7 @@ describe('ConnectorGallery', () => {
 
   it('uses project-level config updates and hides MCP fields for REST', async () => {
     const updateProjectConnectorConfig = vi.fn().mockResolvedValue(undefined);
-    const projectConnector = {
+    const projectConnector: import('@/store/connectors/types').Connector = {
       ...mockConnectors[0],
       connector_type: 'mcp',
       supported_operations: ['projects.read', 'projects.write'],
