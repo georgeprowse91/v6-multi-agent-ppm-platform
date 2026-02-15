@@ -25,18 +25,18 @@ This directory contains configuration assets consumed by services, agents, and t
 
 ## What's inside
 
-- `config/abac/policies.yaml`: Attribute-based access control policies.
-- `config/agents/*.yaml`: Agent runtime, intent routing, and domain agent configuration.
-- `config/connectors/integrations.yaml`: Connector credentials, sync cadence, and field mapping overrides.
-- `config/data-classification/levels.yaml`: Data classification tiers and retention bindings.
-- `config/environments/*.yaml`: Environment-specific endpoints, vault references, and feature toggles.
-- `config/feature-flags/flags.yaml`: Feature flag toggles by name.
-- `config/rbac/*.yaml`: Roles, permissions, and field-level access rules.
-- `config/retention/policies.yaml`: Retention policy definitions by classification.
-- `config/security/dlp-policies.yaml`: DLP policy thresholds and enforcement actions.
-- `config/signing/`: Signing metadata for artifacts and images.
-- `config/tenants/default.yaml`: Default tenant bootstrap configuration.
-- `config/vector_store.yaml`: Vector store shard, FAISS, cache, batch, and TTL settings.
+- [config/abac/policies.yaml](/config/abac/policies.yaml): Attribute-based access control policies.
+- [config/agents/*.yaml](/config/agents/*.yaml): Agent runtime, intent routing, and domain agent configuration.
+- [config/connectors/integrations.yaml](/config/connectors/integrations.yaml): Connector credentials, sync cadence, and field mapping overrides.
+- [config/data-classification/levels.yaml](/config/data-classification/levels.yaml): Data classification tiers and retention bindings.
+- [config/environments/*.yaml](/config/environments/*.yaml): Environment-specific endpoints, vault references, and feature toggles.
+- [config/feature-flags/flags.yaml](/config/feature-flags/flags.yaml): Feature flag toggles by name.
+- [config/rbac/*.yaml](/config/rbac/*.yaml): Roles, permissions, and field-level access rules.
+- [config/retention/policies.yaml](/config/retention/policies.yaml): Retention policy definitions by classification.
+- [config/security/dlp-policies.yaml](/config/security/dlp-policies.yaml): DLP policy thresholds and enforcement actions.
+- [config/signing/](/config/signing/): Signing metadata for artifacts and images.
+- [config/tenants/default.yaml](/config/tenants/default.yaml): Default tenant bootstrap configuration.
+- [config/vector_store.yaml](/config/vector_store.yaml): Vector store shard, FAISS, cache, batch, and TTL settings.
 
 ## How it's used
 

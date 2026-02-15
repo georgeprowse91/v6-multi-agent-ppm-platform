@@ -6,7 +6,7 @@ Define how Slack payloads map into the platform's canonical schemas under `data/
 
 ## What's inside
 
-- `integrations/connectors/slack/mappings/project.yaml`: Project mapping definition for connector data.
+- [integrations/connectors/slack/mappings/project.yaml](/integrations/connectors/slack/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

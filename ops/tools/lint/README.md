@@ -6,9 +6,9 @@ Document the lint tooling used to automate development and CI workflows.
 
 ## What's inside
 
-- `tools/lint/__init__.py`: Python module used by this component.
-- `tools/lint/lint_config.yaml`: YAML definition or configuration used by this component.
-- `tools/lint/run.py`: Python module used by this component.
+- [tools/lint/__init__.py](/tools/lint/__init__.py): Python module used by this component.
+- [tools/lint/lint_config.yaml](/tools/lint/lint_config.yaml): YAML definition or configuration used by this component.
+- [tools/lint/run.py](/tools/lint/run.py): Python module used by this component.
 
 ## How it's used
 

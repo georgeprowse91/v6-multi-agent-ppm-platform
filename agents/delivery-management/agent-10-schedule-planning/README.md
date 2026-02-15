@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 10: Sch
 
 ## What's inside
 
-- `agents/delivery-management/agent-10-schedule-planning/src`: Implementation source for this component.
-- `agents/delivery-management/agent-10-schedule-planning/tests`: Test suites and fixtures.
-- `agents/delivery-management/agent-10-schedule-planning/Dockerfile`: Container build recipe for local or CI use.
+- [agents/delivery-management/agent-10-schedule-planning/src](/agents/delivery-management/agent-10-schedule-planning/src): Implementation source for this component.
+- [agents/delivery-management/agent-10-schedule-planning/tests](/agents/delivery-management/agent-10-schedule-planning/tests): Test suites and fixtures.
+- [agents/delivery-management/agent-10-schedule-planning/Dockerfile](/agents/delivery-management/agent-10-schedule-planning/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

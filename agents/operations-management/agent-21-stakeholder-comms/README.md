@@ -108,9 +108,9 @@ Must not:
 
 ## What's inside
 
-- `agents/operations-management/agent-21-stakeholder-comms/src`: Implementation source for this component.
-- `agents/operations-management/agent-21-stakeholder-comms/tests`: Test suites and fixtures.
-- `agents/operations-management/agent-21-stakeholder-comms/Dockerfile`: Container build recipe for local or CI use.
+- [agents/operations-management/agent-21-stakeholder-comms/src](/agents/operations-management/agent-21-stakeholder-comms/src): Implementation source for this component.
+- [agents/operations-management/agent-21-stakeholder-comms/tests](/agents/operations-management/agent-21-stakeholder-comms/tests): Test suites and fixtures.
+- [agents/operations-management/agent-21-stakeholder-comms/Dockerfile](/agents/operations-management/agent-21-stakeholder-comms/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

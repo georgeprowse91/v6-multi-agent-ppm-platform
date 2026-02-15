@@ -6,8 +6,8 @@ Document the policies assets for the Orchestration Service application.
 
 ## What's inside
 
-- `apps/orchestration-service/policies/bundles`: Subdirectory containing bundles assets for this area.
-- `apps/orchestration-service/policies/schema`: Schemas or validation rules for component assets.
+- [apps/orchestration-service/policies/bundles](/apps/orchestration-service/policies/bundles): Subdirectory containing bundles assets for this area.
+- [apps/orchestration-service/policies/schema](/apps/orchestration-service/policies/schema): Schemas or validation rules for component assets.
 
 ## How it's used
 

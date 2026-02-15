@@ -6,7 +6,7 @@ Describe tenant bootstrap configuration used to seed new tenants and to drive en
 
 ## What's inside
 
-- `config/tenants/default.yaml`: Default tenant definition consumed by provisioning flows and local development.
+- [config/tenants/default.yaml](/config/tenants/default.yaml): Default tenant definition consumed by provisioning flows and local development.
 
 ## How it's used
 

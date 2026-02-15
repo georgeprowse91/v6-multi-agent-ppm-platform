@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- `services/data-sync-service/helm/templates`: Templates used by the component (deployment or message content).
-- `services/data-sync-service/helm/Chart.yaml`: Helm chart metadata and versioning.
-- `services/data-sync-service/helm/values.yaml`: Helm values for environment-specific overrides.
+- [services/data-sync-service/helm/templates](/services/data-sync-service/helm/templates): Templates used by the component (deployment or message content).
+- [services/data-sync-service/helm/Chart.yaml](/services/data-sync-service/helm/Chart.yaml): Helm chart metadata and versioning.
+- [services/data-sync-service/helm/values.yaml](/services/data-sync-service/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

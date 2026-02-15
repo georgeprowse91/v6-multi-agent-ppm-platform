@@ -6,10 +6,10 @@ Define the responsibilities, workflows, and integration points for Agent 16: Com
 
 ## What's inside
 
-- `agents/delivery-management/agent-16-compliance-regulatory/src`: Implementation source for this component.
-- `agents/delivery-management/agent-16-compliance-regulatory/tests`: Test suites and fixtures.
-- `agents/delivery-management/agent-16-compliance-regulatory/Dockerfile`: Container build recipe for local or CI use.
-- `agents/delivery-management/agent-16-compliance-regulatory/COMPLIANCE_CONTROL_CATALOG.md`: Scope validation, control catalog, and handoff boundaries for execution readiness.
+- [agents/delivery-management/agent-16-compliance-regulatory/src](/agents/delivery-management/agent-16-compliance-regulatory/src): Implementation source for this component.
+- [agents/delivery-management/agent-16-compliance-regulatory/tests](/agents/delivery-management/agent-16-compliance-regulatory/tests): Test suites and fixtures.
+- [agents/delivery-management/agent-16-compliance-regulatory/Dockerfile](/agents/delivery-management/agent-16-compliance-regulatory/Dockerfile): Container build recipe for local or CI use.
+- [agents/delivery-management/agent-16-compliance-regulatory/COMPLIANCE_CONTROL_CATALOG.md](/agents/delivery-management/agent-16-compliance-regulatory/COMPLIANCE_CONTROL_CATALOG.md): Scope validation, control catalog, and handoff boundaries for execution readiness.
 
 ## How it's used
 

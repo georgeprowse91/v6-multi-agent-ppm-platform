@@ -6,11 +6,11 @@ Describe the methodology documentation set and link the narrative to the repo as
 
 ## What's inside
 
-- `docs/methodology/adaptive`: Subdirectory containing adaptive assets for this area.
-- `docs/methodology/hybrid`: Subdirectory containing hybrid assets for this area.
-- `docs/methodology/predictive`: Subdirectory containing predictive assets for this area.
-- `docs/methodology/overview.md`: Markdown documentation for this area.
-- `docs/templates`: Centralized template library referenced by the methodology maps and gates.
+- [docs/methodology/adaptive](/docs/methodology/adaptive): Subdirectory containing adaptive assets for this area.
+- [docs/methodology/hybrid](/docs/methodology/hybrid): Subdirectory containing hybrid assets for this area.
+- [docs/methodology/predictive](/docs/methodology/predictive): Subdirectory containing predictive assets for this area.
+- [docs/methodology/overview.md](/docs/methodology/overview.md): Markdown documentation for this area.
+- [docs/templates](/docs/templates): Centralized template library referenced by the methodology maps and gates.
 
 
 ## Consolidation note

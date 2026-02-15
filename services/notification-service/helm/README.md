@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- `services/notification-service/helm/templates`: Templates used by the component (deployment or message content).
-- `services/notification-service/helm/Chart.yaml`: Helm chart metadata and versioning.
-- `services/notification-service/helm/values.yaml`: Helm values for environment-specific overrides.
+- [services/notification-service/helm/templates](/services/notification-service/helm/templates): Templates used by the component (deployment or message content).
+- [services/notification-service/helm/Chart.yaml](/services/notification-service/helm/Chart.yaml): Helm chart metadata and versioning.
+- [services/notification-service/helm/values.yaml](/services/notification-service/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

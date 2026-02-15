@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Servicenow integrati
 
 ## What's inside
 
-- `integrations/connectors/servicenow/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/servicenow/tests/fixtures](/integrations/connectors/servicenow/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

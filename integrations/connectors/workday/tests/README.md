@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Workday integration.
 
 ## What's inside
 
-- `integrations/connectors/workday/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/workday/tests/fixtures](/integrations/connectors/workday/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

@@ -6,7 +6,7 @@ Describe the quality assets that support the canonical data model.
 
 ## What's inside
 
-- `data/quality/rules.yaml`: YAML definition or configuration used by this component.
+- [data/quality/rules.yaml](/data/quality/rules.yaml): YAML definition or configuration used by this component.
 
 ## How it's used
 

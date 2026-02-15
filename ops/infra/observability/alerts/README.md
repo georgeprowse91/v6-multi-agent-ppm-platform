@@ -6,7 +6,7 @@ Document infrastructure resources under infra/observability/alerts.
 
 ## What's inside
 
-- `infra/observability/alerts/ppm-alerts.yaml`: YAML definition or configuration used by this component.
+- [infra/observability/alerts/ppm-alerts.yaml](/infra/observability/alerts/ppm-alerts.yaml): YAML definition or configuration used by this component.
 
 ## How it's used
 

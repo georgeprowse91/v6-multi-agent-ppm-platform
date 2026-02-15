@@ -6,12 +6,12 @@ Describe the Orchestration Service application and its role in the platform expe
 
 ## What's inside
 
-- `apps/orchestration-service/helm`: Helm chart packaging for Kubernetes deployments.
-- `apps/orchestration-service/planners`: Planning templates and orchestration hints.
-- `apps/orchestration-service/policies`: Policy definitions enforced by the platform.
-- `apps/orchestration-service/src`: Implementation source for this component.
-- `apps/orchestration-service/tests`: Test suites and fixtures.
-- `apps/orchestration-service/Dockerfile`: Container build recipe for local or CI use.
+- [apps/orchestration-service/helm](/apps/orchestration-service/helm): Helm chart packaging for Kubernetes deployments.
+- [apps/orchestration-service/planners](/apps/orchestration-service/planners): Planning templates and orchestration hints.
+- [apps/orchestration-service/policies](/apps/orchestration-service/policies): Policy definitions enforced by the platform.
+- [apps/orchestration-service/src](/apps/orchestration-service/src): Implementation source for this component.
+- [apps/orchestration-service/tests](/apps/orchestration-service/tests): Test suites and fixtures.
+- [apps/orchestration-service/Dockerfile](/apps/orchestration-service/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

@@ -6,8 +6,8 @@ Provide workflows examples that demonstrate how to use the platform assets.
 
 ## What's inside
 
-- `examples/workflows/portfolio-intake.workflow.yaml`: YAML definition or configuration used by this component.
-- `examples/workflows/mcp-cross-system.workflow.yaml`: MCP-focused cross-system workflow example.
+- [examples/workflows/portfolio-intake.workflow.yaml](/examples/workflows/portfolio-intake.workflow.yaml): YAML definition or configuration used by this component.
+- [examples/workflows/mcp-cross-system.workflow.yaml](/examples/workflows/mcp-cross-system.workflow.yaml): MCP-focused cross-system workflow example.
 
 ## How it's used
 

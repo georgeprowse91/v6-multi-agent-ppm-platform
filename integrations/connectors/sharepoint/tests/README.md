@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Sharepoint integrati
 
 ## What's inside
 
-- `integrations/connectors/sharepoint/tests/fixtures`: Subdirectory containing fixtures assets for this area.
+- [integrations/connectors/sharepoint/tests/fixtures](/integrations/connectors/sharepoint/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

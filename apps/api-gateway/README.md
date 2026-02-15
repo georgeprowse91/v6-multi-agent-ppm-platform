@@ -6,11 +6,11 @@ Describe the Api Gateway application and its role in the platform experience lay
 
 ## What's inside
 
-- `apps/api-gateway/helm`: Helm chart packaging for Kubernetes deployments.
-- `apps/api-gateway/openapi`: OpenAPI artifacts and generated summaries.
-- `apps/api-gateway/src`: Implementation source for this component.
-- `apps/api-gateway/tests`: Test suites and fixtures.
-- `apps/api-gateway/Dockerfile`: Container build recipe for local or CI use.
+- [apps/api-gateway/helm](/apps/api-gateway/helm): Helm chart packaging for Kubernetes deployments.
+- [apps/api-gateway/openapi](/apps/api-gateway/openapi): OpenAPI artifacts and generated summaries.
+- [apps/api-gateway/src](/apps/api-gateway/src): Implementation source for this component.
+- [apps/api-gateway/tests](/apps/api-gateway/tests): Test suites and fixtures.
+- [apps/api-gateway/Dockerfile](/apps/api-gateway/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

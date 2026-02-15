@@ -6,19 +6,19 @@ Define the Telemetry Service service responsibilities and how it integrates with
 
 ## Key endpoints
 
-- `GET /healthz`: Service health check.
-- `POST /v1/telemetry/ingest`: Ingest telemetry events.
+- [GET /healthz](/GET /healthz): Service health check.
+- [POST /v1/telemetry/ingest](/POST /v1/telemetry/ingest): Ingest telemetry events.
 
 **Default port:** `8080`
 
 ## What's inside
 
-- `services/telemetry-service/contracts`: Service contracts and schema artifacts.
-- `services/telemetry-service/helm`: Helm chart packaging for Kubernetes deployments.
-- `services/telemetry-service/pipelines`: Pipeline definitions for telemetry ingestion.
-- `services/telemetry-service/src`: Implementation source for this component.
-- `services/telemetry-service/tests`: Test suites and fixtures.
-- `services/telemetry-service/Dockerfile`: Container build recipe for local or CI use.
+- [services/telemetry-service/contracts](/services/telemetry-service/contracts): Service contracts and schema artifacts.
+- [services/telemetry-service/helm](/services/telemetry-service/helm): Helm chart packaging for Kubernetes deployments.
+- [services/telemetry-service/pipelines](/services/telemetry-service/pipelines): Pipeline definitions for telemetry ingestion.
+- [services/telemetry-service/src](/services/telemetry-service/src): Implementation source for this component.
+- [services/telemetry-service/tests](/services/telemetry-service/tests): Test suites and fixtures.
+- [services/telemetry-service/Dockerfile](/services/telemetry-service/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

@@ -107,9 +107,9 @@ Agent 19 **does not** decide:
 
 ## What's inside
 
-- `agents/operations-management/agent-19-knowledge-document-management/src`: Implementation source for this component.
-- `agents/operations-management/agent-19-knowledge-document-management/tests`: Test suites and fixtures.
-- `agents/operations-management/agent-19-knowledge-document-management/Dockerfile`: Container build recipe for local or CI use.
+- [agents/operations-management/agent-19-knowledge-document-management/src](/agents/operations-management/agent-19-knowledge-document-management/src): Implementation source for this component.
+- [agents/operations-management/agent-19-knowledge-document-management/tests](/agents/operations-management/agent-19-knowledge-document-management/tests): Test suites and fixtures.
+- [agents/operations-management/agent-19-knowledge-document-management/Dockerfile](/agents/operations-management/agent-19-knowledge-document-management/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

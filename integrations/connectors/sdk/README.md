@@ -6,8 +6,8 @@ Provide shared helpers and scaffolding for building connectors that conform to t
 
 ## What's inside
 
-- `integrations/connectors/sdk/src`: Implementation source for this component.
-- `integrations/connectors/sdk/tests`: Test suites and fixtures.
+- [integrations/connectors/sdk/src](/integrations/connectors/sdk/src): Implementation source for this component.
+- [integrations/connectors/sdk/tests](/integrations/connectors/sdk/tests): Test suites and fixtures.
 
 ## How it's used
 

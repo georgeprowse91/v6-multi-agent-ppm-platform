@@ -6,8 +6,8 @@ Document the contract test scope and how these checks validate the platform.
 
 ## What's inside
 
-- `tests/contract/api-gateway-openapi.json`: JSON data asset or configuration.
-- `tests/contract/test_api_contract.py`: Python module used by this component.
+- [tests/contract/api-gateway-openapi.json](/tests/contract/api-gateway-openapi.json): JSON data asset or configuration.
+- [tests/contract/test_api_contract.py](/tests/contract/test_api_contract.py): Python module used by this component.
 
 ## How it's used
 

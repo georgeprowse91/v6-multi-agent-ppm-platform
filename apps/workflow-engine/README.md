@@ -6,12 +6,12 @@ Describe the Workflow Engine application and its role in the platform experience
 
 ## What's inside
 
-- `apps/workflow-engine/helm`: Helm chart packaging for Kubernetes deployments.
-- `apps/workflow-engine/migrations`: Database migration scripts and notes.
-- `apps/workflow-engine/src`: Implementation source for this component.
-- `apps/workflow-engine/tests`: Test suites and fixtures.
-- `apps/workflow-engine/workflows`: Workflow definitions and examples.
-- `apps/workflow-engine/Dockerfile`: Container build recipe for local or CI use.
+- [apps/workflow-engine/helm](/apps/workflow-engine/helm): Helm chart packaging for Kubernetes deployments.
+- [apps/workflow-engine/migrations](/apps/workflow-engine/migrations): Database migration scripts and notes.
+- [apps/workflow-engine/src](/apps/workflow-engine/src): Implementation source for this component.
+- [apps/workflow-engine/tests](/apps/workflow-engine/tests): Test suites and fixtures.
+- [apps/workflow-engine/workflows](/apps/workflow-engine/workflows): Workflow definitions and examples.
+- [apps/workflow-engine/Dockerfile](/apps/workflow-engine/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

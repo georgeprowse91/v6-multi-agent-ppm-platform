@@ -8,12 +8,12 @@ Document the 25 specialized domain agents and how they integrate into the orches
 
 | Name | Description | Link |
 |------|-------------|------|
-| `core-orchestration` | Agents handling intent routing, response orchestration, and approval workflows. | [./core-orchestration/](./core-orchestration/) |
-| `delivery-management` | Agents covering project definition, lifecycle governance, scheduling, resourcing, financials, vendor management, quality, risk, and compliance. | [./delivery-management/](./delivery-management/) |
-| `operations-management` | Agents for change management, release deployment, knowledge management, process mining, stakeholder communications, analytics, data quality, and workflow engines. | [./operations-management/](./operations-management/) |
-| `portfolio-management` | Agents for demand intake, business case analysis, portfolio strategy, and program management. | [./portfolio-management/](./portfolio-management/) |
-| `common` | Shared utilities including metrics catalog, scenario engine, and health recommendations. | [./common/](./common/) |
-| `runtime` | Runtime implementation, evaluation framework, and prompt templates. | [./runtime/](./runtime/) |
+| `core-orchestration` | Agents handling intent routing, response orchestration, and approval workflows. | [./core-orchestration/](/./core-orchestration/) |
+| `delivery-management` | Agents covering project definition, lifecycle governance, scheduling, resourcing, financials, vendor management, quality, risk, and compliance. | [./delivery-management/](/./delivery-management/) |
+| `operations-management` | Agents for change management, release deployment, knowledge management, process mining, stakeholder communications, analytics, data quality, and workflow engines. | [./operations-management/](/./operations-management/) |
+| `portfolio-management` | Agents for demand intake, business case analysis, portfolio strategy, and program management. | [./portfolio-management/](/./portfolio-management/) |
+| `common` | Shared utilities including metrics catalog, scenario engine, and health recommendations. | [./common/](/./common/) |
+| `runtime` | Runtime implementation, evaluation framework, and prompt templates. | [./runtime/](/./runtime/) |
 
 ## Key files
 

@@ -157,9 +157,9 @@ Agent 20 now consumes analytics insights to operationalize continuous improvemen
 
 ## What's inside
 
-- `agents/operations-management/agent-20-continuous-improvement-process-mining/src`: Implementation source for this component.
-- `agents/operations-management/agent-20-continuous-improvement-process-mining/tests`: Test suites and fixtures.
-- `agents/operations-management/agent-20-continuous-improvement-process-mining/Dockerfile`: Container build recipe for local or CI use.
+- [agents/operations-management/agent-20-continuous-improvement-process-mining/src](/agents/operations-management/agent-20-continuous-improvement-process-mining/src): Implementation source for this component.
+- [agents/operations-management/agent-20-continuous-improvement-process-mining/tests](/agents/operations-management/agent-20-continuous-improvement-process-mining/tests): Test suites and fixtures.
+- [agents/operations-management/agent-20-continuous-improvement-process-mining/Dockerfile](/agents/operations-management/agent-20-continuous-improvement-process-mining/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

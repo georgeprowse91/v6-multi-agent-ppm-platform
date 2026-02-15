@@ -91,9 +91,9 @@ Explicit gate requests (e.g., `charter_approved`, `baseline_approved`, `acceptan
 
 ## What's inside
 
-- `agents/delivery-management/agent-09-lifecycle-governance/src`: Implementation source for this component.
-- `agents/delivery-management/agent-09-lifecycle-governance/tests`: Test suites and fixtures.
-- `agents/delivery-management/agent-09-lifecycle-governance/Dockerfile`: Container build recipe for local or CI use.
+- [agents/delivery-management/agent-09-lifecycle-governance/src](/agents/delivery-management/agent-09-lifecycle-governance/src): Implementation source for this component.
+- [agents/delivery-management/agent-09-lifecycle-governance/tests](/agents/delivery-management/agent-09-lifecycle-governance/tests): Test suites and fixtures.
+- [agents/delivery-management/agent-09-lifecycle-governance/Dockerfile](/agents/delivery-management/agent-09-lifecycle-governance/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 
