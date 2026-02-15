@@ -36,6 +36,10 @@ describe('RequireAuth', () => {
       if (url.includes('/v1/api/roles')) {
         return Promise.resolve(new Response(JSON.stringify([
           {
+            id: 'PMO_ADMIN',
+            permissions: ['admin:access', 'portfolio.view', 'config.manage', 'methodology.edit', 'intake.approve', 'analytics.view', 'audit.view', 'roles.manage'],
+          },
+          {
             id: 'portfolio_admin',
             permissions: ['admin:access', 'portfolio.view'],
           },
@@ -57,6 +61,12 @@ describe('RequireAuth', () => {
 
     expect(await screen.findByText('Protected home')).toBeInTheDocument();
 
+    // Wait for both session fetch and role catalog fetch to complete
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    // Verify resolved session state (permissions come from role catalog)
     await waitFor(() => {
       const state = useAppStore.getState();
       expect(state.session.loading).toBe(false);
@@ -65,10 +75,6 @@ describe('RequireAuth', () => {
       expect(state.session.user?.permissions).toContain('portfolio.view');
       expect(state.session.user?.roles).toEqual(['portfolio_admin']);
       expect(state.tenantContext).toEqual({ tenantId: 'demo-tenant', tenantName: 'demo-tenant' });
-    });
-
-    await waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
 
