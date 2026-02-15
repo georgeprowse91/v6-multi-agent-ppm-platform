@@ -1,0 +1,8 @@
+{
+  "total_rules": 42,
+  "pass_rate": 0.95,
+  "violations": [
+    {"rule": "required-owner", "count": 2},
+    {"rule": "stale-risk-review", "count": 1}
+  ]
+}

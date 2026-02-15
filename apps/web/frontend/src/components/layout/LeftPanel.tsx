@@ -197,6 +197,12 @@ export function LeftPanel() {
           icon: 'artifact.dashboard',
         },
         {
+          id: 'project-performance-dashboard',
+          label: 'Performance Dashboard',
+          path: `/projects/${projectId}/performance-dashboard`,
+          icon: 'artifact.dashboard',
+        },
+        {
           id: 'project-approvals',
           label: 'My Approvals',
           path: `/approvals?project=${projectId}`,

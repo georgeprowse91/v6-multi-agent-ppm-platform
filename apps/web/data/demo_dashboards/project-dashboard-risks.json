@@ -1,0 +1,7 @@
+{
+  "project_id": "project-alpha",
+  "items": [
+    {"id": "R-102", "title": "Vendor onboarding delay", "severity": "High", "owner": "Procurement"},
+    {"id": "R-117", "title": "Environment contention", "severity": "Medium", "owner": "Platform Ops"}
+  ]
+}
