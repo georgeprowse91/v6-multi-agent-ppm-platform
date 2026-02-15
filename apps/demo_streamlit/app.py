@@ -519,6 +519,51 @@ def find_stage(method: DemoMethodology | None, stage_id: str) -> DemoStage | Non
     return next((s for s in method.stages if s.id == stage_id), None)
 
 
+
+
+def inject_demo_styles() -> None:
+    st.markdown(
+        """
+        <style>
+          .stApp [data-testid="stMetric"] {
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+            border: 1px solid #dbe5f1;
+            border-radius: 14px;
+            padding: 0.65rem 0.8rem;
+          }
+          .stApp [data-testid="stMetricLabel"] {
+            font-weight: 600;
+          }
+          .stApp [data-testid="stSidebar"] {
+            border-right: 1px solid #e2e8f0;
+          }
+          .stApp h1, .stApp h2, .stApp h3 {
+            letter-spacing: -0.01em;
+          }
+          .stApp [data-testid="stDataFrame"] {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_global_context_bar() -> None:
+    st.caption(
+        " | ".join(
+            [
+                f"**Project:** {st.session_state.get('selected_project') or 'Not selected'}",
+                f"**Methodology:** {st.session_state.get('selected_methodology_name') or 'N/A'}",
+                f"**Stage:** {st.session_state.get('selected_stage_name') or 'N/A'}",
+                f"**Activity:** {st.session_state.get('selected_activity_name') or 'N/A'}",
+                f"**Outcome:** {st.session_state.get('selected_outcome') or 'on_track'}",
+            ]
+        )
+    )
+
 def sync_methodology_state(hub: DemoDataHub) -> None:
     try:
         methodologies = hub.methodologies()
@@ -889,6 +934,7 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
 
 def render_feature_flags_panel() -> None:
     st.sidebar.subheader("Feature Flags")
+    st.sidebar.caption("Toggle real platform parity features.")
     for flag in [
         "duplicate_resolution",
         "agent_async_notifications",
@@ -910,9 +956,10 @@ def render_provenance(hub: DemoDataHub, view_name: str) -> None:
 def render_home(hub: DemoDataHub) -> None:
     st.header("Home")
     dashboard = hub.normalized_dashboard()
-    st.metric("Portfolio KPIs", len(dashboard["health"].get("kpis", [])))
-    st.metric("Lifecycle gates", len(dashboard["lifecycle"].get("stage_gates", [])))
-    st.metric("Workflow runs", len(dashboard["workflow"].get("runs", [])))
+    k1, k2, k3 = st.columns(3)
+    k1.metric("Portfolio KPIs", len(dashboard["health"].get("kpis", [])))
+    k2.metric("Lifecycle gates", len(dashboard["lifecycle"].get("stage_gates", [])))
+    k3.metric("Workflow runs", len(dashboard["workflow"].get("runs", [])))
 
     st.subheader("Parity status against web console demo")
     st.dataframe(
@@ -963,6 +1010,13 @@ def render_workspace(hub: DemoDataHub) -> None:
         for activity in stage.activities:
             all_activities.append({"stage_id": stage.id, "stage_name": stage.name, "activity_id": activity.id, "activity_name": activity.name})
 
+    stage_filter = st.text_input("Filter stages or activities", key="workspace_filter", placeholder="Type to narrow methodology map")
+    if stage_filter.strip():
+        token = stage_filter.strip().lower()
+        stage_rows = [
+            row for row in stage_rows
+            if token in row["stage_name"].lower() or token in row["activities"].lower()
+        ]
     st.dataframe(stage_rows, hide_index=True, use_container_width=True)
 
     if st.button("Run full methodology walkthrough", use_container_width=True):
@@ -1008,6 +1062,9 @@ def render_workspace(hub: DemoDataHub) -> None:
 def render_dashboard(hub: DemoDataHub) -> None:
     st.header("Dashboard")
     data = hub.normalized_dashboard()
+    c1, c2 = st.columns(2)
+    c1.metric("KPI records", len(data["health"].get("kpis", [])))
+    c2.metric("Workflow runs", len(data["workflow"].get("runs", [])))
     st.dataframe(data["health"].get("kpis", []), hide_index=True, use_container_width=True)
     st.dataframe(data["workflow"].get("runs", []), hide_index=True, use_container_width=True)
     if st.session_state["feature_flags"].get("predictive_alerts"):
@@ -1288,6 +1345,7 @@ def render_approvals_advanced(hub: DemoDataHub) -> None:
     render_provenance(hub, "Intake")
 def main() -> None:
     st.set_page_config(page_title="PPM Standalone Demo", layout="wide")
+    inject_demo_styles()
     st.title("Standalone PPM Demo Mode")
     st.caption("Local-only mirror of web console demo mode (no backend services, no external calls).")
 
@@ -1298,6 +1356,7 @@ def main() -> None:
 
     render_scenario_selectors_sidebar(hub)
     render_feature_flags_panel()
+    render_global_context_bar()
 
     nav_pages = [
         "Home",

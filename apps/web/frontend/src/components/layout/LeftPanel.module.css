@@ -1,4 +1,5 @@
 .panel {
+  transition: width var(--transition-normal), box-shadow var(--transition-normal);
   display: flex;
   flex-direction: column;
   width: var(--left-panel-width);
@@ -164,7 +165,11 @@
 }
 
 .sectionTitle {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-card);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-neutral-400);
@@ -247,6 +252,7 @@
 .navItem.active {
   background-color: var(--color-primary-50);
   color: var(--color-primary-700);
+  border-right: 3px solid var(--color-primary-500);
 }
 
 .icon {
@@ -295,6 +301,7 @@
 
 @media (max-width: 768px) {
   .panel {
+  transition: width var(--transition-normal), box-shadow var(--transition-normal);
     position: fixed;
     left: 0;
     top: var(--header-height);
