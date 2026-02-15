@@ -6,8 +6,8 @@ Document the policies assets for the Document Service application.
 
 ## What's inside
 
-- [apps/document-service/policies/bundles](/apps/document-service/policies/bundles): Subdirectory containing bundles assets for this area.
-- [apps/document-service/policies/schema](/apps/document-service/policies/schema): Schemas or validation rules for component assets.
+- [bundles](/apps/document-service/policies/bundles): Subdirectory containing bundles assets for this area.
+- [schema](/apps/document-service/policies/schema): Schemas or validation rules for component assets.
 
 ## How it's used
 

@@ -6,9 +6,9 @@ Package Kubernetes deployment manifests for this component.
 
 ## What's inside
 
-- [services/policy-engine/helm/templates](/services/policy-engine/helm/templates): Templates used by the component (deployment or message content).
-- [services/policy-engine/helm/Chart.yaml](/services/policy-engine/helm/Chart.yaml): Helm chart metadata and versioning.
-- [services/policy-engine/helm/values.yaml](/services/policy-engine/helm/values.yaml): Helm values for environment-specific overrides.
+- [templates](/services/policy-engine/helm/templates): Templates used by the component (deployment or message content).
+- [Chart.yaml](/services/policy-engine/helm/Chart.yaml): Helm chart metadata and versioning.
+- [values.yaml](/services/policy-engine/helm/values.yaml): Helm values for environment-specific overrides.
 
 ## How it's used
 

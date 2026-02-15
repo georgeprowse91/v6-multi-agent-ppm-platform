@@ -55,9 +55,9 @@ Define the responsibilities, workflows, and integration points for Agent 01: Int
 
 ## What's inside
 
-- [agents/core-orchestration/agent-01-intent-router/src](/agents/core-orchestration/agent-01-intent-router/src): Implementation source for this component.
-- [agents/core-orchestration/agent-01-intent-router/tests](/agents/core-orchestration/agent-01-intent-router/tests): Test suites and fixtures.
-- [agents/core-orchestration/agent-01-intent-router/Dockerfile](/agents/core-orchestration/agent-01-intent-router/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/core-orchestration/agent-01-intent-router/src): Implementation source for this component.
+- [tests](/agents/core-orchestration/agent-01-intent-router/tests): Test suites and fixtures.
+- [Dockerfile](/agents/core-orchestration/agent-01-intent-router/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

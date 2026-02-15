@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Jira integration.
 
 ## What's inside
 
-- [integrations/connectors/jira/tests/fixtures](/integrations/connectors/jira/tests/fixtures): Subdirectory containing fixtures assets for this area.
+- [fixtures](/integrations/connectors/jira/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

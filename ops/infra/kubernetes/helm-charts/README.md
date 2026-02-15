@@ -6,7 +6,7 @@ Document infrastructure resources under infra/kubernetes/helm-charts.
 
 ## What's inside
 
-- [infra/kubernetes/helm-charts/ppm-platform](/infra/kubernetes/helm-charts/ppm-platform): Subdirectory containing ppm platform assets for this area.
+- [ppm-platform](/infra/kubernetes/helm-charts/ppm-platform): Subdirectory containing ppm platform assets for this area.
 
 ## How it's used
 

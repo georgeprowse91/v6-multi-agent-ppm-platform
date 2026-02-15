@@ -6,21 +6,21 @@ Define the Policy Engine service responsibilities and how it integrates with the
 
 ## Key endpoints
 
-- [GET /healthz](/GET /healthz): Service health check.
-- [POST /v1/policies/evaluate](/POST /v1/policies/evaluate): Evaluate policy decisions against inputs.
-- [POST /v1/rbac/evaluate](/POST /v1/rbac/evaluate): Evaluate RBAC policies.
-- [POST /v1/abac/evaluate](/POST /v1/abac/evaluate): Evaluate ABAC policies.
+- [healthz](/GET /healthz): Service health check.
+- [evaluate](/POST /v1/policies/evaluate): Evaluate policy decisions against inputs.
+- [evaluate](/POST /v1/rbac/evaluate): Evaluate RBAC policies.
+- [evaluate](/POST /v1/abac/evaluate): Evaluate ABAC policies.
 
 **Default port:** `8080`
 
 ## What's inside
 
-- [services/policy-engine/contracts](/services/policy-engine/contracts): Service contracts and schema artifacts.
-- [services/policy-engine/helm](/services/policy-engine/helm): Helm chart packaging for Kubernetes deployments.
-- [services/policy-engine/policies](/services/policy-engine/policies): Policy definitions enforced by the platform.
-- [services/policy-engine/src](/services/policy-engine/src): Implementation source for this component.
-- [services/policy-engine/tests](/services/policy-engine/tests): Test suites and fixtures.
-- [services/policy-engine/Dockerfile](/services/policy-engine/Dockerfile): Container build recipe for local or CI use.
+- [contracts](/services/policy-engine/contracts): Service contracts and schema artifacts.
+- [helm](/services/policy-engine/helm): Helm chart packaging for Kubernetes deployments.
+- [policies](/services/policy-engine/policies): Policy definitions enforced by the platform.
+- [src](/services/policy-engine/src): Implementation source for this component.
+- [tests](/services/policy-engine/tests): Test suites and fixtures.
+- [Dockerfile](/services/policy-engine/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

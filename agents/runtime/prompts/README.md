@@ -6,9 +6,9 @@ Store prompt templates used by the agent runtime during orchestration and tool e
 
 ## What's inside
 
-- [agents/runtime/prompts/examples](/agents/runtime/prompts/examples): Example configurations and demo scenarios.
-- [agents/runtime/prompts/schema](/agents/runtime/prompts/schema): Schemas or validation rules for component assets.
-- [agents/runtime/prompts/prompt_registry.py](/agents/runtime/prompts/prompt_registry.py): Python module used by this component.
+- [examples](/agents/runtime/prompts/examples): Example configurations and demo scenarios.
+- [schema](/agents/runtime/prompts/schema): Schemas or validation rules for component assets.
+- [prompt_registry.py](/agents/runtime/prompts/prompt_registry.py): Python module used by this component.
 
 ## How it's used
 

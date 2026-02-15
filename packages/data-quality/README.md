@@ -6,7 +6,7 @@ Describe the Data Quality shared package and how it supports platform services.
 
 ## What's inside
 
-- [packages/data-quality/src](/packages/data-quality/src): Implementation source for this component.
+- [src](/packages/data-quality/src): Implementation source for this component.
 
 ## How it's used
 

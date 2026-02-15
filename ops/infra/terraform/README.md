@@ -6,9 +6,9 @@ Document infrastructure resources under infra/terraform.
 
 ## What's inside
 
-- [infra/terraform/envs](/infra/terraform/envs): Environment-specific overlays.
-- [infra/terraform/modules](/infra/terraform/modules): Reusable Terraform modules.
-- [infra/terraform/main.tf](/infra/terraform/main.tf): File asset used by this component.
+- [envs](/infra/terraform/envs): Environment-specific overlays.
+- [modules](/infra/terraform/modules): Reusable Terraform modules.
+- [main.tf](/infra/terraform/main.tf): File asset used by this component.
 
 ## How it's used
 

@@ -6,10 +6,10 @@ Document the load test scope and how these checks validate the platform.
 
 ## What's inside
 
-- [tests/load/sla_targets.json](/tests/load/sla_targets.json): Load-test SLA profiles and thresholds, including multi-agent flow targets.
-- [tests/load/multi_agent_scenarios.py](/tests/load/multi_agent_scenarios.py): Scenario builder for single-endpoint and orchestrated multi-step flows.
-- [tests/load/test_load_sla.py](/tests/load/test_load_sla.py): Load-test SLA validation suite with per-step assertions.
-- [tests/load/test_connectors_latency_sla.py](/tests/load/test_connectors_latency_sla.py): Multi-agent risk/compliance/approval SLA coverage.
+- [sla_targets.json](/tests/load/sla_targets.json): Load-test SLA profiles and thresholds, including multi-agent flow targets.
+- [multi_agent_scenarios.py](/tests/load/multi_agent_scenarios.py): Scenario builder for single-endpoint and orchestrated multi-step flows.
+- [test_load_sla.py](/tests/load/test_load_sla.py): Load-test SLA validation suite with per-step assertions.
+- [test_connectors_latency_sla.py](/tests/load/test_connectors_latency_sla.py): Multi-agent risk/compliance/approval SLA coverage.
 
 ## How it's used
 

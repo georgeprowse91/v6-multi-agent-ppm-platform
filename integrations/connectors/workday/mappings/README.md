@@ -6,7 +6,7 @@ Define how Workday payloads map into the platform's canonical schemas under `dat
 
 ## What's inside
 
-- [integrations/connectors/workday/mappings/project.yaml](/integrations/connectors/workday/mappings/project.yaml): Project mapping definition for connector data.
+- [project.yaml](/integrations/connectors/workday/mappings/project.yaml): Project mapping definition for connector data.
 
 ## How it's used
 

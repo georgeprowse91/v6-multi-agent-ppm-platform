@@ -6,7 +6,7 @@ Document infrastructure resources under infra/policies/dlp.
 
 ## What's inside
 
-- [infra/policies/dlp/bundles](/infra/policies/dlp/bundles): Subdirectory containing bundles assets for this area.
+- [bundles](/infra/policies/dlp/bundles): Subdirectory containing bundles assets for this area.
 
 ## How it's used
 

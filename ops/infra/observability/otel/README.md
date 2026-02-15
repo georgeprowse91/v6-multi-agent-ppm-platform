@@ -6,8 +6,8 @@ Document infrastructure resources under infra/observability/otel.
 
 ## What's inside
 
-- [infra/observability/otel/helm](/infra/observability/otel/helm): Helm chart packaging for Kubernetes deployments.
-- [infra/observability/otel/collector.yaml](/infra/observability/otel/collector.yaml): YAML definition or configuration used by this component.
+- [helm](/infra/observability/otel/helm): Helm chart packaging for Kubernetes deployments.
+- [collector.yaml](/infra/observability/otel/collector.yaml): YAML definition or configuration used by this component.
 
 ## How it's used
 

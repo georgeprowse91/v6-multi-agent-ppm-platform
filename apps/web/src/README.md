@@ -6,7 +6,7 @@ Document the src assets for the Web application.
 
 ## What's inside
 
-- [apps/web/src/main.py](/apps/web/src/main.py): Primary runtime entrypoint for this component.
+- [main.py](/apps/web/src/main.py): Primary runtime entrypoint for this component.
 
 ## How it's used
 

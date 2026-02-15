@@ -6,10 +6,10 @@ Document infrastructure resources under infra/terraform/envs.
 
 ## What's inside
 
-- [infra/terraform/envs/dev](/infra/terraform/envs/dev): Subdirectory containing dev assets for this area.
-- [infra/terraform/envs/stage](/infra/terraform/envs/stage): Subdirectory containing stage assets for this area.
-- [infra/terraform/envs/prod](/infra/terraform/envs/prod): Subdirectory containing prod assets for this area.
-- [infra/terraform/envs/test](/infra/terraform/envs/test): Subdirectory containing test assets for this area.
+- [dev](/infra/terraform/envs/dev): Subdirectory containing dev assets for this area.
+- [stage](/infra/terraform/envs/stage): Subdirectory containing stage assets for this area.
+- [prod](/infra/terraform/envs/prod): Subdirectory containing prod assets for this area.
+- [test](/infra/terraform/envs/test): Subdirectory containing test assets for this area.
 
 ## How it's used
 

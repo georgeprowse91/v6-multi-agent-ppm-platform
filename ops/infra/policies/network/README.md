@@ -6,7 +6,7 @@ Document infrastructure resources under infra/policies/network.
 
 ## What's inside
 
-- [infra/policies/network/bundles](/infra/policies/network/bundles): Subdirectory containing bundles assets for this area.
+- [bundles](/infra/policies/network/bundles): Subdirectory containing bundles assets for this area.
 
 ## How it's used
 

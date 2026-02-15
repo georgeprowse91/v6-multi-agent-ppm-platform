@@ -6,7 +6,7 @@ Describe the lineage assets that support the canonical data model.
 
 ## What's inside
 
-- [data/lineage/example-lineage.json](/data/lineage/example-lineage.json): JSON data asset or configuration.
+- [example-lineage.json](/data/lineage/example-lineage.json): JSON data asset or configuration.
 
 ## How it's used
 

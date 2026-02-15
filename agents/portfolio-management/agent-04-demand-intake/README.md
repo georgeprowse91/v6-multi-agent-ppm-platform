@@ -75,9 +75,9 @@ Define the responsibilities, workflows, and integration points for Agent 04: Dem
 
 ## What's inside
 
-- [agents/portfolio-management/agent-04-demand-intake/src](/agents/portfolio-management/agent-04-demand-intake/src): Implementation source for this component.
-- [agents/portfolio-management/agent-04-demand-intake/tests](/agents/portfolio-management/agent-04-demand-intake/tests): Test suites and fixtures.
-- [agents/portfolio-management/agent-04-demand-intake/Dockerfile](/agents/portfolio-management/agent-04-demand-intake/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/portfolio-management/agent-04-demand-intake/src): Implementation source for this component.
+- [tests](/agents/portfolio-management/agent-04-demand-intake/tests): Test suites and fixtures.
+- [Dockerfile](/agents/portfolio-management/agent-04-demand-intake/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

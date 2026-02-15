@@ -71,9 +71,9 @@ Define the responsibilities, workflows, and integration points for Agent 15: Ris
 
 ## What's inside
 
-- [agents/delivery-management/agent-15-risk-issue-management/src](/agents/delivery-management/agent-15-risk-issue-management/src): Implementation source for this component.
-- [agents/delivery-management/agent-15-risk-issue-management/tests](/agents/delivery-management/agent-15-risk-issue-management/tests): Test suites and fixtures.
-- [agents/delivery-management/agent-15-risk-issue-management/Dockerfile](/agents/delivery-management/agent-15-risk-issue-management/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/delivery-management/agent-15-risk-issue-management/src): Implementation source for this component.
+- [tests](/agents/delivery-management/agent-15-risk-issue-management/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/agent-15-risk-issue-management/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

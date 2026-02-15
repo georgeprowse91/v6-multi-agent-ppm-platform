@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 23: Dat
 
 ## What's inside
 
-- [agents/operations-management/agent-23-data-synchronisation-quality/src](/agents/operations-management/agent-23-data-synchronisation-quality/src): Implementation source for this component.
-- [agents/operations-management/agent-23-data-synchronisation-quality/tests](/agents/operations-management/agent-23-data-synchronisation-quality/tests): Test suites and fixtures.
-- [agents/operations-management/agent-23-data-synchronisation-quality/Dockerfile](/agents/operations-management/agent-23-data-synchronisation-quality/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/operations-management/agent-23-data-synchronisation-quality/src): Implementation source for this component.
+- [tests](/agents/operations-management/agent-23-data-synchronisation-quality/tests): Test suites and fixtures.
+- [Dockerfile](/agents/operations-management/agent-23-data-synchronisation-quality/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

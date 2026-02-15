@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 25: Sys
 
 ## What's inside
 
-- [agents/operations-management/agent-25-system-health-monitoring/src](/agents/operations-management/agent-25-system-health-monitoring/src): Implementation source for this component.
-- [agents/operations-management/agent-25-system-health-monitoring/tests](/agents/operations-management/agent-25-system-health-monitoring/tests): Test suites and fixtures.
-- [agents/operations-management/agent-25-system-health-monitoring/Dockerfile](/agents/operations-management/agent-25-system-health-monitoring/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/operations-management/agent-25-system-health-monitoring/src): Implementation source for this component.
+- [tests](/agents/operations-management/agent-25-system-health-monitoring/tests): Test suites and fixtures.
+- [Dockerfile](/agents/operations-management/agent-25-system-health-monitoring/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

@@ -6,7 +6,7 @@ Store fixtures and connector-level test scaffolding for the Sap integration.
 
 ## What's inside
 
-- [integrations/connectors/sap/tests/fixtures](/integrations/connectors/sap/tests/fixtures): Subdirectory containing fixtures assets for this area.
+- [fixtures](/integrations/connectors/sap/tests/fixtures): Subdirectory containing fixtures assets for this area.
 
 ## How it's used
 

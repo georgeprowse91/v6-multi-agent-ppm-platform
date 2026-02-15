@@ -6,9 +6,9 @@ Document infrastructure resources under infra/observability/dashboards.
 
 ## What's inside
 
-- [infra/observability/dashboards/ppm-platform.json](/infra/observability/dashboards/ppm-platform.json): JSON data asset or configuration.
-- [infra/observability/dashboards/ppm-slo.json](/infra/observability/dashboards/ppm-slo.json): JSON data asset or configuration.
-- [infra/observability/dashboards/ppm-error-budget.json](/infra/observability/dashboards/ppm-error-budget.json): Error budget reporting dashboard.
+- [ppm-platform.json](/infra/observability/dashboards/ppm-platform.json): JSON data asset or configuration.
+- [ppm-slo.json](/infra/observability/dashboards/ppm-slo.json): JSON data asset or configuration.
+- [ppm-error-budget.json](/infra/observability/dashboards/ppm-error-budget.json): Error budget reporting dashboard.
 
 ## How it's used
 

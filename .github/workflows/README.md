@@ -6,15 +6,15 @@ Define the CI/CD, security, and compliance pipelines that validate and release t
 
 ## What's inside
 
-- [.github/workflows/ci.yml](/.github/workflows/ci.yml): Core CI pipeline (lint, tests, docs checks).
-- [.github/workflows/pr.yml](/.github/workflows/pr.yml): Pull request validation and gating checks.
-- [.github/workflows/cd.yml](/.github/workflows/cd.yml): Release/promotion flow for tagged builds.
-- [.github/workflows/contract-tests.yml](/.github/workflows/contract-tests.yml): Contract test runs for shared schemas.
-- [.github/workflows/e2e-tests.yml](/.github/workflows/e2e-tests.yml): End-to-end workflow validations.
-- [docs/testing/test-dependency-matrix.md](/docs/testing/test-dependency-matrix.md): Test matrix and dependency profile documentation for CI.
-- [.github/workflows/security-scan.yml](/.github/workflows/security-scan.yml): Security scanning and policy enforcement.
-- [.github/workflows/secret-scan.yml](/.github/workflows/secret-scan.yml): Secret scanning checks.
-- [.github/workflows/iac-scan.yml](/.github/workflows/iac-scan.yml): Infrastructure-as-code scan (when enabled).
+- [ci.yml](/.github/workflows/ci.yml): Core CI pipeline (lint, tests, docs checks).
+- [pr.yml](/.github/workflows/pr.yml): Pull request validation and gating checks.
+- [cd.yml](/.github/workflows/cd.yml): Release/promotion flow for tagged builds.
+- [contract-tests.yml](/.github/workflows/contract-tests.yml): Contract test runs for shared schemas.
+- [e2e-tests.yml](/.github/workflows/e2e-tests.yml): End-to-end workflow validations.
+- [test-dependency-matrix.md](/docs/testing/test-dependency-matrix.md): Test matrix and dependency profile documentation for CI.
+- [security-scan.yml](/.github/workflows/security-scan.yml): Security scanning and policy enforcement.
+- [secret-scan.yml](/.github/workflows/secret-scan.yml): Secret scanning checks.
+- [iac-scan.yml](/.github/workflows/iac-scan.yml): Infrastructure-as-code scan (when enabled).
 
 ## How it's used
 

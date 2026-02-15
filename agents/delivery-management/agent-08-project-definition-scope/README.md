@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 08: Pro
 
 ## What's inside
 
-- [agents/delivery-management/agent-08-project-definition-scope/src](/agents/delivery-management/agent-08-project-definition-scope/src): Implementation source for this component.
-- [agents/delivery-management/agent-08-project-definition-scope/tests](/agents/delivery-management/agent-08-project-definition-scope/tests): Test suites and fixtures.
-- [agents/delivery-management/agent-08-project-definition-scope/Dockerfile](/agents/delivery-management/agent-08-project-definition-scope/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/delivery-management/agent-08-project-definition-scope/src): Implementation source for this component.
+- [tests](/agents/delivery-management/agent-08-project-definition-scope/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/agent-08-project-definition-scope/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

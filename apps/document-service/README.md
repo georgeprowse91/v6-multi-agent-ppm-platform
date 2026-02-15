@@ -6,12 +6,12 @@ Describe the Document Service application and its role in the platform experienc
 
 ## What's inside
 
-- [apps/document-service/helm](/apps/document-service/helm): Helm chart packaging for Kubernetes deployments.
-- [apps/document-service/migrations](/apps/document-service/migrations): Database migration scripts and notes.
-- [apps/document-service/policies](/apps/document-service/policies): Policy definitions enforced by the platform.
-- [apps/document-service/src](/apps/document-service/src): Implementation source for this component.
-- [apps/document-service/tests](/apps/document-service/tests): Test suites and fixtures.
-- [apps/document-service/Dockerfile](/apps/document-service/Dockerfile): Container build recipe for local or CI use.
+- [helm](/apps/document-service/helm): Helm chart packaging for Kubernetes deployments.
+- [migrations](/apps/document-service/migrations): Database migration scripts and notes.
+- [policies](/apps/document-service/policies): Policy definitions enforced by the platform.
+- [src](/apps/document-service/src): Implementation source for this component.
+- [tests](/apps/document-service/tests): Test suites and fixtures.
+- [Dockerfile](/apps/document-service/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

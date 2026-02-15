@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 05: Bus
 
 ## What's inside
 
-- [agents/portfolio-management/agent-05-business-case-investment/src](/agents/portfolio-management/agent-05-business-case-investment/src): Implementation source for this component.
-- [agents/portfolio-management/agent-05-business-case-investment/tests](/agents/portfolio-management/agent-05-business-case-investment/tests): Test suites and fixtures.
-- [agents/portfolio-management/agent-05-business-case-investment/Dockerfile](/agents/portfolio-management/agent-05-business-case-investment/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/portfolio-management/agent-05-business-case-investment/src): Implementation source for this component.
+- [tests](/agents/portfolio-management/agent-05-business-case-investment/tests): Test suites and fixtures.
+- [Dockerfile](/agents/portfolio-management/agent-05-business-case-investment/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

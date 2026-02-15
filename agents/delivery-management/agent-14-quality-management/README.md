@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 14: Qua
 
 ## What's inside
 
-- [agents/delivery-management/agent-14-quality-management/src](/agents/delivery-management/agent-14-quality-management/src): Implementation source for this component.
-- [agents/delivery-management/agent-14-quality-management/tests](/agents/delivery-management/agent-14-quality-management/tests): Test suites and fixtures.
-- [agents/delivery-management/agent-14-quality-management/Dockerfile](/agents/delivery-management/agent-14-quality-management/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/delivery-management/agent-14-quality-management/src): Implementation source for this component.
+- [tests](/agents/delivery-management/agent-14-quality-management/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/agent-14-quality-management/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

@@ -6,9 +6,9 @@ Define the responsibilities, workflows, and integration points for Agent 13: Ven
 
 ## What's inside
 
-- [agents/delivery-management/agent-13-vendor-procurement/src](/agents/delivery-management/agent-13-vendor-procurement/src): Implementation source for this component.
-- [agents/delivery-management/agent-13-vendor-procurement/tests](/agents/delivery-management/agent-13-vendor-procurement/tests): Test suites and fixtures.
-- [agents/delivery-management/agent-13-vendor-procurement/Dockerfile](/agents/delivery-management/agent-13-vendor-procurement/Dockerfile): Container build recipe for local or CI use.
+- [src](/agents/delivery-management/agent-13-vendor-procurement/src): Implementation source for this component.
+- [tests](/agents/delivery-management/agent-13-vendor-procurement/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/agent-13-vendor-procurement/Dockerfile): Container build recipe for local or CI use.
 
 ## How it's used
 

@@ -6,26 +6,26 @@ Define the Identity Access service responsibilities and how it integrates with t
 
 ## Key endpoints
 
-- [GET /healthz](/GET /healthz): Service health check.
-- [POST /v1/auth/validate](/POST /v1/auth/validate): Validate a JWT and return tenant/role claims.
-- [POST /v1/scim/v2/Users](/POST /v1/scim/v2/Users): Create a user via SCIM.
-- [GET /v1/scim/v2/Users](/GET /v1/scim/v2/Users): List users via SCIM.
-- [PATCH /v1/scim/v2/Users/{user_id}](/PATCH /v1/scim/v2/Users/{user_id}): Update a user.
-- [POST /v1/scim/v2/Groups](/POST /v1/scim/v2/Groups): Create a group via SCIM.
-- [GET /v1/scim/v2/Groups](/GET /v1/scim/v2/Groups): List groups via SCIM.
-- [PATCH /v1/scim/v2/Groups/{group_id}](/PATCH /v1/scim/v2/Groups/{group_id}): Update a group via SCIM.
-- [GET /v1/scim/internal/roles/{user_id}](/GET /v1/scim/internal/roles/{user_id}): Retrieve resolved roles for a user.
+- [healthz](/GET /healthz): Service health check.
+- [validate](/POST /v1/auth/validate): Validate a JWT and return tenant/role claims.
+- [Users](/POST /v1/scim/v2/Users): Create a user via SCIM.
+- [Users](/GET /v1/scim/v2/Users): List users via SCIM.
+- [{user_id}](/PATCH /v1/scim/v2/Users/{user_id}): Update a user.
+- [Groups](/POST /v1/scim/v2/Groups): Create a group via SCIM.
+- [Groups](/GET /v1/scim/v2/Groups): List groups via SCIM.
+- [{group_id}](/PATCH /v1/scim/v2/Groups/{group_id}): Update a group via SCIM.
+- [{user_id}](/GET /v1/scim/internal/roles/{user_id}): Retrieve resolved roles for a user.
 
 **Default port:** `8080`
 
 ## What's inside
 
-- [services/identity-access/contracts](/services/identity-access/contracts): Service contracts and schema artifacts.
-- [services/identity-access/helm](/services/identity-access/helm): Helm chart packaging for Kubernetes deployments.
-- [services/identity-access/src](/services/identity-access/src): Implementation source for this component.
-- [services/identity-access/tests](/services/identity-access/tests): Test suites and fixtures.
-- [services/identity-access/Dockerfile](/services/identity-access/Dockerfile): Container build recipe for local or CI use.
-- [services/identity-access/main.py](/services/identity-access/main.py): Primary runtime entrypoint for this component.
+- [contracts](/services/identity-access/contracts): Service contracts and schema artifacts.
+- [helm](/services/identity-access/helm): Helm chart packaging for Kubernetes deployments.
+- [src](/services/identity-access/src): Implementation source for this component.
+- [tests](/services/identity-access/tests): Test suites and fixtures.
+- [Dockerfile](/services/identity-access/Dockerfile): Container build recipe for local or CI use.
+- [main.py](/services/identity-access/main.py): Primary runtime entrypoint for this component.
 
 ## How it's used
 

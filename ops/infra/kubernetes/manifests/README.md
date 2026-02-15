@@ -6,11 +6,11 @@ Document infrastructure resources under infra/kubernetes/manifests.
 
 ## What's inside
 
-- [infra/kubernetes/manifests/cert-manager-issuer.yaml](/infra/kubernetes/manifests/cert-manager-issuer.yaml): YAML definition or configuration used by this component.
-- [infra/kubernetes/manifests/namespace.yaml](/infra/kubernetes/manifests/namespace.yaml): YAML definition or configuration used by this component.
-- [infra/kubernetes/manifests/network-policies.yaml](/infra/kubernetes/manifests/network-policies.yaml): YAML definition or configuration used by this component.
-- [infra/kubernetes/manifests/pod-security.yaml](/infra/kubernetes/manifests/pod-security.yaml): YAML definition or configuration used by this component.
-- [infra/kubernetes/manifests/resource-quotas.yaml](/infra/kubernetes/manifests/resource-quotas.yaml): YAML definition or configuration used by this component.
+- [cert-manager-issuer.yaml](/infra/kubernetes/manifests/cert-manager-issuer.yaml): YAML definition or configuration used by this component.
+- [namespace.yaml](/infra/kubernetes/manifests/namespace.yaml): YAML definition or configuration used by this component.
+- [network-policies.yaml](/infra/kubernetes/manifests/network-policies.yaml): YAML definition or configuration used by this component.
+- [pod-security.yaml](/infra/kubernetes/manifests/pod-security.yaml): YAML definition or configuration used by this component.
+- [resource-quotas.yaml](/infra/kubernetes/manifests/resource-quotas.yaml): YAML definition or configuration used by this component.
 
 ## How it's used
 

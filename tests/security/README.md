@@ -6,12 +6,12 @@ Document the security test scope and how these checks validate the platform.
 
 ## What's inside
 
-- [tests/security/test_auth_rbac.py](/tests/security/test_auth_rbac.py): Python module used by this component.
-- [tests/security/test_downstream_auth.py](/tests/security/test_downstream_auth.py): Python module used by this component.
-- [tests/security/test_field_level_masking.py](/tests/security/test_field_level_masking.py): Python module used by this component.
-- [tests/security/test_lineage_masking.py](/tests/security/test_lineage_masking.py): Python module used by this component.
-- [tests/security/test_policy_engine_integration.py](/tests/security/test_policy_engine_integration.py): Python module used by this component.
-- [tests/security/test_rate_limit_cors.py](/tests/security/test_rate_limit_cors.py): Python module used by this component.
+- [test_auth_rbac.py](/tests/security/test_auth_rbac.py): Python module used by this component.
+- [test_downstream_auth.py](/tests/security/test_downstream_auth.py): Python module used by this component.
+- [test_field_level_masking.py](/tests/security/test_field_level_masking.py): Python module used by this component.
+- [test_lineage_masking.py](/tests/security/test_lineage_masking.py): Python module used by this component.
+- [test_policy_engine_integration.py](/tests/security/test_policy_engine_integration.py): Python module used by this component.
+- [test_rate_limit_cors.py](/tests/security/test_rate_limit_cors.py): Python module used by this component.
 
 ## How it's used
 
