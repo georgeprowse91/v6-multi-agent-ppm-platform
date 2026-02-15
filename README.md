@@ -65,6 +65,27 @@ make run-api
 make run-web
 ```
 
+## Standalone Demo (Python 3.13)
+
+Use this mode to run a fully local Streamlit demo with bundled dummy data only (no Docker, no backend services).
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements-demo.txt
+streamlit run apps/demo_streamlit/app.py
+```
+
+The app reads demo content from `examples/demo-scenarios/*`, `apps/web/data/*`, and `apps/web/storage/*` without external HTTP calls.
+
+Optional local-only validation (no package downloads required):
+
+```bash
+python apps/demo_streamlit/validate_demo.py
+```
+
+If package installation fails behind a restricted network/proxy, run these commands on the target Windows machine with standard internet access (or with a configured internal PyPI mirror).
+
 ## Demo environment quick start
 
 For a realistic, full-functionality demonstration environment with interactive scenarios, use demo mode:
