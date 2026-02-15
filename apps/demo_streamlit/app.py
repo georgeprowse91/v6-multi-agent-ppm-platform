@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -8,6 +9,11 @@ from typing import Any
 from uuid import uuid4
 
 import streamlit as st
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover - fallback for minimal runtime images
+    yaml = None
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_ROOT = Path(__file__).resolve().parent
@@ -42,6 +48,14 @@ class DemoMethodology:
 
 
 @dataclass(frozen=True)
+class AgentCapability:
+    agent_id: str
+    name: str
+    domain: str
+    capability: str
+
+
+@dataclass(frozen=True)
 class Chip:
     label: str
     action: str
@@ -66,6 +80,10 @@ DATASET_FILES: dict[str, Path] = {
     "dashboard_workflow": REPO_ROOT / "apps/web/data/demo_dashboards/workflow-monitoring.json",
     "dashboard_executive": REPO_ROOT / "apps/web/data/demo_dashboards/executive_portfolio.json",
 }
+
+AGENT_CATALOG_PATH = REPO_ROOT / "agents/AGENT_CATALOG.md"
+CONNECTOR_MANIFEST_GLOB = REPO_ROOT / "integrations/connectors/*/manifest.yaml"
+TEMPLATES_PATH = REPO_ROOT / "apps/web/data/templates.json"
 
 
 def slugify(value: str) -> str:
@@ -100,6 +118,77 @@ def parse_methodologies(raw_methodologies: list[dict[str, Any]]) -> list[DemoMet
 
 def load_conversation_scenarios() -> list[Scenario]:
     return [Scenario(id=path.stem, label=friendly_label(path.stem)) for path in sorted(CONVERSATIONS_DIR.glob("*.json"))]
+
+
+def parse_agent_capabilities() -> list[AgentCapability]:
+    if not AGENT_CATALOG_PATH.exists():
+        return []
+    content = AGENT_CATALOG_PATH.read_text(encoding="utf-8")
+    capabilities: list[AgentCapability] = []
+    current_domain = "General"
+    for line in content.splitlines():
+        if line.startswith("## "):
+            current_domain = line.replace("##", "").strip()
+            continue
+        match = re.match(r"### Agent (\d+): (.+?) \(`(agent-[^`]+)`\)", line)
+        if not match:
+            continue
+        agent_num, capability_name, slug = match.groups()
+        capabilities.append(
+            AgentCapability(
+                agent_id=f"agent-{int(agent_num):02d}",
+                name=slug.replace("-", " ").title(),
+                domain=current_domain,
+                capability=capability_name.strip(),
+            )
+        )
+    return capabilities
+
+
+def load_connector_registry() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for manifest in sorted(REPO_ROOT.glob("integrations/connectors/*/manifest.yaml")):
+        connector_id = manifest.parent.name
+        raw = manifest.read_text(encoding="utf-8")
+        payload: dict[str, Any] = {}
+        if yaml is not None:
+            parsed = yaml.safe_load(raw)
+            if isinstance(parsed, dict):
+                payload = parsed
+        if not payload:
+            name_match = re.search(r"^name:\s*(.+)$", raw, flags=re.MULTILINE)
+            payload["name"] = name_match.group(1).strip() if name_match else connector_id
+        rows.append(
+            {
+                "connector_id": connector_id,
+                "name": payload.get("name", connector_id.replace("_", " ").title()),
+                "version": payload.get("version", "n/a"),
+                "category": payload.get("category", payload.get("type", "connector")),
+                "status": payload.get("status", "active"),
+                "path": str(manifest.relative_to(REPO_ROOT)),
+            }
+        )
+    return rows
+
+
+def load_methodology_activity_details() -> dict[str, dict[str, str]]:
+    if not TEMPLATES_PATH.exists():
+        return {}
+    payload = json.loads(TEMPLATES_PATH.read_text(encoding="utf-8"))
+    details: dict[str, dict[str, str]] = {}
+    for template in payload.get("templates", []):
+        methodology = template.get("methodology", {})
+        for stage in methodology.get("stages", []):
+            for activity in stage.get("activities", []):
+                activity_id = str(activity.get("id") or activity.get("activity_id") or "")
+                if not activity_id:
+                    continue
+                details[activity_id] = {
+                    "description": str(activity.get("description") or f"Deliver {activity.get('name', activity_id)} outcomes."),
+                    "canvas_type": str(activity.get("canvasType") or "document"),
+                    "status": str(activity.get("status") or "not_started"),
+                }
+    return details
 
 
 class DemoOutbox:
@@ -250,14 +339,32 @@ class DemoDataHub:
 
     def normalized_agent_catalog(self) -> list[dict[str, Any]]:
         self._record("Agents", ["demo_run_log"])
-        run_agents = self.load("demo_run_log").get("agents", [])
+        run_agents = {str(run.get("agent_id")): run for run in self.load("demo_run_log").get("agents", [])}
+        capabilities = parse_agent_capabilities()
         rows: list[dict[str, Any]] = []
-        for idx, run in enumerate(run_agents[:12], start=1):
-            agent_id = str(run.get("agent_id", f"agent-{idx:02d}"))
+        for idx, capability in enumerate(capabilities, start=1):
+            run = run_agents.get(capability.agent_id, {})
+            rows.append(
+                {
+                    "agent_id": capability.agent_id,
+                    "name": capability.name,
+                    "domain": capability.domain,
+                    "capability": capability.capability,
+                    "last_status": run.get("status", "ready"),
+                    "avg_duration_seconds": run.get("duration_seconds", 45),
+                    "version": f"v1.{idx}",
+                }
+            )
+
+        if rows:
+            return rows
+
+        for idx, (agent_id, run) in enumerate(sorted(run_agents.items()), start=1):
             rows.append(
                 {
                     "agent_id": agent_id,
                     "name": f"{agent_id.upper()} · Delivery Agent",
+                    "domain": "General",
                     "capability": ["Intake", "Planning", "Risk", "Quality"][idx % 4],
                     "last_status": run.get("status", "completed"),
                     "avg_duration_seconds": run.get("duration_seconds", 45),
@@ -328,7 +435,14 @@ class DemoDataHub:
 
     def normalized_connectors(self) -> list[dict[str, Any]]:
         self._record("Connectors", ["demo_seed"])
+        registry = load_connector_registry()
+        if registry:
+            return registry
         return self.load("demo_seed").get("connectors", [])
+
+    def methodology_activity_details(self) -> dict[str, dict[str, str]]:
+        self._record("Workspace", ["storage_scenarios"])
+        return load_methodology_activity_details()
 
     def normalized_demo_run(self) -> dict[str, Any]:
         self._record("Demo Run", ["demo_run_log", "workflow_monitoring"])
@@ -519,6 +633,7 @@ def init_state(hub: DemoDataHub) -> None:
         "collection_search": "",
         "selected_intake_request": None,
         "selected_agent_id": None,
+        "selected_invocation_agent": "agent-01",
         "selected_approval_type": "all",
         "what_if_budget_delta": 0,
         "what_if_scope_delta": 0,
@@ -662,6 +777,19 @@ def choose_assistant_response(hub: DemoDataHub, prompt: str) -> tuple[str, str]:
     return f"{summary}\n{bullet_block}".strip(), "responses.default"
 
 
+def build_agent_invocation_response(agent: dict[str, Any], prompt: str) -> str:
+    prompt_excerpt = (prompt or "Run standard operational workflow").strip()
+    if len(prompt_excerpt) > 180:
+        prompt_excerpt = f"{prompt_excerpt[:177]}..."
+    return (
+        f"Invoking **{agent.get('agent_id')} · {agent.get('capability')}** in the {agent.get('domain')} domain.\n"
+        f"- Input brief: {prompt_excerpt}\n"
+        f"- Planned action: execute policy checks, produce traceable artifact outputs, and publish audit events.\n"
+        f"- Output artifacts: `{agent.get('agent_id')}-execution-summary.md`, `{agent.get('agent_id')}-evidence.json`\n"
+        f"- Runtime profile: {agent.get('avg_duration_seconds', 45)}s average duration, latest status `{agent.get('last_status', 'ready')}`."
+    )
+
+
 def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.subheader("Assistant")
     context_cols = st.columns(2)
@@ -707,11 +835,41 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             else:
                 st.info("Scenario complete.")
 
+    agent_catalog = hub.normalized_agent_catalog()
+    agent_ids = [row["agent_id"] for row in agent_catalog]
+    if agent_ids:
+        if st.session_state.get("selected_invocation_agent") not in agent_ids:
+            st.session_state["selected_invocation_agent"] = agent_ids[0]
+        st.session_state["selected_invocation_agent"] = st.selectbox(
+            "Invoke agent capability",
+            options=agent_ids,
+            index=agent_ids.index(st.session_state["selected_invocation_agent"]),
+            format_func=lambda aid: next(
+                (f"{aid} · {row['capability']}" for row in agent_catalog if row["agent_id"] == aid),
+                aid,
+            ),
+        )
+
     prompt = st.text_area("Prompt", key="assistant_prompt")
-    if st.button("Generate", use_container_width=True):
+    c_generate, c_all = st.columns(2)
+    if c_generate.button("Generate", use_container_width=True):
         response, provenance = choose_assistant_response(hub, prompt)
         st.session_state["assistant_messages"].append({"role": "user", "content": prompt})
         st.session_state["assistant_messages"].append({"role": "assistant", "content": response, "provenance": provenance})
+
+        selected_agent = next((row for row in agent_catalog if row["agent_id"] == st.session_state.get("selected_invocation_agent")), None)
+        if selected_agent:
+            invocation = build_agent_invocation_response(selected_agent, prompt)
+            st.session_state["assistant_messages"].append({"role": "assistant", "content": invocation, "provenance": "agent.invocation"})
+            append_outbox_event(outbox, "assistant.agent_invocation", {"agent_id": selected_agent["agent_id"], "prompt": prompt})
+
+    if c_all.button("Run all 25 agents", use_container_width=True):
+        st.session_state["assistant_messages"].append({"role": "user", "content": "Run complete platform invocation across all agents."})
+        for row in agent_catalog:
+            st.session_state["assistant_messages"].append(
+                {"role": "assistant", "content": build_agent_invocation_response(row, prompt), "provenance": "agent.invocation"}
+            )
+        append_outbox_event(outbox, "assistant.agent_invocation.bulk", {"count": len(agent_catalog)})
 
     artifact = st.session_state.get("assistant_last_artifact")
     if artifact:
@@ -783,7 +941,6 @@ def render_workspace(hub: DemoDataHub) -> None:
 
     methodologies = hub.methodologies()
     selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
-    _selected_stage = find_stage(selected_method, st.session_state["selected_stage_id"])
 
     st.write(
         f"Methodology: **{st.session_state['selected_methodology_name']}** | "
@@ -791,18 +948,56 @@ def render_workspace(hub: DemoDataHub) -> None:
         f"Activity: **{st.session_state['selected_activity_name']}**"
     )
 
-    st.dataframe(
-        [
+    st.subheader("Methodology navigator")
+    stage_rows = []
+    all_activities: list[dict[str, str]] = []
+    for stage in selected_method.stages:
+        stage_rows.append(
             {
                 "stage_id": stage.id,
                 "stage_name": stage.name,
+                "activity_count": len(stage.activities),
                 "activities": ", ".join(activity.name for activity in stage.activities),
             }
-            for stage in selected_method.stages
-        ],
-        hide_index=True,
-        use_container_width=True,
-    )
+        )
+        for activity in stage.activities:
+            all_activities.append({"stage_id": stage.id, "stage_name": stage.name, "activity_id": activity.id, "activity_name": activity.name})
+
+    st.dataframe(stage_rows, hide_index=True, use_container_width=True)
+
+    if st.button("Run full methodology walkthrough", use_container_width=True):
+        st.session_state["completed_activity_ids"].update({row["activity_id"] for row in all_activities})
+        st.success(f"Completed walkthrough across {len(all_activities)} activities in this methodology.")
+
+    activity_map = {f"{row['stage_name']} · {row['activity_name']}": row for row in all_activities}
+    if activity_map:
+        selected_label = st.selectbox("Inspect activity", options=list(activity_map.keys()))
+        selected_row = activity_map[selected_label]
+        st.session_state["selected_stage_id"] = selected_row["stage_id"]
+        st.session_state["selected_activity_id"] = selected_row["activity_id"]
+        sync_methodology_state(hub)
+
+        details_map = hub.methodology_activity_details()
+        details = details_map.get(selected_row["activity_id"], {})
+        artifact_names = [
+            f"{slugify(selected_row['activity_name'])}-brief.md",
+            f"{slugify(selected_row['activity_name'])}-evidence.json",
+        ]
+        attributes = {
+            "activity_id": selected_row["activity_id"],
+            "stage_id": selected_row["stage_id"],
+            "canvas_type": details.get("canvas_type", "document"),
+            "lifecycle_state": details.get("status", "not_started"),
+            "owner": st.session_state.get("selected_project") or "unassigned",
+        }
+
+        st.subheader("Activity detail")
+        st.markdown(details.get("description", "Description unavailable in local fixtures."))
+        d1, d2 = st.columns(2)
+        d1.markdown("**Associated artifacts**")
+        d1.dataframe([{"artifact": name} for name in artifact_names], hide_index=True, use_container_width=True)
+        d2.markdown("**Attributes**")
+        d2.json(attributes)
 
     completed = st.session_state.get("completed_activity_ids", set())
     if completed:
@@ -828,8 +1023,14 @@ def render_approvals(hub: DemoDataHub) -> None:
 
 
 def render_connectors(hub: DemoDataHub) -> None:
-    st.header("Connectors")
-    st.dataframe(hub.normalized_connectors(), hide_index=True, use_container_width=True)
+    st.header("Connector Registry")
+    rows = hub.normalized_connectors()
+    st.metric("Registered connectors", len(rows))
+    st.dataframe(rows, hide_index=True, use_container_width=True)
+    if rows:
+        selected = st.selectbox("Connector detail", options=[r["connector_id"] for r in rows])
+        detail = next(r for r in rows if r["connector_id"] == selected)
+        st.json(detail)
     render_provenance(hub, "Connectors")
 
 
@@ -849,18 +1050,45 @@ def render_notifications(hub: DemoDataHub) -> None:
 def render_demo_run(hub: DemoDataHub, engine: DemoRunEngine, outbox: DemoOutbox) -> None:
     st.header("Demo Run")
     run_log = hub.normalized_demo_run()
+    run_agents = run_log.get("agents", [])
     st.write(f"Run ID: {run_log.get('demo_run_id')}")
-    st.progress(st.session_state["demo_run_step"] / max(1, len(run_log.get("agents", []))))
-    if st.button("Play next agent step", use_container_width=True):
+    st.progress(st.session_state["demo_run_step"] / max(1, len(run_agents)))
+    c1, c2, c3 = st.columns(3)
+    if c1.button("Play next agent step", use_container_width=True):
         st.session_state["demo_run_step"] = engine.play_step(st.session_state["demo_run_step"])
-    if st.button("Reset run playback", use_container_width=True):
+    if c2.button("Replay complete run", use_container_width=True):
+        st.session_state["demo_run_step"] = len(run_agents)
+    if c3.button("Reset run playback", use_container_width=True):
         st.session_state["demo_run_step"] = 0
 
     completed, queued = engine.progress(st.session_state["demo_run_step"])
-    st.subheader("Completed")
-    st.dataframe(completed, hide_index=True, use_container_width=True)
-    st.subheader("Queued")
-    st.dataframe(queued[:5], hide_index=True, use_container_width=True)
+    st.subheader("Agent execution coverage")
+    st.metric("Total agents in scenario", len(run_agents))
+    st.dataframe(run_agents, hide_index=True, use_container_width=True)
+
+    st.subheader("Methodology activity walkthrough coverage")
+    walkthrough_rows: list[dict[str, Any]] = []
+    for methodology in hub.methodologies():
+        for stage in methodology.stages:
+            for activity in stage.activities:
+                walkthrough_rows.append(
+                    {
+                        "methodology": methodology.name,
+                        "stage": stage.name,
+                        "activity_id": activity.id,
+                        "activity": activity.name,
+                        "status": "completed" if activity.id in st.session_state.get("completed_activity_ids", set()) else "ready",
+                    }
+                )
+    st.dataframe(walkthrough_rows, hide_index=True, use_container_width=True)
+
+    st.subheader("Playback slices")
+    p1, p2 = st.columns(2)
+    p1.markdown("**Completed**")
+    p1.dataframe(completed, hide_index=True, use_container_width=True)
+    p2.markdown("**Queued**")
+    p2.dataframe(queued, hide_index=True, use_container_width=True)
+
     st.subheader("Demo outbox")
     outbox_state = outbox.read()
     st.json({"demo_run_events": len(outbox_state.get("demo_run_events", [])), "assistant_actions": len(outbox_state.get("assistant_actions", [])), "audit_events": len(outbox_state.get("audit_events", []))})
@@ -934,12 +1162,16 @@ def render_intake(hub: DemoDataHub) -> None:
 def render_agent_gallery(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.header("Agent Gallery · Profile · Test · Run")
     rows = hub.normalized_agent_catalog()
-    st.dataframe(rows, hide_index=True, use_container_width=True)
-    if not rows:
+    st.metric("Total registered agents", len(rows))
+    search = st.text_input("Filter agents", value="")
+    lowered = search.lower().strip()
+    visible = rows if not lowered else [r for r in rows if lowered in r["agent_id"].lower() or lowered in r["capability"].lower() or lowered in r.get("domain", "").lower()]
+    st.dataframe(visible, hide_index=True, use_container_width=True)
+    if not visible:
         return
-    selected = st.selectbox("Agent", options=[r["agent_id"] for r in rows])
+    selected = st.selectbox("Agent", options=[r["agent_id"] for r in visible])
     st.session_state["selected_agent_id"] = selected
-    row = next(r for r in rows if r["agent_id"] == selected)
+    row = next(r for r in visible if r["agent_id"] == selected)
 
     st.subheader("Agent profile")
     st.json(
