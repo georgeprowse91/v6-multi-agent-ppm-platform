@@ -58,6 +58,12 @@ const navigateNav: NavItem[] = [
     icon: 'provenance.auditLog',
   },
   {
+    id: 'enterprise-uplift',
+    label: 'Enterprise Uplift',
+    path: '/enterprise-uplift',
+    icon: 'artifact.dashboard',
+  },
+  {
     id: 'my-portfolios',
     label: 'My Portfolios',
     path: '/portfolios',

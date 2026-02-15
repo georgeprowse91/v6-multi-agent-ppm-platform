@@ -25,3 +25,5 @@ locust==2.31.8
 types-pyyaml==6.0.12.20240917
 types-python-dateutil==2.9.0.20241206
 python-owasp-zap-v2.4==0.0.21
+
+email-validator==2.2.0
