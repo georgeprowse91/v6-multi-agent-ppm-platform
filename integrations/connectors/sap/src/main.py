@@ -3,10 +3,11 @@ from __future__ import annotations
 import base64
 import os
 from dataclasses import dataclass
+from fastapi import FastAPI
 from pathlib import Path
 from typing import Any
 
-from integrations.connectors.sdk.src.http_client import HttpClient
+from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError
 from integrations.connectors.sdk.src.runtime import ConnectorRuntime
 from integrations.connectors.sdk.src.secrets import resolve_secret
 
@@ -99,6 +100,17 @@ def run_sync(
     return runtime.apply_mappings(records, tenant_id, include_schema=include_schema)
 
 
+def create_app() -> FastAPI:
+    app = FastAPI(title="Sap Connector")
+    from .router import router
+
+    app.include_router(router)
+    return app
+
+
+app = create_app()
+
+
 if __name__ == "__main__":
     import argparse
     import json
@@ -114,23 +126,42 @@ if __name__ == "__main__":
     print(json.dumps(output, indent=2))
 
 
-# New outbound hook placeholder. Later, this should send data to SAP via real API.
+# Outbound hook that writes mapped records to SAP API when live sync is requested.
 def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *, include_schema: bool) -> None:
-    """
-    Placeholder outbound handler for SAP.
-    This function currently logs the records to be written and performs no external calls.
-
-    Args:
-        records: Mapped records in the canonical schema.
-        tenant_id: Tenant identifier.
-        include_schema: Whether the mapped records include schema metadata.
-    """
-    # TODO: Implement SAP API calls here (e.g. using pyrfc or REST client).
+    """Send mapped canonical records to SAP."""
     import logging
+
+    logger = logging.getLogger(__name__)
     mapped_payload = map_to_sap(records)
-    logging.getLogger(__name__).info(
-        "Outbound payload for SAP tenant %s (include_schema=%s): %s",
+    if not mapped_payload:
+        logger.info("No outbound SAP records to sync for tenant %s", tenant_id)
+        return
+
+    rate_limit = int(resolve_secret(os.getenv("SAP_OUTBOUND_RATE_LIMIT_PER_MINUTE")) or 120)
+    endpoint = resolve_secret(os.getenv("SAP_OUTBOUND_ENDPOINT")) or (
+        resolve_secret(os.getenv("SAP_PROJECTS_ENDPOINT")) or "/api/projects"
+    )
+
+    config = SapConfig.from_env(rate_limit)
+    client = _build_client(config)
+    params = {"client": config.client} if config.client else None
+
+    try:
+        for payload in mapped_payload:
+            client.post(endpoint, params=params, json=payload)
+    except HttpClientError as exc:
+        logger.exception(
+            "SAP outbound sync failed for tenant %s (include_schema=%s)",
+            tenant_id,
+            include_schema,
+        )
+        raise RuntimeError("SAP outbound sync failed") from exc
+    finally:
+        client.close()
+
+    logger.info(
+        "SAP outbound sync completed for tenant %s (include_schema=%s, records=%s)",
         tenant_id,
         include_schema,
-        mapped_payload,
+        len(mapped_payload),
     )

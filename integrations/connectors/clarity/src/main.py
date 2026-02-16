@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from fastapi import FastAPI
 from typing import Any
 
 from integrations.connectors.sdk.src.runtime import ConnectorRuntime
@@ -74,6 +75,17 @@ def _should_use_mcp() -> bool:
         "yes",
     }
     return bool(prefer and resolve_secret(os.getenv("CLARITY_MCP_SERVER_URL")))
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(title="Clarity Connector")
+    from .router import router
+
+    app.include_router(router)
+    return app
+
+
+app = create_app()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from fastapi import FastAPI
 from pathlib import Path
 from typing import Any
 
@@ -216,6 +217,17 @@ def _should_use_mcp() -> bool:
         "yes",
     }
     return bool(prefer and resolve_secret(os.getenv("PLANVIEW_MCP_SERVER_URL")))
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(title="Planview Connector")
+    from .router import router
+
+    app.include_router(router)
+    return app
+
+
+app = create_app()
 
 
 if __name__ == "__main__":
