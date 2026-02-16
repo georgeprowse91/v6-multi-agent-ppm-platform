@@ -118,6 +118,14 @@ def packages_dir() -> Path:
     return safe_join(repo_root(), "packages", require_exists=True, should_be_dir=True)
 
 
+def _iter_existing_src_dirs(base: Path, pattern: str) -> list[Path]:
+    """Return existing ``src`` directories under ``base`` for a glob pattern."""
+
+    if not base.exists():
+        return []
+    return [path for path in base.glob(pattern) if path.is_dir()]
+
+
 def safe_join(
     base: Path,
     *parts: str,
@@ -170,16 +178,18 @@ def add_runtime_paths(extra_paths: Iterable[Path] | None = None) -> list[Path]:
     """
 
     root = repo_root()
+    apps = apps_dir()
+    services = services_dir()
+    agents = agents_dir()
+    packages = packages_dir()
+
     candidate_paths: list[Path] = [root]
+    for base in (apps, services, agents, packages):
+        candidate_paths.extend(_iter_existing_src_dirs(base, "*/src"))
 
-    for base in (apps_dir(), services_dir(), agents_dir(), packages_dir()):
-        if base.exists():
-            candidate_paths.extend(path for path in base.glob("*/src") if path.is_dir())
+    candidate_paths.extend(_iter_existing_src_dirs(agents, "**/src"))
 
-    if agents_dir().exists():
-        candidate_paths.extend(path for path in agents_dir().glob("**/src") if path.is_dir())
-
-    runtime_src = agents_dir() / "runtime" / "src"
+    runtime_src = agents / "runtime" / "src"
     if runtime_src.exists():
         candidate_paths.append(runtime_src)
 
