@@ -98,6 +98,64 @@ def test_instantiate_document_substitutes_placeholders(client, monkeypatch):
     assert captured["payload"]["classification"] == "internal"
 
 
+def test_instantiate_template_reports_unresolved_placeholders(client, monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(
+            200,
+            json={
+                "document_id": "doc-99",
+                "name": captured["payload"]["name"],
+                "classification": captured["payload"]["classification"],
+                "retention_days": captured["payload"]["retention_days"],
+                "created_at": "2024-01-01T00:00:00Z",
+                "retention_until": "2024-03-31T00:00:00Z",
+                "metadata": captured["payload"]["metadata"],
+                "advisories": ["upstream-ok"],
+            },
+        )
+
+    transport = httpx.MockTransport(handler)
+    _wire_document_client(monkeypatch, transport)
+    _set_tenant(monkeypatch, "tenant-a")
+
+    from template_models import (
+        DocumentTemplateDefaults,
+        DocumentTemplatePayload,
+        Template,
+        TemplateType,
+    )
+
+    unresolved_template = Template(
+        template_id="custom-unresolved",
+        name="Unresolved",
+        type=TemplateType.document,
+        description="test",
+        tags=["test"],
+        defaults=DocumentTemplateDefaults(classification="internal", retention_days=30),
+        payload=DocumentTemplatePayload(
+            name_template="{{project_id}}",
+            content_template="Owner {{missing.owner}}",
+            metadata_template={"x": "{{missing.meta}}"},
+        ),
+    )
+
+    monkeypatch.setattr(main, "get_deliverable_template", lambda _template_id: unresolved_template)
+
+    response = client.post(
+        "/api/templates/custom-unresolved/instantiate",
+        json={"project_id": "demo-1", "parameters": {"user": "Ava"}},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["document_id"] == "doc-99"
+    assert payload["advisories"][0] == "upstream-ok"
+    assert payload["advisories"][1] == "Unresolved placeholders left unchanged: missing.meta, missing.owner"
+
+
 def test_instantiate_spreadsheet_creates_sheet_and_seed_rows(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
     response = client.post(

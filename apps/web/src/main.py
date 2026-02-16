@@ -133,7 +133,7 @@ from template_models import (
     TemplateInstantiateResponse,
     TemplateType,
     build_placeholder_context,
-    render_template_value,
+    render_template_value_with_unresolved,
 )
 from template_models import (
     TemplateSummary as DeliverableTemplateSummary,
@@ -4482,16 +4482,18 @@ async def instantiate_template(
     if template.type == TemplateType.document:
         if template.defaults is None:
             raise HTTPException(status_code=500, detail="Document template defaults missing")
+        advisories: set[str] = set()
         classification = context.get("classification") or template.defaults.classification
         retention_days = int(context.get("retention_days") or template.defaults.retention_days)
         payload_model = template.payload
-        name = render_template_value(payload_model.name_template, context)
-        content = render_template_value(payload_model.content_template, context)
-        metadata = (
-            render_template_value(payload_model.metadata_template, context)
-            if payload_model.metadata_template
-            else {}
-        )
+        name, unresolved = render_template_value_with_unresolved(payload_model.name_template, context)
+        advisories.update(unresolved)
+        content, unresolved = render_template_value_with_unresolved(payload_model.content_template, context)
+        advisories.update(unresolved)
+        metadata = {}
+        if payload_model.metadata_template:
+            metadata, unresolved = render_template_value_with_unresolved(payload_model.metadata_template, context)
+            advisories.update(unresolved)
         headers = build_forward_headers(request, session)
         response = await _document_client().create_document(
             {
@@ -4508,15 +4510,24 @@ async def instantiate_template(
         if response.status_code >= 400:
             _raise_upstream_error(response)
         body = response.json()
+        upstream_advisories = body.get("advisories") or []
+        combined_advisories = [*upstream_advisories]
+        if advisories:
+            combined_advisories.append(
+                "Unresolved placeholders left unchanged: "
+                + ", ".join(sorted(advisories))
+            )
         return TemplateInstantiateResponse(
             created_type=TemplateType.document,
             document_id=body.get("document_id"),
             name=body.get("name"),
-            advisories=body.get("advisories"),
+            advisories=combined_advisories or None,
         )
     if template.type == TemplateType.spreadsheet:
+        advisories: set[str] = set()
         payload_model = template.payload
-        sheet_name = render_template_value(payload_model.sheet_name_template, context)
+        sheet_name, unresolved = render_template_value_with_unresolved(payload_model.sheet_name_template, context)
+        advisories.update(unresolved)
         columns = [
             ColumnCreate(name=column.name, type=column.type, required=column.required)
             for column in payload_model.columns
@@ -4532,7 +4543,8 @@ async def instantiate_template(
         if payload_model.seed_rows:
             column_map = {column.name: column.column_id for column in sheet.columns}
             for row in payload_model.seed_rows:
-                rendered = render_template_value(row.values, context)
+                rendered, unresolved = render_template_value_with_unresolved(row.values, context)
+                advisories.update(unresolved)
                 values = {
                     column_map[name]: value
                     for name, value in rendered.items()
@@ -4547,10 +4559,17 @@ async def instantiate_template(
                     )
                 except ValueError as exc:
                     raise HTTPException(status_code=422, detail=str(exc)) from exc
+        response_advisories = None
+        if advisories:
+            response_advisories = [
+                "Unresolved placeholders left unchanged: "
+                + ", ".join(sorted(advisories))
+            ]
         return TemplateInstantiateResponse(
             created_type=TemplateType.spreadsheet,
             sheet_id=sheet.sheet_id,
             sheet_name=sheet.name,
+            advisories=response_advisories,
         )
     raise HTTPException(status_code=400, detail="Unsupported template type")
 

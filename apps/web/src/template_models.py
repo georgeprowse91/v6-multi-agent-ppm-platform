@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
@@ -152,17 +153,60 @@ def build_placeholder_context(
 
 
 def substitute_placeholders(value: str, context: dict[str, Any]) -> str:
-    rendered = value
-    for key, replacement in context.items():
-        rendered = rendered.replace(f"{{{{{key}}}}}", str(replacement))
+    rendered, _ = _substitute_placeholders_with_unresolved(value, context)
     return rendered
 
 
+_PLACEHOLDER_PATTERN = re.compile(r"{{\s*([a-zA-Z_][\w\.]*)\s*}}")
+
+
+def _resolve_context_key(context: dict[str, Any], key: str) -> Any:
+    current: Any = context
+    for part in key.split("."):
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+            continue
+        return None
+    return current
+
+
+def _substitute_placeholders_with_unresolved(value: str, context: dict[str, Any]) -> tuple[str, set[str]]:
+    unresolved: set[str] = set()
+
+    def _replace(match: re.Match[str]) -> str:
+        key = match.group(1)
+        replacement = _resolve_context_key(context, key)
+        if replacement is None:
+            unresolved.add(key)
+            return match.group(0)
+        return str(replacement)
+
+    rendered = _PLACEHOLDER_PATTERN.sub(_replace, value)
+    return rendered, unresolved
+
+
 def render_template_value(value: Any, context: dict[str, Any]) -> Any:
+    rendered, _ = render_template_value_with_unresolved(value, context)
+    return rendered
+
+
+def render_template_value_with_unresolved(value: Any, context: dict[str, Any]) -> tuple[Any, set[str]]:
     if isinstance(value, str):
-        return substitute_placeholders(value, context)
+        return _substitute_placeholders_with_unresolved(value, context)
     if isinstance(value, list):
-        return [render_template_value(item, context) for item in value]
+        unresolved: set[str] = set()
+        rendered = []
+        for item in value:
+            rendered_item, unresolved_item = render_template_value_with_unresolved(item, context)
+            rendered.append(rendered_item)
+            unresolved.update(unresolved_item)
+        return rendered, unresolved
     if isinstance(value, dict):
-        return {key: render_template_value(item, context) for key, item in value.items()}
-    return value
+        unresolved: set[str] = set()
+        rendered: dict[str, Any] = {}
+        for key, item in value.items():
+            rendered_item, unresolved_item = render_template_value_with_unresolved(item, context)
+            rendered[key] = rendered_item
+            unresolved.update(unresolved_item)
+        return rendered, unresolved
+    return value, set()
