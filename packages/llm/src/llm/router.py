@@ -3,15 +3,16 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-from llm.types import LLMProviderError, LLMResponse
 from model_registry import find_model, get_enabled_models
 from providers.anthropic_provider import AnthropicProvider
 from providers.google_provider import GoogleProvider
 from providers.openai_provider import OpenAIProvider
+from llm.types import LLMProviderError, LLMResponse
 
 try:
     from security.secrets import resolve_secret
 except Exception:  # pragma: no cover - package standalone mode
+
     def resolve_secret(value: str | None) -> str | None:  # type: ignore[no-redef]
         return value
 
@@ -60,15 +61,27 @@ class LLMRouter:
             api_key = resolve_secret(os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY"))
             if not api_key:
                 raise LLMProviderError("OpenAI API key is not configured", retryable=False, provider=provider)
-            return OpenAIProvider(api_key=api_key, base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"), timeout=self.timeout)
+            return OpenAIProvider(
+                api_key=api_key,
+                base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                timeout=self.timeout,
+            )
         if provider == "anthropic":
             api_key = resolve_secret(os.getenv("ANTHROPIC_API_KEY"))
             if not api_key:
                 raise LLMProviderError("Anthropic API key is not configured", retryable=False, provider=provider)
-            return AnthropicProvider(api_key=api_key, base_url=os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1"), timeout=self.timeout)
+            return AnthropicProvider(
+                api_key=api_key,
+                base_url=os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1"),
+                timeout=self.timeout,
+            )
         if provider == "google":
             api_key = resolve_secret(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
             if not api_key:
                 raise LLMProviderError("Google API key is not configured", retryable=False, provider=provider)
-            return GoogleProvider(api_key=api_key, base_url=os.getenv("GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"), timeout=self.timeout)
+            return GoogleProvider(
+                api_key=api_key,
+                base_url=os.getenv("GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"),
+                timeout=self.timeout,
+            )
         raise LLMProviderError(f"Unsupported provider: {provider}", retryable=False, provider=provider)

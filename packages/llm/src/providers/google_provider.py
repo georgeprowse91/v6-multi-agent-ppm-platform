@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from llm.client import LLMProviderError, LLMResponse
+from llm.types import LLMProviderError, LLMResponse
 
 
 class GoogleProvider:

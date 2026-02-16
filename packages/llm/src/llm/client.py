@@ -12,30 +12,8 @@ from typing import Any
 
 import httpx
 from common.resilience import ResilienceMiddleware, dependency_config_from_env
-from router import LLMRouteRequest, LLMRouter
-
-
-@dataclass
-class LLMResponse:
-    content: str
-    raw: dict[str, Any]
-    provider: str = "unknown"
-    cache_hit: bool = False
-
-
-@dataclass
-class LLMStreamChunk:
-    index: int
-    delta: str
-    raw: dict[str, Any]
-    done: bool = False
-
-
-class LLMProviderError(RuntimeError):
-    def __init__(self, message: str, *, retryable: bool = False, provider: str | None = None) -> None:
-        super().__init__(message)
-        self.retryable = retryable
-        self.provider = provider
+from llm.router import LLMRouteRequest, LLMRouter
+from llm.types import LLMProviderError, LLMResponse, LLMStreamChunk
 
 
 @dataclass
