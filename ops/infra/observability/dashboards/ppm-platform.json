@@ -36,7 +36,7 @@
       "title": "Workflow Success Rate",
       "targets": [
         {
-          "expr": "sum(rate(workflow_completed_total{status=\"success\"}[5m])) / sum(rate(workflow_completed_total[5m]))",
+          "expr": "sum(rate(workflow_completed_total{status=\"success\"}[5m])) / sum(rate(workflow_executions_total[5m]))",
           "legendFormat": "success_rate"
         }
       ]
@@ -46,7 +46,7 @@
       "title": "Connector Sync Duration (p95)",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(connector_sync_duration_seconds_bucket[15m])) by (le, connector_id))",
+          "expr": "histogram_quantile(0.95, sum(rate(connector_sync_execution_duration_seconds_bucket[15m])) by (le, connector_id))",
           "legendFormat": "{{connector_id}}"
         }
       ]
@@ -56,7 +56,7 @@
       "title": "Connector Sync Throughput",
       "targets": [
         {
-          "expr": "sum(rate(connector_sync_records_total[15m])) by (connector_id)",
+          "expr": "sum(rate(connector_sync_executions_total[15m])) by (connector_id)",
           "legendFormat": "{{connector_id}}"
         }
       ]

@@ -20,6 +20,7 @@ from typing import Any, Protocol
 
 import httpx
 import yaml
+from observability.metrics import build_business_workflow_metrics
 from observability.tracing import get_trace_id
 from security.lineage import mask_lineage_payload
 
@@ -248,6 +249,9 @@ class DataSyncAgent(BaseAgent):
         self.max_retry_attempts = config.get("max_retry_attempts", 3) if config else 3
         self.log_analytics_client: Any | None = None
         self.connectors: dict[str, Any] = {}
+        self._sync_business_metrics = build_business_workflow_metrics(
+            "data-sync-agent", "connector_sync"
+        )
 
     def _get_setting(self, key: str, default: str | None = None) -> str | None:
         secret_value = self.secret_context.get(key)
@@ -786,6 +790,14 @@ class DataSyncAgent(BaseAgent):
             finished_at=sync_finished_at,
             details={"record_count": len(records)},
         )
+        failed_records = sum(1 for item in results if item.get("status") == "failed")
+        self._record_connector_sync_metrics(
+            tenant_id=tenant_id,
+            source_system=source_system,
+            sync_mode=sync_mode,
+            outcome="failed" if failed_records else "completed",
+            started=sync_started_at,
+        )
 
         return {
             "status": "completed",
@@ -795,6 +807,30 @@ class DataSyncAgent(BaseAgent):
             "started_at": sync_started_at.isoformat(),
             "finished_at": sync_finished_at.isoformat(),
         }
+
+    def _record_connector_sync_metrics(
+        self,
+        *,
+        tenant_id: str,
+        source_system: str,
+        sync_mode: str,
+        outcome: str,
+        started: datetime,
+    ) -> None:
+        attributes = {
+            "service.name": "data-sync-agent",
+            "tenant.id": tenant_id,
+            "trace.id": get_trace_id() or "unavailable",
+            "workflow": "connector_sync",
+            "connector": source_system,
+            "mode": sync_mode,
+            "outcome": outcome,
+        }
+        self._sync_business_metrics.executions_total.add(1, attributes)
+        self._sync_business_metrics.execution_duration_seconds.record(
+            max((datetime.now(timezone.utc) - started).total_seconds(), 0.0),
+            attributes,
+        )
 
     async def _fetch_incremental_records(
         self,
@@ -1776,6 +1812,9 @@ class DataSyncAgent(BaseAgent):
             return
 
         self.connectors: dict[str, Any] = {}
+        self._sync_business_metrics = build_business_workflow_metrics(
+            "data-sync-agent", "connector_sync"
+        )
         try:
             planview_config = ConnectorConfig(
                 connector_id="planview",

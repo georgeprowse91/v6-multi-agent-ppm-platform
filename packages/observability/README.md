@@ -38,3 +38,15 @@ The observability package now exposes two OpenTelemetry counters for runtime cos
 
 Use `build_cost_metrics(service_name)` to create these counters and record usage attributes such as
 `agent_id`, `connector_name`, `model`, and `token_type`.
+
+## Telemetry standard contract
+
+The shared telemetry contract in `observability.telemetry` standardizes dimensions and baseline metrics:
+
+- Required dimensions/tags for emitted metrics: `service.name`, `tenant.id`, `trace.id`.
+- HTTP golden signals metrics: `http_requests_total`, `http_request_duration_seconds`, `http_request_errors_total`, `http_requests_in_flight`.
+- Domain workflow metrics: `orchestrator_executions_total`, `orchestrator_execution_duration_seconds`,
+  `workflow_executions_total`, `workflow_execution_duration_seconds`,
+  `connector_sync_executions_total`, `connector_sync_execution_duration_seconds`.
+
+Use `build_business_workflow_metrics(service_name, workflow)` to instrument workflow-level business outcomes with consistent tags.

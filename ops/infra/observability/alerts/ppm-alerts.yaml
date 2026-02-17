@@ -10,7 +10,7 @@ groups:
           summary: "API Gateway latency above SLO"
           description: "p95 latency exceeds 500ms for 10 minutes."
       - alert: WorkflowFailureRate
-        expr: sum(rate(workflow_completed_total{status="failure"}[5m])) / sum(rate(workflow_completed_total[5m])) > 0.05
+        expr: sum(rate(workflow_executions_total{outcome=~"failed|error|rejected"}[5m])) / sum(rate(workflow_executions_total[5m])) > 0.05
         for: 15m
         labels:
           severity: page
@@ -33,6 +33,14 @@ groups:
         annotations:
           summary: "API Gateway error rate above SLO"
           description: "5xx rate exceeds 2% for 10 minutes."
+      - alert: ApiGatewaySaturationHigh
+        expr: max_over_time(http_requests_in_flight{service.name="api-gateway"}[5m]) > 200
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API Gateway saturation high"
+          description: "In-flight request count exceeded 200 for 10 minutes."
       - alert: ApiGatewayAvailabilityBurn
         expr: (1 - (sum(rate(http_requests_total{service="api-gateway",status=~"5.."}[5m])) / sum(rate(http_requests_total{service="api-gateway"}[5m])))) < 0.999
         for: 30m
@@ -50,7 +58,7 @@ groups:
           summary: "Workflow engine latency above SLO"
           description: "p95 latency exceeds 750ms for 10 minutes."
       - alert: WorkflowEngineFailureRate
-        expr: sum(rate(workflow_completed_total{status="failure"}[5m])) / sum(rate(workflow_completed_total[5m])) > 0.03
+        expr: sum(rate(workflow_executions_total{outcome=~"failed|error|rejected"}[5m])) / sum(rate(workflow_executions_total[5m])) > 0.03
         for: 15m
         labels:
           severity: page
@@ -130,7 +138,7 @@ groups:
           summary: "Connector health degraded"
           description: "Connector health checks reporting degraded/unhealthy."
       - alert: ConnectorSyncErrorRate
-        expr: sum(rate(connector_sync_errors_total[15m])) / sum(rate(connector_sync_total[15m])) > 0.05
+        expr: sum(rate(connector_sync_executions_total{outcome="failed"}[15m])) / sum(rate(connector_sync_executions_total[15m])) > 0.05
         for: 20m
         labels:
           severity: page
@@ -138,7 +146,7 @@ groups:
           summary: "Connector sync error rate above SLO"
           description: "Connector sync error rate exceeds 5% for 20 minutes."
       - alert: ConnectorSyncHighLatency
-        expr: histogram_quantile(0.95, sum(rate(connector_sync_duration_seconds_bucket[15m])) by (le)) > 300
+        expr: histogram_quantile(0.95, sum(rate(connector_sync_execution_duration_seconds_bucket[15m])) by (le)) > 300
         for: 20m
         labels:
           severity: warning
@@ -154,7 +162,7 @@ groups:
           summary: "Connector disable spike"
           description: "Multiple connectors disabled in short window."
       - alert: DataSyncFailureRate
-        expr: sum(rate(data_sync_jobs_total{status="failed"}[10m])) / sum(rate(data_sync_jobs_total[10m])) > 0.05
+        expr: sum(rate(connector_sync_executions_total{outcome="failed"}[10m])) / sum(rate(connector_sync_executions_total[10m])) > 0.05
         for: 15m
         labels:
           severity: page

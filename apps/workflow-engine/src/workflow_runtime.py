@@ -10,6 +10,8 @@ from approval_workflow_agent import ApprovalWorkflowAgent
 from circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerRegistry
 from workflow_storage import WorkflowApproval, WorkflowInstance, WorkflowStore
 
+from observability.metrics import build_business_workflow_metrics
+
 try:
     from event_bus import get_event_bus
 except ImportError:  # pragma: no cover - optional dependency
@@ -30,6 +32,9 @@ class WorkflowRuntime:
         self.agent_client = agent_client
         self.circuit_breakers = circuit_breakers or CircuitBreakerRegistry()
         self.event_bus = event_bus or self._load_event_bus()
+        self._workflow_business_metrics = build_business_workflow_metrics(
+            "workflow-engine", "workflow"
+        )
 
     def _require_instance(self, run_id: str) -> WorkflowInstance:
         instance = self.store.get(run_id)
@@ -47,6 +52,7 @@ class WorkflowRuntime:
     async def start(
         self, instance: WorkflowInstance, definition: dict[str, Any], actor: dict[str, Any]
     ) -> WorkflowInstance:
+        started = asyncio.get_running_loop().time()
         if instance.status != "running":
             self.store.update_status(instance.run_id, "running", instance.current_step_id)
         await self._publish_event(
@@ -58,12 +64,32 @@ class WorkflowRuntime:
                 "actor": actor,
             },
         )
-        return await self._run_until_pause(instance, definition, actor)
+        result = await self._run_until_pause(instance, definition, actor)
+        self._record_workflow_business_metrics(instance, started, result.status)
+        return result
 
     async def resume(
         self, instance: WorkflowInstance, definition: dict[str, Any], actor: dict[str, Any]
     ) -> WorkflowInstance:
-        return await self._run_until_pause(instance, definition, actor)
+        started = asyncio.get_running_loop().time()
+        result = await self._run_until_pause(instance, definition, actor)
+        self._record_workflow_business_metrics(instance, started, result.status)
+        return result
+
+    def _record_workflow_business_metrics(
+        self, instance: WorkflowInstance, started: float, status: str
+    ) -> None:
+        attributes = {
+            "service.name": "workflow-engine",
+            "tenant.id": instance.tenant_id,
+            "trace.id": instance.run_id,
+            "workflow": instance.workflow_id,
+            "outcome": status,
+        }
+        self._workflow_business_metrics.executions_total.add(1, attributes)
+        self._workflow_business_metrics.execution_duration_seconds.record(
+            asyncio.get_running_loop().time() - started, attributes
+        )
 
     async def handle_approval_decision(
         self,

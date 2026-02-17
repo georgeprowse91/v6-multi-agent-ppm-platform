@@ -20,7 +20,11 @@ from workflow_client import WorkflowClient
 
 from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
 from agents.runtime.src.models import ReadinessReport, ReadinessSeverity
-from observability.metrics import agent_request_count, agent_request_latency
+from observability.metrics import (
+    agent_request_count,
+    agent_request_latency,
+    build_business_workflow_metrics,
+)
 from observability.tracing import inject_trace_headers
 from tools.runtime_paths import bootstrap_runtime_paths
 
@@ -78,6 +82,9 @@ class AgentOrchestrator:
         )
         self.state_store: OrchestrationStateStore = build_state_store(state_path)
         self._agent_semaphore = asyncio.Semaphore(MAX_AGENT_CONCURRENCY)
+        self._orchestrator_business_metrics = build_business_workflow_metrics(
+            "orchestration-service", "orchestrator"
+        )
 
     async def initialize(self) -> None:
         """Initialize all 25 agents."""
@@ -577,6 +584,9 @@ class AgentOrchestrator:
         if not self.initialized:
             raise RuntimeError("Orchestrator not initialized")
 
+        started = time.monotonic()
+        outcome = "success"
+
         assert self.intent_router is not None, "Intent router not initialized"
         assert self.response_orchestrator is not None, "Response orchestrator not initialized"
         request_context = context or {}
@@ -596,7 +606,15 @@ class AgentOrchestrator:
                     "approval_decision": "approve",
                 },
             )
-            return orchestration_response.model_dump()
+            payload = orchestration_response.model_dump()
+            self._record_orchestrator_business_metrics(
+                query=query,
+                tenant_id=request_context.get("tenant_id", "unknown"),
+                correlation_id=correlation_id,
+                started=started,
+                outcome="success" if payload.get("success", True) else "error",
+            )
+            return payload
 
         # Step 1: Route the query
         correlation_id = request_context.get("correlation_id")
@@ -612,11 +630,20 @@ class AgentOrchestrator:
         )
 
         if not intent_response.success:
-            return {
+            outcome = "error"
+            payload = {
                 "success": False,
                 "error": "Failed to route query",
                 "details": intent_response.model_dump(),
             }
+            self._record_orchestrator_business_metrics(
+                query=query,
+                tenant_id=request_context.get("tenant_id", "unknown"),
+                correlation_id=correlation_id,
+                started=started,
+                outcome=outcome,
+            )
+            return payload
         intent_payload = intent_response.data.model_dump() if intent_response.data else {}
 
         # Step 2: Orchestrate response
@@ -633,7 +660,37 @@ class AgentOrchestrator:
                 "context": {**request_context, "correlation_id": correlation_id},
             }
         )
-        return orchestration_response.model_dump()
+        payload = orchestration_response.model_dump()
+        self._record_orchestrator_business_metrics(
+            query=query,
+            tenant_id=request_context.get("tenant_id", "unknown"),
+            correlation_id=correlation_id,
+            started=started,
+            outcome="success" if payload.get("success", True) else "error",
+        )
+        return payload
+
+    def _record_orchestrator_business_metrics(
+        self,
+        *,
+        query: str,
+        tenant_id: str,
+        correlation_id: str,
+        started: float,
+        outcome: str,
+    ) -> None:
+        attributes = {
+            "service.name": "orchestration-service",
+            "tenant.id": tenant_id,
+            "trace.id": correlation_id,
+            "workflow": "orchestrator",
+            "outcome": outcome,
+            "query_type": "full_demo" if DEMO_QUERY_TRIGGER in query.lower() else "standard",
+        }
+        self._orchestrator_business_metrics.executions_total.add(1, attributes)
+        self._orchestrator_business_metrics.execution_duration_seconds.record(
+            time.monotonic() - started, attributes
+        )
 
     def _is_full_demo_run_enabled(self, *, query: str, context: dict[str, Any]) -> bool:
         if not self._is_truthy_env_flag("DEMO_MODE") or not self._is_truthy_env_flag(
