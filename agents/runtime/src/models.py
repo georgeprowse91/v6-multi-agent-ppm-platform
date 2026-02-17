@@ -133,3 +133,33 @@ class AgentRun(BaseModel):
         if metadata_update:
             updated_fields["metadata"] = {**self.metadata, **metadata_update}
         return self.model_copy(update=updated_fields)
+
+
+class ReadinessSeverity(str, Enum):
+    """Severity level for readiness checks."""
+
+    info = "info"
+    warning = "warning"
+    critical = "critical"
+
+
+class ReadinessCheck(BaseModel):
+    """Structured readiness check result for one contract rule."""
+
+    name: str
+    passed: bool
+    severity: ReadinessSeverity
+    message: str
+    remediation_hint: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ReadinessReport(BaseModel):
+    """Readiness report containing all contract checks for an agent."""
+
+    agent_id: str
+    catalog_id: str
+    ready: bool
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checks: list[ReadinessCheck] = Field(default_factory=list)
+    last_failure_reason: str | None = None

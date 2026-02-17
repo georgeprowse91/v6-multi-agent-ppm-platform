@@ -64,6 +64,24 @@ class AgentStateResponse(BaseModel):
     reason: str | None = None
 
 
+class ReadinessCheckResponse(BaseModel):
+    name: str
+    passed: bool
+    severity: str
+    message: str
+    remediation_hint: str | None = None
+
+
+class AgentReadinessResponse(BaseModel):
+    agent_id: str
+    catalog_id: str
+    ready: bool
+    generated_at: str
+    status: str
+    last_failure_reason: str | None = None
+    checks: list[ReadinessCheckResponse] = Field(default_factory=list)
+
+
 class WorkflowUploadResponse(BaseModel):
     workflow_id: str | None
     status: str
@@ -211,6 +229,37 @@ async def deactivate_agent(agent_id: str, request: Request) -> AgentStateRespons
     orchestrator.set_agent_state(agent_id, "stopped")
     state = orchestrator.get_agent_state(agent_id)
     return AgentStateResponse(**state.__dict__)
+
+
+@api_router.get("/agents/readiness", response_model=list[AgentReadinessResponse])
+async def list_agent_readiness(
+    request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[AgentReadinessResponse]:
+    orchestrator = request.app.state.orchestrator
+    reports = sorted(orchestrator.list_agent_readiness(), key=lambda report: report.agent_id)
+    sliced = reports[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(reports))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    payload: list[AgentReadinessResponse] = []
+    for report in sliced:
+        state = orchestrator.get_agent_state(report.agent_id)
+        status = state.status if state else ("running" if report.ready else "unknown")
+        payload.append(
+            AgentReadinessResponse(
+                agent_id=report.agent_id,
+                catalog_id=report.catalog_id,
+                ready=report.ready,
+                generated_at=report.generated_at,
+                status=status,
+                last_failure_reason=report.last_failure_reason,
+                checks=[ReadinessCheckResponse(**check.model_dump()) for check in report.checks],
+            )
+        )
+    return payload
 
 
 @api_router.post("/workflows/upload", response_model=WorkflowUploadResponse)
