@@ -53,6 +53,17 @@ class ComplianceGateMock:
         return {"met": True, "details": input_data}
 
 
+class FailingQualityGateMock:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def process(self, input_data: dict) -> dict:
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("quality service unavailable")
+        return {"passed": True, "details": input_data}
+
+
 class EventPublisherAdapter:
     def __init__(self, event_bus):
         self.event_bus = event_bus
@@ -276,3 +287,83 @@ async def test_end_to_end_project_lifecycle(tmp_path):
     assert any(topic == "risk.identified" for topic, _ in observed_events)
     assert any(topic == "quality.test_case.created" for topic, _ in observed_events)
     assert any(topic == "notification.sent" for topic, _ in observed_events)
+
+
+@pytest.mark.asyncio
+async def test_release_readiness_failure_then_recovery_without_duplicate_side_effects(tmp_path):
+    """Ensure mid-workflow gate failure can recover without duplicate release side effects."""
+    event_bus = build_test_event_bus()
+    published_release_events: list[dict] = []
+    event_bus.subscribe("deployment.release_planned", lambda payload: published_release_events.append(payload))
+
+    quality_gate = FailingQualityGateMock()
+    release_agent = ReleaseDeploymentAgent(
+        config={
+            "event_bus": event_bus,
+            "approval_agent": ApprovalMock(),
+            "quality_agent": quality_gate,
+            "change_agent": ChangeGateMock(),
+            "risk_agent": RiskGateMock(),
+            "compliance_agent": ComplianceGateMock(),
+            "release_store_path": tmp_path / "release_calendar.json",
+            "deployment_plan_store_path": tmp_path / "deployment_plans.json",
+        }
+    )
+    await release_agent.initialize()
+
+    payload = {
+        "action": "plan_release",
+        "tenant_id": "tenant-alpha",
+        "release": {
+            "name": "Release Recovery",
+            "target_environment": "staging",
+            "project_id": "proj-1",
+            "change_id": "chg-1",
+            "planned_date": "2026-03-15",
+        },
+    }
+
+    with pytest.raises(RuntimeError, match="quality service unavailable"):
+        await release_agent.process(payload)
+
+    recovered = await release_agent.process(payload)
+    release_entries = release_agent.release_store.list("tenant-alpha")
+
+    assert recovered["status"] == "planned"
+    assert len(release_entries) == 1
+    assert len(published_release_events) == 1
+
+
+@pytest.mark.asyncio
+async def test_release_planning_degraded_mode_when_non_critical_event_bus_is_down(tmp_path):
+    """Ensure release planning still succeeds when event publishing is unavailable."""
+    release_agent = ReleaseDeploymentAgent(
+        config={
+            "event_bus": None,
+            "approval_agent": ApprovalMock(),
+            "quality_agent": QualityGateMock(),
+            "change_agent": ChangeGateMock(),
+            "risk_agent": RiskGateMock(),
+            "compliance_agent": ComplianceGateMock(),
+            "release_store_path": tmp_path / "release_calendar.json",
+            "deployment_plan_store_path": tmp_path / "deployment_plans.json",
+        }
+    )
+    await release_agent.initialize()
+
+    result = await release_agent.process(
+        {
+            "action": "plan_release",
+            "tenant_id": "tenant-alpha",
+            "release": {
+                "name": "Release Degraded",
+                "target_environment": "staging",
+                "project_id": "proj-2",
+                "change_id": "chg-2",
+                "planned_date": "2026-04-01",
+            },
+        }
+    )
+
+    assert result["status"] == "planned"
+    assert release_agent.release_store.get("tenant-alpha", result["release_id"])
