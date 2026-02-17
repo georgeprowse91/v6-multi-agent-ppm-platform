@@ -9,10 +9,13 @@ from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT):
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from runtime import AgentRuntime  # noqa: E402
 from security.api_governance import (  # noqa: E402
     apply_api_governance,
@@ -23,6 +26,10 @@ from packages.version import API_VERSION  # noqa: E402
 
 app = FastAPI(title="Agent Runtime Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
+configure_tracing("agent-runtime")
+configure_metrics("agent-runtime")
+app.add_middleware(TraceMiddleware, service_name="agent-runtime")
+app.add_middleware(RequestMetricsMiddleware, service_name="agent-runtime")
 apply_api_governance(app, service_name="agent-runtime")
 
 runtime = AgentRuntime()
