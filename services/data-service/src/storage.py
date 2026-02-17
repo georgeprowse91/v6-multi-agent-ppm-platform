@@ -206,6 +206,17 @@ class DataServiceStore:
             promoted_at=datetime.now(timezone.utc),
         )
 
+    async def is_schema_promoted(self, name: str, version: int, environment: str) -> bool:
+        async with self.session_factory() as session:
+            result = await session.execute(
+                select(SCHEMA_PROMOTIONS_TABLE.c.name).where(
+                    SCHEMA_PROMOTIONS_TABLE.c.name == name,
+                    SCHEMA_PROMOTIONS_TABLE.c.version == version,
+                    SCHEMA_PROMOTIONS_TABLE.c.environment == environment,
+                )
+            )
+        return result.first() is not None
+
     async def get_schema(self, name: str, version: int) -> SchemaRecord | None:
         async with self.session_factory() as session:
             result = await session.execute(

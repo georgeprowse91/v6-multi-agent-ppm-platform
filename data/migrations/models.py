@@ -219,3 +219,33 @@ class AgentConfig(Base):
     dev_users = Column(JSON, nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=True)
+
+
+class SchemaRegistry(Base):
+    __tablename__ = "schema_registry"
+
+    name = Column(String(128), primary_key=True)
+    version = Column(Integer, primary_key=True)
+    schema = Column(JSON, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+
+
+class SchemaPromotion(Base):
+    __tablename__ = "schema_promotions"
+
+    name = Column(String(128), primary_key=True)
+    version = Column(Integer, primary_key=True)
+    environment = Column(String(32), primary_key=True)
+    promoted_at = Column(DateTime, nullable=False)
+
+
+class CanonicalEntity(Base):
+    __tablename__ = "canonical_entities"
+
+    id = Column(String(64), primary_key=True)
+    tenant_id = Column(String(64), nullable=False, index=True)
+    schema_name = Column(String(128), nullable=False)
+    schema_version = Column(Integer, nullable=False)
+    payload = Column(JSON, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)

@@ -49,3 +49,9 @@ def test_disaster_recovery_drill_documented() -> None:
     path = Path("docs/runbooks/disaster-recovery.md")
     assert path.exists()
     _assert_contains(path, ["DR Testing Procedures", "DR drill"])
+
+
+def test_schema_promotion_rollback_runbook_exists() -> None:
+    path = Path("docs/runbooks/schema-promotion-rollback.md")
+    assert path.exists()
+    _assert_contains(path, ["Schema Promotion Rollback Runbook", "Rollback Procedure", "Verification Checklist"])

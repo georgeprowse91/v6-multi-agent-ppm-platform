@@ -14,7 +14,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
-from jsonschema import Draft202012Validator, FormatChecker, SchemaError
+from jsonschema import Draft202012Validator, FormatChecker
 from sqlalchemy.exc import SQLAlchemyError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -29,6 +29,7 @@ from feature_flags import is_feature_enabled  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
+from schema_compatibility import CompatibilityMode, validate_compatibility  # noqa: E402
 from security.api_governance import (  # noqa: E402
     apply_api_governance,
     version_response_payload,
@@ -61,6 +62,13 @@ class SchemaRegistrationRequest(BaseModel):
     name: str = Field(..., description="Canonical schema name")
     schema: dict[str, Any] = Field(..., description="JSON Schema payload")
     version: int | None = Field(None, description="Optional schema version override")
+    compatibility_mode: CompatibilityMode = Field(
+        "full",
+        description=(
+            "Compatibility validation mode against latest version: "
+            "backward, forward, or full"
+        ),
+    )
 
 
 class SchemaResponse(BaseModel):
@@ -220,10 +228,14 @@ async def retention_status() -> RetentionStatusResponse:
 async def register_schema(
     request: SchemaRegistrationRequest, store: DataServiceStore = Depends(get_store)
 ) -> SchemaResponse:
-    try:
-        Draft202012Validator.check_schema(request.schema)
-    except SchemaError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    _validate_schema_definition(request.schema)
+
+    latest = await store.get_latest_schema(request.name)
+    if latest:
+        try:
+            validate_compatibility(latest.schema, request.schema, request.compatibility_mode)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     try:
         record = await store.register_schema(request.name, request.schema, request.version)
@@ -326,6 +338,7 @@ async def ingest_entity(
     store: DataServiceStore = Depends(get_store),
 ) -> EntityResponse:
     record = await _resolve_schema(schema_name, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
     _validate_payload(record, request.data)
     if _canonical_propagation_enabled() and request.connector_name:
         _validate_against_canonical_mapping(schema_name, request.data, request.connector_name)
@@ -347,6 +360,7 @@ async def ingest_agent_run(
 ) -> EntityResponse:
     _require_feature("agent_run_tracking")
     record = await _resolve_schema(AGENT_RUN_SCHEMA, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
     _validate_payload(record, request.data)
     entity_id = request.entity_id or request.data.get("id") or str(uuid4())
     stored = await store.store_entity(
@@ -365,6 +379,7 @@ async def ingest_scenario(
     store: DataServiceStore = Depends(get_store),
 ) -> EntityResponse:
     record = await _resolve_schema(SCENARIO_SCHEMA, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
     _validate_payload(record, request.data)
     scenario_id = request.scenario_id or request.data.get("id") or str(uuid4())
     stored = await store.store_entity(
@@ -480,6 +495,7 @@ async def ingest_connector(
         canonical_mappings = _load_canonical_mappings(request.connector_name)
     for schema_name, items in grouped.items():
         schema_record = await _resolve_schema(schema_name, None, store)
+        await _require_schema_promotion_for_environment(schema_record, store)
         for item in items:
             payload = dict(item)
             payload["tenant_id"] = request.tenant_id
@@ -526,6 +542,16 @@ def _entity_response(record: EntityRecord) -> EntityResponse:
         updated_at=record.updated_at,
     )
 
+
+
+def _validate_schema_definition(schema: dict[str, Any]) -> None:
+    check_schema = getattr(Draft202012Validator, "check_schema", None)
+    if check_schema is None:
+        return
+    try:
+        check_schema(schema)
+    except Exception as exc:  # pragma: no cover - upstream jsonschema exceptions vary
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 def _validate_payload(schema_record: SchemaRecord, payload: dict[str, Any]) -> None:
     validator = Draft202012Validator(schema_record.schema, format_checker=FormatChecker())
@@ -668,6 +694,27 @@ def _require_feature(flag_name: str) -> None:
 def _canonical_propagation_enabled() -> bool:
     environment = os.getenv("ENVIRONMENT", "dev")
     return is_feature_enabled("canonical_propagation", environment=environment, default=False)
+
+
+async def _require_schema_promotion_for_environment(
+    schema_record: SchemaRecord, store: DataServiceStore
+) -> None:
+    environment = os.getenv("ENVIRONMENT", "dev").lower()
+    if environment in {"dev", "local", "test"}:
+        return
+    promoted = await store.is_schema_promoted(
+        schema_record.name,
+        schema_record.version,
+        environment,
+    )
+    if not promoted:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Schema version is not promoted for this environment: "
+                f"{schema_record.name}@{schema_record.version} -> {environment}"
+            ),
+        )
 
 
 app.include_router(api_router)

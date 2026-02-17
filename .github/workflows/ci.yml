@@ -38,6 +38,12 @@ jobs:
       - name: Validate schemas
         run: python scripts/validate-schemas.py
 
+      - name: Enforce schema example updates
+        run: python scripts/check-schema-example-updates.py
+
+      - name: Validate migration/schema registry consistency
+        run: python data/migrations/validate_registry_consistency.py
+
       - name: Validate application configuration
         run: python ops/scripts/validate_config.py
 
