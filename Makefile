@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-quick test-all test-unit test-integration test-e2e test-security test-cov test-watch lint format codegen check-links check-placeholders check-root-layout check-connector-maturity secret-scan env-validate smoke-workspace-wiring dev-up dev-up-full dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
+.PHONY: help install install-dev test test-quick test-all test-unit test-integration test-e2e test-security test-cov test-watch lint format codegen check-links check-placeholders check-root-layout check-connector-maturity check-security-baseline secret-scan env-validate smoke-workspace-wiring dev-up dev-up-full dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
 
 # Default target
 .DEFAULT_GOAL := help
@@ -72,6 +72,12 @@ check-root-layout: ## Validate repository root allowlist
 
 check-connector-maturity: ## Enforce connector maturity policy thresholds
 	$(PYTHON) ops/tools/check_connector_maturity.py
+
+
+check-security-baseline: ## Validate minimum production security baseline
+	$(PYTHON) ops/tools/check_security_middleware.py
+	$(PYTHON) ops/tools/check_secret_source_policy.py
+	$(PYTEST) tests/security/test_security_baseline_compliance.py -v
 
 secret-scan: ## Scan repository for secrets (requires gitleaks)
 	gitleaks detect --source . --redact
@@ -178,7 +184,7 @@ k8s-delete: ## Delete Kubernetes deployment
 	kubectl delete -f infra/kubernetes/secrets.yaml
 
 # CI/CD
-ci-local: lint test check-links check-placeholders check-root-layout check-connector-maturity ## Run CI checks locally
+ci-local: lint test check-links check-placeholders check-root-layout check-connector-maturity check-security-baseline ## Run CI checks locally
 
 # Documentation
 docs-serve: ## Serve documentation locally

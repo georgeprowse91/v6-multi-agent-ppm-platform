@@ -26,6 +26,7 @@ from security.api_governance import (  # noqa: E402
     apply_api_governance,
     version_response_payload,
 )
+from security.secrets import resolve_secret  # noqa: E402
 
 from packages.version import API_VERSION
 
@@ -138,11 +139,11 @@ def _prune_oidc_cache(now: float, ttl_seconds: int, max_entries: int) -> None:
 
 
 def _get_env(name: str, fallback: str | None = None) -> str | None:
-    value = os.getenv(name)
+    value = resolve_secret(os.getenv(name))
     if value:
         return value
     if fallback:
-        return os.getenv(fallback)
+        return resolve_secret(os.getenv(fallback))
     return None
 
 

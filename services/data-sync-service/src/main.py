@@ -187,7 +187,7 @@ data_sync_jobs_total = configure_metrics("data-sync-service").create_counter(
 async def healthz() -> HealthResponse:
     dependencies = {
         "scheduler": "ok" if scheduler.is_running() else "down",
-        "queue": "ok" if os.getenv("SERVICE_BUS_CONNECTION_STRING") else "degraded",
+        "queue": "ok" if resolve_secret(os.getenv("SERVICE_BUS_CONNECTION_STRING")) else "degraded",
     }
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
     return HealthResponse(status=status, dependencies=dependencies)
