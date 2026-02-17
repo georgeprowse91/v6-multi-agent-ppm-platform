@@ -72,7 +72,18 @@ def test_orchestration_config_drives_execution() -> None:
     assert payload["data"]["agent_results"][0]["success"] is True
 
 
-def test_connector_action_is_returned() -> None:
+def test_connector_action_is_returned(monkeypatch) -> None:
+    async def _fake_execute(**_: object) -> dict[str, object]:
+        return {
+            "status": "completed",
+            "data": {"summary": "Escalate demand intake"},
+            "errors": [],
+            "connector_id": "jira",
+            "action": "create_issue",
+            "duration_ms": 1,
+        }
+
+    monkeypatch.setattr(module.runtime.connector_client, "execute", _fake_execute)
     response = client.post(
         "/v1/agents/demand-intake/execute",
         json={
