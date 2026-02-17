@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-quick test-all test-unit test-integration test-e2e test-security test-cov test-watch lint format codegen check-links check-placeholders check-root-layout secret-scan env-validate smoke-workspace-wiring dev-up dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
+.PHONY: help install install-dev test test-quick test-all test-unit test-integration test-e2e test-security test-cov test-watch lint format codegen check-links check-placeholders check-root-layout secret-scan env-validate smoke-workspace-wiring dev-up dev-up-full dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
 
 # Default target
 .DEFAULT_GOAL := help
@@ -80,10 +80,13 @@ smoke-workspace-wiring: ## Verify workspace methodology wiring end-to-end locall
 	$(PYTHON) ops/smoke_workspace_wiring.py
 
 dev-up: ## Start the local development stack (docker-compose)
-	bash tools/local-dev/dev_up.sh
+	bash ops/tools/local-dev/dev_up.sh core
+
+dev-up-full: ## Start the complete local development stack (docker-compose)
+	bash ops/tools/local-dev/dev_up.sh full
 
 dev-down: ## Stop the local development stack (docker-compose)
-	bash tools/local-dev/dev_down.sh
+	bash ops/tools/local-dev/dev_down.sh
 
 run-agent: ## Run a single agent locally (AGENT=<agent-name> or ID=<id>)
 	$(PYTHON) -m tools.agent_runner run-agent $(if $(AGENT),--name $(AGENT),) $(if $(ID),--id $(ID),)

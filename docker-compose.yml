@@ -3,13 +3,13 @@ version: '3.8'
 # DEV-ONLY COMPOSE PROFILE
 # Do not use local defaults from .env/.env.example in CI or production.
 services:
-  # API Service
   api:
     build:
       context: ./apps/api-gateway
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: .
+    profiles: [demo, core, full]
     ports:
       - "8000:8000"
     environment:
@@ -32,6 +32,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      workflow-engine:
+        condition: service_healthy
+      identity-access:
+        condition: service_healthy
     volumes:
       - ./apps/api-gateway/src:/app/apps/api-gateway/src
       - ./apps/orchestration-service/src:/app/apps/orchestration-service/src
@@ -42,13 +46,7 @@ services:
     networks:
       - ppm-network
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).read()",
-        ]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).read()"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -61,6 +59,7 @@ services:
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: .
+    profiles: [demo, core, full]
     ports:
       - "8080:8080"
     environment:
@@ -72,25 +71,444 @@ services:
       - WORKFLOW_DB_PATH=/app/apps/workflow-engine/storage/workflows.db
     volumes:
       - ./apps/workflow-engine:/app/apps/workflow-engine
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ppm-network
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()",
-        ]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
     restart: unless-stopped
 
-  # PostgreSQL Database
+  identity-access:
+    build:
+      context: ./services/identity-access
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8081:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - AUTH_DEV_MODE=${AUTH_DEV_MODE}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES}
+      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  orchestration-service:
+    build:
+      context: ./apps/orchestration-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8087:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - AUTH_DEV_MODE=${AUTH_DEV_MODE}
+      - AUTH_DEV_ROLES=${AUTH_DEV_ROLES}
+      - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      workflow-engine:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  data-service:
+    build:
+      context: ./services/data-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8082:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATA_SERVICE_DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  policy-engine:
+    build:
+      context: ./services/policy-engine
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8083:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DATA_SERVICE_URL=http://data-service:8080
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      data-service:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  document-service:
+    build:
+      context: ./apps/document-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8088:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  audit-log:
+    build:
+      context: ./services/audit-log
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8085:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [core, full]
+    ports:
+      - "8084:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  analytics-service:
+    build:
+      context: ./apps/analytics-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8086:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DATA_SERVICE_URL=http://data-service:8080
+      - DATA_LINEAGE_SERVICE_URL=http://data-lineage-service:8080
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      data-service:
+        condition: service_healthy
+      data-lineage-service:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  data-lineage-service:
+    build:
+      context: ./services/data-lineage-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8089:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  data-sync-service:
+    build:
+      context: ./services/data-sync-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8090:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  telemetry-service:
+    build:
+      context: ./services/telemetry-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8091:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  agent-runtime:
+    build:
+      context: ./services/agent-runtime
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8092:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8093:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - IDENTITY_OIDC_DISCOVERY_URL=${IDENTITY_OIDC_DISCOVERY_URL}
+      - IDENTITY_ISSUER=${IDENTITY_ISSUER}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity-access:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  realtime-coedit-service:
+    build:
+      context: ./services/realtime-coedit-service
+      dockerfile: Dockerfile
+      additional_contexts:
+        repo-root: .
+    profiles: [full]
+    ports:
+      - "8094:8080"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity-access:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    profiles: [demo, core, full]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./apps/web:/app
+    environment:
+      - API_GATEWAY_URL=${API_GATEWAY_URL}
+      - IDENTITY_ACCESS_URL=${IDENTITY_ACCESS_URL}
+      - WORKFLOW_ENGINE_URL=${WORKFLOW_ENGINE_URL}
+      - DEMO_MODE=${DEMO_MODE}
+    depends_on:
+      api:
+        condition: service_healthy
+      workflow-engine:
+        condition: service_healthy
+      identity-access:
+        condition: service_healthy
+    networks:
+      - ppm-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
   db:
     image: postgres:15-alpine
+    profiles: [demo, core, full]
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -109,9 +527,9 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
+    profiles: [demo, core, full]
     ports:
       - "6379:6379"
     volumes:
@@ -124,56 +542,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-
-  # Web UI (optional React/Vue frontend)
-  # ui:
-  #   build:
-  #     context: ./apps/web
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - REACT_APP_API_URL=http://localhost:8000
-  #   depends_on:
-  #     - api
-  #   networks:
-  #     - ppm-network
-  #   restart: unless-stopped
-
-  # Production Web Console
-  web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-    ports:
-      - "8501:8501"
-    volumes:
-      - ./apps/web:/app
-    environment:
-      - API_GATEWAY_URL=${API_GATEWAY_URL}
-      - IDENTITY_ACCESS_URL=${IDENTITY_ACCESS_URL}
-      - WORKFLOW_ENGINE_URL=${WORKFLOW_ENGINE_URL}
-      - DEMO_MODE=${DEMO_MODE}
-    depends_on:
-      api:
-        condition: service_healthy
-      workflow-engine:
-        condition: service_healthy
-    networks:
-      - ppm-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/healthz', timeout=2).read()",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
     restart: unless-stopped
 
 volumes:

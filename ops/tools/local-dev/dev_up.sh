@@ -4,6 +4,8 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$repo_root"
 
+profile="${1:-core}"
+
 compose_cmd="docker-compose"
 if command -v docker-compose >/dev/null 2>&1; then
   compose_cmd="docker-compose"
@@ -33,5 +35,5 @@ if [[ ! -f .env ]]; then
   fi
 fi
 
-echo "Starting local development stack..."
-${compose_cmd} up --build
+echo "Starting local development stack (profile=${profile})..."
+${compose_cmd} --profile "${profile}" up --build
