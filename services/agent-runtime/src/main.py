@@ -16,7 +16,7 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
 
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from runtime import AgentRuntime  # noqa: E402
+from runtime import AgentRuntime, ConnectorActionRuntimeError  # noqa: E402
 from security.api_governance import (  # noqa: E402
     apply_api_governance,
     version_response_payload,
@@ -173,8 +173,8 @@ async def run_connector_action(
             action=request.action,
             payload=request.payload,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ConnectorActionRuntimeError as exc:
+        raise HTTPException(status_code=exc.http_status, detail=exc.to_response()) from exc
 
 
 @api_router.post("/events/publish")

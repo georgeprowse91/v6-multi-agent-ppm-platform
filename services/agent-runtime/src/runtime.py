@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
+import asyncio
 import os
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,13 +24,34 @@ for path in [
     PACKAGES_ROOT / "observability" / "src",
     PACKAGES_ROOT / "security" / "src",
     PACKAGES_ROOT / "llm" / "src",
-    PACKAGES_ROOT / "event_bus" / "src",
+    PACKAGES_ROOT / "event-bus" / "src",
     PACKAGES_ROOT / "feature-flags" / "src",
+    PACKAGES_ROOT / "common" / "src",
     REPO_ROOT / "services" / "data-sync-service" / "src",
     REPO_ROOT / "ops",
 ]:
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
+
+from common.resilience import (  # noqa: E402
+    CircuitBreakerPolicy,
+    CircuitOpenError,
+    DependencyResilienceConfig,
+    ResilienceMiddleware,
+    RetryPolicy,
+    TimeoutPolicy,
+)
+
+try:  # noqa: E402
+    from integrations.connectors.sdk.src.base_connector import (
+        CircuitBreakerOpenError,
+        ConnectorCallFailedError,
+        ConnectorSchemaValidationError,
+    )
+except Exception:  # pragma: no cover - optional import fallback for isolated test runs
+    CircuitBreakerOpenError = type("CircuitBreakerOpenError", (Exception,), {})
+    ConnectorCallFailedError = type("ConnectorCallFailedError", (Exception,), {})
+    ConnectorSchemaValidationError = type("ConnectorSchemaValidationError", (Exception,), {})
 
 from agents.runtime import (  # noqa: E402
     AGENT_CATALOG,
@@ -38,6 +62,37 @@ from agents.runtime import (  # noqa: E402
 from agents.runtime.src.agent_catalog import get_catalog_entry  # noqa: E402
 from runtime_flags import demo_mode_enabled  # noqa: E402
 
+
+
+
+@dataclass(frozen=True)
+class _LocalEventRecord:
+    topic: str
+    payload: dict[str, Any]
+    published_at: str
+
+
+class _LocalEventBus:
+    def __init__(self) -> None:
+        self._handlers: dict[str, list[Any]] = {}
+        self._events: list[_LocalEventRecord] = []
+
+    def subscribe(self, topic: str, handler: Any) -> None:
+        self._handlers.setdefault(topic, []).append(handler)
+
+    async def publish(self, topic: str, payload: dict[str, Any]) -> None:
+        record = _LocalEventRecord(topic=topic, payload=payload, published_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        self._events.append(record)
+        for handler in self._handlers.get(topic, []):
+            await handler(payload)
+
+    def get_metrics(self) -> dict[str, int]:
+        return {"published": len(self._events)}
+
+    def get_recent_events(self, topic: str | None = None) -> list[_LocalEventRecord]:
+        if topic is None:
+            return list(self._events)
+        return [event for event in self._events if event.topic == topic]
 
 @dataclass(frozen=True)
 class ConnectorInfo:
@@ -75,21 +130,387 @@ class ConnectorRegistry:
 
 
 class ConnectorActionClient:
-    def __init__(self, registry: ConnectorRegistry) -> None:
+    def __init__(
+        self,
+        registry: ConnectorRegistry,
+        *,
+        event_bus: EventBus | None = None,
+        timeout_seconds: float = 10.0,
+        max_retries: int = 3,
+        retry_initial_delay_seconds: float = 0.2,
+        circuit_failure_threshold: int = 5,
+        circuit_failure_window_seconds: int = 60,
+        circuit_recovery_timeout_seconds: int = 30,
+    ) -> None:
         self._registry = registry
+        self._event_bus = event_bus
+        self._timeout_seconds = timeout_seconds
+        self._max_retries = max_retries
+        self._retry_initial_delay_seconds = retry_initial_delay_seconds
+        self._circuit_failure_threshold = circuit_failure_threshold
+        self._circuit_failure_window_seconds = circuit_failure_window_seconds
+        self._circuit_recovery_timeout_seconds = circuit_recovery_timeout_seconds
+        self._resilience: dict[str, ResilienceMiddleware] = {}
+
+    def _resolve_entrypoint(self, connector: ConnectorInfo) -> Path:
+        manifest_path = Path(connector.manifest_path)
+        if not manifest_path.is_absolute():
+            manifest_path = REPO_ROOT / manifest_path
+        connector_root = manifest_path.parent
+        candidates = [
+            connector_root / "src" / "main.py",
+            connector_root / "main.py",
+            connector_root / "src" / "runtime.py",
+        ]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        raise ConnectorActionRuntimeError(
+            code="not_found",
+            connector_id=connector.connector_id,
+            action="resolve_entrypoint",
+            message=f"Connector entrypoint not found for {connector.connector_id}",
+            http_status=404,
+        )
+
+    def _load_entrypoint_module(self, connector: ConnectorInfo) -> Any:
+        module_path = self._resolve_entrypoint(connector)
+        module_name = f"connector_entrypoint_{connector.connector_id}_{hash(module_path)}"
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        if spec is None or spec.loader is None:
+            raise ConnectorActionRuntimeError(
+                code="not_found",
+                connector_id=connector.connector_id,
+                action="load_module",
+                message=f"Unable to load connector module for {connector.connector_id}",
+                http_status=404,
+            )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def _resolve_action_callable(self, module: Any, action: str) -> tuple[Any, str]:
+        function_candidates = [
+            "execute_action",
+            action,
+            f"run_{action}",
+            "run_action",
+        ]
+        for function_name in function_candidates:
+            handler = getattr(module, function_name, None)
+            if callable(handler):
+                return handler, function_name
+        write_aliases = {"create", "write", "update", "delete", "create_record", "create_issue"}
+        canonical = "run_write" if action.lower() in write_aliases else "run_sync"
+        handler = getattr(module, canonical, None)
+        if callable(handler):
+            return handler, canonical
+        raise AttributeError(f"No executable handler found for action '{action}'")
+
+    def _invoke_action(
+        self,
+        handler: Any,
+        handler_name: str,
+        *,
+        action: str,
+        payload: dict[str, Any],
+        context: dict[str, Any],
+    ) -> Any:
+        if handler_name == "run_write":
+            return handler(
+                fixture_path=None,
+                tenant_id=context.get("tenant_id") or "default",
+                live=True,
+                data=payload.get("data") if isinstance(payload.get("data"), list) else [payload],
+            )
+        if handler_name == "run_sync":
+            return handler(
+                fixture_path=Path(payload["fixture_path"]) if payload.get("fixture_path") else None,
+                tenant_id=context.get("tenant_id") or "default",
+                live=bool(payload.get("live", False)),
+                include_schema=bool(payload.get("include_schema", False)),
+            )
+        kwargs = {
+            "action": action,
+            "payload": payload,
+            "context": context,
+        }
+        signature = inspect.signature(handler)
+        accepts_kwargs = any(
+            param.kind == inspect.Parameter.VAR_KEYWORD
+            for param in signature.parameters.values()
+        )
+        accepted = {
+            k: v
+            for k, v in kwargs.items()
+            if accepts_kwargs or k in signature.parameters
+        }
+        if accepted:
+            return handler(**accepted)
+        return handler(payload)
+
+    async def _emit_event(self, topic: str, payload: dict[str, Any]) -> None:
+        if self._event_bus is None:
+            return
+        await self._event_bus.publish(topic, payload)
+
+    def _resilience_for(self, connector_id: str) -> ResilienceMiddleware:
+        if connector_id not in self._resilience:
+            self._resilience[connector_id] = ResilienceMiddleware(
+                DependencyResilienceConfig(
+                    dependency=f"connector_action_{connector_id}",
+                    retry=RetryPolicy(
+                        max_attempts=self._max_retries + 1,
+                        initial_backoff_s=self._retry_initial_delay_seconds,
+                    ),
+                    timeout=TimeoutPolicy(timeout_s=self._timeout_seconds),
+                    circuit_breaker=CircuitBreakerPolicy(
+                        failure_threshold=self._circuit_failure_threshold,
+                        failure_window_s=float(self._circuit_failure_window_seconds),
+                        recovery_timeout_s=float(self._circuit_recovery_timeout_seconds),
+                    ),
+                )
+            )
+        return self._resilience[connector_id]
+
+    def _normalize_output(
+        self,
+        *,
+        connector_id: str,
+        action: str,
+        result: Any,
+        duration_ms: int,
+    ) -> dict[str, Any]:
+        if isinstance(result, dict) and {"status", "data", "errors"}.issubset(result.keys()):
+            output = {
+                "status": result["status"],
+                "data": result["data"],
+                "errors": result["errors"],
+            }
+        else:
+            output = {
+                "status": "completed",
+                "data": result if result is not None else {},
+                "errors": [],
+            }
+        output.update(
+            {
+                "connector_id": connector_id,
+                "action": action,
+                "duration_ms": duration_ms,
+            }
+        )
+        self._validate_output_contract(output)
+        return output
+
+    def _validate_output_contract(self, output: dict[str, Any]) -> None:
+        required = {
+            "status": str,
+            "data": (dict, list, str, int, float, bool, type(None)),
+            "errors": list,
+            "connector_id": str,
+            "action": str,
+            "duration_ms": int,
+        }
+        for key, expected in required.items():
+            if key not in output:
+                raise ConnectorActionRuntimeError(
+                    code="validation_failed",
+                    connector_id=output.get("connector_id", "unknown"),
+                    action=output.get("action", "unknown"),
+                    message=f"Connector output missing required field '{key}'",
+                    http_status=422,
+                )
+            if not isinstance(output[key], expected):
+                raise ConnectorActionRuntimeError(
+                    code="validation_failed",
+                    connector_id=output.get("connector_id", "unknown"),
+                    action=output.get("action", "unknown"),
+                    message=f"Connector output field '{key}' has invalid type",
+                    http_status=422,
+                )
+
+    def _map_exception(self, connector_id: str, action: str, exc: Exception) -> "ConnectorActionRuntimeError":
+        lowered = str(exc).lower()
+        if isinstance(exc, ConnectorActionRuntimeError):
+            return exc
+        if isinstance(exc, (FileNotFoundError, ModuleNotFoundError, AttributeError, KeyError)):
+            return ConnectorActionRuntimeError(
+                code="not_found",
+                connector_id=connector_id,
+                action=action,
+                message=str(exc),
+                http_status=404,
+            )
+        if isinstance(exc, (PermissionError,)) or any(
+            token in lowered for token in ("auth", "unauthorized", "forbidden", "invalid token")
+        ):
+            return ConnectorActionRuntimeError(
+                code="auth_failed",
+                connector_id=connector_id,
+                action=action,
+                message=str(exc),
+                http_status=401,
+            )
+        if isinstance(exc, (ValueError, TypeError, ConnectorSchemaValidationError)):
+            return ConnectorActionRuntimeError(
+                code="validation_failed",
+                connector_id=connector_id,
+                action=action,
+                message=str(exc),
+                http_status=422,
+            )
+        if isinstance(exc, (TimeoutError, asyncio.TimeoutError)) or "timeout" in lowered:
+            return ConnectorActionRuntimeError(
+                code="timeout",
+                connector_id=connector_id,
+                action=action,
+                message=str(exc) or "Connector action timed out",
+                http_status=504,
+                retriable=True,
+            )
+        if isinstance(exc, (CircuitOpenError, CircuitBreakerOpenError, ConnectorCallFailedError, RuntimeError)):
+            return ConnectorActionRuntimeError(
+                code="upstream_unavailable",
+                connector_id=connector_id,
+                action=action,
+                message=str(exc),
+                http_status=503,
+                retriable=True,
+            )
+        return ConnectorActionRuntimeError(
+            code="upstream_unavailable",
+            connector_id=connector_id,
+            action=action,
+            message=str(exc),
+            http_status=503,
+        )
 
     async def execute(
-        self, *, connector_id: str, action: str, payload: dict[str, Any] | None = None
+        self,
+        *,
+        connector_id: str,
+        action: str,
+        payload: dict[str, Any] | None = None,
+        tenant_id: str | None = None,
+        correlation_id: str | None = None,
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        start = time.perf_counter()
+        execution_payload = payload or {}
+        execution_context = {
+            "tenant_id": tenant_id,
+            "correlation_id": correlation_id,
+            **(context or {}),
+        }
+        await self._emit_event(
+            "connector.action.started",
+            {
+                "connector_id": connector_id,
+                "action": action,
+                "category": "connector_action",
+                "tenant_id": tenant_id,
+                "correlation_id": correlation_id,
+            },
+        )
         connector = self._registry.get_connector(connector_id)
         if not connector:
-            raise ValueError(f"Unknown connector: {connector_id}")
+            error = ConnectorActionRuntimeError(
+                code="not_found",
+                connector_id=connector_id,
+                action=action,
+                message=f"Unknown connector: {connector_id}",
+                http_status=404,
+            )
+            await self._emit_event(
+                "connector.action.failed",
+                {
+                    "connector_id": connector_id,
+                    "action": action,
+                    "category": "connector_action",
+                    "error": error.to_response(),
+                },
+            )
+            raise error
+
+        module = self._load_entrypoint_module(connector)
+        handler, handler_name = self._resolve_action_callable(module, action)
+        resilience = self._resilience_for(connector.connector_id)
+
+        async def _operation() -> Any:
+            result = self._invoke_action(
+                handler,
+                handler_name,
+                action=action,
+                payload=execution_payload,
+                context=execution_context,
+            )
+            if hasattr(result, "__await__"):
+                return await result
+            return result
+
+        try:
+            result = await resilience.execute_async(_operation)
+            duration_ms = int((time.perf_counter() - start) * 1000)
+            normalized = self._normalize_output(
+                connector_id=connector.connector_id,
+                action=action,
+                result=result,
+                duration_ms=duration_ms,
+            )
+            await self._emit_event(
+                "connector.action.succeeded",
+                {
+                    "connector_id": connector.connector_id,
+                    "action": action,
+                    "category": "connector_action",
+                    "latency_ms": duration_ms,
+                    "status": normalized["status"],
+                },
+            )
+            return normalized
+        except Exception as exc:  # noqa: BLE001
+            mapped_error = self._map_exception(connector.connector_id, action, exc)
+            duration_ms = int((time.perf_counter() - start) * 1000)
+            await self._emit_event(
+                "connector.action.failed",
+                {
+                    "connector_id": connector.connector_id,
+                    "action": action,
+                    "category": "connector_action",
+                    "latency_ms": duration_ms,
+                    "error": mapped_error.to_response(),
+                },
+            )
+            raise mapped_error from exc
+
+
+class ConnectorActionRuntimeError(RuntimeError):
+    def __init__(
+        self,
+        *,
+        code: str,
+        connector_id: str,
+        action: str,
+        message: str,
+        http_status: int,
+        retriable: bool = False,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.connector_id = connector_id
+        self.action = action
+        self.message = message
+        self.http_status = http_status
+        self.retriable = retriable
+
+    def to_response(self) -> dict[str, Any]:
         return {
-            "connector_id": connector.connector_id,
-            "action": action,
-            "status": "completed",
-            "manifest_path": connector.manifest_path,
-            "payload": payload or {},
+            "error": self.code,
+            "message": self.message,
+            "connector_id": self.connector_id,
+            "action": self.action,
+            "retriable": self.retriable,
         }
 
 
@@ -126,7 +547,7 @@ class AgentRuntime:
         self._data_dir.mkdir(parents=True, exist_ok=True)
         self._event_bus = event_bus or self._build_event_bus()
         self._connector_registry = ConnectorRegistry()
-        self._connector_client = ConnectorActionClient(self._connector_registry)
+        self._connector_client = ConnectorActionClient(self._connector_registry, event_bus=self._event_bus)
         self._agent_registry: dict[str, BaseAgent] = {}
         self._demo_mode = demo_mode_enabled()
         self._demo_fixtures: dict[str, dict[str, Any]] = {}
@@ -138,7 +559,10 @@ class AgentRuntime:
         self._event_bus.subscribe("agent.requested", self._handle_agent_request)
 
     def _build_event_bus(self) -> EventBus:
-        return get_event_bus()
+        try:
+            return get_event_bus()
+        except Exception:
+            return _LocalEventBus()
 
     @property
     def event_bus(self) -> EventBus:
@@ -200,6 +624,9 @@ class AgentRuntime:
                         connector_id=action["connector_id"],
                         action=action["action"],
                         payload=action.get("payload", {}),
+                        tenant_id=payload.get("tenant_id"),
+                        correlation_id=payload.get("correlation_id"),
+                        context=payload.get("context") if isinstance(payload.get("context"), dict) else None,
                     )
                 )
             payload["connector_results"] = connector_results
