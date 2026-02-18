@@ -127,3 +127,29 @@ def test_connector_ingest(monkeypatch, tmp_path) -> None:
         assert response.status_code == 200
         entities = response.json()
         assert entities[0]["data"]["id"] == "proj-100"
+
+
+def test_startup_dev_allows_default_sqlite_fallback(monkeypatch) -> None:
+    monkeypatch.delenv("DATA_SERVICE_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "development")
+    monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")
+
+    with TestClient(module.app) as client:
+        response = client.get("/healthz")
+
+    assert response.status_code == 200
+
+
+def test_startup_production_rejects_default_sqlite_fallback(monkeypatch) -> None:
+    monkeypatch.delenv("DATA_SERVICE_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")
+
+    with pytest.raises(
+        ValueError,
+        match="DATA_SERVICE_DATABASE_URL or DATABASE_URL",
+    ):
+        with TestClient(module.app):
+            pass

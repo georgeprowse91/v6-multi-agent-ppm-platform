@@ -1,11 +1,53 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 
+
+
+@dataclass(frozen=True)
+class DocumentSessionStorageSelection:
+    db_path: Path
+    backend: str
+    durability_mode: str
+    source: str
+
+
+def resolve_document_session_storage(
+    *,
+    environment: str,
+    configured_db_path: str | None = None,
+) -> DocumentSessionStorageSelection:
+    from common.env_validation import (
+        durability_mode_for_storage,
+        enforce_no_default_file_backed_storage,
+    )
+
+    default_path = "data/documents/sessions.db"
+    selected = configured_db_path or os.getenv("DOCUMENT_SESSION_DB_PATH") or default_path
+    used_default = not (configured_db_path or os.getenv("DOCUMENT_SESSION_DB_PATH"))
+    enforce_no_default_file_backed_storage(
+        service_name="api-gateway document session store",
+        setting_names=("DOCUMENT_SESSION_DB_PATH",),
+        selected_value=selected,
+        used_default=used_default,
+        environment=environment,
+        remediation_hint=(
+            "Provide DOCUMENT_SESSION_DB_PATH on persistent storage (for example a mounted "
+            "volume path) to prevent session/version data loss on restart."
+        ),
+    )
+    return DocumentSessionStorageSelection(
+        db_path=Path(selected),
+        backend="sqlite",
+        durability_mode=durability_mode_for_storage(selected),
+        source="default" if used_default else "explicit",
+    )
 class DocumentSessionStore:
     def __init__(self, db_path: Path) -> None:
         self._db_path = db_path

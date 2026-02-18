@@ -58,6 +58,7 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
+from common.env_validation import environment_value  # noqa: E402
 from common.exceptions import PPMPlatformError, exception_to_http_status  # noqa: E402
 
 # Configure logging
@@ -89,7 +90,7 @@ def _version_payload() -> dict[str, str]:
     }
 
 
-environment = os.getenv("ENVIRONMENT", "development").lower()
+environment = environment_value(os.environ)
 
 # Configure CORS
 allowed_origins = get_allowed_origins(environment)
@@ -128,7 +129,10 @@ async def startup_event() -> None:
     app.state.leader_elector = build_leader_elector("api-gateway")
     app.state.leader_elector.start()
 
-    from api.document_session_store import DocumentSessionStore
+    from api.document_session_store import (
+        DocumentSessionStore,
+        resolve_document_session_storage,
+    )
     from api.routes.connectors import (
         build_circuit_breaker,
         build_config_store,
@@ -140,9 +144,18 @@ async def startup_event() -> None:
     app.state.project_connector_config_store = build_project_config_store()
     app.state.webhook_store = build_webhook_store()
     app.state.connector_circuit_breaker = build_circuit_breaker()
-    app.state.document_session_store = DocumentSessionStore(
-        REPO_ROOT / "data" / "documents" / "sessions.db"
+    document_session_storage = resolve_document_session_storage(environment=environment)
+    logger.info(
+        "api-gateway document session persistence configuration",
+        extra={
+            "environment": environment,
+            "storage_backend": document_session_storage.backend,
+            "durability_mode": document_session_storage.durability_mode,
+            "document_session_db_path_source": document_session_storage.source,
+            "document_session_db_path": str(document_session_storage.db_path),
+        },
     )
+    app.state.document_session_store = DocumentSessionStore(document_session_storage.db_path)
 
     rotation_enabled = os.getenv("CONNECTOR_ROTATION_ENABLED", "false").lower() == "true"
     if rotation_enabled:

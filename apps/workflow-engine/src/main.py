@@ -51,8 +51,9 @@ from workflow_definitions import (  # noqa: E402
     validate_definition,
 )
 from workflow_runtime import WorkflowRuntime  # noqa: E402
-from workflow_storage import WorkflowStore  # noqa: E402
+from workflow_storage import WorkflowStore, resolve_workflow_storage  # noqa: E402
 
+from common.env_validation import environment_value  # noqa: E402
 from config import validate_startup_config  # noqa: E402
 from packages.version import API_VERSION  # noqa: E402
 
@@ -64,7 +65,9 @@ settings = validate_startup_config()
 WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 DEMO_DEFINITIONS_DIR = REPO_ROOT / "config" / "demo-workflows"
-DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workflows.db"))
+ENVIRONMENT = environment_value(os.environ)
+WORKFLOW_STORAGE = resolve_workflow_storage(environment=ENVIRONMENT)
+DB_PATH = WORKFLOW_STORAGE.db_path
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 RATE_LIMIT = os.getenv("WORKFLOW_ENGINE_RATE_LIMIT", "100/minute")
 
@@ -80,6 +83,16 @@ configure_metrics("workflow-engine")
 app.add_middleware(TraceMiddleware, service_name="workflow-engine")
 app.add_middleware(RequestMetricsMiddleware, service_name="workflow-engine")
 apply_api_governance(app, service_name="workflow-engine")
+logger.info(
+    "workflow-engine persistence configuration",
+    extra={
+        "environment": ENVIRONMENT,
+        "storage_backend": WORKFLOW_STORAGE.backend,
+        "durability_mode": WORKFLOW_STORAGE.durability_mode,
+        "workflow_db_path_source": WORKFLOW_STORAGE.source,
+        "workflow_db_path": str(DB_PATH),
+    },
+)
 store = WorkflowStore(DB_PATH)
 bootstrap_runtime_paths()
 from approval_workflow_agent import ApprovalWorkflowAgent  # noqa: E402

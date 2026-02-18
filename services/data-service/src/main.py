@@ -21,7 +21,8 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT):
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT, COMMON_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -45,6 +46,11 @@ from storage import (  # noqa: E402
 
 from packages.version import API_VERSION
 from security.config import load_yaml  # noqa: E402
+from common.env_validation import (  # noqa: E402
+    durability_mode_for_storage,
+    enforce_no_default_file_backed_storage,
+    environment_value,
+)
 
 logger = logging.getLogger("data-service")
 logging.basicConfig(level=logging.INFO)
@@ -158,10 +164,35 @@ apply_api_governance(app, service_name="data-service")
 
 @app.on_event("startup")
 async def startup() -> None:
-    database_url = os.getenv("DATA_SERVICE_DATABASE_URL") or os.getenv("DATABASE_URL")
-    if not database_url:
-        database_url = "sqlite+aiosqlite:///data/data_service.db"
-    database_url = to_async_database_url(database_url)
+    selected_database_url = os.getenv("DATA_SERVICE_DATABASE_URL") or os.getenv("DATABASE_URL")
+    used_default_database = not selected_database_url
+    if used_default_database:
+        selected_database_url = "sqlite+aiosqlite:///data/data_service.db"
+
+    environment = environment_value(os.environ)
+    enforce_no_default_file_backed_storage(
+        service_name="data-service",
+        setting_names=("DATA_SERVICE_DATABASE_URL", "DATABASE_URL"),
+        selected_value=selected_database_url,
+        used_default=used_default_database,
+        environment=environment,
+        remediation_hint=(
+            "Configure a persistent database DSN (for example PostgreSQL) "
+            "through DATA_SERVICE_DATABASE_URL or DATABASE_URL."
+        ),
+    )
+
+    database_url = to_async_database_url(selected_database_url)
+    logger.info(
+        "data-service persistence configuration",
+        extra={
+            "environment": environment,
+            "storage_backend": "sqlite" if "sqlite" in database_url else "sql",
+            "durability_mode": durability_mode_for_storage(database_url),
+            "database_url_source": "default" if used_default_database else "explicit",
+        },
+    )
+
     store = DataServiceStore(database_url)
     await store.initialize()
     if os.getenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "true").lower() in {"true", "1", "yes"}:
