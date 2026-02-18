@@ -15,6 +15,7 @@ Define the CI/CD, security, and compliance pipelines that validate and release t
 - [security-scan.yml](/.github/workflows/security-scan.yml): Security scanning and policy enforcement.
 - [secret-scan.yml](/.github/workflows/secret-scan.yml): Secret scanning checks.
 - [iac-scan.yml](/.github/workflows/iac-scan.yml): Infrastructure-as-code scan (when enabled).
+- [release-gate.yml](/.github/workflows/release-gate.yml): Release maturity gate matrix (`core`/`full`) with machine-readable quality reports; this check should be required for `main` and `release/**` merges.
 
 ## How it's used
 
