@@ -25,6 +25,18 @@ def build_agent(tmp_path: Path) -> KnowledgeManagementAgent:
     )
 
 
+def build_agent_with_entity_backend(tmp_path: Path, backend: str) -> KnowledgeManagementAgent:
+    return KnowledgeManagementAgent(
+        config={
+            "document_store_path": str(tmp_path / "documents.json"),
+            "knowledge_db_path": str(tmp_path / "knowledge.db"),
+            "document_schema_path": "data/schemas/document.schema.json",
+            "similarity_threshold": 0.0,
+            "entity_extraction_backend": backend,
+        }
+    )
+
+
 @pytest.mark.anyio
 async def test_ingestion_from_github_repo(tmp_path: Path) -> None:
     repo_path = tmp_path / "repo"
@@ -247,3 +259,40 @@ async def test_generate_excerpts_handles_very_short_and_very_long_content(tmp_pa
     assert short_excerpt == "短い text"
     assert "<mark>marker</mark>" in long_excerpt.lower()
     assert len(long_excerpt) <= 240
+
+
+@pytest.mark.anyio
+async def test_entity_extraction_returns_normalized_entities_for_quality_targets(tmp_path: Path) -> None:
+    agent = build_agent_with_entity_backend(tmp_path, "fallback")
+    await agent.initialize()
+
+    text = (
+        "Project PRJ-2048 was approved on 2025-04-10. "
+        "Alice Johnson coordinated with Acme Systems LLC for onboarding."
+    )
+    entities = await agent._extract_entities_from_text(text)
+
+    by_type = {entity["type"]: entity for entity in entities}
+    assert by_type["project_id"]["text"] == "PRJ-2048"
+    assert by_type["date"]["text"] == "2025-04-10"
+    assert by_type["person"]["text"] == "Alice Johnson"
+    assert by_type["organization"]["text"] == "Acme Systems LLC"
+
+    for entity in entities:
+        assert set(entity.keys()) == {"text", "type", "score", "position", "span"}
+        assert 0.0 <= entity["score"] <= 1.0
+        assert entity["span"]["start"] == entity["position"]
+        assert entity["span"]["end"] > entity["span"]["start"]
+
+
+@pytest.mark.anyio
+async def test_entity_extraction_fallback_deterministic_output(tmp_path: Path) -> None:
+    agent = build_agent_with_entity_backend(tmp_path, "fallback")
+    await agent.initialize()
+
+    text = "Bob Smith updated PROJ123 on 2024-12-01 with Zenith Technologies Inc"
+    first = await agent._extract_entities_from_text(text)
+    second = await agent._extract_entities_from_text(text)
+
+    assert first == second
+    assert any(entity["type"] == "project_id" and entity["text"] == "PROJ123" for entity in first)
