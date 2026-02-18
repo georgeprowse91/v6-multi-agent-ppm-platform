@@ -21,6 +21,52 @@ for path in (REPO_ROOT, API_SRC, FEATURE_FLAGS_SRC, COMMON_SRC, SECURITY_SRC):
     if path_str not in sys.path:
         sys.path.insert(0, path_str)
 
+
+if "slowapi" not in sys.modules:
+    slowapi_mod = types.ModuleType("slowapi")
+
+    class Limiter:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def exempt(self, fn):
+            return fn
+
+    def _rate_limit_exceeded_handler(*_args, **_kwargs):
+        return None
+
+    slowapi_mod.Limiter = Limiter
+    slowapi_mod._rate_limit_exceeded_handler = _rate_limit_exceeded_handler
+    sys.modules["slowapi"] = slowapi_mod
+
+if "slowapi.errors" not in sys.modules:
+    slowapi_errors = types.ModuleType("slowapi.errors")
+
+    class RateLimitExceeded(Exception):
+        pass
+
+    slowapi_errors.RateLimitExceeded = RateLimitExceeded
+    sys.modules["slowapi.errors"] = slowapi_errors
+
+if "slowapi.middleware" not in sys.modules:
+    slowapi_middleware = types.ModuleType("slowapi.middleware")
+
+    class SlowAPIMiddleware:
+        pass
+
+    slowapi_middleware.SlowAPIMiddleware = SlowAPIMiddleware
+    sys.modules["slowapi.middleware"] = slowapi_middleware
+if "slowapi.util" not in sys.modules:
+    slowapi_util = types.ModuleType("slowapi.util")
+
+    def get_remote_address(_request=None):
+        return "test-client"
+
+    slowapi_util.get_remote_address = get_remote_address
+    sys.modules["slowapi.util"] = slowapi_util
+
+
+
 # Optional dependency shim
 if "cryptography" not in sys.modules:
     cryptography = types.ModuleType("cryptography")

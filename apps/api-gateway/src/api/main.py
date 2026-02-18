@@ -20,7 +20,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
-from api.leader_election import build_leader_elector
+from api.bootstrap import StartupFailure, build_default_bootstrap_registry
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import (
@@ -41,7 +41,6 @@ from api.routes import (
     vendor_research,
     workflows,
 )
-from api.runtime_bootstrap import bootstrap_runtime_paths
 from api.config import validate_startup_config
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -118,58 +117,20 @@ register_error_handlers(app)
 async def startup_event() -> None:
     """Initialize application on startup."""
     logger.info("Starting Multi-Agent PPM Platform...")
-
-    # Initialize orchestrator
-    bootstrap_runtime_paths()
-    from orchestrator import AgentOrchestrator
-
-    app.state.orchestrator = AgentOrchestrator()
-    await app.state.orchestrator.initialize()
-
-    app.state.leader_elector = build_leader_elector("api-gateway")
-    app.state.leader_elector.start()
-
-    from api.document_session_store import (
-        DocumentSessionStore,
-        resolve_document_session_storage,
-    )
-    from api.routes.connectors import (
-        build_circuit_breaker,
-        build_config_store,
-        build_project_config_store,
-        build_webhook_store,
-    )
-
-    app.state.connector_config_store = build_config_store()
-    app.state.project_connector_config_store = build_project_config_store()
-    app.state.webhook_store = build_webhook_store()
-    app.state.connector_circuit_breaker = build_circuit_breaker()
-    document_session_storage = resolve_document_session_storage(environment=environment)
-    logger.info(
-        "api-gateway document session persistence configuration",
-        extra={
-            "environment": environment,
-            "storage_backend": document_session_storage.backend,
-            "durability_mode": document_session_storage.durability_mode,
-            "document_session_db_path_source": document_session_storage.source,
-            "document_session_db_path": str(document_session_storage.db_path),
-        },
-    )
-    app.state.document_session_store = DocumentSessionStore(document_session_storage.db_path)
-
-    rotation_enabled = os.getenv("CONNECTOR_ROTATION_ENABLED", "false").lower() == "true"
-    if rotation_enabled:
-        from api.secret_rotation import ConnectorSecretRotationScheduler
-
-        interval = int(os.getenv("CONNECTOR_ROTATION_INTERVAL_SECONDS", "3600"))
-        webhook_url = os.getenv("AZURE_AUTOMATION_WEBHOOK_URL")
-        scheduler = ConnectorSecretRotationScheduler(
-            app.state.connector_config_store,
-            interval_seconds=interval,
-            automation_webhook_url=webhook_url,
+    app.state.environment = environment
+    app.state.bootstrap_registry = build_default_bootstrap_registry()
+    try:
+        await app.state.bootstrap_registry.startup(app)
+    except StartupFailure as exc:
+        logger.error(
+            "Application startup failed",
+            extra={
+                "component": exc.component,
+                "error": exc.message,
+                "startup_order": exc.startup_order,
+            },
         )
-        scheduler.start()
-        app.state.rotation_scheduler = scheduler
+        raise RuntimeError(str(exc)) from exc
 
     logger.info("Application started successfully")
 
@@ -179,21 +140,9 @@ async def shutdown_event() -> None:
     """Clean up resources on shutdown."""
     logger.info("Shutting down Multi-Agent PPM Platform...")
 
-    orchestrator = getattr(app.state, "orchestrator", None)
-    if orchestrator:
-        await orchestrator.cleanup()
-
-    leader_elector = getattr(app.state, "leader_elector", None)
-    if leader_elector:
-        leader_elector.stop()
-
-    rotation_scheduler = getattr(app.state, "rotation_scheduler", None)
-    if rotation_scheduler:
-        rotation_scheduler.stop()
-
-    document_session_store = getattr(app.state, "document_session_store", None)
-    if document_session_store:
-        document_session_store.close()
+    bootstrap_registry = getattr(app.state, "bootstrap_registry", None)
+    if bootstrap_registry:
+        await bootstrap_registry.shutdown(app)
 
     logger.info("Application shut down successfully")
 
