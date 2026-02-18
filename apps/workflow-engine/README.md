@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the Workflow Engine application and its role in the platform experience layer.
+The Workflow Engine app executes workflow definitions, evaluates gate criteria, and records orchestration outcomes for auditability.
 
 ## What's inside
 
@@ -33,3 +33,9 @@ Runtime configuration is supplied via `.env` and service URLs in the repo config
 
 - Missing dependencies: install dev dependencies with `make install-dev`.
 - Startup errors: verify required env vars are present in `.env`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

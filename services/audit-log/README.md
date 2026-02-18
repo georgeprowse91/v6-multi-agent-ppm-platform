@@ -46,3 +46,9 @@ Service-specific environment variables should be defined in `.env` and, for prod
 
 - Endpoint reference (source of truth): [`docs/generated/services/audit-log.md`](../../docs/generated/services/audit-log.md).
 - Regenerate with: `python ops/tools/codegen/generate_docs.py`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

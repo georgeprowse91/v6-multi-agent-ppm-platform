@@ -215,6 +215,9 @@ jobs:
       - name: Run markdown link check
         run: python scripts/check-links.py
 
+      - name: Run placeholder and README completeness quality gate
+        run: python scripts/check-placeholders.py
+
   docs-build:
     name: Docs Build
     runs-on: ubuntu-latest
