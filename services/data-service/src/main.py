@@ -12,6 +12,7 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from jsonschema import Draft202012Validator, FormatChecker
@@ -59,9 +60,13 @@ SCHEMA_DIR = REPO_ROOT / "data" / "schemas"
 
 
 class HealthResponse(BaseModel):
-    status: str = "ok"
-    service: str = "data-service"
-    dependencies: dict[str, str] = Field(default_factory=dict)
+    status: str
+    checks: dict[str, dict[str, str]] = Field(default_factory=dict)
+    severity: str
+    remediation_hint: str
+    observed_at: str
+    degraded_since: str | None = None
+    recovered_at: str | None = None
 
 
 class SchemaRegistrationRequest(BaseModel):
@@ -160,6 +165,27 @@ configure_metrics("data-service")
 app.add_middleware(TraceMiddleware, service_name="data-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-service")
 apply_api_governance(app, service_name="data-service")
+meter = configure_metrics("data-service")
+READINESS_DEGRADED_TOTAL = meter.create_counter(
+    name="service_readiness_degraded_total",
+    description="Total number of readiness degradation transitions.",
+    unit="1",
+)
+READINESS_RECOVERY_TOTAL = meter.create_counter(
+    name="service_readiness_recovered_total",
+    description="Total number of readiness recovery transitions.",
+    unit="1",
+)
+READINESS_MTTR_SECONDS = meter.create_histogram(
+    name="service_readiness_mttr_seconds",
+    description="Readiness mean-time-to-recovery samples in seconds.",
+    unit="s",
+)
+app.state.readiness_state = {
+    "last_status": "ok",
+    "degraded_since": None,
+    "recovered_at": None,
+}
 
 
 @app.on_event("startup")
@@ -221,19 +247,133 @@ def get_retention_scheduler() -> RetentionScheduler | None:
     return getattr(app.state, "retention_scheduler", None)
 
 
-@app.get("/healthz", response_model=HealthResponse)
-async def healthz() -> HealthResponse:
+def _observed_at() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _build_check(status: str, severity: str, remediation_hint: str) -> dict[str, str]:
+    return {
+        "status": status,
+        "severity": severity,
+        "remediation_hint": remediation_hint,
+        "observed_at": _observed_at(),
+    }
+
+
+def _scheduler_heartbeat_fresh(snapshot: dict[str, str | int]) -> bool:
+    heartbeat_at = str(snapshot.get("last_heartbeat_at") or "")
+    if not heartbeat_at:
+        return False
+    heartbeat = datetime.fromisoformat(heartbeat_at)
+    interval_seconds = int(snapshot.get("interval_seconds") or 0)
+    tolerance = max(5, interval_seconds * 2)
+    return (datetime.now(timezone.utc) - heartbeat).total_seconds() <= tolerance
+
+
+def _update_readiness_metrics(status: str) -> tuple[str | None, str | None]:
+    state = app.state.readiness_state
+    previous = state["last_status"]
+    now = datetime.now(timezone.utc)
+    if status != "ok" and previous == "ok":
+        state["degraded_since"] = now
+        READINESS_DEGRADED_TOTAL.add(1, {"service.name": "data-service"})
+    if status == "ok" and previous != "ok":
+        degraded_since = state.get("degraded_since")
+        if degraded_since:
+            READINESS_MTTR_SECONDS.record((now - degraded_since).total_seconds(), {"service.name": "data-service"})
+        state["recovered_at"] = now
+        state["degraded_since"] = None
+        READINESS_RECOVERY_TOTAL.add(1, {"service.name": "data-service"})
+    state["last_status"] = status
+    degraded_since = state.get("degraded_since")
+    recovered_at = state.get("recovered_at")
+    return (
+        degraded_since.isoformat() if degraded_since else None,
+        recovered_at.isoformat() if recovered_at else None,
+    )
+
+
+def _to_response(checks: dict[str, dict[str, str]], status_code: int) -> JSONResponse:
+    has_critical = any(item["severity"] == "critical" for item in checks.values())
+    status = "ok" if all(item["status"] == "ok" for item in checks.values()) else "degraded"
+    severity = "info" if status == "ok" else ("critical" if has_critical else "warning")
+    remediation_hint = "; ".join(
+        sorted({item["remediation_hint"] for item in checks.values() if item["remediation_hint"]})
+    )
+    degraded_since, recovered_at = _update_readiness_metrics(status)
+    payload = HealthResponse(
+        status=status,
+        checks=checks,
+        severity=severity,
+        remediation_hint=remediation_hint,
+        observed_at=_observed_at(),
+        degraded_since=degraded_since,
+        recovered_at=recovered_at,
+    )
+    return JSONResponse(status_code=status_code if status != "ok" else 200, content=payload.model_dump())
+
+
+@app.get("/livez", response_model=HealthResponse)
+async def livez() -> HealthResponse:
+    checks = {"process": _build_check("ok", "info", "")}
+    return HealthResponse(
+        status="ok",
+        checks=checks,
+        severity="info",
+        remediation_hint="",
+        observed_at=_observed_at(),
+    )
+
+
+@app.get("/readyz", response_model=HealthResponse)
+async def readyz() -> JSONResponse:
     store = get_store()
     scheduler = get_retention_scheduler()
-    dependencies = {"database": "unknown", "retention_scheduler": "unknown"}
+    checks = {
+        "database_transaction_probe": _build_check("ok", "info", ""),
+        "retention_scheduler_heartbeat": _build_check("ok", "info", ""),
+    }
     try:
-        await store.ping()
-        dependencies["database"] = "ok"
-    except SQLAlchemyError:
-        dependencies["database"] = "down"
-    dependencies["retention_scheduler"] = "ok" if scheduler else "down"
-    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
-    return HealthResponse(status=status, dependencies=dependencies)
+        await store.readiness_probe_transaction()
+    except (SQLAlchemyError, RuntimeError):
+        checks["database_transaction_probe"] = _build_check(
+            "down",
+            "critical",
+            "Verify write/read/delete transaction path for canonical_entities and database connectivity.",
+        )
+    if not scheduler:
+        checks["retention_scheduler_heartbeat"] = _build_check(
+            "down", "warning", "Ensure retention scheduler starts successfully during application startup."
+        )
+    else:
+        snapshot = scheduler.snapshot()
+        if not _scheduler_heartbeat_fresh(snapshot):
+            checks["retention_scheduler_heartbeat"] = _build_check(
+                "down",
+                "warning",
+                "Investigate retention scheduler thread and ensure heartbeat updates within expected interval.",
+            )
+    return _to_response(checks, status_code=503)
+
+
+@app.get("/readyz/deep", response_model=HealthResponse)
+async def deep_readyz() -> JSONResponse:
+    store = get_store()
+    checks = {"database_transaction_probe": _build_check("ok", "info", "")}
+    try:
+        await store.readiness_probe_transaction()
+    except (SQLAlchemyError, RuntimeError):
+        checks["database_transaction_probe"] = _build_check(
+            "down",
+            "critical",
+            "Restore transactional read/write path on canonical_entities and validate connection pool health.",
+        )
+    return _to_response(checks, status_code=503)
+
+
+@app.get("/healthz", response_model=HealthResponse)
+async def healthz() -> JSONResponse:
+    return await readyz()
 
 
 @app.get("/version")

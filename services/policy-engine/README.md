@@ -6,7 +6,10 @@ Define the Policy Engine service responsibilities and how it integrates with the
 
 ## Key endpoints
 
-- [healthz](/GET /healthz): Service health check.
+- [livez](/GET /livez): Liveness check (process up).
+- [readyz](/GET /readyz): Readiness check (dependencies operational).
+- [readyz/deep](/GET /readyz/deep): Deep readiness check (critical transaction probe).
+- [healthz](/GET /healthz): Backward-compatible alias for readiness.
 - [evaluate](/POST /v1/policies/evaluate): Evaluate policy decisions against inputs.
 - [evaluate](/POST /v1/rbac/evaluate): Evaluate RBAC policies.
 - [evaluate](/POST /v1/abac/evaluate): Evaluate ABAC policies.

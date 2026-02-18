@@ -3,12 +3,14 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import httpx
 import yaml
 from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from jsonschema import Draft202012Validator, FormatChecker
@@ -41,9 +43,13 @@ SCHEMA_PATH = (
 
 
 class HealthResponse(BaseModel):
-    status: str = "ok"
-    service: str = "policy-engine"
-    dependencies: dict[str, str] = Field(default_factory=dict)
+    status: str
+    checks: dict[str, dict[str, str]] = Field(default_factory=dict)
+    severity: str
+    remediation_hint: str
+    observed_at: str
+    degraded_since: str | None = None
+    recovered_at: str | None = None
 
 
 class PolicyEvaluationRequest(BaseModel):
@@ -100,6 +106,27 @@ configure_metrics("policy-engine")
 app.add_middleware(TraceMiddleware, service_name="policy-engine")
 app.add_middleware(RequestMetricsMiddleware, service_name="policy-engine")
 apply_api_governance(app, service_name="policy-engine")
+meter = configure_metrics("policy-engine")
+READINESS_DEGRADED_TOTAL = meter.create_counter(
+    name="service_readiness_degraded_total",
+    description="Total number of readiness degradation transitions.",
+    unit="1",
+)
+READINESS_RECOVERY_TOTAL = meter.create_counter(
+    name="service_readiness_recovered_total",
+    description="Total number of readiness recovery transitions.",
+    unit="1",
+)
+READINESS_MTTR_SECONDS = meter.create_histogram(
+    name="service_readiness_mttr_seconds",
+    description="Readiness mean-time-to-recovery samples in seconds.",
+    unit="s",
+)
+app.state.readiness_state = {
+    "last_status": "ok",
+    "degraded_since": None,
+    "recovered_at": None,
+}
 
 
 @app.on_event("startup")
@@ -122,21 +149,132 @@ async def register_policy_schema() -> None:
         logger.warning("policy_schema_registration_failed", extra={"error": str(exc)})
 
 
-@app.get("/healthz", response_model=HealthResponse)
-async def healthz() -> HealthResponse:
-    dependencies = {"policy_bundle": "unknown", "rbac_config": "unknown"}
+def _observed_at() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _build_check(status: str, severity: str, remediation_hint: str) -> dict[str, str]:
+    return {
+        "status": status,
+        "severity": severity,
+        "remediation_hint": remediation_hint,
+        "observed_at": _observed_at(),
+    }
+
+
+def _sample_policy_evaluation_probe() -> None:
+    bundle = _load_default_policies()
+    sample_input = {"metadata": {"owner": "healthcheck", "name": "probe"}}
+    _evaluate(sample_input, bundle)
+
+
+async def _check_data_service_reachability() -> dict[str, str]:
+    data_service_url = os.getenv("DATA_SERVICE_URL")
+    if not data_service_url:
+        return _build_check("ok", "info", "No DATA_SERVICE_URL configured; external reachability optional.")
+    if os.getenv("POLICY_ENGINE_REQUIRE_DATA_SERVICE", "false").lower() not in {"1", "true", "yes"}:
+        return _build_check("ok", "info", "Data service check is optional unless POLICY_ENGINE_REQUIRE_DATA_SERVICE=true.")
+    try:
+        async with httpx.AsyncClient(base_url=data_service_url.rstrip("/"), timeout=5.0) as client:
+            response = await client.get("/readyz")
+            response.raise_for_status()
+        return _build_check("ok", "info", "")
+    except httpx.HTTPError:
+        return _build_check("down", "critical", "Verify DATA_SERVICE_URL connectivity and restore data-service readiness.")
+
+
+def _update_readiness_metrics(status: str) -> tuple[str | None, str | None]:
+    state = app.state.readiness_state
+    previous = state["last_status"]
+    now = datetime.now(timezone.utc)
+    if status != "ok" and previous == "ok":
+        state["degraded_since"] = now
+        READINESS_DEGRADED_TOTAL.add(1, {"service.name": "policy-engine"})
+    if status == "ok" and previous != "ok":
+        degraded_since = state.get("degraded_since")
+        if degraded_since:
+            READINESS_MTTR_SECONDS.record((now - degraded_since).total_seconds(), {"service.name": "policy-engine"})
+        state["recovered_at"] = now
+        state["degraded_since"] = None
+        READINESS_RECOVERY_TOTAL.add(1, {"service.name": "policy-engine"})
+    state["last_status"] = status
+    degraded_since = state.get("degraded_since")
+    recovered_at = state.get("recovered_at")
+    return (
+        degraded_since.isoformat() if degraded_since else None,
+        recovered_at.isoformat() if recovered_at else None,
+    )
+
+
+def _to_response(checks: dict[str, dict[str, str]], status_code: int) -> JSONResponse:
+    has_critical = any(item["severity"] == "critical" for item in checks.values())
+    status = "ok" if all(item["status"] == "ok" for item in checks.values()) else "degraded"
+    severity = "info" if status == "ok" else ("critical" if has_critical else "warning")
+    remediation_hint = "; ".join(
+        sorted({item["remediation_hint"] for item in checks.values() if item["remediation_hint"]})
+    )
+    degraded_since, recovered_at = _update_readiness_metrics(status)
+    payload = HealthResponse(
+        status=status,
+        checks=checks,
+        severity=severity,
+        remediation_hint=remediation_hint,
+        observed_at=_observed_at(),
+        degraded_since=degraded_since,
+        recovered_at=recovered_at,
+    )
+    return JSONResponse(status_code=status_code if status != "ok" else 200, content=payload.model_dump())
+
+
+@app.get("/livez", response_model=HealthResponse)
+async def livez() -> HealthResponse:
+    checks = {"process": _build_check("ok", "info", "")}
+    return HealthResponse(
+        status="ok",
+        checks=checks,
+        severity="info",
+        remediation_hint="",
+        observed_at=_observed_at(),
+    )
+
+
+@app.get("/readyz", response_model=HealthResponse)
+async def readyz() -> JSONResponse:
+    checks = {
+        "policy_bundle_load_parse": _build_check("ok", "info", ""),
+        "rbac_config": _build_check("ok", "info", ""),
+    }
     try:
         _load_default_policies()
-        dependencies["policy_bundle"] = "ok"
     except (HTTPException, OSError, ValueError, yaml.YAMLError):
-        dependencies["policy_bundle"] = "down"
+        checks["policy_bundle_load_parse"] = _build_check(
+            "down", "critical", "Restore default policy bundle and ensure it conforms to schema."
+        )
     try:
         _load_rbac_config()
-        dependencies["rbac_config"] = "ok"
     except (OSError, ValueError, yaml.YAMLError):
-        dependencies["rbac_config"] = "down"
-    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
-    return HealthResponse(status=status, dependencies=dependencies)
+        checks["rbac_config"] = _build_check(
+            "down", "warning", "Restore RBAC roles/permissions/field-level configuration files."
+        )
+    checks["data_service_reachability"] = await _check_data_service_reachability()
+    return _to_response(checks, status_code=503)
+
+
+@app.get("/readyz/deep", response_model=HealthResponse)
+async def deep_readyz() -> JSONResponse:
+    checks = {"policy_sample_evaluation": _build_check("ok", "info", "")}
+    try:
+        _sample_policy_evaluation_probe()
+    except Exception:  # pragma: no cover - defensive guard for deep probe failures
+        checks["policy_sample_evaluation"] = _build_check(
+            "down", "critical", "Fix policy parsing/evaluation path so sample probe can execute."
+        )
+    return _to_response(checks, status_code=503)
+
+
+@app.get("/healthz", response_model=HealthResponse)
+async def healthz() -> JSONResponse:
+    return await readyz()
 
 
 @app.get("/version")

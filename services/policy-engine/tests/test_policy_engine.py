@@ -42,7 +42,34 @@ def _auth_headers(monkeypatch, tenant_id: str = "tenant-alpha") -> dict[str, str
 def test_healthz() -> None:
     response = client.get("/healthz")
     assert response.status_code == 200
-    assert response.json()["service"] == "policy-engine"
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert "checks" in payload
+    assert "severity" in payload
+    assert "observed_at" in payload
+
+
+def test_readyz_degraded_when_policy_bundle_invalid(monkeypatch, tmp_path) -> None:
+    invalid_bundle = tmp_path / "invalid-bundle.yaml"
+    invalid_bundle.write_text("not: valid: yaml")
+    monkeypatch.setenv("POLICY_BUNDLE_PATH", str(invalid_bundle))
+
+    response = client.get("/readyz")
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["status"] == "degraded"
+    assert payload["severity"] == "critical"
+    assert payload["checks"]["policy_bundle_load_parse"]["status"] == "down"
+
+
+def test_readyz_degraded_when_data_service_required_unreachable(monkeypatch) -> None:
+    monkeypatch.setenv("POLICY_ENGINE_REQUIRE_DATA_SERVICE", "true")
+    monkeypatch.setenv("DATA_SERVICE_URL", "http://127.0.0.1:9")
+
+    response = client.get("/readyz")
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["checks"]["data_service_reachability"]["status"] == "down"
 
 
 def test_policy_evaluate_allow(monkeypatch) -> None:

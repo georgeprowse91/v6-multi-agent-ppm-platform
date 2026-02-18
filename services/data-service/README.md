@@ -6,7 +6,10 @@ Centralize canonical entity storage and manage JSON Schema versions for the plat
 
 ## Key endpoints
 
-- [healthz](/GET /healthz): Service health check.
+- [livez](/GET /livez): Liveness check (process up).
+- [readyz](/GET /readyz): Readiness check (dependencies operational).
+- [readyz/deep](/GET /readyz/deep): Deep readiness check (critical transaction probe).
+- [healthz](/GET /healthz): Backward-compatible alias for readiness.
 - [schemas](/POST /v1/schemas): Register a schema (auto-increments version when omitted).
 - [schemas](/GET /v1/schemas): List schemas with latest versions.
 - [versions](/GET /v1/schemas/{schema_name}/versions): List all versions for a schema.

@@ -16,6 +16,7 @@ class RetentionScheduler:
         self._stop = Event()
         self._last_pruned_at: str | None = None
         self._last_pruned_count: int = 0
+        self._last_heartbeat_at: str | None = None
 
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
@@ -35,10 +36,12 @@ class RetentionScheduler:
             "last_pruned_count": self._last_pruned_count,
             "interval_seconds": self.interval_seconds,
             "retention_days": self.retention_days,
+            "last_heartbeat_at": self._last_heartbeat_at or "",
         }
 
     def _run_loop(self) -> None:
         while not self._stop.wait(self.interval_seconds):
+            self._last_heartbeat_at = datetime.now(timezone.utc).isoformat()
             self._prune()
 
     def _prune(self) -> None:
