@@ -35,7 +35,7 @@ Define the responsibilities, workflows, and integration points for Agent 24: Wor
 - Must validate workflow definitions before persisting or starting instances (name + task presence + spec parsing).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L905-L1040】
 - Must persist workflow definitions/instances/tasks to the state store before emitting events or returning success responses.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L319-L631】
 - Must not start workflows or execute tasks if authorization fails (RBAC enforcement).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1845-L1857】
-- Must not assume event payload matches criteria without checking (criteria evaluation exists but currently accepts all events; see gaps below).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1514-L1520】
+- Must evaluate event payload criteria with deterministic matching semantics, including nested field-path lookups and fail-closed handling for malformed definitions.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1491-L1654】
 
 ## Handoff boundaries with Agent 17 and Agent 20
 
@@ -50,7 +50,6 @@ Define the responsibilities, workflows, and integration points for Agent 24: Wor
 ## Functional gaps, inconsistencies, and alignment needs
 
 ### Functional gaps/inconsistencies
-- Event criteria matching is a stub (`_event_matches_criteria` always returns `True`), meaning event triggers ignore filters and could start unintended workflows. Align with defined criteria syntax or implement schema-based checks.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1514-L1520】
 - `retry_failed_task` marks a task as retrying but does not re-enqueue or re-run it, unlike `_mark_task_failed` which schedules retries. Align retry semantics so both paths are consistent.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L752-L792】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1642-L1735】
 - BPMN upload path reads from disk without validating file existence/size limits; add guardrails if the orchestration service exposes this to users.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L816-L835】
 - Workflow completion logic excludes decision/parallel/loop tasks but depends on completed task IDs; ensure those virtual steps are not marked as required tasks in definitions or else completion checks will miscount.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1417-L1444】
@@ -63,7 +62,7 @@ Define the responsibilities, workflows, and integration points for Agent 24: Wor
 
 ## Checkpoint
 
-Workflow orchestration boundaries are validated and ready for execution once event criteria checks, retry semantics, and template alignment items above are resolved/confirmed.
+Workflow orchestration boundaries are validated and ready for execution, with remaining focus on retry semantics and template alignment confirmations.
 
 ## What's inside
 

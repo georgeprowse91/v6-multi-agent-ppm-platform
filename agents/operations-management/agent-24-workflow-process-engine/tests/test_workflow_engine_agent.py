@@ -103,3 +103,74 @@ async def test_workflow_engine_executes_parallel_join(tmp_path: Path) -> None:
     stored_instance = await state_store.get_instance("tenant-1", instance["instance_id"])
     assert stored_instance is not None
     assert stored_instance["status"] == "completed"
+
+
+@pytest.mark.anyio
+async def test_event_criteria_positive_match() -> None:
+    agent = WorkflowEngineAgent(config={"event_bus": None})
+    event_data = {
+        "metadata": {"tenant_id": "tenant-1", "priority": 5},
+        "payload": {"amount": 1200},
+    }
+    criteria = {
+        "metadata.tenant_id": {"eq": "tenant-1"},
+        "payload.amount": {"gt": 1000},
+    }
+
+    assert await agent._event_matches_criteria(event_data, criteria)
+
+
+@pytest.mark.anyio
+async def test_event_criteria_non_match() -> None:
+    agent = WorkflowEngineAgent(config={"event_bus": None})
+    event_data = {"metadata": {"tenant_id": "tenant-2"}}
+    criteria = {"metadata.tenant_id": {"eq": "tenant-1"}}
+
+    assert not await agent._event_matches_criteria(event_data, criteria)
+
+
+@pytest.mark.anyio
+async def test_event_criteria_missing_field_non_match() -> None:
+    agent = WorkflowEngineAgent(config={"event_bus": None})
+    event_data = {"metadata": {"tenant_id": "tenant-1"}}
+    criteria = {"metadata.region": {"eq": "us-east"}}
+
+    assert not await agent._event_matches_criteria(event_data, criteria)
+
+
+@pytest.mark.anyio
+async def test_event_criteria_multiple_conditions_combined() -> None:
+    agent = WorkflowEngineAgent(config={"event_bus": None})
+    event_data = {
+        "metadata": {"tenant_id": "tenant-1"},
+        "payload": {
+            "status": "approved",
+            "tags": ["urgent", "finance"],
+            "created_at": "2024-01-15T10:30:00Z",
+        },
+    }
+    criteria = {
+        "metadata.tenant_id": {"eq": "tenant-1"},
+        "payload.status": {"in": ["approved", "completed"]},
+        "payload.created_at": {"gte": "2024-01-01T00:00:00Z"},
+        "payload.tags": {"in": ["finance"]},
+    }
+
+    assert await agent._event_matches_criteria(event_data, criteria)
+
+
+@pytest.mark.anyio
+async def test_event_criteria_malformed_definition_fails_closed() -> None:
+    agent = WorkflowEngineAgent(config={"event_bus": None})
+    event_data = {"payload": {"amount": 10}}
+
+    assert not await agent._event_matches_criteria(event_data, {"payload.amount": {"in": "10"}})
+    assert not await agent._event_matches_criteria(event_data, {"payload.amount": {"unknown": 10}})
+    assert not await agent._event_matches_criteria(event_data, {"payload.amount": {"gt": "abc"}})
+
+
+@pytest.mark.anyio
+async def test_event_criteria_empty_matches_all() -> None:
+    agent = WorkflowEngineAgent(config={"event_bus": None})
+
+    assert await agent._event_matches_criteria({"event": "anything"}, {})

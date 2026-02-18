@@ -1492,7 +1492,163 @@ class WorkflowEngineAgent(BaseAgent):
         self, event_data: dict[str, Any], criteria: dict[str, Any]
     ) -> bool:
         """Check if event matches subscription criteria."""
+        if not criteria:
+            return True
+
+        if not isinstance(criteria, dict):
+            self.logger.warning("Invalid event criteria definition: expected object", extra={"criteria": criteria})
+            return False
+
+        for field_path, condition in criteria.items():
+            exists, actual_value = self._extract_field_path(event_data, field_path)
+            if not self._evaluate_criterion(field_path, exists, actual_value, condition):
+                return False
+
         return True
+
+    def _extract_field_path(self, payload: dict[str, Any], field_path: str) -> tuple[bool, Any]:
+        """Resolve dotted field paths from event payloads (for example metadata.tenant_id)."""
+        if not field_path:
+            return False, None
+
+        current: Any = payload
+        for segment in field_path.split("."):
+            if isinstance(current, dict) and segment in current:
+                current = current[segment]
+                continue
+            if isinstance(current, list) and segment.isdigit():
+                index = int(segment)
+                if 0 <= index < len(current):
+                    current = current[index]
+                    continue
+            return False, None
+
+        return True, current
+
+    def _evaluate_criterion(
+        self, field_path: str, exists: bool, actual_value: Any, condition: Any
+    ) -> bool:
+        if isinstance(condition, dict):
+            for operator, expected_value in condition.items():
+                if not self._evaluate_operator(field_path, operator, expected_value, exists, actual_value):
+                    return False
+            return True
+
+        if not exists:
+            return False
+        return actual_value == condition
+
+    def _evaluate_operator(
+        self,
+        field_path: str,
+        operator: str,
+        expected_value: Any,
+        exists: bool,
+        actual_value: Any,
+    ) -> bool:
+        if operator == "exists":
+            if not isinstance(expected_value, bool):
+                self.logger.warning(
+                    "Invalid exists operator value", extra={"field": field_path, "expected": expected_value}
+                )
+                return False
+            return exists == expected_value
+
+        if not exists:
+            return False
+
+        if operator == "eq":
+            return actual_value == expected_value
+        if operator == "ne":
+            return actual_value != expected_value
+
+        if operator == "in":
+            if not isinstance(expected_value, list):
+                self.logger.warning(
+                    "Invalid in operator value", extra={"field": field_path, "expected": expected_value}
+                )
+                return False
+            if isinstance(actual_value, list):
+                return any(item in expected_value for item in actual_value)
+            return actual_value in expected_value
+
+        if operator == "not_in":
+            if not isinstance(expected_value, list):
+                self.logger.warning(
+                    "Invalid not_in operator value", extra={"field": field_path, "expected": expected_value}
+                )
+                return False
+            if isinstance(actual_value, list):
+                return all(item not in expected_value for item in actual_value)
+            return actual_value not in expected_value
+
+        if operator in {"gt", "gte", "lt", "lte"}:
+            compared = self._coerce_comparable(actual_value, expected_value)
+            if compared is None:
+                self.logger.warning(
+                    "Invalid comparison criterion",
+                    extra={"field": field_path, "operator": operator, "actual": actual_value, "expected": expected_value},
+                )
+                return False
+            left, right = compared
+            if operator == "gt":
+                return left > right
+            if operator == "gte":
+                return left >= right
+            if operator == "lt":
+                return left < right
+            return left <= right
+
+        self.logger.warning(
+            "Unsupported criteria operator", extra={"field": field_path, "operator": operator}
+        )
+        return False
+
+    def _coerce_comparable(self, actual_value: Any, expected_value: Any) -> tuple[Any, Any] | None:
+        actual_dt = self._parse_datetime(actual_value)
+        expected_dt = self._parse_datetime(expected_value)
+        if actual_dt and expected_dt:
+            return actual_dt, expected_dt
+
+        actual_num = self._parse_number(actual_value)
+        expected_num = self._parse_number(expected_value)
+        if actual_num is not None and expected_num is not None:
+            return actual_num, expected_num
+
+        return None
+
+    def _parse_number(self, value: Any) -> float | None:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                return None
+        return None
+
+    def _parse_datetime(self, value: Any) -> datetime | None:
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+        if not isinstance(value, str):
+            return None
+
+        candidate = value.strip()
+        if not candidate:
+            return None
+
+        if candidate.endswith("Z"):
+            candidate = f"{candidate[:-1]}+00:00"
+
+        try:
+            parsed = datetime.fromisoformat(candidate)
+        except ValueError:
+            return None
+
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
     async def _matches_instance_filters(
         self, instance: dict[str, Any], filters: dict[str, Any]
