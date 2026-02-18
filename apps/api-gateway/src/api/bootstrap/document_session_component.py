@@ -32,7 +32,7 @@ async def startup_document_sessions(app: FastAPI) -> None:
         },
     )
     app.state.document_session_storage = document_session_storage
-    app.state.document_session_store = DocumentSessionStore(document_session_storage.db_path)
+    app.state.document_session_store = DocumentSessionStore.from_selection(document_session_storage)
 
 
 async def shutdown_document_sessions(app: FastAPI) -> None:

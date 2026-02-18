@@ -93,7 +93,7 @@ logger.info(
         "workflow_db_path": str(DB_PATH),
     },
 )
-store = WorkflowStore(DB_PATH)
+store = WorkflowStore.from_selection(WORKFLOW_STORAGE)
 bootstrap_runtime_paths()
 from approval_workflow_agent import ApprovalWorkflowAgent  # noqa: E402
 

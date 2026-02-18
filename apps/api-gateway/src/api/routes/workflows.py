@@ -37,7 +37,7 @@ ENVIRONMENT = environment_value(os.environ)
 WORKFLOW_STORAGE = resolve_workflow_storage(environment=ENVIRONMENT)
 DB_PATH = WORKFLOW_STORAGE.db_path
 
-store = WorkflowStore(DB_PATH)
+store = WorkflowStore.from_selection(WORKFLOW_STORAGE)
 seed_definitions(store, DEFINITIONS_DIR, SCHEMA_PATH)
 
 _APPROVAL_CHANGE_TYPES = {
