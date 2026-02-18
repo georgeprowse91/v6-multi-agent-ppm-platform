@@ -30,6 +30,14 @@ checks, tagging, and post-release validation.
    - Runbooks updated for new endpoints or workflows.
    - Monitoring dashboards and alerts validated.
 
+
+## Maturity score gate
+
+- Release readiness is scored using the engineering maturity model in [`maturity-model.md`](./maturity-model.md).
+- CI artifacts are consolidated with `python ops/tools/collect_maturity_score.py --enforce-thresholds`.
+- A release is blocked when overall or dimension-level ratchet thresholds are not met.
+- Monthly planning must pull backlog items from `docs/production-readiness/maturity-scorecards/latest.md` (lowest-scoring dimensions).
+
 ## Release steps
 
 1. **Prepare release branch**
