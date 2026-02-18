@@ -152,3 +152,54 @@ async def test_recommendations_publish_to_knowledge_agent(tmp_path: Path) -> Non
     assert knowledge_agent.payloads
     payload = knowledge_agent.payloads[-1]
     assert payload["action"] == "ingest_agent_output"
+
+
+@pytest.mark.anyio
+async def test_compliance_rate_no_deviations_returns_100(tmp_path: Path) -> None:
+    agent = _build_agent(tmp_path)
+    await agent.initialize()
+
+    compliance_rate = await agent._calculate_compliance_rate(
+        deviations=[], total_expected_activities=5, total_cases=10
+    )
+
+    assert compliance_rate == 100.0
+
+
+@pytest.mark.anyio
+async def test_compliance_rate_mixed_severity_and_categories(tmp_path: Path) -> None:
+    agent = _build_agent(tmp_path)
+    await agent.initialize()
+
+    deviations = [
+        {"category": "skipped_activities", "severity": "critical"},
+        {"category": "extra_activities", "severity": "low"},
+        {"category": "unexpected_transition", "severity": "medium"},
+    ]
+
+    compliance_rate = await agent._calculate_compliance_rate(
+        deviations=deviations, total_expected_activities=5, total_cases=1
+    )
+
+    # weighted_penalty = (1.4*2.0) + (0.6*0.5) + (1.2*1.0) = 4.3
+    # denominator = 5 * 1 = 5 => compliance = (1 - 4.3/5) * 100 = 14.0
+    assert compliance_rate == 14.0
+
+
+@pytest.mark.anyio
+async def test_compliance_rate_high_volume_with_small_deviation_ratio(tmp_path: Path) -> None:
+    agent = _build_agent(tmp_path)
+    await agent.initialize()
+
+    deviations = [
+        {"category": "extra_activities", "severity": "low"},
+        {"category": "unexpected_transition", "severity": "medium"},
+    ]
+
+    compliance_rate = await agent._calculate_compliance_rate(
+        deviations=deviations, total_expected_activities=20, total_cases=100
+    )
+
+    # weighted_penalty = (0.6*0.5) + (1.2*1.0) = 1.5
+    # denominator = 20 * 100 = 2000 => compliance ~= 99.93
+    assert compliance_rate == 99.93
