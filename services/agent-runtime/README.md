@@ -45,3 +45,9 @@ python -m tools.component_runner run --type service --name agent-runtime --dry-r
 
 - Endpoint reference (source of truth): [`docs/generated/services/agent-runtime.md`](../../docs/generated/services/agent-runtime.md).
 - Regenerate with: `python ops/tools/codegen/generate_docs.py`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

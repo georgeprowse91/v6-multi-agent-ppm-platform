@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the Api Gateway application and its role in the platform experience layer.
+The API Gateway app exposes the platform API surface, applies security controls, and routes requests to internal services.
 
 ## What's inside
 
@@ -53,3 +53,9 @@ Approved cross-origin headers: `Authorization`, `Content-Type`, `Accept`, `X-Ten
 
 - Missing dependencies: install dev dependencies with `make install-dev`.
 - Startup errors: verify required env vars are present in `.env`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

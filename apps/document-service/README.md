@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the Document Service application and its role in the platform experience layer.
+The Document Service app stores and serves project artifacts, supports versioning workflows, and enforces document policy controls.
 
 ## What's inside
 
@@ -33,3 +33,9 @@ Runtime configuration is supplied via `.env` and service URLs in the repo config
 
 - Missing dependencies: install dev dependencies with `make install-dev`.
 - Startup errors: verify required env vars are present in `.env`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

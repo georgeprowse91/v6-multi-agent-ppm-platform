@@ -40,3 +40,9 @@ python -m tools.component_runner run --type service --name realtime-coedit-servi
 
 - Endpoint reference (source of truth): [`docs/generated/services/realtime-coedit-service.md`](../../docs/generated/services/realtime-coedit-service.md).
 - Regenerate with: `python ops/tools/codegen/generate_docs.py`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

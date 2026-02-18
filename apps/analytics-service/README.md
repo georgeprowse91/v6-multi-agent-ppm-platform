@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the Analytics Service application and its role in the platform experience layer.
+The Analytics Service app computes KPI, trend, and utilization metrics that power dashboards and reporting across the platform.
 
 ## What's inside
 
@@ -33,3 +33,9 @@ Runtime configuration is supplied via `.env` and service URLs in the repo config
 
 - Missing dependencies: install dev dependencies with `make install-dev`.
 - Startup errors: verify required env vars are present in `.env`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

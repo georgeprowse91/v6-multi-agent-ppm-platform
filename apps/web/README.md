@@ -516,3 +516,9 @@ Key environment variables:
 - **Startup errors**: Verify required env vars are present in `.env`
 - **CORS issues**: Ensure the frontend dev server is running on port 3000 (configured in API gateway CORS)
 - **Build errors**: Run `npm run typecheck` to check for TypeScript errors
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

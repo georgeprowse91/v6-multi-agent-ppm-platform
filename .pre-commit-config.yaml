@@ -12,3 +12,8 @@ repos:
         entry: bash -c 'files=("$@"); [ ${#files[@]} -eq 0 ] && exit 0; if rg -n "logger\\.(debug|info|warning|error|exception|critical)\\(f\"|logger\\.(debug|info|warning|error|exception|critical)\\(f\x27" -- "${files[@]}"; then echo "Use parameterized logging, not f-strings in logger calls."; exit 1; fi' --
         language: system
         types: [python]
+      - id: check-placeholders
+        name: Repository placeholder/completeness quality gate
+        entry: python scripts/check-placeholders.py
+        language: system
+        pass_filenames: false

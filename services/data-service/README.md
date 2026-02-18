@@ -35,3 +35,9 @@ Seed schemas from `data/schemas` by default; set `DATA_SERVICE_LOAD_SEED_SCHEMAS
 
 - Endpoint reference (source of truth): [`docs/generated/services/data-service.md`](../../docs/generated/services/data-service.md).
 - Regenerate with: `python ops/tools/codegen/generate_docs.py`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+
