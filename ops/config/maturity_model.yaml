@@ -1,0 +1,188 @@
+version: 1
+weights:
+  Reliability: 0.16
+  Scalability: 0.12
+  Security: 0.16
+  Operability: 0.12
+  Test Coverage: 0.14
+  Documentation: 0.10
+  DR/Backup: 0.10
+  Dependency Hygiene: 0.10
+
+dimensions:
+  Reliability:
+    - id: slo_pass_rate
+      description: Percent of tracked SLOs meeting objective over the trailing 30 days.
+      source: artifacts/observability/slo-summary.json
+      path: $.pass_rate
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 99.0
+        floor: 95.0
+    - id: mttr_minutes
+      description: Mean time to recovery for Sev1/Sev2 incidents.
+      source: artifacts/incident/summary.json
+      path: $.mttr_minutes
+      unit: minutes
+      scoring:
+        direction: lower_is_better
+        target: 60
+        floor: 240
+  Scalability:
+    - id: p95_latency_ms
+      description: p95 API latency during load test at release baseline throughput.
+      source: artifacts/performance/k6-summary.json
+      path: $.p95_latency_ms
+      unit: milliseconds
+      scoring:
+        direction: lower_is_better
+        target: 350
+        floor: 700
+    - id: headroom_percent
+      description: Capacity headroom before autoscaling saturation.
+      source: artifacts/performance/capacity-summary.json
+      path: $.headroom_percent
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 30
+        floor: 10
+  Security:
+    - id: critical_vulnerability_count
+      description: Critical vulnerabilities reported by dependency/container scans.
+      source: artifacts/security/vulnerability-summary.json
+      path: $.critical
+      unit: count
+      scoring:
+        direction: lower_is_better
+        target: 0
+        floor: 5
+    - id: secret_findings
+      description: High-confidence secret scan findings.
+      source: artifacts/security/secret-scan-summary.json
+      path: $.findings
+      unit: count
+      scoring:
+        direction: lower_is_better
+        target: 0
+        floor: 3
+  Operability:
+    - id: alert_actionability_percent
+      description: Alert actionability ratio (actionable alerts / total alerts).
+      source: artifacts/ops/alert-quality.json
+      path: $.actionability_percent
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 85
+        floor: 60
+    - id: config_drift_violations
+      description: Drift violations from desired-state checks.
+      source: artifacts/ops/drift-summary.json
+      path: $.violations
+      unit: count
+      scoring:
+        direction: lower_is_better
+        target: 0
+        floor: 10
+  Test Coverage:
+    - id: backend_coverage_percent
+      description: Backend line coverage from CI report.
+      source: artifacts/tests/coverage-summary.json
+      path: $.backend_line_coverage_percent
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 85
+        floor: 75
+    - id: frontend_coverage_percent
+      description: Frontend line coverage from CI report.
+      source: artifacts/tests/coverage-summary.json
+      path: $.frontend_line_coverage_percent
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 80
+        floor: 70
+  Documentation:
+    - id: stale_doc_count
+      description: Markdown files marked stale by docs freshness checks.
+      source: artifacts/docs/staleness-report.json
+      path: $.stale_doc_count
+      unit: count
+      scoring:
+        direction: lower_is_better
+        target: 0
+        floor: 12
+    - id: runbook_sla_percent
+      description: Runbooks updated within SLA window.
+      source: artifacts/docs/staleness-report.json
+      path: $.runbook_sla_percent
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 95
+        floor: 80
+  DR/Backup:
+    - id: backup_success_percent
+      description: Scheduled backup success rate for the prior month.
+      source: artifacts/dr/backup-summary.json
+      path: $.success_percent
+      unit: percent
+      scoring:
+        direction: higher_is_better
+        target: 99
+        floor: 95
+    - id: restore_rto_minutes
+      description: Latest restore drill RTO.
+      source: artifacts/dr/restore-drill.json
+      path: $.rto_minutes
+      unit: minutes
+      scoring:
+        direction: lower_is_better
+        target: 90
+        floor: 240
+  Dependency Hygiene:
+    - id: dependency_age_p95_days
+      description: p95 dependency age in days across runtime dependencies.
+      source: artifacts/dependencies/hygiene-summary.json
+      path: $.p95_age_days
+      unit: days
+      scoring:
+        direction: lower_is_better
+        target: 45
+        floor: 180
+    - id: unpinned_dependency_count
+      description: Runtime dependencies without an explicit version pin.
+      source: artifacts/dependencies/hygiene-summary.json
+      path: $.unpinned_count
+      unit: count
+      scoring:
+        direction: lower_is_better
+        target: 0
+        floor: 20
+
+release_policy:
+  minimum_overall_score: 75
+  minimum_dimension_score: 65
+  must_pass_dimensions:
+    - Reliability
+    - Security
+    - Test Coverage
+
+ratchet_policy:
+  cadence: quarterly
+  schedule:
+    - effective_date: 2026-01-01
+      minimum_overall_score: 75
+      minimum_dimension_score: 65
+    - effective_date: 2026-04-01
+      minimum_overall_score: 78
+      minimum_dimension_score: 68
+    - effective_date: 2026-07-01
+      minimum_overall_score: 82
+      minimum_dimension_score: 70
+    - effective_date: 2026-10-01
+      minimum_overall_score: 85
+      minimum_dimension_score: 72

@@ -41,10 +41,24 @@ jobs:
       - name: Run release maturity gate
         run: make release-gate PROFILE=${{ matrix.profile }}
 
+      - name: Build maturity scorecard snapshot
+        if: always()
+        run: python ops/tools/collect_maturity_score.py --artifact-root .
+
       - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: release-gate-quality-report-${{ matrix.profile }}
           path: artifacts/release-gate/quality-report-${{ matrix.profile }}.json
+          if-no-files-found: error
+
+      - name: Upload maturity scorecard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maturity-scorecard-${{ matrix.profile }}
+          path: |
+            artifacts/maturity/scorecard-latest.json
+            docs/production-readiness/maturity-scorecards/latest.md
           if-no-files-found: error

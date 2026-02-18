@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-quick test-all test-unit test-integration test-e2e test-security test-cov test-watch lint format codegen check-links check-placeholders check-root-layout check-connector-maturity check-security-baseline secret-scan env-validate smoke-workspace-wiring release-gate dev-up dev-up-full dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
+.PHONY: help install install-dev test test-quick test-all test-unit test-integration test-e2e test-security test-cov test-watch lint format codegen check-links check-placeholders check-root-layout check-connector-maturity check-security-baseline secret-scan env-validate smoke-workspace-wiring release-gate maturity-scorecard dev-up dev-up-full dev-down run-agent run-connector clean run-api run-web docker-build docker-up docker-down deploy-dev deploy-prod
 
 # Default target
 .DEFAULT_GOAL := help
@@ -97,6 +97,9 @@ smoke-workspace-wiring: ## Verify workspace methodology wiring end-to-end locall
 
 release-gate: ## Run release maturity gate (PROFILE=core|full; default full)
 	$(PYTHON) ops/tools/release_gate.py --profile $(if $(PROFILE),$(PROFILE),full)
+
+maturity-scorecard: ## Consolidate maturity KPIs from CI artifacts and emit scorecards
+	$(PYTHON) ops/tools/collect_maturity_score.py --artifact-root .
 
 dev-up: ## Start the local development stack (docker-compose)
 	bash ops/tools/local-dev/dev_up.sh core
