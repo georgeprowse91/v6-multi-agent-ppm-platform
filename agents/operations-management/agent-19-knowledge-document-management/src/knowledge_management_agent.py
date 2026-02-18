@@ -1866,13 +1866,21 @@ class KnowledgeManagementAgent(BaseAgent):
     ) -> list[dict[str, Any]]:
         """Generate highlighted excerpts."""
         results_with_excerpts = []
+        excerpt_limit = 240
+        window_radius = 90
+        query_terms = self._extract_query_terms(query)
 
         for result in results:
             document = result.get("document", {})
             content = document.get("content", "")
-
-            # Simple excerpt generation (replace with better algorithm)
-            excerpt = content[:200] + "..." if len(content) > 200 else content
+            semantic_offsets = result.get("semantic_match_offsets") or result.get("match_offsets")
+            excerpt = self._build_excerpt(
+                content=content,
+                query_terms=query_terms,
+                max_length=excerpt_limit,
+                window_radius=window_radius,
+                semantic_offsets=semantic_offsets if isinstance(semantic_offsets, list) else None,
+            )
 
             results_with_excerpts.append(
                 {
@@ -1887,6 +1895,112 @@ class KnowledgeManagementAgent(BaseAgent):
             )
 
         return results_with_excerpts
+
+    def _extract_query_terms(self, query: str) -> list[str]:
+        return [token for token in re.findall(r"\w+", query, flags=re.UNICODE) if len(token) > 1]
+
+    def _build_excerpt(
+        self,
+        *,
+        content: str,
+        query_terms: list[str],
+        max_length: int,
+        window_radius: int,
+        semantic_offsets: list[Any] | None = None,
+    ) -> str:
+        text = self._normalize_excerpt_text(content)
+        if not text:
+            return ""
+
+        match_spans = self._find_match_spans(text, query_terms)
+        semantic_spans = self._normalize_offset_spans(semantic_offsets, len(text))
+        candidate_spans = semantic_spans or match_spans
+
+        if candidate_spans:
+            center = candidate_spans[0][0]
+            for start, end in candidate_spans:
+                if (end - start) > 0:
+                    center = start + ((end - start) // 2)
+                    break
+            start_idx = max(0, center - window_radius)
+            end_idx = min(len(text), center + window_radius)
+            excerpt = text[start_idx:end_idx].strip()
+            if start_idx > 0:
+                excerpt = "..." + excerpt
+            if end_idx < len(text):
+                excerpt = excerpt + "..."
+        else:
+            excerpt = text[:max_length].strip()
+            if len(text) > max_length:
+                excerpt += "..."
+
+        excerpt = self._enforce_excerpt_limit(excerpt, max_length)
+        return self._highlight_terms(excerpt, query_terms)
+
+    def _normalize_excerpt_text(self, content: str) -> str:
+        without_markup = re.sub(r"<[^>]+>", " ", content)
+        return re.sub(r"\s+", " ", without_markup, flags=re.UNICODE).strip()
+
+    def _normalize_offset_spans(
+        self, offsets: list[Any] | None, content_length: int
+    ) -> list[tuple[int, int]]:
+        spans: list[tuple[int, int]] = []
+        if not offsets:
+            return spans
+
+        for item in offsets:
+            if isinstance(item, (list, tuple)) and len(item) >= 2:
+                start, end = item[0], item[1]
+            elif isinstance(item, dict):
+                start = item.get("start")
+                end = item.get("end")
+            else:
+                continue
+
+            if not isinstance(start, int) or not isinstance(end, int):
+                continue
+            if end <= start:
+                continue
+
+            clamped_start = max(0, min(start, content_length))
+            clamped_end = max(clamped_start, min(end, content_length))
+            if clamped_end > clamped_start:
+                spans.append((clamped_start, clamped_end))
+
+        return sorted(spans)
+
+    def _find_match_spans(self, text: str, query_terms: list[str]) -> list[tuple[int, int]]:
+        spans: list[tuple[int, int]] = []
+        for term in query_terms:
+            escaped_term = re.escape(term)
+            for match in re.finditer(escaped_term, text, flags=re.IGNORECASE | re.UNICODE):
+                spans.append((match.start(), match.end()))
+        return sorted(spans)
+
+    def _enforce_excerpt_limit(self, excerpt: str, max_length: int) -> str:
+        if len(excerpt) <= max_length:
+            return excerpt
+
+        clipped = excerpt[: max(0, max_length - 3)].rstrip()
+        if clipped.startswith("...") and not clipped.endswith("..."):
+            return clipped + "..."
+        return clipped + "..."
+
+    def _highlight_terms(self, excerpt: str, query_terms: list[str]) -> str:
+        if not excerpt or not query_terms:
+            return excerpt
+
+        unique_terms = sorted({term for term in query_terms if term}, key=len, reverse=True)
+        if not unique_terms:
+            return excerpt
+
+        pattern = "|".join(re.escape(term) for term in unique_terms)
+        return re.sub(
+            rf"(?i)({pattern})",
+            r"<mark>\1</mark>",
+            excerpt,
+            flags=re.UNICODE,
+        )
 
     async def _find_related_documents(self, document_id: str) -> list[dict[str, Any]]:
         """Find related documents."""
