@@ -173,6 +173,7 @@ class SchedulePlanningAgent(BaseAgent):
         if self.change_agent is None:
             change_config = config.get("change_agent_config", {}) if config else {}
             self.change_agent = ChangeConfigurationAgent(config=change_config)
+        self.resource_capacity_agent = config.get("resource_capacity_agent") if config else None
         self.financial_agent = config.get("financial_agent") if config else None
         self.program_agent = config.get("program_agent") if config else None
 
@@ -323,7 +324,10 @@ class SchedulePlanningAgent(BaseAgent):
 
         elif action == "resource_constrained_schedule":
             return await self._resource_constrained_schedule(
-                input_data.get("schedule_id"), input_data.get("resources", {})  # type: ignore
+                input_data.get("schedule_id"),  # type: ignore
+                input_data.get("resources", {}),
+                tenant_id=tenant_id,
+                context=context,
             )
 
         elif action == "run_monte_carlo":
@@ -680,7 +684,12 @@ class SchedulePlanningAgent(BaseAgent):
         }
 
     async def _resource_constrained_schedule(
-        self, schedule_id: str, resources: dict[str, Any]
+        self,
+        schedule_id: str,
+        resources: dict[str, Any],
+        *,
+        tenant_id: str = "unknown",
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Create resource-constrained schedule.
@@ -695,9 +704,15 @@ class SchedulePlanningAgent(BaseAgent):
 
         tasks = schedule.get("tasks", [])
         dependencies = schedule.get("dependencies", [])
+        lookup_context = {
+            **(context or {}),
+            "tenant_id": tenant_id,
+            "project_id": schedule.get("project_id"),
+            "schedule_id": schedule_id,
+        }
 
         # Get resource availability from Resource Management Agent
-        resource_availability = await self._get_resource_availability(resources)
+        resource_availability = await self._get_resource_availability(resources, context=lookup_context)
 
         # Apply resource leveling
         leveled_schedule = await self._resource_leveling(tasks, dependencies, resource_availability)
@@ -2095,9 +2110,146 @@ class SchedulePlanningAgent(BaseAgent):
             task["slack"] = task.get("late_start", 0) - task.get("early_start", 0)
         return tasks
 
-    async def _get_resource_availability(self, resources: dict[str, Any]) -> dict[str, Any]:
-        """Get resource availability from Resource Management Agent."""
-        return resources
+    async def _get_resource_availability(
+        self, resources: dict[str, Any], *, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Get and normalize resource availability from Resource Capacity management integrations."""
+        context = context or {}
+        tenant_id = context.get("tenant_id", "unknown")
+        project_id = context.get("project_id")
+
+        normalized = self._normalize_resource_availability(resources)
+        resource_ids = [resource_id for resource_id in resources.keys() if isinstance(resource_id, str)]
+        if not resource_ids:
+            return normalized
+
+        if not self.resource_capacity_agent:
+            for resource_id in resource_ids:
+                normalized.setdefault(resource_id, {}).setdefault("warning", "resource_capacity_unavailable")
+            return normalized
+
+        for resource_id in resource_ids:
+            try:
+                response = await self.resource_capacity_agent.process(
+                    {
+                        "action": "get_availability",
+                        "resource_id": resource_id,
+                        "date_range": {},
+                        "project_id": project_id,
+                        "tenant_id": tenant_id,
+                        "context": {
+                            "tenant_id": tenant_id,
+                            "project_id": project_id,
+                        },
+                    }
+                )
+                normalized[resource_id] = self._merge_external_resource_availability(
+                    resource_id,
+                    normalized.get(resource_id, {}),
+                    response,
+                )
+            except Exception as exc:
+                fallback = normalized.setdefault(resource_id, {"capacity": 1.0, "period_availability": {}})
+                fallback.setdefault("warning", "resource_capacity_fetch_failed")
+                fallback["warning_details"] = str(exc)
+        return normalized
+
+    def _normalize_resource_availability(self, resources: dict[str, Any]) -> dict[str, Any]:
+        normalized: dict[str, Any] = {}
+        for resource_id, raw in resources.items():
+            if not isinstance(resource_id, str):
+                continue
+            if isinstance(raw, dict):
+                capacity = raw.get("capacity", 1.0)
+                try:
+                    parsed_capacity = float(capacity)
+                except (TypeError, ValueError):
+                    parsed_capacity = 1.0
+                period_values = raw.get("period_availability") or raw.get("availability_by_period") or {}
+                parsed_periods = self._parse_period_availability(period_values)
+                normalized[resource_id] = {
+                    "capacity": max(0.0, parsed_capacity),
+                    "period_availability": parsed_periods,
+                }
+                if "warning" in raw:
+                    normalized[resource_id]["warning"] = raw.get("warning")
+                if "warning_details" in raw:
+                    normalized[resource_id]["warning_details"] = raw.get("warning_details")
+            else:
+                try:
+                    parsed_capacity = float(raw)
+                except (TypeError, ValueError):
+                    parsed_capacity = 1.0
+                normalized[resource_id] = {"capacity": max(0.0, parsed_capacity), "period_availability": {}}
+        return normalized
+
+    def _parse_period_availability(self, raw_periods: Any) -> dict[int, float]:
+        if not isinstance(raw_periods, dict):
+            return {}
+        parsed: dict[int, float] = {}
+        for period_key, period_capacity in raw_periods.items():
+            try:
+                period_index = int(period_key)
+                parsed[period_index] = max(0.0, float(period_capacity))
+            except (TypeError, ValueError):
+                continue
+        return parsed
+
+    def _merge_external_resource_availability(
+        self,
+        resource_id: str,
+        current: dict[str, Any],
+        external_response: Any,
+    ) -> dict[str, Any]:
+        merged = {
+            "capacity": float(current.get("capacity", 1.0)),
+            "period_availability": dict(current.get("period_availability", {})),
+        }
+        if not isinstance(external_response, dict):
+            merged["warning"] = "resource_capacity_malformed_response"
+            return merged
+
+        external_resource_id = external_response.get("resource_id")
+        if external_resource_id and external_resource_id != resource_id:
+            merged["warning"] = "resource_capacity_id_mismatch"
+            merged["warning_details"] = f"expected={resource_id}, actual={external_resource_id}"
+
+        availability = external_response.get("availability_by_day", [])
+        if not isinstance(availability, list):
+            merged["warning"] = "resource_capacity_malformed_response"
+            return merged
+
+        period_availability: dict[int, float] = {}
+        for index, entry in enumerate(availability):
+            if not isinstance(entry, dict):
+                continue
+            available_hours = entry.get("available_hours")
+            if available_hours is None:
+                continue
+            try:
+                period_availability[index] = max(0.0, float(available_hours))
+            except (TypeError, ValueError):
+                continue
+
+        average_availability = external_response.get("average_availability")
+        if period_availability:
+            merged["period_availability"] = period_availability
+            merged["capacity"] = max(
+                0.0,
+                float(average_availability)
+                if average_availability is not None
+                else max(period_availability.values()),
+            )
+        elif average_availability is not None:
+            try:
+                merged["capacity"] = max(0.0, float(average_availability))
+                merged["warning"] = "resource_capacity_partial_data"
+            except (TypeError, ValueError):
+                merged["warning"] = "resource_capacity_malformed_response"
+        else:
+            merged["warning"] = "resource_capacity_missing_data"
+
+        return merged
 
     async def _resource_leveling(
         self,
@@ -2108,11 +2260,14 @@ class SchedulePlanningAgent(BaseAgent):
         """Apply resource leveling using a simple RCPSP serial schedule generation scheme."""
         forward = await self._forward_pass(tasks, dependencies)
         capacities: dict[str, float] = {}
+        period_capacities: dict[str, dict[int, float]] = {}
         for key, value in resource_availability.items():
             if isinstance(value, dict):
                 capacities[key] = float(value.get("capacity", 1.0))
+                period_capacities[key] = self._parse_period_availability(value.get("period_availability", {}))
             else:
                 capacities[key] = float(value)
+                period_capacities[key] = {}
 
         usage: dict[str, dict[int, float]] = {key: {} for key in capacities}
         task_map = {task["task_id"]: dict(task) for task in forward}
@@ -2147,7 +2302,14 @@ class SchedulePlanningAgent(BaseAgent):
                 required_resources = task.get("resources", [{"id": "default", "units": 1.0}])
                 start = max(time_cursor, int(task.get("early_start", 0)))
                 while True:
-                    if self._resources_available(usage, capacities, required_resources, start, duration):
+                    if self._resources_available(
+                        usage,
+                        capacities,
+                        period_capacities,
+                        required_resources,
+                        start,
+                        duration,
+                    ):
                         self._allocate_resources(usage, required_resources, start, duration)
                         task["resource_start"] = start
                         task["resource_finish"] = start + duration
@@ -2194,6 +2356,7 @@ class SchedulePlanningAgent(BaseAgent):
         self,
         usage: dict[str, dict[int, float]],
         capacities: dict[str, float],
+        period_capacities: dict[str, dict[int, float]],
         required: list[dict[str, Any]],
         start: int,
         duration: int,
@@ -2201,8 +2364,10 @@ class SchedulePlanningAgent(BaseAgent):
         for resource in required:
             resource_id = resource.get("id", "default")
             units = float(resource.get("units", 1.0))
-            capacity = capacities.get(resource_id, 1.0)
+            default_capacity = capacities.get(resource_id, 1.0)
+            by_period = period_capacities.get(resource_id, {})
             for day in range(start, start + duration):
+                capacity = by_period.get(day, default_capacity)
                 used = usage.get(resource_id, {}).get(day, 0.0)
                 if used + units > capacity:
                     return False
