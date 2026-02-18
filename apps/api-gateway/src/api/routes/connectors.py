@@ -44,7 +44,7 @@ for path in [CONNECTOR_SDK_PATH, *connector_src_paths]:
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from base_connector import (
+from integrations.connectors.sdk.src.base_connector import (
     ConnectionStatus,
     ConnectorCategory,
     ConnectorConfig,
@@ -52,8 +52,11 @@ from base_connector import (
     SyncDirection,
     SyncFrequency,
 )
-from project_connector_store import ProjectConnectorConfig, ProjectConnectorConfigStore
-from connector_registry import (
+from integrations.connectors.sdk.src.project_connector_store import (
+    ProjectConnectorConfig,
+    ProjectConnectorConfigStore,
+)
+from integrations.connectors.sdk.src.connector_registry import (
     ConnectorStatus,
     get_all_connectors,
     get_connector_definition,

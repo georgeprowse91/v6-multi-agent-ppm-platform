@@ -91,6 +91,7 @@ def _quality_report(profile: str, checks: list[CheckResult]) -> dict:
         "unit-integration-security",
         "contract-checks",
         "generated-doc-freshness",
+        "maturity-thresholds",
         "profile-drift-check",
         "full-profile-smoke-workflow",
         "restart-resilience",
@@ -124,6 +125,7 @@ def run_release_gate(profile: str, report_path: Path) -> int:
         ("unit-integration-security", "make test-security"),
         ("contract-checks", "pytest tests/contract -v"),
         ("generated-doc-freshness", "make check-generated-docs"),
+        ("maturity-thresholds", "python ops/tools/collect_maturity_score.py --artifact-root . --enforce-thresholds"),
     ]
 
     smoke_command = (

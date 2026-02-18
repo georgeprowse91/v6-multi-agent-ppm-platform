@@ -1,0 +1,55 @@
+{
+  "profile": "core",
+  "generated_at_epoch": 1771412280,
+  "overall_status": "fail",
+  "capability_areas": {
+    "schema-config-validation": "pass",
+    "unit-integration-security": "fail",
+    "contract-checks": "not-run",
+    "generated-doc-freshness": "not-run",
+    "maturity-thresholds": "not-run",
+    "profile-drift-check": "pass",
+    "full-profile-smoke-workflow": "not-run",
+    "restart-resilience": "not-run",
+    "idempotency-behavior": "not-run",
+    "connector-failure-isolation": "not-run",
+    "workflow-resume-after-restart": "not-run"
+  },
+  "checks": [
+    {
+      "area": "profile-drift-check",
+      "command": "validate docker-compose profile (core)",
+      "status": "pass",
+      "duration_seconds": 0.0,
+      "output": "core profile contains required services: api, orchestration-service, workflow-engine, data-service, policy-engine, document-service, notification-service"
+    },
+    {
+      "area": "schema-config-validation",
+      "command": "python scripts/validate-schemas.py",
+      "status": "pass",
+      "duration_seconds": 0.14,
+      "output": "Schema registry validation succeeded."
+    },
+    {
+      "area": "schema-config-validation",
+      "command": "python ops/scripts/validate_config.py",
+      "status": "pass",
+      "duration_seconds": 0.31,
+      "output": "Configuration OK"
+    },
+    {
+      "area": "schema-config-validation",
+      "command": "python ops/tools/config_validator.py",
+      "status": "pass",
+      "duration_seconds": 0.2,
+      "output": "Skipped files without matching schema:\n  - ops/config/abac/policies.yaml\n  - ops/config/agent-23/mapping_rules.yaml\n  - ops/config/agent-23/pipelines.yaml\n  - ops/config/agent-23/quality_thresholds.yaml\n  - ops/config/agent-23/schema_registry.yaml\n  - ops/config/agent-23/validation_rules.yaml\n  - ops/config/agent-24/durable_workflows.yaml\n  - ops/config/agent-24/workflow_templates.yaml\n  - ops/config/agents/approval_workflow.yaml\n  - ops/config/agents/knowledge_agent.yaml\n  - ops/config/agents/orchestration.yaml\n  - ops/config/agents/portfolio.yaml\n  - ops/config/agents/risk_adjustments.yaml\n  - ops/config/connector_maturity_policy.yaml\n  - ops/config/connectors/integrations.yaml\n  - ops/config/data-classification/levels.yaml\n  - ops/config/environments/dev.yaml\n  - ops/config/environments/prod.yaml\n  - ops/config/environments/test.yaml\n  - ops/config/feature-flags/flags.yaml\n  - ops/config/human_review.yaml\n  - ops/config/iam/role-mapping.yaml\n  - ops/config/maturity_model.yaml\n  - ops/config/plans/example_plan.yaml\n  - ops/config/pricing.yaml\n  - ops/config/rbac/field-level.yaml\n  - ops/config/rbac/permissions.yaml\n  - ops/config/rbac/roles.yaml\n  - ops/config/retention/policies.yaml\n  - ops/config/security/dlp-policies.yaml\n  - ops/config/tenants/default.yaml\n  - ops/config/vector_store.yaml\nConfiguration validation passed."
+    },
+    {
+      "area": "unit-integration-security",
+      "command": "make test-unit",
+      "status": "fail",
+      "duration_seconds": 6.26,
+      "output": "make[1]: Entering directory '/workspace/multi-agent-ppm-platform3'\npytest tests/ -v --ignore=tests/integration --ignore=tests/e2e --ignore=tests/security\n============================= test session starts ==============================\nplatform linux -- Python 3.10.19, pytest-9.0.2, pluggy-1.6.0 -- /root/.pyenv/versions/3.10.19/bin/python\ncachedir: .pytest_cache\nrootdir: /workspace/multi-agent-ppm-platform3\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 833 items / 2 errors / 11 skipped\n\n==================================== ERRORS ====================================\n___________ ERROR collecting tests/apps/test_agents_route_errors.py ____________\nImportError while importing test module '/workspace/multi-agent-ppm-platform3/tests/apps/test_agents_route_errors.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/python.py:507: in importtestmodule\n    mod = import_path(\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/pathlib.py:561: in import_path\n    mod = _import_module_using_spec(\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/pathlib.py:725: in _import_module_using_spec\n    spec.loader.exec_module(mod)  # type: ignore[union-attr]\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:197: in exec_module\n    exec(co, module.__dict__)\ntests/apps/test_agents_route_errors.py:7: in <module>\n    from api.routes.agents import process_query, QueryRequest\nE   ModuleNotFoundError: No module named 'api.routes'\n____ ERROR collecting tests/apps/test_document_session_store_concurrency.py ____\nImportError while importing test module '/workspace/multi-agent-ppm-platform3/tests/apps/test_document_session_store_concurrency.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/python.py:507: in importtestmodule\n    mod = import_path(\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/pathlib.py:561: in import_path\n    mod = _import_module_using_spec(\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/pathlib.py:725: in _import_module_using_spec\n    spec.loader.exec_module(mod)  # type: ignore[union-attr]\n/root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:197: in exec_module\n    exec(co, module.__dict__)\ntests/apps/test_document_session_store_concurrency.py:9: in <module>\n    from api.document_session_store import DocumentSessionStore\nE   ModuleNotFoundError: No module named 'api.document_session_store'\n=============================== warnings summary ===============================\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/config/__init__.py:1428\n  /root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: timeout\n  \n    self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/config/__init__.py:1428\n  /root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: timeout_method\n  \n    self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/fields.py:799\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/fields.py:799\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/fields.py:799\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/fields.py:799\n  /root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/fields.py:799: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.5/migration/\n    warn(\n\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/_internal/_fields.py:149\n  /root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/pydantic/_internal/_fields.py:149: UserWarning: Field \"model_id\" has conflict with protected namespace \"model_\".\n  \n  You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.\n    warnings.warn(\n\napps/web/src/legacy_main.py:954\n  /workspace/multi-agent-ppm-platform3/apps/web/src/legacy_main.py:954: DeprecationWarning: \n          on_event is deprecated, use lifespan event handlers instead.\n  \n          Read more about it in the\n          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).\n          \n    @app.on_event(\"startup\")\n\n../../root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/fastapi/applications.py:4495\n  /root/.pyenv/versions/3.10.19/lib/python3.10/site-packages/fastapi/applications.py:4495: DeprecationWarning: \n          on_event is deprecated, use lifespan event handlers instead.\n  \n          Read more about it in the\n          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).\n          \n    return self.router.on_event(event_type)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n========================= Skip classification summary ==========================\nIntentional Platform: 0\nMissing Dependency: 11 (example: ('/workspace/multi-agent-ppm-platform3/tests/docs/test_realtime_coedit.py', 11, \"Skipped: could not import 'cryptography': No module named 'cryptography'\"))\nUnclassified: 0\n=========================== short test summary info ============================\nSKIPPED [1] tests/docs/test_realtime_coedit.py:11: could not import 'cryptography': No module named 'cryptography'\nSKIPPED [1] tests/integration/test_data_lineage_service.py:11: could not import 'cryptography': No module named 'cryptography'\nSKIPPED [1] tests/integration/test_data_service_clients.py:12: could not import 'aiosqlite': No module named 'aiosqlite'\nSKIPPED [1] tests/integration/test_orchestrator_persistence.py:7: could not import 'alembic': No module named 'alembic'\nSKIPPED [1] tests/integration/test_workflow_celery_execution.py:9: could not import 'celery': No module named 'celery'\nSKIPPED [1] tests/packages/security/test_auth_package.py:13: could not import 'cryptography': No module named 'cryptography'\nSKIPPED [1] tests/packages/security/test_crypto_package.py:5: could not import 'cryptography': No module named 'cryptography'\nSKIPPED [1] tests/runtime/test_orchestrator.py:10: could not import 'redis': No module named 'redis'\nSKIPPED [1] tests/security/test_auth_cache.py:7: could not import 'cryptography': No module named 'cryptography'\nSKIPPED [1] tests/security/test_dlp_and_encryption.py:5: could not import 'cryptography': No module named 'cryptography'\nSKIPPED [1] tests/security/test_field_masking.py:8: could not import 'cryptography': No module named 'cryptography'\nERROR tests/apps/test_agents_route_errors.py\nERROR tests/apps/test_document_session_store_concurrency.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!\n================== 11 skipped, 9 warnings, 2 errors in 4.87s ===================\nmake[1]: Leaving directory '/workspace/multi-agent-ppm-platform3'\n\nmake[1]: *** [Makefile:41: test-unit] Error 2"
+    }
+  ]
+}

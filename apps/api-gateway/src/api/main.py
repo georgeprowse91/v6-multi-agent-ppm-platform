@@ -15,9 +15,11 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
+from api.slowapi_compat import (
+    SlowAPIMiddleware,
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
+)
 
 from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
 from api.bootstrap import StartupFailure, build_default_bootstrap_registry
