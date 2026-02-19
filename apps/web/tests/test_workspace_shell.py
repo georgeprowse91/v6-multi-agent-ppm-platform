@@ -33,9 +33,10 @@ if str(SRC_DIR) not in sys.path:
 import main
 
 
-def test_index_links_to_workspace():
+def test_index_links_to_app():
     index_html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    assert 'href="/workspace"' in index_html
+    assert 'href="/app"' in index_html
+    assert 'href="/workspace"' not in index_html
 
 
 def test_workspace_shell_layout_strings():
@@ -57,15 +58,12 @@ def test_workspace_shell_layout_strings():
         "Select an activity to view guidance.",
     ]:
         assert label in app_js
-    assert 'path === "/workspace"' in app_js
+    assert 'path === "/app"' in app_js
+    assert 'path === "/workspace"' not in app_js
 
 
-def test_workspace_css_present():
-    workspace_css = (STATIC_DIR / "workspace.css").read_text(encoding="utf-8")
-    assert ".workspace-shell" in workspace_css
-    assert ".workspace-nav" in workspace_css
-    assert ".workspace-assistant" in workspace_css
-
+def test_workspace_css_asset_removed():
+    assert not (STATIC_DIR / "workspace.css").exists()
 
 def test_workspace_progress_bar_markup():
     app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")

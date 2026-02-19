@@ -2176,7 +2176,7 @@ const handleRoute = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   const demoMode = isDemoMode(searchParams);
-  if (path === "/workspace") {
+  if (path === "/app") {
     initWorkspace();
     return;
   }

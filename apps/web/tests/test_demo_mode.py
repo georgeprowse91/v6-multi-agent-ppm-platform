@@ -37,4 +37,5 @@ def test_demo_scenario_files_exist():
 
 def test_index_has_guided_tour_entrypoint():
     index_html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    assert "/workspace?demo=true" in index_html
+    assert "/app?demo=true" in index_html
+    assert "/workspace?demo=true" not in index_html
