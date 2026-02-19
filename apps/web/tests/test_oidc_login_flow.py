@@ -148,7 +148,7 @@ def test_oidc_callback_redirects_project_context_to_spa_route():
     assert callback.headers["location"] == "/app/projects/crm-migration"
 
 
-def test_oidc_callback_maps_legacy_workspace_return_to_to_spa_route():
+def test_oidc_callback_redirects_return_to_spa_route_directly():
     os.environ["OIDC_ISSUER_URL"] = "https://issuer.example.com"
     os.environ["OIDC_CLIENT_ID"] = "client-123"
     os.environ["OIDC_CLIENT_SECRET"] = "env:OIDC_SECRET"
@@ -166,7 +166,7 @@ def test_oidc_callback_maps_legacy_workspace_return_to_to_spa_route():
     client = TestClient(module.app)
 
     response = client.get(
-        "/login?return_to=/workspace%3Fproject_id%3Ddata-lake-uplift",
+        "/login?return_to=/app/projects/data-lake-uplift",
         allow_redirects=False,
     )
     location = response.headers["location"]

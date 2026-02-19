@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.parse import urlencode
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 import httpx
@@ -1756,25 +1756,10 @@ def _decode_cookie(token: str) -> dict[str, Any] | None:
         return None
 
 
-def _workspace_redirect_to_spa(path: str) -> str:
-    if path == "/workspace":
-        return "/app"
-
-    parsed = urlparse(path)
-    if parsed.path != "/workspace":
-        return path
-
-    params = parse_qs(parsed.query)
-    project_id = params.get("project_id", [None])[0]
-    if project_id:
-        return f"/app/projects/{project_id}"
-    return "/app"
-
-
 def _resolve_post_login_redirect(state_payload: dict[str, Any]) -> str:
     return_to = state_payload.get("return_to")
     if isinstance(return_to, str) and return_to.startswith("/"):
-        landing = _workspace_redirect_to_spa(return_to)
+        landing = return_to
         post_login_landing_success_total.add(
             1,
             {
