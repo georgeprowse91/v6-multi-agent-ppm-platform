@@ -209,7 +209,8 @@ This outputs to `apps/web/static/dist/`. The FastAPI backend can then serve the 
 | Path | Description |
 |------|-------------|
 | `/` | Home page with quick access to portfolios, programs, projects |
-| `/app` | SPA shell entrypoint for project workspaces and methodology navigation. |
+| `/app` | SPA shell root. Redirects into project-scoped SPA routes (for example `/app/projects/:projectId`) that render methodology, canvas, and assistant panels. |
+| `/app/projects/:projectId` | Canonical SPA project workspace route. Use this route for all workspace deep links and local testing. |
 | `/portfolio/:id` | Portfolio workspace |
 | `/program/:id` | Program workspace |
 | `/project/:id` | Project workspace |
@@ -485,7 +486,7 @@ The SPA workspace includes an Assistant panel for the currently selected activit
 - **Clear** action to reset the prompt box.
 
 The Assistant panel is guidance only. It does **not** send prompts to any orchestrator or LLM execution
-service, and no chat transcript is stored by the SPA shell.
+service, and no chat transcript is stored by the SPA workspace.
 
 ## Global State
 
@@ -519,4 +520,3 @@ Key environment variables:
 
 - Owner: Platform Engineering
 - Support: #ppm-platform-support
-

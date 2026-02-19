@@ -168,7 +168,7 @@ Use scenario artifacts for walkthroughs, regression demos, and training:
 3. Drive UI walkthroughs using the demo dashboard route:
 
    ```text
-   /workspace?project_id=demo-1
+   /app/projects/demo-1
    ```
 
 Recommended scripted flow order:

@@ -6,7 +6,7 @@ Describe the solution overview documentation set and link the narrative to the r
 
 ## Implementation alignment
 
-The files in this folder are go-to-market narratives. The repository already includes the core execution stack (API gateway, orchestration service, workflow engine, agent runtime, connector registry, data sync service, analytics service, and data-lineage service) plus a web console (`apps/web`) with the workspace shell, dashboard canvas, connector gallery, guided tours, and assistant panel. Certification evidence tracking now lives alongside connector management to close compliance gaps. Use the Solution Index to cross-reference deeper architecture details and the latest runtime configuration.
+The files in this folder are go-to-market narratives. The repository already includes the core execution stack (API gateway, orchestration service, workflow engine, agent runtime, connector registry, data sync service, analytics service, and data-lineage service) plus a web console (`apps/web`) with the SPA project workspace, dashboard canvas, connector gallery, guided tours, and assistant panel. Certification evidence tracking now lives alongside connector management to close compliance gaps. Use the Solution Index to cross-reference deeper architecture details and the latest runtime configuration.
 
 ## What's inside
 
