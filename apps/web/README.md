@@ -211,9 +211,9 @@ This outputs to `apps/web/static/dist/`. The FastAPI backend can then serve the 
 | `/` | Home page with quick access to portfolios, programs, projects |
 | `/app` | SPA shell root. Redirects into project-scoped SPA routes (for example `/app/projects/:projectId`) that render methodology, canvas, and assistant panels. |
 | `/app/projects/:projectId` | Canonical SPA project workspace route. Use this route for all workspace deep links and local testing. |
-| `/portfolio/:id` | Portfolio workspace |
-| `/program/:id` | Program workspace |
-| `/project/:id` | Project workspace |
+| `/portfolio/:id` | SPA portfolio workspace |
+| `/program/:id` | SPA program workspace |
+| `/project/:id` | SPA project workspace |
 | `/config/agents` | AI agent configuration |
 | `/config/connectors` | Integration connector settings |
 | `/config/workflows` | Workflow routing configuration |
@@ -235,6 +235,8 @@ Endpoints:
 | `POST` | `/api/workspace/{project_id}/activity-completion` | Persist activity completion status. |
 
 The SPA project routes (for example, `/app/projects/demo-1`) hydrate workspace state via `/api/workspace/{project_id}` without relying on `/workspace` HTML routes or query-string entrypoints.
+
+Legacy workspace entrypoints (`/workspace`, `/v1/workspace`) are retired and unsupported.
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
 

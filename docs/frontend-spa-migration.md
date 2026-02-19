@@ -22,7 +22,7 @@ Legacy endpoints now always redirect to SPA routes.
 
 - Migration is finalized and legacy UI is retired.
 - `/v1/ui/migration-map` now publishes `migration_status.legacy_ui_retired: true` as the stable completion signal for API consumers.
-- Compatibility remains redirect-only for listed legacy routes.
+- Legacy workspace shell compatibility is fully removed; `/workspace` and `/v1/workspace` are retired.
 
 ## Route migration table
 
@@ -34,37 +34,36 @@ Legacy endpoints now always redirect to SPA routes.
 | `/v1/lessons-learned` | `/app/knowledge/lessons` | Lessons moved into SPA knowledge navigation. |
 | `/v1/audit-log` | `/app/admin/audit` | Admin-only route now protected by admin role guard. |
 
-## Phased production rollout plan (`/workspace` → `/app`)
+## Final state: `/workspace` is retired
 
-To avoid a single cutover, migration executes in two controlled phases.
+- `GET /workspace` and `GET /v1/workspace` are permanently retired and return `404`.
+- The legacy static workspace shell is removed and is not part of runtime routing behavior.
+- API compatibility remains for backend endpoints (`/v1/api/*`, `/api/workspace/*`) that the SPA consumes.
 
-### Phase A: redirect-only compatibility + monitoring
+## Post-migration contract
 
-- Retire `GET /v1/workspace`; requests now return `404` while SPA entrypoints stay on `/v1/app` and `/app/*`.
-- Instrument and monitor:
-  - hits to `/workspace`
-  - redirect success rate
-  - post-login landing route success
-- Track errors and volume until `/workspace` traffic is consistently near-zero.
+Supported SPA entrypoints:
 
-### Phase B: retire legacy static/compatibility code
+- `/app`
+- `/app/projects/:projectId`
+- `/portfolio/:portfolioId`, `/portfolios/:portfolioId`
+- `/program/:programId`, `/programs/:programId`
+- `/project/:projectId`, `/projects/:projectId`
 
-- After Phase A traffic thresholds are met, remove legacy static assets and remaining legacy code paths tied to the old workspace shell.
-- Keep API compatibility where required (`/v1/api/*`) and preserve SPA routes under `/app/*`.
+Explicitly unsupported legacy routes:
+
+- `/workspace`
+- `/v1/workspace`
+- legacy workspace HTML/query-string entrypoints tied to the retired static shell
 
 ### Communication and deprecation timeline
 
-- Publish a deprecation notice for `/workspace` compatibility behavior to users and integrators.
+- Publish retirement confirmation for `/workspace` behavior to users and integrators.
 - Include timeline checkpoints:
   - announcement date
   - reminder window(s)
-  - final retirement date for compatibility route behavior
+  - final retirement date already completed
 - Link migration mapping (`/v1/ui/migration-map`) and supported `/app/*` equivalents in all communications.
-
-### Rollback plan
-
-- If critical client breakage appears after Phase B changes, temporarily re-enable a redirect-only `/workspace` compatibility route.
-- Do **not** restore the full legacy workspace HTML shell; rollback scope is limited to compatibility redirects while client fixes are coordinated.
 
 ## Realtime integration baseline
 
