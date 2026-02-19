@@ -60,9 +60,21 @@ describe('methodology store hydration in demo mode', () => {
 
     await useMethodologyStore.getState().hydrateFromWorkspace('demo-predictive');
 
-    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/api/workspace/demo-predictive'));
+    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/api/workspace/demo-predictive'), undefined);
     expect(useMethodologyStore.getState().projectMethodology.methodology.id).toBe('predictive');
     expect(useMethodologyStore.getState().projectMethodology.methodology.stages[0]?.id).toBe('0.1-demand-intake-triage');
+  });
+
+
+  it('uses workspace APIs from SPA routes without depending on /workspace HTML entrypoints', async () => {
+    window.history.pushState({}, '', '/app/projects/demo-predictive');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(workspacePayload), { status: 200 })
+    );
+
+    await useMethodologyStore.getState().hydrateFromWorkspace('demo-predictive', 'adaptive');
+
+    expect(fetchSpy).toHaveBeenCalledWith('/api/workspace/demo-predictive?methodology=adaptive', undefined);
   });
 
   it('does not import demoData.ts in methodology store', () => {
