@@ -117,12 +117,23 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
     import logging
 
     mapped_payload = map_to_clarity(records)
+    logger = logging.getLogger(__name__)
+
+    if not mapped_payload:
+        logger.warning(
+            "No valid Clarity outbound records produced for tenant %s (include_schema=%s)",
+            tenant_id,
+            include_schema,
+        )
+        return
+
     if _should_use_mcp():
         connector = _build_mcp_connector()
         for payload in mapped_payload:
             connector.create_work_item(payload)
         return
-    logging.getLogger(__name__).info(
+
+    logger.info(
         "Outbound payload for Clarity tenant %s (include_schema=%s): %s",
         tenant_id,
         include_schema,
