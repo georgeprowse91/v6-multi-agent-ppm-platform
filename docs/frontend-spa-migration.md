@@ -18,6 +18,12 @@ Legacy UI pages in `apps/web/static` are no longer served by runtime compatibili
 
 Legacy endpoints now always redirect to SPA routes.
 
+## Migration completion status
+
+- Migration is finalized and legacy UI is retired.
+- `/v1/ui/migration-map` now publishes `migration_status.legacy_ui_retired: true` as the stable completion signal for API consumers.
+- Compatibility remains redirect-only for listed legacy routes.
+
 ## Route migration table
 
 | Legacy route | SPA route | Compatibility note |
@@ -27,7 +33,6 @@ Legacy endpoints now always redirect to SPA routes.
 | `/v1/document-search` | `/app/knowledge/documents` | Knowledge docs search consolidated under SPA knowledge. |
 | `/v1/lessons-learned` | `/app/knowledge/lessons` | Lessons moved into SPA knowledge navigation. |
 | `/v1/audit-log` | `/app/admin/audit` | Admin-only route now protected by admin role guard. |
-| `/v1/workspace?demo=true` | `/app` | Legacy workspace shell replaced by SPA shell. |
 
 ## Realtime integration baseline
 

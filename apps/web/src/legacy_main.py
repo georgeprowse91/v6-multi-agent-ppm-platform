@@ -3663,13 +3663,16 @@ async def audit_log_feed() -> dict[str, Any]:
 @api_router.get("/ui/migration-map")
 async def ui_migration_map() -> dict[str, Any]:
     return {
+        "migration_status": {
+            "legacy_ui_retired": True,
+            "notes": "Legacy UI has been fully retired; compatibility is redirect-only.",
+        },
         "routes": [
             {"legacy": "/v1/approvals", "spa": "/app/approvals", "notes": "Approval inbox moved into SPA workflow area."},
             {"legacy": "/v1/workflow-monitoring", "spa": "/app/workflows/monitoring", "notes": "Monitoring now relies on SPA route with live updates."},
             {"legacy": "/v1/document-search", "spa": "/app/knowledge/documents", "notes": "Knowledge document search consolidated in SPA."},
             {"legacy": "/v1/lessons-learned", "spa": "/app/knowledge/lessons", "notes": "Lessons page moved to knowledge section."},
             {"legacy": "/v1/audit-log", "spa": "/app/admin/audit", "notes": "Admin audit access requires admin role in SPA."},
-            {"legacy": "/v1/workspace?demo=true", "spa": "/app", "notes": "Workspace shell replaced by SPA console shell."},
         ],
         "compatibility": {
             "api_endpoints": "Preserved under /v1/api/* and /v1/workflows/*.",
