@@ -129,6 +129,8 @@ type SidebarMode = 'hub' | 'project-workspace';
 
 function getProjectIdFromPathname(pathname: string): string | null {
   const projectRouteMatch =
+    matchPath('/app/projects/:projectId/*', pathname) ??
+    matchPath('/app/projects/:projectId', pathname) ??
     matchPath('/projects/:projectId/*', pathname) ??
     matchPath('/projects/:projectId', pathname) ??
     matchPath('/project/:projectId', pathname);

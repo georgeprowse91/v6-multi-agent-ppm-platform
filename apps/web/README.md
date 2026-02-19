@@ -125,7 +125,7 @@ export ANALYTICS_SERVICE_URL=http://localhost:8080
 uvicorn src.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
-Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid`.
+Then open `http://localhost:8501/app/projects/demo-1`. The SPA hydrates methodology and canvas state from `/api/workspace/demo-1`.
 
 ### Dashboard canvas local run
 
@@ -144,11 +144,11 @@ export ANALYTICS_SERVICE_URL=http://localhost:8080
 uvicorn src.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
-Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid` and select the Dashboard tab.
+Then open `http://localhost:8501/app/projects/demo-1` and select the Dashboard tab.
 
 ### Connector gallery local run
 
-To exercise the Connector Gallery in the workspace shell, run connector-hub alongside the web app:
+To exercise the Connector Gallery in the SPA workspace, run connector-hub alongside the web app:
 
 ```bash
 cd integrations/apps/connector-hub
@@ -163,7 +163,7 @@ export CONNECTOR_HUB_URL=http://localhost:8080
 uvicorn src.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
-Then open `http://localhost:8501/workspace?project_id=demo-1&methodology=hybrid` and select **Connectors** in the right panel.
+Then open `http://localhost:8501/app/projects/demo-1` and select **Connectors** in the right panel.
 
 > **Limitations:** The connector gallery only manages instance lifecycle and health status in this PR. Credentials are not stored or submitted through the UI, sync jobs are not executed, and webhook configuration is not included.
 
@@ -209,7 +209,7 @@ This outputs to `apps/web/static/dist/`. The FastAPI backend can then serve the 
 | Path | Description |
 |------|-------------|
 | `/` | Home page with quick access to portfolios, programs, projects |
-| `/workspace` | Static workspace shell layout (navigation, canvas tabs, assistant panel) |
+| `/app` | SPA shell entrypoint for project workspaces and methodology navigation. |
 | `/portfolio/:id` | Portfolio workspace |
 | `/program/:id` | Program workspace |
 | `/project/:id` | Project workspace |
@@ -233,13 +233,13 @@ Endpoints:
 | `POST` | `/api/workspace/{project_id}/select` | Persist canvas tab + selection metadata. |
 | `POST` | `/api/workspace/{project_id}/activity-completion` | Persist activity completion status. |
 
-The workspace shell expects a `project_id` query parameter (for example, `/workspace?project_id=demo-1`).
+The SPA project routes (for example, `/app/projects/demo-1`) hydrate workspace state via `/api/workspace/{project_id}` without relying on `/workspace` HTML routes or query-string entrypoints.
 
 > **Dev auth mode:** Tests and local development can use `AUTH_DEV_MODE=true` with `ENVIRONMENT=dev|test` to bypass OIDC, and `AUTH_DEV_TENANT_ID` to set the tenant used by the workspace state APIs.
 
 ## Agent Gallery (project-scoped)
 
-The workspace shell includes an Agent Gallery panel that lists the platform agent catalogue, per-project enablement, and configuration state. Settings are tenant-aware and scoped to a project.
+The SPA workspace includes an Agent Gallery panel that lists the platform agent catalogue, per-project enablement, and configuration state. Settings are tenant-aware and scoped to a project.
 
 **Storage location**
 
@@ -461,9 +461,7 @@ CSV:
 
 ### Methodology selection and gating
 
-The workspace shell supports a methodology-driven navigation model. Methodologies can be provided via the
-`methodology` query parameter (for example, `/workspace?project_id=demo-1&methodology=hybrid`) or persisted
-through `/api/workspace/{project_id}/select`.
+Workspace APIs support methodology-driven navigation. Methodology can be set via `GET /api/workspace/{project_id}?methodology=<id>` and persisted through `/api/workspace/{project_id}/select`, independent of which SPA route is used.
 
 Key behaviours:
 
@@ -476,9 +474,9 @@ Key behaviours:
 See `apps/web/src/methodologies.py` for the canonical activity maps and `apps/web/src/gating.py` for the
 deterministic gating logic.
 
-### Assistant panel (static workspace shell)
+### Assistant panel (SPA workspace)
 
-The `/workspace` shell includes an Assistant panel for the currently selected activity. It provides:
+The SPA workspace includes an Assistant panel for the currently selected activity. It provides:
 
 - **Activity context** (name + "What this is for" description).
 - **Next-best-action prompt chips** drawn from each activity's `assistant_prompts` list.
@@ -487,7 +485,7 @@ The `/workspace` shell includes an Assistant panel for the currently selected ac
 - **Clear** action to reset the prompt box.
 
 The Assistant panel is guidance only. It does **not** send prompts to any orchestrator or LLM execution
-service, and no chat transcript is stored by the static shell.
+service, and no chat transcript is stored by the SPA shell.
 
 ## Global State
 

@@ -242,15 +242,9 @@ function mapWorkspaceResponseToProjectMethodology(payload: WorkspaceStateRespons
 
 async function fetchWorkspaceState(projectId: string, methodology?: string): Promise<WorkspaceStateResponse> {
   const params = methodology ? `?methodology=${encodeURIComponent(methodology)}` : '';
-  const relativeUrl = `${WORKSPACE_API_BASE}/${encodeURIComponent(projectId)}${params}`;
-  const requestUrl = typeof window === 'undefined'
-    ? `http://localhost${relativeUrl}`
-    : new URL(relativeUrl, window.location.origin).toString();
-  const response = await fetch(requestUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to load workspace methodology (${response.status})`);
-  }
-  return response.json() as Promise<WorkspaceStateResponse>;
+  return requestJson<WorkspaceStateResponse>(
+    `${WORKSPACE_API_BASE}/${encodeURIComponent(projectId)}${params}`
+  );
 }
 
 

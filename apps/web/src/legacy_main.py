@@ -7231,11 +7231,7 @@ async def index() -> FileResponse:
 
 @api_router.get("/workspace")
 async def workspace_shell_redirect(request: Request) -> RedirectResponse:
-    """Temporary compatibility redirect.
-
-    Phase 1 (current): redirect legacy /workspace clients to /app.
-    Phase 2 (post-migration): remove this route to return 404.
-    """
+    """Compatibility redirect to the SPA entrypoint."""
     redirect_url = "/app"
     if request.url.query:
         redirect_url = f"{redirect_url}?{request.url.query}"
