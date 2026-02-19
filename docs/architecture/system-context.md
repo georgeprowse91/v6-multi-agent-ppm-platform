@@ -16,10 +16,15 @@ The platform sits between portfolio stakeholders (PMO, delivery leads, finance, 
 - Finance, resource, and compliance stakeholders reviewing gates and approvals.
 
 **External systems**
-- PPM/work management: Jira, Azure DevOps, Planview.
-- ERP/Finance: SAP, Workday.
+- PPM/work management: Jira, Azure DevOps, Planview, Clarity PPM, Monday.com, Asana, Smartsheet, Microsoft Project Server.
+- ERP/Finance: SAP, Workday, Oracle ERP Cloud, NetSuite.
+- HR/Workforce: ADP, SAP SuccessFactors.
+- GRC/Risk: RSA Archer, LogicGate, ServiceNow GRC.
+- CRM: Salesforce.
 - Identity: Azure AD / Okta.
-- Collaboration: Slack, Teams, SharePoint.
+- Collaboration: Slack, Microsoft Teams, Microsoft 365, SharePoint, Confluence, Google Drive, Google Calendar, Outlook, Zoom.
+- Communications: Twilio, Azure Communication Services, Azure Notification Hubs.
+- IoT: IoT device telemetry integrations.
 
 **System boundary**
 The platform orchestrates tasks and maintains a canonical data model. It does **not** replace upstream systems of record; connectors synchronize data bi-directionally based on policy.

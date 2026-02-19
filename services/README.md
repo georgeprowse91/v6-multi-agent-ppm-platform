@@ -16,9 +16,11 @@ Catalog backend services that power data sync, policy enforcement, and telemetry
 | [data-service/](./data-service/) | Canonical schema and entity storage |
 | [data-sync-service/](./data-sync-service/) | Connector-driven sync jobs |
 | [identity-access/](./identity-access/) | SCIM and token validation |
+| [memory_service/](./memory_service/) | Conversation context and memory persistence |
 | [notification-service/](./notification-service/) | Outbound notifications |
 | [policy-engine/](./policy-engine/) | RBAC/ABAC policy evaluation |
 | [realtime-coedit-service/](./realtime-coedit-service/) | Collaborative document editing |
+| [scope_baseline/](./scope_baseline/) | Project scope baseline persistence |
 | [telemetry-service/](./telemetry-service/) | Metrics/events ingestion |
 
 Integration utilities now live under [`integrations/services/integration/`](../integrations/services/integration/).
@@ -36,8 +38,10 @@ Each service runs a FastAPI application (default port `8080`) with health checks
 | Data Lineage Service | Captures lineage events and quality summaries. | `POST /v1/lineage/events`, `GET /v1/lineage/graph`, `GET /v1/quality/summary` |
 | Data Service | Manages schemas and canonical entities. | `POST /v1/schemas`, `GET /v1/schemas`, `POST /v1/entities/{schema_name}` |
 | Identity & Access | Validates auth tokens and supports SCIM provisioning. | `POST /v1/auth/validate`, `POST /v1/scim/v2/Users`, `GET /v1/scim/v2/Groups` |
+| Memory Service | Persists and retrieves agent conversation context keyed by correlation ID. | `POST /v1/memory`, `GET /v1/memory/{correlation_id}`, `DELETE /v1/memory/{correlation_id}` |
 | Notification Service | Sends email/chat/webhook notifications. | `POST /v1/notifications/send` |
 | Policy Engine | Evaluates RBAC/ABAC policy decisions. | `POST /v1/policies/evaluate`, `POST /v1/rbac/evaluate`, `POST /v1/abac/evaluate` |
+| Scope Baseline | Persists and versions project scope baseline snapshots. | `POST /v1/baselines`, `GET /v1/baselines/{project_id}`, `GET /v1/baselines/{project_id}/diff` |
 | Telemetry Service | Ingests telemetry payloads for observability. | `POST /v1/telemetry/ingest` |
 | Realtime Coedit Service | Manages collaborative document editing sessions. | `POST /v1/sessions`, `GET /v1/sessions/{session_id}`, `GET /v1/ws/documents/{document_id}` |
 
