@@ -17,9 +17,7 @@ def _load_web_app():
     return module
 
 
-def test_legacy_routes_always_redirect_to_spa(monkeypatch) -> None:
-    monkeypatch.setenv("LEGACY_UI_ENABLED", "true")
-    monkeypatch.setenv("INTERNAL_LEGACY_UI_ENABLED", "true")
+def test_legacy_routes_always_redirect_to_spa() -> None:
     web = _load_web_app()
     client = TestClient(web.app)
 

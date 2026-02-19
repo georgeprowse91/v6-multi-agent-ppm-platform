@@ -62,6 +62,9 @@ jobs:
       - name: Enforce generated docs are current
         run: make check-generated-docs
 
+      - name: Enforce legacy UI references are not reintroduced
+        run: python scripts/check-legacy-ui-references.py
+
       - name: Run Ruff
         run: ruff check agents/ apps/ packages/ tests/ --output-format=github
 
