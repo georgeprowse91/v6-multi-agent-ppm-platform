@@ -14,12 +14,9 @@
 
 ## Legacy route compatibility
 
-Legacy UI pages in `apps/web/static` are now compatibility endpoints. They are enabled only when one of these env flags is true:
+Legacy UI pages in `apps/web/static` are no longer served by runtime compatibility switches.
 
-- `LEGACY_UI_ENABLED`
-- `INTERNAL_LEGACY_UI_ENABLED`
-
-Otherwise legacy endpoints return redirects to SPA routes.
+Legacy endpoints now always redirect to SPA routes.
 
 ## Route migration table
 
