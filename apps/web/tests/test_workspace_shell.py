@@ -6,7 +6,6 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
-STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 
 if "email_validator" not in sys.modules:
     module = types.ModuleType("email_validator")
@@ -33,54 +32,36 @@ if str(SRC_DIR) not in sys.path:
 import main
 
 
-def test_index_links_to_app():
-    index_html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    assert 'href="/app"' in index_html
-    assert 'href="/workspace"' not in index_html
+def test_root_serves_spa_entrypoint_contract():
+    client = TestClient(importlib.reload(main).app)
+    response = client.get("/v1/")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
 
 
-def test_workspace_shell_layout_strings():
-    app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
-    for label in [
-        "Methodology",
-        "Monitoring",
-        "Approvals",
-        "Lessons Learned",
-        "Audit Log",
-        "Document",
-        "Tree",
-        "Timeline",
-        "Dependency Map",
-        "Program Roadmap",
-        "Spreadsheet",
-        "Dashboard",
-        "Assistant",
-        "Select an activity to view guidance.",
-    ]:
-        assert label in app_js
-    assert 'path === "/app"' in app_js
-    assert 'path === "/workspace"' not in app_js
-
-
-def test_workspace_css_asset_removed():
-    assert not (STATIC_DIR / "workspace.css").exists()
-
-def test_workspace_progress_bar_markup():
-    app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
-    assert "workspace-stage-progress" in app_js
-    assert 'style="width: ${progressValue}%"' in app_js
-    assert "workspace-stage-progress-bar is-" in app_js
-
-
-def test_workspace_topbar_active_link_markup():
-    app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
-    assert "workspace-top-link" in app_js
-    assert 'aria-current="page"' in app_js
-    assert "is-active" in app_js
-
-
-def test_workspace_route_redirects_to_app():
+def test_workspace_route_redirects_to_app_preserving_query_params():
     client = TestClient(importlib.reload(main).app)
     response = client.get("/v1/workspace?project_id=demo-1&demo=true", follow_redirects=False)
+
     assert response.status_code == 307
     assert response.headers["location"] == "/app?project_id=demo-1&demo=true"
+
+
+def test_v1_workspace_route_redirects_to_base_app_without_query():
+    client = TestClient(importlib.reload(main).app)
+    response = client.get("/v1/workspace", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "/app"
+
+
+def test_session_api_contract_is_json_for_spa_bootstrap():
+    client = TestClient(importlib.reload(main).app)
+    response = client.get("/v1/session")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["authenticated"] is False
+    assert "tenant_id" in payload
+    assert "roles" in payload
