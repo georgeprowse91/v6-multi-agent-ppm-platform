@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`02-solution-design/agent-system-design.md`](../../02-solution-design/agent-system-design.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Agent 15 — Risk and Issue Management
 
 **Category:** Delivery Management

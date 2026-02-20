@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`04-commercial-and-positioning/market-and-problem-analysis.md`](../04-commercial-and-positioning/market-and-problem-analysis.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Market Analysis
 
 ## Implementation alignment

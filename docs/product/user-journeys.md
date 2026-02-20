@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`01-product-definition/user-journeys-and-stage-gates.md`](01-product-definition/user-journeys-and-stage-gates.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Methodology‑Embedded Process Flows
 
 This document describes how the multi‑agent PPM platform embeds Adaptive, Predictive and Hybrid methodologies into the user interface to guide users through stage‑gate workflows and enforce governance. The platform presents each methodology as an interactive map; the project management methodology becomes the navigation mechanism. This map guides users through stages and activities, while the conversational assistant and specialist agents execute tasks and enforce gate criteria. The objective is to provide clear user journeys, ensure compliance with best practices and allow continuous monitoring and governance.

@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`01-product-definition/personas-and-ux-guidelines.md`](01-product-definition/personas-and-ux-guidelines.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # UI/UX Design Guidelines
 
 ## Introduction

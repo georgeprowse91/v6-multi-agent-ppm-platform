@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`04-commercial-and-positioning/go-to-market-plan.md`](../04-commercial-and-positioning/go-to-market-plan.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Go-to-Market Strategy
 
 ## Implementation alignment

@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`03-delivery-and-quality/implementation-and-change-plan.md`](03-delivery-and-quality/implementation-and-change-plan.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Success Metrics & Delivery Summary
 
 This document summarises the completed delivery phases, key milestones, resolved dependencies and staffing requirements used to deliver the multi‑agent PPM platform. It also highlights the success metrics now tracked for ongoing operations, including completed authentication and RBAC enforcement, the IoT connector, enhanced vendor procurement workflows and refreshed UI experiences.

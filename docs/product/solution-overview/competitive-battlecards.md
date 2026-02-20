@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`04-commercial-and-positioning/competitive-positioning.md`](../04-commercial-and-positioning/competitive-positioning.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Competitive Battlecards
 
 Use these battlecards to compare the Multi‑Agent PPM Platform with other leading project portfolio management (PPM) solutions. Each battlecard highlights positioning, strengths, weaknesses and key talking points when engaging with prospects.

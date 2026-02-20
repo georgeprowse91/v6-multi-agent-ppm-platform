@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`03-delivery-and-quality/implementation-and-change-plan.md`](../03-delivery-and-quality/implementation-and-change-plan.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Change Management & Training Plan
 
 This plan provides a structured approach to guiding organisations through the adoption of the multi‑agent PPM platform. It combines change‑management principles with comprehensive training and communication strategies to ensure user confidence, reduce resistance, and maximise return on investment.

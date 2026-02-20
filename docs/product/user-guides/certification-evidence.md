@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`03-delivery-and-quality/compliance-evidence-process.md`](../03-delivery-and-quality/compliance-evidence-process.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Certification Evidence Tracking
 
 The web console now includes a certification evidence workflow for connector coverage. Each connector can store a compliance status, certification dates, and attached audit documents (SOC reports, ISO certificates, or regulator attestations).

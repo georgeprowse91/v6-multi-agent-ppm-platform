@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`03-delivery-and-quality/acceptance-and-test-strategy.md`](03-delivery-and-quality/acceptance-and-test-strategy.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Test Plan & Quality Assurance Strategy
 
 ## Purpose

@@ -1,0 +1,124 @@
+# Templates and Methodology Catalog
+
+**Purpose:** Canonical cross-methodology catalog of project management templates and the agents that produce or consume them. Remove repeated template references from other docs and link here instead.
+**Audience:** Project managers, PMO practitioners, product management, and engineering teams configuring agent template outputs.
+**Owner:** PMO Lead / Product Management
+**Last reviewed:** 2026-02-20
+**Related docs:** [requirements-specification.md](requirements-specification.md) · [user-journeys-and-stage-gates.md](user-journeys-and-stage-gates.md) · [../02-solution-design/agent-system-design.md](../02-solution-design/agent-system-design.md)
+
+> **Migration note:** Lifted and shifted from `templates-catalog.md` on 2026-02-20. All template cross-references in other documents should link here as the single source of truth.
+
+---
+
+# Template Catalog
+
+## Purpose
+Provide a cross-methodology catalog of project management templates and the agents that produce
+or consume them. The catalog aligns with PMBOK focus areas such as integration, scope, schedule,
+cost, quality, resource, communications, risk, procurement, and stakeholder management.
+
+## Methodology Template Index
+- Templates are organized by discipline under [docs/templates](../templates/README.md). Methodology
+  variants are labeled with `-adaptive`, `-hybrid`, or `-predictive` in the filename.
+
+## Shared Template Library
+| Artefact | Purpose | Used by (agent) | Template Path |
+| --- | --- | --- | --- |
+| Demand intake request | Capture intake data for triage and prioritization. | Agent 04 (Demand Intake) | [docs/templates/portfolio-program/demand-intake-request-template-cross.md](../templates/portfolio-program/demand-intake-request-template-cross.md) |
+| Demand intake schema | Structured schema for intake data. | Agent 04 (Demand Intake) | [docs/templates/portfolio-program/demand-intake-schema-cross.yaml](../templates/portfolio-program/demand-intake-schema-cross.yaml) |
+| Business case | Document investment rationale and options. | Agent 05/12 (Business Case & Investment) | [docs/templates/portfolio-program/business-case-var3-template-cross.md](../templates/portfolio-program/business-case-var3-template-cross.md) |
+| Business case update report | Compare actuals vs plan to validate continued investment. | Agent 05/12 (Business Case & Investment) | [docs/templates/portfolio-program/business-case-update-template-cross.md](../templates/portfolio-program/business-case-update-template-cross.md) |
+| Product strategy canvas | Consolidate product vision, market context, and roadmap strategy. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/product/product-strategy-canvas-var1-template-cross.md](../templates/product/product-strategy-canvas-var1-template-cross.md) |
+| Product vision template | Define product vision, mission, and success metrics. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/product/product-vision-var1-template-cross.md](../templates/product/product-vision-var1-template-cross.md) |
+| ROI/NPV worksheet | Calculate ROI and NPV assumptions. | Agent 05/12 (Business Case & Investment) | [docs/templates/finance/roi-npv-worksheet-cross.xlsx](../templates/finance/roi-npv-worksheet-cross.xlsx) |
+| Assumption log | Track key project assumptions and validation. | Agent 05/12 (Business Case & Investment), Agent 15 (Risk & Issue) | [docs/templates/risk/assumption-log-template-cross.md](../templates/risk/assumption-log-template-cross.md) |
+| Variance report | Track schedule/cost variance. | Agent 10 (Schedule & Planning) | [docs/templates/finance/variance-report-template-cross.md](../templates/finance/variance-report-template-cross.md) |
+| Executive dashboard status report | Executive-ready health, decisions, and value summary. | Agent 21 (Stakeholder Comms) | [docs/templates/governance/status-report-var1-template-cross.md](../templates/governance/status-report-var1-template-cross.md) |
+| Milestone review | Formal milestone, phase gate, or go/no-go review. | Agent 09 (Lifecycle & Governance) | [docs/templates/governance/milestone-review-var1-template-cross.md](../templates/governance/milestone-review-var1-template-cross.md) |
+| Risk report | Report top risks and exposure trends. | Agent 15 (Risk & Issue Management) | [docs/templates/risk/risk-report-template-cross.md](../templates/risk/risk-report-template-cross.md) |
+| Schedule risk analysis | Quantify schedule risk exposure and confidence-based completion dates. | Agent 10 (Schedule & Planning), Agent 15 (Risk & Issue Management) | [docs/templates/risk/schedule-risk-analysis-var1-template-cross.md](../templates/risk/schedule-risk-analysis-var1-template-cross.md) |
+| Quality report | Report quality performance and defects. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-report-template-cross.md](../templates/quality/quality-report-template-cross.md) |
+| Quality checklist | Standardize quality reviews and acceptance criteria. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-checklist-var1-template-cross.md](../templates/quality/quality-checklist-var1-template-cross.md) |
+| Change request | Submit changes for approval. | Agent 17 (Change & Configuration) | [docs/templates/change/change-request-var1-template-cross.md](../templates/change/change-request-var1-template-cross.md) |
+| Change impact assessment | Analyze change impacts. | Agent 17 (Change & Configuration) | [docs/templates/change/change-impact-assessment-template-cross.md](../templates/change/change-impact-assessment-template-cross.md) |
+| Change log | Track approved and pending changes. | Agent 17 (Change & Configuration) | [docs/templates/change/change-log-template-cross.md](../templates/change/change-log-template-cross.md) |
+| Issue log | Track and resolve issues. | Agent 15 (Risk & Issue Management) | [docs/templates/risk/issue-log-var1-template-cross.md](../templates/risk/issue-log-var1-template-cross.md) |
+| Lessons learned register | Capture outcomes, root causes, and recommendations. | Agent 20 (Continuous Improvement) | [docs/templates/governance/lessons-learned-var1-template-cross.md](../templates/governance/lessons-learned-var1-template-cross.md) |
+| Scope baseline | Combine scope statement, WBS, and dictionary. | Agent 08 (Project Definition) | [docs/templates/requirements/scope-baseline-template-cross.md](../templates/requirements/scope-baseline-template-cross.md) |
+| Project scope statement | Define the approved project scope, boundaries, and acceptance criteria. | Agent 08 (Project Definition) | [docs/templates/requirements/project-scope-statement-template-cross.md](../templates/requirements/project-scope-statement-template-cross.md) |
+| Project management plan | Integrate subsidiary management plans. | Agent 09 (Lifecycle & Governance) | [docs/templates/governance/project-management-plan-template-cross.md](../templates/governance/project-management-plan-template-cross.md) |
+| Scope management plan | Define scope definition, validation, and control. | Agent 08 (Project Definition) | [docs/templates/requirements/scope-management-plan-template-cross.md](../templates/requirements/scope-management-plan-template-cross.md) |
+| Business requirements document | Capture business goals, requirements, and success metrics. | Agent 08 (Project Definition) | [docs/templates/requirements/business-requirements-document-template-cross.md](../templates/requirements/business-requirements-document-template-cross.md) |
+| Software requirements specification | Define detailed functional and non-functional requirements. | Agent 08 (Project Definition) | [docs/templates/requirements/requirements-specification-template-cross.md](../templates/requirements/requirements-specification-template-cross.md) |
+| Requirements traceability matrix | Map requirements to design, build, and test artifacts. | Agent 08 (Project Definition) | [docs/templates/requirements/requirements-traceability-matrix-template-cross.md](../templates/requirements/requirements-traceability-matrix-template-cross.md) |
+| Schedule management plan | Define schedule development and control. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/schedule-management-plan-template-cross.md](../templates/schedule/schedule-management-plan-template-cross.md) |
+| Project schedule template | Capture activity-level schedule detail, milestones, and baselines. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/project-schedule-var2-template-cross.md](../templates/schedule/project-schedule-var2-template-cross.md) |
+| Release management workflow | Execute and validate releases end-to-end. | Agent 14 (Release Management) | [docs/templates/schedule/release-management-workflow-template-cross.md](../templates/schedule/release-management-workflow-template-cross.md) |
+| Cost management plan | Define cost estimation, baseline, and control. | Agent 12 (Financial Management) | [docs/templates/finance/cost-management-plan-template-cross.md](../templates/finance/cost-management-plan-template-cross.md) |
+| Financial risk management plan | Define financial risk identification, assessment, and response. | Agent 12 (Financial Management), Agent 15 (Risk & Issue Management) | [docs/templates/finance/financial-risk-management-plan-template-cross.md](../templates/finance/financial-risk-management-plan-template-cross.md) |
+| Quality management plan | Define QA/QC standards and processes. | Agent 14 (Quality Assurance) | [docs/templates/quality/quality-management-plan-template-cross.md](../templates/quality/quality-management-plan-template-cross.md) |
+| Resource management plan | Define resource estimation and acquisition. | Agent 11 (Resource & Capacity) | [docs/templates/resources/resource-management-plan-template-cross.md](../templates/resources/resource-management-plan-template-cross.md) |
+| Risk management plan | Define risk governance and analysis methods. | Agent 15 (Risk & Issue Management) | [docs/templates/risk/risk-management-plan-template-cross.md](../templates/risk/risk-management-plan-template-cross.md) |
+| Procurement management plan | Define sourcing strategy and contract approach. | Agent 13 (Vendor Procurement) | [docs/templates/finance/procurement-management-plan-template-cross.md](../templates/finance/procurement-management-plan-template-cross.md) |
+| Resource assignment matrix | Track RACI assignments per task. | Agent 11 (Resource & Capacity) | [docs/templates/resources/resource-assignment-matrix-cross.csv](../templates/resources/resource-assignment-matrix-cross.csv) |
+| RACI matrix | Define responsibilities, accountability, and decision rights. | Agent 11 (Resource & Capacity) | [docs/templates/governance/raci-matrix-var1-template-cross.md](../templates/governance/raci-matrix-var1-template-cross.md) |
+| Activity list | Define activities aligned to WBS items. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/activity-list-template-cross.csv](../templates/schedule/activity-list-template-cross.csv) |
+| Project calendar | Track working days, holidays, and events. | Agent 10 (Schedule & Planning) | [docs/templates/schedule/project-calendar-cross.csv](../templates/schedule/project-calendar-cross.csv) |
+| Risk breakdown structure | Categorize risks for consistent analysis. | Agent 15 (Risk & Issue Management) | [docs/templates/risk/risk-breakdown-structure-template-cross.yaml](../templates/risk/risk-breakdown-structure-template-cross.yaml) |
+| Product breakdown structure | Decompose product components and features. | Agent 08 (Project Definition) | [docs/templates/product/product-breakdown-structure-template-cross.yaml](../templates/product/product-breakdown-structure-template-cross.yaml) |
+| Communications plan | Plan stakeholder communications. | Agent 21 (Stakeholder Comms) | [docs/templates/communications/communications-plan-template-cross.md](../templates/communications/communications-plan-template-cross.md) |
+| Stakeholder analysis & mapping | Identify, map, and analyze stakeholders with engagement strategies. | Agent 21 (Stakeholder Comms) | [docs/templates/stakeholders/stakeholder-analysis-and-mapping-template-cross.md](../templates/stakeholders/stakeholder-analysis-and-mapping-template-cross.md) |
+| Template customization guide | Guide consistent tailoring and governance of templates. | Agent 09 (Lifecycle & Governance) | [docs/templates/governance/customization-guide-template-cross.md](../templates/governance/customization-guide-template-cross.md) |
+| Stakeholder register | Track stakeholder influence and engagement. | Agent 21 (Stakeholder Comms) | [docs/templates/stakeholders/stakeholder-register-cross.xlsx](../templates/stakeholders/stakeholder-register-cross.xlsx) |
+| RFP template | Request vendor proposals. | Agent 13 (Vendor Procurement) | [docs/templates/finance/rfp-template-cross.md](../templates/finance/rfp-template-cross.md) |
+| Vendor evaluation scorecard | Score vendors consistently. | Agent 13 (Vendor Procurement) | [docs/templates/finance/vendor-evaluation-scorecard-cross.xlsx](../templates/finance/vendor-evaluation-scorecard-cross.xlsx) |
+| Contract summary | Summarize contract terms and obligations. | Agent 13 (Vendor Procurement) | [docs/templates/finance/contract-summary-template-cross.md](../templates/finance/contract-summary-template-cross.md) |
+| Supplier risk assessment | Assess supplier risk factors and mitigations. | Agent 13 (Vendor Procurement) | [docs/templates/finance/supplier-risk-assessment-template-cross.md](../templates/finance/supplier-risk-assessment-template-cross.md) |
+| Portfolio prioritization report | Document prioritization results. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/portfolio-program/portfolio-prioritization-report-template-cross.md](../templates/portfolio-program/portfolio-prioritization-report-template-cross.md) |
+| Program roadmap | Track program initiatives and milestones. | Agent 06/07 (Portfolio/Program Strategy) | [docs/templates/portfolio-program/program-roadmap-cross.xlsx](../templates/portfolio-program/program-roadmap-cross.xlsx) |
+| Executive real-time dashboard specification | Define real-time executive KPIs, panels, and refresh cadence. | Agent 22 (Performance & Insights) | [docs/templates/governance/kpi-dashboard-spec-template-cross.md](../templates/governance/kpi-dashboard-spec-template-cross.md) |
+| SLO/alert definition | Define SLOs and alerting thresholds. | Agent 25 (System Health Monitoring) | [docs/templates/quality/slo-alert-definition-cross.yaml](../templates/quality/slo-alert-definition-cross.yaml) |
+| Skills matrix | Assess team capabilities, gaps, and development needs. | Agent 11 (Resource & Capacity) | [docs/templates/resources/skills-matrix-template-cross.md](../templates/resources/skills-matrix-template-cross.md) |
+| Cost baseline | Time-phased budget baseline (spreadsheet). | Agent 12 (Financial Management) | [docs/templates/finance/cost-baseline-cross.xlsx](../templates/finance/cost-baseline-cross.xlsx) |
+
+> **Note:** Spreadsheet templates (e.g., cost baseline, risk register, stakeholder register) are stored in the repository but cannot be rendered directly in Markdown previews. Open them in Excel or Google Sheets for full functionality.
+
+## Methodology Variants
+| Artefact | Adaptive | Predictive | Hybrid |
+| --- | --- | --- | --- |
+| Charter |  | [Project charter](../templates/governance/project-charter-template-predictive.md) | [Hybrid charter](../templates/governance/charter-template-hybrid.md) |
+| Roles & responsibilities matrix | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-adaptive.md) — Defines the key roles and responsibilities for Adaptive projects (Product Owner, Scrum Master, Team, Stakeholders, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-predictive.md) — Defines the key roles and responsibilities for Predictive projects (Sponsor, PM, BA, Functional Leads, etc.). | [Roles & responsibilities](../templates/resources/roles-responsibilities-template-hybrid.md) — Defines hybrid roles and shared responsibilities where governance and Adaptive delivery overlap. |
+| User story mapping | [User story mapping](../templates/product/user-story-mapping-template-adaptive.md) |  |  |
+| User story template | [User story template](../templates/product/user-story-template-adaptive.md) |  |  |
+| Backlog | [Backlog](../templates/product/backlog-template-adaptive.csv) |  |  |
+| Backlog management | [Backlog management](../templates/product/backlog-management-template-adaptive.md) |  |  |
+| Backlog refinement | [Backlog refinement](../templates/product/backlog-refinement-template-adaptive.md) |  |  |
+| Risk-adjusted backlog | [Risk-adjusted backlog](../templates/risk/risk-adjusted-backlog-template-adaptive.csv) |  |  |
+| Adaptive risk board | [Adaptive risk board](../templates/risk/risk-board-template-adaptive.md) |  |  |
+| Sprint plan | [Sprint plan](../templates/product/sprint-plan-template-adaptive.md) |  | [Sprint plan](../templates/product/sprint-plan-template-adaptive.md) |
+| Iteration plan | [Iteration plan](../templates/product/iteration-plan-template-adaptive.md) |  |  |
+| Release plan | [Release plan](../templates/schedule/release-plan-template-adaptive.md) |  | [Release plan](../templates/schedule/release-plan-template-adaptive.md) |
+| Burndown | [Burndown](../templates/product/burndown-template-adaptive.xlsx) |  |  |
+| WBS |  | [WBS](../templates/schedule/wbs-template-predictive.yaml) |  |
+| Schedule baseline |  | [Schedule baseline](../templates/schedule/schedule-baseline-predictive.xlsx) |  |
+| Risk register |  | [Risk register](../templates/risk/risk-register-predictive.xlsx) | [Integrated risk register](../templates/risk/integrated-risk-register-hybrid.xlsx) |
+| Integrated risk register |  |  | [Integrated risk register](../templates/risk/integrated-risk-register-template-hybrid.md) |
+| Risk breakdown structure |  | [RBS](../templates/risk/risk-breakdown-structure-template-cross.yaml) |  |
+| QA checklist |  | [QA checklist](../templates/quality/qa-checklist-predictive.xlsx) |  |
+| Milestone plan |  |  | [Milestone plan](../templates/schedule/milestone-plan-hybrid.xlsx) |
+| Governance pack |  |  | [Governance pack](../templates/governance/governance-pack-template-hybrid.md) |
+| Decision log |  |  | [Decision log](../templates/governance/decision-log-template-hybrid.md) |
+| Hybrid team management |  |  | [Hybrid team management](../templates/resources/team-management-template-hybrid.md) |
+| Hybrid resource plan |  |  | [Hybrid resource plan](../templates/resources/resource-plan-template-hybrid.md) |
+| Closure report |  | [Closure report](../templates/governance/closure-report-template-predictive.md) | [Closure report](../templates/governance/closure-report-template-predictive.md) |
+| Project management plan |  | [Project management plan](../templates/governance/project-management-plan-template-cross.md) |  |
+| Scope management plan |  | [Scope management plan](../templates/requirements/scope-management-plan-template-cross.md) |  |
+| Schedule management plan |  | [Schedule management plan](../templates/schedule/schedule-management-plan-template-cross.md) |  |
+| Cost management plan |  | [Cost management plan](../templates/finance/cost-management-plan-template-cross.md) |  |
+| Quality management plan |  | [Quality management plan](../templates/quality/quality-management-plan-template-cross.md) |  |
+| Resource management plan |  | [Resource management plan](../templates/resources/resource-management-plan-template-cross.md) |  |
+| Risk management plan |  | [Risk management plan](../templates/risk/risk-management-plan-template-cross.md) |  |
+| Procurement management plan |  | [Procurement management plan](../templates/finance/procurement-management-plan-template-cross.md) |  |
+
+## Related Compliance Template
+- DPIA template: [docs/compliance/privacy-dpia-template.md](../compliance/privacy-dpia-template.md)

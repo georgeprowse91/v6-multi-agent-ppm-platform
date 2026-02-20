@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`01-product-definition/templates-and-methodology-catalog.md`](01-product-definition/templates-and-methodology-catalog.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Template Catalog
 
 ## Purpose

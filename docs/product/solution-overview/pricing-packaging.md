@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`04-commercial-and-positioning/packaging-and-pricing.md`](../04-commercial-and-positioning/packaging-and-pricing.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Pricing & Packaging
 
 This document outlines the commercial models for the multi‑agent PPM platform and proposes value‑realisation metrics to support the go‑to‑market (GTM) strategy. The goal is to provide flexible options that align cost with customer value, encourage adoption, and support future growth.

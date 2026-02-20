@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`04-commercial-and-positioning/sales-messaging-and-collateral.md`](../04-commercial-and-positioning/sales-messaging-and-collateral.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Sales Enablement
 
 ## Overview

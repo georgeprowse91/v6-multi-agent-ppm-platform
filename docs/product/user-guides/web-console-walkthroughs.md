@@ -1,3 +1,7 @@
+> **Deprecated — 2026-02-20:** This document has been migrated to [`05-user-guides/web-console-walkthroughs.md`](../05-user-guides/web-console-walkthroughs.md). This file will be removed after the transition period. Please update all bookmarks and links.
+
+---
+
 # Web Console Walkthroughs
 
 The React web console now includes a guided tour experience for new features and major UI updates. The walkthrough helps users find configuration, analytics, and assistant tools without relying on separate training materials.
