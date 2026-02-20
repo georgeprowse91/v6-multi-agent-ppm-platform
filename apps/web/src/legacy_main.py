@@ -5417,12 +5417,20 @@ async def get_schedule(project_id: str, request: Request) -> ScheduleResponse:
 @api_router.get("/api/dependency-map/{program_id}", response_model=DependencyMapResponse)
 async def get_dependency_map(program_id: str, request: Request) -> DependencyMapResponse:
     _require_session(request)
+    if _demo_mode_enabled():
+        payload = _load_demo_dashboard_payload(f"dependency-map-{program_id}.json") or _load_demo_dashboard_payload("dependency-map.json")
+        if payload:
+            return DependencyMapResponse(**payload)
     return _mock_dependency_map(program_id)
 
 
 @api_router.get("/api/program-roadmap/{program_id}", response_model=ProgramRoadmapResponse)
 async def get_program_roadmap(program_id: str, request: Request) -> ProgramRoadmapResponse:
     _require_session(request)
+    if _demo_mode_enabled():
+        payload = _load_demo_dashboard_payload(f"program-roadmap-{program_id}.json") or _load_demo_dashboard_payload("program-roadmap.json")
+        if payload:
+            return ProgramRoadmapResponse(**payload)
     return _mock_program_roadmap(program_id)
 
 
