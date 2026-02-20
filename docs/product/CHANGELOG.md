@@ -9,6 +9,9 @@ All notable changes to product documentation will be documented in this file.
 ### Added
 - Methodology-specific roles & responsibilities templates for Predictive, Adaptive, and Hybrid projects.
 
+### Removed
+- Deprecated pre-migration files in `docs/product` that were previously retained with deprecation banners (legacy `solution-overview*`, top-level legacy docs, and old `user-guides`/`connectors` paths).
+
 ---
 
 ## [2026-02-20] — MECE Restructure Migration
