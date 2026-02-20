@@ -47,13 +47,13 @@ def _bootstrap_paths() -> None:
     src_paths = []
 
     for base in (
-        "apps",
-        "services",
         "agents",
         "packages",
         "integrations/apps",
         "integrations/connectors",
         "integrations/services",
+        "apps",
+        "services",
     ):
         base_path = root / base
         if base_path.exists():

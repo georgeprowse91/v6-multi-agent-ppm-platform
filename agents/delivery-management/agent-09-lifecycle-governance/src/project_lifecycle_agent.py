@@ -41,7 +41,7 @@ from orchestration import (
     RetryPolicy,
 )
 from monitoring import AzureMonitorClient
-from persistence import LifecyclePersistence
+from lifecycle_persistence import LifecyclePersistence
 from readiness_model import ReadinessScoringModel
 from integrations.services.integration.ai_models import AIModelService
 from summarization import CognitiveSummarizer, GateSummarizer

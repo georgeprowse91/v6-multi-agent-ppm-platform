@@ -113,7 +113,7 @@ def _quality_report(profile: str, checks: list[CheckResult]) -> dict:
     }
 
 
-def run_release_gate(profile: str, report_path: Path) -> int:
+def run_release_gate(profile: str, report_path: Path, continue_on_fail: bool = False) -> int:
     checks: list[CheckResult] = []
 
     pipeline = [
@@ -161,7 +161,7 @@ def run_release_gate(profile: str, report_path: Path) -> int:
         result = _run(area, command)
         checks.append(result)
         print(f"[{result.status}] {area}: {command}")
-        if result.status == "fail":
+        if result.status == "fail" and not continue_on_fail:
             break
 
     report = _quality_report(profile, checks)
@@ -169,6 +169,9 @@ def run_release_gate(profile: str, report_path: Path) -> int:
     report_path.write_text(json.dumps(report, indent=2) + "\n")
 
     if report["overall_status"] == "fail":
+        if continue_on_fail:
+            failing_areas = [area for area, status in report["capability_areas"].items() if status == "fail"]
+            print(f"Failing areas: {', '.join(failing_areas)}")
         print(f"Release gate failed for profile '{profile}'. See report: {report_path}")
         return 1
 
@@ -184,10 +187,15 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional path to quality report JSON (default: artifacts/release-gate/quality-report-<profile>.json)",
     )
+    parser.add_argument(
+        "--continue-on-fail",
+        action="store_true",
+        help="Run all checks and aggregate all failing areas instead of stopping at first failure.",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
     report = Path(args.report) if args.report else ARTIFACT_DIR / f"quality-report-{args.profile}.json"
-    raise SystemExit(run_release_gate(args.profile, report))
+    raise SystemExit(run_release_gate(args.profile, report, continue_on_fail=args.continue_on_fail))
