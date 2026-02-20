@@ -2,6 +2,11 @@ metadata:
   template_id: communication-plan
   title: Communication Plan
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - communication_plan_template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

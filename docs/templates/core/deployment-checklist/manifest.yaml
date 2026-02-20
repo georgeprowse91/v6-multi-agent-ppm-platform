@@ -2,6 +2,10 @@ metadata:
   template_id: deployment-checklist
   title: Deployment Checklist
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases: []
   owner: Engineering
   classification: core
   composition_model: modular-v1

@@ -2,6 +2,12 @@ metadata:
   template_id: project-management-plan
   title: Project Management Plan
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - project_management_plan_template.md
+  - traditional-project-management-plan-template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

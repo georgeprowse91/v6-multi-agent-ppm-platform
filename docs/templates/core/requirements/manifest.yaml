@@ -2,6 +2,12 @@ metadata:
   template_id: requirements
   title: Requirements
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - requirements_specification_template.md
+  - business_requirements_document_template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

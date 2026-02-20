@@ -55,9 +55,14 @@ Use **minor** version bumps for additive/non-breaking changes and **major** bump
 
 1. Keep the entry in `index.json` and change:
    - `status: deprecated` (or `retired`)
-   - `replaces` pointing to the successor template ID
-2. Do not delete historical entries used by existing automation.
-3. Add/refresh migration guidance in:
+   - `replaced_by` pointing to the successor template ID
+   - Keep `replaces` unchanged so historical lineage is not lost.
+2. For deprecated entries, include lifecycle metadata:
+   - `deprecation_version`
+   - `sunset_date` (required for `deprecated`, optional for `retired`)
+   - `aliases` when a legacy file name or prior ID must still resolve.
+3. Do not delete historical entries used by existing automation.
+4. Add/refresh migration guidance in:
    - `docs/templates/README.md`
    - `docs/templates/standards/template-naming-rules.md` (legacy mapping table)
 
