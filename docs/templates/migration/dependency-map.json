@@ -1,0 +1,1623 @@
+{
+  "source_csv": "docs/templates/migration/legacy-to-canonical.csv",
+  "generated_by": "scripts/build_template_dependency_map.py",
+  "scan_scope": {
+    "tracked_prefixes": [
+      "docs/templates/standards/",
+      "docs/",
+      "scripts/"
+    ],
+    "required_paths": [
+      {
+        "path": "docs/templates/README.md",
+        "present_in_scan": true
+      },
+      {
+        "path": "docs/templates/index.json",
+        "present_in_scan": true
+      }
+    ],
+    "scanned_file_count": 604
+  },
+  "deletion_gate": {
+    "blocked": true,
+    "reason": "References to legacy files still exist; do not delete legacy files until all listed references are migrated.",
+    "all_references_have_planned_replacements": true
+  },
+  "legacy_summary": [
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "reference_count": 7
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-example.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-software-example.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/software-project-charter.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-charter-template.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/predictive/project-charter.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid_project_charter_template.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/hybrid/project-charter.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/it-project-charter.md",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ domain appendix)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/risk-register.md",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "reference_count": 7
+    },
+    {
+      "legacy_doc": "docs/templates/software-risk-register.md",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/it-risk-register.md",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ domain appendix)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/adaptive-risk-board-template.md",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/raid_log_template.md",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ optional issue/decision fields)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-template.md",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/status-report.md",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-example.md",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/project_execution_status_report_template.md",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/predictive/status-report.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/executive-status-report.md",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ executive summary companion)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/communication-plan.md",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "reference_count": 6
+    },
+    {
+      "legacy_doc": "docs/templates/project_management_plan_template.md",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/<methodology>/project-management-plan.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-management-plan-template.md",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/predictive/project-management-plan.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid-project-management-plan-template.md",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/hybrid/project-management-plan.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "reference_count": 6
+    },
+    {
+      "legacy_doc": "docs/templates/software-requirements-specification-template.md",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "reference_count": 7
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "reference_count": 10
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "reference_count": 8
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "reference_count": 7
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "reference_count": 7
+    },
+    {
+      "legacy_doc": "docs/templates/product_backlog_template.md",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/adaptive/product-backlog.patch.yaml)",
+      "reference_count": 5
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "reference_count": 9
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist.md",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "reference_count": 9
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard.md",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "reference_count": 4
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "reference_count": 6
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-workbook.md",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ workbook rendering layer)",
+      "reference_count": 4
+    }
+  ],
+  "references": [
+    {
+      "legacy_doc": "docs/templates/adaptive-risk-board-template.md",
+      "referencing_file": "docs/templates/legacy/agile-risk-board-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/adaptive-risk-board-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/adaptive-risk-board-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 13
+    },
+    {
+      "legacy_doc": "docs/templates/adaptive-risk-board-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 13
+    },
+    {
+      "legacy_doc": "docs/templates/adaptive-risk-board-template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 8
+    },
+    {
+      "legacy_doc": "docs/templates/communication-plan.md",
+      "referencing_file": "docs/templates/escalation-matrix.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 357
+    },
+    {
+      "legacy_doc": "docs/templates/communication-plan.md",
+      "referencing_file": "docs/templates/legacy/communication-plan.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/communication-plan.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 13
+    },
+    {
+      "legacy_doc": "docs/templates/communication-plan.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 20
+    },
+    {
+      "legacy_doc": "docs/templates/communication-plan.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 20
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "referencing_file": "docs/templates/change_management_plan_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 284
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "referencing_file": "docs/templates/legacy/communication_plan_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 13
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 21
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 21
+    },
+    {
+      "legacy_doc": "docs/templates/communication_plan_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/communication-plan/manifest.yaml",
+      "line": 27
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/deployment-checklist.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 6
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/deployment-checklist.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 16
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/hybrid-infrastructure-template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 337
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/infrastructure-requirements-template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 544
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/legacy/deployment-checklist-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 20
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 35
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 35
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist-template.md",
+      "referencing_file": "docs/templates/migration_plan_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 26
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist.md",
+      "referencing_file": "docs/templates/legacy/deployment-checklist.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 20
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 34
+    },
+    {
+      "legacy_doc": "docs/templates/deployment-checklist.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/deployment-checklist/manifest.yaml",
+      "line": 34
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "referencing_file": "docs/templates/legacy/executive-dashboard-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 21
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 37
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 37
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 44
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 263
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-workbook.md",
+      "referencing_file": "docs/templates/legacy/executive-dashboard-workbook.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ workbook rendering layer)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-workbook.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ workbook rendering layer)",
+      "line": 21
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-workbook.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ workbook rendering layer)",
+      "line": 38
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard-workbook.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ workbook rendering layer)",
+      "line": 38
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard.md",
+      "referencing_file": "docs/templates/legacy/executive-dashboard.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 21
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 36
+    },
+    {
+      "legacy_doc": "docs/templates/executive-dashboard.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/executive-dashboard/manifest.yaml (+ docs/templates/extensions/safe/executive-dashboard.patch.yaml)",
+      "line": 36
+    },
+    {
+      "legacy_doc": "docs/templates/executive-status-report.md",
+      "referencing_file": "docs/templates/legacy/executive-status-report.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ executive summary companion)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/executive-status-report.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ executive summary companion)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/executive-status-report.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ executive summary companion)",
+      "line": 19
+    },
+    {
+      "legacy_doc": "docs/templates/executive-status-report.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ executive summary companion)",
+      "line": 19
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid-project-management-plan-template.md",
+      "referencing_file": "docs/templates/legacy/hybrid-project-management-plan-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/hybrid/project-management-plan.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid-project-management-plan-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/hybrid/project-management-plan.patch.yaml)",
+      "line": 14
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid-project-management-plan-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/hybrid/project-management-plan.patch.yaml)",
+      "line": 24
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid-project-management-plan-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/hybrid/project-management-plan.patch.yaml)",
+      "line": 24
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid-project-management-plan-template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/hybrid/project-management-plan.patch.yaml)",
+      "line": 56
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid_project_charter_template.md",
+      "referencing_file": "docs/templates/legacy/hybrid_project_charter_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/hybrid/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid_project_charter_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/hybrid/project-charter.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid_project_charter_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/hybrid/project-charter.patch.yaml)",
+      "line": 7
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid_project_charter_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/hybrid/project-charter.patch.yaml)",
+      "line": 7
+    },
+    {
+      "legacy_doc": "docs/templates/hybrid_project_charter_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/hybrid/project-charter.patch.yaml)",
+      "line": 55
+    },
+    {
+      "legacy_doc": "docs/templates/it-project-charter.md",
+      "referencing_file": "docs/templates/legacy/it-project-charter.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ domain appendix)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/it-project-charter.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ domain appendix)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/it-project-charter.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ domain appendix)",
+      "line": 8
+    },
+    {
+      "legacy_doc": "docs/templates/it-project-charter.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ domain appendix)",
+      "line": 8
+    },
+    {
+      "legacy_doc": "docs/templates/it-risk-register.md",
+      "referencing_file": "docs/templates/legacy/it-risk-register.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ domain appendix)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/it-risk-register.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ domain appendix)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/it-risk-register.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ domain appendix)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/it-risk-register.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ domain appendix)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/it-risk-register.md",
+      "referencing_file": "docs/templates/standards/template-naming-rules.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ domain appendix)",
+      "line": 83
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/cross_team_coordination_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 112
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/cross_team_coordination_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 500
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/legacy/less_sprint_planning_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/less_retrospective_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 468
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/methodology-comparison.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 123
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 16
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 28
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 28
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/overall_product_backlog_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 209
+    },
+    {
+      "legacy_doc": "docs/templates/less_sprint_planning_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 67
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/cross_team_coordination_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 501
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/legacy/overall_product_backlog_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/less_retrospective_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 469
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/less_sprint_planning_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 474
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/methodology-comparison.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 126
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 19
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 33
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 33
+    },
+    {
+      "legacy_doc": "docs/templates/overall_product_backlog_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/safe/product-backlog.patch.yaml)",
+      "line": 75
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/art_coordination_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 557
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/legacy/pi_planning_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/metrics_dashboard_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 639
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 16
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 29
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 29
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/portfolio_kanban_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 564
+    },
+    {
+      "legacy_doc": "docs/templates/pi_planning_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/safe/sprint-planning.patch.yaml)",
+      "line": 78
+    },
+    {
+      "legacy_doc": "docs/templates/product_backlog_template.md",
+      "referencing_file": "docs/templates/legacy/product_backlog_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/adaptive/product-backlog.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/product_backlog_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/adaptive/product-backlog.patch.yaml)",
+      "line": 19
+    },
+    {
+      "legacy_doc": "docs/templates/product_backlog_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/adaptive/product-backlog.patch.yaml)",
+      "line": 32
+    },
+    {
+      "legacy_doc": "docs/templates/product_backlog_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/adaptive/product-backlog.patch.yaml)",
+      "line": 32
+    },
+    {
+      "legacy_doc": "docs/templates/product_backlog_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/product-backlog/manifest.yaml (+ docs/templates/extensions/adaptive/product-backlog.patch.yaml)",
+      "line": 85
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-example.md",
+      "referencing_file": "docs/templates/legacy/project-charter-example.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-example.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-example.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 3
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-example.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 3
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-software-example.md",
+      "referencing_file": "docs/templates/legacy/project-charter-software-example.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-software-example.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-software-example.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 4
+    },
+    {
+      "legacy_doc": "docs/templates/project-charter-software-example.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 4
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/business_case_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 462
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/legacy/project_charter_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 2
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 2
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/standards/template-naming-rules.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 80
+    },
+    {
+      "legacy_doc": "docs/templates/project_charter_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/<methodology>/project-charter.patch.yaml)",
+      "line": 90
+    },
+    {
+      "legacy_doc": "docs/templates/project_execution_status_report_template.md",
+      "referencing_file": "docs/templates/legacy/project_execution_status_report_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/predictive/status-report.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/project_execution_status_report_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/predictive/status-report.patch.yaml)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/project_execution_status_report_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/predictive/status-report.patch.yaml)",
+      "line": 18
+    },
+    {
+      "legacy_doc": "docs/templates/project_execution_status_report_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/predictive/status-report.patch.yaml)",
+      "line": 18
+    },
+    {
+      "legacy_doc": "docs/templates/project_execution_status_report_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/predictive/status-report.patch.yaml)",
+      "line": 93
+    },
+    {
+      "legacy_doc": "docs/templates/project_management_plan_template.md",
+      "referencing_file": "docs/templates/legacy/project_management_plan_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/<methodology>/project-management-plan.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/project_management_plan_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/<methodology>/project-management-plan.patch.yaml)",
+      "line": 14
+    },
+    {
+      "legacy_doc": "docs/templates/project_management_plan_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/<methodology>/project-management-plan.patch.yaml)",
+      "line": 22
+    },
+    {
+      "legacy_doc": "docs/templates/project_management_plan_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/<methodology>/project-management-plan.patch.yaml)",
+      "line": 22
+    },
+    {
+      "legacy_doc": "docs/templates/project_management_plan_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/<methodology>/project-management-plan.patch.yaml)",
+      "line": 95
+    },
+    {
+      "legacy_doc": "docs/templates/raid_log_template.md",
+      "referencing_file": "docs/templates/legacy/raid_log_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ optional issue/decision fields)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/raid_log_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ optional issue/decision fields)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/raid_log_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ optional issue/decision fields)",
+      "line": 14
+    },
+    {
+      "legacy_doc": "docs/templates/raid_log_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ optional issue/decision fields)",
+      "line": 14
+    },
+    {
+      "legacy_doc": "docs/templates/raid_log_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ optional issue/decision fields)",
+      "line": 102
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "referencing_file": "docs/templates/business_case_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 463
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "referencing_file": "docs/templates/legacy/requirements_specification_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 15
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 25
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 25
+    },
+    {
+      "legacy_doc": "docs/templates/requirements_specification_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 107
+    },
+    {
+      "legacy_doc": "docs/templates/risk-register.md",
+      "referencing_file": "docs/templates/legacy/risk-register.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/risk-register.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/risk-register.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 9
+    },
+    {
+      "legacy_doc": "docs/templates/risk-register.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 9
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/change_management_plan_template.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 285
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/legacy/risk_register_template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/standards/template-naming-rules.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 82
+    },
+    {
+      "legacy_doc": "docs/templates/risk_register_template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/<methodology>/risk-register.patch.yaml)",
+      "line": 114
+    },
+    {
+      "legacy_doc": "docs/templates/software-project-charter.md",
+      "referencing_file": "docs/templates/legacy/software-project-charter.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/software-project-charter.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/software-project-charter.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/software-project-charter.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/adaptive/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/software-requirements-specification-template.md",
+      "referencing_file": "docs/templates/legacy/software-requirements-specification-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/software-requirements-specification-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 15
+    },
+    {
+      "legacy_doc": "docs/templates/software-requirements-specification-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 26
+    },
+    {
+      "legacy_doc": "docs/templates/software-requirements-specification-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/requirements/manifest.yaml (+ docs/templates/extensions/predictive/requirements.patch.yaml)",
+      "line": 26
+    },
+    {
+      "legacy_doc": "docs/templates/software-risk-register.md",
+      "referencing_file": "docs/templates/legacy/software-risk-register.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/software-risk-register.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/software-risk-register.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/software-risk-register.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/risk-register/manifest.yaml (+ docs/templates/extensions/adaptive/risk-register.patch.yaml)",
+      "line": 11
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/agile-ceremonies-templates.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 36
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/legacy/sprint-planning-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 16
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 27
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 27
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 171
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-planning-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-planning/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-planning.patch.yaml)",
+      "line": 284
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/agile-ceremonies-templates.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 181
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/legacy/sprint-retrospective-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 18
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 31
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 31
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 173
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-retrospective-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-retrospective/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-retrospective.patch.yaml)",
+      "line": 286
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/agile-ceremonies-templates.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 132
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/legacy/sprint-review-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 17
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 30
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 30
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 172
+    },
+    {
+      "legacy_doc": "docs/templates/sprint-review-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/sprint-review/manifest.yaml (+ docs/templates/extensions/adaptive/sprint-review.patch.yaml)",
+      "line": 285
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-example.md",
+      "referencing_file": "docs/templates/legacy/status-report-example.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-example.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-example.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 17
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-example.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 17
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-template.md",
+      "referencing_file": "docs/templates/legacy/status-report-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 15
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 15
+    },
+    {
+      "legacy_doc": "docs/templates/status-report-template.md",
+      "referencing_file": "docs/templates/template-selector.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 288
+    },
+    {
+      "legacy_doc": "docs/templates/status-report.md",
+      "referencing_file": "docs/templates/legacy/status-report.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/status-report.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 12
+    },
+    {
+      "legacy_doc": "docs/templates/status-report.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 16
+    },
+    {
+      "legacy_doc": "docs/templates/status-report.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/status-report/manifest.yaml (+ docs/templates/extensions/<methodology>/status-report.patch.yaml)",
+      "line": 16
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-charter-template.md",
+      "referencing_file": "docs/templates/legacy/traditional-project-charter-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/predictive/project-charter.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-charter-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/predictive/project-charter.patch.yaml)",
+      "line": 10
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-charter-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/predictive/project-charter.patch.yaml)",
+      "line": 6
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-charter-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/predictive/project-charter.patch.yaml)",
+      "line": 6
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-charter-template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-charter/manifest.yaml (+ docs/templates/extensions/predictive/project-charter.patch.yaml)",
+      "line": 134
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-management-plan-template.md",
+      "referencing_file": "docs/templates/legacy/traditional-project-management-plan-template.md",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/predictive/project-management-plan.patch.yaml)",
+      "line": 5
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-management-plan-template.md",
+      "referencing_file": "docs/templates/migration/consolidation-map.md",
+      "reference_type": "plain-text mention",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/predictive/project-management-plan.patch.yaml)",
+      "line": 14
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-management-plan-template.md",
+      "referencing_file": "docs/templates/migration/legacy-to-canonical.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/predictive/project-management-plan.patch.yaml)",
+      "line": 23
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-management-plan-template.md",
+      "referencing_file": "docs/templates/migration/migration-status.csv",
+      "reference_type": "exact path",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/predictive/project-management-plan.patch.yaml)",
+      "line": 23
+    },
+    {
+      "legacy_doc": "docs/templates/traditional-project-management-plan-template.md",
+      "referencing_file": "docs/templates/template-index.md",
+      "reference_type": "relative link",
+      "planned_replacement_target": "docs/templates/core/project-management-plan/manifest.yaml (+ docs/templates/extensions/predictive/project-management-plan.patch.yaml)",
+      "line": 135
+    }
+  ]
+}
