@@ -4,6 +4,7 @@ Pytest configuration and fixtures for Multi-Agent PPM Platform tests.
 
 import asyncio
 import collections
+import importlib
 import importlib.util
 import inspect
 import os
@@ -42,7 +43,8 @@ _PYTEST_CONFIG = None
 
 def _bootstrap_paths() -> None:
     root = Path(__file__).resolve().parents[1]
-    candidate_paths = [root]
+    ordered_paths = [root]
+    src_paths = []
 
     for base in (
         "apps",
@@ -55,23 +57,54 @@ def _bootstrap_paths() -> None:
     ):
         base_path = root / base
         if base_path.exists():
-            candidate_paths.extend(path for path in base_path.glob("*/src") if path.is_dir())
+            src_paths.extend(path for path in base_path.glob("*/src") if path.is_dir())
 
     agents_path = root / "agents"
     if agents_path.exists():
-        candidate_paths.extend(path for path in agents_path.glob("**/src") if path.is_dir())
+        src_paths.extend(path for path in agents_path.glob("**/src") if path.is_dir())
 
     runtime_src = agents_path / "runtime" / "src"
     if runtime_src.exists():
-        candidate_paths.append(runtime_src)
+        src_paths.append(runtime_src)
 
-    for path in candidate_paths:
-        path_str = str(path.resolve())
-        if path_str not in sys.path:
-            sys.path.insert(0, path_str)
+    api_gateway_src = root / "apps" / "api-gateway" / "src"
+    prioritized_src = []
+    if api_gateway_src.exists():
+        prioritized_src.append(api_gateway_src)
+
+    prioritized_src.extend(path for path in src_paths if path != api_gateway_src)
+    ordered_paths.extend(prioritized_src)
+
+    unique_new_paths = []
+    seen = set(sys.path)
+    for path in ordered_paths:
+        resolved = str(path.resolve())
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        unique_new_paths.append(resolved)
+
+    sys.path[:0] = unique_new_paths
+
+
+def _assert_api_import_bootstrapped() -> None:
+    expected = (
+        Path(__file__).resolve().parents[1]
+        / "apps"
+        / "api-gateway"
+        / "src"
+        / "api"
+    ).resolve()
+    api_module = importlib.import_module("api")
+    module_path = Path(getattr(api_module, "__file__", "")).resolve()
+    assert module_path == expected / "__init__.py", (
+        "Expected `import api` to resolve to apps/api-gateway/src/api/__init__.py, "
+        f"got {module_path}"
+    )
 
 
 _bootstrap_paths()
+_assert_api_import_bootstrapped()
 
 
 def _module_available(module_name: str) -> bool:
