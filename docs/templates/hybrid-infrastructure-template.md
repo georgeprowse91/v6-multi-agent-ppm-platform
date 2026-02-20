@@ -334,7 +334,7 @@ Traditional Planning ←→ Hybrid Integration ←→ Adaptive Planning
 
 ### Configuration Templates
 - [Infrastructure Requirements Template](../../../essential-templates/infrastructure/infrastructure-requirements-template.md)
-- [Deployment Checklist Template](../../../essential-templates/infrastructure/deployment-checklist-template.md)
+- [Deployment Checklist Template](./core/deployment-checklist/manifest.yaml)
 - [DevOps Pipeline Template](../../emerging-methods/devops/cicd_pipeline_planning_template.md)
 
 ### Integration Resources

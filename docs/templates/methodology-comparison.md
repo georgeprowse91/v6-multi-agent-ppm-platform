@@ -120,10 +120,10 @@ Scaling frameworks extend Adaptive practices to handle larger, more complex proj
 - Organizations wanting to stay close to Scrum principles
 
 **Templates Available:**
-- [LeSS Sprint Planning Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/less/less_sprint_planning_template.md)
+- [LeSS Sprint Planning Template](./core/sprint-planning/manifest.yaml)
 - [LeSS Retrospective Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/less/less_retrospective_template.md)
 - [Cross Team Coordination Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/less/cross_team_coordination_template.md)
-- [Overall Product Backlog Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/less/overall_product_backlog_template.md)
+- [Overall Product Backlog Template](./core/product-backlog/manifest.yaml)
 
 ### Hybrid Approaches
 

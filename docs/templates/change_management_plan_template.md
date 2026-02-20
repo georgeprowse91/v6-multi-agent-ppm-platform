@@ -281,7 +281,7 @@ updated: "2026-02-11"
 
 **Related Templates:**
 - [Stakeholder Register Template](../Process_Groups/Initiating/stakeholder_register_template.md)
-- [Communication Plan Template](communication_plan_template.md)
-- [Risk Register Template](risk_register_template.md)
+- [Communication Plan Template](./core/communication-plan/manifest.yaml)
+- [Risk Register Template](./core/risk-register/manifest.yaml)
 - [Training Plan Template](training_plan_template.md)
 

@@ -23,4 +23,4 @@ Template for planning and executing infrastructure migrations in IT environments
 ---
 Related Resources:
 - [Infrastructure Assessment Template](./infrastructure_assessment_template.md)
-- [Deployment Checklist](../../../essential-templates/infrastructure/deployment-checklist-template.md)
+- [Deployment Checklist](./core/deployment-checklist/manifest.yaml)

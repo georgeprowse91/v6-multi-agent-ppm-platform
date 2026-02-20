@@ -17,6 +17,7 @@ Useful links:
 - Methodology extensions: [`extensions/`](./extensions/)
 - Migration table (legacy → canonical): [`standards/template-naming-rules.md#4-examples-legacy--canonical-mappings`](./standards/template-naming-rules.md#4-examples-legacy--canonical-mappings)
 - Deprecation policy: [`standards/index-governance.md#deprecate-or-retire-a-template`](./standards/index-governance.md#deprecate-or-retire-a-template)
+- Retirement changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Legacy transition policy (redirect stubs)
 

@@ -33,7 +33,7 @@ Well-facilitated ceremonies are the heartbeat of successful Adaptive teams. This
 - Team confident in their ability to deliver
 - Clear understanding of Definition of Done
 
-### **[→ Download: Sprint Planning Template](sprint-planning-template.md)**
+### **[→ Download: Sprint Planning Template](./core/sprint-planning/manifest.yaml)**
 
 ### Agenda (4 hours for 2-week sprint)
 **Part 1: What (2 hours)**
@@ -129,7 +129,7 @@ Well-facilitated ceremonies are the heartbeat of successful Adaptive teams. This
 - Product backlog updated based on input
 - Team celebrates accomplishments
 
-### **[→ Download: Sprint Review Template](sprint-review-template.md)**
+### **[→ Download: Sprint Review Template](./core/sprint-review/manifest.yaml)**
 
 ### Agenda (2 hours for 2-week sprint)
 1. **Welcome & Context** (10 min)
@@ -178,7 +178,7 @@ Well-facilitated ceremonies are the heartbeat of successful Adaptive teams. This
 - Team commitment to changes
 - Psychological safety maintained and strengthened
 
-### **[→ Download: Sprint Retrospective Template](sprint-retrospective-template.md)**
+### **[→ Download: Sprint Retrospective Template](./core/sprint-retrospective/manifest.yaml)**
 
 ### Retrospective Techniques
 
