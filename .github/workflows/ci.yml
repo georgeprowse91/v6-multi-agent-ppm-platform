@@ -68,6 +68,9 @@ jobs:
       - name: Enforce legacy workspace artifact guard
         run: python apps/web/scripts/check_legacy_workspace_artifacts.py
 
+      - name: Enforce docs migration guard
+        run: python scripts/check-docs-migration-guard.py
+
       - name: Run Ruff
         run: ruff check agents/ apps/ packages/ tests/ --output-format=github
 
