@@ -1,21 +1,39 @@
 {
   "responses": [
     {
-      "match": ["highest risk", "risk exposure", "risk"],
-      "summary": "The highest risk exposure sits with Phoenix and Orion based on recent approvals.",
+      "match": ["discover", "intake", "charter"],
+      "summary": "Intake analysis is ready for Discover stage handoff.",
       "items": [
-        "Phoenix — gate exit approval flagged Medium risk",
-        "Orion — budget change approval flagged High risk",
-        "Lyra — compliance review pending with schedule impact"
+        "Problem statement aligned to strategic outcomes",
+        "Initial assumptions and constraints captured",
+        "Recommended next step: review business case"
       ]
     },
     {
-      "match": ["workflow", "automation"],
-      "summary": "Workflow monitoring shows one failed run and two warnings.",
+      "match": ["design", "wbs", "plan"],
+      "summary": "Design planning is drafted with timeline and dependencies.",
       "items": [
-        "Approval Escalation — failed, reroute to alternate approver",
-        "Document Sync — warning, increase connector concurrency",
-        "Intake Routing — healthy, no action required"
+        "WBS baseline includes major deliverables",
+        "Dependencies mapped across product and security teams",
+        "Risk response owners assigned for top 3 risks"
+      ]
+    },
+    {
+      "match": ["deliver", "status", "on_track"],
+      "summary": "Delivery status is healthy and within forecast.",
+      "items": [
+        "Milestones are on schedule this reporting period",
+        "Budget burn remains within planned tolerance",
+        "No critical blockers detected"
+      ]
+    },
+    {
+      "match": ["off_track", "risk", "raid"],
+      "summary": "Delivery risk has increased and mitigation is required.",
+      "items": [
+        "Escalate staffing constraint to PMO governance",
+        "Rebaseline two impacted milestones",
+        "Open RAID review with dependency owners"
       ]
     }
   ],

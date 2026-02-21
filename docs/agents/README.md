@@ -14,13 +14,14 @@ These documents are referenced by the root README and provide the canonical expl
 
 ## Agent configuration reference
 
-Agent runtime behavior is configured in `config/agents/` and loaded by the agent runtime service.
+Agent runtime behavior is configured in `ops/config/agents/` (and mirrored into the agent runtime service at `services/agent-runtime/src/config/`) and loaded by the agent runtime service.
 
 | File | Purpose | Key fields |
 | --- | --- | --- |
-| `config/agents/orchestration.yaml` | Intent routing + response orchestration settings. | `intent_router.model.*`, `intent_router.intents`, `response_orchestration.max_concurrency`, `response_orchestration.retry_policy.*` |
-| `config/agents/intent-routing.yaml` | Intent definitions and routing targets. | `intents[].name`, `intents[].routes[].agent_id`, `intents[].routes[].action` |
-| `config/agents/portfolio.yaml` | Domain agent configuration for demand, business case, portfolio strategy, and program management. | `demand_intake.*`, `business_case.*`, `portfolio_strategy.*`, `program_management.*` |
+| `ops/config/agents/orchestration.yaml` | Intent routing + response orchestration settings. | `intent_router.model.*`, `intent_router.intents`, `response_orchestration.max_concurrency`, `response_orchestration.retry_policy.*` |
+| `ops/config/agents/intent-routing.yaml` | Intent definitions and routing targets. | `intents[].name`, `intents[].routes[].agent_id`, `intents[].routes[].action` |
+| `ops/config/agents/portfolio.yaml` | Domain agent configuration for demand, business case, portfolio strategy, and program management. | `demand_intake.*`, `business_case.*`, `portfolio_strategy.*`, `program_management.*` |
+| `config/agents/demo-participants.yaml` | Demo participant configuration for local and demo environments. | `participants[].name`, `participants[].role` |
 
 ## How to run / develop / test
 

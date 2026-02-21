@@ -27,6 +27,10 @@ def test_get_dependency_map_returns_nodes_and_links(client, monkeypatch):
     assert payload["nodes"]
     assert payload["links"]
     assert {"id", "label", "type"}.issubset(payload["nodes"][0])
+    assert all(not node["url"].startswith("/workspace?") for node in payload["nodes"])
+    assert {"/app/programs/program-1", "/app/projects/crm-migration", "/app/projects/data-lake-uplift", "/app/programs/launch"}.issubset(
+        {node["url"] for node in payload["nodes"]}
+    )
 
 
 def test_get_program_roadmap_returns_phases_and_milestones(client, monkeypatch):

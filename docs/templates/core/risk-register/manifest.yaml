@@ -2,6 +2,12 @@ metadata:
   template_id: risk-register
   title: Risk Register
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - risk_register_template.md
+  - risk_assessment_template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

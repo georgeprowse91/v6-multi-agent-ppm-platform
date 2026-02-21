@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -10,19 +9,28 @@ from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT):
+OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
+from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from runtime import AgentRuntime, ConnectorActionRuntimeError  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
+
 from packages.version import API_VERSION  # noqa: E402
-from runtime import AgentRuntime  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 app = FastAPI(title="Agent Runtime Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
-app.add_middleware(SecurityHeadersMiddleware)
-register_error_handlers(app)
+configure_tracing("agent-runtime")
+configure_metrics("agent-runtime")
+app.add_middleware(TraceMiddleware, service_name="agent-runtime")
+app.add_middleware(RequestMetricsMiddleware, service_name="agent-runtime")
+apply_api_governance(app, service_name="agent-runtime")
 
 runtime = AgentRuntime()
 
@@ -90,11 +98,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "agent-runtime",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("agent-runtime")
 
 
 @api_router.get("/agents")
@@ -169,8 +173,8 @@ async def run_connector_action(
             action=request.action,
             payload=request.payload,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ConnectorActionRuntimeError as exc:
+        raise HTTPException(status_code=exc.http_status, detail=exc.to_response()) from exc
 
 
 @api_router.post("/events/publish")

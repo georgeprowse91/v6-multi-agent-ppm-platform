@@ -28,6 +28,9 @@ from agents.runtime.src.models import (  # noqa: E402
     AgentPayload,
     AgentResponse,
     AgentResponseMetadata,
+    ReadinessCheck,
+    ReadinessReport,
+    ReadinessSeverity,
 )
 from agents.runtime.src.policy import (  # noqa: E402
     evaluate_policy_bundle,
@@ -87,6 +90,102 @@ class BaseAgent(ABC):
         }
         feedback_db_path = self.config.get("feedback_db_path") or os.getenv("FEEDBACK_DB_PATH")
         self.feedback_service = FeedbackService(feedback_db_path or "data/feedback.sqlite3")
+
+    def _required_config_keys(self) -> tuple[str, ...]:
+        """Return config keys required for this agent to be considered ready."""
+        return tuple(self.config.get("required_config_keys", ()))
+
+    def _required_schema_keys(self) -> tuple[str, ...]:
+        """Return schema keys expected in agent configuration."""
+        return tuple(self.config.get("required_schema_keys", ()))
+
+    async def readiness_check(self) -> ReadinessReport:
+        """Evaluate the runtime readiness contract for this agent."""
+        checks: list[ReadinessCheck] = []
+
+        required_config = self._required_config_keys()
+        missing_config = sorted(
+            key for key in required_config if self.config.get(key) in (None, "", [], {})
+        )
+        checks.append(
+            ReadinessCheck(
+                name="required_config_present",
+                passed=not missing_config,
+                severity=ReadinessSeverity.critical,
+                message=(
+                    "All required configuration keys are present"
+                    if not missing_config
+                    else f"Missing required configuration keys: {', '.join(missing_config)}"
+                ),
+                remediation_hint=(
+                    None
+                    if not missing_config
+                    else "Provide the missing configuration values before agent startup."
+                ),
+                metadata={"required_keys": list(required_config), "missing_keys": missing_config},
+            )
+        )
+
+        dependency_ok = True
+        dependency_hint = None
+        dependency_message = "External dependencies reachable"
+        if self.data_service and not getattr(self.data_service, "base_url", None):
+            dependency_ok = False
+            dependency_message = "Data service client is configured without a reachable base URL"
+            dependency_hint = "Set DATA_SERVICE_URL or config.data_service_url to a valid endpoint."
+
+        checks.append(
+            ReadinessCheck(
+                name="dependencies_reachable",
+                passed=dependency_ok,
+                severity=ReadinessSeverity.critical,
+                message=dependency_message,
+                remediation_hint=dependency_hint,
+                metadata={"data_service_configured": bool(self.data_service)},
+            )
+        )
+
+        required_schema_keys = self._required_schema_keys()
+        schema_payload = self.config.get("schemas")
+        if required_schema_keys:
+            schemas_loaded = isinstance(schema_payload, dict)
+            missing_schemas = (
+                sorted(key for key in required_schema_keys if not schemas_loaded or key not in schema_payload)
+                if required_schema_keys
+                else []
+            )
+            checks.append(
+                ReadinessCheck(
+                    name="schemas_loaded",
+                    passed=not missing_schemas,
+                    severity=ReadinessSeverity.critical,
+                    message=(
+                        "Required schemas are loaded"
+                        if not missing_schemas
+                        else f"Missing required schemas: {', '.join(missing_schemas)}"
+                    ),
+                    remediation_hint=(
+                        None
+                        if not missing_schemas
+                        else "Populate config.schemas with all required schema definitions."
+                    ),
+                    metadata={
+                        "required_schema_keys": list(required_schema_keys),
+                        "loaded_schema_keys": sorted(schema_payload.keys()) if isinstance(schema_payload, dict) else [],
+                    },
+                )
+            )
+
+        blocking_failures = [
+            check for check in checks if not check.passed and check.severity == ReadinessSeverity.critical
+        ]
+        return ReadinessReport(
+            agent_id=self.agent_id,
+            catalog_id=self.catalog_id or self.agent_id,
+            ready=not blocking_failures,
+            checks=checks,
+            last_failure_reason=blocking_failures[0].message if blocking_failures else None,
+        )
 
     async def initialize(self) -> None:
         """

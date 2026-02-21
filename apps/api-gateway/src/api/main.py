@@ -15,12 +15,14 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
+from api.slowapi_compat import (
+    SlowAPIMiddleware,
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
+)
 
 from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
-from api.leader_election import build_leader_elector
+from api.bootstrap import StartupFailure, build_default_bootstrap_registry
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import (
@@ -41,7 +43,6 @@ from api.routes import (
     vendor_research,
     workflows,
 )
-from api.runtime_bootstrap import bootstrap_runtime_paths
 from api.config import validate_startup_config
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -58,6 +59,7 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
+from common.env_validation import environment_value  # noqa: E402
 from common.exceptions import PPMPlatformError, exception_to_http_status  # noqa: E402
 
 # Configure logging
@@ -89,7 +91,7 @@ def _version_payload() -> dict[str, str]:
     }
 
 
-environment = os.getenv("ENVIRONMENT", "development").lower()
+environment = environment_value(os.environ)
 
 # Configure CORS
 allowed_origins = get_allowed_origins(environment)
@@ -117,46 +119,20 @@ register_error_handlers(app)
 async def startup_event() -> None:
     """Initialize application on startup."""
     logger.info("Starting Multi-Agent PPM Platform...")
-
-    # Initialize orchestrator
-    bootstrap_runtime_paths()
-    from orchestrator import AgentOrchestrator
-
-    app.state.orchestrator = AgentOrchestrator()
-    await app.state.orchestrator.initialize()
-
-    app.state.leader_elector = build_leader_elector("api-gateway")
-    app.state.leader_elector.start()
-
-    from api.document_session_store import DocumentSessionStore
-    from api.routes.connectors import (
-        build_circuit_breaker,
-        build_config_store,
-        build_project_config_store,
-        build_webhook_store,
-    )
-
-    app.state.connector_config_store = build_config_store()
-    app.state.project_connector_config_store = build_project_config_store()
-    app.state.webhook_store = build_webhook_store()
-    app.state.connector_circuit_breaker = build_circuit_breaker()
-    app.state.document_session_store = DocumentSessionStore(
-        REPO_ROOT / "data" / "documents" / "sessions.db"
-    )
-
-    rotation_enabled = os.getenv("CONNECTOR_ROTATION_ENABLED", "false").lower() == "true"
-    if rotation_enabled:
-        from api.secret_rotation import ConnectorSecretRotationScheduler
-
-        interval = int(os.getenv("CONNECTOR_ROTATION_INTERVAL_SECONDS", "3600"))
-        webhook_url = os.getenv("AZURE_AUTOMATION_WEBHOOK_URL")
-        scheduler = ConnectorSecretRotationScheduler(
-            app.state.connector_config_store,
-            interval_seconds=interval,
-            automation_webhook_url=webhook_url,
+    app.state.environment = environment
+    app.state.bootstrap_registry = build_default_bootstrap_registry()
+    try:
+        await app.state.bootstrap_registry.startup(app)
+    except StartupFailure as exc:
+        logger.error(
+            "Application startup failed",
+            extra={
+                "component": exc.component,
+                "error": exc.message,
+                "startup_order": exc.startup_order,
+            },
         )
-        scheduler.start()
-        app.state.rotation_scheduler = scheduler
+        raise RuntimeError(str(exc)) from exc
 
     logger.info("Application started successfully")
 
@@ -166,21 +142,9 @@ async def shutdown_event() -> None:
     """Clean up resources on shutdown."""
     logger.info("Shutting down Multi-Agent PPM Platform...")
 
-    orchestrator = getattr(app.state, "orchestrator", None)
-    if orchestrator:
-        await orchestrator.cleanup()
-
-    leader_elector = getattr(app.state, "leader_elector", None)
-    if leader_elector:
-        leader_elector.stop()
-
-    rotation_scheduler = getattr(app.state, "rotation_scheduler", None)
-    if rotation_scheduler:
-        rotation_scheduler.stop()
-
-    document_session_store = getattr(app.state, "document_session_store", None)
-    if document_session_store:
-        document_session_store.close()
+    bootstrap_registry = getattr(app.state, "bootstrap_registry", None)
+    if bootstrap_registry:
+        await bootstrap_registry.shutdown(app)
 
     logger.info("Application shut down successfully")
 

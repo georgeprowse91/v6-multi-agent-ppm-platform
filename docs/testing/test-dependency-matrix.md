@@ -12,6 +12,37 @@ The CI `test` job uses the `all-optional` profile. It installs:
 
 This profile is expected to satisfy all dependency-based `pytest.importorskip(...)` and dependency guards in `tests/conftest.py`.
 
+## Release-gate profile: `core`
+
+Use this profile when running `make release-gate PROFILE=core` locally or in CI.
+
+### Required install commands
+
+```bash
+make install-release-gate-core
+```
+
+This target installs:
+
+- editable package with development + test extras (`pip install -e .[dev,test]`)
+- release-gate unit/integration/security optional dependencies that are treated as required for core gating:
+  - `slowapi`
+  - `cryptography`
+  - `sqlalchemy`
+  - `alembic`
+  - `celery`
+  - `email-validator`
+
+### Why these dependencies are mandatory for unit scope
+
+`release-gate` runs `make test-unit`, `make test-integration`, and `make test-security`. Those test sets include modules guarded by `pytest.importorskip(...)` or collection-time dependency checks for the packages above. Installing them prevents false negatives caused by missing-dependency skips in strict CI skip mode.
+
+`tests/integration/connectors/*` still requires OpenTelemetry packages, but these tests are excluded by default unless `ENABLE_CONNECTOR_INTEGRATION_TESTS` is set.
+
+### Pytest plugin alignment
+
+`pyproject.toml` configures pytest `timeout` options globally. Ensure pytest is invoked via the same interpreter environment used for installation (for example `python -m pytest`), so `pytest-timeout` from the `test` extra is discoverable.
+
 ## Dependency sets by test area
 
 | Test area | Representative paths | Required dependency set |

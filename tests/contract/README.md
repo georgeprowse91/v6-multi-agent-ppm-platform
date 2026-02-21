@@ -8,6 +8,7 @@ Document the contract test scope and how these checks validate the platform.
 
 - [api-gateway-openapi.json](/tests/contract/api-gateway-openapi.json): JSON data asset or configuration.
 - [test_api_contract.py](/tests/contract/test_api_contract.py): Python module used by this component.
+- [test_service_api_governance.py](/tests/contract/test_service_api_governance.py): Enforces shared API governance conventions across service entrypoints.
 
 ## How it's used
 

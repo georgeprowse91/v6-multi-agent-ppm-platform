@@ -25,7 +25,7 @@ CONNECTORS_PATH = Path(__file__).resolve().parents[2]
 if str(CONNECTORS_PATH) not in sys.path:
     sys.path.insert(0, str(CONNECTORS_PATH))
 
-from auth import OAuth2TokenManager
+from integrations.connectors.sdk.src.auth import OAuth2TokenManager
 from base_connector import (
     BaseConnector,
     ConnectionStatus,

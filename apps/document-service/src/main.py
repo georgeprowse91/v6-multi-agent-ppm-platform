@@ -28,13 +28,16 @@ from observability.metrics import (  # noqa: E402
     configure_metrics,
 )
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.crypto import get_encryption_key  # noqa: E402
 from security.dlp import DLPFinding, ensure_dlp_environment, scan_payload  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
-from packages.version import API_VERSION  # noqa: E402
+
 from config import validate_startup_config  # noqa: E402
+from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("document-service")
 logging.basicConfig(level=logging.INFO)
@@ -44,12 +47,11 @@ validate_startup_config()
 app = FastAPI(title="Document Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/health", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("document-service")
 configure_metrics("document-service")
 app.add_middleware(TraceMiddleware, service_name="document-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="document-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="document-service")
 
 kpi_handles = build_kpi_handles("document-service")
 
@@ -128,11 +130,7 @@ async def health(request: Request, response: Response) -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "document-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("document-service")
 
 
 def _build_response(record, advisories: list[str]) -> DocumentResponse:

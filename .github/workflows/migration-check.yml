@@ -29,5 +29,6 @@ jobs:
         env:
           DATABASE_URL: sqlite:///data/migrations/ppm.db
         run: |
-          python scripts/check-migrations.py
+          python ops/scripts/check-migrations.py
+          python data/migrations/validate_registry_consistency.py
           alembic upgrade head

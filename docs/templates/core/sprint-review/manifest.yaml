@@ -2,6 +2,11 @@ metadata:
   template_id: sprint-review
   title: Sprint Review
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - sprint-review-template.md
   owner: Product+Engineering
   classification: core
   composition_model: modular-v1

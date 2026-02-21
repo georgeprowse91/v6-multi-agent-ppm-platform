@@ -1,16 +1,9 @@
-# IT Infrastructure Deployment Checklist
+# Legacy Redirect Stub
 
-## Executive Summary
-Specialized deployment checklist for IT infrastructure projects.
+`MIGRATION_STUB`
 
-This checklist extends the [general deployment checklist](../../../essential-templates/infrastructure/deployment-checklist-template.md) with IT-specific considerations.
+- Deprecated: use `./core/deployment-checklist/manifest.yaml`
+- Migration timeline/date: `announce-now; transition-until-2026-03-31; retire-2026-06-30`
+- Canonical manifest/template: [./core/deployment-checklist/manifest.yaml](./core/deployment-checklist/manifest.yaml)
 
-## IT-Specific Deployment Steps
-[IT infrastructure specific deployment steps]
-
-## Validation and Testing
-[IT infrastructure testing and validation procedures]
-
----
-Base Template:
-- [Deployment Checklist Template](../../../essential-templates/infrastructure/deployment-checklist-template.md)
+This legacy file remains at the same path during the transition window and will be removed after the retirement date.

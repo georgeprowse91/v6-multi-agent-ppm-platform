@@ -38,6 +38,12 @@ jobs:
       - name: Validate schemas
         run: python scripts/validate-schemas.py
 
+      - name: Enforce schema example updates
+        run: python scripts/check-schema-example-updates.py
+
+      - name: Validate migration/schema registry consistency
+        run: python data/migrations/validate_registry_consistency.py
+
       - name: Validate application configuration
         run: python ops/scripts/validate_config.py
 
@@ -47,8 +53,23 @@ jobs:
       - name: Verify API versioning
         run: python scripts/check_api_versioning.py
 
+      - name: Enforce service API governance contracts
+        run: pytest tests/contract/test_service_api_governance.py -v
+
       - name: Enforce connector maturity gate
-        run: python scripts/check_connector_maturity.py
+        run: make check-connector-maturity
+
+      - name: Enforce generated docs are current
+        run: make check-generated-docs
+
+      - name: Enforce legacy UI references are not reintroduced
+        run: python scripts/check-legacy-ui-references.py
+
+      - name: Enforce legacy workspace artifact guard
+        run: python apps/web/scripts/check_legacy_workspace_artifacts.py
+
+      - name: Enforce docs migration guard
+        run: python scripts/check-docs-migration-guard.py
 
       - name: Run Ruff
         run: ruff check agents/ apps/ packages/ tests/ --output-format=github
@@ -203,6 +224,9 @@ jobs:
       - name: Run markdown link check
         run: python scripts/check-links.py
 
+      - name: Run placeholder and README completeness quality gate
+        run: python scripts/check-placeholders.py
+
   docs-build:
     name: Docs Build
     runs-on: ubuntu-latest
@@ -355,6 +379,58 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
+
+
+  py313-cross-platform:
+    name: Python 3.13 Compatibility (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -c constraints/py313.txt -r requirements-dev.txt
+          pip install -c constraints/py313.txt -e ".[dev,test]"
+          pip install slowapi
+
+      - name: Import smoke test
+        run: python -m compileall agents apps packages tests tools scripts
+
+      - name: Run unit tests (if present)
+        run: |
+          python - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+
+          if pathlib.Path("tests").exists():
+              subprocess.check_call(
+                  [
+                      sys.executable,
+                      "-m",
+                      "pytest",
+                      "tests/tools/test_runtime_paths.py",
+                      "tests/ops/tools/test_check_root_layout.py",
+                      "-q",
+                      "-ra",
+                      "--durations=10",
+                  ]
+              )
+          else:
+              print("No tests directory found; skipping unit test step.")
+          PY
 
   mcp-tests:
     name: MCP Client & Routing Tests

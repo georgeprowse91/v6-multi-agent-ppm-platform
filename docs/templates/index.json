@@ -18,7 +18,11 @@
         "sender",
         "escalation-path",
         "success-measure"
-      ]
+      ],
+      "aliases": [
+        "communication_plan_template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "deployment-checklist.universal.v1",
@@ -52,7 +56,11 @@
         "top-risks",
         "benefits-realization",
         "decisions-required"
-      ]
+      ],
+      "aliases": [
+        "project-dashboard-template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "product-backlog.universal.v1",
@@ -73,7 +81,11 @@
         "acceptance-criteria",
         "dependencies",
         "target-release"
-      ]
+      ],
+      "aliases": [
+        "product_backlog_template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "project-charter.universal.v1",
@@ -94,7 +106,12 @@
         "milestones",
         "budget-summary",
         "risks-assumptions-dependencies"
-      ]
+      ],
+      "aliases": [
+        "project_charter_template.md",
+        "traditional-project-charter-template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "project-management-plan.universal.v1",
@@ -116,7 +133,12 @@
         "risk-management",
         "change-control",
         "stakeholder-engagement"
-      ]
+      ],
+      "aliases": [
+        "project_management_plan_template.md",
+        "traditional-project-management-plan-template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "requirements.universal.v1",
@@ -136,7 +158,12 @@
         "assumptions",
         "traceability",
         "acceptance-criteria"
-      ]
+      ],
+      "aliases": [
+        "requirements_specification_template.md",
+        "business_requirements_document_template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "risk-register.universal.v1",
@@ -159,7 +186,12 @@
         "owner",
         "due-date",
         "status"
-      ]
+      ],
+      "aliases": [
+        "risk_register_template.md",
+        "risk_assessment_template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "sprint-planning.universal.v1",
@@ -178,7 +210,11 @@
         "commitment",
         "dependencies",
         "definition-of-done-check"
-      ]
+      ],
+      "aliases": [
+        "sprint-planning-template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "sprint-retrospective.universal.v1",
@@ -196,7 +232,11 @@
         "root-causes",
         "experiments",
         "owners-and-dates"
-      ]
+      ],
+      "aliases": [
+        "sprint-retrospective-template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "sprint-review.universal.v1",
@@ -214,7 +254,11 @@
         "rejected-or-carried-over-items",
         "stakeholder-feedback",
         "backlog-adjustments"
-      ]
+      ],
+      "aliases": [
+        "sprint-review-template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "status-report.universal.v1",
@@ -235,7 +279,12 @@
         "risks-issues",
         "decisions-needed",
         "next-period-plan"
-      ]
+      ],
+      "aliases": [
+        "status-report-template.md",
+        "project_execution_status_report_template.md"
+      ],
+      "replaced_by": null
     },
     {
       "template_id": "product-backlog.adaptive.v1",
@@ -504,6 +553,278 @@
       "replaces": "project-charter.universal.v1",
       "supports_modular": false,
       "placeholder_schema_ref": "docs/templates/core/project-charter/manifest.yaml"
+    },
+    {
+      "template_id": "legacy.communication_plan_template",
+      "path": "docs/templates/communication_plan_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "communication-plan.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "communication_plan_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.project-dashboard-template",
+      "path": "docs/templates/project-dashboard-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "executive-dashboard.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "project-dashboard-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.product_backlog_template",
+      "path": "docs/templates/product_backlog_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "product-backlog.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "product_backlog_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.project_charter_template",
+      "path": "docs/templates/project_charter_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "project-charter.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "project_charter_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.traditional-project-charter-template",
+      "path": "docs/templates/traditional-project-charter-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "project-charter.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "traditional-project-charter-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.project_management_plan_template",
+      "path": "docs/templates/project_management_plan_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "project-management-plan.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "project_management_plan_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.traditional-project-management-plan-template",
+      "path": "docs/templates/traditional-project-management-plan-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "project-management-plan.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "traditional-project-management-plan-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.requirements_specification_template",
+      "path": "docs/templates/requirements_specification_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "requirements.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "requirements_specification_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.business_requirements_document_template",
+      "path": "docs/templates/business_requirements_document_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "requirements.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "business_requirements_document_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.risk_register_template",
+      "path": "docs/templates/risk_register_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "risk-register.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "risk_register_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.risk_assessment_template",
+      "path": "docs/templates/risk_assessment_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "risk-register.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "risk_assessment_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.sprint-planning-template",
+      "path": "docs/templates/sprint-planning-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "sprint-planning.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "sprint-planning-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.sprint-review-template",
+      "path": "docs/templates/sprint-review-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "sprint-review.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "sprint-review-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.sprint-retrospective-template",
+      "path": "docs/templates/sprint-retrospective-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "sprint-retrospective.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "sprint-retrospective-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.status-report-template",
+      "path": "docs/templates/status-report-template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "status-report.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "status-report-template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
+    },
+    {
+      "template_id": "legacy.project_execution_status_report_template",
+      "path": "docs/templates/project_execution_status_report_template.md",
+      "artefact_type": "legacy-document",
+      "methodology": "legacy",
+      "compliance_tags": [],
+      "version": "1.0.0",
+      "status": "deprecated",
+      "replaces": null,
+      "replaced_by": "status-report.universal.v1",
+      "supports_modular": false,
+      "aliases": [
+        "project_execution_status_report_template.md"
+      ],
+      "deprecation_version": "2.0.0",
+      "sunset_date": "2027-12-31"
     }
   ]
 }

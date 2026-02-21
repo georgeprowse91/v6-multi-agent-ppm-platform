@@ -3,7 +3,7 @@ name = "multi-agent-ppm-platform"
 version = "1.0.0"
 description = "AI-native Multi-Agent Project Portfolio Management Platform"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 license = {text = "MIT"}
 authors = [
     {name = "Multi-Agent PPM Team"}
@@ -16,6 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
@@ -44,9 +45,10 @@ dependencies = [
     # Database
     "sqlalchemy>=2.0.36,<2.1.0",
     "alembic>=1.14.0,<2.0.0",
-    "asyncpg>=0.29.0,<1.0.0",  # PostgreSQL async driver
+    "asyncpg>=0.29.0,<1.0.0; python_version < '3.13'",  # PostgreSQL async driver (py313 uses psycopg)
     "aiosqlite>=0.20.0,<1.0.0",
     "psycopg2-binary>=2.9.9,<3.0.0",
+    "psycopg[binary]>=3.2.3,<4.0.0; python_version >= '3.13'",
     "redis>=5.2.0,<6.0.0",
 
     # AI/ML
@@ -54,7 +56,7 @@ dependencies = [
     "langchain>=0.3.9,<0.4.0",
     "tiktoken>=0.8.0,<1.0.0",
     "numpy>=1.26.4,<3.0.0",
-    "faiss-cpu>=1.9.0,<2.0.0",
+    "faiss-cpu>=1.9.0,<2.0.0; platform_system != 'Windows'",
 
     # Utilities
     "python-dotenv>=1.0.1,<2.0.0",

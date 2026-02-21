@@ -23,8 +23,16 @@ The platform uses a canonical schema layer to normalize data from multiple syste
 | Resource | `data/schemas/resource.schema.json` | Agent 11 – Resource & Capacity |
 | Risk | `data/schemas/risk.schema.json` | Agent 15 – Risk & Issue Management |
 | ROI | `data/schemas/roi.schema.json` | Agent 05 – Business Case & Investment |
+| Scenario | `data/schemas/scenario.schema.json` | Agent 06 – Portfolio Strategy & Optimization |
 | Vendor | `data/schemas/vendor.schema.json` | Agent 13 – Vendor & Procurement |
 | Work item | `data/schemas/work-item.schema.json` | Agent 10 – Schedule & Planning |
+
+## Platform schemas (runtime/infrastructure)
+
+| Schema | Schema file | Owner |
+| --- | --- | --- |
+| Agent configuration | `data/schemas/agent_config.schema.json` | Agent Config Service |
+| Agent run | `data/schemas/agent-run.schema.json` | Agent Runtime Service |
 
 ## Example payload (Project)
 

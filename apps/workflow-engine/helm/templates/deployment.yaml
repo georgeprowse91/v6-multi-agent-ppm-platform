@@ -24,6 +24,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.env.ENVIRONMENT | quote }}
             - name: DEMO_MODE
               value: {{ .Values.env.DEMO_MODE | quote }}
             - name: AUDIT_LOG_URL
@@ -36,6 +38,8 @@ spec:
               value: {{ .Values.env.WORKFLOW_BROKER_URL | quote }}
             - name: WORKFLOW_RESULT_BACKEND
               value: {{ .Values.env.WORKFLOW_RESULT_BACKEND | quote }}
+            - name: WORKFLOW_DB_PATH
+              value: {{ .Values.env.WORKFLOW_DB_PATH | quote }}
             - name: WORKFLOW_ENGINE_RATE_LIMIT
               value: {{ .Values.rateLimit | quote }}
           readinessProbe:

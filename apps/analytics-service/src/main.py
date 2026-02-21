@@ -23,6 +23,7 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT, C
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from feature_flags import is_feature_enabled  # noqa: E402
 from health import HealthSnapshotStore  # noqa: E402
 from kpi_engine import (  # noqa: E402
     AnalyticsDataClient,
@@ -39,12 +40,12 @@ from observability.metrics import (  # noqa: E402
     configure_metrics,
 )
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from feature_flags import is_feature_enabled  # noqa: E402
 from scheduler import AnalyticsScheduler  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
-from packages.version import API_VERSION
 
 from agents.common.health_recommendations import (  # noqa: E402
     generate_recommendations,
@@ -52,6 +53,8 @@ from agents.common.health_recommendations import (  # noqa: E402
 )
 from agents.common.metrics_catalog import normalize_metric_value  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
+from config import validate_startup_config  # noqa: E402
+from packages.version import API_VERSION
 
 logger = logging.getLogger("analytics-service")
 logging.basicConfig(level=logging.INFO)
@@ -61,12 +64,11 @@ validate_startup_config()
 app = FastAPI(title="Analytics Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("analytics-service")
 configure_metrics("analytics-service")
 app.add_middleware(TraceMiddleware, service_name="analytics-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="analytics-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="analytics-service")
 
 scheduler: AnalyticsScheduler | None = None
 run_loop_task: asyncio.Task | None = None
@@ -76,7 +78,7 @@ health_snapshot_store: HealthSnapshotStore | None = None
 metrics_store: MetricsStore | None = None
 kpi_engine: AnalyticsKpiEngine | None = None
 data_client: AnalyticsDataClient | None = None
-lineage_client: "LineageDataClient | None" = None
+lineage_client: LineageDataClient | None = None
 agent_output_store: TenantStateStore | None = None
 
 DEFAULT_HEALTH_HISTORY_LIMIT = int(os.getenv("ANALYTICS_HEALTH_HISTORY_LIMIT", "20"))
@@ -614,11 +616,7 @@ async def health(response: Response) -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "analytics-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("analytics-service")
 
 
 @api_router.get("/jobs", response_model=list[JobResponse])

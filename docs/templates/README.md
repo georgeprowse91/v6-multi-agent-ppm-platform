@@ -16,6 +16,33 @@ Useful links:
 - Base templates: [`core/`](./core/)
 - Methodology extensions: [`extensions/`](./extensions/)
 - Migration table (legacy → canonical): [`standards/template-naming-rules.md#4-examples-legacy--canonical-mappings`](./standards/template-naming-rules.md#4-examples-legacy--canonical-mappings)
+- Deprecation policy: [`standards/index-governance.md#deprecate-or-retire-a-template`](./standards/index-governance.md#deprecate-or-retire-a-template)
+- Retirement changelog: [`CHANGELOG.md`](./CHANGELOG.md)
+
+## Legacy transition policy (redirect stubs)
+
+Legacy template files listed in `migration/legacy-to-canonical.csv` remain at their original paths during the transition period as **redirect stubs**.
+
+- Stub files include the marker string `MIGRATION_STUB` for automated detection.
+- Each stub must declare:
+  - `Deprecated: use <canonical target>`
+  - deprecation timeline/date from `deprecation_timeline`
+  - links to canonical manifest/template and extension patch guidance (where applicable)
+- During transition, the legacy path stays in place to preserve compatibility for links and automation.
+- Physical file deletion happens only after the retirement date in the migration table.
+
+## Legacy alias registry (deterministic resolution)
+
+The following aliases are maintained as **one-to-one** mappings to canonical template IDs in both template metadata and `index.json` historical entries.
+
+| Legacy file | Canonical template ID | Lifecycle |
+|---|---|---|
+| `project_charter_template.md` | `project-charter.universal.v1` | deprecated legacy alias |
+| `project_management_plan_template.md` | `project-management-plan.universal.v1` | deprecated legacy alias |
+| `risk_register_template.md` | `risk-register.universal.v1` | deprecated legacy alias |
+| `status-report-template.md` | `status-report.universal.v1` | deprecated legacy alias |
+| `product_backlog_template.md` | `product-backlog.universal.v1` | deprecated legacy alias |
+
 
 ## Category index by discipline
 

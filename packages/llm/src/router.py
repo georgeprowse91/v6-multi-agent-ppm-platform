@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-from llm.client import LLMProviderError, LLMResponse
+from llm.types import LLMProviderError, LLMResponse
 from model_registry import find_model, get_enabled_models
 from providers.anthropic_provider import AnthropicProvider
 from providers.google_provider import GoogleProvider

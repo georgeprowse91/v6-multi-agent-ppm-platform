@@ -603,6 +603,10 @@ class ProcessMiningAgent(BaseAgent):
         # Compare models
         deviations = await self._compare_process_models(designed_model, actual_model.get("model"))
 
+        events = await self._get_process_events(process_id)
+        total_cases = len({str(event.get("case_id")) for event in events if event.get("case_id")})
+        designed_activities_count = len(designed_model.get("activities", []))
+
         # Categorize deviations
         categorized_deviations: dict[str, list[dict[str, Any]]] = {
             "skipped_activities": [],
@@ -620,7 +624,11 @@ class ProcessMiningAgent(BaseAgent):
             "process_id": process_id,
             "total_deviations": len(deviations),
             "deviations": categorized_deviations,
-            "compliance_rate": await self._calculate_compliance_rate(deviations),
+            "compliance_rate": await self._calculate_compliance_rate(
+                deviations,
+                total_expected_activities=designed_activities_count,
+                total_cases=total_cases,
+            ),
         }
         await self._emit_deviation_alert(process_id, report)
         return report
@@ -1611,13 +1619,61 @@ class ProcessMiningAgent(BaseAgent):
 
         return deviations
 
-    async def _calculate_compliance_rate(self, deviations: list[dict[str, Any]]) -> float:
-        """Calculate process compliance rate."""
+    async def _calculate_compliance_rate(
+        self,
+        deviations: list[dict[str, Any]],
+        total_expected_activities: int | None = None,
+        total_cases: int | None = None,
+    ) -> float:
+        """
+        Calculate a normalized process compliance score (0-100).
+
+        Formula assumptions:
+        - Each deviation contributes weighted penalty units based on category and severity.
+          This allows critical misses (e.g., skipped activities) to degrade compliance more
+          than low-severity additions (e.g., extra activities).
+        - Penalties are normalized by process opportunity size
+          (`total_expected_activities * total_cases`) so large process volumes are not
+          over-penalized for small absolute deviation counts.
+        - If process context is missing, fallback denominator uses deviation count to avoid
+          divide-by-zero and to preserve meaningful scaling.
+        - Final score is clamped to [0, 100] and rounded to 2 decimals.
+        """
         if not deviations:
             return 100.0
 
-        # Simple calculation (replace with actual algorithm)
-        return max(0, 100 - (len(deviations) * 5))
+        severity_weights: dict[str, float] = {
+            "critical": 2.0,
+            "high": 1.5,
+            "medium": 1.0,
+            "low": 0.5,
+        }
+        category_weights: dict[str, float] = {
+            "skipped_activities": 1.4,
+            "unexpected_transition": 1.2,
+            "wrong_sequence": 1.1,
+            "excessive_loops": 0.9,
+            "extra_activities": 0.6,
+        }
+        default_severity_by_category: dict[str, str] = {
+            "skipped_activities": "high",
+            "unexpected_transition": "medium",
+            "wrong_sequence": "medium",
+            "excessive_loops": "medium",
+            "extra_activities": "low",
+        }
+
+        weighted_penalty = 0.0
+        for deviation in deviations:
+            category = str(deviation.get("category") or "")
+            severity = str(deviation.get("severity") or default_severity_by_category.get(category, "medium"))
+            weighted_penalty += category_weights.get(category, 1.0) * severity_weights.get(severity, 1.0)
+
+        process_opportunities = (total_expected_activities or 0) * (total_cases or 0)
+        denominator = max(1, process_opportunities, len(deviations))
+        penalty_ratio = min(1.0, weighted_penalty / denominator)
+        compliance_rate = (1.0 - penalty_ratio) * 100
+        return round(min(100.0, max(0.0, compliance_rate)), 2)
 
     async def _identify_problematic_cases(
         self, events: list[dict[str, Any]], issue_id: str

@@ -19,7 +19,12 @@ from pydantic import ValidationError
 from workflow_client import WorkflowClient
 
 from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
-from observability.metrics import agent_request_count, agent_request_latency
+from agents.runtime.src.models import ReadinessReport, ReadinessSeverity
+from observability.metrics import (
+    agent_request_count,
+    agent_request_latency,
+    build_business_workflow_metrics,
+)
 from observability.tracing import inject_trace_headers
 from tools.runtime_paths import bootstrap_runtime_paths
 
@@ -30,6 +35,7 @@ logger = logging.getLogger(__name__)
 MAX_AGENT_CONCURRENCY = int(os.getenv("MAX_AGENT_CONCURRENCY", "5"))
 AGENT_CALL_TIMEOUT = float(os.getenv("AGENT_CALL_TIMEOUT", "30.0"))
 DEMO_QUERY_TRIGGER = "full platform demo"
+READINESS_FAILURE_MODE = os.getenv("ORCHESTRATOR_READINESS_FAILURE_MODE", "quarantine").strip().lower()
 DEFAULT_POLICY_BUNDLE_PATH = (
     Path(__file__).resolve().parents[1] / "policies" / "bundles" / "default-policy-bundle.yaml"
 )
@@ -65,6 +71,7 @@ class AgentOrchestrator:
         self.policy_bundle_path = DEFAULT_POLICY_BUNDLE_PATH
         self.dependencies: dict[str, list[str]] = {}
         self.agent_states: dict[str, AgentLifecycleState] = {}
+        self.agent_readiness: dict[str, ReadinessReport] = {}
         self.workflow_states: dict[str, WorkflowState] = {}
         self.workflow_client = workflow_client or WorkflowClient()
         state_path = Path(
@@ -75,6 +82,9 @@ class AgentOrchestrator:
         )
         self.state_store: OrchestrationStateStore = build_state_store(state_path)
         self._agent_semaphore = asyncio.Semaphore(MAX_AGENT_CONCURRENCY)
+        self._orchestrator_business_metrics = build_business_workflow_metrics(
+            "orchestration-service", "orchestrator"
+        )
 
     async def initialize(self) -> None:
         """Initialize all 25 agents."""
@@ -91,13 +101,11 @@ class AgentOrchestrator:
 
         self.intent_router = IntentRouterAgent()
         intent_router = self.intent_router
-        await intent_router.initialize()
-        self._register_agent(intent_router)
+        await self._initialize_and_register_agent(intent_router)
 
         self.response_orchestrator = ResponseOrchestrationAgent()
         response_orchestrator = self.response_orchestrator
-        await response_orchestrator.initialize()
-        self._register_agent(response_orchestrator)
+        await self._initialize_and_register_agent(response_orchestrator)
 
         # Load all other agents
         await self._load_governance_agents()  # Agents 3, 16
@@ -112,6 +120,38 @@ class AgentOrchestrator:
 
         self.initialized = True
         logger.info("Orchestrator initialized with %s agents", len(self.agents), extra={"agent_count": len(self.agents)})
+
+    async def _initialize_and_register_agent(self, agent: BaseAgent) -> None:
+        await agent.initialize()
+        readiness_report = await agent.readiness_check()
+        self.agent_readiness[agent.agent_id] = readiness_report
+        critical_failures = [
+            check
+            for check in readiness_report.checks
+            if not check.passed and check.severity == ReadinessSeverity.critical
+        ]
+        if critical_failures:
+            failure_reason = readiness_report.last_failure_reason or critical_failures[0].message
+            self.set_agent_state(agent.agent_id, "quarantined", reason=failure_reason)
+            logger.error(
+                "Agent %s failed readiness checks and was quarantined",
+                agent.agent_id,
+                extra={"failures": [item.model_dump() for item in critical_failures]},
+            )
+            if READINESS_FAILURE_MODE == "fail_startup":
+                raise RuntimeError(
+                    f"Agent {agent.agent_id} failed readiness checks: {failure_reason}"
+                )
+            return
+
+        self._register_agent(agent)
+        self.set_agent_state(agent.agent_id, "running")
+
+    def get_agent_readiness(self, agent_id: str) -> ReadinessReport | None:
+        return self.agent_readiness.get(agent_id)
+
+    def list_agent_readiness(self) -> list[ReadinessReport]:
+        return list(self.agent_readiness.values())
 
     def register_dependency(self, agent_id: str, depends_on: list[str]) -> None:
         self.dependencies[agent_id] = depends_on
@@ -355,15 +395,12 @@ class AgentOrchestrator:
 
         approval_agent = ApprovalWorkflowAgent()
 
-        await approval_agent.initialize()
-
-        self._register_agent(approval_agent)
+        await self._initialize_and_register_agent(approval_agent)
 
         # Agent 16: Compliance & Regulatory
 
         compliance_agent = ComplianceRegulatoryAgent()
-        await compliance_agent.initialize()
-        self._register_agent(compliance_agent)
+        await self._initialize_and_register_agent(compliance_agent)
 
         logger.info("Governance agents loaded")
 
@@ -378,23 +415,19 @@ class AgentOrchestrator:
         from portfolio_strategy_agent import PortfolioStrategyAgent
 
         demand_agent = DemandIntakeAgent()
-        await demand_agent.initialize()
-        self._register_agent(demand_agent)
+        await self._initialize_and_register_agent(demand_agent)
 
         # Agent 5: Business Case & Investment Analysis
         business_case_agent = BusinessCaseInvestmentAgent()
-        await business_case_agent.initialize()
-        self._register_agent(business_case_agent)
+        await self._initialize_and_register_agent(business_case_agent)
 
         # Agent 6: Portfolio Strategy & Optimization
         portfolio_strategy_agent = PortfolioStrategyAgent()
-        await portfolio_strategy_agent.initialize()
-        self._register_agent(portfolio_strategy_agent)
+        await self._initialize_and_register_agent(portfolio_strategy_agent)
 
         # Agent 12: Financial Management
         financial_agent = FinancialManagementAgent()
-        await financial_agent.initialize()
-        self._register_agent(financial_agent)
+        await self._initialize_and_register_agent(financial_agent)
 
         logger.info("Portfolio agents loaded")
 
@@ -410,28 +443,23 @@ class AgentOrchestrator:
         from schedule_planning_agent import SchedulePlanningAgent
 
         program_agent = ProgramManagementAgent()
-        await program_agent.initialize()
-        self._register_agent(program_agent)
+        await self._initialize_and_register_agent(program_agent)
 
         # Agent 8: Project Definition & Scope
         project_definition_agent = ProjectDefinitionAgent()
-        await project_definition_agent.initialize()
-        self._register_agent(project_definition_agent)
+        await self._initialize_and_register_agent(project_definition_agent)
 
         # Agent 9: Project Lifecycle & Governance
         lifecycle_agent = ProjectLifecycleAgent()
-        await lifecycle_agent.initialize()
-        self._register_agent(lifecycle_agent)
+        await self._initialize_and_register_agent(lifecycle_agent)
 
         # Agent 10: Schedule & Planning
         schedule_agent = SchedulePlanningAgent()
-        await schedule_agent.initialize()
-        self._register_agent(schedule_agent)
+        await self._initialize_and_register_agent(schedule_agent)
 
         # Agent 11: Resource & Capacity Management
         resource_agent = ResourceCapacityAgent()
-        await resource_agent.initialize()
-        self._register_agent(resource_agent)
+        await self._initialize_and_register_agent(resource_agent)
 
         logger.info("Delivery agents loaded")
 
@@ -447,28 +475,23 @@ class AgentOrchestrator:
         from vendor_procurement_agent import VendorProcurementAgent
 
         vendor_agent = VendorProcurementAgent()
-        await vendor_agent.initialize()
-        self._register_agent(vendor_agent)
+        await self._initialize_and_register_agent(vendor_agent)
 
         # Agent 14: Quality Management
         quality_agent = QualityManagementAgent()
-        await quality_agent.initialize()
-        self._register_agent(quality_agent)
+        await self._initialize_and_register_agent(quality_agent)
 
         # Agent 15: Risk Management
         risk_agent = RiskManagementAgent()
-        await risk_agent.initialize()
-        self._register_agent(risk_agent)
+        await self._initialize_and_register_agent(risk_agent)
 
         # Agent 17: Change & Configuration Management
         change_agent = ChangeConfigurationAgent()
-        await change_agent.initialize()
-        self._register_agent(change_agent)
+        await self._initialize_and_register_agent(change_agent)
 
         # Agent 21: Stakeholder & Communications Management
         stakeholder_agent = StakeholderCommunicationsAgent()
-        await stakeholder_agent.initialize()
-        self._register_agent(stakeholder_agent)
+        await self._initialize_and_register_agent(stakeholder_agent)
 
         logger.info("Operations agents loaded")
 
@@ -486,38 +509,31 @@ class AgentOrchestrator:
         from workflow_engine_agent import WorkflowEngineAgent
 
         release_agent = ReleaseDeploymentAgent()
-        await release_agent.initialize()
-        self._register_agent(release_agent)
+        await self._initialize_and_register_agent(release_agent)
 
         # Agent 19: Knowledge & Document Management
         knowledge_agent = KnowledgeManagementAgent()
-        await knowledge_agent.initialize()
-        self._register_agent(knowledge_agent)
+        await self._initialize_and_register_agent(knowledge_agent)
 
         # Agent 20: Continuous Improvement & Process Mining
         process_mining_agent = ProcessMiningAgent()
-        await process_mining_agent.initialize()
-        self._register_agent(process_mining_agent)
+        await self._initialize_and_register_agent(process_mining_agent)
 
         # Agent 22: Analytics & Insights
         analytics_agent = AnalyticsInsightsAgent()
-        await analytics_agent.initialize()
-        self._register_agent(analytics_agent)
+        await self._initialize_and_register_agent(analytics_agent)
 
         # Agent 23: Data Synchronization & Consistency
         data_sync_agent = DataSyncAgent()
-        await data_sync_agent.initialize()
-        self._register_agent(data_sync_agent)
+        await self._initialize_and_register_agent(data_sync_agent)
 
         # Agent 24: Workflow & Process Engine
         workflow_agent = WorkflowEngineAgent()
-        await workflow_agent.initialize()
-        self._register_agent(workflow_agent)
+        await self._initialize_and_register_agent(workflow_agent)
 
         # Agent 25: System Health & Monitoring
         health_agent = SystemHealthAgent()
-        await health_agent.initialize()
-        self._register_agent(health_agent)
+        await self._initialize_and_register_agent(health_agent)
 
         logger.info("Platform agents loaded")
 
@@ -568,6 +584,9 @@ class AgentOrchestrator:
         if not self.initialized:
             raise RuntimeError("Orchestrator not initialized")
 
+        started = time.monotonic()
+        outcome = "success"
+
         assert self.intent_router is not None, "Intent router not initialized"
         assert self.response_orchestrator is not None, "Response orchestrator not initialized"
         request_context = context or {}
@@ -587,7 +606,15 @@ class AgentOrchestrator:
                     "approval_decision": "approve",
                 },
             )
-            return orchestration_response.model_dump()
+            payload = orchestration_response.model_dump()
+            self._record_orchestrator_business_metrics(
+                query=query,
+                tenant_id=request_context.get("tenant_id", "unknown"),
+                correlation_id=correlation_id,
+                started=started,
+                outcome="success" if payload.get("success", True) else "error",
+            )
+            return payload
 
         # Step 1: Route the query
         correlation_id = request_context.get("correlation_id")
@@ -603,11 +630,20 @@ class AgentOrchestrator:
         )
 
         if not intent_response.success:
-            return {
+            outcome = "error"
+            payload = {
                 "success": False,
                 "error": "Failed to route query",
                 "details": intent_response.model_dump(),
             }
+            self._record_orchestrator_business_metrics(
+                query=query,
+                tenant_id=request_context.get("tenant_id", "unknown"),
+                correlation_id=correlation_id,
+                started=started,
+                outcome=outcome,
+            )
+            return payload
         intent_payload = intent_response.data.model_dump() if intent_response.data else {}
 
         # Step 2: Orchestrate response
@@ -624,7 +660,37 @@ class AgentOrchestrator:
                 "context": {**request_context, "correlation_id": correlation_id},
             }
         )
-        return orchestration_response.model_dump()
+        payload = orchestration_response.model_dump()
+        self._record_orchestrator_business_metrics(
+            query=query,
+            tenant_id=request_context.get("tenant_id", "unknown"),
+            correlation_id=correlation_id,
+            started=started,
+            outcome="success" if payload.get("success", True) else "error",
+        )
+        return payload
+
+    def _record_orchestrator_business_metrics(
+        self,
+        *,
+        query: str,
+        tenant_id: str,
+        correlation_id: str,
+        started: float,
+        outcome: str,
+    ) -> None:
+        attributes = {
+            "service.name": "orchestration-service",
+            "tenant.id": tenant_id,
+            "trace.id": correlation_id,
+            "workflow": "orchestrator",
+            "outcome": outcome,
+            "query_type": "full_demo" if DEMO_QUERY_TRIGGER in query.lower() else "standard",
+        }
+        self._orchestrator_business_metrics.executions_total.add(1, attributes)
+        self._orchestrator_business_metrics.execution_duration_seconds.record(
+            time.monotonic() - started, attributes
+        )
 
     def _is_full_demo_run_enabled(self, *, query: str, context: dict[str, Any]) -> bool:
         if not self._is_truthy_env_flag("DEMO_MODE") or not self._is_truthy_env_flag(
@@ -721,5 +787,6 @@ class AgentOrchestrator:
 
         self.agents.clear()
         self.catalog_agents.clear()
+        self.agent_readiness.clear()
         self.initialized = False
         logger.info("Orchestrator cleanup complete")

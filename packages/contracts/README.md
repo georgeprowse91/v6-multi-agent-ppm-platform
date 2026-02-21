@@ -28,3 +28,7 @@ Shared packages rely on repository-wide configuration in `.env` when needed.
 
 - Import errors: ensure the package is installed in editable mode (`make install-dev`).
 - Missing dependencies: check `pyproject.toml` for required extras.
+
+## API governance
+
+Shared governance constants live in `src/api/governance.py` and define required versioning, auth headers, pagination headers, correlation IDs, and error envelope keys.

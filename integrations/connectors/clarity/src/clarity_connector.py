@@ -22,7 +22,7 @@ SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
 
-from auth import OAuth2TokenManager
+from integrations.connectors.sdk.src.auth import OAuth2TokenManager
 from base_connector import (
     BaseConnector,
     ConnectionStatus,

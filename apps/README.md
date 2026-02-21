@@ -11,10 +11,11 @@ Catalog the user-facing applications and their deployment assets.
 | [admin-console/](./admin-console/) | Admin console application |
 | [analytics-service/](./analytics-service/) | Analytics and reporting service |
 | [api-gateway/](./api-gateway/) | API gateway (front door for client requests) |
+| [demo_streamlit/](./demo_streamlit/) | Streamlit-based interactive demo application with pre-loaded scenario data |
 | [document-service/](./document-service/) | Document storage and management service |
 | [mobile/](./mobile/) | React Native mobile application |
 | [orchestration-service/](./orchestration-service/) | Orchestration service for agent coordination |
-| [web/](./web/) | Web console (Streamlit-based dashboard + React frontend) |
+| [web/](./web/) | Web console (React SPA frontend with Streamlit fallback) |
 | [workflow-engine/](./workflow-engine/) | Workflow persistence and execution engine |
 
 Connector Hub now lives under [`integrations/apps/connector-hub/`](../integrations/apps/connector-hub/).

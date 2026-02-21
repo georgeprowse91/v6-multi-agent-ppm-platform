@@ -35,6 +35,9 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
+from observability.telemetry import REQUIRED_BUSINESS_METRICS, REQUIRED_HTTP_METRICS
+from observability.tracing import get_trace_id
+
 logger = logging.getLogger("observability.metrics")
 
 _CONFIGURED = False
@@ -71,6 +74,12 @@ class AgentExecutionMetrics:
     errors_total: Any
 
 
+@dataclass(frozen=True)
+class WorkflowBusinessMetrics:
+    executions_total: Any
+    execution_duration_seconds: Any
+
+
 class RequestMetricsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, service_name: str) -> None:
         super().__init__(app)
@@ -85,22 +94,47 @@ class RequestMetricsMiddleware(BaseHTTPMiddleware):
             description="HTTP request duration in seconds",
             unit="s",
         )
+        self._errors: Any = meter.create_counter(
+            name="http_request_errors_total",
+            description="HTTP request failures for error-rate tracking",
+            unit="1",
+        )
+        create_up_down_counter = getattr(meter, "create_up_down_counter", None)
+        if callable(create_up_down_counter):
+            self._in_flight: Any = create_up_down_counter(
+                name="http_requests_in_flight",
+                description="In-flight HTTP requests for saturation tracking",
+                unit="1",
+            )
+        else:
+            self._in_flight = meter.create_counter(
+                name="http_requests_in_flight",
+                description="Fallback in-flight request counter when up/down counters are unavailable",
+                unit="1",
+            )
         self._service_name: str = service_name
 
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         start = time.perf_counter()
+        tenant_id = request.headers.get("X-Tenant-ID", "unknown")
+        self._in_flight.add(1, {"service.name": self._service_name, "tenant.id": tenant_id})
         response = await call_next(request)
         elapsed = time.perf_counter() - start
         attributes = {
-            "service": self._service_name,
+            "service.name": self._service_name,
+            "tenant.id": tenant_id,
+            "trace.id": get_trace_id() or "unavailable",
             "method": request.method,
             "status": response.status_code,
             "path": request.url.path,
         }
         self._requests.add(1, attributes)
         self._latency.record(elapsed, attributes)
+        if response.status_code >= 500:
+            self._errors.add(1, attributes)
+        self._in_flight.add(-1, {"service.name": self._service_name, "tenant.id": tenant_id})
         return response
 
 
@@ -209,6 +243,24 @@ def build_agent_execution_metrics(service_name: str) -> AgentExecutionMetrics:
     )
 
 
+def build_business_workflow_metrics(service_name: str, workflow: str) -> WorkflowBusinessMetrics:
+    meter = configure_metrics(service_name)
+    executions_total = meter.create_counter(
+        name=f"{workflow}_executions_total",
+        description=f"Total execution count for {workflow}",
+        unit="1",
+    )
+    execution_duration_seconds = meter.create_histogram(
+        name=f"{workflow}_execution_duration_seconds",
+        description=f"Execution duration for {workflow}",
+        unit="s",
+    )
+    return WorkflowBusinessMetrics(
+        executions_total=executions_total,
+        execution_duration_seconds=execution_duration_seconds,
+    )
+
+
 agent_request_count = Counter(
     "agent_requests_total",
     "Total number of agent invocations",
@@ -229,12 +281,16 @@ __all__ = [
     "build_mcp_fallback_metrics",
     "build_cost_metrics",
     "build_agent_execution_metrics",
+    "build_business_workflow_metrics",
     "KPIHandles",
     "MCPClientMetrics",
     "MCPFallbackMetrics",
     "CostMetrics",
     "AgentExecutionMetrics",
     "RequestMetricsMiddleware",
+    "WorkflowBusinessMetrics",
     "agent_request_count",
     "agent_request_latency",
+    "REQUIRED_HTTP_METRICS",
+    "REQUIRED_BUSINESS_METRICS",
 ]

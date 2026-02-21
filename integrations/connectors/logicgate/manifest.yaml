@@ -1,0 +1,33 @@
+id: logicgate
+version: 1.0.0
+name: Logicgate
+description: Logicgate connector runtime manifest.
+owner: integration-team
+category: project-portfolio-management
+auth:
+  type: api_key
+  fields:
+  - api_key
+sync:
+  modes:
+  - full
+  - incremental
+  default_schedule: 0 * * * *
+  supports_webhooks: false
+  rate_limit_per_minute: 300
+mappings:
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 0
+  tier: candidate
+  business_priority: 1
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Migration baseline scaffold

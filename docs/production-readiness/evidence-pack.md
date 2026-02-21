@@ -69,3 +69,9 @@ make tf-apply
 - [x] Orchestration resilience (bounded concurrency, retries, timeouts, caching).
 - [x] Release pipeline builds, generates SBOM, signs, and verifies artifacts.
 - [x] Runbooks for incident response, backup/recovery, and DR.
+
+## Housekeeping
+- Legacy uplift trackers with all actions completed were removed:
+  - `docs/production-readiness/PROGRAM_TRACKER.md`
+  - `docs/production-readiness/FINALIZATION_TRACKER.md`
+  - `docs/production-readiness/AGENT_UPGRADE_TRACKER.md`

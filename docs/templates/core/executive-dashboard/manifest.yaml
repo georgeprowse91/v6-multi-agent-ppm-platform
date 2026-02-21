@@ -2,6 +2,11 @@ metadata:
   template_id: executive-dashboard
   title: Executive Dashboard
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - project-dashboard-template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

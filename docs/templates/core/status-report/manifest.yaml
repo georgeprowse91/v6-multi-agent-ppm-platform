@@ -2,6 +2,12 @@ metadata:
   template_id: status-report
   title: Status Report
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - status-report-template.md
+  - project_execution_status_report_template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

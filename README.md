@@ -65,6 +65,38 @@ make run-api
 make run-web
 ```
 
+## Standalone Demo (Python 3.13)
+
+Use this mode to run a fully local Streamlit demo with bundled dummy data only (no Docker, no backend services).
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements-demo.txt
+python apps/demo_streamlit/validate_demo.py
+streamlit run apps/demo_streamlit/app.py
+```
+
+The app reads demo content from `examples/demo-scenarios/*`, `apps/web/data/*`, and `apps/web/storage/*` without external HTTP calls.
+
+Standalone demo highlights (parity-focused with web console demo mode):
+- Left nav shell: Home, Workspace, Dashboard, Approvals, Connectors, Audit, Notifications (flagged), Demo Run, and Agent Runs (flagged).
+- Right assistant panel with scenario selection (`project_intake`, `resource_request`, `vendor_procurement`), context bar sync (project/stage/activity/status), quick actions, transcript, and step playback (`Play next step`).
+- Feature Flags panel backed by `apps/demo_streamlit/data/feature_flags_demo.json`; toggles visibly affect nav and sections.
+- Deterministic demo run playback with local outbox persistence in `apps/demo_streamlit/storage/demo_outbox.json`.
+- Data provenance panel on each page showing local JSON sources used for the current view.
+
+To edit local assistant outcome variants (by scenario + activity + status + lifecycle event), update:
+- `apps/demo_streamlit/data/assistant_outcome_variants.json`
+
+Optional local-only validation (no package downloads required):
+
+```bash
+python apps/demo_streamlit/validate_demo.py
+```
+
+If package installation fails behind a restricted network/proxy, run these commands on the target Windows machine with standard internet access (or with a configured internal PyPI mirror).
+
 ## Demo environment quick start
 
 For a realistic, full-functionality demonstration environment with interactive scenarios, use demo mode:
@@ -160,6 +192,13 @@ make test-integration
 make test-e2e
 make test-security
 make test-cov
+```
+
+Release gate (core profile):
+
+```bash
+make install-release-gate-core
+make release-gate PROFILE=core
 ```
 
 Other useful checks:

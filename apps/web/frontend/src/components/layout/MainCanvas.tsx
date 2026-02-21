@@ -15,7 +15,7 @@ export function MainCanvas({ children }: MainCanvasProps) {
   const isProjectWorkspaceRoot = /^\/projects?\/[^/]+$/.test(location.pathname);
 
   return (
-    <main className={styles.canvas}>
+    <main className={styles.canvas} id="main-content" tabIndex={-1}>
       {hasCanvasTabs ? <CanvasWorkspace /> : (
         <div className={styles.content}>
           {isProjectWorkspaceRoot ? <MethodologyWorkspaceSurface /> : children}

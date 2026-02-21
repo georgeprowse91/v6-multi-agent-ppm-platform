@@ -12,10 +12,10 @@ import {
   type ConversationalCommandMessageData,
   type PrerequisiteInfo,
 } from '@/store/assistant';
-import { useAssistantChat } from './hooks/useAssistantChat';
-import { useContextSync } from './hooks/useContextSync';
-import { useSuggestionEngine } from './hooks/useSuggestionEngine';
-import { useIntakeAssistantAdapter } from './hooks/useIntakeAssistantAdapter';
+import { useAssistantChat } from '@/hooks/assistant/useAssistantChat';
+import { useContextSync } from '@/hooks/assistant/useContextSync';
+import { useSuggestionEngine } from '@/hooks/assistant/useSuggestionEngine';
+import { useIntakeAssistantAdapter } from '@/hooks/assistant/useIntakeAssistantAdapter';
 import { AssistantHeader } from './AssistantHeader';
 import { ContextBar } from './ContextBar';
 import { MessageList } from './MessageList';

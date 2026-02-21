@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from datetime import datetime, timedelta, timezone
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
@@ -127,3 +128,66 @@ def test_connector_ingest(monkeypatch, tmp_path) -> None:
         assert response.status_code == 200
         entities = response.json()
         assert entities[0]["data"]["id"] == "proj-100"
+
+
+def test_startup_dev_allows_default_sqlite_fallback(monkeypatch) -> None:
+    monkeypatch.delenv("DATA_SERVICE_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "development")
+    monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")
+
+    with TestClient(module.app) as client:
+        response = client.get("/healthz")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert "checks" in payload
+    assert "severity" in payload
+    assert "observed_at" in payload
+
+
+def test_readyz_degraded_when_scheduler_heartbeat_stale(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("DATA_SERVICE_DATABASE_URL", _database_url(tmp_path))
+    monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")
+
+    with TestClient(module.app) as client:
+        scheduler = module.get_retention_scheduler()
+        assert scheduler is not None
+        scheduler._last_heartbeat_at = (datetime.now(timezone.utc) - timedelta(hours=4)).isoformat()  # noqa: SLF001
+        response = client.get("/readyz")
+        assert response.status_code == 503
+        payload = response.json()
+        assert payload["status"] == "degraded"
+        assert payload["checks"]["retention_scheduler_heartbeat"]["status"] == "down"
+
+
+def test_readyz_degraded_when_database_probe_fails(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("DATA_SERVICE_DATABASE_URL", _database_url(tmp_path))
+    monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")
+
+    with TestClient(module.app) as client:
+        store = module.get_store()
+
+        async def _fail_probe() -> None:
+            raise RuntimeError("probe failure")
+
+        monkeypatch.setattr(store, "readiness_probe_transaction", _fail_probe)
+        response = client.get("/readyz/deep")
+        assert response.status_code == 503
+        payload = response.json()
+        assert payload["checks"]["database_transaction_probe"]["status"] == "down"
+
+
+def test_startup_production_rejects_default_sqlite_fallback(monkeypatch) -> None:
+    monkeypatch.delenv("DATA_SERVICE_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "false")
+
+    with pytest.raises(
+        ValueError,
+        match="DATA_SERVICE_DATABASE_URL or DATABASE_URL",
+    ):
+        with TestClient(module.app):
+            pass

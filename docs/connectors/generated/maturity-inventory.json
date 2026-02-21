@@ -1,0 +1,528 @@
+{
+  "summary": {
+    "total_connectors": 38,
+    "read_enabled": 38,
+    "write_enabled": 10,
+    "webhook_enabled": 11
+  },
+  "connectors": [
+    {
+      "id": "adp",
+      "name": "Adp",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "archer",
+      "name": "Archer",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "asana",
+      "name": "Asana",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "confluence",
+      "name": "Confluence",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "google_drive",
+      "name": "Google Drive",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "jira",
+      "name": "Jira",
+      "level": 2,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "logicgate",
+      "name": "Logicgate",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "monday",
+      "name": "Monday",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "ms_project_server",
+      "name": "Ms Project Server",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "netsuite",
+      "name": "Netsuite",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "sap_successfactors",
+      "name": "Sap Successfactors",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "level": 0,
+      "business_priority": 1,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "azure_devops",
+      "name": "Azure DevOps",
+      "level": 2,
+      "business_priority": 2,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "servicenow",
+      "name": "ServiceNow",
+      "level": 2,
+      "business_priority": 3,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "level": 2,
+      "business_priority": 4,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "workday",
+      "name": "Workday",
+      "level": 2,
+      "business_priority": 5,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "sap",
+      "name": "SAP",
+      "level": 2,
+      "business_priority": 6,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "level": 2,
+      "business_priority": 7,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "teams",
+      "name": "Microsoft Teams",
+      "level": 2,
+      "business_priority": 8,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "outlook",
+      "name": "Outlook",
+      "level": 2,
+      "business_priority": 9,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "smartsheet",
+      "name": "Smartsheet",
+      "level": 2,
+      "business_priority": 10,
+      "coverage": {
+        "read": true,
+        "write": true,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "azure_communication_services",
+      "name": "Azure Communication Services",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "clarity",
+      "name": "Clarity PPM",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "clarity_mcp",
+      "name": "Clarity PPM (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "google_calendar",
+      "name": "Google Calendar",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "iot",
+      "name": "IoT Integrations",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "jira_mcp",
+      "name": "Jira (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "m365",
+      "name": "Microsoft 365",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "notification_hubs",
+      "name": "Azure Notification Hubs",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "planview",
+      "name": "Planview",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "planview_mcp",
+      "name": "Planview (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "sap_mcp",
+      "name": "SAP (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "sharepoint",
+      "name": "SharePoint",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "slack_mcp",
+      "name": "Slack (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "teams_mcp",
+      "name": "Microsoft Teams (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "twilio",
+      "name": "Twilio",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": true,
+        "mapping_completeness": 1.0
+      }
+    },
+    {
+      "id": "workday_mcp",
+      "name": "Workday (MCP)",
+      "level": 1,
+      "business_priority": 99,
+      "coverage": {
+        "read": true,
+        "write": false,
+        "webhook": false,
+        "mapping_completeness": 1.0
+      }
+    }
+  ],
+  "gaps": {
+    "missing_write": [
+      "adp",
+      "archer",
+      "asana",
+      "azure_communication_services",
+      "clarity",
+      "clarity_mcp",
+      "confluence",
+      "google_calendar",
+      "google_drive",
+      "iot",
+      "jira_mcp",
+      "logicgate",
+      "m365",
+      "monday",
+      "ms_project_server",
+      "netsuite",
+      "notification_hubs",
+      "oracle",
+      "planview",
+      "planview_mcp",
+      "sap_mcp",
+      "sap_successfactors",
+      "sharepoint",
+      "slack_mcp",
+      "teams_mcp",
+      "twilio",
+      "workday_mcp",
+      "zoom"
+    ],
+    "missing_webhook": [
+      "adp",
+      "archer",
+      "asana",
+      "azure_communication_services",
+      "clarity",
+      "clarity_mcp",
+      "confluence",
+      "google_drive",
+      "iot",
+      "jira_mcp",
+      "logicgate",
+      "monday",
+      "ms_project_server",
+      "netsuite",
+      "notification_hubs",
+      "oracle",
+      "planview",
+      "planview_mcp",
+      "sap",
+      "sap_mcp",
+      "sap_successfactors",
+      "slack_mcp",
+      "smartsheet",
+      "teams_mcp",
+      "workday",
+      "workday_mcp",
+      "zoom"
+    ],
+    "incomplete_mapping": []
+  }
+}

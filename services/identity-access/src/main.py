@@ -26,7 +26,6 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from packages.version import API_VERSION  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from saml import (  # noqa: E402
@@ -49,10 +48,15 @@ from scim_models import (  # noqa: E402
     ScimUserCreate,
 )
 from scim_store import ScimStore  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import authenticate_request  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
+from security.errors import error_payload  # noqa: E402
 from security.secrets import resolve_secret  # noqa: E402
+
+from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("identity-access")
 logging.basicConfig(level=logging.INFO)
@@ -105,8 +109,7 @@ configure_tracing("identity-access")
 configure_metrics("identity-access")
 app.add_middleware(TraceMiddleware, service_name="identity-access")
 app.add_middleware(RequestMetricsMiddleware, service_name="identity-access")
-app.add_middleware(SecurityHeadersMiddleware)
-register_error_handlers(app)
+apply_api_governance(app, service_name="identity-access")
 
 token_validation_failures = configure_metrics("identity-access").create_counter(
     name="identity_token_validation_failures_total",
@@ -129,8 +132,15 @@ async def auth_tenant_middleware(request: Request, call_next):
         auth_context = await authenticate_request(request)
     except HTTPException as exc:
         message = exc.detail if isinstance(exc.detail, str) else "Request failed"
-        payload = {"error": {"message": message, "code": f"http_{exc.status_code}", "details": exc.detail}}
-        return JSONResponse(status_code=exc.status_code, content=payload)
+        correlation_id = getattr(request.state, "correlation_id", None)
+        payload = error_payload(
+            message=message,
+            code=f"http_{exc.status_code}",
+            details=exc.detail,
+            correlation_id=correlation_id,
+        )
+        headers = {"X-Correlation-ID": correlation_id} if correlation_id else None
+        return JSONResponse(status_code=exc.status_code, content=payload, headers=headers)
     request.state.auth = auth_context
     return await call_next(request)
 
@@ -156,11 +166,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "identity-access",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("identity-access")
 
 
 def _get_env(name: str) -> str | None:

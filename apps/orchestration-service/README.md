@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the Orchestration Service application and its role in the platform experience layer.
+The Orchestration Service app coordinates multi-agent workflows, applies routing policies, and tracks execution state transitions.
 
 ## What's inside
 
@@ -33,3 +33,9 @@ Runtime configuration is supplied via `.env` and service URLs in the repo config
 
 - Missing dependencies: install dev dependencies with `make install-dev`.
 - Startup errors: verify required env vars are present in `.env`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

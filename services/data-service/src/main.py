@@ -12,27 +12,31 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy.exc import SQLAlchemyError
 
-from jsonschema import Draft202012Validator, FormatChecker, SchemaError
+from jsonschema import Draft202012Validator, FormatChecker
+from sqlalchemy.exc import SQLAlchemyError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
 OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
 FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT):
+COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
+for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT, COMMON_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from feature_flags import is_feature_enabled  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
-from feature_flags import is_feature_enabled  # noqa: E402
+from schema_compatibility import CompatibilityMode, validate_compatibility  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from security.config import load_yaml  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
 from storage import (  # noqa: E402
     DataServiceStore,
     EntityRecord,
@@ -40,7 +44,14 @@ from storage import (  # noqa: E402
     SchemaRecord,
     to_async_database_url,
 )
+
 from packages.version import API_VERSION
+from security.config import load_yaml  # noqa: E402
+from common.env_validation import (  # noqa: E402
+    durability_mode_for_storage,
+    enforce_no_default_file_backed_storage,
+    environment_value,
+)
 
 logger = logging.getLogger("data-service")
 logging.basicConfig(level=logging.INFO)
@@ -49,15 +60,26 @@ SCHEMA_DIR = REPO_ROOT / "data" / "schemas"
 
 
 class HealthResponse(BaseModel):
-    status: str = "ok"
-    service: str = "data-service"
-    dependencies: dict[str, str] = Field(default_factory=dict)
+    status: str
+    checks: dict[str, dict[str, str]] = Field(default_factory=dict)
+    severity: str
+    remediation_hint: str
+    observed_at: str
+    degraded_since: str | None = None
+    recovered_at: str | None = None
 
 
 class SchemaRegistrationRequest(BaseModel):
     name: str = Field(..., description="Canonical schema name")
     schema: dict[str, Any] = Field(..., description="JSON Schema payload")
     version: int | None = Field(None, description="Optional schema version override")
+    compatibility_mode: CompatibilityMode = Field(
+        "full",
+        description=(
+            "Compatibility validation mode against latest version: "
+            "backward, forward, or full"
+        ),
+    )
 
 
 class SchemaResponse(BaseModel):
@@ -138,20 +160,65 @@ class RetentionStatusResponse(BaseModel):
 app = FastAPI(title="Data Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("data-service")
 configure_metrics("data-service")
 app.add_middleware(TraceMiddleware, service_name="data-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="data-service")
+meter = configure_metrics("data-service")
+READINESS_DEGRADED_TOTAL = meter.create_counter(
+    name="service_readiness_degraded_total",
+    description="Total number of readiness degradation transitions.",
+    unit="1",
+)
+READINESS_RECOVERY_TOTAL = meter.create_counter(
+    name="service_readiness_recovered_total",
+    description="Total number of readiness recovery transitions.",
+    unit="1",
+)
+READINESS_MTTR_SECONDS = meter.create_histogram(
+    name="service_readiness_mttr_seconds",
+    description="Readiness mean-time-to-recovery samples in seconds.",
+    unit="s",
+)
+app.state.readiness_state = {
+    "last_status": "ok",
+    "degraded_since": None,
+    "recovered_at": None,
+}
 
 
 @app.on_event("startup")
 async def startup() -> None:
-    database_url = os.getenv("DATA_SERVICE_DATABASE_URL") or os.getenv("DATABASE_URL")
-    if not database_url:
-        database_url = "sqlite+aiosqlite:///data/data_service.db"
-    database_url = to_async_database_url(database_url)
+    selected_database_url = os.getenv("DATA_SERVICE_DATABASE_URL") or os.getenv("DATABASE_URL")
+    used_default_database = not selected_database_url
+    if used_default_database:
+        selected_database_url = "sqlite+aiosqlite:///data/data_service.db"
+
+    environment = environment_value(os.environ)
+    enforce_no_default_file_backed_storage(
+        service_name="data-service",
+        setting_names=("DATA_SERVICE_DATABASE_URL", "DATABASE_URL"),
+        selected_value=selected_database_url,
+        used_default=used_default_database,
+        environment=environment,
+        remediation_hint=(
+            "Configure a persistent database DSN (for example PostgreSQL) "
+            "through DATA_SERVICE_DATABASE_URL or DATABASE_URL."
+        ),
+    )
+
+    database_url = to_async_database_url(selected_database_url)
+    logger.info(
+        "data-service persistence configuration",
+        extra={
+            "environment": environment,
+            "storage_backend": "sqlite" if "sqlite" in database_url else "sql",
+            "durability_mode": durability_mode_for_storage(database_url),
+            "database_url_source": "default" if used_default_database else "explicit",
+        },
+    )
+
     store = DataServiceStore(database_url)
     await store.initialize()
     if os.getenv("DATA_SERVICE_LOAD_SEED_SCHEMAS", "true").lower() in {"true", "1", "yes"}:
@@ -180,28 +247,138 @@ def get_retention_scheduler() -> RetentionScheduler | None:
     return getattr(app.state, "retention_scheduler", None)
 
 
-@app.get("/healthz", response_model=HealthResponse)
-async def healthz() -> HealthResponse:
+def _observed_at() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _build_check(status: str, severity: str, remediation_hint: str) -> dict[str, str]:
+    return {
+        "status": status,
+        "severity": severity,
+        "remediation_hint": remediation_hint,
+        "observed_at": _observed_at(),
+    }
+
+
+def _scheduler_heartbeat_fresh(snapshot: dict[str, str | int]) -> bool:
+    heartbeat_at = str(snapshot.get("last_heartbeat_at") or "")
+    if not heartbeat_at:
+        return False
+    heartbeat = datetime.fromisoformat(heartbeat_at)
+    interval_seconds = int(snapshot.get("interval_seconds") or 0)
+    tolerance = max(5, interval_seconds * 2)
+    return (datetime.now(timezone.utc) - heartbeat).total_seconds() <= tolerance
+
+
+def _update_readiness_metrics(status: str) -> tuple[str | None, str | None]:
+    state = app.state.readiness_state
+    previous = state["last_status"]
+    now = datetime.now(timezone.utc)
+    if status != "ok" and previous == "ok":
+        state["degraded_since"] = now
+        READINESS_DEGRADED_TOTAL.add(1, {"service.name": "data-service"})
+    if status == "ok" and previous != "ok":
+        degraded_since = state.get("degraded_since")
+        if degraded_since:
+            READINESS_MTTR_SECONDS.record((now - degraded_since).total_seconds(), {"service.name": "data-service"})
+        state["recovered_at"] = now
+        state["degraded_since"] = None
+        READINESS_RECOVERY_TOTAL.add(1, {"service.name": "data-service"})
+    state["last_status"] = status
+    degraded_since = state.get("degraded_since")
+    recovered_at = state.get("recovered_at")
+    return (
+        degraded_since.isoformat() if degraded_since else None,
+        recovered_at.isoformat() if recovered_at else None,
+    )
+
+
+def _to_response(checks: dict[str, dict[str, str]], status_code: int) -> JSONResponse:
+    has_critical = any(item["severity"] == "critical" for item in checks.values())
+    status = "ok" if all(item["status"] == "ok" for item in checks.values()) else "degraded"
+    severity = "info" if status == "ok" else ("critical" if has_critical else "warning")
+    remediation_hint = "; ".join(
+        sorted({item["remediation_hint"] for item in checks.values() if item["remediation_hint"]})
+    )
+    degraded_since, recovered_at = _update_readiness_metrics(status)
+    payload = HealthResponse(
+        status=status,
+        checks=checks,
+        severity=severity,
+        remediation_hint=remediation_hint,
+        observed_at=_observed_at(),
+        degraded_since=degraded_since,
+        recovered_at=recovered_at,
+    )
+    return JSONResponse(status_code=status_code if status != "ok" else 200, content=payload.model_dump())
+
+
+@app.get("/livez", response_model=HealthResponse)
+async def livez() -> HealthResponse:
+    checks = {"process": _build_check("ok", "info", "")}
+    return HealthResponse(
+        status="ok",
+        checks=checks,
+        severity="info",
+        remediation_hint="",
+        observed_at=_observed_at(),
+    )
+
+
+@app.get("/readyz", response_model=HealthResponse)
+async def readyz() -> JSONResponse:
     store = get_store()
     scheduler = get_retention_scheduler()
-    dependencies = {"database": "unknown", "retention_scheduler": "unknown"}
+    checks = {
+        "database_transaction_probe": _build_check("ok", "info", ""),
+        "retention_scheduler_heartbeat": _build_check("ok", "info", ""),
+    }
     try:
-        await store.ping()
-        dependencies["database"] = "ok"
-    except SQLAlchemyError:
-        dependencies["database"] = "down"
-    dependencies["retention_scheduler"] = "ok" if scheduler else "down"
-    status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
-    return HealthResponse(status=status, dependencies=dependencies)
+        await store.readiness_probe_transaction()
+    except (SQLAlchemyError, RuntimeError):
+        checks["database_transaction_probe"] = _build_check(
+            "down",
+            "critical",
+            "Verify write/read/delete transaction path for canonical_entities and database connectivity.",
+        )
+    if not scheduler:
+        checks["retention_scheduler_heartbeat"] = _build_check(
+            "down", "warning", "Ensure retention scheduler starts successfully during application startup."
+        )
+    else:
+        snapshot = scheduler.snapshot()
+        if not _scheduler_heartbeat_fresh(snapshot):
+            checks["retention_scheduler_heartbeat"] = _build_check(
+                "down",
+                "warning",
+                "Investigate retention scheduler thread and ensure heartbeat updates within expected interval.",
+            )
+    return _to_response(checks, status_code=503)
+
+
+@app.get("/readyz/deep", response_model=HealthResponse)
+async def deep_readyz() -> JSONResponse:
+    store = get_store()
+    checks = {"database_transaction_probe": _build_check("ok", "info", "")}
+    try:
+        await store.readiness_probe_transaction()
+    except (SQLAlchemyError, RuntimeError):
+        checks["database_transaction_probe"] = _build_check(
+            "down",
+            "critical",
+            "Restore transactional read/write path on canonical_entities and validate connection pool health.",
+        )
+    return _to_response(checks, status_code=503)
+
+
+@app.get("/healthz", response_model=HealthResponse)
+async def healthz() -> JSONResponse:
+    return await readyz()
 
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "data-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("data-service")
 
 
 @api_router.get("/retention/status", response_model=RetentionStatusResponse)
@@ -222,10 +399,14 @@ async def retention_status() -> RetentionStatusResponse:
 async def register_schema(
     request: SchemaRegistrationRequest, store: DataServiceStore = Depends(get_store)
 ) -> SchemaResponse:
-    try:
-        Draft202012Validator.check_schema(request.schema)
-    except SchemaError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    _validate_schema_definition(request.schema)
+
+    latest = await store.get_latest_schema(request.name)
+    if latest:
+        try:
+            validate_compatibility(latest.schema, request.schema, request.compatibility_mode)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     try:
         record = await store.register_schema(request.name, request.schema, request.version)
@@ -328,6 +509,7 @@ async def ingest_entity(
     store: DataServiceStore = Depends(get_store),
 ) -> EntityResponse:
     record = await _resolve_schema(schema_name, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
     _validate_payload(record, request.data)
     if _canonical_propagation_enabled() and request.connector_name:
         _validate_against_canonical_mapping(schema_name, request.data, request.connector_name)
@@ -349,6 +531,7 @@ async def ingest_agent_run(
 ) -> EntityResponse:
     _require_feature("agent_run_tracking")
     record = await _resolve_schema(AGENT_RUN_SCHEMA, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
     _validate_payload(record, request.data)
     entity_id = request.entity_id or request.data.get("id") or str(uuid4())
     stored = await store.store_entity(
@@ -367,6 +550,7 @@ async def ingest_scenario(
     store: DataServiceStore = Depends(get_store),
 ) -> EntityResponse:
     record = await _resolve_schema(SCENARIO_SCHEMA, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
     _validate_payload(record, request.data)
     scenario_id = request.scenario_id or request.data.get("id") or str(uuid4())
     stored = await store.store_entity(
@@ -482,6 +666,7 @@ async def ingest_connector(
         canonical_mappings = _load_canonical_mappings(request.connector_name)
     for schema_name, items in grouped.items():
         schema_record = await _resolve_schema(schema_name, None, store)
+        await _require_schema_promotion_for_environment(schema_record, store)
         for item in items:
             payload = dict(item)
             payload["tenant_id"] = request.tenant_id
@@ -528,6 +713,16 @@ def _entity_response(record: EntityRecord) -> EntityResponse:
         updated_at=record.updated_at,
     )
 
+
+
+def _validate_schema_definition(schema: dict[str, Any]) -> None:
+    check_schema = getattr(Draft202012Validator, "check_schema", None)
+    if check_schema is None:
+        return
+    try:
+        check_schema(schema)
+    except Exception as exc:  # pragma: no cover - upstream jsonschema exceptions vary
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 def _validate_payload(schema_record: SchemaRecord, payload: dict[str, Any]) -> None:
     validator = Draft202012Validator(schema_record.schema, format_checker=FormatChecker())
@@ -670,6 +865,27 @@ def _require_feature(flag_name: str) -> None:
 def _canonical_propagation_enabled() -> bool:
     environment = os.getenv("ENVIRONMENT", "dev")
     return is_feature_enabled("canonical_propagation", environment=environment, default=False)
+
+
+async def _require_schema_promotion_for_environment(
+    schema_record: SchemaRecord, store: DataServiceStore
+) -> None:
+    environment = os.getenv("ENVIRONMENT", "dev").lower()
+    if environment in {"dev", "local", "test"}:
+        return
+    promoted = await store.is_schema_promoted(
+        schema_record.name,
+        schema_record.version,
+        environment,
+    )
+    if not promoted:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Schema version is not promoted for this environment: "
+                f"{schema_record.name}@{schema_record.version} -> {environment}"
+            ),
+        )
 
 
 app.include_router(api_router)

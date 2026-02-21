@@ -11,7 +11,7 @@ import base64
 import os
 from typing import Any
 
-from auth import OAuth2TokenManager, OAuthToken
+from integrations.connectors.sdk.src.auth import OAuth2TokenManager, OAuthToken
 from base_connector import (
     BaseConnector,
     ConnectorCallFailedError,

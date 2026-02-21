@@ -459,8 +459,8 @@ updated: "2026-02-11"
 ## Related Templates
 
 - [ROI Tracking Template](../../Traditional/Knowledge_Areas/Project_Cost_Management/roi_tracking_template.md)
-- [Project Charter Template](./project_charter_template.md)
-- [Requirements Specification Template](./requirements_specification_template.md)
+- [Project Charter Template](./core/project-charter/manifest.yaml)
+- [Requirements Specification Template](./core/requirements/manifest.yaml)
 - [Project Plan Template](./project_plan_template.md)
 
 ---

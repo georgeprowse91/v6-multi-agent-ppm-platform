@@ -30,8 +30,10 @@ from quality import QualityResult, compute_quality  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
 from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
 from security.config import load_yaml  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.lineage import mask_lineage_payload  # noqa: E402
 from storage import LineageRecord, LineageStore  # noqa: E402
 
@@ -144,12 +146,11 @@ class RetentionStatusResponse(BaseModel):
 app = FastAPI(title="Data Lineage Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("data-lineage-service")
 configure_metrics("data-lineage-service")
 app.add_middleware(TraceMiddleware, service_name="data-lineage-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-lineage-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="data-lineage-service")
 
 
 @app.on_event("startup")
@@ -186,11 +187,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "data-lineage-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("data-lineage-service")
 
 
 def get_store() -> LineageStore:
@@ -365,9 +362,9 @@ async def list_events(
     request: Request,
     connector_id: str | None = None,
     work_item_id: str | None = None,
+    response: Response | None = None,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    response: Response,
     store: LineageStore = Depends(get_store),
 ) -> list[LineageEventOut]:
     auth = request.state.auth
@@ -380,9 +377,10 @@ async def list_events(
             continue
         visible.append(_record_to_response(record))
     sliced, total = _paginate(visible, offset=offset, limit=limit)
-    response.headers["X-Total-Count"] = str(total)
-    response.headers["X-Limit"] = str(limit)
-    response.headers["X-Offset"] = str(offset)
+    if response is not None:
+        response.headers["X-Total-Count"] = str(total)
+        response.headers["X-Limit"] = str(limit)
+        response.headers["X-Offset"] = str(offset)
     return sliced
 
 

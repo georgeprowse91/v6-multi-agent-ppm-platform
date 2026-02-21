@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,12 +18,15 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from packages.version import API_VERSION  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
+
+from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("telemetry-service")
 logging.basicConfig(level=logging.INFO)
@@ -53,12 +55,11 @@ class TelemetryResponse(BaseModel):
 app = FastAPI(title="Telemetry Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("telemetry-service")
 configure_metrics("telemetry-service")
 app.add_middleware(TraceMiddleware, service_name="telemetry-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="telemetry-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="telemetry-service")
 
 telemetry_ingest_total = configure_metrics("telemetry-service").create_counter(
     name="telemetry_ingest_total",
@@ -76,11 +77,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "telemetry-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("telemetry-service")
 
 
 @api_router.post("/telemetry/ingest", response_model=TelemetryResponse)

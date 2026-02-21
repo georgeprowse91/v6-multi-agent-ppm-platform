@@ -110,10 +110,84 @@ def test_oidc_login_flow_sets_session_cookie():
 
     callback = client.get(f"/oidc/callback?code=auth-code&state={state}", allow_redirects=False)
     assert callback.status_code in {302, 307}
-    assert callback.headers["location"] == "/workspace"
+    assert callback.headers["location"] == "/app"
 
     session_info = client.get("/session")
     payload = session_info.json()
     assert payload["authenticated"] is True
     assert payload["tenant_id"] == "tenant-abc"
     assert set(payload["roles"]) == {"PMO_ADMIN", "PM"}
+
+
+
+def test_oidc_callback_redirects_project_context_to_spa_route():
+    os.environ["OIDC_ISSUER_URL"] = "https://issuer.example.com"
+    os.environ["OIDC_CLIENT_ID"] = "client-123"
+    os.environ["OIDC_CLIENT_SECRET"] = "env:OIDC_SECRET"
+    os.environ["OIDC_SECRET"] = "client-secret"
+    os.environ["OIDC_REDIRECT_URI"] = "http://localhost/oidc/callback"
+    os.environ["AUTH_SESSION_SIGNING_KEY"] = "env:SESSION_KEY"
+    os.environ["SESSION_KEY"] = "session-secret"
+    os.environ["ENVIRONMENT"] = "test"
+
+    nonce_holder: dict[str, str] = {}
+    transport = _build_oidc_transport(os.environ["OIDC_ISSUER_URL"], nonce_holder)
+
+    module = _load_web_module()
+    module.OIDC_HTTP_TRANSPORT = transport
+    client = TestClient(module.app)
+
+    response = client.get("/login?project_id=crm-migration", allow_redirects=False)
+    location = response.headers["location"]
+    params = parse_qs(urlparse(location).query)
+    state = params["state"][0]
+    nonce_holder["value"] = params["nonce"][0]
+
+    callback = client.get(f"/oidc/callback?code=auth-code&state={state}", allow_redirects=False)
+    assert callback.status_code in {302, 307}
+    assert callback.headers["location"] == "/app/projects/crm-migration"
+
+
+def test_oidc_callback_redirects_return_to_spa_route_directly():
+    os.environ["OIDC_ISSUER_URL"] = "https://issuer.example.com"
+    os.environ["OIDC_CLIENT_ID"] = "client-123"
+    os.environ["OIDC_CLIENT_SECRET"] = "env:OIDC_SECRET"
+    os.environ["OIDC_SECRET"] = "client-secret"
+    os.environ["OIDC_REDIRECT_URI"] = "http://localhost/oidc/callback"
+    os.environ["AUTH_SESSION_SIGNING_KEY"] = "env:SESSION_KEY"
+    os.environ["SESSION_KEY"] = "session-secret"
+    os.environ["ENVIRONMENT"] = "test"
+
+    nonce_holder: dict[str, str] = {}
+    transport = _build_oidc_transport(os.environ["OIDC_ISSUER_URL"], nonce_holder)
+
+    module = _load_web_module()
+    module.OIDC_HTTP_TRANSPORT = transport
+    client = TestClient(module.app)
+
+    response = client.get(
+        "/login?return_to=/app/projects/data-lake-uplift",
+        allow_redirects=False,
+    )
+    location = response.headers["location"]
+    params = parse_qs(urlparse(location).query)
+    state = params["state"][0]
+    nonce_holder["value"] = params["nonce"][0]
+
+    callback = client.get(f"/oidc/callback?code=auth-code&state={state}", allow_redirects=False)
+    assert callback.status_code in {302, 307}
+    assert callback.headers["location"] == "/app/projects/data-lake-uplift"
+
+
+def test_login_dev_auth_shortcut_redirects_to_spa(monkeypatch):
+    monkeypatch.delenv("OIDC_ISSUER_URL", raising=False)
+    monkeypatch.delenv("OIDC_CLIENT_SECRET", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("AUTH_DEV_MODE", "true")
+
+    module = _load_web_module()
+    client = TestClient(module.app)
+
+    response = client.get("/login", allow_redirects=False)
+    assert response.status_code in {302, 307}
+    assert response.headers["location"] == "/app"

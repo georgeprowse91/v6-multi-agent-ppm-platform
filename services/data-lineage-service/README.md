@@ -28,3 +28,14 @@ Run the service locally:
 ```bash
 python services/data-lineage-service/main.py
 ```
+
+## Generated docs
+
+- Endpoint reference (source of truth): [`docs/generated/services/data-lineage-service.md`](../../docs/generated/services/data-lineage-service.md).
+- Regenerate with: `python ops/tools/codegen/generate_docs.py`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

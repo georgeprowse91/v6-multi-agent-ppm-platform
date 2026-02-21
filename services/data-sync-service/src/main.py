@@ -20,25 +20,28 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from packages.version import API_VERSION  # noqa: E402
 from conflict_store import get_conflict_store  # noqa: E402
 from data_sync_queue import enqueue_sync_job, get_queue_client  # noqa: E402
 from data_sync_status import get_status_store  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from security.auth import AuthTenantMiddleware  # noqa: E402
-from security.config import load_yaml  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
-from security.lineage import mask_lineage_payload  # noqa: E402
 from propagation import EntityUpdate, apply_propagation_rules  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
+from security.auth import AuthTenantMiddleware  # noqa: E402
+from security.lineage import mask_lineage_payload  # noqa: E402
 from sync_log_store import get_sync_log_store  # noqa: E402
 from sync_registry import (  # noqa: E402
     build_default_registry,
     get_registry,
     get_scheduler,
 )
+
+from packages.version import API_VERSION  # noqa: E402
+from security.config import load_yaml  # noqa: E402
 
 logger = logging.getLogger("data-sync-service")
 logging.basicConfig(level=logging.INFO)
@@ -164,12 +167,11 @@ class PropagationResponse(BaseModel):
 app = FastAPI(title="Data Sync Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("data-sync-service")
 configure_metrics("data-sync-service")
 app.add_middleware(TraceMiddleware, service_name="data-sync-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-sync-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="data-sync-service")
 
 build_default_registry()
 scheduler = get_scheduler()
@@ -185,7 +187,7 @@ data_sync_jobs_total = configure_metrics("data-sync-service").create_counter(
 async def healthz() -> HealthResponse:
     dependencies = {
         "scheduler": "ok" if scheduler.is_running() else "down",
-        "queue": "ok" if os.getenv("SERVICE_BUS_CONNECTION_STRING") else "degraded",
+        "queue": "ok" if resolve_secret(os.getenv("SERVICE_BUS_CONNECTION_STRING")) else "degraded",
     }
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
     return HealthResponse(status=status, dependencies=dependencies)
@@ -193,11 +195,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "data-sync-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("data-sync-service")
 
 
 @app.on_event("startup")

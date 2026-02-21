@@ -10,3 +10,24 @@
   flex: 1;
   overflow: hidden;
 }
+
+
+.skipLink {
+  position: absolute;
+  left: var(--space-3);
+  top: -40px;
+  z-index: 20;
+  background: var(--color-primary-600);
+  color: white;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.skipLink:focus-visible {
+  top: var(--space-2);
+}
+
+.layout {
+  background: linear-gradient(180deg, var(--color-surface-page), var(--color-neutral-50));
+}

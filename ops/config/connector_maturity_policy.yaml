@@ -1,0 +1,40 @@
+version: 1
+thresholds:
+  mappings:
+    rule_id: missing_manifest_mappings
+    max_missing_connectors: 0
+  tier1:
+    max_business_priority: 5
+    required_capabilities:
+      - read
+      - write
+      - webhook
+exceptions:
+  - connector_id: jira_mcp
+    rule_id: missing_manifest_mappings
+    expires_on: 2026-06-30
+    reason: "MCP manifest mapping files tracked in separate backlog."
+  - connector_id: m365
+    rule_id: missing_manifest_mappings
+    expires_on: 2026-06-30
+    reason: "Manifest references placeholder mappings pending connector refactor."
+  - connector_id: sap_mcp
+    rule_id: missing_manifest_mappings
+    expires_on: 2026-06-30
+    reason: "MCP connector mapping generation not yet wired."
+  - connector_id: slack_mcp
+    rule_id: missing_manifest_mappings
+    expires_on: 2026-06-30
+    reason: "Mapping assets are pending migration to declarative format."
+  - connector_id: teams_mcp
+    rule_id: missing_manifest_mappings
+    expires_on: 2026-06-30
+    reason: "Manifest uses transitional mapping references."
+  - connector_id: workday_mcp
+    rule_id: missing_manifest_mappings
+    expires_on: 2026-06-30
+    reason: "MCP parity work scheduled before waiver expiry."
+  - connector_id: workday
+    rule_id: tier1_required_capabilities
+    expires_on: 2026-06-30
+    reason: "Webhook capability is in-flight and blocked on upstream platform support."

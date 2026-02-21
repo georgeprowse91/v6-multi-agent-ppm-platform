@@ -183,37 +183,179 @@ class ConnectorRegistry:
 class PlanviewConnector(BaseIntegrationConnector):
     system_name = "planview"
 
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        params = "&".join(f"{k}={v}" for k, v in (filters or {}).items())
+        endpoint = f"api/v3/projects?{params}" if params else "api/v3/projects"
+        data = self.fetch(endpoint)
+        items = data.get("items") or data.get("data") or data.get("value") or []
+        return items if isinstance(items, list) else [data]
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return self.post("api/v3/workItems", payload)
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        raise ValueError("Planview does not support direct messaging")
+
 
 class ClarityConnector(BaseIntegrationConnector):
     system_name = "clarity"
+
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        params = "&".join(f"{k}={v}" for k, v in (filters or {}).items())
+        endpoint = f"ppm/rest/api/projects?{params}" if params else "ppm/rest/api/projects"
+        data = self.fetch(endpoint)
+        items = data.get("items") or data.get("data") or data.get("_items") or []
+        return items if isinstance(items, list) else [data]
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return self.post("ppm/rest/api/tasks", payload)
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        raise ValueError("Clarity does not support direct messaging")
 
 
 class JiraConnector(BaseIntegrationConnector):
     system_name = "jira"
 
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        data = self.fetch("rest/api/3/project")
+        return data if isinstance(data, list) else data.get("values", [data])
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        fields = payload.get("fields", payload)
+        return self.post("rest/api/3/issue", {"fields": fields})
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        issue_key = payload.get("issue_key") or payload.get("issueKey", "")
+        body = payload.get("body") or payload.get("message") or payload.get("text", "")
+        return self.post(
+            f"rest/api/3/issue/{issue_key}/comment",
+            {"body": {"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": body}]}]}},
+        )
+
 
 class AzureDevOpsConnector(BaseIntegrationConnector):
     system_name = "azure_devops"
+
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        data = self.fetch("_apis/projects?api-version=7.0")
+        return data.get("value", [])
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        project = payload.get("project", "_default")
+        work_item_type = payload.get("type", "Task")
+        fields = [
+            {"op": "add", "path": f"/fields/{k}", "value": v}
+            for k, v in payload.items()
+            if k not in {"project", "type"}
+        ]
+        return self.post(
+            f"{project}/_apis/wit/workitems/${work_item_type}?api-version=7.0",
+            fields,
+        )
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        raise ValueError("Azure DevOps does not support direct messaging via this connector")
 
 
 class SmartsheetConnector(BaseIntegrationConnector):
     system_name = "smartsheet"
 
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        data = self.fetch("2.0/sheets")
+        return data.get("data", [])
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        sheet_id = payload.get("sheet_id") or payload.get("sheetId", "")
+        rows = payload.get("rows", [payload])
+        return self.post(f"2.0/sheets/{sheet_id}/rows", rows)
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        sheet_id = payload.get("sheet_id") or payload.get("sheetId", "")
+        comment = payload.get("text") or payload.get("body") or payload.get("message", "")
+        return self.post(f"2.0/sheets/{sheet_id}/discussions", {"comment": {"text": comment}})
+
 
 class OutlookConnector(BaseIntegrationConnector):
     system_name = "outlook"
+
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        data = self.fetch("v1.0/me/todo/lists")
+        return data.get("value", [])
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        list_id = payload.get("list_id") or payload.get("listId", "tasks")
+        return self.post(f"v1.0/me/todo/lists/{list_id}/tasks", payload)
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        to_recipients = [
+            {"emailAddress": {"address": addr}}
+            for addr in ([payload["to"]] if isinstance(payload.get("to"), str) else payload.get("to", []))
+        ]
+        message = {
+            "subject": payload.get("subject", ""),
+            "body": {"contentType": "Text", "content": payload.get("body") or payload.get("message", "")},
+            "toRecipients": to_recipients,
+        }
+        return self.post("v1.0/me/sendMail", {"message": message})
 
 
 class GoogleCalendarConnector(BaseIntegrationConnector):
     system_name = "google_calendar"
 
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        data = self.fetch("calendar/v3/users/me/calendarList")
+        return data.get("items", [])
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        calendar_id = payload.get("calendar_id") or payload.get("calendarId", "primary")
+        return self.post(f"calendar/v3/calendars/{calendar_id}/events", payload)
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        raise ValueError("Google Calendar does not support direct messaging")
+
 
 class ServiceNowConnector(BaseIntegrationConnector):
     system_name = "servicenow"
 
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        params = "&".join(f"sysparm_query={k}={v}" for k, v in (filters or {}).items())
+        endpoint = f"api/now/table/project_project?{params}" if params else "api/now/table/project_project"
+        data = self.fetch(endpoint)
+        return data.get("result", [])
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return self.post("api/now/table/pm_task", payload)
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        raise ValueError("ServiceNow does not support direct messaging via this connector")
+
 
 class AzureCommunicationConnector(BaseIntegrationConnector):
     system_name = "azure_communication"
+
+    def list_projects(self, filters: Dict[str, Any] | None = None) -> list[Dict[str, Any]]:
+        raise ValueError("Azure Communication Services does not support project listing")
+
+    def create_work_item(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        raise ValueError("Azure Communication Services does not support work item creation")
+
+    def send_message(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        channel = payload.get("channel", "email")
+        if channel == "sms":
+            return self.post("sms", {
+                "from": payload.get("from", ""),
+                "smsRecipients": [{"to": addr} for addr in ([payload["to"]] if isinstance(payload.get("to"), str) else payload.get("to", []))],
+                "message": payload.get("message") or payload.get("body", ""),
+            })
+        return self.post("emails:send?api-version=2023-03-31", {
+            "senderAddress": payload.get("from", ""),
+            "recipients": {"to": [{"address": addr} for addr in ([payload["to"]] if isinstance(payload.get("to"), str) else payload.get("to", []))]},
+            "content": {
+                "subject": payload.get("subject", ""),
+                "plainText": payload.get("message") or payload.get("body", ""),
+            },
+        })
 
 
 class MockIntegrationConnector(BaseIntegrationConnector):

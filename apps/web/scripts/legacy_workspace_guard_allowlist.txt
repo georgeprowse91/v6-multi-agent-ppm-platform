@@ -1,0 +1,13 @@
+# Allowlist for intentional historical mentions used by
+# apps/web/scripts/check_legacy_workspace_artifacts.py
+#
+# Format:
+# path|check_id|contains
+apps/web/README.md|legacy_workspace_html_route|The guard blocks these patterns by default
+apps/web/README.md|legacy_workspace_query_entrypoint|The guard blocks these patterns by default
+apps/web/README.md|legacy_workspace_redirect_helper|The guard blocks these patterns by default
+apps/web/tests/test_demo_mode.py|legacy_workspace_query_entrypoint|"/v1/workspace?demo=true"
+apps/web/tests/test_demo_mode.py|legacy_workspace_query_entrypoint|"/workspace?demo=true"
+apps/web/tests/test_program_views_api.py|legacy_workspace_query_entrypoint|startswith("/workspace?")
+apps/web/tests/test_workspace_shell.py|legacy_workspace_js_asset|"/static/workspace.js"
+apps/web/tests/test_workspace_shell.py|legacy_workspace_query_entrypoint|client.get("/v1/workspace?demo=true"

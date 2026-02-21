@@ -43,6 +43,10 @@ def create_engine(*args, **kwargs):
     return object()
 
 
+def ForeignKey(*args, **kwargs):
+    return ("ForeignKey", args, kwargs)
+
+
 def select(*args, **kwargs):
     return ("select", args)
 

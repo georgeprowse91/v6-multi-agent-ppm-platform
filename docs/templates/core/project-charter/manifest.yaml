@@ -2,6 +2,12 @@ metadata:
   template_id: project-charter
   title: Project Charter
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - project_charter_template.md
+  - traditional-project-charter-template.md
   owner: PMO
   classification: core
   composition_model: modular-v1

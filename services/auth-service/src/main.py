@@ -22,9 +22,13 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
 from auth import authenticate_request, validate_token  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
+from security.secrets import resolve_secret  # noqa: E402
+
 from packages.version import API_VERSION
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 logger = logging.getLogger("auth-service")
 logging.basicConfig(level=logging.INFO)
@@ -35,8 +39,7 @@ configure_tracing("auth-service")
 configure_metrics("auth-service")
 app.add_middleware(TraceMiddleware, service_name="auth-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="auth-service")
-app.add_middleware(SecurityHeadersMiddleware)
-register_error_handlers(app)
+apply_api_governance(app, service_name="auth-service")
 
 
 class HealthResponse(BaseModel):
@@ -95,7 +98,7 @@ class AuthContextResponse(BaseModel):
     claims: dict[str, Any]
 
 
-_OIDC_CACHE: "OrderedDict[str, dict[str, Any]]" = OrderedDict()
+_OIDC_CACHE: OrderedDict[str, dict[str, Any]] = OrderedDict()
 
 
 def _oidc_cache_ttl_seconds() -> int:
@@ -136,11 +139,11 @@ def _prune_oidc_cache(now: float, ttl_seconds: int, max_entries: int) -> None:
 
 
 def _get_env(name: str, fallback: str | None = None) -> str | None:
-    value = os.getenv(name)
+    value = resolve_secret(os.getenv(name))
     if value:
         return value
     if fallback:
-        return os.getenv(fallback)
+        return resolve_secret(os.getenv(fallback))
     return None
 
 
@@ -256,11 +259,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "auth-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("auth-service")
 
 
 @api_router.post("/auth/login", response_model=TokenResponse)

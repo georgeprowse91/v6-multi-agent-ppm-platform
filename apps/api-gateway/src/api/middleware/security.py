@@ -10,7 +10,11 @@ from typing import Any, cast
 
 import httpx
 import jwt
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+try:
+    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+except ModuleNotFoundError:  # pragma: no cover - fallback for constrained local smoke envs
+    class RSAPublicKey:  # type: ignore[no-redef]
+        pass
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError

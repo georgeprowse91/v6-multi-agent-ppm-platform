@@ -2,8 +2,13 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Mapping
 
 from pydantic import ValidationError
+
+STRICT_ENVIRONMENTS = {"staging", "production"}
+DEV_ENVIRONMENT_ALIASES = {"dev", "development", "local"}
 
 
 @dataclass
@@ -69,3 +74,61 @@ def format_validation_report(service_name: str, diagnostics: ValidationDiagnosti
     _emit("Invalid enum/range", diagnostics.invalid_enum_or_range)
 
     return "\n".join(lines)
+
+
+def normalize_environment(environment: str | None) -> str:
+    if not environment:
+        return "development"
+    value = environment.strip().lower()
+    if value == "prod":
+        return "production"
+    return value
+
+
+def is_strict_environment(environment: str | None) -> bool:
+    return normalize_environment(environment) in STRICT_ENVIRONMENTS
+
+
+def classify_storage_backend(storage_value: str | Path) -> str:
+    value = str(storage_value).strip().lower()
+    if value.startswith(("postgresql://", "postgres://")):
+        return "postgresql"
+    if value.startswith(("mysql://", "mysql+pymysql://", "mariadb://")):
+        return "mysql"
+    if value.startswith(("redis://", "rediss://")):
+        return "redis"
+    if value.startswith(("sqlite://", "sqlite+aiosqlite://")):
+        return "sqlite"
+    return "file" if value.startswith("/") or value.endswith(".db") else "unknown"
+
+
+def durability_mode_for_storage(storage_value: str | Path) -> str:
+    backend = classify_storage_backend(storage_value)
+    return "file-backed" if backend in {"sqlite", "file"} else "network-persistent"
+
+
+def enforce_no_default_file_backed_storage(
+    *,
+    service_name: str,
+    setting_names: tuple[str, ...],
+    selected_value: str | Path,
+    used_default: bool,
+    environment: str | None,
+    remediation_hint: str,
+) -> None:
+    if not used_default or not is_strict_environment(environment):
+        return
+    durability = durability_mode_for_storage(selected_value)
+    if durability != "file-backed":
+        return
+    keys = " or ".join(setting_names)
+    env_name = normalize_environment(environment)
+    raise ValueError(
+        f"[{service_name}] refusing fallback file-backed storage in {env_name}. "
+        f"Set {keys}. {remediation_hint}"
+    )
+
+
+def environment_value(environ: Mapping[str, str] | None = None) -> str:
+    env = environ or {}
+    return normalize_environment(env.get("ENVIRONMENT"))

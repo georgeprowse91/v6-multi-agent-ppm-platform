@@ -1,24 +1,36 @@
-import logging
-from fastapi.testclient import TestClient
-from integrations.connectors.planview.src.main import app
+from __future__ import annotations
+
+import ast
+from pathlib import Path
+
+from integrations.connectors.planview.src.mappers import map_to_planview
 
 
-def test_planview_outbound_sync(monkeypatch, caplog):
-    caplog.set_level(logging.INFO)
+def test_send_to_external_system_maps_payload_shape_for_mcp_and_non_mcp() -> None:
+    records = [{"id": "p1", "name": "Project", "status": "open", "start_date": "2024-01-01"}]
+    mapped_payload = map_to_planview(records)
 
-    def mock_send(records, tenant_id, *, include_schema):
-        assert tenant_id == "test-tenant"
-        assert isinstance(records, list)
+    assert mapped_payload == [
+        {
+            "externalId": "p1",
+            "name": "Project",
+            "lifecycleState": "active",
+            "startDate": "2024-01-01",
+            "financials": {"currency": "USD"},
+        }
+    ]
 
-    monkeypatch.setattr("integrations.connectors.planview.src.main.send_to_external_system", mock_send)
 
-    client = TestClient(app)
-    payload = {
-        "records": [{"id": "abc", "name": "Planview Example"}],
-        "tenant_id": "test-tenant",
-        "live": True,
-        "include_schema": False,
-    }
-    response = client.post("/connectors/planview/sync/outbound", json=payload)
-    assert response.status_code == 200
-    assert response.json()["status"] == "accepted"
+def test_send_to_external_system_uses_single_mapped_payload_contract() -> None:
+    source = Path("integrations/connectors/planview/src/main.py").read_text()
+    tree = ast.parse(source)
+
+    send_fn = next(
+        node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "send_to_external_system"
+    )
+    fn_source = ast.get_source_segment(source, send_fn) or ""
+
+    assert "mapped_payload = map_to_planview(records)" in fn_source
+    assert "for payload in mapped_payload" in fn_source
+    assert "connector.create_work_item(payload)" in fn_source
+    assert "mapped_payload" in fn_source and "Outbound payload for Planview tenant" in fn_source

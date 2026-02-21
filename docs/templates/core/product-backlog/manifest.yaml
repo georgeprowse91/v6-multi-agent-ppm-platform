@@ -2,6 +2,11 @@ metadata:
   template_id: product-backlog
   title: Product Backlog
   version: 1.0.0
+  status: active
+  replaces: null
+  replaced_by: null
+  aliases:
+  - product_backlog_template.md
   owner: Product
   classification: core
   composition_model: modular-v1

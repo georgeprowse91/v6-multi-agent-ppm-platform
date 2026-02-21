@@ -82,3 +82,99 @@ def test_end_to_end_workflow(monkeypatch) -> None:
     )
     assert workflow_response.status_code == 200
     assert workflow_response.json()["status"] == "running"
+
+
+
+def test_workflow_resume_after_mid_workflow_failure(monkeypatch, tmp_path) -> None:
+    """Simulate a failed run and verify resume continues from the same run id."""
+    monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
+    monkeypatch.setenv("WORKFLOW_DB_PATH", str(tmp_path / "workflows.db"))
+    token = jwt.encode(
+        {
+            "sub": "user-123",
+            "roles": ["workflow_operator", "portfolio_admin"],
+            "aud": "ppm-platform",
+            "iss": "https://issuer.example.com",
+            "tenant_id": "tenant-alpha",
+        },
+        "test-secret",
+        algorithm="HS256",
+    )
+
+    workflow = _workflow_client()
+    headers = {"Authorization": f"Bearer {token}", "X-Tenant-ID": "tenant-alpha"}
+
+    start = workflow.post(
+        "/v1/workflows/start",
+        json={
+            "workflow_id": "intake-triage",
+            "tenant_id": "tenant-alpha",
+            "classification": "internal",
+            "payload": {"request": "upgrade"},
+            "actor": {"id": "user-123", "type": "user", "roles": ["portfolio_admin"]},
+        },
+        headers=headers,
+    )
+    assert start.status_code == 200
+    run_id = start.json()["run_id"]
+
+    fail = workflow.post(f"/v1/workflows/{run_id}/status", json={"status": "failed"}, headers=headers)
+    assert fail.status_code == 200
+    assert fail.json()["status"] == "failed"
+
+    resume = workflow.post(f"/v1/workflows/{run_id}/resume", headers=headers)
+    assert resume.status_code == 200
+    assert resume.json()["run_id"] == run_id
+    assert resume.json()["status"] == "running"
+
+
+def test_workflow_idempotency_prevents_duplicate_side_effects(monkeypatch, tmp_path) -> None:
+    """Repeated starts with the same idempotency key should return the same run id."""
+    monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
+    monkeypatch.setenv("WORKFLOW_DB_PATH", str(tmp_path / "workflows-idempotent.db"))
+    token = jwt.encode(
+        {
+            "sub": "user-123",
+            "roles": ["workflow_operator", "portfolio_admin"],
+            "aud": "ppm-platform",
+            "iss": "https://issuer.example.com",
+            "tenant_id": "tenant-alpha",
+        },
+        "test-secret",
+        algorithm="HS256",
+    )
+
+    workflow = _workflow_client()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "X-Tenant-ID": "tenant-alpha",
+        "Idempotency-Key": "idem-key-001",
+    }
+    request_payload = {
+        "workflow_id": "intake-triage",
+        "tenant_id": "tenant-alpha",
+        "classification": "internal",
+        "payload": {"request": "upgrade"},
+        "actor": {"id": "user-123", "type": "user", "roles": ["portfolio_admin"]},
+    }
+
+    first = workflow.post("/v1/workflows/start", json=request_payload, headers=headers)
+    second = workflow.post("/v1/workflows/start", json=request_payload, headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["run_id"] == second.json()["run_id"]
+
+
+def test_workflow_engine_degraded_health_when_store_unavailable(monkeypatch) -> None:
+    """Workflow health endpoint should surface degraded mode when dependencies are down."""
+    monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
+    workflow = _workflow_client()
+
+    with patch("workflow_engine_main.store.ping", side_effect=RuntimeError("store down")):
+        health = workflow.get("/healthz")
+
+    assert health.status_code == 503
+    body = health.json()
+    assert body["status"] == "degraded"
+    assert body["dependencies"]["workflow_store"] == "down"

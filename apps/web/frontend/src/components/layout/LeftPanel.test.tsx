@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '@/i18n';
@@ -8,6 +8,19 @@ import { LeftPanel } from './LeftPanel';
 vi.mock('@/components/icon/Icon', () => ({
   Icon: ({ label }: { label?: string }) => <span>{label ?? 'icon'}</span>,
 }));
+
+const workspaceHydrationPayload = {
+  project_id: 'project-42',
+  methodology: 'predictive',
+  current_activity_id: null,
+  available_methodologies: ['predictive', 'adaptive', 'hybrid'],
+  methodology_map_summary: {
+    id: 'predictive',
+    name: 'Predictive',
+    description: 'Hydration payload',
+    stages: [],
+  },
+};
 
 function renderLeftPanel(initialEntry = '/') {
   return render(
@@ -32,6 +45,7 @@ describe('LeftPanel', () => {
         user: null,
       },
     });
+    vi.restoreAllMocks();
   });
 
   it('keeps Hub mode free of methodology tree and keeps Hub Admin collapsed by default', () => {
@@ -98,6 +112,19 @@ describe('LeftPanel', () => {
 
     fireEvent.keyDown(screen.getByRole('link', { name: /Methodology Editor/i }), { key: 'Home' });
     expect(screen.getByRole('link', { name: /Home/i })).toHaveFocus();
+  });
+
+
+  it('hydrates project workspace state from /api/workspace when rendered on SPA project routes', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(workspaceHydrationPayload), { status: 200 })
+    );
+
+    renderLeftPanel('/app/projects/project-42');
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/workspace/project-42', undefined);
+    });
   });
 
   it('renders project workspace links with project query string and supports keyboard traversal', () => {

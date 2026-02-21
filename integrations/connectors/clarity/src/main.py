@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from fastapi import FastAPI
 from typing import Any
 
 from integrations.connectors.sdk.src.runtime import ConnectorRuntime
@@ -76,6 +77,17 @@ def _should_use_mcp() -> bool:
     return bool(prefer and resolve_secret(os.getenv("CLARITY_MCP_SERVER_URL")))
 
 
+def create_app() -> FastAPI:
+    app = FastAPI(title="Clarity Connector")
+    from .router import router
+
+    app.include_router(router)
+    return app
+
+
+app = create_app()
+
+
 if __name__ == "__main__":
     import argparse
     import json
@@ -105,12 +117,23 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
     import logging
 
     mapped_payload = map_to_clarity(records)
+    logger = logging.getLogger(__name__)
+
+    if not mapped_payload:
+        logger.warning(
+            "No valid Clarity outbound records produced for tenant %s (include_schema=%s)",
+            tenant_id,
+            include_schema,
+        )
+        return
+
     if _should_use_mcp():
         connector = _build_mcp_connector()
         for payload in mapped_payload:
             connector.create_work_item(payload)
         return
-    logging.getLogger(__name__).info(
+
+    logger.info(
         "Outbound payload for Clarity tenant %s (include_schema=%s): %s",
         tenant_id,
         include_schema,

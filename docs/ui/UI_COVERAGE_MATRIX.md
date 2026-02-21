@@ -4,6 +4,8 @@
 
 This matrix audits the current SPA + backend implementation against the required capability list.
 
+Legacy workspace entrypoints (`/workspace`, `/v1/workspace`) are retired; this inventory tracks SPA routes only.
+
 ## Route Inventory (react-router)
 
 Source: `apps/web/frontend/src/App.tsx`.

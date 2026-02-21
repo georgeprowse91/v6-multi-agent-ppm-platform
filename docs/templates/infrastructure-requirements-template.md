@@ -541,7 +541,7 @@ This document defines the infrastructure requirements for [Project Name]. It spe
 - [Budget and Cost Plan](../../project-lifecycle/02-planning/budget-planning/)
 
 ### Infrastructure Templates
-- [Deployment Checklist Template](./deployment-checklist-template.md)
+- [Deployment Checklist Template](./core/deployment-checklist/manifest.yaml)
 - [Hybrid Infrastructure Template](../../methodology-frameworks/hybrid/infrastructure/hybrid-infrastructure-template.md)
 - [DevOps Pipeline Template](../../methodology-frameworks/emerging-methods/devops/cicd_pipeline_planning_template.md)
 

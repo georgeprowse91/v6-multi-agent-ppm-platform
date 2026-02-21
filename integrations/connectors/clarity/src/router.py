@@ -37,13 +37,8 @@ def sync_outbound(request: OutboundSyncRequest) -> dict[str, object]:
         include_schema=request.include_schema,
     )
     if request.live:
-        run_sync(
-            mapped,
-            request.tenant_id,
-            live=True,
-            include_schema=request.include_schema,
-        )
         from .main import send_to_external_system
+
         send_to_external_system(mapped, request.tenant_id, include_schema=request.include_schema)
         return {
             "status": "accepted",

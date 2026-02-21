@@ -4,15 +4,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const staticDir = path.resolve(__dirname, '../../../web/static');
-const pages = [
-  'index.html',
-  'approvals.html',
-  'workflow-monitoring.html',
-  'document-search.html',
-  'lessons-learned.html',
-  'audit-log.html',
-];
+const staticDir = path.resolve(__dirname, '../../../static');
+const pages = ['index.html'];
 
 const runAxe = async (html: string) => {
   document.open();

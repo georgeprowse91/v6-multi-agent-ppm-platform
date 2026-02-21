@@ -20,7 +20,7 @@ class MemoryService:
     ) -> None:
         self._backend = backend
         self._default_ttl_seconds = default_ttl_seconds
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._memory_store: dict[str, tuple[dict[str, Any], float | None]] = {}
         self._conn: sqlite3.Connection | None = None
 

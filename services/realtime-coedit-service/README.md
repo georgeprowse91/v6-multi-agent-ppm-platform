@@ -35,3 +35,14 @@ connections, shared document state, and conflict resolution.
 ```bash
 python -m tools.component_runner run --type service --name realtime-coedit-service --dry-run
 ```
+
+## Generated docs
+
+- Endpoint reference (source of truth): [`docs/generated/services/realtime-coedit-service.md`](../../docs/generated/services/realtime-coedit-service.md).
+- Regenerate with: `python ops/tools/codegen/generate_docs.py`.
+
+## Ownership and support
+
+- Owner: Platform Engineering
+- Support: #ppm-platform-support
+

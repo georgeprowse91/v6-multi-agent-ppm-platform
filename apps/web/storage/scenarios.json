@@ -1,4 +1,119 @@
 {
-  "scenarios": [],
+  "methodologies": [
+    {
+      "id": "predictive",
+      "name": "Predictive",
+      "stages": [
+        {
+          "id": "discover",
+          "name": "Discover",
+          "activities": [
+            {"activity_id": "pred-discover-charter", "activity_name": "Draft project charter"},
+            {"activity_id": "pred-discover-business-case", "activity_name": "Assess business case"}
+          ]
+        },
+        {
+          "id": "design",
+          "name": "Design",
+          "activities": [
+            {"activity_id": "pred-design-wbs", "activity_name": "Create WBS baseline"},
+            {"activity_id": "pred-design-risk-plan", "activity_name": "Develop risk response plan"}
+          ]
+        },
+        {
+          "id": "deliver",
+          "name": "Deliver",
+          "activities": [
+            {"activity_id": "pred-deliver-status", "activity_name": "Publish weekly status report"},
+            {"activity_id": "pred-deliver-raid", "activity_name": "Maintain RAID log"}
+          ]
+        },
+        {
+          "id": "embed",
+          "name": "Embed",
+          "activities": [
+            {"activity_id": "pred-embed-handover", "activity_name": "Run transition handover"},
+            {"activity_id": "pred-embed-lessons", "activity_name": "Capture lessons learned"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "adaptive",
+      "name": "Adaptive",
+      "stages": [
+        {
+          "id": "discover",
+          "name": "Discover",
+          "activities": [
+            {"activity_id": "adapt-discover-outcomes", "activity_name": "Define sprint outcomes"},
+            {"activity_id": "adapt-discover-personas", "activity_name": "Review user personas"}
+          ]
+        },
+        {
+          "id": "design",
+          "name": "Design",
+          "activities": [
+            {"activity_id": "adapt-design-story-map", "activity_name": "Build story map"},
+            {"activity_id": "adapt-design-backlog", "activity_name": "Prioritize backlog"}
+          ]
+        },
+        {
+          "id": "deliver",
+          "name": "Deliver",
+          "activities": [
+            {"activity_id": "adapt-deliver-sprint-review", "activity_name": "Facilitate sprint review"},
+            {"activity_id": "adapt-deliver-release", "activity_name": "Prepare release notes"}
+          ]
+        },
+        {
+          "id": "embed",
+          "name": "Embed",
+          "activities": [
+            {"activity_id": "adapt-embed-retro", "activity_name": "Run retrospective"},
+            {"activity_id": "adapt-embed-metrics", "activity_name": "Track flow metrics"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hybrid",
+      "name": "Hybrid",
+      "stages": [
+        {
+          "id": "discover",
+          "name": "Discover",
+          "activities": [
+            {"activity_id": "hybrid-discover-scope", "activity_name": "Align scope and sprint horizon"},
+            {"activity_id": "hybrid-discover-dependencies", "activity_name": "Map cross-team dependencies"}
+          ]
+        },
+        {
+          "id": "design",
+          "name": "Design",
+          "activities": [
+            {"activity_id": "hybrid-design-roadmap", "activity_name": "Draft release roadmap"},
+            {"activity_id": "hybrid-design-architecture", "activity_name": "Validate solution architecture"}
+          ]
+        },
+        {
+          "id": "deliver",
+          "name": "Deliver",
+          "activities": [
+            {"activity_id": "hybrid-deliver-governance", "activity_name": "Review governance checkpoints"},
+            {"activity_id": "hybrid-deliver-forecast", "activity_name": "Update forecast"}
+          ]
+        },
+        {
+          "id": "embed",
+          "name": "Embed",
+          "activities": [
+            {"activity_id": "hybrid-embed-ops", "activity_name": "Operational readiness review"},
+            {"activity_id": "hybrid-embed-benefits", "activity_name": "Measure benefits realization"}
+          ]
+        }
+      ]
+    }
+  ],
   "published_decisions": []
 }

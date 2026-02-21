@@ -1,7 +1,9 @@
-[
-  {"role":"assistant","content":"Welcome to the Project Intake demo. What initiative would you like to submit today?"},
-  {"role":"user","content":"I need to launch a customer self-service portal."},
-  {"role":"assistant","content":"Great. What outcome should this portal improve first: support ticket deflection or faster onboarding?"},
-  {"role":"user","content":"Support ticket deflection."},
-  {"role":"assistant","content":"Understood. I captured the objective as reducing support ticket volume by 20% in two quarters. Do you want me to draft an intake summary now?"}
-]
+{
+  "messages": [
+    {"role":"assistant","content":"Welcome to the Project Intake demo. What initiative would you like to submit today?"},
+    {"role":"user","content":"I need to launch a customer self-service portal."},
+    {"role":"assistant","content":"Great. What outcome should this portal improve first: support ticket deflection or faster onboarding?"},
+    {"role":"user","content":"Support ticket deflection."},
+    {"role":"assistant","content":"Understood. I captured the objective as reducing support ticket volume by 20% in two quarters. Do you want me to draft an intake summary now?"}
+  ]
+}

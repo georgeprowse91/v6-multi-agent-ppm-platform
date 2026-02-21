@@ -1,0 +1,8 @@
+{
+  "duplicate_resolution": true,
+  "agent_async_notifications": true,
+  "agent_run_ui": true,
+  "predictive_alerts": true,
+  "multi_agent_collab": true,
+  "multimodal_intake": true
+}

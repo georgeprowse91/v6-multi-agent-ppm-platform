@@ -168,9 +168,9 @@ Once comfortable with basics:
 ### Adaptive/Scrum Projects
 **Core Templates:**
 - [Product Backlog](../../methodology-frameworks/adaptive-scrum/product-backlog-template.md)
-- [Sprint Planning](../../methodology-frameworks/adaptive-scrum/sprint-planning-template.md)
-- [Sprint Review](../../methodology-frameworks/adaptive-scrum/sprint-review-template.md)
-- [Sprint Retrospective](../../methodology-frameworks/adaptive-scrum/sprint-retrospective-template.md)
+- [Sprint Planning](./core/sprint-planning/manifest.yaml)
+- [Sprint Review](./core/sprint-review/manifest.yaml)
+- [Sprint Retrospective](./core/sprint-retrospective/manifest.yaml)
 
 **Role-Specific:**
 - [Scrum Master Toolkit](../../role-based-toolkits/scrum-master/)
@@ -260,7 +260,7 @@ Traditional Project ──> Traditional/Predictive Templates
 
 ### D-F
 - [Daily Standup](../../methodology-frameworks/adaptive-scrum/daily-standup-template.md)
-- [Executive Dashboard](../../business-stakeholder-suite/executive-dashboards/executive-dashboard-template.md)
+- [Executive Dashboard](./core/executive-dashboard/manifest.yaml)
 - [Financial Governance](../../business-stakeholder-suite/financial-governance/)
 
 ### G-I
@@ -281,11 +281,11 @@ Traditional Project ──> Traditional/Predictive Templates
 - [ROI Tracking](../../business-stakeholder-suite/financial-governance/roi-tracking.md)
 
 ### S-U
-- [Sprint Planning](../../methodology-frameworks/adaptive-scrum/sprint-planning-template.md)
-- [Sprint Review](../../methodology-frameworks/adaptive-scrum/sprint-review-template.md)
-- [Sprint Retrospective](../../methodology-frameworks/adaptive-scrum/sprint-retrospective-template.md)
+- [Sprint Planning](./core/sprint-planning/manifest.yaml)
+- [Sprint Review](./core/sprint-review/manifest.yaml)
+- [Sprint Retrospective](./core/sprint-retrospective/manifest.yaml)
 - [Stakeholder Register](../../project-lifecycle/01-initiation/stakeholder-analysis/stakeholder-register-template.md)
-- [Status Report](../../project-lifecycle/04-monitoring-control/status-reporting/status-report-template.md)
+- [Status Report](./core/status-report/manifest.yaml)
 - [User Stories](../../methodology-frameworks/adaptive-scrum/user-story-template.md)
 
 ### V-Z

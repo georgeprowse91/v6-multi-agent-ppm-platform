@@ -465,8 +465,8 @@ Management Table
 ---
 
 ## Related Templates
-- [LeSS Sprint Planning Template](./less_sprint_planning_template.md)
-- [Overall Product Backlog Management](./overall_product_backlog_template.md)
+- [LeSS Sprint Planning Template](./core/sprint-planning/manifest.yaml)
+- [Overall Product Backlog Management](./core/product-backlog/manifest.yaml)
 - [Cross-Team Coordination Template](./cross_team_coordination_template.md)
 - [LeSS Adoption Roadmap](../../quick-start-kits/less-adoption/README.md)
 

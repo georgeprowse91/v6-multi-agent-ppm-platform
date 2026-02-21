@@ -23,13 +23,16 @@ def configure_logging(service_name: str) -> None:
     endpoint = os.getenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://otel-collector:4318/v1/logs")
     resource = Resource.create({"service.name": service_name})
     provider = LoggerProvider(resource=resource)
-    cast(Any, provider).add_log_record_processor(
-        BatchLogRecordProcessor(OTLPLogExporter(endpoint=endpoint))
-    )
+    processor = BatchLogRecordProcessor(OTLPLogExporter(endpoint=endpoint))
+    provider_obj = cast(Any, provider)
+    add_processor = getattr(provider_obj, "add_log_record_processor", None)
+    if callable(add_processor):
+        add_processor(processor)
     set_logger_provider(provider)
 
     handler = LoggingHandler(level=logging.INFO, logger_provider=provider)
-    logging.getLogger().addHandler(cast(logging.Handler, handler))
+    if hasattr(handler, "level"):
+        logging.getLogger().addHandler(cast(logging.Handler, handler))
 
     _CONFIGURED = True
     logger.info("otel_logging_configured", extra={"service": service_name, "endpoint": endpoint})

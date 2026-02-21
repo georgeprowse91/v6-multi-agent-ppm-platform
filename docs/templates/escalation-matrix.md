@@ -354,7 +354,7 @@ LESSONS LEARNED:
 - [Issue Resolution Process](issue-resolution.md)
 - [Risk Governance Framework](risk-governance.md)
 - [Governance Charter](governance-charter.md)
-- [Project Communication Plan](../essential-templates/communication-plan.md)
+- [Project Communication Plan](./core/communication-plan/manifest.yaml)
 
 ---
 

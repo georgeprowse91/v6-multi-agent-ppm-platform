@@ -636,7 +636,7 @@ All metrics must include:
 ---
 
 ## Related Templates
-- [PI Planning Template](./pi_planning_template.md)
+- [PI Planning Template](./core/sprint-planning/manifest.yaml)
 - [Portfolio Kanban Template](./portfolio_kanban_template.md)
 - [ART Coordination Template](./art_coordination_template.md)
 - [SAFe Executive Dashboard Templates](../../../business-stakeholder-suite/safe-executive-dashboards/README.md)

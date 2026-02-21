@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from fastapi import FastAPI
 from pathlib import Path
 from typing import Any
 
@@ -12,7 +13,7 @@ from integrations.connectors.sdk.src.secrets import fetch_keyvault_secret, resol
 
 from integrations.connectors.integration import IntegrationAuthType, IntegrationConfig, PlanviewMcpConnector
 
-from .mappers import map_to_planview
+from .mappers import PlanviewMappingError, map_to_planview
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 
@@ -218,6 +219,17 @@ def _should_use_mcp() -> bool:
     return bool(prefer and resolve_secret(os.getenv("PLANVIEW_MCP_SERVER_URL")))
 
 
+def create_app() -> FastAPI:
+    app = FastAPI(title="Planview Connector")
+    from .router import router
+
+    app.include_router(router)
+    return app
+
+
+app = create_app()
+
+
 if __name__ == "__main__":
     import argparse
     import json
@@ -246,7 +258,11 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
     """
     import logging
 
-    mapped_payload = map_to_planview(records)
+    try:
+        mapped_payload = map_to_planview(records)
+    except PlanviewMappingError as exc:
+        raise ValueError(f"Invalid outbound Planview record: {exc.as_dict()}") from exc
+
     if _should_use_mcp():
         connector = _build_mcp_connector()
         for payload in mapped_payload:

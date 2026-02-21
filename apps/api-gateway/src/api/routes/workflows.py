@@ -13,15 +13,18 @@ from api.runtime_bootstrap import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
 WORKFLOW_ENGINE_SRC = REPO_ROOT / "apps" / "workflow-engine" / "src"
-if str(WORKFLOW_ENGINE_SRC) not in sys.path:
-    sys.path.insert(0, str(WORKFLOW_ENGINE_SRC))
+COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+for path in (WORKFLOW_ENGINE_SRC, COMMON_SRC):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from agent_client import get_agent_client  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store
 from workflow_definitions import load_definition, seed_definitions  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
-from workflow_storage import WorkflowStore  # noqa: E402
+from common.env_validation import environment_value  # noqa: E402
+from workflow_storage import WorkflowStore, resolve_workflow_storage  # noqa: E402
 
 router = APIRouter()
 
@@ -30,9 +33,11 @@ bootstrap_runtime_paths()
 WORKFLOW_ROOT = REPO_ROOT / "apps" / "workflow-engine"
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
-DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workflows.db"))
+ENVIRONMENT = environment_value(os.environ)
+WORKFLOW_STORAGE = resolve_workflow_storage(environment=ENVIRONMENT)
+DB_PATH = WORKFLOW_STORAGE.db_path
 
-store = WorkflowStore(DB_PATH)
+store = WorkflowStore.from_selection(WORKFLOW_STORAGE)
 seed_definitions(store, DEFINITIONS_DIR, SCHEMA_PATH)
 
 _APPROVAL_CHANGE_TYPES = {

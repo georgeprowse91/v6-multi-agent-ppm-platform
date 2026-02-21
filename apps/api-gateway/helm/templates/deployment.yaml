@@ -52,6 +52,8 @@ spec:
               value: {{ .Values.env.CONNECTOR_CIRCUIT_RECOVERY_SECONDS | quote }}
             - name: CONNECTOR_CIRCUIT_HALF_OPEN_SUCCESSES
               value: {{ .Values.env.CONNECTOR_CIRCUIT_HALF_OPEN_SUCCESSES | quote }}
+            - name: DOCUMENT_SESSION_DB_PATH
+              value: {{ .Values.env.DOCUMENT_SESSION_DB_PATH | quote }}
             {{- if .Values.leaderElection.enabled }}
             - name: LEADER_ELECTION_ENABLED
               value: "true"

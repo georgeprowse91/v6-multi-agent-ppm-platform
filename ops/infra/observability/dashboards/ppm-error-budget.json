@@ -23,7 +23,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "1 - (sum(rate(workflow_completed_total{status=\"failure\"}[5m])) / sum(rate(workflow_completed_total[5m])))",
+          "expr": "1 - (sum(rate(workflow_completed_total{status=\"failure\"}[5m])) / sum(rate(workflow_executions_total[5m])))",
           "legendFormat": "workflow availability"
         }
       ],

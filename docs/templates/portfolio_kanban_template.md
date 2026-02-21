@@ -561,7 +561,7 @@ Weight factors for epic prioritization:
 ---
 
 ## Related Templates
-- [PI Planning Template](./pi_planning_template.md)
+- [PI Planning Template](./core/sprint-planning/manifest.yaml)
 - [ART Coordination Template](./art_coordination_template.md)
 - [SAFe Metrics Dashboard Template](./metrics_dashboard_template.md)
 - [Epic Business Case Template](./epic_business_case_template.md)

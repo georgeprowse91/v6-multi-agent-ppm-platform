@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import logging
-import os
 import sys
 import zipfile
 from datetime import datetime, timezone
@@ -31,16 +30,18 @@ SCHEMA_PATH = REPO_ROOT / "data" / "schemas" / "audit-event.schema.json"
 RETENTION_CONFIG_PATH = REPO_ROOT / "config" / "retention" / "policies.yaml"
 CLASSIFICATION_CONFIG_PATH = REPO_ROOT / "config" / "data-classification" / "levels.yaml"
 
-from packages.version import API_VERSION  # noqa: E402
 import yaml
-
 from audit_storage import AuditRetentionPolicy, WORMStorageError, get_worm_storage  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
+
+from packages.version import API_VERSION  # noqa: E402
 from security.config import load_yaml  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
 
 
 def _load_schema() -> dict[str, Any]:
@@ -95,12 +96,11 @@ class HealthResponse(BaseModel):
 app = FastAPI(title="Audit Log Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("audit-log")
 configure_metrics("audit-log")
 app.add_middleware(TraceMiddleware, service_name="audit-log")
 app.add_middleware(RequestMetricsMiddleware, service_name="audit-log")
-register_error_handlers(app)
+apply_api_governance(app, service_name="audit-log")
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -112,7 +112,7 @@ async def healthz() -> HealthResponse:
     except (HttpResponseError, OSError, WORMStorageError):
         dependencies["worm_storage"] = "down"
     try:
-        _load_policies()
+        load_yaml(RETENTION_CONFIG_PATH)
         dependencies["retention_config"] = "ok"
     except (OSError, ValueError, yaml.YAMLError):
         dependencies["retention_config"] = "down"
@@ -122,11 +122,7 @@ async def healthz() -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "audit-log",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("audit-log")
 
 
 def _serialize_event(event: AuditEventOut) -> dict[str, Any]:

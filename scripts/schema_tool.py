@@ -143,9 +143,18 @@ from __future__ import annotations
 
 
 def transform(document: dict) -> dict:
-    """Transform fixture snapshot to target schema version."""
+    """Transform fixture snapshot from {args.from_version} to {args.to_version}.
+
+    Implement the field-level changes needed for this schema version bump.
+    Common operations include:
+    - Renaming fields: updated["new_name"] = updated.pop("old_name")
+    - Adding fields with defaults: updated.setdefault("new_field", default_value)
+    - Removing deprecated fields: updated.pop("deprecated_field", None)
+    - Converting value types: updated["field"] = str(updated["field"])
+    - Restructuring nested objects: updated["nested"] = {{"key": updated.pop("flat_key")}}
+    """
     updated = dict(document)
-    # TODO: implement transform logic.
+    # Implement field transformations required for version {args.from_version} -> {args.to_version}.
     return updated
 '''
     target.write_text(template)

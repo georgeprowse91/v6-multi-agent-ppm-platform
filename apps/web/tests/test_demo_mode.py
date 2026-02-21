@@ -25,6 +25,14 @@ def test_demo_guided_tour_hooks_present():
     assert "Shepherd" in app_js
 
 
+def test_demo_mode_uses_app_routes_instead_of_legacy_workspace_routes():
+    app_js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+
+    assert "/app" in app_js
+    assert "/v1/workspace?demo=true" not in app_js
+    assert "/workspace?demo=true" not in app_js
+
+
 def test_demo_scenario_files_exist():
     for filename in [
         "approvals.json",
@@ -33,8 +41,3 @@ def test_demo_scenario_files_exist():
         "schedule.json",
     ]:
         assert (DEMO_DIR / filename).exists()
-
-
-def test_index_has_guided_tour_entrypoint():
-    index_html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    assert "/workspace?demo=true" in index_html

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+import logging
 from typing import Any, cast
 
 from workflow_storage import WorkflowStore
 from security.config import load_yaml
 
 from jsonschema import Draft202012Validator, FormatChecker
+
+logger = logging.getLogger(__name__)
 
 
 def load_definition(path: Path, schema_path: Path) -> dict[str, Any]:
@@ -31,7 +34,11 @@ def seed_definitions(store: WorkflowStore, definitions_dir: Path, schema_path: P
         workflow_id = definition_path.stem.replace(".workflow", "")
         if store.get_definition(workflow_id):
             continue
-        definition = load_definition(definition_path, schema_path)
+        try:
+            definition = load_definition(definition_path, schema_path)
+        except ValueError as exc:
+            logger.warning("Skipping invalid workflow definition %s: %s", definition_path.name, exc)
+            continue
         store.upsert_definition(workflow_id, definition)
 
 

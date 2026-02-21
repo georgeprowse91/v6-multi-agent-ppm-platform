@@ -46,7 +46,7 @@
       "title": "Connector Sync Success Rate",
       "targets": [
         {
-          "expr": "1 - (sum(rate(connector_sync_errors_total[15m])) / sum(rate(connector_sync_total[15m])))",
+          "expr": "1 - (sum(rate(connector_sync_executions_total{outcome=\"failed\"}[15m])) / sum(rate(connector_sync_executions_total[15m])))",
           "legendFormat": "sync_success"
         }
       ]
@@ -56,7 +56,7 @@
       "title": "Connector Sync Duration (p95)",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(connector_sync_duration_seconds_bucket[15m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(connector_sync_execution_duration_seconds_bucket[15m])) by (le))",
           "legendFormat": "p95"
         }
       ]

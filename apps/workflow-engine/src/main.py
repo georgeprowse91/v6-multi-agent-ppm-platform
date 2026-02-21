@@ -35,14 +35,15 @@ for root in (
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from packages.version import API_VERSION  # noqa: E402
-from config import validate_startup_config  # noqa: E402
 from agent_client import get_agent_client  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
+from workflow.dispatcher import WorkflowDispatcher  # noqa: E402
 from workflow_audit import emit_audit_event  # noqa: E402
 from workflow_definitions import (  # noqa: E402
     load_definition,
@@ -50,18 +51,23 @@ from workflow_definitions import (  # noqa: E402
     validate_definition,
 )
 from workflow_runtime import WorkflowRuntime  # noqa: E402
-from workflow_storage import WorkflowStore  # noqa: E402
-from workflow.dispatcher import WorkflowDispatcher  # noqa: E402
+from workflow_storage import WorkflowStore, resolve_workflow_storage  # noqa: E402
+
+from common.env_validation import environment_value  # noqa: E402
+from config import validate_startup_config  # noqa: E402
+from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("workflow-engine")
 logging.basicConfig(level=logging.INFO)
 
-validate_startup_config()
+settings = validate_startup_config()
 
 WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 DEMO_DEFINITIONS_DIR = REPO_ROOT / "config" / "demo-workflows"
-DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "apps/workflow-engine/storage/workflows.db"))
+ENVIRONMENT = environment_value(os.environ)
+WORKFLOW_STORAGE = resolve_workflow_storage(environment=ENVIRONMENT)
+DB_PATH = WORKFLOW_STORAGE.db_path
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 RATE_LIMIT = os.getenv("WORKFLOW_ENGINE_RATE_LIMIT", "100/minute")
 
@@ -71,14 +77,23 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
-app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 configure_tracing("workflow-engine")
 configure_metrics("workflow-engine")
 app.add_middleware(TraceMiddleware, service_name="workflow-engine")
 app.add_middleware(RequestMetricsMiddleware, service_name="workflow-engine")
-register_error_handlers(app)
-store = WorkflowStore(DB_PATH)
+apply_api_governance(app, service_name="workflow-engine")
+logger.info(
+    "workflow-engine persistence configuration",
+    extra={
+        "environment": ENVIRONMENT,
+        "storage_backend": WORKFLOW_STORAGE.backend,
+        "durability_mode": WORKFLOW_STORAGE.durability_mode,
+        "workflow_db_path_source": WORKFLOW_STORAGE.source,
+        "workflow_db_path": str(DB_PATH),
+    },
+)
+store = WorkflowStore.from_selection(WORKFLOW_STORAGE)
 bootstrap_runtime_paths()
 from approval_workflow_agent import ApprovalWorkflowAgent  # noqa: E402
 
@@ -248,11 +263,7 @@ async def healthz(response: Response) -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "workflow-engine",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("workflow-engine")
 
 
 @app.on_event("startup")

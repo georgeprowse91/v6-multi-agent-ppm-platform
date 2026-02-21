@@ -1,12 +1,52 @@
 from __future__ import annotations
 
+import os
+from typing import Any
+
 from fastapi import APIRouter, HTTPException
 
 from integrations.connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
 
-from .main import CONNECTOR_ROOT, run_sync
+from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError
+
+from .main import (
+    CONNECTOR_ROOT,
+    ServiceNowConfig,
+    _build_api_client,
+    _build_token_manager,
+    _request_with_refresh,
+    run_sync,
+)
 
 router = APIRouter(prefix="/connectors/servicenow", tags=["connectors"])
+
+
+def _build_outbound_summary(
+    *,
+    status: str,
+    records: list[dict[str, Any]],
+    sent_count: int,
+    failed_count: int,
+    errors: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "status": status,
+        "records": records,
+        "sent_count": sent_count,
+        "failed_count": failed_count,
+        "errors": errors,
+    }
+
+
+def _http_error(detail: str, exc: HttpClientError) -> HTTPException:
+    status_code = exc.status_code
+    if status_code in {401, 403}:
+        return HTTPException(status_code=502, detail=f"{detail}: authentication failed")
+    if status_code == 429:
+        return HTTPException(status_code=503, detail=f"{detail}: provider rate limit reached")
+    if status_code is not None and status_code >= 500:
+        return HTTPException(status_code=502, detail=f"{detail}: provider unavailable")
+    return HTTPException(status_code=502, detail=f"{detail}: provider request failed")
 
 
 @router.post("/sync/inbound")
@@ -36,6 +76,73 @@ def sync_outbound(request: OutboundSyncRequest) -> dict[str, object]:
         request.tenant_id,
         include_schema=request.include_schema,
     )
-    if request.live:
-        raise HTTPException(status_code=501, detail="Outbound sync not implemented for ServiceNow")
-    return {"status": "dry_run", "records": mapped}
+    if not request.live:
+        return _build_outbound_summary(
+            status="dry_run",
+            records=mapped,
+            sent_count=0,
+            failed_count=0,
+            errors=[],
+        )
+
+    try:
+        config = ServiceNowConfig.from_env({}, 300)
+        token_client = HttpClient(
+            base_url=config.instance_url,
+            headers={"Accept": "application/json"},
+            timeout=10.0,
+            rate_limit_per_minute=config.rate_limit_per_minute,
+        )
+        token_manager = _build_token_manager(config, token_client=token_client)
+        api_client = _build_api_client(config, token_manager.get_access_token())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HttpClientError as exc:
+        raise _http_error("Failed to initialize ServiceNow outbound sync", exc) from exc
+
+    endpoint = os.getenv("SERVICENOW_OUTBOUND_ENDPOINT") or "/api/now/table/pm_project"
+    results: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    sent_count = 0
+
+    for record in mapped:
+        payload = {
+            "sys_id": record.get("id"),
+            "short_description": record.get("name"),
+            "state": record.get("status"),
+            "start_date": record.get("start_date"),
+            "end_date": record.get("end_date"),
+            "manager": record.get("owner"),
+        }
+        try:
+            response = _request_with_refresh(api_client, token_manager, "POST", endpoint, json=payload)
+            response_body: Any
+            try:
+                response_body = response.json()
+            except ValueError:
+                response_body = {"status_code": response.status_code}
+            results.append({"id": record.get("id"), "success": True, "response": response_body})
+            sent_count += 1
+        except HttpClientError as exc:
+            failure = {
+                "id": record.get("id"),
+                "message": str(exc),
+                "status_code": exc.status_code,
+            }
+            results.append({"id": record.get("id"), "success": False, "error": failure})
+            errors.append(failure)
+
+    failed_count = len(mapped) - sent_count
+    if sent_count == 0 and failed_count > 0:
+        status = "failed"
+    elif failed_count > 0:
+        status = "partial_failure"
+    else:
+        status = "sent"
+    return _build_outbound_summary(
+        status=status,
+        records=results,
+        sent_count=sent_count,
+        failed_count=failed_count,
+        errors=errors,
+    )

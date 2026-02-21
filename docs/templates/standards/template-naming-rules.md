@@ -48,28 +48,45 @@ Where:
 ### 3.1 Legacy name support
 When renaming an existing template:
 1. Keep the legacy filename for at least one minor cycle OR add an alias registry entry.
-2. Add legacy names to `aliases` metadata in the canonical template.
-3. Include a migration pointer in the legacy file header/body:
+2. Add legacy names to `aliases` metadata in the canonical template and `index.json`.
+3. Ensure every legacy name resolves to exactly one canonical template ID (one-to-one); do not reuse aliases across templates.
+4. Include a migration pointer in the legacy file header/body:
    - `Deprecated: use <canonical_filename>`.
-4. Preserve links by updating known references in docs where feasible.
+5. Preserve links by updating known references in docs where feasible.
 
 ### 3.2 Deprecation lifecycle
 - `active` → default usable template.
-- `deprecated` → still available, migration required, must declare replacement.
+- `deprecated` → still available, migration required, must declare replacement and sunset plan.
 - `retired` → no longer valid for new use; may remain for audit history.
 
 Required deprecation metadata:
 - `status: deprecated`
 - `replaced_by: <canonical template_id>`
 - `deprecation_version: <version>`
-- `sunset_date: YYYY-MM-DD` (recommended)
+- `sunset_date: YYYY-MM-DD` (required for deprecated templates)
+- `deprecation_notes: <free text>` (recommended)
 
 ### 3.3 Compatibility guarantees
+
+### 3.4 Deterministic alias registry requirements
+
+Maintain a single source of truth for legacy aliases in:
+- Canonical template metadata (`aliases`).
+- `docs/templates/index.json` canonical and legacy entries (`aliases`, `replaced_by`).
+- Migration tables in standards/README docs.
+
+| Legacy name | Canonical template ID |
+|---|---|
+| `project_charter_template.md` | `project-charter.universal.v1` |
+| `project_management_plan_template.md` | `project-management-plan.universal.v1` |
+| `risk_register_template.md` | `risk-register.universal.v1` |
+| `status-report-template.md` | `status-report.universal.v1` |
+
 - Canonical IDs are immutable once published.
 - Version increments:
   - Major (`v1` → `v2`) for incompatible structural changes.
   - Minor (`v1.0` → `v1.1`) for additive backward-compatible updates.
-- Legacy aliases must resolve deterministically to one canonical ID.
+- Legacy aliases must resolve deterministically to one canonical ID; this mapping must be recorded in both template metadata and migration tables.
 
 ## 4) Examples: Legacy → Canonical Mappings
 Examples below map currently observed filenames under `docs/templates/**` to canonical names.

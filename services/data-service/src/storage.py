@@ -117,6 +117,32 @@ class DataServiceStore:
         async with self.engine.connect() as connection:
             await connection.execute(text("SELECT 1"))
 
+    async def readiness_probe_transaction(self) -> None:
+        probe_id = "healthcheck-probe"
+        payload = {"probe": "ok"}
+        async with self.session_factory() as session:
+            async with session.begin():
+                await session.execute(
+                    CANONICAL_ENTITIES_TABLE.insert().values(
+                        id=probe_id,
+                        tenant_id="system",
+                        schema_name="healthcheck",
+                        schema_version=1,
+                        payload=payload,
+                    )
+                )
+                result = await session.execute(
+                    select(CANONICAL_ENTITIES_TABLE.c.payload).where(
+                        CANONICAL_ENTITIES_TABLE.c.id == probe_id
+                    )
+                )
+                stored_payload = result.scalar_one()
+                if stored_payload != payload:
+                    raise RuntimeError("readiness probe payload mismatch")
+                await session.execute(
+                    delete(CANONICAL_ENTITIES_TABLE).where(CANONICAL_ENTITIES_TABLE.c.id == probe_id)
+                )
+
     async def register_schema(
         self, name: str, schema: dict[str, Any], version: int | None = None
     ) -> SchemaRecord:
@@ -205,6 +231,17 @@ class DataServiceStore:
             environment=environment,
             promoted_at=datetime.now(timezone.utc),
         )
+
+    async def is_schema_promoted(self, name: str, version: int, environment: str) -> bool:
+        async with self.session_factory() as session:
+            result = await session.execute(
+                select(SCHEMA_PROMOTIONS_TABLE.c.name).where(
+                    SCHEMA_PROMOTIONS_TABLE.c.name == name,
+                    SCHEMA_PROMOTIONS_TABLE.c.version == version,
+                    SCHEMA_PROMOTIONS_TABLE.c.environment == environment,
+                )
+            )
+        return result.first() is not None
 
     async def get_schema(self, name: str, version: int) -> SchemaRecord | None:
         async with self.session_factory() as session:

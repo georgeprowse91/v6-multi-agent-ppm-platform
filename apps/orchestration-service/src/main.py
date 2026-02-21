@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -17,14 +16,17 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, COMMON_ROOT):
         sys.path.insert(0, str(root))
 
 from leader_election import build_leader_elector  # noqa: E402
-from config import validate_startup_config  # noqa: E402
 from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from orchestrator import AgentOrchestrator  # noqa: E402
+from security.api_governance import (  # noqa: E402
+    apply_api_governance,
+    version_response_payload,
+)
 from security.auth import AuthTenantMiddleware  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
+
+from config import validate_startup_config  # noqa: E402
 from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("orchestration-service")
@@ -37,13 +39,12 @@ api_router = APIRouter(prefix="/v1")
 app.add_middleware(
     AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/health/ready", "/version"}
 )
-app.add_middleware(SecurityHeadersMiddleware)
 configure_tracing("orchestration-service")
 configure_metrics("orchestration-service")
 configure_logging("orchestration-service")
 app.add_middleware(TraceMiddleware, service_name="orchestration-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="orchestration-service")
-register_error_handlers(app)
+apply_api_governance(app, service_name="orchestration-service")
 
 
 class HealthResponse(BaseModel):
@@ -62,6 +63,24 @@ class AgentStateResponse(BaseModel):
     status: str
     updated_at: str
     reason: str | None = None
+
+
+class ReadinessCheckResponse(BaseModel):
+    name: str
+    passed: bool
+    severity: str
+    message: str
+    remediation_hint: str | None = None
+
+
+class AgentReadinessResponse(BaseModel):
+    agent_id: str
+    catalog_id: str
+    ready: bool
+    generated_at: str
+    status: str
+    last_failure_reason: str | None = None
+    checks: list[ReadinessCheckResponse] = Field(default_factory=list)
 
 
 class WorkflowUploadResponse(BaseModel):
@@ -120,11 +139,7 @@ async def health(request: Request, response: Response) -> HealthResponse:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {
-        "service": "orchestration-service",
-        "api_version": API_VERSION,
-        "build_sha": os.getenv("BUILD_SHA", "unknown"),
-    }
+    return version_response_payload("orchestration-service")
 
 
 @app.get("/health/ready")
@@ -211,6 +226,37 @@ async def deactivate_agent(agent_id: str, request: Request) -> AgentStateRespons
     orchestrator.set_agent_state(agent_id, "stopped")
     state = orchestrator.get_agent_state(agent_id)
     return AgentStateResponse(**state.__dict__)
+
+
+@api_router.get("/agents/readiness", response_model=list[AgentReadinessResponse])
+async def list_agent_readiness(
+    request: Request,
+    response: Response,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+) -> list[AgentReadinessResponse]:
+    orchestrator = request.app.state.orchestrator
+    reports = sorted(orchestrator.list_agent_readiness(), key=lambda report: report.agent_id)
+    sliced = reports[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(len(reports))
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+    payload: list[AgentReadinessResponse] = []
+    for report in sliced:
+        state = orchestrator.get_agent_state(report.agent_id)
+        status = state.status if state else ("running" if report.ready else "unknown")
+        payload.append(
+            AgentReadinessResponse(
+                agent_id=report.agent_id,
+                catalog_id=report.catalog_id,
+                ready=report.ready,
+                generated_at=report.generated_at,
+                status=status,
+                last_failure_reason=report.last_failure_reason,
+                checks=[ReadinessCheckResponse(**check.model_dump()) for check in report.checks],
+            )
+        )
+    return payload
 
 
 @api_router.post("/workflows/upload", response_model=WorkflowUploadResponse)
