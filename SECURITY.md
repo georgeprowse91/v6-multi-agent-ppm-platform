@@ -2,12 +2,14 @@
 
 ## Supported Versions
 
-This project is currently in **alpha**. Security fixes are applied on the `main` branch and will
-be included in the next tagged release.
+This project is **production-ready** at version 1.0.0. Security fixes are applied on the `main`
+branch and are included in the next tagged release. Patch releases for critical vulnerabilities
+are typically issued within 7 days of the fix being available.
 
-| Version | Supported |
-| ------- | --------- |
-| main    | ✅        |
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.x     | ✅ Active support  |
+| < 1.0   | ❌ End of life     |
 
 ## Reporting a Vulnerability
 

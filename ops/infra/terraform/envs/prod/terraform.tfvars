@@ -46,8 +46,9 @@ key_vault_name = "ppm-prod-kv"
 # Workload identity subject for Key Vault CSI
 workload_identity_subject = "system:serviceaccount:ppm-platform:audit-log-kv"
 
-# Azure Monitor connection string (populate via CI/TF Cloud for production)
-azure_monitor_connection_string = "REPLACE_ME"
+# Azure Monitor connection string — injected at plan/apply time from CI secret store.
+# Set via: TF_VAR_azure_monitor_connection_string environment variable in the CI pipeline,
+# or via Terraform Cloud workspace variable (sensitive). Do NOT hardcode here.
 
 
 # Monitoring overrides (prod)

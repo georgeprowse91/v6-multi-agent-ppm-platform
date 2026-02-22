@@ -27,7 +27,7 @@ spec:
               secretProviderClass: ppm-platform-secrets
       containers:
         - name: ppm-api
-          image: ppm-platform/api:latest
+          image: ppm-platform/api:${IMAGE_TAG}
           ports:
             - containerPort: 8000
           volumeMounts:

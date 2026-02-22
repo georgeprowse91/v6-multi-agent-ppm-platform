@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     llm_mock_response_path: str = Field(
         "/app/examples/demo-scenarios/quickstart-llm-response.json", env="LLM_MOCK_RESPONSE_PATH"
     )
-    auth_dev_mode: bool = Field(True, env="AUTH_DEV_MODE")
+    auth_dev_mode: bool = Field(False, env="AUTH_DEV_MODE")
     auth_dev_roles: str = Field("PMO_ADMIN", env="AUTH_DEV_ROLES")
     auth_dev_tenant_id: str = Field("dev-tenant-local", env="AUTH_DEV_TENANT_ID")
 
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     search_result_limit: int | None = Field(default=None, env="SEARCH_RESULT_LIMIT")
 
     model_config = SettingsConfigDict(
-        env_file=(str(REPO_ROOT / ".env"), str(REPO_ROOT / ".env.example")),
+        env_file=str(REPO_ROOT / ".env"),
         case_sensitive=False,
         extra="ignore",
     )
@@ -58,7 +58,13 @@ def get_settings() -> Settings:
 
 def validate_startup_config() -> Settings:
     try:
-        return get_settings()
+        settings = get_settings()
     except ValidationError as exc:
         diagnostics = build_validation_diagnostics(exc)
         raise RuntimeError(format_validation_report("api-gateway", diagnostics)) from exc
+    if settings.auth_dev_mode and settings.environment == "production":
+        raise RuntimeError(
+            "AUTH_DEV_MODE must not be enabled in production. "
+            "Set AUTH_DEV_MODE=false in the production environment."
+        )
+    return settings

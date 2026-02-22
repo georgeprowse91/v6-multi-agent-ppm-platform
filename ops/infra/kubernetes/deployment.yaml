@@ -19,7 +19,7 @@ spec:
       serviceAccountName: ppm-keyvault-sa
       containers:
         - name: api
-          image: ${CONTAINER_REGISTRY}/multi-agent-ppm:latest
+          image: ${CONTAINER_REGISTRY}/multi-agent-ppm:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

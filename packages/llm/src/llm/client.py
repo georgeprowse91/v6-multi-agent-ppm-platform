@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
 import time
@@ -16,6 +17,8 @@ from common.resilience import ResilienceMiddleware, dependency_config_from_env
 from llm.router import LLMRouter, LLMRouteRequest
 from llm.types import LLMProviderError, LLMResponse, LLMStreamChunk
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class TokenUsage:
@@ -25,6 +28,12 @@ class TokenUsage:
 
 
 class SemanticCache:
+    """In-process LLM semantic cache — single-pod only.
+
+    For multi-replica deployments use RedisSemanticCache (configured automatically
+    when REDIS_URL is set in the environment).
+    """
+
     def __init__(
         self,
         *,
@@ -83,6 +92,97 @@ class SemanticCache:
     ) -> None:
         key = self._key(tenant_id=tenant_id, system_prompt=system_prompt, user_prompt=user_prompt)
         self._store[key] = (time.time() + self.ttl_seconds, response)
+
+
+class RedisSemanticCache:
+    """Redis-backed LLM semantic cache — shared across all pods.
+
+    Uses Redis SETEX so entries automatically expire. The cache key is a
+    SHA-256 hash of ``tenant_id + normalised prompts``, stored under the
+    namespace ``llm_cache:<key>``.
+
+    Falls back to a cache miss on any Redis error so that LLM calls always
+    succeed even when Redis is temporarily unavailable.
+    """
+
+    _NAMESPACE = "llm_cache"
+
+    def __init__(
+        self,
+        redis_client: Any,
+        *,
+        ttl_seconds: int = 300,
+        embedder: Callable[[str], str] | None = None,
+        on_hit: Callable[[str, str], None] | None = None,
+        on_miss: Callable[[str, str], None] | None = None,
+    ) -> None:
+        self._redis = redis_client
+        self.ttl_seconds = ttl_seconds
+        self.embedder = embedder
+        self.on_hit = on_hit
+        self.on_miss = on_miss
+
+    @staticmethod
+    def normalize_query(text: str) -> str:
+        text = text.lower().strip()
+        return re.sub(r"\s+", " ", text)
+
+    def _key(self, *, tenant_id: str, system_prompt: str, user_prompt: str) -> str:
+        normalized = "\n".join(
+            [
+                self.normalize_query(system_prompt),
+                self.normalize_query(user_prompt),
+            ]
+        )
+        semantic_fingerprint = self.embedder(normalized) if self.embedder else normalized
+        key_material = f"{tenant_id}:{semantic_fingerprint}".encode()
+        digest = sha256(key_material).hexdigest()
+        return f"{self._NAMESPACE}:{digest}"
+
+    def get(self, *, tenant_id: str, system_prompt: str, user_prompt: str) -> LLMResponse | None:
+        key = self._key(tenant_id=tenant_id, system_prompt=system_prompt, user_prompt=user_prompt)
+        try:
+            raw = self._redis.get(key)
+        except Exception as exc:
+            logger.warning("redis_cache_get_error", extra={"error": str(exc), "key": key})
+            if self.on_miss:
+                self.on_miss(tenant_id, key)
+            return None
+
+        if raw is None:
+            if self.on_miss:
+                self.on_miss(tenant_id, key)
+            return None
+
+        try:
+            data = json.loads(raw)
+            response = LLMResponse(
+                content=data["content"],
+                raw=data["raw"],
+                provider=data["provider"],
+                cache_hit=True,
+            )
+        except (json.JSONDecodeError, KeyError) as exc:
+            logger.warning("redis_cache_decode_error", extra={"error": str(exc), "key": key})
+            if self.on_miss:
+                self.on_miss(tenant_id, key)
+            return None
+
+        if self.on_hit:
+            self.on_hit(tenant_id, key)
+        return response
+
+    def put(
+        self, *, tenant_id: str, system_prompt: str, user_prompt: str, response: LLMResponse
+    ) -> None:
+        key = self._key(tenant_id=tenant_id, system_prompt=system_prompt, user_prompt=user_prompt)
+        payload = json.dumps(
+            {"content": response.content, "raw": response.raw, "provider": response.provider}
+        )
+        try:
+            self._redis.setex(key, self.ttl_seconds, payload)
+        except Exception as exc:
+            logger.warning("redis_cache_put_error", extra={"error": str(exc), "key": key})
 
 
 class TokenBudgetManager:
@@ -332,15 +432,42 @@ class LLMGateway:
             )
         raise LLMProviderError(f"Unsupported LLM provider: {provider_name}")
 
-    def _build_cache(self) -> SemanticCache | None:
+    def _build_cache(self) -> SemanticCache | RedisSemanticCache | None:
         cache_cfg = self.config.get("semantic_cache")
         if not cache_cfg:
             return None
+        ttl = int(cache_cfg.get("ttl_seconds", 300))
+        embedder = cache_cfg.get("embedder")
+        on_hit = cache_cfg.get("on_hit")
+        on_miss = cache_cfg.get("on_miss")
+
+        redis_url = os.getenv("REDIS_URL") or os.getenv("REDIS_CACHE_URL")
+        if redis_url:
+            try:
+                import redis as _redis  # noqa: PLC0415
+
+                client = _redis.from_url(redis_url, decode_responses=True)
+                client.ping()
+                logger.info("llm_cache_backend", extra={"backend": "redis", "url": redis_url.split("@")[-1]})
+                return RedisSemanticCache(
+                    client,
+                    ttl_seconds=ttl,
+                    embedder=embedder,
+                    on_hit=on_hit,
+                    on_miss=on_miss,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "redis_cache_init_failed_falling_back",
+                    extra={"error": str(exc)},
+                )
+
+        logger.info("llm_cache_backend", extra={"backend": "in-process"})
         return SemanticCache(
-            ttl_seconds=int(cache_cfg.get("ttl_seconds", 300)),
-            embedder=cache_cfg.get("embedder"),
-            on_hit=cache_cfg.get("on_hit"),
-            on_miss=cache_cfg.get("on_miss"),
+            ttl_seconds=ttl,
+            embedder=embedder,
+            on_hit=on_hit,
+            on_miss=on_miss,
         )
 
     async def complete(

@@ -7,7 +7,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 3.117"
     }
   }
 
@@ -73,10 +73,15 @@ variable "azure_openai_api_key" {
 }
 
 variable "azure_monitor_connection_string" {
-  description = "Azure Monitor connection string for OpenTelemetry exporter"
+  description = "Azure Monitor connection string for OpenTelemetry exporter. Must be supplied via TF_VAR_azure_monitor_connection_string or Terraform Cloud workspace variable for production environments."
   type        = string
   sensitive   = true
   default     = ""
+
+  validation {
+    condition     = var.azure_monitor_connection_string != "REPLACE_ME"
+    error_message = "azure_monitor_connection_string must not be the placeholder value 'REPLACE_ME'. Inject the real value via TF_VAR_azure_monitor_connection_string or a Terraform Cloud workspace secret."
+  }
 }
 
 variable "workload_identity_issuer_url" {

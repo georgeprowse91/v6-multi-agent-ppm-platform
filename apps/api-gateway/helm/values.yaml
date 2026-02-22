@@ -19,7 +19,7 @@ env:
   IDENTITY_TENANT_CLAIM: "tenant_id"
   IDENTITY_ROLES_CLAIM: "roles"
   POLICY_ENGINE_URL: "http://policy-engine:8080"
-  ABAC_ENFORCEMENT: "false"
+  ABAC_ENFORCEMENT: "true"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
   RATE_LIMIT_DEFAULT: "100/minute"

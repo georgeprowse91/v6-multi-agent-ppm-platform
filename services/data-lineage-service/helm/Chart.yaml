@@ -1,0 +1,5 @@
+apiVersion: v2
+name: data-lineage-service
+description: Helm chart for the data lineage service in the multi-agent PPM platform
+version: 0.1.0
+appVersion: "0.1.0"

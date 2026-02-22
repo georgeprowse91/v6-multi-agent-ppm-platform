@@ -1,0 +1,65 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/georgeprowse91/data-lineage-service
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  LOG_LEVEL: info
+  ENVIRONMENT: "production"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+keyVault:
+  enabled: true
+  name: ""
+  tenantId: ""
+  clientId: ""
+  secretName: "ppm-lineage-secrets"
+  secrets:
+    databaseUrl: "database-url"
+
+livenessProbe:
+  path: /healthz
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+pdb:
+  enabled: true
+  maxUnavailable: 1
+
+ingress:
+  enabled: false
+  className: ""
+  clusterIssuer: "letsencrypt-prod"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    enabled: true
+    secretName: ""
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 75

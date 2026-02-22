@@ -1,13 +1,23 @@
 name: CD Pipeline
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (defaults to commit SHA)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   verify-images:
+    name: Verify built images
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,7 +53,196 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull built image
+      - name: Resolve image tag
+        id: tag
         run: |
-          docker pull ghcr.io/${{ github.repository }}-${{ matrix.service }}:${{ github.sha }}
-          docker image inspect ghcr.io/${{ github.repository }}-${{ matrix.service }}:${{ github.sha }}
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.sha }}"
+          fi
+          echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Pull and inspect built image
+        run: |
+          docker pull ghcr.io/${{ github.repository }}-${{ matrix.service }}:${{ steps.tag.outputs.image_tag }}
+          docker image inspect ghcr.io/${{ github.repository }}-${{ matrix.service }}:${{ steps.tag.outputs.image_tag }}
+
+  deploy-staging:
+    name: Deploy all services to Staging
+    runs-on: ubuntu-latest
+    needs: verify-images
+    environment:
+      name: staging
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - service: api-gateway
+            chart: apps/api-gateway/helm
+          - service: admin-console
+            chart: apps/admin-console/helm
+          - service: analytics-service
+            chart: apps/analytics-service/helm
+          - service: connector-hub
+            chart: integrations/apps/connector-hub/helm
+          - service: document-service
+            chart: apps/document-service/helm
+          - service: orchestration-service
+            chart: apps/orchestration-service/helm
+          - service: workflow-engine
+            chart: apps/workflow-engine/helm
+          - service: web
+            chart: apps/web/helm
+          - service: audit-log
+            chart: services/audit-log/helm
+          - service: data-lineage-service
+            chart: services/data-lineage-service/helm
+          - service: data-service
+            chart: services/data-service/helm
+          - service: data-sync-service
+            chart: services/data-sync-service/helm
+          - service: identity-access
+            chart: services/identity-access/helm
+          - service: notification-service
+            chart: services/notification-service/helm
+          - service: policy-engine
+            chart: services/policy-engine/helm
+          - service: telemetry-service
+            chart: services/telemetry-service/helm
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Helm
+        uses: azure/setup-helm@b7243f2f9f8e1a3d4c5e6f7a8b9c0d1e2f3a4b5c
+
+      - name: Resolve image tag
+        id: tag
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.sha }}"
+          fi
+          if ! printf '%s' "$TAG" | grep -Eq '^[A-Za-z0-9._-]{1,128}$'; then
+            echo "::error::Invalid image tag format: $TAG"
+            exit 1
+          fi
+          echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Configure kubeconfig (staging)
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" > ~/.kube/config
+
+      - name: Deploy ${{ matrix.service }} to staging
+        env:
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_STAGING }}
+          IMAGE_REGISTRY: ${{ secrets.IMAGE_REGISTRY }}
+        run: |
+          helm upgrade --install "${{ matrix.service }}" "${{ matrix.chart }}" \
+            --namespace "$K8S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository="$IMAGE_REGISTRY/${{ matrix.service }}" \
+            --set image.tag="${{ steps.tag.outputs.image_tag }}" \
+            --set env.ENVIRONMENT=staging \
+            --atomic \
+            --timeout 5m \
+            --wait
+
+      - name: Rollback ${{ matrix.service }} on failure
+        if: failure()
+        env:
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_STAGING }}
+        run: |
+          helm rollback "${{ matrix.service }}" --namespace "$K8S_NAMESPACE" || true
+
+  deploy-production:
+    name: Deploy all services to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment:
+      name: production
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - service: api-gateway
+            chart: apps/api-gateway/helm
+          - service: admin-console
+            chart: apps/admin-console/helm
+          - service: analytics-service
+            chart: apps/analytics-service/helm
+          - service: connector-hub
+            chart: integrations/apps/connector-hub/helm
+          - service: document-service
+            chart: apps/document-service/helm
+          - service: orchestration-service
+            chart: apps/orchestration-service/helm
+          - service: workflow-engine
+            chart: apps/workflow-engine/helm
+          - service: web
+            chart: apps/web/helm
+          - service: audit-log
+            chart: services/audit-log/helm
+          - service: data-lineage-service
+            chart: services/data-lineage-service/helm
+          - service: data-service
+            chart: services/data-service/helm
+          - service: data-sync-service
+            chart: services/data-sync-service/helm
+          - service: identity-access
+            chart: services/identity-access/helm
+          - service: notification-service
+            chart: services/notification-service/helm
+          - service: policy-engine
+            chart: services/policy-engine/helm
+          - service: telemetry-service
+            chart: services/telemetry-service/helm
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Helm
+        uses: azure/setup-helm@b7243f2f9f8e1a3d4c5e6f7a8b9c0d1e2f3a4b5c
+
+      - name: Resolve image tag
+        id: tag
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.sha }}"
+          fi
+          if ! printf '%s' "$TAG" | grep -Eq '^[A-Za-z0-9._-]{1,128}$'; then
+            echo "::error::Invalid image tag format: $TAG"
+            exit 1
+          fi
+          echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Configure kubeconfig (production)
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" > ~/.kube/config
+
+      - name: Deploy ${{ matrix.service }} to production
+        env:
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_PROD }}
+          IMAGE_REGISTRY: ${{ secrets.IMAGE_REGISTRY }}
+        run: |
+          helm upgrade --install "${{ matrix.service }}" "${{ matrix.chart }}" \
+            --namespace "$K8S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository="$IMAGE_REGISTRY/${{ matrix.service }}" \
+            --set image.tag="${{ steps.tag.outputs.image_tag }}" \
+            --set env.ENVIRONMENT=production \
+            --atomic \
+            --timeout 10m \
+            --wait
+
+      - name: Rollback ${{ matrix.service }} on failure
+        if: failure()
+        env:
+          K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE_PROD }}
+        run: |
+          helm rollback "${{ matrix.service }}" --namespace "$K8S_NAMESPACE" || true
