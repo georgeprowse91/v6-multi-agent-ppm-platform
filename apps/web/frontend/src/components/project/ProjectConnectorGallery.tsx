@@ -95,7 +95,7 @@ export function ProjectConnectorGallery({ projectId }: ProjectConnectorGalleryPr
   // Get filtered connectors
   const filteredConnectors = useMemo(
     () => getFilteredProjectConnectors(projectId),
-    [connectors, filter, getFilteredProjectConnectors, projectId]
+    [getFilteredProjectConnectors, projectId]
   );
 
   // Group connectors by category

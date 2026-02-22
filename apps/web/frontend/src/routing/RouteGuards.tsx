@@ -84,7 +84,6 @@ export function RequireAuth() {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once when loading
   }, [session.loading, setSession, setTenantContext]);
 
   if (session.loading) {

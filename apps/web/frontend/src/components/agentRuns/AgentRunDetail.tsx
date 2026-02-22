@@ -98,26 +98,35 @@ const normalizeAllocations = (value: unknown): AllocationRecord[] => {
 };
 
 export function AgentRunDetail({ run }: AgentRunDetailProps) {
+  const { featureFlags } = useAppStore();
+  const rawMetadata = run?.data.metadata;
+  const metadata = useMemo(() => rawMetadata ?? {}, [rawMetadata]);
+  const auditIds = useMemo(() => extractAuditIds(rawMetadata), [rawMetadata]);
+  const optimization = useMemo(() => extractOptimization(rawMetadata), [rawMetadata]);
+  const recommendationAllocations = useMemo(
+    () =>
+      normalizeAllocations(
+        optimization?.proposed_allocations ?? optimization?.recommended_allocations
+      ),
+    [optimization]
+  );
+  const appliedAllocations = useMemo(
+    () => normalizeAllocations(optimization?.applied_allocations),
+    [optimization]
+  );
+  const hasOptimization =
+    recommendationAllocations.length > 0 || appliedAllocations.length > 0;
+  const [allocationView, setAllocationView] = useState<'recommendations' | 'applied'>(
+    'recommendations'
+  );
+  useEffect(() => {
+    setAllocationView(recommendationAllocations.length ? 'recommendations' : 'applied');
+  }, [recommendationAllocations.length, run?.data.id]);
+
   if (!run) {
     return <div className={styles.empty}>Select a run to see details.</div>;
   }
 
-  const { featureFlags } = useAppStore();
-  const metadata = run.data.metadata ?? {};
-  const auditIds = extractAuditIds(metadata);
-  const optimization = useMemo(() => extractOptimization(metadata), [metadata]);
-  const recommendationAllocations = normalizeAllocations(
-    optimization?.proposed_allocations ?? optimization?.recommended_allocations
-  );
-  const appliedAllocations = normalizeAllocations(optimization?.applied_allocations);
-  const hasOptimization =
-    recommendationAllocations.length > 0 || appliedAllocations.length > 0;
-  const [allocationView, setAllocationView] = useState<'recommendations' | 'applied'>(
-    recommendationAllocations.length ? 'recommendations' : 'applied'
-  );
-  useEffect(() => {
-    setAllocationView(recommendationAllocations.length ? 'recommendations' : 'applied');
-  }, [recommendationAllocations.length, run.data.id]);
   const allocations =
     allocationView === 'applied' ? appliedAllocations : recommendationAllocations;
   const approvalStatusRaw =

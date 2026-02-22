@@ -90,6 +90,7 @@ export const s = {
       const entries = Object.entries(input as Record<string, unknown>).map(([k, v]) => [k, item.parse(v, `${path}.${k}`)]);
       return Object.fromEntries(entries);
     }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic object builder requires any to infer per-field types
   object: <T extends Record<string, Schema<any>>>(shape: T) =>
     makeSchema<{ [K in keyof T]: ReturnType<T[K]['parse']> }>((input, path) => {
       if (!input || typeof input !== 'object' || Array.isArray(input)) fail(path, 'Expected object');
