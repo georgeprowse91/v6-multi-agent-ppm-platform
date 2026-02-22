@@ -2,6 +2,8 @@
 
 Complete file tree of `multi-agent-ppm-platform-v4` (build artefacts, `node_modules`, `__pycache__`, `.git`, `.next`, `dist`, `.venv`, runtime agent-storage data excluded).
 
+> **Note on root-level Python shims:** Several files/directories at the repo root are lightweight stubs or vendored packages that shadow real third-party libraries (`email_validator.py`, `requests.py`, `pydantic_settings.py`, `jinja2/`, `jsonschema/`, `multipart/`, `numpy/`, `sqlalchemy/`). They allow the codebase to import those packages without a full install in constrained environments.
+
 ```
 multi-agent-ppm-platform-v4/
 ├── .claude/
@@ -61,6 +63,30 @@ multi-agent-ppm-platform-v4/
 ├── README.md
 ├── SECURITY.md
 ├── alembic.ini
+├── docker-compose.yml
+├── docker-compose.test.yml
+├── mkdocs.yml
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── pyproject.toml
+├── requirements.txt
+├── requirements.in
+├── requirements-dev.txt
+├── requirements-dev.in
+├── requirements-demo.txt
+│                                            # Root-level Python shim / stub files
+├── email_validator.py                       # Stub for email-validator library
+├── events.py                                # Re-exports from packages/contracts/src/events
+├── prompt_registry.py                       # Root PromptRegistry + enforce_redaction util
+├── pydantic_settings.py                     # Stub for pydantic-settings (BaseSettings)
+├── requests.py                              # Minimal requests compat layer (urllib-based)
+├── runtime_flags.py                         # demo_mode_enabled() reads env + common.yaml
+│                                            # Vendored / stub packages (shadow real installs)
+├── jinja2/                                  # Stub __init__.py
+├── jsonschema/                              # Stub __init__.py
+├── multipart/                               # Stub __init__.py + multipart.py
+├── numpy/                                   # Stub __init__.py
+├── sqlalchemy/                              # Stub with engine/, ext/, orm/, sql/ sub-packages
 │
 ├── agents/                                  # AI agent implementations
 │   ├── AGENT_CATALOG.md
@@ -446,9 +472,6 @@ multi-agent-ppm-platform-v4/
 │   ├── stories/{EmptyState,TokenPalette}.stories.tsx
 │   └── tokens/tokens.ts
 │
-├── docker-compose.yml
-├── docker-compose.test.yml
-│
 ├── docs/
 │   ├── README.md
 │   ├── agents/{README,agent-catalog}.md
@@ -621,7 +644,34 @@ multi-agent-ppm-platform-v4/
 │   ├── knowledge-agent/
 │   └── response-orchestration/
 │
-├── scripts/
+├── scripts/                                 # Repo-level helper scripts
+│   ├── build_template_dependency_map.py
+│   ├── check-docs-migration-guard.py
+│   ├── check-legacy-ui-references.py
+│   ├── check-placeholders.py
+│   ├── check-schema-example-updates.py
+│   ├── check-templates.py
+│   ├── check-ui-emojis.sh
+│   ├── check-ui-icons.sh
+│   ├── check_api_versioning.py
+│   ├── check_connector_maturity.py
+│   ├── demo_preflight.py
+│   ├── generate_agent_metadata.py
+│   ├── generate_demo_data.py
+│   ├── load_demo_data.py
+│   ├── quickstart_smoke.py
+│   ├── reset_demo_data.sh
+│   ├── schema_registry.py
+│   ├── schema_tool.py
+│   ├── validate-manifests.py
+│   ├── validate-mcp-manifests.py
+│   ├── validate-schemas.py
+│   └── validate_demo_fixtures.py
+│
+├── tools/                                   # Runtime tooling helpers
+│   ├── __init__.py
+│   ├── component_runner.py
+│   └── runtime_paths.py
 │
 ├── security/
 │
@@ -674,10 +724,23 @@ multi-agent-ppm-platform-v4/
 | `packages/` | Shared libraries: LLM abstraction, canvas engine, event bus, security, observability, contracts, UI kit |
 | `services/` | Backend microservices: auth, audit log, data lineage, data sync, identity access, notification, policy engine, telemetry |
 | `ops/` | Infrastructure-as-code (Terraform), Kubernetes Helm charts, observability config, RBAC/ABAC policies |
+| `infra/` | Additional Kubernetes Helm charts, OTel config, Terraform demo env, DLP policies |
 | `config/` | Runtime configuration for agents, connectors, feature flags, RBAC, demo workflows |
 | `docs/` | Architecture ADRs, API specs, runbooks, product docs, 100+ PM methodology templates |
 | `tests/` | Cross-cutting test suites: e2e, integration, contract, load, security |
+| `scripts/` | Repo-level scripts: schema validation, template checks, demo data generation, manifest validation |
+| `tools/` | Runtime tooling helpers: component runner, path resolution |
 | `agents/runtime/` | Agent runtime framework (base agent, orchestrator, state store, event bus, prompt registry) |
 | `design-system/` | Design tokens, icon map, Storybook stories |
 | `prompts/` | Versioned prompt files for each agent type |
 | `policies/` | ABAC / RBAC policy bundles |
+| `security/` | Security configuration and tooling |
+| `examples/` | Connector configs, demo scenarios, methodology maps, workflow examples |
+| `artifacts/` | CI/CD generated reports: coverage, vulnerability scan, release gate, SLO, k6, DR |
+| `data/` | Seed data, schemas, migrations, lineage fixtures, prompts |
+| `constraints/` | Python version constraint files (e.g. `py313.txt`) |
+| `jinja2/` `jsonschema/` `multipart/` `numpy/` `sqlalchemy/` | Root-level vendored/stub packages — shadow real installs in constrained environments |
+| `email_validator.py` `requests.py` `pydantic_settings.py` | Root-level Python compatibility shims |
+| `runtime_flags.py` | `demo_mode_enabled()` helper — reads `DEMO_MODE` env var + `config/common.yaml` |
+| `prompt_registry.py` | Root `PromptRegistry` class + `enforce_redaction()` PII utility |
+| `events.py` | Re-exports event contract models from `packages/contracts/src/events` |
