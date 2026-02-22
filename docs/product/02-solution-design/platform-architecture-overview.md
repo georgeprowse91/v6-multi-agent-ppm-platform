@@ -40,7 +40,7 @@ The central canvas is the workspace where content and data from multiple sources
 
 ### Connector Marketplace
 
-**Integration is not an afterthought:** the platform includes a connector registry and connector hub that power the web console’s connector gallery. Each connector encapsulates authentication, data mapping and error handling for an external system, and exposes consistent APIs to agents and workflows. Operators can enable or disable connector instances and track health status in the gallery, while auth secrets and sync schedules are managed through `config/connectors/integrations.yaml` and environment-specific secret stores.
+**Integration is not an afterthought:** the platform includes a connector registry and connector hub that power the web console’s connector gallery. Each connector encapsulates authentication, data mapping and error handling for an external system, and exposes consistent APIs to agents and workflows. Operators can enable or disable connector instances and track health status in the gallery, while auth secrets and sync schedules are managed through `ops/config/connectors/integrations.yaml` and environment-specific secret stores.
 
 ## Key Capabilities
 

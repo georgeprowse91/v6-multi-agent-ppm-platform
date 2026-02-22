@@ -16,10 +16,10 @@ Adopt a monorepo with clear boundaries for:
 - Services under `services/`
 - Agents under `agents/`
 - Shared packages under `packages/`
-- Infrastructure under `infra/`
+- Infrastructure under `ops/infra/`
 - Documentation under `docs/`
 
-The monorepo structure is enforced via tooling such as `tools/component_runner` and shared configuration under `config/`.
+The monorepo structure is enforced via tooling such as `tools/component_runner` and shared configuration under `ops/config/`.
 
 ## Consequences
 

@@ -9,8 +9,8 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft202012Validator
 
-DEFAULT_CONFIG = Path("config/agents/intent-routing.yaml")
-SCHEMA_PATH = Path("config/agents/schema/intent-routing.schema.json")
+DEFAULT_CONFIG = Path("ops/config/agents/intent-routing.yaml")
+SCHEMA_PATH = Path("ops/config/agents/schema/intent-routing.schema.json")
 
 
 class IntentRoutingValidationError(Exception):

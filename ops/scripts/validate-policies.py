@@ -14,9 +14,9 @@ DEFAULT_BUNDLE_PATHS = [
     Path("apps/orchestration-service/policies/bundles/default-policy-bundle.yaml"),
     Path("apps/document-service/policies/bundles/default-policy-bundle.yaml"),
     Path("services/policy-engine/policies/bundles/default-policy-bundle.yaml"),
-    Path("infra/policies/dlp/bundles/default-dlp-policy-bundle.yaml"),
-    Path("infra/policies/network/bundles/default-network-policy-bundle.yaml"),
-    Path("infra/policies/security/bundles/default-security-policy-bundle.yaml"),
+    Path("ops/infra/policies/dlp/bundles/default-dlp-policy-bundle.yaml"),
+    Path("ops/infra/policies/network/bundles/default-network-policy-bundle.yaml"),
+    Path("ops/infra/policies/security/bundles/default-security-policy-bundle.yaml"),
 ]
 
 

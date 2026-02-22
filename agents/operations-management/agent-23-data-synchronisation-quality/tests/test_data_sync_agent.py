@@ -63,8 +63,8 @@ class FakeConnector:
 async def test_mapping_and_schema_validation() -> None:
     agent = DataSyncAgent(
         config={
-            "mapping_rules_path": "config/agent-23/mapping_rules.yaml",
-            "schema_registry_path": "config/agent-23/schema_registry.yaml",
+            "mapping_rules_path": "ops/config/agent-23/mapping_rules.yaml",
+            "schema_registry_path": "ops/config/agent-23/schema_registry.yaml",
         }
     )
     agent.validation_rules = agent._load_validation_rules()
@@ -113,7 +113,7 @@ async def test_conflict_resolution_last_write_wins() -> None:
 async def test_full_sync_updates_state() -> None:
     agent = DataSyncAgent(
         config={
-            "schema_registry_path": "config/agent-23/schema_registry.yaml",
+            "schema_registry_path": "ops/config/agent-23/schema_registry.yaml",
         }
     )
     agent.schema_registry, agent.schema_versions = agent._load_schema_registry()

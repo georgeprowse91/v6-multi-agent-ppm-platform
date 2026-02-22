@@ -89,7 +89,7 @@ Example payload:
     "repo_provider": "github",
     "repo_slug": "org/platform-infra",
     "pull_request_id": "42",
-    "iac_files": ["infra/terraform/aks.tf"],
+    "iac_files": ["ops/infra/terraform/aks.tf"],
     "iac_repo_path": "infra",
     "knowledge_query": "AKS scaling runbook"
   }

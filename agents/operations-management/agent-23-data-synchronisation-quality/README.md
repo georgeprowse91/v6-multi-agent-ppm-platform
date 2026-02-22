@@ -184,7 +184,7 @@ python -m tools.agent_runner run-agent --name agent-23-data-synchronisation-qual
 1. Provision Azure Service Bus, Event Grid, Data Factory, SQL Database, Cosmos DB, and Log Analytics.
 2. Store connector secrets in Azure Key Vault and grant the agent identity access to the vault.
 3. Provide the environment variables above through your runtime (Kubernetes secrets, App Service settings, or managed identity configuration).
-4. Deploy with the provided Dockerfile or orchestration tooling in `infra/`.
+4. Deploy with the provided Dockerfile or orchestration tooling in `ops/infra/`.
 
 ## Troubleshooting
 

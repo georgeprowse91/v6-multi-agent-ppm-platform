@@ -6,7 +6,7 @@ Describe how the platform protects data, enforces access controls, captures audi
 
 ## Architecture-level context
 
-Security spans the identity plane (SSO), authorization plane (RBAC/ABAC), data protection (encryption, retention), and audit/monitoring. Security controls are documented in `docs/compliance/` and enforced by agents and infrastructure defined in `infra/`.
+Security spans the identity plane (SSO), authorization plane (RBAC/ABAC), data protection (encryption, retention), and audit/monitoring. Security controls are documented in `docs/compliance/` and enforced by agents and infrastructure defined in `ops/infra/`.
 
 ## Identity & authentication
 
@@ -34,7 +34,7 @@ Audit schema reference: `data/schemas/audit-event.schema.json`.
 ## Data protection and retention
 
 - **Encryption**: TLS in transit; AES-256 at rest.
-- **Secrets**: Azure Key Vault references in `config/`.
+- **Secrets**: Azure Key Vault references in `ops/config/`.
 - **Retention**: see `docs/compliance/retention-policy.md` for standard schedules.
 - **Privacy**: DPIA template in `docs/compliance/privacy-dpia-template.md`.
 

@@ -6,7 +6,7 @@ Define the platform's data classification levels and how they are enforced acros
 
 ## Classification levels
 
-Classification levels are configured in `config/data-classification/levels.yaml` and map to retention policies and allowed roles.
+Classification levels are configured in `ops/config/data-classification/levels.yaml` and map to retention policies and allowed roles.
 
 | Level | Description | Retention policy ID | Allowed roles |
 | --- | --- | --- | --- |
@@ -20,16 +20,16 @@ Classification levels are configured in `config/data-classification/levels.yaml`
 - **API gateway:** Classification in request payloads is evaluated against RBAC rules; unauthorized roles receive masked fields (`apps/api-gateway/src/api/middleware/security.py`).
 - **Audit log service:** Classification drives retention policy selection for audit events (`services/audit-log/src/main.py`).
 - **Document service:** Classification is evaluated against document policies (`apps/document-service/src/document_policy.py`).
-- **DLP scanning:** Document ingestion and connector payload logging are scanned for sensitive data. Findings are blocked or advisory based on `config/security/dlp-policies.yaml`.
+- **DLP scanning:** Document ingestion and connector payload logging are scanned for sensitive data. Findings are blocked or advisory based on `ops/config/security/dlp-policies.yaml`.
 - **Assistant prompt safety:** Assistant requests are sanitized for prompt-injection markers and blocked or warned before forwarding.
 - **Encryption at rest:** Document content is encrypted in local storage using Fernet keys provided via secret references.
 
 ## Operational guidance
 
-1. Update `config/data-classification/levels.yaml` to reflect customer policy.
-2. Align `config/retention/policies.yaml` with classification retention requirements.
-3. Validate RBAC role assignments in `config/rbac/roles.yaml` before onboarding users.
-4. Ensure DLP policy thresholds in `config/security/dlp-policies.yaml` align to classification expectations.
+1. Update `ops/config/data-classification/levels.yaml` to reflect customer policy.
+2. Align `ops/config/retention/policies.yaml` with classification retention requirements.
+3. Validate RBAC role assignments in `ops/config/rbac/roles.yaml` before onboarding users.
+4. Ensure DLP policy thresholds in `ops/config/security/dlp-policies.yaml` align to classification expectations.
 5. Provide encryption keys via Key Vault / CSI or environment references (`DOCUMENT_ENCRYPTION_KEY`, `ARTIFACT_STORE_ENCRYPTION_KEY`).
 
 ## DLP enforcement rules
@@ -52,11 +52,11 @@ Classification levels are configured in `config/data-classification/levels.yaml`
 
 - Inspect classification configuration:
   ```bash
-  sed -n '1,160p' config/data-classification/levels.yaml
+  sed -n '1,160p' ops/config/data-classification/levels.yaml
   ```
 - Verify retention mapping is present:
   ```bash
-  rg -n "retention_policy" config/data-classification/levels.yaml
+  rg -n "retention_policy" ops/config/data-classification/levels.yaml
   ```
 
 ## Implementation status

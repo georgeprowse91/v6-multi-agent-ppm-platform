@@ -128,6 +128,7 @@ python_functions = "test_*"
 timeout = 60
 timeout_method = "thread"
 addopts = "-v -ra --durations=10 --import-mode=importlib"
+pythonpath = ["vendor/stubs", "vendor", "."]
 markers = [
     "asyncio: mark async tests handled by pytest-asyncio or fallback runner",
     "timeout(timeout): override the default timeout for a test or module",
@@ -185,7 +186,8 @@ exclude = [
   'services/data-lineage-service/src/retention_scheduler\\.py',
   'services/data-service/src/retention_scheduler\\.py',
   '(apps|services|agents)/.*/src/(storage|persistence|config|models|auth|metrics|circuit_breaker|leader_election|retention_scheduler|orchestrator|dependencies|connectors|analytics|documents|health|lineage|prompts|scope_research|assistant|audit|workflow|workspace|web_search|router)\\.py',
-  '^(email_validator|events|prompt_registry|pydantic_settings|requests|runtime_flags)\\.py$',
+  '^vendor/stubs/(email_validator|events|prompt_registry|pydantic_settings|requests|runtime_flags)\\.py$',
+  '^vendor/(sqlalchemy|jinja2|jsonschema|multipart|numpy)/.*',
   '^(sqlalchemy|integrations)/.*',
   '.*/tests/.*',
 ]

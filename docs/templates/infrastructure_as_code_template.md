@@ -1046,7 +1046,7 @@ gitops-repo/
 ├── shared/
 │   ├── terraform-modules/
 │   ├── helm-charts/
-│   └── policies/
+│   └── ops/config/
 └── docs/
     ├── runbooks/
     └── architecture/
@@ -1369,7 +1369,7 @@ resource "aws_iam_policy" "node_group_additional" {
 
 #### OPA/Gatekeeper Policies
 ```yaml
-# k8s/policies/required-labels.yaml
+# k8s/ops/config/required-labels.yaml
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:

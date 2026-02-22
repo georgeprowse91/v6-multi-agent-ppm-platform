@@ -28,6 +28,7 @@ services:
       - DOCUMENT_SESSION_DB_PATH=${DOCUMENT_SESSION_DB_PATH:-/app/data/documents/sessions.db}
       - LLM_PROVIDER=${LLM_PROVIDER}
       - LLM_MOCK_RESPONSE_PATH=${LLM_MOCK_RESPONSE_PATH}
+      - PYTHONPATH=/app/vendor/stubs:/app/vendor:/app
     depends_on:
       db:
         condition: service_healthy
@@ -42,7 +43,8 @@ services:
       - ./apps/orchestration-service/src:/app/apps/orchestration-service/src
       - ./agents:/app/agents
       - ./tools:/app/tools
-      - ./config:/app/config
+      - ./ops/config:/app/ops/config
+      - ./vendor:/app/vendor
       - ./examples:/app/examples
     networks:
       - ppm-network
@@ -519,7 +521,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./ops/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ppm-network
     healthcheck:

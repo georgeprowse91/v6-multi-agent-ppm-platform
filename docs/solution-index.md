@@ -6,7 +6,7 @@ Provide a concise inventory of the solution documentation in this repository, hi
 
 ## Architecture-level context
 
-The Multi-Agent PPM Platform documentation is organized by solution pillars (architecture, agents, methodologies, connectors, data, security/compliance, and operations). Each pillar maps to a dedicated doc set under `docs/` and to concrete artifacts under `agents/`, `integrations/connectors/`, `data/`, `infra/`, and `services/`. This index links those materials so readers can trace high-level concepts to concrete implementation assets.
+The Multi-Agent PPM Platform documentation is organized by solution pillars (architecture, agents, methodologies, connectors, data, security/compliance, and operations). Each pillar maps to a dedicated doc set under `docs/` and to concrete artifacts under `agents/`, `integrations/connectors/`, `data/`, `ops/infra/`, and `services/`. This index links those materials so readers can trace high-level concepts to concrete implementation assets.
 
 ## Documentation inventory by pillar
 
@@ -20,7 +20,7 @@ The Multi-Agent PPM Platform documentation is organized by solution pillars (arc
 | Security & Compliance | `docs/architecture/security-architecture.md`, `docs/compliance/` | RBAC/ABAC, threat model, retention | Implemented (docs + enforcement) |
 | Observability/Resilience/Performance | `docs/architecture/observability-architecture.md`, `docs/architecture/resilience-architecture.md`, `docs/architecture/performance-architecture.md` | Monitoring, failure modes, performance targets, SLA-driven load harness | Implemented (targets + load validation against staging/production) |
 | Product & UX | `docs/product/solution-overview/README.md`, `docs/product/` | Vision, requirements, personas, release messaging | Implemented (product requirements and UX narratives aligned to delivered features) |
-| Deployment & Ops | `infra/README.md`, `docs/runbooks/` | Terraform and runbooks | Implemented (runbooks + environment guidance) |
+| Deployment & Ops | `ops/infra/README.md`, `docs/runbooks/` | Terraform and runbooks | Implemented (runbooks + environment guidance) |
 
 ## Gaps and next steps
 

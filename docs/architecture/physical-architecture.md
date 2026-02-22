@@ -42,10 +42,10 @@ Expected output: the PlantUML file path.
 
 ## Implementation status
 
-- **Implemented**: Azure infrastructure deployment scripts in `infra/terraform` and `infra/kubernetes`.
+- **Implemented**: Azure infrastructure deployment scripts in `ops/infra/terraform` and `ops/infra/kubernetes`.
 
 ## Related docs
 
 - [Deployment Architecture](deployment-architecture.md)
-- [Infrastructure README](../../infra/README.md)
+- [Infrastructure README](../../ops/infra/README.md)
 - [Security Architecture](security-architecture.md)

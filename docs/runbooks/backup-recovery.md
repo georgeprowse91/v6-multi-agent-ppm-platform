@@ -15,7 +15,7 @@ This runbook describes backup configuration, retention schedules, and recovery p
 | --- | --- | --- | --- | --- |
 | PostgreSQL | Azure Database for PostgreSQL automated backups | Continuous + nightly snapshots | 35 days | Geo-redundant storage (GRS) |
 | Redis | Azure Redis persistence | Hourly | 7 days | Geo-redundant storage (GRS) |
-| Audit Log | WORM storage with retention policies | Real-time ingestion | Per `config/retention/policies.yaml` | Immutable blob container |
+| Audit Log | WORM storage with retention policies | Real-time ingestion | Per `ops/config/retention/policies.yaml` | Immutable blob container |
 | Kubernetes manifests | GitOps (repository) | Per release | Git history | GitHub |
 
 ## Automated backups
@@ -102,7 +102,7 @@ az postgres flexible-server geo-restore \
 
 4. Validate data integrity:
    ```bash
-   python scripts/validate-data-integrity.py --full-scan
+   python ops/scripts/validate-data-integrity.py --full-scan
    ```
 
 ### 2. Redis restore
@@ -207,7 +207,7 @@ If audit log service cannot access storage:
 
 ```bash
 # Re-apply Terraform infrastructure
-cd infra/terraform
+cd ops/infra/terraform
 terraform init
 terraform plan -out=recovery.tfplan
 terraform apply recovery.tfplan
@@ -229,14 +229,14 @@ az aks get-credentials \
 
 ```bash
 # Apply namespace and security policies
-kubectl apply -f infra/kubernetes/manifests/
+kubectl apply -f ops/infra/kubernetes/manifests/
 
 # Deploy platform services using Helm
-helm dependency update infra/kubernetes/helm-charts/ppm-platform
-helm upgrade --install ppm-platform infra/kubernetes/helm-charts/ppm-platform \
+helm dependency update ops/infra/kubernetes/helm-charts/ppm-platform
+helm upgrade --install ppm-platform ops/infra/kubernetes/helm-charts/ppm-platform \
   --namespace ppm-platform \
   --create-namespace \
-  -f infra/kubernetes/helm-charts/ppm-platform/values-production.yaml
+  -f ops/infra/kubernetes/helm-charts/ppm-platform/values-production.yaml
 
 # Verify all pods are running
 kubectl get pods -n ppm-platform
@@ -257,7 +257,7 @@ For a complete site failure, follow this order:
 
 ```bash
 # Full DR recovery script
-./scripts/disaster-recovery.sh --region "West US 2" --env production
+./ops/scripts/disaster-recovery.sh --region "West US 2" --env production
 ```
 
 ## Post-recovery validation checklist
@@ -304,8 +304,8 @@ For a complete site failure, follow this order:
 ## Automation hooks
 
 - **Retention enforcement:** `services/audit-log/src/retention_job.py`
-- **Schema validation:** `scripts/validate-schemas.py`
-- **Placeholder checks:** `scripts/check-placeholders.py`
-- **Data integrity validation:** `scripts/validate-data-integrity.py`
-- **Disaster recovery:** `scripts/disaster-recovery.sh`
+- **Schema validation:** `ops/scripts/validate-schemas.py`
+- **Placeholder checks:** `ops/scripts/check-placeholders.py`
+- **Data integrity validation:** `ops/scripts/validate-data-integrity.py`
+- **Disaster recovery:** `ops/scripts/disaster-recovery.sh`
 - **Backup verification:** `tests/test_backup_runbook.py`

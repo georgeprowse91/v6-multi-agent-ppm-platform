@@ -4,7 +4,7 @@ This project ships a schema registry and compatibility checker for JSON schemas 
 
 - `data/schemas/*.schema.json`
 - `ops/schemas/*.schema.json`
-- Additional schema roots configured in `scripts/schema_registry.py`.
+- Additional schema roots configured in `ops/scripts/schema_registry.py`.
 
 ## Schema metadata contract
 
@@ -38,39 +38,39 @@ Each schema can declare:
 Validate schema registry metadata and JSON Schema syntax:
 
 ```bash
-python scripts/schema_tool.py validate
+python ops/scripts/schema_tool.py validate
 ```
 
 Run compatibility check for a single schema against a base ref:
 
 ```bash
-python scripts/schema_tool.py compatibility data/schemas/project.schema.json --base-ref origin/main --mode full
+python ops/scripts/schema_tool.py compatibility data/schemas/project.schema.json --base-ref origin/main --mode full
 ```
 
 Enforce semantic version bumps based on detected change type:
 
 ```bash
-python scripts/schema_tool.py enforce-bumps
+python ops/scripts/schema_tool.py enforce-bumps
 ```
 
 Create migration scaffold for a breaking change:
 
 ```bash
-python scripts/schema_tool.py migration scaffold --schema project --from-version 1.0.0 --to-version 2.0.0
+python ops/scripts/schema_tool.py migration scaffold --schema project --from-version 1.0.0 --to-version 2.0.0
 ```
 
 Dry-run migration against fixture snapshots in `data/schemas/examples/`:
 
 ```bash
-python scripts/schema_tool.py migration dry-run --schema project --from-version 1.0.0 --to-version 2.0.0
+python ops/scripts/schema_tool.py migration dry-run --schema project --from-version 1.0.0 --to-version 2.0.0
 ```
 
 ## CI wiring
 
 CI runs:
 
-1. `python scripts/validate-schemas.py`
-2. `python scripts/schema_tool.py enforce-bumps`
+1. `python ops/scripts/validate-schemas.py`
+2. `python ops/scripts/schema_tool.py enforce-bumps`
 
 This ensures schema pull requests fail when:
 

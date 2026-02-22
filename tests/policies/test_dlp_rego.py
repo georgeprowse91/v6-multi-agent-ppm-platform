@@ -16,12 +16,12 @@ def _denied(payload: str, patterns: list[re.Pattern[str]]) -> bool:
 
 
 def test_pii_policy_denies_payloads() -> None:
-    patterns = _load_patterns(Path("infra/policies/dlp/bundles/pii.rego"))
+    patterns = _load_patterns(Path("ops/ops/infra/policies/dlp/bundles/pii.rego"))
     assert _denied("Contact me at dev@example.com", patterns)
     assert _denied("SSN 123-45-6789 should be blocked", patterns)
 
 
 def test_credentials_policy_denies_payloads() -> None:
-    patterns = _load_patterns(Path("infra/policies/dlp/bundles/credentials.rego"))
+    patterns = _load_patterns(Path("ops/ops/infra/policies/dlp/bundles/credentials.rego"))
     assert _denied("AWS key AKIA1234567890ABCDEF", patterns)
     assert _denied("Bearer ghp_1234567890abcdef1234567890abcdef1234", patterns)

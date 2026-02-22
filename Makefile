@@ -74,17 +74,17 @@ check-generated-docs: ## Ensure generated documentation artifacts are up to date
 	git diff --exit-code -- docs/generated/services docs/connectors/generated
 
 check-links: ## Validate internal markdown links
-	$(PYTHON) scripts/check-links.py
+	$(PYTHON) ops/scripts/check-links.py
 
 check-placeholders: ## Scan for placeholder phrases in docs and configs
-	$(PYTHON) scripts/check-placeholders.py
+	$(PYTHON) ops/scripts/check-placeholders.py
 
 check-root-layout: ## Validate repository root allowlist
 	$(PYTHON) ops/tools/check_root_layout.py
 
 
 check-docs-migration-guard: ## Enforce docs legacy-to-canonical migration guard
-	$(PYTHON) scripts/check-docs-migration-guard.py
+	$(PYTHON) ops/scripts/check-docs-migration-guard.py
 
 check-connector-maturity: ## Enforce connector maturity policy thresholds
 	$(PYTHON) ops/tools/check_connector_maturity.py
@@ -178,21 +178,21 @@ db-reset: ## Reset database (WARNING: destroys data)
 
 # Terraform commands
 tf-init: ## Initialize Terraform
-	cd infra/terraform && terraform init
+	cd ops/infra/terraform && terraform init
 
 tf-plan: ## Plan Terraform changes (dev)
-	cd infra/terraform && terraform plan -var="environment=dev"
+	cd ops/infra/terraform && terraform plan -var="environment=dev"
 
 tf-apply: ## Apply Terraform changes (dev)
-	cd infra/terraform && terraform apply -var="environment=dev"
+	cd ops/infra/terraform && terraform apply -var="environment=dev"
 
 tf-destroy: ## Destroy Terraform resources (dev)
-	cd infra/terraform && terraform destroy -var="environment=dev"
+	cd ops/infra/terraform && terraform destroy -var="environment=dev"
 
 # Kubernetes commands
 k8s-deploy: ## Deploy to Kubernetes
-	kubectl apply -f infra/kubernetes/secrets.yaml
-	kubectl apply -f infra/kubernetes/deployment.yaml
+	kubectl apply -f ops/infra/kubernetes/secrets.yaml
+	kubectl apply -f ops/infra/kubernetes/deployment.yaml
 
 k8s-status: ## Check Kubernetes deployment status
 	kubectl get pods -l app=ppm-api
@@ -202,8 +202,8 @@ k8s-logs: ## View Kubernetes logs
 	kubectl logs -f deployment/ppm-api
 
 k8s-delete: ## Delete Kubernetes deployment
-	kubectl delete -f infra/kubernetes/deployment.yaml
-	kubectl delete -f infra/kubernetes/secrets.yaml
+	kubectl delete -f ops/infra/kubernetes/deployment.yaml
+	kubectl delete -f ops/infra/kubernetes/secrets.yaml
 
 # CI/CD
 ci-local: lint test check-links check-placeholders check-root-layout check-docs-migration-guard check-connector-maturity check-security-baseline ## Run CI checks locally

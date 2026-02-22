@@ -16,11 +16,11 @@ Describe authentication and authorization flows for API consumers.
 
 ## Authorization model
 
-- **RBAC enforcement**: Roles and permissions are defined in `config/rbac/roles.yaml` and `config/rbac/permissions.yaml`.
-- **Classification-based checks**: Requests with a `classification` field are validated against allowed roles and field-level rules in `config/rbac/field-level.yaml`.
+- **RBAC enforcement**: Roles and permissions are defined in `ops/config/rbac/roles.yaml` and `ops/config/rbac/permissions.yaml`.
+- **Classification-based checks**: Requests with a `classification` field are validated against allowed roles and field-level rules in `ops/config/rbac/field-level.yaml`.
 - **Policy engine optional**: When `POLICY_ENGINE_URL` is set, authorization checks are delegated to the policy engine service.
-- **ABAC evaluation**: When `ABAC_ENFORCEMENT=true`, the gateway evaluates attribute-based policies using the policy engine (`/v1/abac/evaluate`) or local policies in `config/abac/policies.yaml`.
-- **Field masking**: JSON responses are redacted using `config/rbac/field-level.yaml`, including nested fields defined with dot notation.
+- **ABAC evaluation**: When `ABAC_ENFORCEMENT=true`, the gateway evaluates attribute-based policies using the policy engine (`/v1/abac/evaluate`) or local policies in `ops/config/abac/policies.yaml`.
+- **Field masking**: JSON responses are redacted using `ops/config/rbac/field-level.yaml`, including nested fields defined with dot notation.
 
 ## Local development mode
 

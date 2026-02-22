@@ -6,7 +6,7 @@ Document retention requirements for platform data, including audit logs and docu
 
 ## Policy sources
 
-Retention policies are defined in `config/retention/policies.yaml` and referenced by data classification levels in `config/data-classification/levels.yaml`.
+Retention policies are defined in `ops/config/retention/policies.yaml` and referenced by data classification levels in `ops/config/data-classification/levels.yaml`.
 
 ## Current policy set
 
@@ -25,15 +25,15 @@ Retention policies are defined in `config/retention/policies.yaml` and reference
 
 ## Operational guidance
 
-1. Update policy durations in `config/retention/policies.yaml` to align with client requirements.
-2. Update classification mappings in `config/data-classification/levels.yaml` if policies change.
+1. Update policy durations in `ops/config/retention/policies.yaml` to align with client requirements.
+2. Update classification mappings in `ops/config/data-classification/levels.yaml` if policies change.
 3. Rotate storage classes in cloud environments to match required durability tiers.
 
 ## Verification steps
 
 - Inspect retention policies:
   ```bash
-  sed -n '1,160p' config/retention/policies.yaml
+  sed -n '1,160p' ops/config/retention/policies.yaml
   ```
 - Confirm audit log service loads retention policies:
   ```bash

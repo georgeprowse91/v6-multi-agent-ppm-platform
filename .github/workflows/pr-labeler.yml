@@ -24,7 +24,7 @@ jobs:
             workflow:
               - '.github/workflows/**'
             infrastructure:
-              - 'infra/**'
+              - 'ops/infra/**'
             backend:
               - 'agents/**'
               - 'apps/**'

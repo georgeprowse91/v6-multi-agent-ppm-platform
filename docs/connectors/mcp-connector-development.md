@@ -25,8 +25,8 @@ Provide a step-by-step guide for adding Model Context Protocol (MCP) connectors 
 
 ### 3) Configure MCP defaults
 
-1. Populate the connector’s `mcp` block in `config/connectors/integrations.yaml`, including `server_url`, `server_id`, `auth_scopes`, and `tool_map` defaults.
-2. Add the MCP server URL and credentials to `.env` or your secret manager, following the environment variable mappings listed in `config/README.md`.
+1. Populate the connector’s `mcp` block in `ops/config/connectors/integrations.yaml`, including `server_url`, `server_id`, `auth_scopes`, and `tool_map` defaults.
+2. Add the MCP server URL and credentials to `.env` or your secret manager, following the environment variable mappings listed in `ops/config/README.md`.
 3. Enable MCP preference with `<CONNECTOR>_PREFER_MCP=true` when MCP should be the default route.
 
 ### 4) Verify tool mapping

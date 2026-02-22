@@ -10,7 +10,7 @@ The platform serves multiple tenants and must enforce role-based permissions as 
 
 ## Decision
 
-Implement RBAC and classification-based field-level masking in the API gateway middleware using configuration under `config/rbac/`. When a policy engine is available (`POLICY_ENGINE_URL`), delegate authorization decisions to it; otherwise enforce locally using YAML configs.
+Implement RBAC and classification-based field-level masking in the API gateway middleware using configuration under `ops/config/rbac/`. When a policy engine is available (`POLICY_ENGINE_URL`), delegate authorization decisions to it; otherwise enforce locally using YAML configs.
 
 ## Consequences
 
@@ -22,5 +22,5 @@ Implement RBAC and classification-based field-level masking in the API gateway m
 
 - `apps/api-gateway/src/api/middleware/security.py`
 - `services/policy-engine/src/main.py`
-- `config/rbac/roles.yaml`
-- `config/rbac/field-level.yaml`
+- `ops/config/rbac/roles.yaml`
+- `ops/config/rbac/field-level.yaml`

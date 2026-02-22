@@ -20,9 +20,9 @@ Source: `apps/web/frontend/src/App.tsx`.
 | `/programs` | `EntityCollectionRedirect` | Redirects to current selection or `/program/demo` |
 | `/project/:projectId`, `/projects/:projectId` | `WorkspacePage type=project` | Project workspace |
 | `/projects` | `EntityCollectionRedirect` | Redirects to current selection or `/project/demo` |
-| `/projects/:projectId/config`, `/projects/:projectId/config/:tab` | `ProjectConfigPage` | Project-scoped agents/connectors |
-| `/config/agents`, `/config/connectors`, `/config/workflows` | `ConfigPage` | Global config |
-| `/config/prompts` | `PromptManager` | Prompt management |
+| `/projects/:projectId/config`, `/projects/:projectId/ops/config/:tab` | `ProjectConfigPage` | Project-scoped agents/connectors |
+| `/ops/config/agents`, `/ops/config/connectors`, `/ops/config/workflows` | `ConfigPage` | Global config |
+| `/ops/config/prompts` | `PromptManager` | Prompt management |
 | `/approvals` | `ApprovalsPage` | Approval processing |
 | `/workflows/monitoring` | `WorkflowMonitoringPage` | Workflow runs |
 | `/workflows/designer` | `WorkflowDesigner` | Workflow authoring |
@@ -117,7 +117,7 @@ Source: `apps/web/frontend/src/App.tsx`.
 - **Demo-safe/demo-seeded:** **Implemented** for seeded demo projects and workspace state.
 
 ### Capability 7: Each subsequent screen for each of those 4 options (complete route coverage)
-- **Entry routes:** `Home -> intake/new`, `Home -> demo projects`, `LeftPanel -> config/work/insights/admin`, project workspace sub-nav links.
+- **Entry routes:** `Home -> intake/new`, `Home -> demo projects`, `LeftPanel -> ops/config/work/insights/admin`, project workspace sub-nav links.
 - **UI components:** `LeftPanel`, `AppLayout`, `MainCanvas`, page components listed above.
 - **Backend endpoints used:** Mixed per page; see each capability row.
 - **Feature-flagged:** `/intake/merge-review`, `/notifications`, scenario/predictive/admin-nav visibility flags.
@@ -125,23 +125,23 @@ Source: `apps/web/frontend/src/App.tsx`.
 - **Demo-safe/demo-seeded:** **Mostly implemented**; seeded data backs many screens (`approvals`, `connectors`, `audit_log`, `dashboards`, `notifications`, `demo_run_log`).
 
 ### Capability 8: Agent gallery (list, filter, open profile, capabilities, config, test, run)
-- **Entry routes:** `/projects/:projectId/config` (agents tab), `/config/agents`.
+- **Entry routes:** `/projects/:projectId/config` (agents tab), `/ops/config/agents`.
 - **UI components:**
   - Project scoped: `components/project/AgentGallery`
   - Global scoped: `components/agentConfig/AgentGallery`, `ConfigPage` agents tab
 - **Backend endpoints used:**
   - `GET /api/projects/{projectId}/agents`
   - `GET /v1/agents/config`
-  - `PATCH /v1/agents/config/{catalog_id}`
+  - `PATCH /v1/agents/ops/config/{catalog_id}`
   - `GET /v1/projects/{projectId}/agents/config`
-  - `PATCH /v1/projects/{projectId}/agents/config/{agent_id}`
+  - `PATCH /v1/projects/{projectId}/agents/ops/config/{agent_id}`
 - **Feature-flagged:** No hard flag on gallery routes.
 - **Actual build:** **Partial**. List/filter/config and capability chips exist; dedicated profile page, explicit “test agent”, and explicit “run agent from gallery” are missing.
 - **Demo-safe/demo-seeded:** **Implemented partial** with fallback/mock data and seeded registry.
 
-### Capability 9: Connector registry (list/category/config/test/enable per project/certification)
-- **Entry routes:** `/marketplace/connectors`, `/config/connectors`, `/projects/:projectId/config/connectors`.
-- **UI components:** `ConnectorGallery`, `ProjectConnectorGallery`, connector config/certification modals, `ProjectMcpSidebar`.
+### Capability 9: Connector registry (list/category/ops/config/test/enable per project/certification)
+- **Entry routes:** `/marketplace/connectors`, `/ops/config/connectors`, `/projects/:projectId/ops/config/connectors`.
+- **UI components:** `ConnectorGallery`, `ProjectConnectorGallery`, connector ops/config/certification modals, `ProjectMcpSidebar`.
 - **Backend endpoints used:**
   - `GET /v1/connectors`, `GET /api/projects/{projectId}/connectors`
   - `GET /v1/connectors/categories`
@@ -202,7 +202,7 @@ Source: `apps/web/frontend/src/App.tsx`.
 ### Capability 14: Read/push records to Systems of Record (SoRs)
 - **Entry routes:** Connector galleries and project connector config.
 - **UI components:** `ConnectorGallery`, `ProjectConnectorGallery`, `SyncStatusPanel`, `ProjectMcpSidebar`.
-- **Backend endpoints used:** Connector enable/config/test and MCP mapping endpoints listed in capability 9.
+- **Backend endpoints used:** Connector enable/ops/config/test and MCP mapping endpoints listed in capability 9.
 - **Feature-flagged:** MCP and connector behavior can be narrowed by feature flags; mock connector mapping enables demo safety.
 - **Actual build:** **Implemented (integration surface)**. Real calls happen through non-demo connector clients.
 - **Demo-safe/demo-seeded:** **Implemented**. Demo mode switches to demo connector/data/document clients and records actions in demo outbox instead of real pushes.

@@ -16,14 +16,14 @@ The repository delivers a production-ready, multi-agent PPM platform with valida
 | --- | --- |
 | [agents/](./agents/) | 25 domain agents plus runtime scaffolding, prompts, and tests |
 | [apps/](./apps/) | User-facing applications (API gateway, web console, admin console, mobile) and Helm packaging |
-| [ops/config/](./ops/config/) | Tenant, environment, and agent configuration assets |
+| [ops/ops/config/](./ops/ops/config/) | Tenant, environment, and agent configuration assets |
 | [integrations/connectors/](./integrations/connectors/) | Integration manifests, mappings, SDK, and registry assets for external systems |
 | [data/](./data/) | Canonical JSON schemas, lineage, quality rules, and migration specs |
-| [design-system/](./design-system/) | Design tokens and icon system |
+| [packages/ui-kit/design-system/](./packages/ui-kit/design-system/) | Design tokens and icon system |
 | [docs/](./docs/) | Architecture, methodology, agent catalog, and solution overview |
 | [docs/assets/ui/screenshots/](./docs/assets/ui/screenshots/) | Centralized UI screenshot assets for documentation |
 | [examples/](./examples/) | Scenario and configuration examples |
-| [ops/infra/](./ops/infra/) | Terraform, Kubernetes, observability, and policy assets |
+| [ops/ops/infra/](./ops/ops/infra/) | Terraform, Kubernetes, observability, and policy assets |
 | [packages/](./packages/) | Shared Python and TypeScript packages used by apps, services, and agents |
 | [ops/scripts/](./ops/scripts/) | CI checks, validation, and utility scripts |
 | [services/](./services/) | Backend services (audit log, data sync, identity, notification, telemetry, and more) |
@@ -35,7 +35,7 @@ The repository delivers a production-ready, multi-agent PPM platform with valida
 - **Non-coders** start with the solution overview and architecture docs in `docs/`.
 - **Developers** run the API gateway and web console locally, then extend agents, connectors, and services.
 - **Integrators** use connector manifests and mappings to align external systems with the canonical data model.
-- **Ops teams** use `ops/infra/` plus `services/` Helm charts to deploy in Kubernetes environments.
+- **Ops teams** use `ops/ops/infra/` plus `services/` Helm charts to deploy in Kubernetes environments.
 
 ## Quickstart (local development)
 
@@ -141,7 +141,7 @@ their primary endpoints when run locally (each service defaults to port `8080` u
 | Data Lineage Service | Lineage capture and quality scoring. | `GET /healthz`, `POST /v1/lineage/events`, `GET /v1/lineage/graph`, `GET /v1/quality/summary` |
 | Identity & Access | SCIM + token validation for identity management. | `GET /healthz`, `POST /v1/auth/validate`, `POST /v1/scim/v2/Users`, `GET /v1/scim/v2/Groups` |
 | Notification Service | Outbound notifications (email/chat/webhook). | `GET /healthz`, `POST /v1/notifications/send` |
-| Policy Engine | RBAC/ABAC and policy evaluation. | `GET /healthz`, `POST /v1/policies/evaluate`, `POST /v1/rbac/evaluate`, `POST /v1/abac/evaluate` |
+| Policy Engine | RBAC/ABAC and policy evaluation. | `GET /healthz`, `POST /v1/ops/config/evaluate`, `POST /v1/rbac/evaluate`, `POST /v1/abac/evaluate` |
 | Telemetry Service | Ingests platform metrics/events for observability. | `GET /healthz`, `POST /v1/telemetry/ingest` |
 
 
@@ -221,13 +221,13 @@ This command validates local methodology YAML loading, workspace endpoint respon
 
 ## Deployment (high level)
 
-- **Terraform**: infrastructure definitions live under [ops/infra/terraform/](./ops/infra/terraform/).
+- **Terraform**: infrastructure definitions live under [ops/ops/infra/terraform/](./ops/ops/infra/terraform/).
   ```bash
   make tf-init
   make tf-plan
   make tf-apply
   ```
-- **Kubernetes manifests**: see [ops/infra/kubernetes/manifests/](./ops/infra/kubernetes/manifests/).
+- **Kubernetes manifests**: see [ops/ops/infra/kubernetes/manifests/](./ops/ops/infra/kubernetes/manifests/).
 - **Helm charts**: each app/service has a `helm/` folder for packaging.
 
 For a dedicated low-cost demonstration stack, follow the demo guide at [docs/demo-environment.md](./docs/demo-environment.md).
@@ -238,7 +238,7 @@ Use the dedicated observability chart to deploy an OpenTelemetry collector and c
 
 ```bash
 helm upgrade --install ppm-observability \
-  infra/kubernetes/helm-charts/observability \
+  ops/infra/kubernetes/helm-charts/observability \
   --namespace observability \
   --create-namespace
 ```
@@ -247,7 +247,7 @@ You can override the default collector configuration and image at deploy time:
 
 ```bash
 helm upgrade --install ppm-observability \
-  infra/kubernetes/helm-charts/observability \
+  ops/infra/kubernetes/helm-charts/observability \
   --namespace observability \
   --set image.tag=0.95.0 \
   --set collectorConfig.exporters.azuremonitor.connection_string="$AZURE_MONITOR_CONNECTION_STRING"
@@ -255,12 +255,12 @@ helm upgrade --install ppm-observability \
 
 Platform-level alert thresholds and OpenTelemetry sidecar controls are parameterized in:
 
-- `infra/kubernetes/helm-charts/ppm-platform/values-template.yaml`
+- `ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml`
 
 ### Environment parameterization (dev, staging, production)
 
-Configuration templates under [`ops/config/agents/`](./ops/config/agents/) and
-[`ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml`](./ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml)
+Configuration templates under [`ops/ops/config/agents/`](./ops/ops/config/agents/) and
+[`ops/ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml`](./ops/ops/infra/kubernetes/helm-charts/ppm-platform/values-template.yaml)
 now use environment placeholders instead of hard-coded endpoints or credentials.
 
 Set the following variables per environment (for example in CI/CD variable groups,
@@ -301,13 +301,13 @@ Recommended environment setup:
 
 > Do not commit real credentials, API keys, or environment-specific URLs into repository configuration files.
 
-For deeper operational guidance, start with [ops/infra/README.md](./ops/infra/README.md) and [docs/architecture/](./docs/architecture/).
+For deeper operational guidance, start with [ops/ops/infra/README.md](./ops/ops/infra/README.md) and [docs/architecture/](./docs/architecture/).
 
 ## Security & compliance
 
 - Security posture and architecture: [docs/architecture/security-architecture.md](./docs/architecture/security-architecture.md).
 - Responsible disclosure: [SECURITY.md](./SECURITY.md).
-- Data policy scaffolding: [ops/infra/policies/](./ops/infra/policies/) and [services/policy-engine/](./services/policy-engine/).
+- Data policy scaffolding: [ops/ops/infra/ops/config/](./ops/ops/infra/ops/config/) and [services/policy-engine/](./services/policy-engine/).
 
 ## Where to find things
 

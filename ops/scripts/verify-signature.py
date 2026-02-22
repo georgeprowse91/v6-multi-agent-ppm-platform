@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 def _load_public_key() -> bytes:
     b64_key = os.getenv("SIGNING_PUBLIC_KEY_B64")
-    key_path = os.getenv("SIGNING_PUBLIC_KEY_PATH", "config/signing/dev_signing_public.pem")
+    key_path = os.getenv("SIGNING_PUBLIC_KEY_PATH", "ops/config/signing/dev_signing_public.pem")
 
     if b64_key:
         return base64.b64decode(b64_key)

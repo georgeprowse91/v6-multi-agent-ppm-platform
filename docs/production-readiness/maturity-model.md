@@ -6,7 +6,7 @@ Define an objective and enforceable maturity model that converts delivery, opera
 
 ## Dimensions and KPI definitions
 
-The model is encoded in [`ops/config/maturity_model.yaml`](../../ops/config/maturity_model.yaml) and scored by [`ops/tools/collect_maturity_score.py`](../../ops/tools/collect_maturity_score.py).
+The model is encoded in [`ops/ops/config/maturity_model.yaml`](../../ops/ops/config/maturity_model.yaml) and scored by [`ops/tools/collect_maturity_score.py`](../../ops/tools/collect_maturity_score.py).
 
 | Dimension | Example KPIs (measurable) | Target intent |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ python ops/tools/collect_maturity_score.py --enforce-thresholds
 
 ## Ratcheting policy
 
-Thresholds increase quarterly through the `ratchet_policy.schedule` table in `ops/config/maturity_model.yaml`.
+Thresholds increase quarterly through the `ratchet_policy.schedule` table in `ops/ops/config/maturity_model.yaml`.
 
 - The collector resolves the active threshold set by `effective_date`.
 - Teams should only move thresholds upward (no downward edits) unless an incident postmortem approves an exception.

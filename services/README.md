@@ -47,7 +47,7 @@ Each service runs a FastAPI application (default port `8080`) with health checks
 
 ## How it's used
 
-Services are discovered by `tools/component_runner` and deployed via Helm and Terraform resources under `infra/`.
+Services are discovered by `tools/component_runner` and deployed via Helm and Terraform resources under `ops/infra/`.
 
 ## How to run / develop / test
 

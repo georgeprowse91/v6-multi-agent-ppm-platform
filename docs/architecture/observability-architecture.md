@@ -65,7 +65,7 @@ Collector endpoints are configured via `JAEGER_COLLECTOR_ENDPOINT` and `LOKI_END
 
 ### Dashboards
 
-Grafana dashboards are stored as JSON exports in `infra/observability/dashboards`:
+Grafana dashboards are stored as JSON exports in `ops/infra/observability/dashboards`:
 
 - `ppm-platform.json` for latency, throughput, error rate, and connector sync duration.
 - `ppm-slo.json` for SLO adherence, connector sync success, and error budget tracking.
@@ -78,7 +78,7 @@ Grafana dashboards are stored as JSON exports in `infra/observability/dashboards
 
 ## Alerts
 
-Alert rules aligned to SLOs/SLIs are defined in `infra/observability/alerts/ppm-alerts.yaml` and cover:
+Alert rules aligned to SLOs/SLIs are defined in `ops/infra/observability/alerts/ppm-alerts.yaml` and cover:
 
 - API gateway latency/error-rate breaches.
 - Workflow/orchestration failure rates.

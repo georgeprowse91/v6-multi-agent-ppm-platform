@@ -6,7 +6,7 @@ This policy defines what is allowed at repository root and why.
 
 - Keep root navigable for contributors and automation.
 - Preserve discovery conventions required by core tooling.
-- Route non-root-sensitive artifacts into domain folders (`docs/`, `ops/`, `scripts/`, etc.).
+- Route non-root-sensitive artifacts into domain folders (`docs/`, `ops/`, `ops/scripts/`, etc.).
 
 ## Root allowlist categories
 
@@ -42,8 +42,8 @@ The following modules currently have direct imports from multiple packages and s
 
 Top-level domain directories are allowed for monorepo organization:
 
-- `agents/`, `apps/`, `config/`, `data/`, `design-system/`, `docs/`, `examples/`, `infra/`,
-  `integrations/`, `ops/`, `packages/`, `policies/`, `prompts/`, `scripts/`, `services/`, `tests/`
+- `agents/`, `apps/`, `ops/config/`, `data/`, `packages/ui-kit/design-system/`, `docs/`, `examples/`, `ops/infra/`,
+  `integrations/`, `ops/`, `packages/`, `ops/config/`, `agents/runtime/prompts/`, `ops/scripts/`, `services/`, `tests/`
 
 ## Change process for root additions
 

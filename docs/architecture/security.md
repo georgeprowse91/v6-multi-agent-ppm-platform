@@ -33,7 +33,7 @@ The runtime applies prompt injection checks to inbound user-authored prompt fiel
 
 ### Configuration
 
-Per-agent behaviour is configurable in agent YAML files (for example `ops/config/agents/intent-router.yaml`):
+Per-agent behaviour is configurable in agent YAML files (for example `ops/ops/config/agents/intent-router.yaml`):
 
 ```yaml
 allow_injection: false

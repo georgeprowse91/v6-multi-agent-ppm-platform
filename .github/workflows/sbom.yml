@@ -31,7 +31,7 @@ jobs:
           pip install -e .
 
       - name: Generate SBOM
-        run: python scripts/generate-sbom.py
+        run: python ops/scripts/generate-sbom.py
 
       - name: Verify signing material is available
         run: |
@@ -39,10 +39,10 @@ jobs:
           test -n "$SIGNING_PUBLIC_KEY_B64"
 
       - name: Sign SBOM
-        run: python scripts/sign-artifact.py
+        run: python ops/scripts/sign-artifact.py
 
       - name: Verify signature
-        run: python scripts/verify-signature.py
+        run: python ops/scripts/verify-signature.py
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e9eac5b10f0eefd7c5f3f0

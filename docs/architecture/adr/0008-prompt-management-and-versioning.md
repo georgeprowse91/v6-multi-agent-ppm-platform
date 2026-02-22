@@ -10,7 +10,7 @@ Prompt templates must be versioned, validated, and traceable to support determin
 
 ## Decision
 
-Store prompt templates under `agents/runtime/prompts/` and validate them against a JSON schema. Prompts are versioned in Git and loaded by the prompt registry. Redaction rules are embedded in prompt metadata to prevent sensitive data exposure.
+Store prompt templates under `agents/runtime/agents/runtime/prompts/` and validate them against a JSON schema. Prompts are versioned in Git and loaded by the prompt registry. Redaction rules are embedded in prompt metadata to prevent sensitive data exposure.
 
 ## Consequences
 
@@ -20,6 +20,6 @@ Store prompt templates under `agents/runtime/prompts/` and validate them against
 
 ## References
 
-- `agents/runtime/prompts/examples/intent-router.prompt.yaml`
-- `agents/runtime/prompts/schema/prompt.schema.json`
-- `agents/runtime/prompts/prompt_registry.py`
+- `agents/runtime/agents/runtime/prompts/examples/intent-router.prompt.yaml`
+- `agents/runtime/agents/runtime/prompts/schema/prompt.schema.json`
+- `agents/runtime/agents/runtime/prompts/prompt_registry.py`

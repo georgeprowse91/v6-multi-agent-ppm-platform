@@ -2,11 +2,11 @@
 
 ## Source of truth
 The canonical token file lives at:
-- `design-system/tokens/design-system-tokens.json`
+- `packages/ui-kit/design-system/tokens/design-system-tokens.json`
 
 Runtime outputs:
-- `design-system/tokens/tokens.css` (CSS variables)
-- `design-system/tokens/tokens.ts` (typed module)
+- `packages/ui-kit/design-system/tokens/tokens.css` (CSS variables)
+- `packages/ui-kit/design-system/tokens/tokens.ts` (typed module)
 - `apps/web/frontend/src/styles/tokens.css` (web runtime copy for Vite)
 
 > The web frontend imports `apps/web/frontend/src/styles/tokens.css` via `styles/index.css`.
@@ -22,7 +22,7 @@ Use semantic CSS variables in component styles:
 ### TypeScript
 Import token values when needed:
 ```ts
-import { tokens } from '../../design-system/tokens/tokens';
+import { tokens } from '../../packages/ui-kit/design-system/tokens/tokens';
 ```
 
 ## Dark mode

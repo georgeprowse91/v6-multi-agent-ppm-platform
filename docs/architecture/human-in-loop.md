@@ -4,7 +4,7 @@ This platform extends human oversight to critical autonomous decisions, not only
 
 ## Critical actions under review
 
-The orchestrator now evaluates agent-proposed actions against `ops/config/human_review.yaml` rules. Current high-impact checkpoints include:
+The orchestrator now evaluates agent-proposed actions against `ops/ops/config/human_review.yaml` rules. Current high-impact checkpoints include:
 
 - **Risk mitigation recommendations** from Agent 15 when `risk_score` is above threshold.
 - **Schedule adjustments** from Agent 10 when timeline impact is material.
@@ -12,7 +12,7 @@ The orchestrator now evaluates agent-proposed actions against `ops/config/human_
 
 ## Review configuration
 
-Rules are configured in `ops/config/human_review.yaml` under `review_rules`:
+Rules are configured in `ops/ops/config/human_review.yaml` under `review_rules`:
 
 - `action_type`: canonical action category emitted by an agent.
 - `agent_ids`: agent identifiers subject to the rule.

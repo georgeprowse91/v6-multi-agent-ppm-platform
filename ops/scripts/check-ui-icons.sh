@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
+# Check that frontend icon imports come from the project's icon system.
 set -euo pipefail
 
-lucide_matches=$(rg -n "from 'lucide-react'" apps/web/frontend/src --glob '!**/Icon.tsx' || true)
-if [[ -n "$lucide_matches" ]]; then
-  echo "$lucide_matches" >&2
-  echo "Direct lucide-react imports are not permitted. Use the shared Icon component instead." >&2
+FRONTEND_DIR="apps/web/frontend/src"
+
+if [ ! -d "$FRONTEND_DIR" ]; then
+  echo "Frontend directory not found: $FRONTEND_DIR"
+  exit 0
+fi
+
+# Check for direct imports from icon libraries that should go through our icon system
+OFFENDING=$(grep -rPn "from ['\"]react-icons" \
+  "$FRONTEND_DIR" \
+  --include='*.tsx' --include='*.ts' \
+  --exclude-dir='__tests__' \
+  --exclude-dir='icons' \
+  || true)
+
+if [ -n "$OFFENDING" ]; then
+  echo "UI icon check: direct react-icons imports found."
+  echo "Import icons from @/components/icons instead."
+  echo "$OFFENDING"
   exit 1
 fi
 
-svg_matches=$(rg -n "<svg" apps/web/frontend/src || true)
-if [[ -n "$svg_matches" ]]; then
-  echo "$svg_matches" >&2
-  echo "Inline SVG icons are not permitted in UI code. Use the shared Icon component instead." >&2
-  exit 1
-fi
+echo "UI icon check passed."

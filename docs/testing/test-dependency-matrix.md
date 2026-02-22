@@ -47,7 +47,7 @@ This target installs:
 
 | Test area | Representative paths | Required dependency set |
 | --- | --- | --- |
-| Core/unit baseline | `tests/agents/`, `tests/policies/`, `tests/runtime/` | `requirements-dev.txt` |
+| Core/unit baseline | `tests/agents/`, `tests/ops/config/`, `tests/runtime/` | `requirements-dev.txt` |
 | API security/rate limiting | `tests/apps/test_api_gateway_health.py`, `tests/security/test_auth_rbac.py` | baseline + `slowapi` |
 | Crypto/security integration | `tests/security/test_auth_cache.py`, `tests/integration/test_data_lineage_service.py` | baseline + `cryptography` |
 | Data migration/runtime integration | `tests/integration/test_data_migrations.py`, `tests/integration/test_orchestrator_persistence.py` | baseline + `sqlalchemy`, `alembic` |

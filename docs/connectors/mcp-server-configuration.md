@@ -8,7 +8,7 @@ Describe how to configure Model Context Protocol (MCP) servers for connector run
 
 MCP server defaults live in the connector configuration layer and are surfaced to project-level connector configs.
 
-- **Global connector defaults**: `config/connectors/integrations.yaml` supports an `mcp` block (`server_id`, `server_url`, `client_id`, `client_secret`, `auth_scopes`, `tool_map`, `tools`) that defines defaults per connector and is referenced by the runtime configuration loader. Reference the config guide in `config/README.md` for environment variable mappings and enablement flags.
+- **Global connector defaults**: `ops/config/connectors/integrations.yaml` supports an `mcp` block (`server_id`, `server_url`, `client_id`, `client_secret`, `auth_scopes`, `tool_map`, `tools`) that defines defaults per connector and is referenced by the runtime configuration loader. Reference the config guide in `ops/config/README.md` for environment variable mappings and enablement flags.
 - **Project-level overrides**: `ProjectConnectorConfigStore` persists per-project overrides in `data/connectors/project_config.json`, including MCP server URL, credentials, tool map, and routing flags.
 - **Connector runtime fields**: the connector config model includes MCP-specific fields such as `mcp_server_url`, `mcp_server_id`, `protocol`, `protocol_version`, `mcp_client_id`, `mcp_client_secret`, `mcp_scope`, `mcp_api_key`, `mcp_api_key_header`, `mcp_oauth_token`, `tool_map`, `resource_map`, and routing controls like `prefer_mcp`, `mcp_enabled_operations`, and `mcp_disabled_operations`. These fields drive MCP routing and auth header construction at runtime.
 
@@ -51,14 +51,14 @@ MCP is a JSON-RPC protocol that exposes tools, resources, and prompts to AI appl
 At runtime, the MCP client uses an initialization handshake and then performs discovery and invocation calls.
 
 1. **Initialize**: call `initialize` with `protocolVersion` and client capabilities before any other request.
-2. **Discover**: call `tools/list`, `resources/list`, and `prompts/list` as needed.
-3. **Invoke**: call `tools/call`, `resources/get`, `prompts/get`, or `prompts/call`.
+2. **Discover**: call `tools/list`, `resources/list`, and `agents/runtime/prompts/list` as needed.
+3. **Invoke**: call `tools/call`, `resources/get`, `agents/runtime/prompts/get`, or `agents/runtime/prompts/call`.
 4. **Notifications/tasks**: handle notifications (for example, `toolUpdate`) and optionally use `tasks/create` for long-running operations.
 
 ## Enablement checklist
 
-1. Add the MCP server URL, credentials, scopes, and `protocol_version` to the environment (or secret store) referenced in `config/README.md`.
-2. Populate the connector’s `mcp` block in `config/connectors/integrations.yaml` and set `<CONNECTOR>_PREFER_MCP=true` when MCP should be preferred.
+1. Add the MCP server URL, credentials, scopes, and `protocol_version` to the environment (or secret store) referenced in `ops/config/README.md`.
+2. Populate the connector’s `mcp` block in `ops/config/connectors/integrations.yaml` and set `<CONNECTOR>_PREFER_MCP=true` when MCP should be preferred.
 3. Populate `tool_map` (and optional `resource_map`/`prompt_map`) in the connector manifest and any project overrides so the router can resolve MCP primitives.
 4. Confirm that MCP tools cover the required operations; if not, ensure REST connectors remain enabled as fallbacks.
 

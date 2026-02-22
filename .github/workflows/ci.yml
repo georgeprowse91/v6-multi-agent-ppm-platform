@@ -36,10 +36,10 @@ jobs:
 
 
       - name: Validate schemas
-        run: python scripts/validate-schemas.py
+        run: python ops/scripts/validate-schemas.py
 
       - name: Enforce schema example updates
-        run: python scripts/check-schema-example-updates.py
+        run: python ops/scripts/check-schema-example-updates.py
 
       - name: Validate migration/schema registry consistency
         run: python data/migrations/validate_registry_consistency.py
@@ -51,7 +51,7 @@ jobs:
         run: python ops/tools/config_validator.py
 
       - name: Verify API versioning
-        run: python scripts/check_api_versioning.py
+        run: python ops/scripts/check_api_versioning.py
 
       - name: Enforce service API governance contracts
         run: pytest tests/contract/test_service_api_governance.py -v
@@ -63,13 +63,13 @@ jobs:
         run: make check-generated-docs
 
       - name: Enforce legacy UI references are not reintroduced
-        run: python scripts/check-legacy-ui-references.py
+        run: python ops/scripts/check-legacy-ui-references.py
 
       - name: Enforce legacy workspace artifact guard
         run: python apps/web/scripts/check_legacy_workspace_artifacts.py
 
       - name: Enforce docs migration guard
-        run: python scripts/check-docs-migration-guard.py
+        run: python ops/scripts/check-docs-migration-guard.py
 
       - name: Run Ruff
         run: ruff check agents/ apps/ packages/ tests/ --output-format=github
@@ -82,8 +82,8 @@ jobs:
 
       - name: Enforce UI icon standards
         run: |
-          scripts/check-ui-emojis.sh
-          scripts/check-ui-icons.sh
+          ops/scripts/check-ui-emojis.sh
+          ops/scripts/check-ui-icons.sh
 
 
   env-validation:
@@ -138,7 +138,7 @@ jobs:
         run: safety check -r requirements.txt
 
       - name: Checkov scan
-        run: checkov -d infra/terraform
+        run: checkov -d ops/infra/terraform
 
       - name: Secret scan
         uses: gitleaks/gitleaks-action@v2
@@ -165,14 +165,14 @@ jobs:
           terraform_version: '1.6.6'
 
       - name: Terraform fmt
-        run: terraform fmt -check -recursive infra/terraform
+        run: terraform fmt -check -recursive ops/infra/terraform
 
       - name: Terraform init (no backend)
-        run: terraform -chdir=infra/terraform init -backend=false
+        run: terraform -chdir=ops/infra/terraform init -backend=false
 
 
       - name: Terraform syntax checks
-        run: terraform -chdir=infra/terraform validate
+        run: terraform -chdir=ops/infra/terraform validate
 
   helm:
     name: Helm Lint & Template
@@ -191,12 +191,12 @@ jobs:
             --set keyVault.name=kv-sample \
             --set keyVault.tenantId=tenant-sample \
             --set keyVault.clientId=client-sample
-          helm lint infra/observability/otel/helm \
+          helm lint ops/infra/observability/otel/helm \
             --set keyVault.name=kv-sample \
             --set keyVault.tenantId=tenant-sample \
             --set keyVault.clientId=client-sample
-          helm dependency build infra/kubernetes/helm-charts/ppm-platform
-          helm lint infra/kubernetes/helm-charts/ppm-platform \
+          helm dependency build ops/infra/kubernetes/helm-charts/ppm-platform
+          helm lint ops/infra/kubernetes/helm-charts/ppm-platform \
             --set audit-log.keyVault.name=kv-sample \
             --set audit-log.keyVault.tenantId=tenant-sample \
             --set audit-log.keyVault.clientId=client-sample
@@ -204,7 +204,7 @@ jobs:
             --set keyVault.name=kv-sample \
             --set keyVault.tenantId=tenant-sample \
             --set keyVault.clientId=client-sample >/dev/null
-          helm template infra/kubernetes/helm-charts/ppm-platform \
+          helm template ops/infra/kubernetes/helm-charts/ppm-platform \
             --set audit-log.keyVault.name=kv-sample \
             --set audit-log.keyVault.tenantId=tenant-sample \
             --set audit-log.keyVault.clientId=client-sample >/dev/null
@@ -222,10 +222,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Run markdown link check
-        run: python scripts/check-links.py
+        run: python ops/scripts/check-links.py
 
       - name: Run placeholder and README completeness quality gate
-        run: python scripts/check-placeholders.py
+        run: python ops/scripts/check-placeholders.py
 
   docs-build:
     name: Docs Build
@@ -301,12 +301,12 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          script = Path("scripts") / ("check-" + "place" + "holders.py")
+          script = Path("ops/scripts") / ("check-" + "place" + "holders.py")
           exec(compile(script.read_text(), str(script), "exec"))
           PY
 
       - name: Run template validation
-        run: python scripts/check-templates.py
+        run: python ops/scripts/check-templates.py
 
   # Unit Tests
   test:
@@ -361,9 +361,9 @@ jobs:
 
       - name: Validate schemas and manifests
         run: |
-          python scripts/validate-schemas.py
-          python scripts/schema_tool.py enforce-bumps
-          python scripts/validate-manifests.py
+          python ops/scripts/validate-schemas.py
+          python ops/scripts/schema_tool.py enforce-bumps
+          python ops/scripts/validate-manifests.py
 
       - name: Run tests with coverage
         env:
@@ -406,7 +406,7 @@ jobs:
           pip install slowapi
 
       - name: Import smoke test
-        run: python -m compileall agents apps packages tests tools scripts
+        run: python -m compileall agents apps packages tests tools ops/scripts vendor
 
       - name: Run unit tests (if present)
         run: |
@@ -453,7 +453,7 @@ jobs:
           pip install -e .
 
       - name: Validate MCP manifests
-        run: python scripts/validate-mcp-manifests.py
+        run: python ops/scripts/validate-mcp-manifests.py
 
       - name: Run MCP unit tests
         run: pytest tests/connectors/test_mcp_client.py -v -ra --durations=10 --timeout=60 --timeout-method=thread
@@ -506,7 +506,7 @@ jobs:
           pip install -e .
 
       - name: Run quickstart smoke scenario
-        run: python scripts/quickstart_smoke.py
+        run: python ops/scripts/quickstart_smoke.py
 
   full-platform-demo-coverage:
     name: Full Platform Demo Coverage Gate
@@ -529,7 +529,7 @@ jobs:
           pip install -e .
 
       - name: Validate demo fixtures (must cover >= 25 agents)
-        run: python scripts/validate_demo_fixtures.py
+        run: python ops/scripts/validate_demo_fixtures.py
 
       - name: Run full platform demo smoke (must execute 25 agents)
         run: python ops/scripts/full_platform_demo_smoke.py
@@ -698,7 +698,7 @@ jobs:
             context: apps/analytics-service
           - service: connector-hub
             dockerfile: Dockerfile
-            context: apps/connector-hub
+            context: integrations/apps/connector-hub
           - service: document-service
             dockerfile: Dockerfile
             context: apps/document-service

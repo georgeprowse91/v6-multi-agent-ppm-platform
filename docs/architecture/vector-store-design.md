@@ -12,7 +12,7 @@ The platform now supports a shard-aware FAISS-backed vector store implementation
   - Exposes `add_embeddings`, `search`, `search_many`, `delete`, and `flush`.
 - **Agent integration adapter**: `FaissBackedVectorSearchIndex` in `agents/common/integration_services.py`.
   - Preserves existing `add` and `search` style used by agents.
-  - Loads index tuning from `ops/config/vector_store.yaml`.
+  - Loads index tuning from `ops/ops/config/vector_store.yaml`.
   - Stores metadata separately and merges metadata into search results.
 
 ## Scalability controls
@@ -45,7 +45,7 @@ The platform now supports a shard-aware FAISS-backed vector store implementation
 
 ## Operational tuning
 
-Configure index settings in `ops/config/vector_store.yaml`:
+Configure index settings in `ops/ops/config/vector_store.yaml`:
 
 - `num_shards`: parallelism and index partitioning.
 - `nlist`: coarse cluster count for IVF.

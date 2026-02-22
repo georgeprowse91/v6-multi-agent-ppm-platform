@@ -10,7 +10,7 @@ _TRUTHY_VALUES = {"1", "true", "yes", "on"}
 
 
 def _load_common_config() -> dict[str, Any]:
-    config_path = Path(__file__).resolve().parent / "config" / "common.yaml"
+    config_path = Path(__file__).resolve().parents[2] / "ops" / "config" / "common.yaml"
     if not config_path.exists():
         return {}
     try:

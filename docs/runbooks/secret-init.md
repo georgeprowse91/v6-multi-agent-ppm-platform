@@ -9,7 +9,7 @@ This runbook documents how to bootstrap secrets for new environments.
 
 ## Initial bootstrap
 1. **Create Key Vault**
-   - Provision Key Vault via Terraform (`infra/terraform/main.tf`).
+   - Provision Key Vault via Terraform (`ops/infra/terraform/main.tf`).
 2. **Create secret namespace**
    - Use a dedicated prefix per environment (e.g., `prod-`, `staging-`).
 3. **Seed baseline secrets**
@@ -18,9 +18,9 @@ This runbook documents how to bootstrap secrets for new environments.
    - JWT signing keys and JWKS URL
    - Connector API credentials (Jira, ServiceNow, Azure DevOps)
 4. **Configure Kubernetes CSI driver**
-   - Apply `infra/kubernetes/secret-provider-class.yaml`.
+   - Apply `ops/infra/kubernetes/secret-provider-class.yaml`.
    - Verify workloads mount secrets at runtime.
-   - Ensure the workload identity service account in `infra/kubernetes/service-account.yaml` is annotated with the Key Vault client ID and tenant ID.
+   - Ensure the workload identity service account in `ops/infra/kubernetes/service-account.yaml` is annotated with the Key Vault client ID and tenant ID.
    - Confirm pods are labeled with `azure.workload.identity/use: "true"` for AKS workload identity.
 
 ## Secret naming and mount conventions
@@ -35,9 +35,9 @@ This runbook documents how to bootstrap secrets for new environments.
 
 ## Provisioning steps (AKS + Key Vault)
 1. **Create/verify Key Vault secrets**
-   - Add secrets for endpoints, identity, observability, and connector credentials using the same names referenced in `config/environments/prod.yaml`.
+   - Add secrets for endpoints, identity, observability, and connector credentials using the same names referenced in `ops/config/environments/prod.yaml`.
 2. **Apply SecretProviderClass**
-   - Ensure `infra/kubernetes/secret-provider-class.yaml` lists the secret names to mount.
+   - Ensure `ops/infra/kubernetes/secret-provider-class.yaml` lists the secret names to mount.
 3. **Deploy workloads**
    - The CSI driver mounts secrets to `/mnt/secrets-store` and optionally syncs them to Kubernetes Secrets via `secretObjects`.
 

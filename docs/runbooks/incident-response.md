@@ -132,7 +132,7 @@ az monitor app-insights query --app ppm-production-appinsights \
   --analytics-query "requests | where timestamp > ago(15m) | summarize count() by resultCode"
 
 # Validate data integrity
-python scripts/validate-data-integrity.py --tenant-id <affected-tenant>
+python ops/scripts/validate-data-integrity.py --tenant-id <affected-tenant>
 ```
 
 - Confirm metrics return to SLO targets

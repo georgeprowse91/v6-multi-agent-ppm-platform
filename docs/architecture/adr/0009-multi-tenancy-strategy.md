@@ -10,7 +10,7 @@ The platform serves multiple tenants and must enforce tenant isolation while kee
 
 ## Decision
 
-Use logical multi-tenancy enforced by headers and JWT claims. Services persist a `tenant_id` attribute alongside records and validate that the calling tenant matches stored data. Tenant configuration is stored under `config/tenants/` and used to bootstrap identity settings.
+Use logical multi-tenancy enforced by headers and JWT claims. Services persist a `tenant_id` attribute alongside records and validate that the calling tenant matches stored data. Tenant configuration is stored under `ops/config/tenants/` and used to bootstrap identity settings.
 
 ## Consequences
 
@@ -21,5 +21,5 @@ Use logical multi-tenancy enforced by headers and JWT claims. Services persist a
 ## References
 
 - `apps/api-gateway/src/api/middleware/security.py`
-- `config/tenants/default.yaml`
+- `ops/config/tenants/default.yaml`
 - `docs/architecture/tenancy-architecture.md`

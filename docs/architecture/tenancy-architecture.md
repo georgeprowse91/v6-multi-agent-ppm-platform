@@ -6,7 +6,7 @@ Define the multi-tenancy model, tenant isolation boundaries, and configuration f
 
 ## Architecture-level context
 
-Tenant-aware routing is enforced at the API gateway and service layers. Each request includes a tenant identifier and is validated against configured identity and RBAC policies. Tenant configuration assets live under `config/tenants/`, while authorization policies and data classification rules live under `config/rbac/` and `config/data-classification/`.
+Tenant-aware routing is enforced at the API gateway and service layers. Each request includes a tenant identifier and is validated against configured identity and RBAC policies. Tenant configuration assets live under `ops/config/tenants/`, while authorization policies and data classification rules live under `ops/config/rbac/` and `ops/config/data-classification/`.
 
 ## Tenant identification and request flow
 
@@ -24,14 +24,14 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 
 | Asset | Path | Purpose |
 | --- | --- | --- |
-| Tenant defaults | `config/tenants/default.yaml` | Identity issuer, JWKS URL, and tenant metadata. |
-| RBAC roles/permissions | `config/rbac/roles.yaml`, `config/rbac/permissions.yaml` | Roles and permissions used by middleware and policy engine. |
-| Field-level rules | `config/rbac/field-level.yaml` | Classification and field masking rules. |
-| Data classification | `config/data-classification/levels.yaml` | Classification levels and retention policy bindings. |
+| Tenant defaults | `ops/config/tenants/default.yaml` | Identity issuer, JWKS URL, and tenant metadata. |
+| RBAC roles/permissions | `ops/config/rbac/roles.yaml`, `ops/config/rbac/permissions.yaml` | Roles and permissions used by middleware and policy engine. |
+| Field-level rules | `ops/config/rbac/field-level.yaml` | Classification and field masking rules. |
+| Data classification | `ops/config/data-classification/levels.yaml` | Classification levels and retention policy bindings. |
 
 ## Operational guidance
 
-1. Create a tenant configuration file under `config/tenants/` for each deployment.
+1. Create a tenant configuration file under `ops/config/tenants/` for each deployment.
 2. Configure identity settings in environment variables or tenant config (issuer, JWKS URL, audience).
 3. Validate RBAC/field-level rules before onboarding users.
 4. Ensure Helm chart values define per-environment secret references (Key Vault or other secret stores).
@@ -40,7 +40,7 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 
 - Inspect the tenant config:
   ```bash
-  sed -n '1,120p' config/tenants/default.yaml
+  sed -n '1,120p' ops/config/tenants/default.yaml
   ```
 - Confirm API gateway tenant enforcement:
   ```bash
@@ -54,7 +54,7 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 ## Implementation status
 
 - **Implemented:** Tenant headers, JWT validation, RBAC enforcement, and tenant-scoped data records.
-- **Implemented:** Namespace-per-tenant isolation and automated provisioning scripts in `infra/tenancy/`.
+- **Implemented:** Namespace-per-tenant isolation and automated provisioning scripts in `ops/infra/tenancy/`.
 
 ## Related docs
 

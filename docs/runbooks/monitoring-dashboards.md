@@ -3,8 +3,8 @@
 This runbook describes the dashboards used to monitor production health.
 
 ## Primary dashboards
-- **SLO Dashboard:** `infra/observability/dashboards/ppm-slo.json` for latency, error rate, and availability.
-- **Alert overview:** `infra/observability/alerts/ppm-alerts.yaml` defines alert rules tied to SLOs.
+- **SLO Dashboard:** `ops/infra/observability/dashboards/ppm-slo.json` for latency, error rate, and availability.
+- **Alert overview:** `ops/infra/observability/alerts/ppm-alerts.yaml` defines alert rules tied to SLOs.
 - **Tracing view:** OpenTelemetry traces for end-to-end workflow execution.
 - **Connector health:** monitor sync lag, error rates, and job throughput.
 

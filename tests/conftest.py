@@ -42,7 +42,8 @@ _PYTEST_CONFIG = None
 
 def _bootstrap_paths() -> None:
     root = Path(__file__).resolve().parents[1]
-    ordered_paths = [root]
+    # vendor/stubs must be first so shims shadow any installed packages
+    ordered_paths = [root / "vendor" / "stubs", root / "vendor", root]
     src_paths = []
 
     for base in (

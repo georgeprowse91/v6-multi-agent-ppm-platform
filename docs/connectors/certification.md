@@ -13,7 +13,7 @@ Certification ensures connectors enforce the same security, data quality, and op
 | Step | Evidence | Artifact path |
 | --- | --- | --- |
 | Schema coverage | Mapping files cover required fields | `integrations/connectors/<name>/mappings/*.yaml` |
-| Auth validation | Token flow tested and rotated | `config/<env>/connector-auth.yaml` |
+| Auth validation | Token flow tested and rotated | `ops/config/<env>/connector-auth.yaml` |
 | Sandbox tests | CRUD against vendor sandbox | `integrations/connectors/<name>/tests/` |
 | Rate-limit handling | Retry policy documented | `integrations/connectors/<name>/manifest.yaml` |
 | Security review | Secrets stored in vault | `docs/architecture/security-architecture.md` |
@@ -42,7 +42,7 @@ Expected output: mapping files such as `project.yaml`.
 Run the automated certification harness to validate manifests, mapping coverage, and contract tests. The command emits a report artifact used by CI:
 
 ```bash
-python scripts/connector-certification.py --output artifacts/connector-certification-report.json --run-tests
+python ops/scripts/connector-certification.py --output artifacts/connector-certification-report.json --run-tests
 ```
 
 The report includes per-connector results plus a summary status.

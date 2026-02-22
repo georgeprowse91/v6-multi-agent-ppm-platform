@@ -6,7 +6,7 @@
 
 **Purpose:** Provide portfolio, program, project, budget, and risk management with multi-agent orchestration, audit logging, and policy enforcement.
 
-**Deployment model:** Azure Kubernetes Service (AKS) with managed Postgres, Redis, and Blob Storage. Infrastructure is defined in Terraform (`infra/terraform/main.tf`).
+**Deployment model:** Azure Kubernetes Service (AKS) with managed Postgres, Redis, and Blob Storage. Infrastructure is defined in Terraform (`ops/infra/terraform/main.tf`).
 
 ## 2. Data processing summary
 
@@ -42,7 +42,7 @@
 ## 4. Data minimization and retention
 
 - Only required identifiers, role data, and operational metadata are stored.
-- Retention policies are enforced per classification (`config/retention/policies.yaml`) with automated pruning.
+- Retention policies are enforced per classification (`ops/config/retention/policies.yaml`) with automated pruning.
 - Audit events include `retention_policy` and `retention_until` fields to enforce deletion after expiry.
 
 ## 5. Security measures

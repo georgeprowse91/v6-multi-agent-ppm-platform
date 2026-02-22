@@ -24,7 +24,7 @@ The platform uses the Model Context Protocol (MCP), a JSON-RPC protocol that exp
 - **API tokens**: stored in vault and scoped to the connector.
 - **Service accounts**: for systems that only support basic auth.
 
-Auth configuration lives in environment-specific files under `config/` and is referenced by connector manifests.
+Auth configuration lives in environment-specific files under `ops/config/` and is referenced by connector manifests.
 
 ## Project-level configuration
 

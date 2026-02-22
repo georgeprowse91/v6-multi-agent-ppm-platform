@@ -11,7 +11,7 @@ The platform needs traceability for data flowing from connectors through agents 
 ## Decision
 
 - Use JSON lineage artifacts under `data/lineage/` to document source-to-target transformations.
-- Implement an audit log service that validates events against `data/schemas/audit-event.schema.json`, applies retention policies from `config/retention/policies.yaml`, and stores events in immutable storage.
+- Implement an audit log service that validates events against `data/schemas/audit-event.schema.json`, applies retention policies from `ops/config/retention/policies.yaml`, and stores events in immutable storage.
 
 ## Consequences
 

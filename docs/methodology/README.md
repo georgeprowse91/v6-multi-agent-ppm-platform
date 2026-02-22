@@ -27,7 +27,7 @@ These documents are referenced by the root README and provide the canonical expl
 Validate internal links across docs:
 
 ```bash
-python scripts/check-links.py
+python ops/scripts/check-links.py
 ```
 
 ## Configuration

@@ -57,7 +57,7 @@ These targets are aligned with the SLO template in `docs/templates/quality/slo-a
 ## Implementation status
 
 - **Implemented:** Metrics middleware in services and apps.
-- **Implemented:** Grafana dashboards and error budget alerts in `infra/observability/dashboards` and `infra/observability/alerts`.
+- **Implemented:** Grafana dashboards and error budget alerts in `ops/infra/observability/dashboards` and `ops/infra/observability/alerts`.
 
 ## Related docs
 

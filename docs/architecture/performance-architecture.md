@@ -6,7 +6,7 @@ Define performance targets, caching strategies, and workload assumptions for the
 
 ## Architecture-level context
 
-Performance tuning spans the API gateway, agent orchestration, connector sync schedules, and data storage. Performance targets inform infrastructure sizing in `infra/` and SLOs in `docs/runbooks/slo-sli.md`.
+Performance tuning spans the API gateway, agent orchestration, connector sync schedules, and data storage. Performance targets inform infrastructure sizing in `ops/infra/` and SLOs in `docs/runbooks/slo-sli.md`.
 
 ## Performance targets (initial)
 
@@ -70,7 +70,7 @@ Use the `LOAD_PROFILE` environment variable to select SLA thresholds for `ci`, `
 
 ## Where to view latency and error metrics
 
-Use the Grafana dashboards exported under `infra/observability/dashboards`:
+Use the Grafana dashboards exported under `ops/infra/observability/dashboards`:
 
 - `ppm-platform.json` for latency, throughput, and error rates across services.
 - `ppm-slo.json` for SLO compliance and error budget burn.

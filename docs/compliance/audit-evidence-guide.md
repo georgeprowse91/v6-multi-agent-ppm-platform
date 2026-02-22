@@ -9,17 +9,17 @@ Enumerate auditable evidence sources and how to collect them for compliance revi
 | Evidence type | Source | Validation steps |
 | --- | --- | --- |
 | Audit log events | `services/audit-log` storage | Query `/v1/audit/events/{id}` and verify retention metadata. |
-| Retention policies | `config/retention/policies.yaml` | Confirm retention durations and storage class. |
-| Data classification | `config/data-classification/levels.yaml` | Validate classification-to-retention mappings. |
-| RBAC configuration | `config/rbac/*.yaml` | Review roles, permissions, and field masking rules. |
-| Infrastructure as code | `infra/terraform/` | Validate Terraform plan/apply evidence. |
+| Retention policies | `ops/config/retention/policies.yaml` | Confirm retention durations and storage class. |
+| Data classification | `ops/config/data-classification/levels.yaml` | Validate classification-to-retention mappings. |
+| RBAC configuration | `ops/config/rbac/*.yaml` | Review roles, permissions, and field masking rules. |
+| Infrastructure as code | `ops/infra/terraform/` | Validate Terraform plan/apply evidence. |
 | Helm deployments | `apps/*/helm`, `services/*/helm` | Archive Helm release manifests. |
 | CI/CD validation | `.github/workflows/*.yml` | Store CI logs for docs checks, linting, and tests. |
 
 ## Evidence collection workflow
 
 1. **Audit log samples:** Pull a representative sample of audit events from the audit log service.
-2. **Configuration snapshot:** Export the latest `config/` directory for the tenant.
+2. **Configuration snapshot:** Export the latest `ops/config/` directory for the tenant.
 3. **Deployment evidence:** Save Terraform plans and Helm release manifests.
 4. **CI logs:** Archive CI runs proving schema, manifest, and doc validation.
 
@@ -31,7 +31,7 @@ Enumerate auditable evidence sources and how to collect them for compliance revi
   ```
 - Validate the retention policy file exists:
   ```bash
-  ls config/retention/policies.yaml
+  ls ops/config/retention/policies.yaml
   ```
 
 ## Implementation status

@@ -70,7 +70,7 @@ Use this flow when you want the full presenter-ready run across all 25 agents.
 
 ```bash
 DEMO_MODE=true make dev-up
-python ops/scripts/full_platform_demo_run.py
+python ops/ops/scripts/full_platform_demo_run.py
 ```
 
 Expected output from `full_platform_demo_run.py`:
@@ -97,7 +97,7 @@ Use this when you need a shared hosted environment for customers or internal ena
 2. Prepare Terraform variables:
 
    ```bash
-   cd infra/terraform/envs/demo
+   cd ops/infra/terraform/envs/demo
    cp terraform.tfvars.example terraform.tfvars
    # edit terraform.tfvars values
    ```
@@ -118,10 +118,10 @@ After infrastructure exists and `kubectl` context is configured for the demo clu
 
 ```bash
 helm upgrade --install ppm-platform-demo \
-  infra/kubernetes/helm-charts/ppm-platform \
+  ops/infra/kubernetes/helm-charts/ppm-platform \
   --namespace ppm-demo \
   --create-namespace \
-  -f infra/kubernetes/helm-charts/ppm-platform/demo-values.yaml
+  -f ops/infra/kubernetes/helm-charts/ppm-platform/demo-values.yaml
 ```
 
 Verify deployment health:
@@ -144,7 +144,7 @@ Set `DEMO_MODE=true` and start the stack. In demo mode, dashboard and scenario v
 Use the smoke script to execute deterministic demo interactions against workflow + API applications:
 
 ```bash
-python ops/scripts/quickstart_smoke.py
+python ops/ops/scripts/quickstart_smoke.py
 ```
 
 This script uses `examples/demo-scenarios/quickstart-*.json` payloads and mock LLM responses for repeatable runs.
@@ -162,7 +162,7 @@ Use scenario artifacts for walkthroughs, regression demos, and training:
 2. Start demo stack (`DEMO_MODE=true`) and execute script-driven flow:
 
    ```bash
-   python ops/scripts/quickstart_smoke.py
+   python ops/ops/scripts/quickstart_smoke.py
    ```
 
 3. Drive UI walkthroughs using the demo dashboard route:
@@ -184,9 +184,9 @@ Recommended scripted flow order:
 Use this quick checklist right before each customer-facing session:
 
 1. Reset the environment state and clear caches.
-2. Regenerate demo data (`./scripts/reset_demo_data.sh --regenerate --size <N> --seed <S>`).
+2. Regenerate demo data (`./ops/scripts/reset_demo_data.sh --regenerate --size <N> --seed <S>`).
 3. Load regenerated data into configured stores.
-4. Run a smoke check (`python ops/scripts/quickstart_smoke.py`).
+4. Run a smoke check (`python ops/ops/scripts/quickstart_smoke.py`).
 5. Open key demo URLs (API docs, web console, and scenario route) to verify readiness.
 
 ## Reset the demo environment
@@ -215,25 +215,25 @@ make db-reset
 
 ### Reset and regenerate with helper script
 
-Use `scripts/reset_demo_data.sh` to run a full refresh workflow: stop app services, recreate the PostgreSQL demo database, clear Redis cache, run migrations, reload demo JSON/CSV assets, and start services again.
+Use `ops/scripts/reset_demo_data.sh` to run a full refresh workflow: stop app services, recreate the PostgreSQL demo database, clear Redis cache, run migrations, reload demo JSON/CSV assets, and start services again.
 
 ```bash
-./scripts/reset_demo_data.sh
+./ops/scripts/reset_demo_data.sh
 ```
 
 To generate a fresh dataset before loading, pass `--regenerate` (optionally with generator args):
 
 ```bash
-./scripts/reset_demo_data.sh --regenerate --size 5 --seed 123
+./ops/scripts/reset_demo_data.sh --regenerate --size 5 --seed 123
 ```
 
-The regeneration step uses `scripts/generate_demo_data.py`, which can also be run standalone to rewrite the canonical demo files under `data/demo/*.json` and the `data/seed/manifest.csv` summary.
+The regeneration step uses `ops/scripts/generate_demo_data.py`, which can also be run standalone to rewrite the canonical demo files under `data/demo/*.json` and the `data/seed/manifest.csv` summary.
 
 ```bash
-python scripts/generate_demo_data.py --size 4 --seed 77
+python ops/scripts/generate_demo_data.py --size 4 --seed 77
 ```
 
-> `generate_demo_data.py` uses Faker when available and otherwise falls back to built-in pseudo-random generators, while preserving canonical entity shapes expected by `scripts/load_demo_data.py`.
+> `generate_demo_data.py` uses Faker when available and otherwise falls back to built-in pseudo-random generators, while preserving canonical entity shapes expected by `ops/scripts/load_demo_data.py`.
 
 ### Reset cloud demo deployment
 
@@ -241,12 +241,12 @@ python scripts/generate_demo_data.py --size 4 --seed 77
 
   ```bash
   helm upgrade --install ppm-platform-demo \
-    infra/kubernetes/helm-charts/ppm-platform \
+    ops/infra/kubernetes/helm-charts/ppm-platform \
     --namespace ppm-demo \
-    -f infra/kubernetes/helm-charts/ppm-platform/demo-values.yaml
+    -f ops/infra/kubernetes/helm-charts/ppm-platform/demo-values.yaml
   ```
 
-- If full rebuild is required, destroy and reprovision with Terraform in `infra/terraform/envs/demo`.
+- If full rebuild is required, destroy and reprovision with Terraform in `ops/infra/terraform/envs/demo`.
 
 ## Demo mode vs production mode
 

@@ -41,7 +41,7 @@ Connector interactions are protected by an in-memory circuit breaker in the API 
 
 ## DR and backup strategy
 
-PostgreSQL and Redis backups run as Kubernetes CronJobs with encrypted object storage uploads (see `infra/kubernetes/manifests/backup-jobs.yaml`). The jobs create an on-demand dump and push it to a secured bucket using credentials stored in Kubernetes Secrets (`postgres-credentials`, `redis-credentials`, `backup-credentials`).
+PostgreSQL and Redis backups run as Kubernetes CronJobs with encrypted object storage uploads (see `ops/infra/kubernetes/manifests/backup-jobs.yaml`). The jobs create an on-demand dump and push it to a secured bucket using credentials stored in Kubernetes Secrets (`postgres-credentials`, `redis-credentials`, `backup-credentials`).
 
 | Store | Schedule (UTC) | CronJob | Storage |
 | --- | --- | --- | --- |

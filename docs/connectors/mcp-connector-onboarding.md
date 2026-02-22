@@ -25,7 +25,7 @@ Use this guide when you need to:
    - Confirm the tool names match the connector’s expected operations before enabling MCP preference.
 
 3. **Configure connector defaults**
-   - Set MCP defaults in the connector configuration layer (env or `config/connectors/integrations.yaml`).
+   - Set MCP defaults in the connector configuration layer (env or `ops/config/connectors/integrations.yaml`).
    - Ensure `mcp_server_url`, `mcp_server_id`, and credentials are provided via secrets or environment variables.
    - Leave REST connector settings in place to preserve fallback behavior.
 

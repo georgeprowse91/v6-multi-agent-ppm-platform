@@ -16,17 +16,17 @@ python -m build --sdist --wheel
 ```bash
 make lint
 make test-cov
-python scripts/validate-schemas.py
-python scripts/validate-manifests.py
-python scripts/quickstart_smoke.py
+python ops/scripts/validate-schemas.py
+python ops/scripts/validate-manifests.py
+python ops/scripts/quickstart_smoke.py
 ```
 
 ## Security & Compliance Scans
 ```bash
 make secret-scan
-python scripts/generate-sbom.py
-python scripts/sign-artifact.py
-python scripts/verify-signature.py
+python ops/scripts/generate-sbom.py
+python ops/scripts/sign-artifact.py
+python ops/scripts/verify-signature.py
 ```
 
 CI also runs:
@@ -43,8 +43,8 @@ CI also runs:
 ## Deploy
 ### Kubernetes + Helm
 ```bash
-helm dependency build infra/kubernetes/helm-charts/ppm-platform
-helm lint infra/kubernetes/helm-charts/ppm-platform \
+helm dependency build ops/infra/kubernetes/helm-charts/ppm-platform
+helm lint ops/infra/kubernetes/helm-charts/ppm-platform \
   --set audit-log.keyVault.name=kv-sample \
   --set audit-log.keyVault.tenantId=tenant-sample \
   --set audit-log.keyVault.clientId=client-sample

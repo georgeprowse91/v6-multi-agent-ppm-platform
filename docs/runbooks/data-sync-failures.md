@@ -35,7 +35,7 @@ Restore connector syncs when jobs back up, fail, or produce partial data.
 
 ### 1) Validate connector configuration
 
-- Confirm the connector is enabled in `config/connectors/integrations.yaml`.
+- Confirm the connector is enabled in `ops/config/connectors/integrations.yaml`.
 - Ensure manifest and mapping files exist (e.g., `integrations/connectors/jira/manifest.yaml`).
 
 ### 2) Validate mappings

@@ -729,7 +729,7 @@ Compliance incidents require prompt reporting, investigation, and remediation to
 6. **Closure and Lessons Learned:**
    - Confirm issue resolution
    - Document lessons learned
-   - Update policies/procedures
+   - Update ops/config/procedures
    - Enhance training if needed
    - Close incident record
 

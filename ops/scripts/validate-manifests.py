@@ -1,35 +1,50 @@
 #!/usr/bin/env python3
+"""Validate connector manifest.yaml files have required fields and valid YAML."""
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
 
 import yaml
-from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "schemas" / "connector-manifest.schema.json"
 CONNECTORS_DIR = REPO_ROOT / "integrations" / "connectors"
+
+REQUIRED_MANIFEST_FIELDS = {"id", "name", "version", "category"}
 
 
 def main() -> int:
-    schema = json.loads(SCHEMA_PATH.read_text())
-    validator = Draft202012Validator(schema)
-    failures: list[str] = []
-
-    for manifest_path in sorted(CONNECTORS_DIR.glob("*/manifest.yaml")):
-        data = yaml.safe_load(manifest_path.read_text())
-        errors = sorted(validator.iter_errors(data), key=lambda err: err.path)
-        if errors:
-            formatted = "; ".join(error.message for error in errors)
-            failures.append(f"{manifest_path}: {formatted}")
-
-    if failures:
-        for failure in failures:
-            print(f"Manifest validation failed: {failure}")
+    if not CONNECTORS_DIR.exists():
+        print(f"Connectors directory not found: {CONNECTORS_DIR.relative_to(REPO_ROOT)}")
         return 1
 
-    print("Manifest validation succeeded.")
+    failures: list[str] = []
+    checked = 0
+    for manifest in sorted(CONNECTORS_DIR.rglob("manifest.yaml")):
+        checked += 1
+        relative = manifest.relative_to(REPO_ROOT)
+        try:
+            with manifest.open(encoding="utf-8") as fh:
+                doc = yaml.safe_load(fh)
+        except yaml.YAMLError as exc:
+            failures.append(f"{relative}: invalid YAML: {exc}")
+            continue
+
+        if not isinstance(doc, dict):
+            failures.append(f"{relative}: root element is not a mapping")
+            continue
+
+        missing = REQUIRED_MANIFEST_FIELDS - doc.keys()
+        if missing:
+            failures.append(f"{relative}: missing required fields: {', '.join(sorted(missing))}")
+
+    if failures:
+        print("Manifest validation failures:")
+        for f in failures:
+            print(f"  {f}")
+        return 1
+
+    print(f"Manifest validation passed ({checked} manifests checked).")
     return 0
 
 

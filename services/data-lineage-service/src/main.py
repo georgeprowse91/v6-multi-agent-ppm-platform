@@ -42,8 +42,8 @@ logger = logging.getLogger("data-lineage-service")
 logging.basicConfig(level=logging.INFO)
 
 DEFAULT_STORE_PATH = "services/data-lineage-service/storage/lineage.db"
-DEFAULT_RETENTION_CONFIG = "config/retention/policies.yaml"
-DEFAULT_CLASSIFICATION_CONFIG = "config/data-classification/levels.yaml"
+DEFAULT_RETENTION_CONFIG = "ops/config/retention/policies.yaml"
+DEFAULT_CLASSIFICATION_CONFIG = "ops/config/data-classification/levels.yaml"
 DEFAULT_RULES_PATH = "data/quality/rules.yaml"
 
 

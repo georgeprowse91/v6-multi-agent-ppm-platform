@@ -9,7 +9,7 @@ on:
       - "apps/**"
       - "services/**"
       - "connectors/**"
-      - "infra/kubernetes/**"
+      - "ops/ops/infra/kubernetes/**"
       - "**/helm/**"
   push:
     branches: [main]
@@ -20,7 +20,7 @@ on:
       - "apps/**"
       - "services/**"
       - "connectors/**"
-      - "infra/kubernetes/**"
+      - "ops/ops/infra/kubernetes/**"
       - "**/helm/**"
   workflow_dispatch:
 

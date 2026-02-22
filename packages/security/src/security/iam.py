@@ -17,7 +17,7 @@ def _load_mapping(path: Path) -> dict[str, Any]:
 
 
 def map_groups_to_roles(claims: dict[str, Any]) -> list[str]:
-    mapping_path = Path(os.getenv("IAM_ROLE_MAPPING_PATH", "config/iam/role-mapping.yaml"))
+    mapping_path = Path(os.getenv("IAM_ROLE_MAPPING_PATH", "ops/config/iam/role-mapping.yaml"))
     mapping = _load_mapping(mapping_path)
     group_map = mapping.get("groups", {})
     group_ids = claims.get("groups") or []

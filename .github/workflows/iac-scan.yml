@@ -3,18 +3,18 @@ name: IaC Scan
 on:
   pull_request:
     paths:
-      - "infra/**"
+      - "ops/infra/**"
       - "**/*.tf"
       - "**/*.tfvars"
-      - "infra/kubernetes/**"
+      - "ops/infra/kubernetes/**"
       - "**/helm/**"
   push:
     branches: [main]
     paths:
-      - "infra/**"
+      - "ops/infra/**"
       - "**/*.tf"
       - "**/*.tfvars"
-      - "infra/kubernetes/**"
+      - "ops/infra/kubernetes/**"
       - "**/helm/**"
   workflow_dispatch:
 

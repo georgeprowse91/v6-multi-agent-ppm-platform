@@ -55,7 +55,7 @@ This directory contains the canonical documentation set for the multi-agent PPM 
 Validate internal links across docs:
 
 ```bash
-python scripts/check-links.py
+python ops/scripts/check-links.py
 ```
 
 ## Configuration

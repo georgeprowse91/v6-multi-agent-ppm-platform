@@ -1,6 +1,0 @@
-apiVersion: v2
-name: ppm-otel-collector
-description: OpenTelemetry Collector for PPM Platform observability
-type: application
-version: 0.1.0
-appVersion: "0.92.0"

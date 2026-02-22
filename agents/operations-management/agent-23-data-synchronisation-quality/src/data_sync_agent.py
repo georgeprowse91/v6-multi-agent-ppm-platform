@@ -1387,9 +1387,9 @@ class DataSyncAgent(BaseAgent):
 
     def _load_validation_rules(self) -> dict[str, list[dict[str, Any]]]:
         rules_path = (
-            Path(self.config.get("validation_rules_path", "config/agent-23/validation_rules.yaml"))
+            Path(self.config.get("validation_rules_path", "ops/config/agent-23/validation_rules.yaml"))
             if self.config
-            else Path("config/agent-23/validation_rules.yaml")
+            else Path("ops/config/agent-23/validation_rules.yaml")
         )
         if not rules_path.exists():
             return {}
@@ -1405,11 +1405,11 @@ class DataSyncAgent(BaseAgent):
         thresholds_path = (
             Path(
                 self.config.get(
-                    "quality_thresholds_path", "config/agent-23/quality_thresholds.yaml"
+                    "quality_thresholds_path", "ops/config/agent-23/quality_thresholds.yaml"
                 )
             )
             if self.config
-            else Path("config/agent-23/quality_thresholds.yaml")
+            else Path("ops/config/agent-23/quality_thresholds.yaml")
         )
         if not thresholds_path.exists():
             return {}
@@ -1435,9 +1435,9 @@ class DataSyncAgent(BaseAgent):
         self,
     ) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
         registry_path = (
-            Path(self.config.get("schema_registry_path", "config/agent-23/schema_registry.yaml"))
+            Path(self.config.get("schema_registry_path", "ops/config/agent-23/schema_registry.yaml"))
             if self.config
-            else Path("config/agent-23/schema_registry.yaml")
+            else Path("ops/config/agent-23/schema_registry.yaml")
         )
         if not registry_path.exists():
             return {}, {}
@@ -1462,9 +1462,9 @@ class DataSyncAgent(BaseAgent):
 
     def _load_mapping_rules(self) -> list[dict[str, Any]]:
         mapping_path = (
-            Path(self.config.get("mapping_rules_path", "config/agent-23/mapping_rules.yaml"))
+            Path(self.config.get("mapping_rules_path", "ops/config/agent-23/mapping_rules.yaml"))
             if self.config
-            else Path("config/agent-23/mapping_rules.yaml")
+            else Path("ops/config/agent-23/mapping_rules.yaml")
         )
         if not mapping_path.exists():
             return []
@@ -1777,9 +1777,9 @@ class DataSyncAgent(BaseAgent):
 
     def _load_pipeline_config(self) -> tuple[list[str], list[str]]:
         config_path = (
-            Path(self.config.get("pipeline_config_path", "config/agent-23/pipelines.yaml"))
+            Path(self.config.get("pipeline_config_path", "ops/config/agent-23/pipelines.yaml"))
             if self.config
-            else Path("config/agent-23/pipelines.yaml")
+            else Path("ops/config/agent-23/pipelines.yaml")
         )
         if not config_path.exists():
             return [], []

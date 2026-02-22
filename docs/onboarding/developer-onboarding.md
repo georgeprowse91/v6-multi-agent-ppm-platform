@@ -19,7 +19,7 @@ locally, understand core services, and start contributing safely.
 - `services/`: audit log, data sync, data lineage, identity, policy, telemetry.
 - `agents/`: agent prompts, orchestrators, and domain agents.
 - `docs/`: architecture, compliance, runbooks, and this guide.
-- `infra/`: Terraform, Kubernetes, and observability artifacts.
+- `ops/infra/`: Terraform, Kubernetes, and observability artifacts.
 
 ## Setup checklist
 
