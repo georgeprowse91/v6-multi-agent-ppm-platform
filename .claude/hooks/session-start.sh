@@ -5,10 +5,11 @@ set -euo pipefail
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
+echo '{"async": true, "asyncTimeout": 300000}'
 
 cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}"
 
-echo "=== Installing pnpm workspace dependencies ==="
+pnpm --filter @ppm/web-ui run css-modules:types || echo "⚠️  css-modules:types failed (continuing)"
 pnpm install
 
 echo "=== Generating CSS module types ==="
